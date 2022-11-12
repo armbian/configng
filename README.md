@@ -12,7 +12,7 @@ may not include Python, C/C++, etc. build/runtime environments
 * `sudo apt install git`
 * `cd ~/`
 * `git clone https://github.com/armbian/configng.git`
-* `cd ~/configrd/test`
+* `cd ~/configng/test`
 * `sudo ./cpu_test.sh`
 If all goes well you should see all the functions in cpu.sh called and output diaplayed.
 
