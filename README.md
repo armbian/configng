@@ -1,4 +1,4 @@
-# configrd
+# configng
 This is a refactoring of [armbian-config](https://github.com/armbian/config) using [Bash Utility](https://labbots.github.io/bash-utility) 
 embedded in this project. This allows for functional programming in Bash and also modernizes 
 the monolithic nature of armbian-config. Error handling and validation are also included. 
