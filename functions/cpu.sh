@@ -175,6 +175,7 @@ cpu::set_freq(){
 	declare -i  min_freq=$2
 	declare -i  max_freq=$3
 	local  governor=$4
+	local cli=$5
 	# Return frequencies as array
 	declare -a freqs=( $(string::split "$(cpu::get_freqs $policy)" " ") )
 	# Return governors
