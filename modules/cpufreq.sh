@@ -45,6 +45,14 @@ check_return(){
 freq(){
   policy=$(cpu::get_policy)
 
+if [ -z "$1" ]; then
+    echo "'armbian-config cli cpufreq set' or 'armbian-config cli cpufreq help' for this help."
+    echo "You must provide settings 'armbian-config cli cpufreq set <min> <max> <governor>'"
+    echo "Use 'armbian-config cli cpufreq list' to list frequencies and governors"
+    echo "Use 'armbian-config cli cpufreq show' to show current settings"
+    exit 0
+fi
+
 if [ "$1" == "list" ]; then
   freqs_list=( $(string::split "$(cpu::get_freqs $policy)" " ") )
   check_return
@@ -58,14 +66,6 @@ if [ "$1" == "list" ]; then
   # Print all values in collection
   printf "%s\n" "${governors_list[@]}" | collection::each "print_func"
   exit 0;
-fi
-
-if [ -z "$1" ];
-    echo "'armbian-config cli cpufreq set' or 'armbian-config cli cpufreq help' for this help."
-    echo "You must provide settings 'armbian-config cli cpufreq set <min> <max> <governor>'"
-    echo "Use 'armbian-config cli cpufreq list' to list frequencies and governors"
-    echo "Use 'armbian-config cli cpufreq show' to show current settings"
-    exit 0
 fi
 
 if [ "$1" == "set" ] || [ "$1" == "help" ]; then
