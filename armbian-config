@@ -125,7 +125,9 @@ fi
         case $main in
 
                 "System" )
-                          freq
+                ## 'run' is being used to make sure $1 is not empty for cpufreq.sh
+                ## there is probably a lot better way long term to address this
+                          freq run
                           unset main
                 ;;
 
