@@ -179,35 +179,36 @@ cpu::set_freq(){
 	declare -a freqs=( $(string::split "$(cpu::get_freqs $policy)" " ") )
 	# Return governors
 	declare -a governors=( $(string::split "$(cpu::get_governors $policy)" " ") )
-if [ "$cli" == "1" ]; then
-        if [[ " ${freqs[*]} " =~ " ${min_freq} " ]]; then
-          sleep 0
-        else
-          echo "Invalid minimum frequency" && return 3
-        fi
-        if [[ " ${freqs[*]} " =~ " ${max_freq} " ]]; then
-          sleep 0
-        else
-          echo "Invalid maximum frequency" && return 4
-        fi
-        if [[ " ${governors[*]} " =~ " ${governor} " ]]; then
-          sleep 0
-        else
-          echo "Invalid governor" && return 4
-        fi
-        [ "$min_freq" -gt "$max_freq" ] && printf "%s: Minimum frequency must be <= maximum frequency\n" "${FUNCNAME[0]}" && return 5
-else
-        array::contains "$min_freq" ${freqs[@]}
-         [[ $? != 1 ]] && printf "%s: Invalid minimum frequency\n" "${FUNCNAME[0]}" && return 3
-         # Validate maximum frequency
-        array::contains "$max_freq" ${freqs[@]}
-         [[ $? != 1 ]] && printf "%s: Invalid maximum frequency\n" "${FUNCNAME[0]}" && return 4
-         # Validate minimum frequency is <= maximum frequency
-         [ "$min_freq" -gt "$max_freq" ] && printf "%s: Minimum frequency must be <= maximum frequency\n" "${FUNCNAME[0]}" && return 5
-         # Validate maximum governor
-        array::contains "$governor" ${governor[@]}
-         [[ $? != 0 ]] && printf "%s: Invalid minimum frequency\n" "${FUNCNAME[0]}" && return 6
-fi	
+
+	if [ "$cli" == "1" ]; then
+        	if [[ " ${freqs[*]} " =~ " ${min_freq} " ]]; then
+          	  sleep 0
+        	else
+          	  echo "Invalid minimum frequency" && return 3
+        	fi
+        	if [[ " ${freqs[*]} " =~ " ${max_freq} " ]]; then
+          	  sleep 0
+        	else
+          	  echo "Invalid maximum frequency" && return 4
+        	fi
+        	if [[ " ${governors[*]} " =~ " ${governor} " ]]; then
+	          sleep 0
+	        else
+	          echo "Invalid governor" && return 4
+	        fi
+	        [ "$min_freq" -gt "$max_freq" ] && printf "%s: Minimum frequency must be <= maximum frequency\n" "${FUNCNAME[0]}" && return 5
+	else
+	        array::contains "$min_freq" ${freqs[@]}
+	         [[ $? != 1 ]] && printf "%s: Invalid minimum frequency\n" "${FUNCNAME[0]}" && return 3
+	         # Validate maximum frequency
+	        array::contains "$max_freq" ${freqs[@]}
+	         [[ $? != 1 ]] && printf "%s: Invalid maximum frequency\n" "${FUNCNAME[0]}" && return 4
+	         # Validate minimum frequency is <= maximum frequency
+	         [ "$min_freq" -gt "$max_freq" ] && printf "%s: Minimum frequency must be <= maximum frequency\n" "${FUNCNAME[0]}" && return 5
+	         # Validate maximum governor
+	        array::contains "$governor" ${governor[@]}
+	         [[ $? != 0 ]] && printf "%s: Invalid minimum frequency\n" "${FUNCNAME[0]}" && return 6
+	fi	
 	 # Update file
 	sed -i "s/MIN_SPEED=.*/MIN_SPEED=$min_freq/" "$file"
 	sed -i "s/MAX_SPEED=.*/MAX_SPEED=$max_freq/" "$file"
