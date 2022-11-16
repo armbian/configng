@@ -60,9 +60,17 @@ if [ "$1" == "list" ]; then
   exit 0;
 fi
 
-if [ "$1" == "set" ] || [ "$1" == "--help" ]; then
+if [ -z "$1" ];
+    echo "'armbian-config cli cpufreq set' or 'armbian-config cli cpufreq help' for this help."
+    echo "You must provide settings 'armbian-config cli cpufreq set <min> <max> <governor>'"
+    echo "Use 'armbian-config cli cpufreq list' to list frequencies and governors"
+    echo "Use 'armbian-config cli cpufreq show' to show current settings"
+    exit 0
+fi
+
+if [ "$1" == "set" ] || [ "$1" == "help" ]; then
   if [ -z $2 ]; then
-    echo "'armbian-config cli cpufreq set' or 'armbian-config cli cpufreq --help' for this help."
+    echo "'armbian-config cli cpufreq set' or 'armbian-config cli cpufreq help' for this help."
     echo "You must provide settings 'armbian-config cli cpufreq set <min> <max> <governor>'"
     echo "Use 'armbian-config cli cpufreq list' to list frequencies and governors"
     echo "Use 'armbian-config cli cpufreq show' to show current settings"
@@ -70,14 +78,14 @@ if [ "$1" == "set" ] || [ "$1" == "--help" ]; then
   else
     cpu::set_freq "$policy" "$2" "$3" "$4" "$cli"
     cat /etc/default/cpufrequtils
-    read -p "Press any key to continue"
+    # read -p "Press any key to continue"
     exit 0
   fi
 fi
 
 if [ "$1" == "show" ]; then
     cat /etc/default/cpufrequtils
-    read -p "Press any key to continue"
+    # read -p "Press any key to continue"
     exit 0
 fi
 
