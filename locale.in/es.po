@@ -1,0 +1,14 @@
+msgid "/system"
+msgstr "Configuración del sistema y de seguridad"
+
+msgid "/network"
+msgstr "Cableado, inalámbrico, Bluetooth, punto de acceso"
+
+msgid "/personal"
+msgstr "Zona horaria, idioma, nombre de host"
+
+msgid "/software"
+msgstr "Instalación de software del sistema y de terceros"
+
+msgid "/help"
+msgstr "Documentación, soporte, fuentes"

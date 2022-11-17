@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# Start in known directory
+cd $(dirname $(readlink -f "$0"))
+
+# Shared functions
+
+# Will need sudo at some point
+#if [ "$UID" -ne 0 ]; then
+#    exec sudo "$0" "$@"
+#fi
+
+# Locate components
+export PREFIX=$(dirname "${PWD}")
+case "${PREFIX}" in
+    /usr*)
+	# Installed on system
+	export CONFIGDIR=/etc
+	export SHAREDIR=${PREFIX}/share/armbian-config
+	;;
+    *)
+	# Running from git repo
+	export CONFIGDIR=${PREFIX}/etc
+	export SHAREDIR=${PREFIX}/share
+	[ -x ../compile-locale.sh ] && ../compile-locale.sh
+	;;
+esac
+
+# Internationalization (i18n) setup
+export TEXTDOMAIN=armbian-reconfig
+export TEXTDOMAINDIR=${PREFIX}/locale
+if [ -z "${LANGUAGE}" ]; then
+    export LANGUAGE=en
+else
+    export LANGUAGE="${LANGUAGE}:en"
+fi
+
+if [[ -z $1 ]]; then
+
+	# Start up menu system
+	if [ -f "${CONFIGDIR}/armbian-config.cfg" ]; then
+	    . "${CONFIGDIR}/armbian-config.cfg"
+	fi
+	. "${SHAREDIR}/functions.sh"
+	menu_system "${SHAREDIR}/menu" /
+else
+
+	echo "Reading parameters $@"
+
+fi

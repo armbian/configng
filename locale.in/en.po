@@ -1,0 +1,20 @@
+msgid "This submenu is empty, returning"
+msgstr "This submenu is empty, returning"
+
+msgid "/"
+msgstr "Armbian-reconfig"
+
+msgid "/system"
+msgstr "System and security settings"
+
+msgid "/network"
+msgstr "Wired, wireless, Bluetooth, access point"
+
+msgid "/personal"
+msgstr "Timezone, language, hostname"
+
+msgid "/software"
+msgstr "System and 3rd party software install"
+
+msgid "/help"
+msgstr "Documentation, support, sources"
