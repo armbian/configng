@@ -57,7 +57,7 @@ printf "%s\n" "${desktops[@]}" | collection::each "print_func"
 # Before
 printf "\nBefore\n"
 #cat /etc/default/cpufrequtils
-desktop::set_de "xfce"
+desktop::set_de "xfce" "guest"
 # After
 printf "\nAfter\n"
 #cat /etc/default/cpufrequtils
