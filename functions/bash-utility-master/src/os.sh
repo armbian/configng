@@ -112,6 +112,39 @@ os::detect_linux_version() {
     printf "%s" "${distro_version}"
 }
 
+# @description Identify the Linux codename.
+#
+# @noargs
+#
+# @example
+#   os::detect_linux_codename
+#   #Output
+#   jammy
+#
+# @exitcode 0 If Linux codename is successfully detected.
+# @exitcode 1 If unable to detect Linux codename.
+#
+# @stdout Linux OS codename number (buster, jammy, etc.,).
+os::detect_linux_codename() {
+    declare distro_codename
+    if [[ -f /etc/os-release ]]; then
+        # shellcheck disable=SC1091
+        . "/etc/os-release"
+        distro_codename="${VERSION_CODENAME}"
+    elif type lsb_release >/dev/null 2>&1; then
+        # linuxbase.org
+        distro_codename=$(lsb_release -cs)
+    elif [[ -f /etc/lsb-release ]]; then
+        # For some versions of Debian/Ubuntu without lsb_release command
+        # shellcheck disable=SC1091
+        . /etc/lsb-release
+        distro_codename="${DISTRIB_CODENAME}"
+    else
+        return 1
+    fi
+    printf "%s" "${distro_codename}"
+}
+
 # @description Identify the MacOS version.
 #
 # @noargs
