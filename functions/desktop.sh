@@ -52,7 +52,7 @@ desktop::set_de(){
 	[[ $? -eq 130 ]] && dpkg --configure -a
 
 	# clean apt cache
-	apt clean
+	apt-get -y clean
 
 	# add user to groups
 	for additionalgroup in sudo netdev audio video dialout plugdev input bluetooth systemd-journal ssh; do
