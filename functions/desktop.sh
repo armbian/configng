@@ -46,7 +46,7 @@ desktop::set_de(){
 	[[ $? != 0 ]] && printf "%s: Invalid desktop\n" "${FUNCNAME[0]}" && return 3
 
 	# Install desktop
-	apt-get install --reinstall -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" --install-recommends $de lightdm lightdm-gtk-greeter
+	apt-get install -y --reinstall -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" --install-recommends $de lightdm lightdm-gtk-greeter
 
 	# in case previous install was interrupted
 	[[ $? -eq 130 ]] && dpkg --configure -a
