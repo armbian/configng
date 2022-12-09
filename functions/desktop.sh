@@ -24,15 +24,46 @@ desktop::get_variants(){
 	printf '%s\n' "$(apt list 2>/dev/null | grep armbian | grep desktop | grep -v bsp | cut -d" " -f1 | cut -d"/" -f1)"
 }
 
+# @description Display sessions per desktops
+#
+# @arg $1 string desktop [xfce,cinnamon,budgie,...]
+#
+desktop::get_session(){
+
+	# Check number of arguments
+	[[ $# -lt 1 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
+	case $1 in
+		gnome)
+			printf '%s\n' "ubuntu wayland"
+		;;
+		kde-plasma)
+			printf '%s\n' "plasmawayland"
+		;;
+		budgie)
+			printf '%s\n' "budgie-desktop"
+		;;
+		*)
+			printf '%s\n' "$1"
+		;;
+	esac
+}
+
 # @description Install desktop environment 
 #
 # @arg $1 string desktop [xfce,cinnamon,budgie,...]
 # @arg $2 string username
+# @arg $3 string session (xfce,wayland,budgie-desktop)
+# @arg $4 dryrun
 
 desktop::set_de(){
 
+	declare -a sessions=( $(string::split "$(desktop::get_session $1)" "") )
+	printf "\nAll sessions for xfce\n"
+	printf "%s\n" "${sessions[@]}" | collection::each "print_func"
+
+
 	# Check number of arguments
-	[[ $# -lt 1 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
+	[[ $# -lt 3 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 
 	# Read arguments and get os codename
 	local de="armbian-$(os::detect_linux_codename)-desktop-$1"
@@ -46,7 +77,8 @@ desktop::set_de(){
 	[[ $? != 0 ]] && printf "%s: Invalid desktop\n" "${FUNCNAME[0]}" && return 3
 
 	# Install desktop
-	apt-get install -y --reinstall -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" --install-recommends $de lightdm lightdm-gtk-greeter
+	COMMAND="apt-get install -y --reinstall -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" --install-recommends $de lightdm lightdm-gtk-greeter"
+	[[ $4 == dryrun ]] && echo $COMMAND || eval $COMMAND
 
 	# in case previous install was interrupted
 	[[ $? -eq 130 ]] && dpkg --configure -a

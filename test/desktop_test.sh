@@ -42,10 +42,6 @@ check_return(){
  }
 
 # Get desktops
-#declare -i  variants=$(desktop::get_variants)
-#check_return
-#printf 'Desktop variants = %d\n' "$variants"
-#os::detect_linux_version
 declare -a desktops=( $(string::split "$(desktop::get_variants)" " ") )
 check_return
 printf "\nAll desktops\n"
@@ -54,10 +50,9 @@ printf "%s\n" "${desktops[@]}" | collection::each "print_func"
 
 # Are we running as sudo?
 [[ "$EUID" != 0 ]] && printf "Must call desktop::set_de as sudo\n" && exit 1
-# Before
-printf "\nBefore\n"
-#cat /etc/default/cpufrequtils
-desktop::set_de "$1" "guest"
-# After
-printf "\nAfter\n"
-#cat /etc/default/cpufrequtils
+
+#
+# desktop, user, session
+#
+
+desktop::set_de "gnome" "guest" "xfce" "dryrun"
