@@ -1,6 +1,6 @@
 
 
-# @description Return policy as int based on original armbian-config logic.
+# @description 7-zip benchmark based on original armbianmonitor logic.
 #
 # @example
 #   system::see_7ZipBench
