@@ -1,4 +1,4 @@
-#!/bin/bash
+
 #
 # Copyright (c) Authors: http://www.armbian.com/authors, info@armbian.com
 #
@@ -198,70 +198,3 @@ cpu::set_freq(){
 	return 0
 }
 
-
-# @description SetUp Virtula spi MTD FLash, Remove spi MTD FLash.
-#
-# @example
-#   storage::set_spi_vflash s
-#   echo $?
-#   #Output
-#   
-#
-# @arg $1 int UnSet.
-# @arg $1 int SetUp.
-#
-# @exitcode 0  If successful.
-storage::set_spi_vflash(){
-    # TODO handeling 
-    [[ "$1" == "setup" ]] && create_virt_spi
-    [[ "$1" == "remove" ]] && remove_virt_spi
-
-}
-
-create_virt_spi()
-{
-	# Load the nandsim and mtdblock modules to create a virtual MTD device
-
-	sudo modprobe mtdblock
-    #sudo modprobe nandsim
-	# Find the newly created MTD device
-	if [[ ! -e /dev/mtdblock0 ]]; then
-  		sudo modprobe nandsim
-		irtual_mtd=$(grep -l "NAND simulator" /sys/class/mtd/mtd*/name | sed -r 's/.*mtd([0-9]+).*/mtd\1/')
-	else
-		echo "$( sudo ls /dev/mtdblock0 )"
-	fi
-
-	# Create a symlink to the virtual MTD device with the name "spi0.0"
-	# This is necessary because the erase_spi_bootloader function looks for an MTD device with this name
-	if [[ ! -e /dev/mtdblock0 ]]; then
-		ln -s /dev/$virtual_mtd /dev/mtdblock0
-	fi
-
-    # Create the mount point if it doesn't exist
-    mkdir -p /tmp/boot
-
-    # Mount the virtual MTD device to the mount point
-    mount -t jffs2 /dev/mtdblock0 /tmp/boot
-
-	# write a file to remove
-	touch /tmp/boot/Mounted_MTD.txt
-
-	echo "$( sudo ls /dev/mtd* )"
-
-}
-
-remove_virt_spi()
-{
-    # Unmount the virtual MTD device from the mount point
-    umount $(mount | grep /dev/mtdblock0 | awk '{print $3}')
-
-    # Remove the symlink to the virtual MTD device
-    rm /dev/mtdblock0
-
-    # Unload the nandsim and mtdblock modules to remove the virtual MTD device
-    sudo modprobe -r mtdblock
-    sudo modprobe -r nandsim
-
-	echo "0"
-}
