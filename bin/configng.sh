@@ -12,28 +12,51 @@ directory="$(dirname "$(readlink -f "$0")")"
 filename=$(basename "${BASH_SOURCE[0]}")
 
 libpath="$directory/../lib"
-selfpath="$libpath/configng/cpu.sh"
+#selfpath="$libpath/configng/cpu.sh"
 
 if [[ -d "$directory/../lib" ]]; then
     libpath="$directory"/../lib
-elif [[ -d "/usr/lib/bash-utility/" && -d "/usr/lib/configng/" ]]; then
-    libpath="/usr/lib"
+#elif [[ ! -d "$directory/../lib" && -d "/usr/lib/bash-utility/" && -d "/usr/lib/configng/" ]]; then
+#    libpath="/usr/lib"
 else
     echo "Libraries not found"
     exit 0
 fi
 
-# Source the files relative to the script location
-source "$libpath/bash-utility/string.sh"
-source "$libpath/bash-utility/collection.sh"
-source "$libpath/bash-utility/array.sh"
-source "$libpath/bash-utility/check.sh"
-source "$libpath/configng/cpu.sh"
+## Source the files relative to the script location
+#source "$libpath/bash-utility/string.sh"
+#source "$libpath/bash-utility/collection.sh"
+#source "$libpath/bash-utility/array.sh"
+#source "$libpath/bash-utility/check.sh"
+#source "$libpath/configng/cpu.sh"
 
-readarray -t functionarray < <(grep -oP '^\w+::\w+' "$selfpath")
-readarray -t funnamearray < <(grep -oP '^\w+::\w+' "$selfpath" | sed 's/.*:://')
-readarray -t catagoryarray < <(grep -oP '^\w+::\w+' "$selfpath" | sed 's/::.*//')
-readarray -t descriptionarray < <(grep -oP '^# @description.*' "$selfpath" | sed 's/^# @description //')
+# Source the files relative to the script location
+for file in "$libpath"/bash-utility/*; do
+    source "$file"
+done
+for file in "$libpath"/configng/*; do
+    source "$file"
+done
+
+functionarray=()
+funnamearray=()
+catagoryarray=()
+descriptionarray=()
+
+for file in "$libpath"/configng/*.sh; do
+    mapfile -t temp_functionarray < <(grep -oP '^\w+::\w+' "$file")
+    functionarray+=("${temp_functionarray[@]}")
+
+    mapfile -t temp_funnamearray < <(grep -oP '^\w+::\w+' "$file" | sed 's/.*:://')
+    funnamearray+=("${temp_funnamearray[@]}")
+
+    mapfile -t temp_catagoryarray < <(grep -oP '^\w+::\w+' "$file" | sed 's/::.*//')
+    catagoryarray+=("${temp_catagoryarray[@]}")
+
+    mapfile -t temp_descriptionarray < <(grep -oP '^# @description.*' "$file" | sed 's/^# @description //')
+    descriptionarray+=("${temp_descriptionarray[@]}")
+done
+
 
 # test array
 #printf '%s\n' "${functionarray[@]}"
@@ -42,7 +65,7 @@ readarray -t descriptionarray < <(grep -oP '^# @description.*' "$selfpath" | sed
 see_help(){
 
 	echo ""
-	echo "Usage: ${filename%.*} [ -h | -dev ]"
+	echo "Usage: ${filename%.*} [ -h | dev ]"
 	echo -e "Options:"
 	echo -e "	-h  Print this help."
 	echo -e "	dev Options:"
@@ -52,7 +75,7 @@ see_help(){
 
 	}
 
-# TEST 3 
+# TEST 3
 # check for -h -dev @ $1
 # if -dev check @ $1 remove and shift $1 to check for x
 check_opts() {
@@ -81,7 +104,7 @@ check_opts() {
     echo "Disabled durring current testing"
 
   else
-    see_help 
+    see_help
   fi
 }
 
