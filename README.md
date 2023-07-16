@@ -9,7 +9,7 @@ may not include Python, C/C++, etc. build/runtime environments
 * `sudo apt install git`
 * `cd ~/`
 * `git clone https://github.com/armbian/configng.git`
-* `sudo ~/configng/config.sh`
+* `~/configng/config.sh`
   
 #### If all goes well you should see list or avalible commands 
 ```
@@ -44,10 +44,27 @@ Options:
                 see_boot_times  system boot-up performance statistics.
 
 ```
+#### Change the systems led to pulse a hearbeat
+```
+ bash ~/configng/bin/config.sh foo boardled::see_sysled_beat
+```
+#### Change the systems led to off
+```
+ bash ~/configng/bin/config.sh foo boardled::see_sysled_none
+```
+#### See avalible settings sytem led options and current setting in []
+```
+ bash ~/configng/bin/config.sh foo boardled::see_sysled
+```
+#### See avalible armbian monitor options 
+```
+ bash ~/configng/bin/config.sh foo benchymark:see_monitor
+```
+
 
 ## Coding standards
 [Shell Style Guide](https://google.github.io/styleguide/shellguide.html) has some good ideas, 
-but fundementally look at the code in Bash Utility:
+but fundementally look at the code in lib:
 ```
 # @description Strip characters from the beginning of a string.
 #
