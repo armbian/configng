@@ -9,21 +9,22 @@ may not include Python, C/C++, etc. build/runtime environments
 * `sudo apt install git`
 * `cd ~/`
 * `git clone https://github.com/armbian/configng.git`
-* `sudo ~/configng/configng.sh`
+* `bash ~/configng/config.sh`
   
 #### If all goes well you should see list or avalible commands 
 ```
-Usage: configng [ -h | foo ]
+Usage: config [ -h | foo ]
 
 Options:
  -h)  Print this help.
 
- foo)  Usage: configng foo [ boardled::options ][ cpu::options ][ extra_drive::options ][ benchymark::options ]::
+ foo)  Usage: config foo [ boardled::options ][ cpu::options ][ extra_drive::options ][ benchymark::options ]::
 
         boardled::options
-                set_sysled_cpu  set the Sys board led to montor cpu activity.
-                set_sysled_none set the Sys board led to montor none.
                 see_sysled      See a list of board led options.
+                see_sysled_none Set board led options to none (off).
+                see_sysled_cpu  Set board led options to monitor CPU.
+                see_sysled_beat Set board led options to heartbeat pulse.
 
         cpu::options
                 see_policy      Return policy as int based on original armbian-config logic.
@@ -32,7 +33,7 @@ Options:
                 see_max_freq    Return CPU maximum frequency as string.
                 see_governor    Return CPU governor as string.
                 see_governors   Return CPU governors as string delimited by space.
-                set_freq        Set min, max and CPU governor.
+                set_freq        Set min, max and CPU governor. "Disabled "
 
         extra_drive::options
                 set_spi_vflash  Set up a simulated MTD spi flash for testing.
@@ -40,14 +41,30 @@ Options:
 
         benchymark::options
                 see_monitor     system boot-up performance statistics.
-                see_boot_blame  system boot-up performance statistics.
-                see_7ZipBench   7-zip benchmark based on original armbianmonitor logic.
+                see_boot_times  system boot-up performance statistics.
 
 ```
+#### Change the systems led to pulse a hearbeat
+```
+ bash ~/configng/bin/config.sh foo boardled::see_sysled_beat
+```
+#### Change the systems led to off show a result in whiptail or dialog if installed
+```
+ bash ~/configng/bin/config.sh foo boardled::see_sysled_none | bash ~/configng/bin/jampi-config.sh
+```
+#### See avalible settings sytem led options and current setting in []
+```
+ bash ~/configng/bin/config.sh foo boardled::see_sysled
+```
+#### See avalible armbian monitor options 
+```
+ bash ~/configng/bin/config.sh foo benchymark:see_monitor
+```
+
 
 ## Coding standards
 [Shell Style Guide](https://google.github.io/styleguide/shellguide.html) has some good ideas, 
-but fundementally look at the code in Bash Utility:
+but fundementally look at the code in lib:
 ```
 # @description Strip characters from the beginning of a string.
 #
