@@ -1,8 +1,19 @@
 
-# @description Remove simulated MTD spi flash.
+#
+# Copyright (c) Authors: http://www.armbian.com/authors, info@armbian.com
+#
+# This file is licensed under the terms of the GNU General Public
+# License version 2. This program is licensed "as is" without any
+# warranty of any kind, whether express or implied.
+#
+#  Externa Drive related functions. See
+#	http://linux-mtd.infradead.org/doc/general.html  for more info.
+#   https://en.wikipedia.org/wiki/MultiMediaCard#eMMC
+
+# @description Set up a simulated MTD spi flash for testing.
 #
 # @example
-#   storage::set_spi_vflash
+#   extra_drive::set_spi_vflash
 #   echo $?
 #   #Output
 #   /dev/mtd0
@@ -10,7 +21,7 @@
 #	/dev/mtdblock0
 #
 # @exitcode 0  If successful.
-storage::set_spi_vflash(){
+extra_drive::set_spi_vflash(){
 
 	# Load the nandsim and mtdblock modules to create a virtual MTD device
 
@@ -44,16 +55,16 @@ storage::set_spi_vflash(){
 }
 
 
-# @description Remove simulated MTD spi flash.
+# @description Remove tsting simulated MTD spi flash.
 #
 # @example
-#   storage::rem_spi_vflash
+#   extra_drive::rem_spi_vflash
 #   echo $?
 #   #Output
 #   0
 #
 # @exitcode 0  If successful.
-storage::rem_spi_vflash(){
+extra_drive::rem_spi_vflash(){
 
     # Unmount the virtual MTD device from the mount point
     umount $(mount | grep /dev/mtdblock0 | awk '{print $3}')

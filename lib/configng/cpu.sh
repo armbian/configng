@@ -7,7 +7,6 @@
 # warranty of any kind, whether express or implied.
 #
 #  CPU related functions. See https://www.kernel.org/doc/Documentation/cpu-freq/user-guide.txt for more info.
-#
 
 # @description Return policy as int based on original armbian-config logic.
 #
@@ -20,7 +19,7 @@
 # @exitcode 0  If successful.
 #
 # @stdout Policy as integer.
-cpu::get_policy(){
+cpu::see_policy(){
 	declare -i policy=0
 	[[ $(grep -c '^processor' /proc/cpuinfo) -gt 4 ]] && policy=4
 	[[ ! -d /sys/devices/system/cpu/cpufreq/policy4 ]] && policy=0
@@ -43,7 +42,7 @@ cpu::get_policy(){
 # @exitcode 2 Function missing arguments.
 #
 # @stdout Space delimited string of CPU frequencies.
-cpu::get_freqs(){
+cpu::see_freqs(){
 	# Check number of arguments
     [[ $# = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value
@@ -69,7 +68,7 @@ cpu::get_freqs(){
 # @exitcode 2 Function missing arguments.
 #
 # @stdout CPU minimum frequency as string.
-cpu::get_min_freq(){
+cpu::see_min_freq(){
 	# Check number of arguments
     [[ $# = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value
@@ -94,7 +93,7 @@ cpu::get_min_freq(){
 # @exitcode 2 Function missing arguments.
 #
 # @stdout CPU maximum frequency as string.
-cpu::get_max_freq(){
+cpu::see_max_freq(){
 	# Check number of arguments
     [[ $# = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value
@@ -114,7 +113,7 @@ cpu::get_max_freq(){
 #   performance
 #
 # @arg $1 int policy.
-cpu::get_governor(){
+cpu::see_governor(){
 	# Check number of arguments
     [[ $# = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value
@@ -134,7 +133,7 @@ cpu::get_governor(){
 #   performance
 #
 # @arg $1 int policy.
-cpu::get_governors(){
+cpu::see_governors(){
 	# Check number of arguments
     [[ $# = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value
