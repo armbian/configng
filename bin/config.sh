@@ -13,12 +13,11 @@ directory="$(dirname "$(readlink -f "$0")")"
 filename=$(basename "${BASH_SOURCE[0]}")
 
 libpath="$directory/../lib"
-#selfpath="$libpath/configng/cpu.sh"
 
 if [[ -d "$directory/../lib" ]]; then
     libpath="$directory"/../lib
 # installed option todo change when lib location determined
-#elif [[ ! -d "$directory/../lib" && -d "/usr/lib/bash-utility/" && -d "/usr/lib/configng/" ]]; then
+#elif [[ ! -d "$directory/../lib" && -d "/usr/lib/bash-utility/" && -d "/usr/lib/config/" ]]; then
 #    libpath="/usr/lib"
 else
     echo "Libraries not found"
@@ -29,7 +28,7 @@ fi
 for file in "$libpath"/bash-utility/*; do
     source "$file"
 done
-for file in "$libpath"/configng/*; do
+for file in "$libpath"/config/*; do
     source "$file"
 done
 
@@ -38,7 +37,7 @@ funnamearray=()
 catagoryarray=()
 descriptionarray=()
 
-for file in "$libpath"/configng/*.sh; do
+for file in "$libpath"/config/*.sh; do
     mapfile -t temp_functionarray < <(grep -oP '^\w+::\w+' "$file")
     functionarray+=("${temp_functionarray[@]}")
 
