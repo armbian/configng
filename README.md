@@ -9,7 +9,7 @@ may not include Python, C/C++, etc. build/runtime environments
 * `sudo apt install git`
 * `cd ~/`
 * `git clone https://github.com/armbian/configng.git`
-* `~/configng/config.sh`
+* `bash ~/configng/config.sh`
   
 #### If all goes well you should see list or avalible commands 
 ```
@@ -48,9 +48,9 @@ Options:
 ```
  bash ~/configng/bin/config.sh foo boardled::see_sysled_beat
 ```
-#### Change the systems led to off
+#### Change the systems led to off show a result in whiptail or dialog if installed
 ```
- bash ~/configng/bin/config.sh foo boardled::see_sysled_none
+ bash ~/configng/bin/config.sh foo boardled::see_sysled_none | bash ~/configng/bin/jampi-config.sh
 ```
 #### See avalible settings sytem led options and current setting in []
 ```
