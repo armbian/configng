@@ -1,0 +1,1 @@
+apt-cache search armbian-$(grep VERSION_CODENAME /etc/os-release | cut -d"=" -f2)-desktop- | cut -d" " -f1
