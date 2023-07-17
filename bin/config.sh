@@ -72,7 +72,7 @@ done
     echo -e "Options:"
     echo -e " -h)  Print this help."
     echo -e ""
-    echo -e " foo)  Usage: ${filename%.*} foo $usage:: "
+    echo -e " foo)  Usage: ${filename%.*} foo $usage "
     echo ""
 
     # Group options by prefix
