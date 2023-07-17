@@ -7,17 +7,14 @@
 # warranty of any kind, whether express or implied.
 #
 #  Benchmark related functions. See
-#	https://systemd.io/ for more info.
-#   https://www.7-zip.org/
+#	https://systemd.io/  https://www.7-zip.org/ for more info.
 
 # @description system boot-up performance statistics.
 #
 # @example
-#   benchymark::see_systemd $1 (blame time chain)
+#   benchymark::see_systemd $1 (-h)
 #   #Output
-#   time (quick check of boot time)
-#   balme (List modual  load times)
-#   chain ()
+#  	armbianmonitor help list options.)
 #
 # @exitcode 0  If successful.
 #
@@ -41,11 +38,11 @@ benchymark::see_monitor(){
 # @description system boot-up performance statistics.
 #
 # @example
-#   benchymark::see_systemd $1 (blame time chain)
+#   benchymark::see_systemd $1 (blame time)
 #   #Output
+#   -h (systemd help list, not not all are avalible.)
 #   time (quick check of boot time)
-#   balme (List modual  load times)
-#   chain ()
+#   balme (Lists modual boot load times)
 #
 # @exitcode 0  If successful.
 #
@@ -55,7 +52,6 @@ benchymark::see_boot_times(){
 	[[ $1 == "" ]] && sys_blame=$( systemd-analyze -h ) ;
 	[[ $1 == "blame" ]] && sys_blame=$( systemd-analyze blame ) ;
 	[[ $1 == "time"  ]] && sys_blame=$( systemd-analyze time ) ;
-	[[ $1 == "chain" ]] && sys_blame=$( systemd-analyze critical-chain ) ;
 	printf '%s\n' "${sys_blame[@]}"
 	exit 0
 	}
