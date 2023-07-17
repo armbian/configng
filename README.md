@@ -18,7 +18,13 @@ Usage: config [ -h | foo ]
 Options:
  -h)  Print this help.
 
- foo)  Usage: config foo [ boardled::options ][ cpu::options ][ extra_drive::options ][ benchymark::options ]::
+ foo)  Usage: config foo [ desk_setup::options ][ io::options ][ boardled::options ][ cpu::options ][ extra_drive::options ][ benchymark::options ]::
+
+        desk_setup::options
+                see_desktops    Display a list of avalible desktops to install.
+
+        io::options
+                set_ir_toggle   [ enable ][ disable ] Infrared Remote Control.
 
         boardled::options
                 see_sysled      See a list of board led options.
@@ -32,8 +38,8 @@ Options:
                 see_min_freq    Return CPU minimum frequency as string.
                 see_max_freq    Return CPU maximum frequency as string.
                 see_governor    Return CPU governor as string.
-                see_governors   Return CPU governors as string delimited by space.
-                set_freq        Set min, max and CPU governor. "Disabled "
+                see_governors   Return CPU avalible governors as string delimited by space.
+                set_freq        ** disabled ** Set min, max and CPU governor.
 
         extra_drive::options
                 set_spi_vflash  Set up a simulated MTD spi flash for testing.
