@@ -12,7 +12,7 @@
 # @description See a list of board led options.
 #
 # @example
-#   boardLED::set_sysled
+#   boardled::set_sysled
 #   #Output
 #   Led blinks to set $1
 #
