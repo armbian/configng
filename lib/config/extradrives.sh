@@ -13,7 +13,7 @@
 # @description Set up a simulated MTD spi flash for testing.
 #
 # @example
-#   extra_drive::set_spi_vflash
+#   extradrives::set_spi_vflash
 #   echo $?
 #   #Output
 #   /dev/mtd0
@@ -21,7 +21,7 @@
 #	/dev/mtdblock0
 #
 # @exitcode 0  If successful.
-extra_drive::set_spi_vflash(){
+extradrives::set_spi_vflash(){
 
 	# Load the nandsim and mtdblock modules to create a virtual MTD device
 
@@ -58,13 +58,13 @@ extra_drive::set_spi_vflash(){
 # @description Remove tsting simulated MTD spi flash.
 #
 # @example
-#   extra_drive::rem_spi_vflash
+#   extradrives::rem_spi_vflash
 #   echo $?
 #   #Output
 #   0
 #
 # @exitcode 0  If successful.
-extra_drive::rem_spi_vflash(){
+extradrives::rem_spi_vflash(){
 
     # Unmount the virtual MTD device from the mount point
     umount $(mount | grep /dev/mtdblock0 | awk '{print $3}')
