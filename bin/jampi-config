@@ -211,6 +211,8 @@
 #
 #main "$@"
 
+show_message(){
+
 if command -v whiptail > /dev/null; then
     DIALOG=whiptail
 elif command -v dialog > /dev/null; then
@@ -222,3 +224,39 @@ fi
 
 input=$(cat)
 $DIALOG --title "Config Options" --msgbox "$input" 0 0
+
+}
+
+
+show_menu() {
+    if command -v whiptail > /dev/null; then
+        DIALOG=whiptail
+    elif command -v dialog > /dev/null; then
+        DIALOG=dialog
+    else
+        echo "Error: Neither whiptail nor dialog is installed."
+        exit 1
+    fi
+
+    # Get the input and convert it into an array of options
+    input=$(cat)
+    options=()
+    while read -r line; do
+        package=$(echo "$line" | awk '{print $1}')
+        description=$(echo "$line" | awk '{$1=""; print $0}' | sed 's/^ *//')
+        options+=("$package" "$description")
+    done <<< "$input"
+
+    # Display the menu and get the user's choice
+    choice=$($DIALOG --title "Config Options" --menu "Choose an option:" 0 0 0 "${options[@]}" 3>&1 1>&2 2>&3)
+
+    # Check if the user made a choice
+    if [ $? -eq 0 ]; then
+        echo "You chose: $choice"
+    else
+        echo "You cancelled."
+    fi
+}
+
+
+show_"$@"
