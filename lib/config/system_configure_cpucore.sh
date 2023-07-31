@@ -6,12 +6,12 @@
 # License version 2. This program is licensed "as is" without any
 # warranty of any kind, whether express or implied.
 #
-#  CPU related functions. See https://www.kernel.org/doc/Documentation/cpu-freq/user-guide.txt for more info.
+#  system_config_cpucore related functions. See https://www.kernel.org/doc/Documentation/cpu-freq/user-guide.txt for more info.
 
 # @description Return policy as int based on original armbian-config logic.
 #
 # @example
-#   cpu::get_policy
+#   get_policy
 #   echo $?
 #   #Output
 #   0
@@ -19,7 +19,7 @@
 # @exitcode 0  If successful.
 #
 # @stdout Policy as integer.
-cpu::see_policy(){
+system_config_cpucore::see_policy(){
 	declare -i policy=0
 	[[ $(grep -c '^processor' /proc/cpuinfo) -gt 4 ]] && policy=4
 	[[ ! -d /sys/devices/system/cpu/cpufreq/policy4 ]] && policy=0
@@ -30,7 +30,7 @@ cpu::see_policy(){
 # @description Return CPU frequencies as string delimited by space.
 #
 # @example
-#   cpu::get_freqs 0
+#   get_freqs 0
 #   echo $?
 #   #Output
 #   648000 816000 912000 960000 1008000 1056000 1104000 1152000
@@ -42,7 +42,7 @@ cpu::see_policy(){
 # @exitcode 2 Function missing arguments.
 #
 # @stdout Space delimited string of CPU frequencies.
-cpu::see_freqs(){
+system_config_cpucore::see_freqs(){
 	# Check number of arguments
     [[ $# = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value
@@ -56,7 +56,7 @@ cpu::see_freqs(){
 # @description Return CPU minimum frequency as string.
 #
 # @example
-#   cpu::get_min_freq 0
+#   get_min_freq 0
 #   echo $?
 #   #Output
 #   648000
@@ -68,7 +68,7 @@ cpu::see_freqs(){
 # @exitcode 2 Function missing arguments.
 #
 # @stdout CPU minimum frequency as string.
-cpu::see_min_freq(){
+system_config_cpucore::see_min_freq(){
 	# Check number of arguments
     [[ $# = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value
@@ -82,7 +82,7 @@ cpu::see_min_freq(){
 # @description Return CPU maximum frequency as string.
 #
 # @example
-#   cpu::get_max_freq 0
+#   get_max_freq 0
 #   echo $?
 #   #Output
 #   1152000
@@ -93,7 +93,7 @@ cpu::see_min_freq(){
 # @exitcode 2 Function missing arguments.
 #
 # @stdout CPU maximum frequency as string.
-cpu::see_max_freq(){
+system_config_cpucore::see_max_freq(){
 	# Check number of arguments
     [[ $# = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value
@@ -107,13 +107,13 @@ cpu::see_max_freq(){
 # @description Return CPU governor as string.
 #
 # @example
-#   cpu::get_governor 0
+#   get_governor 0
 #   echo $?
 #   #Output
 #   performance
 #
 # @arg $1 int policy.
-cpu::see_governor(){
+system_config_cpucore::see_governor(){
 	# Check number of arguments
     [[ $# = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value
@@ -127,13 +127,13 @@ cpu::see_governor(){
 # @description Return CPU governors as string delimited by space.
 #
 # @example
-#   cpu::get_governors 0
+#   get_governors 0
 #   echo $?
 #   #Output
 #   performance
 #
 # @arg $1 int policy.
-cpu::see_governors(){
+system_config_cpucore::see_governors(){
 	# Check number of arguments
     [[ $# = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value
@@ -147,7 +147,7 @@ cpu::see_governors(){
 # @description Set min, max and CPU governor.
 #
 # @example
-#   cpu::set_freq 0 648000 1152000 performance
+#   set_freq 0 648000 1152000 performance
 #   echo $?
 #   #Output
 #   performance
@@ -163,7 +163,7 @@ cpu::see_governors(){
 # @exitcode 4 Invalid maximum frequency.
 # @exitcode 5 Minimum frequency must be <= maximum frequency.
 # @exitcode 6 Invalid governor.
-cpu::set_freq(){
+system_config_cpucore::set_freq(){
 	# Check number of arguments
     [[ $# -lt 4 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value

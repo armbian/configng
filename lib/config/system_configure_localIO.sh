@@ -2,14 +2,11 @@
 # @description Enable or Disable Infrared Remote Control support.
 #
 # @example
-#   io::set_ir_toggle enable
-#   io::set_ir_toggle disable
-#   echo $?
-#   #Output
-#   0
+#   set_ir_toggle enable
+#   set_ir_toggle disable
 #
 # @exitcode 0  If successful.
-iolocal::set_ir_toggle(){
+system_config_localIO::set_ir_toggle(){
 
 [[ "$1" == "enable" ]] && sudo apt -y --no-install-recommends install lirc ; exit 0 ;
 [[ "$1" == "disabe" ]] && sudo apt -y remove lirc ; sudo apt -y -qq autoremove ; exit 0 ;
@@ -19,14 +16,12 @@ iolocal::set_ir_toggle(){
 # @description See a list of board led options.
 #
 # @example
-#   boardled::set_sysled
-#   #Output
-#   Led blinks to set $1
+#   set_sysled
 #
 # @exitcode 0  If successful.
 #
 # @stdout tbd.
-boardled::see_sysled_opt(){
+system_config_localIO::see_sysled_opt(){
 
 	# the avalible options
 	readarray triggers_led < <( cat /sys/class/leds/*/trigger )
@@ -38,14 +33,12 @@ boardled::see_sysled_opt(){
 # @description See a list of board led options.
 #
 # @example
-#   boardled::set_sysled
-#   #Output
-#   Led blinks to set $1
+#   set_sysled
 #
 # @exitcode 0  If successful.
 #
 # @stdout tbd.
-boardled::set_sysled(){
+system_config_localIO::set_sysled(){
 
 	# the avalible options
 	readarray triggers_led < <( cat /sys/class/leds/*/trigger )
