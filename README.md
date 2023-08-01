@@ -1,4 +1,10 @@
 # configng
+
+[![CodeFactor](https://www.codefactor.io/repository/github/tearran/configng/badge)](https://www.codefactor.io/repository/github/tearran/jampi-config)
+![Shields.io](https://img.shields.io/github/issues/Tearran/configng)
+![](https://img.shields.io/github/forks/Tearran/configng)
+![](https://img.shields.io/github/license/Tearran/configng)
+
 This is a refactoring of [armbian-config](https://github.com/armbian/config) using [Bash Utility](https://labbots.github.io/bash-utility) 
 embedded in this project. This allows for functional programming in Bash. Error handling and validation are also included. 
 The idea is to provide an API in Bash that can be called from a Command line interface, Text User interface and others.
