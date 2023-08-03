@@ -11,67 +11,6 @@ The idea is to provide an API in Bash that can be called from a Command line int
 Why Bash? Well, because it's going to be in every distribution. Striped down distributions 
 may not include Python, C/C++, etc. build/runtime environments 
 
-## Quick start
-* `sudo apt install git`
-* `cd ~/`
-* `git clone https://github.com/armbian/configng.git`
-* `bash ~/configng/config.sh`
-  
-#### If all goes well you should see list or avalible commands 
-```
-Usage: config [ -h | foo ]
-
-Options:
- -h)  Print this help.
-
- foo)  Usage: config foo [ desk_setup::options ][ io::options ][ boardled::options ][ cpu::options ][ extra_drive::options ][ benchymark::options ]::
-
-        desk_setup::options
-                see_desktops    Display a list of avalible desktops to install.
-
-        io::options
-                set_ir_toggle   [ enable ][ disable ] Infrared Remote Control.
-
-        boardled::options
-                see_sysled      See a list of board led options.
-                see_sysled_none Set board led options to none (off).
-                see_sysled_cpu  Set board led options to monitor CPU.
-                see_sysled_beat Set board led options to heartbeat pulse.
-
-        cpu::options
-                see_policy      Return policy as int based on original armbian-config logic.
-                see_freqs       Return CPU frequencies as string delimited by space.
-                see_min_freq    Return CPU minimum frequency as string.
-                see_max_freq    Return CPU maximum frequency as string.
-                see_governor    Return CPU governor as string.
-                see_governors   Return CPU avalible governors as string delimited by space.
-                set_freq        ** disabled ** Set min, max and CPU governor.
-
-        extra_drive::options
-                set_spi_vflash  Set up a simulated MTD spi flash for testing.
-                rem_spi_vflash  Remove tsting simulated MTD spi flash.
-
-        benchymark::options
-                see_monitor     system boot-up performance statistics.
-                see_boot_times  system boot-up performance statistics.
-
-```
-#### Change the systems led to pulse a hearbeat
-```
- bash ~/configng/bin/config.sh foo boardled::see_sysled_beat
-```
-#### Change the systems led to off show a result in whiptail or dialog if installed
-```
- bash ~/configng/bin/config.sh foo boardled::see_sysled_none | bash ~/configng/bin/jampi-config.sh
-```
-#### See avalible settings sytem led options and current setting in []
-```
- bash ~/configng/bin/config.sh foo boardled::see_sysled
-```
-#### See avalible armbian monitor options 
-```
- bash ~/configng/bin/config.sh foo benchymark:see_monitor
-```
 
 
 ## Coding standards
