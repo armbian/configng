@@ -35,198 +35,45 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-# Comeback to this later
-#
 ##DIRECTORY variable to the absolute path of the script's directory
-##directory=$(cd "$(dirname "$0")" && pwd)
-#directory="$(dirname "$(readlink -f "$0")")"
-#filename=$(basename "${BASH_SOURCE[0]}")
-#selfpath="$directory"/"$filename"
-##libpath="${directory}"/"its-lib" #Include these scripts Library
-#libpath="$selfpath"
-#
-#
-#clear
-## Check for the availability of whiptail and dialog command-line programs
-## Set the default program to use for displaying messages
-#( ! command -v whiptail >/dev/null && ! command -v dialog >/dev/null ) && default="bash"
-#(  command -v whiptail >/dev/null && ! command -v dialog >/dev/null ) && default="whiptail"
-#( ! command -v whiptail >/dev/null &&  command -v dialog >/dev/null ) && default="dialog"
-#
-## if both whiptail and dialog change to prefered
-#( command -v whiptail >/dev/null &&  command -v dialog >/dev/null ) && default="whiptail"
-#
-#
-#[[ "$1" == -b ]] &&  default="bash"
-#[[ "$1" == -w ]] &&  default="whiptail"
-#[[ "$1" == -n ]] &&  default="dialog"
-#
-#[[ "$1" == -m ]] && {
-#export NEWT_COLORS="
-#root=blue,black
-#border=green,black
-#title=green,black
-#roottext=red,black
-#window=red,black
-#textbox=white,black
-#button=black,green
-#compactbutton=white,black
-#listbox=white,black
-#actlistbox=black,white
-#actsellistbox=black,green
-#checkbox=green,black
-#actcheckbox=black,green
-#"
-#}
-#
-## Check the cpu architecture. for later handeling if nessery
-#architecture=$(dpkg --print-architecture)
-#[[ "$architecture" == "armf" ]] && true ;
-#
-##setup menu arrays
-#readarray -t functionarray 		< <( grep -A1 '^##.*@.*:*' "$libpath" | grep -oP '^\w+\(\)' | sed 's/()//' )
-#readarray -t descriptions 		< <( grep -e '^##.*@.*' "$libpath" | sed "s|^## *@||g;s| ## *@.*||g;s|.*: *||g" )
-#readarray -t descriptionarray 	< <( for i in "${!descriptions[@]}" ; do  printf "%s\n %s\n"  "$i" "${descriptions[i]}" ; done )
-#
-### System@Settings:Advanced Settings (armbian-config)
-#cmd_advance()
-#{
-#	sudo armbian-config
-#}
-#
-### System@CPU info:Example from Bash Utility (cpu_test.sh)
-#cmd_cpu_info()
-#{
-#    [[ ! -f /usr/sbin/cpu_test_library.sh ]] && cmd_cpu_ls ;
-#    [[ -f /usr/sbin/cpu_test_library.sh ]] && shell_command=$(sudo /usr/sbin/cpu_test_library.sh )
-#    message_box=$( printf '%s ' "${shell_command[@]}" ) ;
-#    see_message
-#}
-#
-#
-### System@CPU info:An example function (lscpu)
-#cmd_cpu_ls()
-#{
-#
-#	shell_command="$(lscpu)" ;
-#    message_box=$( printf '%s ' "${shell_command[@]}" ) ;
-#    see_message
-#}
-#
-### System@Bootup Time:An example function (systemd-analyze time)
-#cmd_boot_time()
-#{
-#
-#	shell_command="$(systemd-analyze time)" ;
-#    message_box=$( printf '%s ' "${shell_command[@]}" ) ;
-#    see_message
-#}
-#
-### System@Login Info :An example function (Login Info)
-#cmd_lslogins()
-#{
-#
-#	shell_command="$(lslogins)" ;
-#    message_box=$( printf '%s ' "${shell_command[@]}" ) ;
-#    see_message
-#}
-#
-#
-## Function to display a message using whiptail, dialog or printf depending on what is available on the system
-#see_message()
-#{
-#	# Use if neither whiptail nor dialog are available on the system
-#    if [[ "$default" == "bash" ]] || ( ! command -v whiptail >/dev/null && ! command -v dialog >/dev/null ); then
-#		# Use printf to display the message
-#		printf '%s ' "${shell_command[@]}"
-#
-#	# Use as default if whiptail is available
-#	elif [[ "$default" == "whiptail" ]] && ( command -v whiptail >/dev/null ); then
-#        # Use whiptail to display the message
-#		whiptail --backtitle "newt whitail: $architecture" --title "description" --msgbox "${message_box[@]}" 0 0 --clear --scrolltext
-#
-#    # Use if dialog is available on the system but not whiptail
-#    elif [[ "$default" == "dialog" ]] && (  command -v dialog >/dev/null ); then
-#        # Use dialog to display the message
-#		dialog --backtitle "ncurses dialog: $architecture" --title "description" --msgbox "${message_box[@]}" 0 0 ; clear
-#	fi
-#}
-#
-#see_menu()
-#{
-#
-# 	if [[ "$default" == "bash" ]]; then
-#  PS3="Enter a number: "
-#		select i in "${descriptions[@]}" ; do ${functionarray[$REPLY - 1]} ; break ; done
-#
-# 	elif [[ "$default" == "whiptail" ]];  then
-#    	OPTION=$(whiptail --backtitle "newt whiptail: $architecture"  --title "Config" --menu "Choose your option" 20 80 7 "${descriptionarray[@]}" 3>&1 1>&2 2>&3)
-#		[[ -n $OPTION ]] && clear && "${functionarray[$OPTION]}"
-#
-#	elif [[ "$default" == "dialog" ]];  then
-#    	OPTION=$(dialog --backtitle "ncurses dialog: $architecture"  --title "Config" --menu "Choose your option" 20 80 7 "${descriptionarray[@]}" 3>&1 1>&2 2>&3)
-#		[[ -n $OPTION ]] && clear && "${functionarray[$OPTION]}"
-#	fi
-#}
-#
-#see_help(){
-#
-#	echo ""
-#	echo "Usage: ${filename%.*} [ -h | -b | -n | -w | -d | -dev ]"
-#	echo -e "Options:"
-#	echo -e "	-h  Print this help."
-#    echo -e "	-b  GNU bash "
-#    echo -e "	-n  NCURSES dialog "
-#    echo -e "	-w  NEWT whiptail - default colors "
-#    echo -e "	-m  dark mode whiptail "
-#	echo -e "	-dev Options:"
-#    for i in "${!functionarray[@]}"; do
-#		printf '\t\t%s\t%s \n' "${functionarray[i]}" "${descriptions[i]}"
-#	done
-#
-#	}
-#
-#main()
-#{
-#    if [[ "$1" == --dev ]] ; then
-#        default="bash"
-#        local found=false
-#        for i in "${!functionarray[@]}"; do
-#            if [ "$2" == "${functionarray[i]}" ]; then
-#                "${functionarray[i]}"
-#                found=true
-#                break
-#            fi
-#        done
-#        if ! $found; then
-#            see_help
-#            exit 0
-#        fi
-#    elif [[ "$1" == -h ]] ; then
-#        see_help
-#    else
-#        see_menu
-#    fi
-#}
-#
-#main "$@"
+directory="$(dirname "$(readlink -f "$0")")"
+filename=$(basename "${BASH_SOURCE[0]}")
 
-show_message(){
+show_help(){
 
-if command -v whiptail > /dev/null; then
-    DIALOG=whiptail
-elif command -v dialog > /dev/null; then
-    DIALOG=dialog
-else
-    echo "Error: Neither whiptail nor dialog is installed."
-    exit 1
-fi
-
-input=$(cat)
-$DIALOG --title "Config Options" --msgbox "$input" 0 0
-
+  echo ""
+  echo "Usage: [command] | ${filename%.*} [ -h | -m | -o ]"  
+  echo "Options:"
+  echo "  -h,     Print this help."
+  echo ""
+  echo "  -o,     Opens an OK message Box"
+  echo ""
+  echo "  -m,     Opens an Menu select Box."
+  echo "" 
+  
 }
 
+show_message() {
+    
+    clear
+    if command -v whiptail > /dev/null; then
+        DIALOG=whiptail
+    elif command -v dialog > /dev/null; then
+        DIALOG=dialog
+    else
+        echo "Error: Neither whiptail nor dialog is installed."
+        exit 1
+    fi
+
+    # Read the input from the pipe continuously until there is no more input
+    input=""
+    while read -r line; do
+        input+="$line\n"
+    done
+
+    # Display the "OK" message box with the input data
+    $DIALOG --title "Message Box" --msgbox "$input" 0 0
+}
 
 show_menu() {
     if command -v whiptail > /dev/null; then
@@ -258,5 +105,7 @@ show_menu() {
     fi
 }
 
-
-show_"$@"
+[[ $1 == "-m" ]] && show_menu ;
+[[ $1 == "-o" ]] && show_message ;
+[[ $1 == "-h" ]] && show_help ;
+[[ -z "$@" ]] && show_help ;
