@@ -51,7 +51,15 @@ for file in "$libpath"/config/*.sh; do
     descriptionarray+=("${temp_descriptionarray[@]}")
 done
 
-  see_help_dev(){
+
+#
+# @Usage: $filename [-h]
+#  -h  This Help message
+#  -r  Run a function group $arg
+#   -l  List avalible functions groups
+#
+see_help_dev(){
+
     # Extract unique prefixes
     declare -A prefixes
     for i in "${!functionarray[@]}"; do
@@ -62,40 +70,52 @@ done
     # Construct usage line
     usage=""
     for prefix in "${!prefixes[@]}"; do
-        usage+="[ $prefix::options ]"
+        usage+=" | $prefix [ options ] "
     done
+    
+    echo -e "Usage: ${filename%.*} [ -h | -l | -r [ options ] ]"
+    echo -e "  Options:"
+    echo -e "    -h,    Print this help."
+    echo
+    echo -e "    -l,    List available function groups."
+    echo    
+    echo -e "    -r,    Run a function group."
+   
+    }
 
-  
-#    echo "$usage"
-    echo "Usage: ${filename%.*} [ -h | foo ]"
-    echo ""
-    echo -e "Options:"
-    echo -e " -h)  Print this help."
-    echo -e ""
-    echo -e " foo)  Usage: ${filename%.*} foo $usage "
-    echo ""
 
+
+#
+# @Usage: $filename [-h]
+#  -h  This Help message
+#  -r  Run a function group $arg
+#   -l  List avalible functions groups
+#    
+see_function_list(){
+    echo ""
+    echo "Usage: ${filename%.*} [ -r [ Group ]::[ option ] ]"
+    echo "  Options:"    
     # Group options by prefix
     declare -A groups
     for i in "${!functionarray[@]}"; do
         prefix="${functionarray[i]%%::*}"
         suffix="${functionarray[i]#*::}"
-        groups["$prefix"]+=$'\t\t'"$suffix\t${descriptionarray[i]}"$'\n'
+        groups["\x20\x20\x20\x20$prefix"]+=$''"\x20\x20\x20\x20\x20\x20$suffix\t${descriptionarray[i]}"$'\n'
     done
 
     # Print grouped options
     for group in "${!groups[@]}"; do
-        echo -e "	$group::options"
+        echo -e "$group::[ options ]"
         echo -e "${groups[$group]}"
     done
-}
+    }
 
 
 # TEST 7
 # check for -h -dev @ $1
 # if -dev check @ $1 remove and shift $1 to check for x
 check_opts() {
-  if [ "$1" == "foo" ]; then
+  if [ "$1" == "-r" ] || [ "$1" == "--run" ] ; then
     shift  # Shifts the arguments to the left, excluding the first argument ("-dev")
     function_name="$1"  # Assigns the next argument as the function name
     shift  # Shifts the arguments again to exclude the function name
@@ -111,20 +131,27 @@ check_opts() {
     done
 
     if [ "$found" == false ]; then
-      echo "Invalid function name"
-      see_help_dev
+      echo "Invalid Gorup Option"
+      echo " Try: "
+      echo "${filename%.*} -r utility_testing_benchmark::see_monitor"
+      echo
+      echo "will show avalible armbian monitor options"
       exit 1
 
     fi
+  elif [ "$1" == "-h" ] && [ "$2" == "-l" ]; then
+    see_help_dev
+    see_function_list
+    exit 1
 
-  elif [[ "$1" == "foo" && "$2" == "cpu::set_freq" ]]; then
-    # Disabled till understood.
-    echo "cpu::set_freq policy min_freq max_freq performance"
-    echo "Disabled durring current testing"
+  elif [ "$1" == "-l" ] || [ "$2" == "-l" ]; then
+    see_function_list
+    exit 1
 
   else
     see_help_dev
+    exit 1
   fi
-}
+  }
 
 check_opts "$@"
