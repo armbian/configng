@@ -131,7 +131,7 @@ check_opts() {
     done
 
     if [ "$found" == false ]; then
-      echo "Invalid Gorup Option"
+      echo "Invalid Group Option"
       echo " Try: "
       echo "${filename%.*} -r utility_testing_benchmark::see_monitor"
       echo
