@@ -48,3 +48,6 @@ system_config_localIO::set_sysled(){
     [[ " ${triggers_led[@]} " =~ " ${1} " ]] &&  echo "${1}"| sudo tee /sys/class/leds/bananapi-m2-zero:red:pwr/trigger ;
 
 }
+
+# To run independenly
+[[ "$0" = "$BASH_SOURCE" ]] && "$@" ;

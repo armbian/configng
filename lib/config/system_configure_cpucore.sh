@@ -6,7 +6,7 @@
 # License version 2. This program is licensed "as is" without any
 # warranty of any kind, whether express or implied.
 #
-#  system_config_cpucore related functions. See https://www.kernel.org/doc/Documentation/cpu-freq/user-guide.txt for more info.
+#  cpu core related functions. See https://www.kernel.org/doc/Documentation/cpu-freq/user-guide.txt for more info.
 
 # @description Return policy as int based on original armbian-config logic.
 #
@@ -19,7 +19,7 @@
 # @exitcode 0  If successful.
 #
 # @stdout Policy as integer.
-system_config_cpucore::see_policy(){
+cpucore::see_policy(){
 	declare -i policy=0
 	[[ $(grep -c '^processor' /proc/cpuinfo) -gt 4 ]] && policy=4
 	[[ ! -d /sys/devices/system/cpu/cpufreq/policy4 ]] && policy=0
@@ -42,7 +42,7 @@ system_config_cpucore::see_policy(){
 # @exitcode 2 Function missing arguments.
 #
 # @stdout Space delimited string of CPU frequencies.
-system_config_cpucore::see_freqs(){
+cpucore::see_freqs(){
 	# Check number of arguments
     [[ $# = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value
@@ -68,7 +68,7 @@ system_config_cpucore::see_freqs(){
 # @exitcode 2 Function missing arguments.
 #
 # @stdout CPU minimum frequency as string.
-system_config_cpucore::see_min_freq(){
+cpucore::see_min_freq(){
 	# Check number of arguments
     [[ $# = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value
@@ -93,7 +93,7 @@ system_config_cpucore::see_min_freq(){
 # @exitcode 2 Function missing arguments.
 #
 # @stdout CPU maximum frequency as string.
-system_config_cpucore::see_max_freq(){
+cpucore::see_max_freq(){
 	# Check number of arguments
     [[ $# = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value
@@ -113,7 +113,7 @@ system_config_cpucore::see_max_freq(){
 #   performance
 #
 # @arg $1 int policy.
-system_config_cpucore::see_governor(){
+cpucore::see_governor(){
 	# Check number of arguments
     [[ $# = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value
@@ -133,7 +133,7 @@ system_config_cpucore::see_governor(){
 #   performance
 #
 # @arg $1 int policy.
-system_config_cpucore::see_governors(){
+cpucore::see_governors(){
 	# Check number of arguments
     [[ $# = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value
@@ -163,7 +163,7 @@ system_config_cpucore::see_governors(){
 # @exitcode 4 Invalid maximum frequency.
 # @exitcode 5 Minimum frequency must be <= maximum frequency.
 # @exitcode 6 Invalid governor.
-system_config_cpucore::set_freq(){
+cpucore::set_freq(){
 	# Check number of arguments
     [[ $# -lt 4 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value
@@ -197,3 +197,5 @@ system_config_cpucore::set_freq(){
 	return 0
 }
 
+# To run independenly
+[[ "$0" = "$BASH_SOURCE" ]] && "$@" ;

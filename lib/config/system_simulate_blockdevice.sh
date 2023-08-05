@@ -78,3 +78,6 @@ utility_confiig_blockdevice::rem_spi_vflash(){
 
 	echo "0"
 }
+
+# To run independenly
+[[ "$0" = "$BASH_SOURCE" ]] && "$@" ;

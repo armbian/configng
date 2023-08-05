@@ -18,8 +18,11 @@
 # @exitcode 0  If successful.
 #
 # @stdout list of avalible desktops.
-utility_install_desktops::see_desktops(){
+desktops::see_desktops(){
 
-	apt-cache search desktop | grep -i -e "\-desktop-full " -e "\-desktop-environment " | awk -F "- " '{print $1, $2}'
+	apt-cache search armbian desktop | awk -F " - " '{print $1, $2}' ; return 1
 
 	}
+
+	# To run independenly
+[[ "$0" = "$BASH_SOURCE" ]] && "$@" ;

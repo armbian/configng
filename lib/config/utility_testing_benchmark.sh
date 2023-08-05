@@ -47,3 +47,7 @@ benchymark::see_boot_times(){
 	printf '%s\n' "${sys_blame[@]}"
 	exit 0
 	}
+
+
+# To run independenly
+[[ "$0" = "$BASH_SOURCE" ]] && "$@" ;
