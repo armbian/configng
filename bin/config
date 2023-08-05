@@ -24,10 +24,14 @@ else
     exit 0
 fi
 
+
+
+
 # Source the files relative to the script location
-for file in "$libpath"/bash-utility/*; do
-    source "$file"
-done
+
+#for file in "$libpath"/bash-utility/*; do
+#    source "$file"
+#done
 for file in "$libpath"/config/*; do
     source "$file"
 done
@@ -73,7 +77,7 @@ see_help_dev(){
         usage+=" | $prefix [ options ] "
     done
     
-    echo -e "Usage: ${filename%.*} [ -h | -l | -r [ options ] ]"
+    echo -e "Usage: ${filename%.*} [options]"
     echo -e "  Options:"
     echo -e "    -h,    Print this help."
     echo
@@ -83,75 +87,61 @@ see_help_dev(){
    
     }
 
-
-
 #
 # @Usage: $filename [-h]
 #  -h  This Help message
 #  -r  Run a function group $arg
-#   -l  List avalible functions groups
+#  -l  List avalible functions groups
 #    
 see_function_list(){
     echo ""
-    echo "Usage: ${filename%.*} [ -r [ Group ]::[ option ] ]"
-    echo "  Options:"    
+    echo "Usage: ${filename%.*} [ -r | Group | option ]"
+	echo""
     # Group options by prefix
     declare -A groups
     for i in "${!functionarray[@]}"; do
         prefix="${functionarray[i]%%::*}"
         suffix="${functionarray[i]#*::}"
-        groups["\x20\x20\x20\x20$prefix"]+=$''"\x20\x20\x20\x20\x20\x20$suffix\t${descriptionarray[i]}"$'\n'
+        groups["$prefix"]+=$''"\t$suffix\t${descriptionarray[i]}"$'\n'
     done
 
     # Print grouped options
     for group in "${!groups[@]}"; do
-        echo -e "$group::[ options ]"
+        echo -e "$group [options]"
         echo -e "${groups[$group]}"
     done
     }
 
 
-# TEST 7
-# check for -h -dev @ $1
-# if -dev check @ $1 remove and shift $1 to check for x
+# TEST 9
 check_opts() {
   if [ "$1" == "-r" ] || [ "$1" == "--run" ] ; then
-    shift  # Shifts the arguments to the left, excluding the first argument ("-dev")
-    function_name="$1"  # Assigns the next argument as the function name
-    shift  # Shifts the arguments again to exclude the function name
+    shift  # Shifts the arguments to the left, excluding the first argument ("-r")
+    full_function_name="$1::$2"  # Combines the first and second arguments as the full function name (group::name)
+    shift 2  # Shifts the arguments again to exclude the full function name
 
     found=false
 
     for ((i=0; i<${#functionarray[@]}; i++)); do
-      if [ "$function_name" == "${functionarray[i]}" ]; then
+      if [ "$full_function_name" == "${functionarray[i]}" ]; then
         found=true
-        ${functionarray[i]} "$@"
+        # Call the corresponding function using variable indirection
+        "${functionarray[i]}" "$@"
         break
       fi
     done
 
-    if [ "$found" == false ]; then
-      echo "Invalid Group Option"
-      echo " Try: "
-      echo "${filename%.*} -r utility_testing_benchmark::see_monitor"
-      echo
-      echo "will show avalible armbian monitor options"
-      exit 1
-
-    fi
   elif [ "$1" == "-h" ] && [ "$2" == "-l" ]; then
     see_help_dev
     see_function_list
     exit 1
-
-  elif [ "$1" == "-l" ] || [ "$2" == "-l" ]; then
+  elif [ "$1" == "-l" ] || [ "$2" == "-l" ] || [ "$found" == false ] ; then
     see_function_list
     exit 1
-
   else
     see_help_dev
     exit 1
   fi
-  }
+}
 
 check_opts "$@"

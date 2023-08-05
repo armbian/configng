@@ -6,7 +6,7 @@
 # License version 2. This program is licensed "as is" without any
 # warranty of any kind, whether express or implied.
 #
-#  cpu core related functions. See https://www.kernel.org/doc/Documentation/cpu-freq/user-guide.txt for more info.
+#  system_config_cpucore related functions. See https://www.kernel.org/doc/Documentation/cpu-freq/user-guide.txt for more info.
 
 # @description Return policy as int based on original armbian-config logic.
 #
@@ -197,5 +197,3 @@ cpucore::set_freq(){
 	return 0
 }
 
-# To run independenly
-[[ "$0" = "$BASH_SOURCE" ]] && "$@" ;

@@ -35,9 +35,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-# Comeback to this later
-#
-##DIRECTORY variable to the absolute path of the script's directory
+## DIRECTORY variable to the absolute path of the script's directory
 directory="$(dirname "$(readlink -f "$0")")"
 filename=$(basename "${BASH_SOURCE[0]}")
     if command -v whiptail > /dev/null; then
@@ -63,7 +61,7 @@ show_help(){
   echo "  -p,     Opens Popup message box. "
   echo ""
   exit 1; 
-}
+  }
 
 show_message() {
 
@@ -77,7 +75,7 @@ show_message() {
     # Display the "OK" message box with the input data
     $DIALOG --title "Message Box" --msgbox "$input" 0 0
     clear
-}
+    }
 
 show_popup() {
 
@@ -106,13 +104,13 @@ show_menu() {
     # Display the menu and get the user's choice
     choice=$($DIALOG --title "Config Options" --menu "Choose an option:" 0 0 0 "${options[@]}" 3>&1 1>&2 2>&3)
 
-    # Check if the user made a choice
-    if [ $? -eq 0 ]; then
-        echo "You chose: $choice"
-    else
-        echo "You cancelled."
-    fi
-}
+	# Check if the user made a choice
+	if [ $? -eq 0 ]; then
+	    echo "$choice"
+	else
+	    echo "You cancelled."
+	fi
+	}
 
 [[ $1 == "-m" ]] && show_menu ;
 [[ $1 == "-o" ]] && show_message ;

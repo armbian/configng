@@ -14,13 +14,15 @@
 # @example
 #   see_systemd $1 (-h)
 #
-# @exitcode 0  If successful.
+# @exitcode 0 If successful.
+# @exitcode 1 If file not found.
+# @exitcode 2 Function missing arguments.
 #
-# @stdout tobd.
-utility_testing_benchmark::see_monitor(){
-	[[ $1 == "" ]] && clear && armbianmonitor -h ;
-	[[ $1 == $1 ]] && armbianmonitor "$1" ;
-	exit 0
+see_monitor(){
+	[[ $1 == "" ]] && clear && monitor -h ; return 0
+	[[ $1 == $1 ]] && monitor "$1" ; return 0
+	
+
 	}
 
 #  Benchmark related functions. See
@@ -39,15 +41,47 @@ utility_testing_benchmark::see_monitor(){
 # @exitcode 0  If successful.
 #
 # @stdout tobd.
-benchymark::see_boot_times(){
+see_boot_times(){
 	
 	[[ $1 == "" ]] && sys_blame=$( systemd-analyze -h ) ;
-	[[ $1 == "blame" ]] && sys_blame=$( systemd-analyze blame ) ;
-	[[ $1 == "time"  ]] && sys_blame=$( systemd-analyze time ) ;
+	[[ $1 == "blame" ]] && sys_blame=$( systemd-analyze blame ) ; 
+	[[ $1 == "time"  ]] && sys_blame=$( systemd-analyze time ) ; 
 	printf '%s\n' "${sys_blame[@]}"
-	exit 0
+	return 0
+
 	}
 
 
-# To run independenly
-[[ "$0" = "$BASH_SOURCE" ]] && "$@" ;
+
+# Function to perform some task and return an exit code
+perform_task() {
+    # Do some task here
+    # For this example, we'll just return different exit codes based on some conditions
+    if [ -z "$1" == "success" ]; then
+        return 2        # Exit code 0 for success
+    elif [ -n "$1" ]; then
+        return 1        # Exit code 1 for file not found
+    else
+        return 0        # Exit code 2 for missing arguments
+    fi
+	}
+
+## test for returns
+
+## Call the function with different arguments
+#perform_task "$@"
+#exit_status=$?
+#
+## Based on the exit status, decide where to pipe the results
+#if [ $exit_status -eq 0 ]; then
+#    echo "Function executed successfully."    # Print to stdout
+#elif [ $exit_status -eq 1 ]; then
+#    echo "File not found."                   # Print to stdout
+#else
+#    echo "Function missing arguments."       # Print to stdout
+#fi
+#
+#
+
+
+

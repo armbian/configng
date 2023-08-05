@@ -21,7 +21,7 @@
 #	/dev/mtdblock0
 #
 # @exitcode 0  If successful.
-utility_confiig_blockdevice::set_spi_vflash(){
+blockdevice::set_vflash(){
 
 	# Load the nandsim and mtdblock modules to create a virtual MTD device
 
@@ -64,7 +64,7 @@ utility_confiig_blockdevice::set_spi_vflash(){
 #   0
 #
 # @exitcode 0  If successful.
-utility_confiig_blockdevice::rem_spi_vflash(){
+blockdevice::rem_vflash(){
 
     # Unmount the virtual MTD device from the mount point
     umount $(mount | grep /dev/mtdblock0 | awk '{print $3}')
@@ -78,6 +78,3 @@ utility_confiig_blockdevice::rem_spi_vflash(){
 
 	echo "0"
 }
-
-# To run independenly
-[[ "$0" = "$BASH_SOURCE" ]] && "$@" ;
