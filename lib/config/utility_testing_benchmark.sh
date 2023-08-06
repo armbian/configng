@@ -41,9 +41,9 @@ see_monitor(){
 # @exitcode 0  If successful.
 #
 # @stdout tobd.
-see_boot_times(){
+benchymark::see_boot_times(){
 	
-	[[ $1 == "" ]] && sys_blame=$( systemd-analyze -h ) ;
+	[[ $1 == "" ]] && sys_blame="options: blame, time" ;
 	[[ $1 == "blame" ]] && sys_blame=$( systemd-analyze blame ) ; 
 	[[ $1 == "time"  ]] && sys_blame=$( systemd-analyze time ) ; 
 	printf '%s\n' "${sys_blame[@]}"
@@ -54,7 +54,7 @@ see_boot_times(){
 
 
 # Function to perform some task and return an exit code
-perform_task() {
+benchymark::perform_task() {
     # Do some task here
     # For this example, we'll just return different exit codes based on some conditions
     if [ -z "$1" == "success" ]; then
