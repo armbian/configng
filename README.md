@@ -1,6 +1,6 @@
 # configng
 
-[![CodeFactor](https://www.codefactor.io/repository/github/tearran/configng/badge)](https://www.codefactor.io/repository/github/tearran/jampi-config)
+[![CodeFactor](https://www.codefactor.io/repository/github/tearran/configng/badge)](https://www.codefactor.io/repository/github/tearran/configng)
 ![Shields.io](https://img.shields.io/github/issues/Tearran/configng)
 ![](https://img.shields.io/github/forks/Tearran/configng)
 ![](https://img.shields.io/github/license/Tearran/configng)
