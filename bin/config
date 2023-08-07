@@ -8,30 +8,24 @@
 
 directory="$(dirname "${BASH_SOURCE[0]}")" ;
 filename="$(basename "${BASH_SOURCE[0]}")" ;
-
-[[ $EUID -eq 0 ]] && env "PATH=$PATH" sudo -u "$SUDO_USER" "$0" "$@" 
-
 libpath="$directory/../lib"
 
 if [[ -d "$directory/../lib" ]]; then
     libpath="$directory"/../lib
-# installed option todo change when lib location determined
-#elif [[ ! -d "$directory/../lib" && -d "/usr/lib/bash-utility/" && -d "/usr/lib/config/" ]]; then
-#    libpath="/usr/lib"
 else
     echo "Libraries not found"
     exit 0
 fi
 
-# Source the files relative to the script location
-
-#for file in "$libpath"/bash-utility/*; do
-#    source "$file"
-#done
-
 for file in "$libpath"/config/*; do
     source "$file"
 done
+
+# Source the files relative to the script location
+# Uncomment to include bash-utility
+#for file in "$libpath"/bash-utility/*; do
+#    source "$file"
+#done
 
 functionarray=()
 funnamearray=()
@@ -39,6 +33,7 @@ catagoryarray=()
 descriptionarray=()
 
 for file in "$libpath"/config/*.sh; do
+
     mapfile -t temp_functionarray < <(grep -oP '^\w+::\w+' "$file")
     functionarray+=("${temp_functionarray[@]}")
 
@@ -50,6 +45,10 @@ for file in "$libpath"/config/*.sh; do
 
     mapfile -t temp_descriptionarray < <(grep -oP '^# @description.*' "$file" | sed 's/^# @description //')
     descriptionarray+=("${temp_descriptionarray[@]}")
+
+    mapfile -t temp_optionarray < <(grep -oP '^# @options.*' "$file" | sed 's/^# @options //')
+    optionarray+=("${temp_optionarray[@]}")
+
 done
 
 
@@ -90,7 +89,7 @@ see_function(){
     for i in "${!functionarray[@]}"; do
         prefix="${functionarray[i]%%::*}"
         suffix="${functionarray[i]#*::}"
-        groups["$prefix"]+=$''"\t$suffix\t${descriptionarray[i]}"$'\n'
+        groups["$prefix"]+=$'\t'"$suffix"$'\t'"${descriptionarray[i]}"$'\n'
     done
 
     # Print grouped options
@@ -119,15 +118,17 @@ check_opts() {
       fi
     done
 
-  elif [ "$1" == "-h" ] && [ "$2" == "-l" ]; then
+  elif [ "$1" == "-h" ]; then
     clear
     see_help
-    see_function
-  elif [ "$1" == "-l" ] || [ "$2" == "-l" ] || [ "$found" == false ] ; then
+  elif [ "$1" == "-l" ] || [ "$found" == false ] ; then
     clear
     see_function
   else
     clear
+    echo "#################################################################################"
+    echo " default"
+    echo "#################################################################################"
     see_help
   fi
 }
