@@ -1,16 +1,15 @@
 #!/bin/bash
 
-#
 # Copyright (c) Authors: http://www.armbian.com/authors, info@armbian.com
 #
 # This file is licensed under the terms of the GNU General Public
 # License version 2. This program is licensed "as is" without any
 # warranty of any kind, whether express or implied.
-#
-#
 
-directory="$(dirname "$(readlink -f "$0")")"
-filename=$(basename "${BASH_SOURCE[0]}")
+directory="$(dirname "${BASH_SOURCE[0]}")" ;
+filename="$(basename "${BASH_SOURCE[0]}")" ;
+
+[[ $EUID -eq 0 ]] && env "PATH=$PATH" sudo -u "$SUDO_USER" "$0" "$@" 
 
 libpath="$directory/../lib"
 
@@ -24,14 +23,12 @@ else
     exit 0
 fi
 
-
-
-
 # Source the files relative to the script location
 
 #for file in "$libpath"/bash-utility/*; do
 #    source "$file"
 #done
+
 for file in "$libpath"/config/*; do
     source "$file"
 done
@@ -56,13 +53,8 @@ for file in "$libpath"/config/*.sh; do
 done
 
 
-#
-# @Usage: $filename [-h]
-#  -h  This Help message
-#  -r  Run a function group $arg
-#   -l  List avalible functions groups
-#
-see_help_dev(){
+# @description See help message
+see_help(){
 
     # Extract unique prefixes
     declare -A prefixes
@@ -87,16 +79,12 @@ see_help_dev(){
    
     }
 
-#
-# @Usage: $filename [-h]
-#  -h  This Help message
-#  -r  Run a function group $arg
-#  -l  List avalible functions groups
-#    
-see_function_list(){
+# @description See help message
+see_function(){
+
     echo ""
-    echo "Usage: ${filename%.*} [ -r | Group | option ]"
-	echo""
+    echo "Usage: ${filename%.*} [ -r  [group] [option] ]"
+	  echo ""
     # Group options by prefix
     declare -A groups
     for i in "${!functionarray[@]}"; do
@@ -113,7 +101,7 @@ see_function_list(){
     }
 
 
-# TEST 9
+# @description Pass options to group functions
 check_opts() {
   if [ "$1" == "-r" ] || [ "$1" == "--run" ] ; then
     shift  # Shifts the arguments to the left, excluding the first argument ("-r")
@@ -132,15 +120,15 @@ check_opts() {
     done
 
   elif [ "$1" == "-h" ] && [ "$2" == "-l" ]; then
-    see_help_dev
-    see_function_list
-    exit 1
+    clear
+    see_help
+    see_function
   elif [ "$1" == "-l" ] || [ "$2" == "-l" ] || [ "$found" == false ] ; then
-    see_function_list
-    exit 1
+    clear
+    see_function
   else
-    see_help_dev
-    exit 1
+    clear
+    see_help
   fi
 }
 

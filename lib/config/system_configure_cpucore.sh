@@ -70,7 +70,7 @@ cpucore::see_freqs(){
 # @stdout CPU minimum frequency as string.
 cpucore::see_min_freq(){
 	# Check number of arguments
-    [[ $# = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
+    [[ "$*" = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value
 	local file="/sys/devices/system/cpu/cpufreq/policy$1/scaling_min_freq"
 	# Check if file exists
@@ -95,7 +95,7 @@ cpucore::see_min_freq(){
 # @stdout CPU maximum frequency as string.
 cpucore::see_max_freq(){
 	# Check number of arguments
-    [[ $# = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
+    [[ "$*" = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value
 	local file="/sys/devices/system/cpu/cpufreq/policy$1/scaling_max_freq"
 	# Check if file exists
@@ -115,7 +115,7 @@ cpucore::see_max_freq(){
 # @arg $1 int policy.
 cpucore::see_governor(){
 	# Check number of arguments
-    [[ $# = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
+    [[ "$*" = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value
 	local file="/sys/devices/system/cpu/cpufreq/policy$1/scaling_governor"
 	# Check if file exists
