@@ -8,8 +8,8 @@
 # @exitcode 0  If successful.
 iolocal::set_lirc(){
 
-[[ "$1" == "enable" ]] && sudo apt -y --no-install-recommends install lirc ; exit 0 ;
-[[ "$1" == "disabe" ]] && sudo apt -y remove lirc ; sudo apt -y -qq autoremove ; exit 0 ;
+[[ "$1" == "enable" ]] && apt -y --no-install-recommends install lirc ; 
+[[ "$1" == "disabe" ]] && apt -y remove lirc ; apt -y -qq autoremove ;
 
 }
 
@@ -45,6 +45,6 @@ iolocal::set_sysled(){
     # see pass not argument the avalible options
     [[ -z $1 ]] && printf "%s\n" "${triggers_led[@]} ";
 	# Set the systme Led blink to $1 valus
-    [[ " ${triggers_led[@]} " =~ " ${1} " ]] &&  echo "${1}"| sudo tee /sys/class/leds/bananapi-m2-zero:red:pwr/trigger ;
+    [[ " ${triggers_led[@]} " =~ " ${1} " ]] &&  echo "${1}"| tee /sys/class/leds/bananapi-m2-zero:red:pwr/trigger ;
 
 }

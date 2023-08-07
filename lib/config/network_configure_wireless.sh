@@ -20,7 +20,7 @@ wirerless::set_wifi_nmtui(){
 wirerless::set_wpa_connect(){
 
 [[ -z "$@" ]] && echo "Useage: wpa_passphrase [ SSID ] [ PASS ]"
-[[ -n "$@" ]] && sudo wpa_passphrase $1 $2 >> "$HOME/.local/etc/wpa_supplicant/wpa_supplicant.conf"
+[[ -n "$@" ]] && wpa_passphrase $1 $2 >> "$HOME/.local/etc/wpa_supplicant/wpa_supplicant.conf"
 
 }
 
