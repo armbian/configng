@@ -83,7 +83,7 @@ see_function(){
 
     echo ""
     echo "Usage: ${filename%.*} [ -r  [group] [option] ]"
-	  echo ""
+    echo ""
     # Group options by prefix
     declare -A groups
     for i in "${!functionarray[@]}"; do
@@ -119,16 +119,10 @@ check_opts() {
     done
 
   elif [ "$1" == "-h" ]; then
-    clear
     see_help
   elif [ "$1" == "-l" ] || [ "$found" == false ] ; then
-    clear
     see_function
   else
-    clear
-    echo "#################################################################################"
-    echo " default"
-    echo "#################################################################################"
     see_help
   fi
 }
