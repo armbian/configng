@@ -1,11 +1,11 @@
 # configng
-
 [![CodeFactor](https://www.codefactor.io/repository/github/tearran/configng/badge)](https://www.codefactor.io/repository/github/tearran/configng)
 ![Shields.io](https://img.shields.io/github/issues/Tearran/configng)
 ![Shields.io](https://img.shields.io/github/forks/Tearran/configng)
 ![Shields.io](https://img.shields.io/github/license/Tearran/configng)
 
 ---
+See [[Wiki]](https://github.com/Tearran/configng/wiki) for more info.
 
 ## Quick start
 ### install prebuild
