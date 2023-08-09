@@ -8,7 +8,7 @@
 ---
 
 ## Quick start
-### install prebuild packege
+### install prebuild
 ```bash
 {
 wget wget https://github.com/Tearran/configng/releases/download/v0.1-alpha/armbian-bookworm-utils-config.0.1.deb ;
