@@ -20,9 +20,9 @@
 # @stdout list of avalible desktops.
 install::see_desktops(){
 
-	echo One moment please, searching for Desktops.| tui -o ;
+	echo "One moment please, searching for Desktops." ;
 	apt-cache search armbian desktop |
-	awk -F "- " '{print $1, $2}' | tui -m | tui -o ;
+	awk -F "- " '{print $1, $2 }'
 	return 0
 	
 	}
