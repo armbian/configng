@@ -9,6 +9,7 @@ debname=$( echo "armbian-${codename}-${catagory}-config.${version}" )
 echo $debname
 
 [[ ! -d /tmp/build ]] && mkdir -p /tmp/build/usr/ ;
+[[ ! -d $directory/debs/ ]] && mkdir -p $directory/debs/ ;
 
 cp -r $directory/DEBIAN/ /tmp/build/ ;
 cp -r $directory/usr/bin/ /tmp/build/usr/bin/ ;
