@@ -10,10 +10,7 @@ See [[Wiki]](https://github.com/Tearran/configng/wiki) for more info.
 ## Quick start
 ### install prebuild
 ```bash
-{
-wget wget https://github.com/Tearran/configng/releases/download/v0.1-alpha/armbian-bookworm-utils-config.0.1.deb ;
-sudo dpkg -i armbian-bookworm-utils-config.0.1.deb
-}
+wget https://github.com/Tearran/configng/releases/download/v0.1-alpha/armbian-bookworm-utils-config.0.1.deb ; sudo dpkg -i armbian-bookworm-utils-config.0.1.deb ;
 ```
 ### Build source.
 ```bash
