@@ -2,9 +2,32 @@
 
 [![CodeFactor](https://www.codefactor.io/repository/github/tearran/configng/badge)](https://www.codefactor.io/repository/github/tearran/configng)
 ![Shields.io](https://img.shields.io/github/issues/Tearran/configng)
-![](https://img.shields.io/github/forks/Tearran/configng)
-![](https://img.shields.io/github/license/Tearran/configng)
+![Shields.io](https://img.shields.io/github/forks/Tearran/configng)
+![Shields.io](https://img.shields.io/github/license/Tearran/configng)
 
+---
+
+## Quick start
+
+### Build from source.
+```bash
+{
+  # install Git if needed
+  [[ -z $(which git) ]] && sudo apt update && sudo apt install git ;
+  # Clone repo to ~/.loclal/src/
+  git clone https://github.com/Tearran/configng.git ~/.local/src/armbian-utilties ;
+  # build a deb package
+  cd ~/.local/src/armbian-utilties
+  ~/.local/src/armbian-utilties/build.contrib.sh
+  ls "/home/beta/.local/src/armbian-utilties/debs"
+}
+```
+
+
+
+
+---
+<!--
 This is a refactoring of [armbian-config](https://github.com/armbian/config) using [Bash Utility](https://labbots.github.io/bash-utility) 
 embedded in this project. This allows for functional programming in Bash. Error handling and validation are also included. 
 The idea is to provide an API in Bash that can be called from a Command line interface, Text User interface and others.
@@ -51,9 +74,12 @@ Validate values:
 ```
 
 Return values should use stdout:
+
 ```
 # Return value
 printf '%s\n' "$(cat $file)"
 ```
 
 Only use sudo when needed and never run as root!
+
+-->
