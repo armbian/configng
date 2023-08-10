@@ -1,4 +1,5 @@
 # configng
+[![GitHub last commit (branch)](https://img.shields.io/github/last-commit/Tearran/configng/main)](https://github.com/Tearran/configng/commits)
 [![CodeFactor](https://www.codefactor.io/repository/github/tearran/configng/badge)](https://www.codefactor.io/repository/github/tearran/configng)
 ![Shields.io](https://img.shields.io/github/issues/Tearran/configng)
 ![Shields.io](https://img.shields.io/github/forks/Tearran/configng)
