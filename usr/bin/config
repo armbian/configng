@@ -75,7 +75,7 @@ see_help(){
     echo -e "    -l,    List available function groups."
     echo    
     echo -e "    -r,    Run a function group."
-   
+    
     }
 
 # @description See help message
