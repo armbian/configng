@@ -1,0 +1,7 @@
+Package: armbian-tui
+Version: 0.1
+Section: utils
+Priority: optional
+Architecture: all
+Maintainer: tearran <tearran@...l.com>
+Description: Armbian tui - Text-based UI Part of Armbian utitlies  (contrib)

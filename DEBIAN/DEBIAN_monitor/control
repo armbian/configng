@@ -1,0 +1,7 @@
+Package: armbian-monitor
+Version: 0.1
+Section: utils
+Priority: optional
+Architecture: all
+Maintainer: tearran <tearran@...l.com>
+Description: Armbian Monitor - Tools to configer and cusomize your installation (contrib)
