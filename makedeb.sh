@@ -6,7 +6,14 @@ catagory=$( grep Section DEBIAN/control | cut -d" "  -f2 )
 version=$( grep Version DEBIAN/control | cut -d" "  -f2 )
 debname=$( echo "armbian-${codename}-${catagory}-config.${version}" )
 
-echo $debname
+# Loop through files in the bin/ directory
+for file in bin/*; do
+    # Check if the file is not named config
+    if [[ "$(basename "$file")" != "config" ]]; then
+        # Perform an action for this file
+        echo "Processing file: $file"
+    fi
+done
 
 [[ ! -d /tmp/build ]] && mkdir -p /tmp/build/usr/ ;
 [[ ! -d $directory/debs/ ]] && mkdir -p $directory/debs/ ;
