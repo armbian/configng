@@ -163,85 +163,13 @@
 <h1 class="title">ARMBIAN-CONFIG</h1>
 <p class="date">August 31, 2023</p>
 </header>
-<h2 id="name">NAME</h2>
-<p>config - A command line tool for system configuration</p>
-<h2 id="synopsis">SYNOPSIS</h2>
-<p>config [ -r | Group | option ]</p>
-<h2 id="description">DESCRIPTION</h2>
-<p>The <code>config</code> command is a command line tool for system
-configuration. It provides a range of options for configuring various
-aspects of the system, including wireless, IO, installation,
-benchmarking, CPU core, and block device settings.</p>
-<h2 id="options">OPTIONS</h2>
 <ul>
-<li><p><code>-h</code> Show the help message.</p></li>
-<li><p><code>-l</code> Show a list of avalible group options.</p></li>
-<li><p><code>-r</code> Run a function group.</p></li>
-<li><p><code>Group</code> The name of the function group to
-run.</p></li>
-<li><p><code>option</code> The option to run within the specified
-function group.</p>
-<ul>
-<li><code>wireless [options]</code>
-<ul>
-<li><code>set_wifi_nmtui</code> Enable or Disable wifi text user
-interface.</li>
-<li><code>set_wpa_connect</code> Enable or Disable wifi command
-line.</li>
-</ul></li>
-<li><code>iolocal [options]</code>
-<ul>
-<li><code>set_lirc</code> Enable or Disable Infrared Remote Control
-support.</li>
-<li><code>see_sysled_opt</code> See a list of board led options.</li>
-<li><code>set_sysled</code> See a list of board led options.</li>
-</ul></li>
-<li><code>install [options]</code>
-<ul>
-<li><code>see_desktops</code> Display a list of avalible desktops to
-install.</li>
-</ul></li>
-<li><code>benchymark [options]</code>
-<ul>
-<li><code>see_boot_times</code> armbian monitor help message and
-tools.</li>
-<li><code>perform_task</code> system boot-up performance
-statistics.</li>
-</ul></li>
-<li><code>cpucore [options]</code>
-<ul>
-<li><code>see_policy</code> Return policy as int based on original
-armbian-config logic.</li>
-<li><code>see_freqs</code> Return CPU frequencies as string delimited by
-space.</li>
-<li><code>see_min_freq</code> Return CPU minimum frequency as
-string.</li>
-<li><code>see_max_freq</code> Return CPU maximum frequency as
-string.</li>
-<li><code>see_governor</code> Return CPU governor as string.</li>
-<li><code>see_governors</code> Return CPU governors as string delimited
-by space.</li>
-<li><code>set_freq</code> Set min, max and CPU governor.</li>
-</ul></li>
-<li><code>blockdevice [options]</code>
-<ul>
-<li><code>set_vflash</code> Set up a simulated MTD spi flash for
-testing.</li>
-<li><code>rem_vflash</code> Remove tsting simulated MTD spi flash.</li>
-</ul></li>
-</ul></li>
+  <li><a href="https://tearran.github.io/configng/">HOME page</a></li>
+  <li><a href="https://github.com/Tearran/configng/tree/main/docs">GitHub Repository</a></li>
+  <li><a href="https://tearran.github.io/configng/config.md">Markdown File</a></li>
+  <li><a href="https://tearran.github.io/configng/config.html">HTML File</a></li>
+  <li><a href="https://tearran.github.io/configng/config.1">Man Page</a></li>
 </ul>
-<h2 id="examples">EXAMPLES</h2>
-<p>To see a list of available desktops to install:</p>
-<pre><code>config install see_desktops</code></pre>
-<p>To enable Infrared Remote Control support:</p>
-<pre><code>config iolocal set_lirc</code></pre>
-<p>To see a list of board led options:</p>
-<pre><code>config iolocal see_sysled_opt</code></pre>
-<p>To set the minimum and maximum CPU frequencies and governor:</p>
-<pre><code>config cpucore set_freq</code></pre>
-<h2 id="see-also">SEE ALSO</h2>
-<p>Additional documentation for the config command may be available on
-your system or online.</p>
+
 </body>
 </html>
