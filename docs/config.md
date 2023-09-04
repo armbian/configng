@@ -1,106 +1,69 @@
 ---
-title: CONFIGNG
+title: CONFIG
 section: 1
 header: User Manual
-footer: configng 1.0.0
+footer: config 1.0.0
 date: September 04, 2023
 
 version: 1.0.0
 ---
 
-## NAME
+# NAME
 
-config - A command line tool for system configuration
+CONFIG - A command line tool
 
-## DESCRIPTION
+# DESCRIPTION
 
-The `config` command is a command line tool for system configuration. It provides a range of options for configuring various aspects of the system, including wireless, IO, installation, benchmarking, CPU core, and block device settings.
+The `config` command is a command line tool for A command line tool. It provides a range of options for configuring various aspects of the system.
 
-# SYNOPSIS
+**Synopsis**: Provide a clear synopsis that outlines the basic usage of your script:
 
-`configng [options]`
+## SYNOPSIS
+
+    config [OPTIONS] [CATEGORY] [FUNCTION]
+
+    config is the script name.
+
+    [OPTIONS] are the available options.
+
+    [CATEGORY] is the group/category.
+
+    [FUNCTION] is the function within the specified group.
+
+## Description
+    Explain the purpose of your script and its core functionality.
+    Mention that it allows users to configure various aspects of the system using different groups and functions.
 
 ## OPTIONS
-- `-h` Show the help message.
+       -h, --help
+           Display a help message and exit.
+       -l, --list
+           Expose all groups and functions.
+       -r [CATEGORY] [FUNCTION]
+           Run the specified function within the specified group.
 
-- `-l` Show a list of avalible group options.
+### Groups
 
-- `-r` Run a function group.
+    wirerless [options]
+         set_wifi_nmtui  Enable or Disable wifi text user interface
+         set_wpa_connect Enable or Disable wifi command line.
 
-- `Group` The name of the function group to run.
-
-- `option` The option to run within the specified function group.
-
-  - `wireless [options]`
-    - `set_wifi_nmtui` Enable or Disable wifi text user interface.
-    - `set_wpa_connect` Enable or Disable wifi command line.
-
-  - `iolocal [options]`
-    - `set_lirc` Enable or Disable Infrared Remote Control support.
-    - `see_sysled_opt` See a list of board led options.
-    - `set_sysled` See a list of board led options.
-
-  - `install [options]`
-    - `see_desktops` Display a list of avalible desktops to install.
-
-  - `benchymark [options]`
-    - `see_boot_times` armbian monitor help message and tools.
-    - `perform_task` system boot-up performance statistics.
-
-  - `cpucore [options]`
-    - `see_policy` Return policy as int based on original armbian-config logic.
-    - `see_freqs` Return CPU frequencies as string delimited by space.
-    - `see_min_freq` Return CPU minimum frequency as string.
-    - `see_max_freq` Return CPU maximum frequency as string.
-    - `see_governor` Return CPU governor as string.
-    - `see_governors` Return CPU governors as string delimited by space.
-    - `set_freq` Set min, max and CPU governor.
-
-  - `blockdevice [options]`
-    - `set_vflash` Set up a simulated MTD spi flash for testing.
-    - `rem_vflash` Remove tsting simulated MTD spi flash.
+     benchymark [options]
+         see_monitor     armbian monitor help message and tools.
+         see_boot_times  System boot-up performance statistics.
 
 ## EXAMPLES
+       1. Display the help message:
+          config -h
 
-To see a list of available desktops to install:
+       2. Expose all groups and functions:
+          config -l
 
-```
-config install see_desktops
-```
+       3. Run the 'set_wifi_nmtui' function within the 'wirerless' group:
+          config -r wirerless set_wifi_nmtui
 
-To enable Infrared Remote Control support:
-
-```
-config iolocal set_lirc
-```
-
-To see a list of board led options:
-
-```
-config iolocal see_sysled_opt
-```
-
-To set the minimum and maximum CPU frequencies and governor:
-
-```
-config cpucore set_freq
-```
-
-# OPTIONS
-
-`-h` ,Displays help message
-
-`-v` ,Display version info
-
-
-
-# EXAMPLES
-
-Here are some examples of how to use the configng command:
-
-`configng -h`
-
-`configng -v`
+       4. Display system boot-up performance statistics:
+          config -r benchymark see_boot_times
 
 # ENVIRONMENT
 
@@ -119,3 +82,4 @@ Report bugs to <"https://github.com/Tearran/configng/issues">.
  Tearran tearran@*hidden*
 
  Someone noreplay@*hidden*
+
