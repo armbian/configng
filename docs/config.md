@@ -1,14 +1,24 @@
+---
+title: CONFIGNG
+section: 1
+header: User Manual
+footer: configng 1.0.0
+date: September 04, 2023
+
+version: 1.0.0
+---
+
 ## NAME
 
 config - A command line tool for system configuration
 
-## SYNOPSIS
-
-config [ -r | Group | option ]
-
 ## DESCRIPTION
 
 The `config` command is a command line tool for system configuration. It provides a range of options for configuring various aspects of the system, including wireless, IO, installation, benchmarking, CPU core, and block device settings.
+
+# SYNOPSIS
+
+`configng [options]`
 
 ## OPTIONS
 - `-h` Show the help message.
@@ -76,18 +86,36 @@ To set the minimum and maximum CPU frequencies and governor:
 config cpucore set_freq
 ```
 
-## SEE ALSO
+# OPTIONS
 
-Additional documentation for the config command may be available on your system or online.
+`-h` ,Displays help message
 
----
-title: ARMBIAN-CONFIG
+`-v` ,Display version info
 
-section: 1
 
-header: User Manual
 
-footer: armbian-config 1.0.0
+# EXAMPLES
 
-date: August 31, 2023
-...
+Here are some examples of how to use the configng command:
+
+`configng -h`
+
+`configng -v`
+
+# ENVIRONMENT
+
+Lists any environment variables that affect the behavior of the command.
+
+# SEE ALSO
+
+Other relevant commands and resources.
+
+# BUGS
+
+Report bugs to <"https://github.com/Tearran/configng/issues">.
+
+# AUTHOR
+
+ Tearran tearran@*hidden*
+
+ Someone noreplay@*hidden*
