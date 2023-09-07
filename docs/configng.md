@@ -17,7 +17,7 @@ This script is a configuration management tool.
 It provides various functions grouped by categories to manage configurations.
 
 # OPTIONS
-Usage: config [options]
+Usage: configng [options]
   Options:
     -h,    Print this help.
 
@@ -28,85 +28,35 @@ Usage: config [options]
     -m,    View the Manual page.
 
 # LIBRARIES
-## server
+## cpu
 
 
-**set_lighthttpd**
-
-    Sets up the lighttpd web server to serve CGI scripts. 
-
-## wirerless
-
-
-**set_wifi_nmtui**
-
-    Enable or Disable wifi text user interface
-
-
-**set_wpa_connect**
-
-    Enable or Disable wifi command line. 
-
-## iolocal
-
-
-**set_lirc**
-
-    Enable or Disable Infrared Remote Control support.
-
-
-**see_sysled**
-
-    See a list of board led options.
-
-## install
-
-
-**see_desktops**
-
-    Display a list of avalible desktops to install.
-
-## benchymark
-
-
-**see_monitor**
-
-    armbian monitor help message and tools.
-
-
-**see_boot_times**
-
-    system boot-up performance statistics.
-
-## cpucore
-
-
-**see_policy**
+**get_policy**
 
     Return policy as int based on original armbian-config logic.
 
 
-**see_freqs**
+**get_freqs**
 
     Return CPU frequencies as string delimited by space.
 
 
-**see_min_freq**
+**get_min_freq**
 
     Return CPU minimum frequency as string.
 
 
-**see_max_freq**
+**get_max_freq**
 
     Return CPU maximum frequency as string.
 
 
-**see_governor**
+**get_governor**
 
     Return CPU governor as string.
 
 
-**see_governors**
+**get_governors**
 
     Return CPU governors as string delimited by space.
 
@@ -115,15 +65,10 @@ Usage: config [options]
 
     Set min, max and CPU governor.
 
-## blockdevice
+## storage
 
 
-**set_vflash**
+**set_spi_vflash**
 
-    Set up a simulated MTD spi flash for testing.
-
-
-**rem_vflash**
-
-    Remove tsting simulated MTD spi flash.
+    SetUp Virtula spi MTD FLash, Remove spi MTD FLash.
 

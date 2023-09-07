@@ -29,7 +29,7 @@ It provides various functions grouped by categories to manage
 configurations.
 .SH OPTIONS
 .PP
-Usage: config [options] Options: -h, Print this help.
+Usage: configng [options] Options: -h, Print this help.
 .IP
 .nf
 \f[C]
@@ -41,78 +41,9 @@ Usage: config [options] Options: -h, Print this help.
 \f[R]
 .fi
 .SH LIBRARIES
-.SS server
+.SS cpu
 .PP
-\f[B]set_lighthttpd\f[R]
-.IP
-.nf
-\f[C]
-Sets up the lighttpd web server to serve CGI scripts. 
-\f[R]
-.fi
-.SS wirerless
-.PP
-\f[B]set_wifi_nmtui\f[R]
-.IP
-.nf
-\f[C]
-Enable or Disable wifi text user interface
-\f[R]
-.fi
-.PP
-\f[B]set_wpa_connect\f[R]
-.IP
-.nf
-\f[C]
-Enable or Disable wifi command line. 
-\f[R]
-.fi
-.SS iolocal
-.PP
-\f[B]set_lirc\f[R]
-.IP
-.nf
-\f[C]
-Enable or Disable Infrared Remote Control support.
-\f[R]
-.fi
-.PP
-\f[B]see_sysled\f[R]
-.IP
-.nf
-\f[C]
-See a list of board led options.
-\f[R]
-.fi
-.SS install
-.PP
-\f[B]see_desktops\f[R]
-.IP
-.nf
-\f[C]
-Display a list of avalible desktops to install.
-\f[R]
-.fi
-.SS benchymark
-.PP
-\f[B]see_monitor\f[R]
-.IP
-.nf
-\f[C]
-armbian monitor help message and tools.
-\f[R]
-.fi
-.PP
-\f[B]see_boot_times\f[R]
-.IP
-.nf
-\f[C]
-system boot-up performance statistics.
-\f[R]
-.fi
-.SS cpucore
-.PP
-\f[B]see_policy\f[R]
+\f[B]get_policy\f[R]
 .IP
 .nf
 \f[C]
@@ -120,7 +51,7 @@ Return policy as int based on original armbian-config logic.
 \f[R]
 .fi
 .PP
-\f[B]see_freqs\f[R]
+\f[B]get_freqs\f[R]
 .IP
 .nf
 \f[C]
@@ -128,7 +59,7 @@ Return CPU frequencies as string delimited by space.
 \f[R]
 .fi
 .PP
-\f[B]see_min_freq\f[R]
+\f[B]get_min_freq\f[R]
 .IP
 .nf
 \f[C]
@@ -136,7 +67,7 @@ Return CPU minimum frequency as string.
 \f[R]
 .fi
 .PP
-\f[B]see_max_freq\f[R]
+\f[B]get_max_freq\f[R]
 .IP
 .nf
 \f[C]
@@ -144,7 +75,7 @@ Return CPU maximum frequency as string.
 \f[R]
 .fi
 .PP
-\f[B]see_governor\f[R]
+\f[B]get_governor\f[R]
 .IP
 .nf
 \f[C]
@@ -152,7 +83,7 @@ Return CPU governor as string.
 \f[R]
 .fi
 .PP
-\f[B]see_governors\f[R]
+\f[B]get_governors\f[R]
 .IP
 .nf
 \f[C]
@@ -167,20 +98,12 @@ Return CPU governors as string delimited by space.
 Set min, max and CPU governor.
 \f[R]
 .fi
-.SS blockdevice
+.SS storage
 .PP
-\f[B]set_vflash\f[R]
+\f[B]set_spi_vflash\f[R]
 .IP
 .nf
 \f[C]
-Set up a simulated MTD spi flash for testing.
-\f[R]
-.fi
-.PP
-\f[B]rem_vflash\f[R]
-.IP
-.nf
-\f[C]
-Remove tsting simulated MTD spi flash.
+SetUp Virtula spi MTD FLash, Remove spi MTD FLash.
 \f[R]
 .fi

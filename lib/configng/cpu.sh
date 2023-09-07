@@ -1,4 +1,4 @@
-
+#!/bin/bash
 #
 # Copyright (c) Authors: http://www.armbian.com/authors, info@armbian.com
 #
@@ -7,6 +7,7 @@
 # warranty of any kind, whether express or implied.
 #
 #  CPU related functions. See https://www.kernel.org/doc/Documentation/cpu-freq/user-guide.txt for more info.
+#
 
 # @description Return policy as int based on original armbian-config logic.
 #
@@ -19,7 +20,7 @@
 # @exitcode 0  If successful.
 #
 # @stdout Policy as integer.
-cpu::see_policy(){
+cpu::get_policy(){
 	declare -i policy=0
 	[[ $(grep -c '^processor' /proc/cpuinfo) -gt 4 ]] && policy=4
 	[[ ! -d /sys/devices/system/cpu/cpufreq/policy4 ]] && policy=0
@@ -42,7 +43,7 @@ cpu::see_policy(){
 # @exitcode 2 Function missing arguments.
 #
 # @stdout Space delimited string of CPU frequencies.
-cpu::see_freqs(){
+cpu::get_freqs(){
 	# Check number of arguments
     [[ $# = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value
@@ -68,7 +69,7 @@ cpu::see_freqs(){
 # @exitcode 2 Function missing arguments.
 #
 # @stdout CPU minimum frequency as string.
-cpu::see_min_freq(){
+cpu::get_min_freq(){
 	# Check number of arguments
     [[ $# = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value
@@ -93,7 +94,7 @@ cpu::see_min_freq(){
 # @exitcode 2 Function missing arguments.
 #
 # @stdout CPU maximum frequency as string.
-cpu::see_max_freq(){
+cpu::get_max_freq(){
 	# Check number of arguments
     [[ $# = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value
@@ -113,7 +114,7 @@ cpu::see_max_freq(){
 #   performance
 #
 # @arg $1 int policy.
-cpu::see_governor(){
+cpu::get_governor(){
 	# Check number of arguments
     [[ $# = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value
@@ -133,7 +134,7 @@ cpu::see_governor(){
 #   performance
 #
 # @arg $1 int policy.
-cpu::see_governors(){
+cpu::get_governors(){
 	# Check number of arguments
     [[ $# = 0 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
 	# Build file based on policy value
@@ -197,3 +198,70 @@ cpu::set_freq(){
 	return 0
 }
 
+
+# @description Set A virtula spi MTD FLash, Remove spi MTD FLash.
+#
+# @example
+#   storage::set_spi_vflash s
+#   echo $?
+#   #Output
+#   
+#
+# @arg $1 int UnSet.
+# @arg $1 int SetUp.
+#
+# @exitcode 0  If successful.
+storage::set_spi_vflash(){
+    # TODO handeling 
+    [[ "$1" == "setup" ]] && create_virt_spi
+    [[ "$1" == "remove" ]] && remove_virt_spi
+
+}
+
+create_virt_spi()
+{
+	# Load the nandsim and mtdblock modules to create a virtual MTD device
+
+	sudo modprobe mtdblock
+    #sudo modprobe nandsim
+	# Find the newly created MTD device
+	if [[ ! -e /dev/mtdblock0 ]]; then
+  		sudo modprobe nandsim
+		irtual_mtd=$(grep -l "NAND simulator" /sys/class/mtd/mtd*/name | sed -r 's/.*mtd([0-9]+).*/mtd\1/')
+	else
+		echo "$( sudo ls /dev/mtdblock0 )"
+	fi
+
+	# Create a symlink to the virtual MTD device with the name "spi0.0"
+	# This is necessary because the erase_spi_bootloader function looks for an MTD device with this name
+	if [[ ! -e /dev/mtdblock0 ]]; then
+		ln -s /dev/$virtual_mtd /dev/mtdblock0
+	fi
+
+    # Create the mount point if it doesn't exist
+    mkdir -p /tmp/boot
+
+    # Mount the virtual MTD device to the mount point
+    mount -t jffs2 /dev/mtdblock0 /tmp/boot
+
+	# write a file to remove
+	touch /tmp/boot/Mounted_MTD.txt
+
+	echo "$( sudo ls /dev/mtd* )"
+
+}
+
+remove_virt_spi()
+{
+    # Unmount the virtual MTD device from the mount point
+    umount $(mount | grep /dev/mtdblock0 | awk '{print $3}')
+
+    # Remove the symlink to the virtual MTD device
+    rm /dev/mtdblock0
+
+    # Unload the nandsim and mtdblock modules to remove the virtual MTD device
+    sudo modprobe -r mtdblock
+    sudo modprobe -r nandsim
+
+	echo "0"
+}

@@ -5,12 +5,12 @@
 # License version 2. This program is licensed "as is" without any
 # warranty of any kind, whether express or implied.
 #
-#  Desktop setup related functions. See *(todo)* for more info.
+#  utility_install_desktops related functions. See *(todo)* for more info.
 
 # @description Display a list of avalible desktops to install.
 #
 # @example
-#   desktops::see_desktops
+#   see_desktops
 #   echo $?
 #   #Output
 #   0
@@ -18,8 +18,11 @@
 # @exitcode 0  If successful.
 #
 # @stdout list of avalible desktops.
-desktops::see_desktops(){
+install::see_desktops(){
 
-	apt-cache search armbian-$(grep VERSION_CODENAME /etc/os-release | cut -d"=" -f2)-desktop- | cut -d" " -f1
-
+	echo "One moment please, searching for Desktops." ;
+	apt-cache search armbian desktop |
+	awk -F "- " '{print $1, $2 }'
+	return 0
+	
 	}

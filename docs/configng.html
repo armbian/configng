@@ -4,15 +4,15 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-08-31" />
-  <title>ARMBIAN-CONFIG</title>
+  <meta name="dcterms.date" content="2023-09-04" />
+  <title>CONFIG</title>
   <style>
     html {
       line-height: 1.5;
       font-family: Georgia, serif;
       font-size: 20px;
-      background-color: #1a1a1a;
       color: #fdfdfd;
+      background-color: #1a1a1a;
     }
     body {
       margin: 0 auto;
@@ -25,8 +25,6 @@
       overflow-wrap: break-word;
       text-rendering: optimizeLegibility;
       font-kerning: normal;
-      background-color: #1a1a1a;
-      color: #fdfdfd;
     }
     @media (max-width: 600px) {
       body {
@@ -55,10 +53,10 @@
       margin: 1em 0;
     }
     a {
-      color: #f6f4f4;
+      color: #fdfdfd;
     }
     a:visited {
-      color: #e9e8e8;
+      color: #fdfdfd;
     }
     img {
       max-width: 100%;
@@ -160,16 +158,41 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">ARMBIAN-CONFIG</h1>
-<p class="date">August 31, 2023</p>
+<h1 class="title">CONFIG</h1>
+<p class="date">September 04, 2023</p>
 </header>
-<ul>
-  <li><a href="https://tearran.github.io/configng/">HOME page</a></li>
-  <li><a href="https://github.com/Tearran/configng/tree/main/docs">GitHub Repository</a></li>
-  <li><a href="https://tearran.github.io/configng/config.md">Markdown File</a></li>
-  <li><a href="https://tearran.github.io/configng/config.html">HTML File</a></li>
-  <li><a href="https://tearran.github.io/configng/config.1">Man Page</a></li>
-</ul>
+<h1 id="name">NAME</h1>
+<p>config - Configuration management script</p>
+<h1 id="synopsis">SYNOPSIS</h1>
+<p>config [OPTIONS] [GROUP] [OPTION]</p>
+<h1 id="description">DESCRIPTION</h1>
+<p>This script is a configuration management tool. It provides various
+functions grouped by categories to manage configurations.</p>
+<h1 id="options">OPTIONS</h1>
+<p>Usage: configng [options] Options: -h, Print this help.</p>
+<pre><code>-l,    List available function groups.
 
+-r,    Run a function group.
+
+-m,    View the man page.</code></pre>
+<h1 id="libraries">LIBRARIES</h1>
+<h2 id="cpu">cpu</h2>
+<p><strong>get_policy</strong></p>
+<pre><code>Return policy as int based on original armbian-config logic.</code></pre>
+<p><strong>get_freqs</strong></p>
+<pre><code>Return CPU frequencies as string delimited by space.</code></pre>
+<p><strong>get_min_freq</strong></p>
+<pre><code>Return CPU minimum frequency as string.</code></pre>
+<p><strong>get_max_freq</strong></p>
+<pre><code>Return CPU maximum frequency as string.</code></pre>
+<p><strong>get_governor</strong></p>
+<pre><code>Return CPU governor as string.</code></pre>
+<p><strong>get_governors</strong></p>
+<pre><code>Return CPU governors as string delimited by space.</code></pre>
+<p><strong>set_freq</strong></p>
+<pre><code>Set min, max and CPU governor.</code></pre>
+<h2 id="storage">storage</h2>
+<p><strong>set_spi_vflash</strong></p>
+<pre><code>SetUp Virtula spi MTD FLash, Remove spi MTD FLash.</code></pre>
 </body>
 </html>
