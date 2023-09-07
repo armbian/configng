@@ -168,8 +168,9 @@ check_opts() {
         see_function
     elif [ "$1" == "-m" ]; then
         see_manual > "${directory}/../docs/${filename}.md" ; 
-        see_manual | pandoc -s -f gfm -t man -o "${directory}/../docs/${filename}.1"          
-        see_manual | pandoc -s -f gfm -t man | man -l -
+        [[ -f "/usr/bin/pandoc" ]] && see_manual | pandoc -s -f gfm -t man -o "${directory}/../docs/${filename}.1"          
+        [[ -f "/usr/bin/pandoc" ]] && see_manual | pandoc -s -f gfm -t man | man -l -
+        [[ ! -f "/usr/bin/pandoc" && -f "${directory}/../docs/${filename}.1" ]] && man "${directory}/../docs/${filename}.1"
     elif [ "$1" == "-w" ]; then
 		# todo fallback to ask if server to  insall simple server or others
         see_manual | pandoc -s -f gfm -t html -o "${directory}/../docs/${filename}.html" ;

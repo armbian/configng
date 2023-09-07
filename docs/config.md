@@ -28,13 +28,6 @@ Usage: config [options]
     -m,    View the Manual page.
 
 # LIBRARIES
-## server
-
-
-**set_lighthttpd**
-
-    Sets up the lighttpd web server to serve CGI scripts. 
-
 ## wirerless
 
 
@@ -46,37 +39,6 @@ Usage: config [options]
 **set_wpa_connect**
 
     Enable or Disable wifi command line. 
-
-## iolocal
-
-
-**set_lirc**
-
-    Enable or Disable Infrared Remote Control support.
-
-
-**see_sysled**
-
-    See a list of board led options.
-
-## install
-
-
-**see_desktops**
-
-    Display a list of avalible desktops to install.
-
-## benchymark
-
-
-**see_monitor**
-
-    armbian monitor help message and tools.
-
-
-**see_boot_times**
-
-    system boot-up performance statistics.
 
 ## cpucore
 
@@ -114,6 +76,44 @@ Usage: config [options]
 **set_freq**
 
     Set min, max and CPU governor.
+
+## server
+
+
+**set_lighthttpd**
+
+    Sets up the lighttpd web server to serve CGI scripts. 
+
+## install
+
+
+**see_desktops**
+
+    Display a list of avalible desktops to install.
+
+## iolocal
+
+
+**set_lirc**
+
+    Enable or Disable Infrared Remote Control support.
+
+
+**see_sysled**
+
+    See a list of board led options.
+
+## benchymark
+
+
+**see_monitor**
+
+    armbian monitor help message and tools.
+
+
+**see_boot_times**
+
+    system boot-up performance statistics.
 
 ## blockdevice
 
