@@ -169,30 +169,53 @@
 <p>This script is a configuration management tool. It provides various
 functions grouped by categories to manage configurations.</p>
 <h1 id="options">OPTIONS</h1>
-<p>Usage: configng [options] Options: -h, Print this help.</p>
+<p>Usage: config [options] Options: -h, Print this help.</p>
 <pre><code>-l,    List available function groups.
 
 -r,    Run a function group.
 
--m,    View the man page.</code></pre>
+-m,    View the Manual page.</code></pre>
 <h1 id="libraries">LIBRARIES</h1>
-<h2 id="cpu">cpu</h2>
-<p><strong>get_policy</strong></p>
+<h2 id="server">server</h2>
+<p><strong>set_lighthttpd</strong></p>
+<pre><code>Sets up the lighttpd web server to serve CGI scripts. </code></pre>
+<h2 id="wirerless">wirerless</h2>
+<p><strong>set_wifi_nmtui</strong></p>
+<pre><code>Enable or Disable wifi text user interface</code></pre>
+<p><strong>set_wpa_connect</strong></p>
+<pre><code>Enable or Disable wifi command line. </code></pre>
+<h2 id="iolocal">iolocal</h2>
+<p><strong>set_lirc</strong></p>
+<pre><code>Enable or Disable Infrared Remote Control support.</code></pre>
+<p><strong>see_sysled</strong></p>
+<pre><code>See a list of board led options.</code></pre>
+<h2 id="install">install</h2>
+<p><strong>see_desktops</strong></p>
+<pre><code>Display a list of avalible desktops to install.</code></pre>
+<h2 id="benchymark">benchymark</h2>
+<p><strong>see_monitor</strong></p>
+<pre><code>armbian monitor help message and tools.</code></pre>
+<p><strong>see_boot_times</strong></p>
+<pre><code>system boot-up performance statistics.</code></pre>
+<h2 id="cpucore">cpucore</h2>
+<p><strong>see_policy</strong></p>
 <pre><code>Return policy as int based on original armbian-config logic.</code></pre>
-<p><strong>get_freqs</strong></p>
+<p><strong>see_freqs</strong></p>
 <pre><code>Return CPU frequencies as string delimited by space.</code></pre>
-<p><strong>get_min_freq</strong></p>
+<p><strong>see_min_freq</strong></p>
 <pre><code>Return CPU minimum frequency as string.</code></pre>
-<p><strong>get_max_freq</strong></p>
+<p><strong>see_max_freq</strong></p>
 <pre><code>Return CPU maximum frequency as string.</code></pre>
-<p><strong>get_governor</strong></p>
+<p><strong>see_governor</strong></p>
 <pre><code>Return CPU governor as string.</code></pre>
-<p><strong>get_governors</strong></p>
+<p><strong>see_governors</strong></p>
 <pre><code>Return CPU governors as string delimited by space.</code></pre>
 <p><strong>set_freq</strong></p>
 <pre><code>Set min, max and CPU governor.</code></pre>
-<h2 id="storage">storage</h2>
-<p><strong>set_spi_vflash</strong></p>
-<pre><code>SetUp Virtula spi MTD FLash, Remove spi MTD FLash.</code></pre>
+<h2 id="blockdevice">blockdevice</h2>
+<p><strong>set_vflash</strong></p>
+<pre><code>Set up a simulated MTD spi flash for testing.</code></pre>
+<p><strong>rem_vflash</strong></p>
+<pre><code>Remove tsting simulated MTD spi flash.</code></pre>
 </body>
 </html>
