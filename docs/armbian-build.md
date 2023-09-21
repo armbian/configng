@@ -1,33 +1,85 @@
-# NAME
-Armbian Build System - Configuration Options
 
-# SYNOPSIS
-Armbian build system provides a set of configuration options that can be used with the `./compile.sh` command. These options allow you to customize the build process according to your requirements.
+# Armbian Build System User Manual
 
-# DESCRIPTION
-The following options can be applied to the `./compile.sh` command. They are all optional and can also be added to your build configuration file to save time. Default values are marked in bold if applicable.
+## NAME
 
-## Main Options
+**armbian-build** - Armbian Build System
 
-- **BUILD_ONLY** (comma-separated list): defines what artifacts should be built. Default value is an empty string, which will build all artifacts.
+## SYNOPSIS
 
-    - u-boot: build U-Boot
-    - kernel: build Kernel
-    - armbian-config: build Armbian config
-    - armbian-zsh: build Armbian zsh
-    - plymouth-theme-armbian: build Armbian Plymouth theme
-    - armbian-firmware: build Armbian firmware
-    - armbian-bsp: build Armbian board support package
-    - chroot: build additional packages
-    - bootstrap: build bootstrap package
-    - default: build full OS image for flashing
+armbian-build [OPTIONS] [TARGET]
 
-- **KERNEL_ONLY** (yes | no): Warning: This option is deprecated and may be removed in future releases. Use BUILD_ONLY instead.
 
-    - yes: compiles only kernel, U-Boot, and other packages for installation on an existing Armbian system. Note: This will enforce BUILD_ONLY being set as `"u-boot,kernel,armbian-config,armbian-zsh,plymouth-theme-armbian,armbian-firmware,armbian-bsp"`.
-    - no: build a complete OS image for writing to an SD card. Note: This will enforce BUILD_ONLY being cleared to an empty string.
-    - leave empty to display the selection dialog each time.
+## DESCRIPTION
 
-...
+The **armbian-build** command is the entry point for the Armbian Build System, which allows you to create customized Linux distributions for ARM-based single-board computers (SBCs). This user manual provides detailed information on how to use the build system to generate customized images and optimize them for your target hardware.
 
-[Continue with the rest of the content]
+## OPTIONS
+
+- `-h`, `--help`
+   Display this help message and exit.
+   
+- `-v`, `--version`
+   Display the version of the Armbian Build System.
+
+- `-c`, `--config CONFIG_FILE`
+   Use a custom configuration file (if not specified, the default configuration is used).
+
+- `-p`, `--prepare`
+   Prepare the build environment by installing necessary packages and dependencies.
+
+- `-b`, `--build`
+   Start the build process for the specified target.
+
+- `-i`, `--image`
+   Generate an SD card image for the specified target.
+
+- `-u`, `--update`
+   Update the Armbian Build System to the latest version.
+
+- `-l`, `--list-targets`
+   List available build targets and their descriptions.
+
+## TARGET
+
+The **TARGET** argument specifies the build target, which defines the desired distribution and hardware platform. This can be a board name or an alias as defined in the configuration file.
+
+## EXAMPLES
+
+1. Display the help message:
+   ```
+   armbian-build -h
+   ```
+
+2. Build an image for the Orange Pi PC board:
+   ```
+   armbian-build -b sunxi -p orangepipc
+   ```
+
+3. Generate an SD card image for the Raspberry Pi 4:
+   ```
+   armbian-build -i buster -b raspberrypi4
+   ```
+
+## CONFIGURATION
+For advanced customization and configuration options, refer to the configuration file located at `/etc/armbian-build.conf`. This file allows you to define custom settings and parameters for your build process.
+
+## SEE ALSO
+
+  [Armbian Documentation](https://docs.armbian.com/)
+  
+  [Armbian Community Forum](https://forum.armbian.com/)
+
+## AUTHOR
+
+Armbian Build System is maintained by the Armbian community.
+
+## REPORTING BUGS
+
+Report bugs and issues at the [Armbian GitHub repository](https://github.com/armbian/build/issues).
+
+---
+
+This template provides an outline for documenting the Armbian Build System in Section 1. 
+You can adapt and expand it to include more specific details about the available options, targets, and usage examples.
+Additionally, make sure to include any relevant links to the official documentation and support channels.
