@@ -1,85 +1,53 @@
+# NAME
 
-# Armbian Build System User Manual
+compiler - Description of the compiler command
 
-## NAME
+# SYNOPSIS
 
-**armbian-build** - Armbian Build System
+compiler [options] source_file
 
-## SYNOPSIS
+markdown
+Copy code
 
-armbian-build [OPTIONS] [TARGET]
+# DESCRIPTION
 
+This is a brief description of the compiler command and what it does.
 
-## DESCRIPTION
+# OPTIONS
 
-The **armbian-build** command is the entry point for the Armbian Build System, which allows you to create customized Linux distributions for ARM-based single-board computers (SBCs). This user manual provides detailed information on how to use the build system to generate customized images and optimize them for your target hardware.
+- `-o output_file`
+    Specify the name of the output file.
 
-## OPTIONS
+- `-flag`
+    Description of the flag and its functionality.
 
-- `-h`, `--help`
-   Display this help message and exit.
-   
-- `-v`, `--version`
-   Display the version of the Armbian Build System.
+# EXAMPLES
 
-- `-c`, `--config CONFIG_FILE`
-   Use a custom configuration file (if not specified, the default configuration is used).
+compiler -o output_program source_code.c
 
-- `-p`, `--prepare`
-   Prepare the build environment by installing necessary packages and dependencies.
+python
+Copy code
 
-- `-b`, `--build`
-   Start the build process for the specified target.
+# SEE ALSO
 
-- `-i`, `--image`
-   Generate an SD card image for the specified target.
+- `related_command(1)`: Description of related command.
 
-- `-u`, `--update`
-   Update the Armbian Build System to the latest version.
+# AUTHOR
 
-- `-l`, `--list-targets`
-   List available build targets and their descriptions.
+Your Name <your.email@example.com>
 
-## TARGET
+# REPORTING BUGS
 
-The **TARGET** argument specifies the build target, which defines the desired distribution and hardware platform. This can be a board name or an alias as defined in the configuration file.
+Please report bugs to <bug-report@example.com>
 
-## EXAMPLES
+# COPYRIGHT
 
-1. Display the help message:
-   ```
-   armbian-build -h
-   ```
+Copyright (c) [Year] Your Company. This is free software; see the source for copying conditions. There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-2. Build an image for the Orange Pi PC board:
-   ```
-   armbian-build -b sunxi -p orangepipc
-   ```
+# NOTES
 
-3. Generate an SD card image for the Raspberry Pi 4:
-   ```
-   armbian-build -i buster -b raspberrypi4
-   ```
+Additional notes and considerations regarding the compiler command.
 
-## CONFIGURATION
-For advanced customization and configuration options, refer to the configuration file located at `/etc/armbian-build.conf`. This file allows you to define custom settings and parameters for your build process.
+# DISCLAIMER
 
-## SEE ALSO
-
-  [Armbian Documentation](https://docs.armbian.com/)
-  
-  [Armbian Community Forum](https://forum.armbian.com/)
-
-## AUTHOR
-
-Armbian Build System is maintained by the Armbian community.
-
-## REPORTING BUGS
-
-Report bugs and issues at the [Armbian GitHub repository](https://github.com/armbian/build/issues).
-
----
-
-This template provides an outline for documenting the Armbian Build System in Section 1. 
-You can adapt and expand it to include more specific details about the available options, targets, and usage examples.
-Additionally, make sure to include any relevant links to the official documentation and support channels.
+This man page is provided "as-is" without any warranty.
