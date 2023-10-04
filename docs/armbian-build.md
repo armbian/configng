@@ -22,23 +22,6 @@ The **armbian-build** command is the entry point for the Armbian Build System, w
 - `-v`, `--version`
    Display the version of the Armbian Build System.
 
-- `-c`, `--config CONFIG_FILE`
-   Use a custom configuration file (if not specified, the default configuration is used).
-
-- `-p`, `--prepare`
-   Prepare the build environment by installing necessary packages and dependencies.
-
-- `-b`, `--build`
-   Start the build process for the specified target.
-
-- `-i`, `--image`
-   Generate an SD card image for the specified target.
-
-- `-u`, `--update`
-   Update the Armbian Build System to the latest version.
-
-- `-l`, `--list-targets`
-   List available build targets and their descriptions.
 
 ## TARGET
 
