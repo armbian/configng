@@ -1,68 +1,76 @@
-
-# Armbian Build System User Manual
-
-## NAME
-
-**armbian-build** - Armbian Build System
-
-## SYNOPSIS
-
-armbian-build [OPTIONS] [TARGET]
-
-
-## DESCRIPTION
-
-The **armbian-build** command is the entry point for the Armbian Build System, which allows you to create customized Linux distributions for ARM-based single-board computers (SBCs). This user manual provides detailed information on how to use the build system to generate customized images and optimize them for your target hardware.
-
-## OPTIONS
-
-- `-h`, `--help`
-   Display this help message and exit.
-   
-- `-v`, `--version`
-   Display the version of the Armbian Build System.
-
-
-## TARGET
-
-The **TARGET** argument specifies the build target, which defines the desired distribution and hardware platform. This can be a board name or an alias as defined in the configuration file.
-
-## EXAMPLES
-
-1. Display the help message:
-   ```
-   armbian-build -h
-   ```
-
-2. Build an image for the Orange Pi PC board:
-   ```
-   armbian-build -b sunxi -p orangepipc
-   ```
-
-3. Generate an SD card image for the Raspberry Pi 4:
-   ```
-   armbian-build -i buster -b raspberrypi4
-   ```
-
-## CONFIGURATION
-For advanced customization and configuration options, refer to the configuration file located at `/etc/armbian-build.conf`. This file allows you to define custom settings and parameters for your build process.
-
-## SEE ALSO
-
-  [Armbian Documentation](https://docs.armbian.com/)
-  
-  [Armbian Community Forum](https://forum.armbian.com/)
-
-## AUTHOR
-
-Armbian Build System is maintained by the Armbian community.
-
-## REPORTING BUGS
-
-Report bugs and issues at the [Armbian GitHub repository](https://github.com/armbian/build/issues).
-
+---
+title: ARMBIAN-BUILD
+section: 1
+header: User Manual
+footer: armbian-build 0.0.0
+date: October 04, 2023
+version: 0.0.0
 ---
 
-This template provides an outline for documenting the Armbian Build System in Section 1. 
-You can adapt and expand it to include more specific details about the available options, targets, and usage examples.
-Additionally, make sure to include any relevant links to the official documentation and support channels.
+# NAME
+
+ARMBIAN-BUILD - A command-line tool
+
+# DESCRIPTION
+
+The `armbian-build` command is a command-line tool for A command-line tool. It provides a range of options for configuring various aspects of the system.
+
+# SYNOPSIS
+
+`armbian-build [OPTIONS] [CATEGORY] [FUNCTION]`
+
+`armbian-build` is the script name.
+
+[OPTIONS] are the available options.
+
+[CATEGORY] is the group/category.
+
+[FUNCTION] is the function within the specified group.
+
+# OPTIONS
+  -h, --help
+    Display a help message and exit.
+  -l, --list
+    Expose all groups and functions.
+  -r [CATEGORY] [FUNCTION]
+    Run the specified function within the specified group.
+
+## Groups
+  wireless [options]
+    set_wifi_nmtui  Enable or Disable the WiFi text user interface.
+    set_wpa_connect Enable or Disable WiFi command line.
+
+  benchmark [options]
+    see_monitor     Armbian monitor help message and tools.
+    see_boot_times  System boot-up performance statistics.
+
+# EXAMPLES
+1. Display the help message:
+   `armbian-build -h`
+
+2. Expose all groups and functions:
+   `armbian-build -l`
+
+3. Run the 'set_wifi_nmtui' function within the 'wireless' group:
+   `armbian-build -r wireless set_wifi_nmtui`
+
+4. Display system boot-up performance statistics:
+   `armbian-build -r benchmark see_boot_times`
+
+# ENVIRONMENT
+
+Lists any environment variables that affect the behavior of the command.
+
+# SEE ALSO
+
+Other relevant commands and resources.
+
+# BUGS
+
+Report bugs to <https://github.com/Tearran/configng/issues>.
+
+# AUTHORS
+
+  Tearran tearran@*hidden*
+  Someone noreply@*hidden*
+
