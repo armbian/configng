@@ -9,68 +9,54 @@ version: 0.0.0
 
 # NAME
 
-ARMBIAN-BUILD - A command-line tool
-
-# DESCRIPTION
-
-The `armbian-build` command is a command-line tool for A command-line tool. It provides a range of options for configuring various aspects of the system.
+compiler - Description of the compiler command
 
 # SYNOPSIS
 
-`armbian-build [OPTIONS] [CATEGORY] [FUNCTION]`
+compiler [options] source_file
 
-`armbian-build` is the script name.
+markdown
+Copy code
 
-[OPTIONS] are the available options.
+# DESCRIPTION
 
-[CATEGORY] is the group/category.
-
-[FUNCTION] is the function within the specified group.
+This is a brief description of the compiler command and what it does.
 
 # OPTIONS
-  -h, --help
-    Display a help message and exit.
-  -l, --list
-    Expose all groups and functions.
-  -r [CATEGORY] [FUNCTION]
-    Run the specified function within the specified group.
 
-## Groups
-  wireless [options]
-    set_wifi_nmtui  Enable or Disable the WiFi text user interface.
-    set_wpa_connect Enable or Disable WiFi command line.
+- `-o output_file`
+    Specify the name of the output file.
 
-  benchmark [options]
-    see_monitor     Armbian monitor help message and tools.
-    see_boot_times  System boot-up performance statistics.
+- `-flag`
+    Description of the flag and its functionality.
 
 # EXAMPLES
-1. Display the help message:
-   `armbian-build -h`
 
-2. Expose all groups and functions:
-   `armbian-build -l`
+compiler -o output_program source_code.c
 
-3. Run the 'set_wifi_nmtui' function within the 'wireless' group:
-   `armbian-build -r wireless set_wifi_nmtui`
-
-4. Display system boot-up performance statistics:
-   `armbian-build -r benchmark see_boot_times`
-
-# ENVIRONMENT
-
-Lists any environment variables that affect the behavior of the command.
+python
+Copy code
 
 # SEE ALSO
 
-Other relevant commands and resources.
+- `related_command(1)`: Description of related command.
 
-# BUGS
+# AUTHOR
 
-Report bugs to <https://github.com/Tearran/configng/issues>.
+Your Name <your.email@example.com>
 
-# AUTHORS
+# REPORTING BUGS
 
-  Tearran tearran@*hidden*
-  Someone noreply@*hidden*
+Please report bugs to <bug-report@example.com>
 
+# COPYRIGHT
+
+Copyright (c) [Year] Your Company. This is free software; see the source for copying conditions. There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+# NOTES
+
+Additional notes and considerations regarding the compiler command.
+
+# DISCLAIMER
+
+This man page is provided "as-is" without any warranty.
