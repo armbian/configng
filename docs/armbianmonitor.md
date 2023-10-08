@@ -51,18 +51,18 @@ Two examples:
 # OPTIONS
 The script accepts one of several options:
 ```
-  -c \$path   Performs disk health/performance tests
-  -d          Monitors writes to \$device
-  -D          Tries to upload debug disk info to improve armbianmonitor
-  -m          Provides simple CLI monitoring - scrolling output
-  -M          Provides simple CLI monitoring - fixed-line output
-  -n          Provides simple CLI network monitoring - scrolling output
-  -N          Provides simple CLI network monitoring - fixed-line output
-  -p          Tries to install cpuminer for performance measurements
-  -r          Tries to install RPi-Monitor
-  -u          Tries to upload armbian-hardware-monitor.log for support purposes
-  -v          Tries to verify installed package integrity
-  -z          Runs a quick 7-zip benchmark to estimate CPU performance
+-c \$path   Performs disk health/performance tests
+-d          Monitors writes to \$device
+-D          Tries to upload debug disk info to improve armbianmonitor
+-m          Provides simple CLI monitoring - scrolling output
+-M          Provides simple CLI monitoring - fixed-line output
+-n          Provides simple CLI network monitoring - scrolling output
+-N          Provides simple CLI network monitoring - fixed-line output
+-p          Tries to install cpuminer for performance measurements
+-r          Tries to install RPi-Monitor
+-u          Tries to upload armbian-hardware-monitor.log for support purposes
+-v          Tries to verify installed package integrity
+-z          Runs a quick 7-zip benchmark to estimate CPU performance
 ```
 # TODO
 Develop main functionality ;) asking the user regarding monitoring, deal with 'SMART overall-health self-assessment test result:', write documentation.
