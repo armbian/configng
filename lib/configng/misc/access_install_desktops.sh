@@ -14,9 +14,9 @@
 # @options none
 function desktops::see_list(){
 
-	echo "One moment please, searching for Desktops." | armbian-interface -o ;
-	apt-cache search armbian desktop |
-	awk -F "- " '{print $1, $2 }'
+	echo "One moment please, searching for Desktops." ;
+	apt-cache search armbian desktop ;
+
 	return 0
 	
 	}
