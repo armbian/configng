@@ -7,14 +7,16 @@
 # warranty of any kind, whether express or implied.
 
 
-# @description See Locale test
+# @description Set up wifi.
 #
 # @exitcode 0  If successful.
 #
 # @options none
-function locale::see_something(){
+function wifi::set_wifi(){
 
-	bash armbian-config
-	return 0
+	echo "One moment please," ;
+	bash nmtui ;
+
+	return 0 ;	
 	}
 

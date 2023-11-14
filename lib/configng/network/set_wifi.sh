@@ -8,12 +8,12 @@
 
 
 
-# @description Set a locale test.
+# @description Set a local net test.
 #
 # @exitcode 0  If successful.
 #
 # @options none
-function locale::set_somthing(){
+function network::see_somthing(){
 
 	echo "hello world"
     return 0

@@ -14,6 +14,16 @@ else
     # Load libraries or
 fi
 
+declare -A dialogue
+
+    if command -v whiptail &> /dev/null; then
+        dialogue="whiptail"
+    elif command -v dialog &> /dev/null; then
+        dialogue="dialog"
+    else
+        echo "TUI not found"
+        return
+    fi
 debug="0"
 directory="$(dirname "${BASH_SOURCE[0]}")"
 cd "$directory" || exit
@@ -79,6 +89,31 @@ echo
     done
 	echo
 
+
+}
+
+see_readme() {
+echo
+    for category in "${categories[@]}"; do
+        echo "## Category: ${category##*/}"
+		echo "### Category Description: ${functions["$key,category_description"]}"
+
+        for file in "$category"/*.sh; do
+            echo "### File: ${file##*/}"
+
+            mapfile -t functions_in_file < <(grep -oP '(?<=function\s)\w+::\w+' "$file")
+
+            for function in "${functions_in_file[@]}"; do
+                key="${category##*/}:${file##*/}:${function}"
+                echo "#### Full Function Name: ${function} - Description: ${functions["$key,description"]}"
+                echo "##### Group Name: ${functions["$key,group_name"]}"
+                echo "##### Action Name: ${functions["$key,function_name"]}"
+                echo "##### Options: ${functions["$key,options"]}"
+            done
+        done
+		echo
+    done
+	echo
 
 }
 
@@ -148,6 +183,8 @@ parse_action() {
 
 see_tui() {
     local options=()
+    local i=0
+    declare -A categories_array
     for category in "${categories[@]}"; do
         local category_name="${category##*/}"
         local category_description=""
@@ -157,32 +194,23 @@ see_tui() {
             category_description=$(grep -oP "(?<=# @description ).*" "$category_file")
         fi
 
-        options+=("$category_name" "$category_description")
+        categories_array["$i"]="$category_name"
+        description_array["$i"]="$category_description"
+        options+=("$i" "${categories_array[$i]} - ${description_array[$i]}")
+        ((++i))
     done
 
     local choice
-    local dialogue
-
-    if command -v whiptail &> /dev/null; then
-        dialogue="whiptail"
-    elif command -v dialog &> /dev/null; then
-        dialogue="dialog"
-    else
-        echo "TUI not found"
-        return
-    fi
-
     choice=$($dialogue --menu "Select a category:" 0 0 9 "${options[@]}" 3>&1 1>&2 2>&3)
 
     if [[ -n $choice ]]; then
-        see_sub_tui "$choice"
+        see_sub_tui "[$choice]=\"${categories_array[$choice]}\"\n[$choice]=\"${description_array[$choice]}\""
     fi
 }
 
 
 see_sub_tui() {
-    echo "$1"
-
+   $dialogue --title "Message" --msgbox "$1" 8 50
 }
 
 see_read() {
