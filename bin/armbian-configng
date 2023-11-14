@@ -172,7 +172,7 @@ see_tui() {
         return
     fi
 
-    choice=$($dialogue --menu "Select a category:" 15 60 4 "${options[@]}" 3>&1 1>&2 2>&3)
+    choice=$($dialogue --menu "Select a category:" 0 0 9 "${options[@]}" 3>&1 1>&2 2>&3)
 
     if [[ -n $choice ]]; then
         see_sub_tui "$choice"

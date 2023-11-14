@@ -7,13 +7,15 @@
 # warranty of any kind, whether express or implied.
 
 
-# @description Armbian config Legacy
+
+# @description Set a locale test.
 #
 # @exitcode 0  If successful.
 #
 # @options none
-function legacy::see_config(){
+function locale::set_somthing(){
 
-	bash armbian-config
-	return 0
-	}
+	echo "hello world"
+    return 0
+}
+
