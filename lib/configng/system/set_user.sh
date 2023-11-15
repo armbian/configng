@@ -4,7 +4,7 @@
 #
 # @exitcode 0  If successful.
 #
-# @options pronmptst 
+# @options Prompt for the new username.
 function enduser::set_new(){
 
     # Prompt the user for the new username

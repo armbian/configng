@@ -25,6 +25,8 @@ fi
 
 declare -A dialogue
 
+# Check if whiptail or dialog is installed and set the variable 'dialogue' accordingly.
+# If neither is found, print "TUI not found" and return.
 if command -v whiptail &> /dev/null; then
     dialogue="whiptail"
 elif command -v dialog &> /dev/null; then
@@ -76,6 +78,7 @@ for category in "${categories[@]}"; do
     done
 done
 
+
 see_debug() {
 echo
     for category in "${categories[@]}"; do
@@ -100,8 +103,73 @@ echo
 	echo
 }
 
-see_readme() {
+see_json() {
 echo
+    for category in "${categories[@]}"; do
+        echo "Category: ${category##*/}"
+		echo "Category Description: ${functions["$key,category_description"]}"
+
+        for file in "$category"/*.sh; do
+            echo "  File: ${file##*/}"
+
+            mapfile -t functions_in_file < <(grep -oP '(?<=function\s)\w+::\w+' "$file")
+
+            for function in "${functions_in_file[@]}"; do
+                key="${category##*/}:${file##*/}:${function}"
+                echo "        Full Function Name: ${function} - Description: ${functions["$key,description"]}"
+                echo "            Group Name: ${functions["$key,group_name"]}"
+                echo "            Action Name: ${functions["$key,function_name"]}"
+                echo "            Options: ${functions["$key,options"]}"
+            done
+        done
+		echo
+    done
+	echo
+}
+
+# the readme.md is generated from this function
+# todo output each category to a file in the docs folder
+see_markdown() {
+cat << EOF
+This is a refactoring of [armbian-config](https://github.com/armbian/config) using [Bash Utility](https://labbots.github.io/bash-utility)
+embedded in this project. This allows for functional programming in Bash. Error handling and validation are also included.
+The idea is to provide an API in Bash that can be called from a Command line interface, Text User interface and others.
+Why Bash? Well, because it's going to be in every distribution. Striped down distributions
+may not include Python, C/C++, etc. build/runtime environments
+
+## Quick start
+Run the following commands:
+
+        sudo apt install git
+        cd ~/
+        git clone https://github.com/armbian/configng.git
+        bash ~/configng/bin/armbian-configng -h
+  
+### If all goes well you should see the help message
+
+## Coding Style
+follow the following coding style:
+
+    # @description A short description of the function.
+    #
+    # @exitcode 0  If successful.
+    #
+    # @options A description if there are options.
+    function group::string() {
+        echo "hello world"
+        return 0
+    }
+  
+# Codestyle can be used to auto generate
+ - Markdown
+ - JSON
+ - Text User Interface
+ - Command Line Interface
+ - Help message
+ - launch a feature
+ 
+EOF
+
     for category in "${categories[@]}"; do
         echo "## ${category##*/}"
 		echo "${functions["$key,category_description"]}"
@@ -122,9 +190,8 @@ echo
                 echo
             done
         done
-		echo
-    done
-	echo
+    done 
+
 }
 
 see_list() {
@@ -159,18 +226,6 @@ see_list() {
 		echo
     done
 	echo
-}
-
-see_help(){
-cat << EOF 
-Usage: ${filename%.*} [flag] [option] [action]"
-  flags:
-    -h,   Print this help.
-    -t,   Show a Text-Base user interface.
-    -d,   Show a debug information.
-    -m,   show a Markdown readme.
-    -r,   [option]  [action]  To run a feature.
-EOF
 }
 
 parse_action() {
@@ -216,56 +271,7 @@ see_tui() {
         see_sub_tui "${categories_array[$choice]}"
     fi
 }
-
 see_sub_tui() {
-    # Get the folder name as an argument
-    local folder_name=$1
-
-    # Loop through all keys in the functions array
-    for key in "${!functions[@]}"; do
-        # If the key starts with the folder name
-        if [[ $key == "$folder_name"* ]]; then
-            # Extract the group name and description from the functions array
-            local group_name=${functions["$key,group_name"]}
-            local description=${functions["$key,description"]}
-
-            # Print the group name and description
-            echo "Group Name: $group_name"
-            echo "Description: $description"
-            echo
-        fi
-    done
-}
-
-see_sub_tui_1() {
-   $dialogue --title "Message" --msgbox "$1" 8 50
-}
-
-see_read() {
-    echo
-    echo "Please select an action:"
-    echo
-    # Initialize an empty array to store the function keys
-    declare -a function_keys
-
-    # Loop through each key in the functions array
-    local i=1
-    local current_category=""
-    for key in "${!functions[@]}"; do
-        if [[ $key == *",function_name" ]]; then
-            # Add the key to the function_keys array
-            function_keys[i]="${key%,function_name}"
-
-            # Check if the category has changed and display it if so
-            local category="${functions["${function_keys[i]},category"]}"
-            if [[ "$category" != "$current_category" ]]; then
-                see_sub_tui_1 "$(see_sub_tui "$category")"
-                current_category="$category"
-            fi
-        fi
-    done
-}
-see_sub_tui_1() {
    $dialogue --title "Message" --msgbox "$1" 8 50
 }
 
@@ -317,7 +323,18 @@ see_read() {
     fi
 }
 
-
+see_help(){
+cat << EOF 
+Usage: ${filename%.*} [flag] [option] [action]"
+  flags:
+    -h,   Print this help.
+    -t,   Show a Text-Base user interface.
+    -d,   Show a debug information.
+    -m,   Generate a readme.md.
+    -j,   show a json ouput. # TODO: output file need usable location
+    -r,   [option]  [action]  To run a feature.
+EOF
+}
 
 if [ "$1" == "-r" ]; then
     shift  # Shifts the arguments to the left, excluding the first argument ("-r")
@@ -340,7 +357,7 @@ elif [ "$1" == "-t" ] || [ $debug == "1" ] ; then
 	see_tui
 	exit
 elif [ "$1" == "-m" ] || [ $debug == "1" ] ; then
-	see_readme
+	see_markdown > ../README.md
 	exit
 else
  	see_read
