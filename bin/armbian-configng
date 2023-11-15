@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# This script provides a command-line interface for managing Armbian configuration.
+# It loads libraries of functions from the lib directory and displays them in a menu.
+# The user can select a function to run, or use a text-based user interface (TUI) to navigate the menus.
+# The script also provides a help option and a debug option for developers.
+# The script requires sudo privileges to run some functions.
+# The script uses whiptail or dialog for the TUI, depending on which is available.
+
+# TODO: Add more detailed documentation for each function and option in the script.
+
 clear
 # Sudo Users Home
 
@@ -10,20 +19,21 @@ if [ "$(id -u)" = "0" ]; then
 else
     # This block is executed if the script is not run with sudo
     printf '%s\n' "Running without root privileges."
-	#exit 0
     # Load libraries or
+    exit 0
 fi
 
 declare -A dialogue
 
-    if command -v whiptail &> /dev/null; then
-        dialogue="whiptail"
-    elif command -v dialog &> /dev/null; then
-        dialogue="dialog"
-    else
-        echo "TUI not found"
-        return
-    fi
+if command -v whiptail &> /dev/null; then
+    dialogue="whiptail"
+elif command -v dialog &> /dev/null; then
+    dialogue="dialog"
+else
+    echo "TUI not found"
+    return
+fi
+
 debug="0"
 directory="$(dirname "${BASH_SOURCE[0]}")"
 cd "$directory" || exit
@@ -88,33 +98,33 @@ echo
 		echo
     done
 	echo
-
-
 }
 
 see_readme() {
 echo
     for category in "${categories[@]}"; do
-        echo "## Category: ${category##*/}"
-		echo "### Category Description: ${functions["$key,category_description"]}"
+        echo "## ${category##*/}"
+		echo "${functions["$key,category_description"]}"
+        echo
 
         for file in "$category"/*.sh; do
-            echo "### File: ${file##*/}"
+            echo "### ${file##*/}"
+            echo
 
             mapfile -t functions_in_file < <(grep -oP '(?<=function\s)\w+::\w+' "$file")
 
             for function in "${functions_in_file[@]}"; do
                 key="${category##*/}:${file##*/}:${function}"
-                echo "#### Full Function Name: ${function} - Description: ${functions["$key,description"]}"
-                echo "##### Group Name: ${functions["$key,group_name"]}"
-                echo "##### Action Name: ${functions["$key,function_name"]}"
-                echo "##### Options: ${functions["$key,options"]}"
+                echo " - **Group Name:** ${functions["$key,group_name"]}"
+                echo " - **Action Name:** ${functions["$key,function_name"]}"
+                echo " - **Options:** ${functions["$key,options"]}"
+                echo " - **Description:** ${functions["$key,description"]}"
+                echo
             done
         done
 		echo
     done
 	echo
-
 }
 
 see_list() {
@@ -136,12 +146,13 @@ see_list() {
                 group_name=${functions["$key,group_name"]}
 
                 # If the group name has not been printed yet, print it and add it to the array
+                declare -A printed_groups
                 if [[ -z ${printed_groups["$group_name"]} ]]; then
                     echo "        $group_name,    [action]"
                     printed_groups["$group_name"]=1
                 fi
 
-                echo "                ${functions["$key,function_name"]} - ${functions["$key,description"]}"
+                echo "               ${functions["$key,function_name"]} - ${functions["$key,description"]}"
 				echo
             done
         done
@@ -151,17 +162,15 @@ see_list() {
 }
 
 see_help(){
-
-    echo -e "Usage: ${filename%.*} [flag] [option] [action]"
-    echo -e "  flags:"
-    echo -e "    -h,    Print this help."
-    echo
-    echo -e "    -t,    Show a Text-Base user interface."
-    echo
-    echo -e "    -r,    [option],  [action]  Run a feature."
-    echo
-    
-
+cat << EOF 
+Usage: ${filename%.*} [flag] [option] [action]"
+  flags:
+    -h,   Print this help.
+    -t,   Show a Text-Base user interface.
+    -d,   Show a debug information.
+    -m,   show a Markdown readme.
+    -r,   [option]  [action]  To run a feature.
+EOF
 }
 
 parse_action() {
@@ -204,12 +213,59 @@ see_tui() {
     choice=$($dialogue --menu "Select a category:" 0 0 9 "${options[@]}" 3>&1 1>&2 2>&3)
 
     if [[ -n $choice ]]; then
-        see_sub_tui "[$choice]=\"${categories_array[$choice]}\"\n[$choice]=\"${description_array[$choice]}\""
+        see_sub_tui "${categories_array[$choice]}"
     fi
 }
 
-
 see_sub_tui() {
+    # Get the folder name as an argument
+    local folder_name=$1
+
+    # Loop through all keys in the functions array
+    for key in "${!functions[@]}"; do
+        # If the key starts with the folder name
+        if [[ $key == "$folder_name"* ]]; then
+            # Extract the group name and description from the functions array
+            local group_name=${functions["$key,group_name"]}
+            local description=${functions["$key,description"]}
+
+            # Print the group name and description
+            echo "Group Name: $group_name"
+            echo "Description: $description"
+            echo
+        fi
+    done
+}
+
+see_sub_tui_1() {
+   $dialogue --title "Message" --msgbox "$1" 8 50
+}
+
+see_read() {
+    echo
+    echo "Please select an action:"
+    echo
+    # Initialize an empty array to store the function keys
+    declare -a function_keys
+
+    # Loop through each key in the functions array
+    local i=1
+    local current_category=""
+    for key in "${!functions[@]}"; do
+        if [[ $key == *",function_name" ]]; then
+            # Add the key to the function_keys array
+            function_keys[i]="${key%,function_name}"
+
+            # Check if the category has changed and display it if so
+            local category="${functions["${function_keys[i]},category"]}"
+            if [[ "$category" != "$current_category" ]]; then
+                see_sub_tui_1 "$(see_sub_tui "$category")"
+                current_category="$category"
+            fi
+        fi
+    done
+}
+see_sub_tui_1() {
    $dialogue --title "Message" --msgbox "$1" 8 50
 }
 
@@ -282,6 +338,9 @@ elif [ "$1" == "-d" ] || [ $debug == "1" ] ; then
 	exit
 elif [ "$1" == "-t" ] || [ $debug == "1" ] ; then
 	see_tui
+	exit
+elif [ "$1" == "-m" ] || [ $debug == "1" ] ; then
+	see_readme
 	exit
 else
  	see_read

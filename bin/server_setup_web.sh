@@ -11,7 +11,7 @@
 #
 # @author tearran
 #
-server::set_lighthttpd() {
+set_lighthttpd() {
     # Parse command-line arguments
     while getopts ":du" opt; do
         case $opt in

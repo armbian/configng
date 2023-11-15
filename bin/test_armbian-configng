@@ -1,0 +1,93 @@
+# Test case 1: Selecting a valid function
+# Expected output: The selected function should be executed
+functions=(
+    ["1,function_name"]="function1"
+    ["1,group_name"]="Group 1"
+    ["1,description"]="Description 1"
+    ["1,category"]="Category 1"
+)
+see_read <<< "1"
+# Replace "function1" with the actual code for the function
+# This test assumes that the function is defined in the same script as see_read
+
+# Test case 2: Selecting "Show help"
+# Expected output: The see_help function should be executed, followed by see_list
+see_help() { echo "Help function called"; }
+see_list() { echo "List function called"; }
+see_read <<< "2"
+# Expected output:
+# Help function called
+# List function called
+
+# Test case 3: Selecting "Exit"
+# Expected output: The script should exit with status code 0
+see_read <<< "3"
+# Expected output: The script should exit with status code 0
+
+# Test case 4: Selecting an invalid choice
+# Expected output: "Invalid choice" should be printed
+see_read <<< "4"
+# Expected output: "Invalid choice"# Test case 5: Selecting a valid function
+# Expected output: The selected function should be executed
+functions=(
+    ["1,function_name"]="function1"
+    ["1,group_name"]="Group 1"
+    ["1,description"]="Description 1"
+    ["1,category"]="Category 1"
+)
+see_read <<< "1"
+# Replace "function1" with the actual code for the function
+# This test assumes that the function is defined in the same script as see_read
+
+# Test case 6: Selecting "Show help"
+# Expected output: The see_help function should be executed, followed by see_list
+see_help() { echo "Help function called"; }
+see_list() { echo "List function called"; }
+see_read <<< "2"
+# Expected output:
+# Help function called
+# List function called
+
+# Test case 7: Selecting "Exit"
+# Expected output: The script should exit with status code 0
+see_read <<< "3"
+# Expected output: The script should exit with status code 0
+
+# Test case 8: Selecting an invalid choice
+# Expected output: "Invalid choice" should be printed
+see_read <<< "4"
+# Expected output: "Invalid choice"
+
+# Test case 9: Running a feature with valid arguments
+# Expected output: The selected feature should be executed with the provided arguments
+function1() { echo "Function 1 called with arguments: $@"; }
+see_read <<< "1"
+see_read <<< "arg1 arg2 arg3"
+# Expected output: "Function 1 called with arguments: arg1 arg2 arg3"
+
+# Test case 10: Running a feature with invalid arguments
+# Expected output: An error message should be printed
+function1() { echo "Function 1 called with arguments: $@"; }
+see_read <<< "1"
+see_read <<< "arg1 arg2 arg3 arg4"
+# Expected output: "Error: Unknown action 'arg2' for group 'arg1'" (assuming "arg1" and "arg2" are not valid group and action names)
+
+# Test case 11: Showing the help menu
+# Expected output: The help menu should be displayed
+see_read <<< "-h"
+# Expected output: The help menu should be displayed
+
+# Test case 12: Showing the list of available features
+# Expected output: The list of available features should be displayed
+see_read <<< ""
+# Expected output: The list of available features should be displayed
+
+# Test case 13: Showing the TUI
+# Expected output: The TUI should be displayed
+see_read <<< "-t"
+# Expected output: The TUI should be displayed
+
+# Test case 14: Showing debug information
+# Expected output: Debug information should be displayed
+see_read <<< "-d"
+# Expected output: Debug information should be displayed
