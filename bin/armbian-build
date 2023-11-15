@@ -22,7 +22,7 @@ fi
 
 # More than one command can map to the same handler. In that case, use ARMBIAN_COMMANDS_TO_VARS_DICT for specific vars.
 #declare -g -A ARMBIAN_COMMANDS_TO_HANDLERS_DICT=(
-#        ["docker"]="docker" # thus requires cli_docker_pre_run and cli_docker_run
+#       ["docker"]="docker" # thus requires cli_docker_pre_run and cli_docker_run
 #		["docker-purge"]="docker"
 #		["dockerpurge"]="docker"
 #		["docker-shell"]="docker"

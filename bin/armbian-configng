@@ -104,27 +104,36 @@ echo
 }
 
 see_json() {
-echo
+    echo "{"
+    echo "  \"categories\": ["
     for category in "${categories[@]}"; do
-        echo "Category: ${category##*/}"
-		echo "Category Description: ${functions["$key,category_description"]}"
-
+        echo "    {"
+        echo "      \"name\": \"${category##*/}\","
+        echo "      \"description\": \"${functions["$key,category_description"]}\","
+        echo "      \"files\": ["
         for file in "$category"/*.sh; do
-            echo "  File: ${file##*/}"
-
+            echo "        {"
+            echo "          \"name\": \"${file##*/}\","
+            echo "          \"functions\": ["
             mapfile -t functions_in_file < <(grep -oP '(?<=function\s)\w+::\w+' "$file")
-
             for function in "${functions_in_file[@]}"; do
                 key="${category##*/}:${file##*/}:${function}"
-                echo "        Full Function Name: ${function} - Description: ${functions["$key,description"]}"
-                echo "            Group Name: ${functions["$key,group_name"]}"
-                echo "            Action Name: ${functions["$key,function_name"]}"
-                echo "            Options: ${functions["$key,options"]}"
+                echo "            {"
+                echo "              \"full_function_name\": \"${function}\","
+                echo "              \"description\": \"${functions["$key,description"]}\","
+                echo "              \"group_name\": \"${functions["$key,group_name"]}\","
+                echo "              \"action_name\": \"${functions["$key,function_name"]}\","
+                echo "              \"options\": \"${functions["$key,options"]}\""
+                echo "            },"
             done
+            echo "          ]"
+            echo "        },"
         done
-		echo
+        echo "      ]"
+        echo "    },"
     done
-	echo
+    echo "  ]"
+    echo "}"
 }
 
 # the readme.md is generated from this function
@@ -356,8 +365,11 @@ elif [ "$1" == "-d" ] || [ $debug == "1" ] ; then
 elif [ "$1" == "-t" ] || [ $debug == "1" ] ; then
 	see_tui
 	exit
+elif [ "$1" == "-j" ] || [ $debug == "1" ] ; then
+	see_json > ../share/armbian-configng/commands.json
+	exit
 elif [ "$1" == "-m" ] || [ $debug == "1" ] ; then
-	see_markdown > ../README.md
+	see_markdown > ../share/armbian-configng/README.md
 	exit
 else
  	see_read

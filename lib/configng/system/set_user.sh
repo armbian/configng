@@ -1,25 +1,36 @@
-#!/bin/bash
+This is a refactoring of [armbian-config](https://github.com/armbian/config) using [Bash Utility](https://labbots.github.io/bash-utility)
+embedded in this project. This allows for functional programming in Bash. Error handling and validation are also included.
+The idea is to provide an API in Bash that can be called from a Command line interface, Text User interface and others.
+Why Bash? Well, because it's going to be in every distribution. Striped down distributions
+may not include Python, C/C++, etc. build/runtime environments
 
-# @description Setup a new sudo user account.
-#
-# @exitcode 0  If successful.
-#
-# @options Prompt for the new username.
-function enduser::set_new(){
+## Quick start
+Run the following commands:
 
-    # Prompt the user for the new username
-    read -p "Please enter the new username: " username
+        sudo apt install git
+        cd ~/
+        git clone https://github.com/armbian/configng.git
+        bash ~/configng/bin/armbian-configng -h
+  
+### If all goes well you should see the help message
 
-    # Create a new user
-    sudo adduser $username
+## Coding Style
+follow the following coding style:
 
-    # Prompt the user for the new user's password
-    read -s -p "Please enter the password for the new user: " password
-
-    # Set a password for the new user
-    echo "$username:$password" | sudo chpasswd
-
-    # Add the new user to the sudo group
-    sudo usermod -aG sudo $username 
-    return 0 ;
+    # @description A short description of the function.
+    #
+    # @exitcode 0  If successful.
+    #
+    # @options A description if there are options.
+    function group::string() {
+        echo "hello world"
+        return 0
     }
+  
+# Codestyle can be used to auto generate
+ - Markdown
+ - JSON
+ - Text User Interface
+ - Command Line Interface
+ - Help message
+ - launch a feature
