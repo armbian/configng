@@ -34,3 +34,34 @@ follow the following coding style:
  - Command Line Interface
  - Help message
  - launch a feature
+ 
+## legacy
+Setup Custume/Community software.
+
+### config_legacy.sh
+
+ - **Group Name:** legacy
+ - **Action Name:** see_config
+ - **Options:** none
+ - **Description:** Armbian config Legacy
+
+## network
+Legacy applications for Armbian.
+
+### set_wifi.sh
+
+ - **Group Name:** network
+ - **Action Name:** nmtui
+ - **Options:** none.
+ - **Description:** Set a local net test.
+
+## software
+Setup the Network settings.
+
+### runfunsh.sh
+
+ - **Group Name:** desktop
+ - **Action Name:** run_configure
+ - **Options:** 
+ - **Description:** Configure armbian desktop.
+

@@ -78,7 +78,7 @@ for category in "${categories[@]}"; do
     done
 done
 
-see_debug() {
+see_json() {
     json_objects=()
     for key in "${!functions[@]}"; do
         if [[ $key == *",function_name"* ]]; then
@@ -96,7 +96,7 @@ see_debug() {
     echo "[${json_objects[*]}]" | jq
 }
 
-see_debug2() {
+see_debug() {
 echo
     for category in "${categories[@]}"; do
         echo "Category: ${category##*/}"
@@ -352,12 +352,12 @@ elif [ "$1" == "-t" ]  ; then
 	see_tui
 	exit
 elif [ "$1" == "-j" ]  ; then
-    see_json #> ../share/armbian-configng/commands.json 
-    #chmod 755 ../share/armbian-configng/commands.json
+    see_json > ../share/armbian-configng/commands.json 
+    chmod 755 ../share/armbian-configng/commands.json
 	exit
 elif [ "$1" == "-m" ]  ; then
-    see_markdown > ../share/armbian-configng/README.md
-     chmod 755 ../share/armbian-configng/commands.json
+    see_markdown > ../README.md
+     chmod 755 ../README.md
 	exit
 elif [ "$1" == "-w" ] ; then
     see_html
