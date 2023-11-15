@@ -7,6 +7,18 @@
 # warranty of any kind, whether express or implied.
 
 
+# @description Configure armbian desktop.
+#
+# @exitcode 0  If successful.
+#
+# @options none.
+function desktop::run_configure(){
+
+ 	configure_desktop
+    return 0
+}
+
+
 
 #
 # gather info about the board and start with loading menu
@@ -804,14 +816,4 @@ function configure_desktop ()
 
 }
 
-# @description Configure armbian desktop.
-#
-# @exitcode 0  If successful.
-#
-# @options none
-function desktop::run_configure(){
-
- 	configure_desktop
-    return 0
-}
 

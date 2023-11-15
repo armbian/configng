@@ -51,7 +51,7 @@ fi
 #)
 
 # Source the external file
-script_path="/home/beta/configng/opt/armbian_builds/build/lib/functions/cli/commands.sh"
+script_path="$(dirname "$(dirname "$(realpath "$0")")")/src/build/lib/functions/cli/commands.sh"
 
 # Use awk to extract the array
 ARMBIAN_COMMANDS_TO_HANDLERS_DICT=$(awk '/declare -g -A ARMBIAN_COMMANDS_TO_HANDLERS_DICT=/,/^(\}|[[:space:]]*\))/ {print}' "$script_path")
@@ -60,7 +60,7 @@ ARMBIAN_COMMANDS_TO_HANDLERS_DICT=$(awk '/declare -g -A ARMBIAN_COMMANDS_TO_HAND
 eval "$ARMBIAN_COMMANDS_TO_HANDLERS_DICT"
 
 # Now you can use the array in this script
-echo "Array keys: ${!ARMBIAN_COMMANDS_TO_HANDLERS_DICT[@]}"
+#echo "Array keys: ${!ARMBIAN_COMMANDS_TO_HANDLERS_DICT[@]}"
 
 
 # EN ARMBIAN_COMMANDS_TO_HANDLERS_DICT Descritions Groups

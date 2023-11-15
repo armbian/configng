@@ -13,9 +13,8 @@
 # @exitcode 0  If successful.
 #
 # @options none
-function network::see_somthing(){
+function network::nmtui(){
 
-	echo "hello world"
+	 nmtui connect
     return 0
 }
-

@@ -20,7 +20,7 @@ else
     # This block is executed if the script is not run with sudo
     printf '%s\n' "Running without root privileges."
     # Load libraries or
-    exit 0
+    #exit 0
 fi
 
 declare -A dialogue
@@ -78,8 +78,25 @@ for category in "${categories[@]}"; do
     done
 done
 
-
 see_debug() {
+    json_objects=()
+    for key in "${!functions[@]}"; do
+        if [[ $key == *",function_name"* ]]; then
+            function_key="${key%,function_name}"
+            function_name="${functions[$key]}"
+            group_name="${functions["$function_key,group_name"]}"
+            description="${functions["$function_key,description"]}"
+            options="${functions["$function_key,options"]}"
+            category="${functions["$function_key,category"]}"
+            category_description="${functions["$function_key,category_description"]}"
+            json_objects+=("{ \"Function Name\": \"$function_name\", \"Group Name\": \"$group_name\", \"Description\": \"$description\", \"Options\": \"$options\", \"Category\": \"$category\", \"Category Description\": \"$category_description\" }")
+        fi
+    done
+    IFS=','
+    echo "[${json_objects[*]}]" | jq
+}
+
+see_debug2() {
 echo
     for category in "${categories[@]}"; do
         echo "Category: ${category##*/}"
@@ -101,39 +118,6 @@ echo
 		echo
     done
 	echo
-}
-
-see_json() {
-    echo "{"
-    echo "  \"categories\": ["
-    for category in "${categories[@]}"; do
-        echo "    {"
-        echo "      \"name\": \"${category##*/}\","
-        echo "      \"description\": \"${functions["$key,category_description"]}\","
-        echo "      \"files\": ["
-        for file in "$category"/*.sh; do
-            echo "        {"
-            echo "          \"name\": \"${file##*/}\","
-            echo "          \"functions\": ["
-            mapfile -t functions_in_file < <(grep -oP '(?<=function\s)\w+::\w+' "$file")
-            for function in "${functions_in_file[@]}"; do
-                key="${category##*/}:${file##*/}:${function}"
-                echo "            {"
-                echo "              \"full_function_name\": \"${function}\","
-                echo "              \"description\": \"${functions["$key,description"]}\","
-                echo "              \"group_name\": \"${functions["$key,group_name"]}\","
-                echo "              \"action_name\": \"${functions["$key,function_name"]}\","
-                echo "              \"options\": \"${functions["$key,options"]}\""
-                echo "            },"
-            done
-            echo "          ]"
-            echo "        },"
-        done
-        echo "      ]"
-        echo "    },"
-    done
-    echo "  ]"
-    echo "}"
 }
 
 # the readme.md is generated from this function
@@ -280,6 +264,7 @@ see_tui() {
         see_sub_tui "${categories_array[$choice]}"
     fi
 }
+
 see_sub_tui() {
    $dialogue --title "Message" --msgbox "$1" 8 50
 }
@@ -341,6 +326,7 @@ Usage: ${filename%.*} [flag] [option] [action]"
     -d,   Show a debug information.
     -m,   Generate a readme.md.
     -j,   show a json ouput. # TODO: output file need usable location
+    -W,   Show a web ouput. # TODO: output file need usable location
     -r,   [option]  [action]  To run a feature.
 EOF
 }
@@ -362,15 +348,20 @@ elif [ "$1" == "-h" ]; then
 elif [ "$1" == "-d" ] || [ $debug == "1" ] ; then
 	see_debug
 	exit
-elif [ "$1" == "-t" ] || [ $debug == "1" ] ; then
+elif [ "$1" == "-t" ]  ; then
 	see_tui
 	exit
-elif [ "$1" == "-j" ] || [ $debug == "1" ] ; then
-	see_json > ../share/armbian-configng/commands.json
+elif [ "$1" == "-j" ]  ; then
+    see_json #> ../share/armbian-configng/commands.json 
+    #chmod 755 ../share/armbian-configng/commands.json
 	exit
-elif [ "$1" == "-m" ] || [ $debug == "1" ] ; then
-	see_markdown > ../share/armbian-configng/README.md
+elif [ "$1" == "-m" ]  ; then
+    see_markdown > ../share/armbian-configng/README.md
+     chmod 755 ../share/armbian-configng/commands.json
 	exit
+elif [ "$1" == "-w" ] ; then
+    see_html
+    exit
 else
  	see_read
 	exit
