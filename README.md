@@ -112,3 +112,4 @@ printf '%s\n' "$(cat $file)"
 ```
 
 Only use sudo when needed and never run as root!
+
