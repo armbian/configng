@@ -9,16 +9,16 @@
 
 # TODO: Add more detailed documentation for each function and option in the script.
 
-clear
+#clear
 # Sudo Users Home
 
 if [ "$(id -u)" = "0" ]; then
     # This block is executed if the script is run with sudo
     # echo "Running with root privileges."
     USER_HOME=$(eval echo ~"$SUDO_USER")
-else
+#else
     # This block is executed if the script is not run with sudo
-    printf '%s\n' "Running without root privileges."
+    # printf '%s\n' "Running without root privileges."
     # Load libraries or
     #exit 0
 fi
@@ -95,6 +95,102 @@ see_json() {
     IFS=','
     echo "[${json_objects[*]}]" | jq
 }
+
+see_html5() {
+
+html_content='<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            background-color: #333;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+        ul {
+            list-style-type: none;
+        }
+    </style>
+</head>
+<body>
+    <ul>
+        <script src="commands.json"></script>
+        <script>
+            fetch("commands.json")
+                .then(response => response.json())
+                .then(commands => {
+                    for (const command of commands) {
+                        const li = document.createElement("li");
+                        li.textContent = command.name + ": " + command.description;
+                        document.querySelector("ul").appendChild(li);
+                    }
+                });
+        </script>
+    </ul>
+</body>
+</html>'
+echo "$html_content" ;
+
+}
+
+see_html() {
+    html_content='<!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {
+                background-color: #333;
+                color: #fff;
+                font-family: Arial, sans-serif;
+            }
+            table {
+                border-collapse: collapse;
+                width: 100%;
+            }
+            th, td {
+                text-align: left;
+                padding: 8px;
+            }
+            th {
+                background-color: #4CAF50;
+                color: white;
+            }
+            tr:nth-child(even) {background-color: #f2f2f2;}
+        </style>
+    </head>
+    <body>
+        <table>
+            <thead>
+                <tr>
+                    <th>Function Name</th>
+                    <th>Group Name</th>
+                    <th>Description</th>
+                    <th>Options</th>
+                    <th>Category</th>
+                    <th>Category Description</th>
+                </tr>
+            </thead>
+            <tbody>'
+    for key in "${!functions[@]}"; do
+        if [[ $key == *",function_name"* ]]; then
+            function_key="${key%,function_name}"
+            function_name="${functions[$key]}"
+            group_name="${functions["$function_key,group_name"]}"
+            description="${functions["$function_key,description"]}"
+            options="${functions["$function_key,options"]}"
+            category="${functions["$function_key,category"]}"
+            category_description="${functions["$function_key,category_description"]}"
+            html_content+="<tr><td>$function_name</td><td>$group_name</td><td>$description</td><td>$options</td><td>$category</td><td>$category_description</td></tr>"
+        fi
+    done
+    html_content+='
+            </tbody>
+        </table>
+    </body>
+    </html>'
+    echo "$html_content"
+}
+
 
 see_debug() {
 echo
@@ -258,8 +354,9 @@ see_tui() {
     done
 
     local choice
+    
     choice=$($dialogue --menu "Select a category:" 0 0 9 "${options[@]}" 3>&1 1>&2 2>&3)
-
+    
     if [[ -n $choice ]]; then
         see_sub_tui "${categories_array[$choice]}"
     fi
@@ -326,7 +423,7 @@ Usage: ${filename%.*} [flag] [option] [action]"
     -d,   Show a debug information.
     -m,   Generate a readme.md.
     -j,   show a json ouput. # TODO: output file need usable location
-    -W,   Show a web ouput. # TODO: output file need usable location
+    -w,   Show a web ouput. # TODO: output file need usable location
     -r,   [option]  [action]  To run a feature.
 EOF
 }
@@ -360,10 +457,10 @@ elif [ "$1" == "-m" ]  ; then
      chmod 755 ../README.md
 	exit
 elif [ "$1" == "-w" ] ; then
-    see_html
+    see_html > ../share/armbian-configng/index.html ;
+    cat  "../share/armbian-configng/index.html";
     exit
 else
  	see_read
 	exit
 fi
-

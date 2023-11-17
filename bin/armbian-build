@@ -51,7 +51,7 @@ fi
 #)
 
 # Source the external file
-script_path="$(dirname "$(dirname "$(realpath "$0")")")/src/build/lib/functions/cli/commands.sh"
+script_path="$(dirname "$(dirname "$(realpath "$0")")")/share/build/lib/functions/cli/commands.sh"
 
 # Use awk to extract the array
 ARMBIAN_COMMANDS_TO_HANDLERS_DICT=$(awk '/declare -g -A ARMBIAN_COMMANDS_TO_HANDLERS_DICT=/,/^(\}|[[:space:]]*\))/ {print}' "$script_path")

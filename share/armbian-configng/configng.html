@@ -14,6 +14,14 @@
 </head>
 <body>
     <ul>
+        <script src="commands.json"></script>
+        <script>
+            for (const command of commands) {
+                const li = document.createElement('li');
+                li.textContent = command.name + ': ' + command.description;
+                document.querySelector('ul').appendChild(li);
+            }
+        </script>
     </ul>
 </body>
 </html>
