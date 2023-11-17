@@ -421,9 +421,9 @@ Usage: ${filename%.*} [flag] [option] [action]"
     -h,   Print this help.
     -t,   Show a Text-Base user interface.
     -d,   Show a debug information.
-    -m,   Generate a readme.md.
-    -j,   show a json ouput. # TODO: output file need usable location
-    -w,   Show a web ouput. # TODO: output file need usable location
+    -m,   Generate a readme.md. # README.md
+    -j,   show a json ouput. # share/armbian-configng/configng.html
+    -w,   Show a web ouput. # share/armbian-configng/commands.json
     -r,   [option]  [action]  To run a feature.
 EOF
 }
@@ -454,7 +454,7 @@ elif [ "$1" == "-j" ]  ; then
 	exit
 elif [ "$1" == "-m" ]  ; then
     see_markdown > ../README.md
-     chmod 755 ../README.md
+    chmod 755 ../README.md
 	exit
 elif [ "$1" == "-w" ] ; then
     see_html > ../share/armbian-configng/index.html ;
