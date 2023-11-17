@@ -12,7 +12,7 @@
 # @exitcode 0  If successful.
 #
 # @options none.
-function desktop::run_configure(){
+function desktop::configure(){
 
  	configure_desktop
     return 0
@@ -97,9 +97,6 @@ vercomp () {
 	return 0
 
 }
-
-
-
 
 #
 # test compare two strings $1="3.4.12" $2="5.4.2" $3="<" returns 0 if relation is correct

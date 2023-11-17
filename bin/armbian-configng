@@ -405,8 +405,8 @@ see_action() {
             # Call the function using variable indirection
             ${function_name}
         elif ((choice == 2)); then
-            #see_help
-            see_action "$function_name"
+            see_help 
+            
         fi
     fi
 }
@@ -510,6 +510,6 @@ elif [ "$1" == "-w" ] ; then
     cat  "./index.html";
     exit
 else
- 	see_read ;
+ 	see_tui ;
 	exit ;
 fi
