@@ -357,13 +357,58 @@ see_tui() {
     
     choice=$($dialogue --menu "Select a category:" 0 0 9 "${options[@]}" 3>&1 1>&2 2>&3)
     
+   
     if [[ -n $choice ]]; then
         see_sub_tui "${categories_array[$choice]}"
     fi
 }
 
 see_sub_tui() {
-   $dialogue --title "Message" --msgbox "$1" 8 50
+    local category="$1"
+    local options=()
+    local i=0
+    declare -A functions_array
+    for file in "$libpath/configng/$category"/*.sh; do
+        mapfile -t functions_in_file < <(grep -oP '(?<=function\s)\w+::\w+' "$file")
+        for function in "${functions_in_file[@]}"; do
+            key="${category##*/}:${file##*/}:${function}"
+            functions_array["$i"]="$function"
+            options+=("$i" "${functions["$key,function_name"]} - ${functions["$key,description"]}")
+            ((++i))
+        done
+    done
+
+    local choice
+    
+    choice=$($dialogue --menu "Select a function:" 0 0 9 "${options[@]}" 3>&1 1>&2 2>&3)
+    
+   
+    if [[ -n $choice ]]; then
+        see_action "${functions_array[$choice]}"
+    fi
+
+}
+
+see_action() {
+    local function_name="$1"
+    local group_name=$(echo "$function_name" | sed 's/::.*//')
+    local action_name=$(echo "$function_name" | sed 's/.*:://')
+    local options="${functions["$group_name:$action_name,options"]}"
+
+    local choice
+    
+    choice=$($dialogue --menu "Select an option:" 0 0 9 "1" "Run $action_name" "2" "Show help" 3>&1 1>&2 2>&3)
+    
+   
+    if [[ -n $choice ]]; then
+        if ((choice == 1)); then
+            # Call the function using variable indirection
+            ${function_name}
+        elif ((choice == 2)); then
+            #see_help
+            see_action "$function_name"
+        fi
+    fi
 }
 
 see_read() {
@@ -453,14 +498,18 @@ elif [ "$1" == "-j" ]  ; then
     chmod 755 ../share/armbian-configng/commands.json
 	exit
 elif [ "$1" == "-m" ]  ; then
-    see_markdown > ../README.md
-    chmod 755 ../README.md
+        # Navigate to the root directory of the repository
+    cd "$(dirname "$0")/../"
+    see_markdown > ./readme.md
+    chmod 755 ./readme.md
 	exit
 elif [ "$1" == "-w" ] ; then
-    see_html > ../share/armbian-configng/index.html ;
-    cat  "../share/armbian-configng/index.html";
+    cd "$(dirname "$0")/../"
+    see_html > ./index.html ;
+    chmod 755 ./index.html ;
+    cat  "./index.html";
     exit
 else
- 	see_read
-	exit
+ 	see_read ;
+	exit ;
 fi
