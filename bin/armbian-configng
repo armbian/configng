@@ -10,8 +10,7 @@
 # TODO: Add more detailed documentation for each function and option in the script.
 
 #clear
-# Sudo Users Home
-
+# Sudo Users Home use to output local
 if [ "$(id -u)" = "0" ]; then
     # This block is executed if the script is run with sudo
     # echo "Running with root privileges."
@@ -46,14 +45,14 @@ for file in "$libpath"/configng/*/*.sh; do
     source "$file"
 done
 
-mapfile -t categories < <(ls -d "$libpath/configng"/* )
+mapfile -t categories < <(ls -d "$libpath/armbian-configng"/* )
 
 declare -A functions
 
 for category in "${categories[@]}"; do
     category_name="${category##*/}"
 
-    category_file="$category/category"
+    category_file="$category/readme.md"
     if [[ -f "$category_file" ]]; then
         category_description=$(grep -oP "(?<=# @description ).*" "$category_file")
     fi
@@ -357,7 +356,7 @@ see_tui() {
     for category in "${categories[@]}"; do
         local category_name="${category##*/}"
         local category_description=""
-        local category_file="$category/category"
+        local category_file="$category/readme.md"
 
         if [[ -f "$category_file" ]]; then
             category_description=$(grep -oP "(?<=# @description ).*" "$category_file")
