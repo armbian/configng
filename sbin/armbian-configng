@@ -7,7 +7,6 @@
 # The script requires sudo privileges to run some functions.
 # The script uses whiptail or dialog for the TUI, depending on which is available.
 
-# TODO: Add more detailed documentation for each function and option in the script.
 
 # Sudo Users Home use to output local
 if [ "$(id -u)" = "0" ]; then
@@ -91,7 +90,7 @@ see_json() {
 # Untested idea is to use the json output to generate a html page
 see_html5() {
 
-html_content='<!DOCTYPE html>
+local html_content='<!DOCTYPE html>
 <html>
 <head>
     <style>
@@ -128,7 +127,7 @@ echo "$html_content" ;
 
 # Simple table for github.io pages
 see_html() {
-    html_content='<!DOCTYPE html>
+    local html_content='<!DOCTYPE html>
     <html>
     <head>
         <style>
@@ -149,7 +148,10 @@ see_html() {
                 background-color: #4CAF50;
                 color: white;
             }
-            tr:nth-child(even) {background-color: #f2f2f2;}
+            tr:nth-child(even) {
+                background-color: #f2f2f2;
+                color: black;
+                }
         </style>
     </head>
     <body>
@@ -253,7 +255,7 @@ function group::string() {
  - Help message
  - launch a feature
 
-## Up to date list of functions 
+## Updated list of functions 
 EOF
 
     for category in "${categories[@]}"; do
