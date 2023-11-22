@@ -1,7 +1,7 @@
 # Armbian ConfigNG 
 Refactor of [armbian-config](https://github.com/armbian/config)       
 ## relaease 
-1.0.0
+2021-09-01
 # User guide
 ## Quick start
 Run the following commands:
@@ -38,9 +38,9 @@ function group::string() {
  - Help message
  - launch a feature
 
-## Updated list of functions 
+## Up to date list of functions 
 ## legacy
-Setup Custume/Community software.
+System Custume configurations.
 
 ### config_legacy.sh
 
@@ -59,15 +59,35 @@ Legacy applications for Armbian.
  - **Options:** none.
  - **Description:** Set a local net test.
 
-## software
+## other
 Setup the Network settings.
 
 ### setup_desktop.sh
 
  - **Group Name:** desktop
  - **Action Name:** configure
- - **Options:** 
+ - **Options:** none.
+ - **Description:** Hello World.
+
+## software
+Catch all for misc.
+
+### setup_desktop.sh
+
+ - **Group Name:** desktop
+ - **Action Name:** configure
+ - **Options:** none
  - **Description:** Configure armbian desktop.
+
+## system
+Setup Custume/Community software.
+
+### see_monitor.sh
+
+ - **Group Name:** monitor
+ - **Action Name:** Bencharking
+ - **Options:** 
+ - **Description:** Armbian Monitor and Bencharking.
 
 
 # Inclueded projects

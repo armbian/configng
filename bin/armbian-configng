@@ -18,10 +18,11 @@ declare -A dialogue
 
 # Check if whiptail or dialog is installed and set the variable 'dialogue' accordingly.
 # If neither is found, print "TUI not found" and return.
+# todo add a fallback TUI and gui
 if command -v whiptail &> /dev/null; then
     dialogue="whiptail"
-#elif command -v dialog &> /dev/null; then
- #   dialogue="dialog"
+elif command -v dialog &> /dev/null; then
+    dialogue="dialog"
 else
     echo "TUI not found
 	Warning: Using fallback TUI"
@@ -37,7 +38,7 @@ for file in "$libpath"/"$filename"/*/*.sh; do
     source "$file"
 done
 
-mapfile -t categories < <(ls -d "$libpath/armbian-configng"/* )
+mapfile -t categories < <(ls -d "$libpath/$filename"/* )
 
 declare -A functions
 
@@ -241,7 +242,7 @@ see_html() {
                 background-color: #4CAF50;
                 color: white;
             }
-            tr:nth-child(even) {background-color: #f2f2f2;}
+            tr:nth-child(even) {color: black; background-color: #f2f2f2; }
         </style>
     </head>
     <body>
@@ -336,7 +337,7 @@ function group::string() {
     echo "hello world"
     return 0
 }
- ~~~ 
+~~~
 ## Codestyle can be used to auto generate
  - Markdown
  - JSON
@@ -600,7 +601,7 @@ elif [ "$1" == "-j" ]  ; then
 elif [ "$1" == "-m" ]  ; then
         # Navigate to the root directory of the repository
     cd "$(dirname "$0")/../"
-    see_markdown > ./readme.md
+    see_markdown > ./readme.md  
     chmod 755 ./readme.md
     cat ./readme.md
 	exit
@@ -608,11 +609,9 @@ elif [ "$1" == "-w" ] ; then
     cd "$(dirname "$0")/../"
     see_html > ./index.html ;
     chmod 755 ./index.html ;
-    #cat  "./index.html";
 
-    see_html5 > "/home/gamma/configng/share/armbian-configng/$filename.html" ;
-    chmod 755 ./index5.html ;
-    #cat  "./index5.html";
+    see_html5 > "./share/armbian-configng/$filename.html" ;
+    chmod 755 "./share/armbian-configng/$filename.html" ;
     exit
 else    
  	see_tui ;
