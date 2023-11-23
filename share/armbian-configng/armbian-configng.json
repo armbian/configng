@@ -11,9 +11,17 @@
     "Function Name": "configure",
     "Group Name": "desktop",
     "Description": "Configure armbian desktop.",
-    "Options": "",
+    "Options": "none",
     "Category": "software",
     "Category Description": "Setup Custume/Community software."
+  },
+  {
+    "Function Name": "Bencharking",
+    "Group Name": "monitor",
+    "Description": "Armbian Monitor and Bencharking.",
+    "Options": "",
+    "Category": "system",
+    "Category Description": "System Custume configurations."
   },
   {
     "Function Name": "armbian_config",
@@ -22,5 +30,13 @@
     "Options": "none",
     "Category": "legacy",
     "Category Description": "Legacy applications for Armbian."
+  },
+  {
+    "Function Name": "Hello",
+    "Group Name": "world",
+    "Description": "Hello World.",
+    "Options": "none.",
+    "Category": "other",
+    "Category Description": "Catch all for misc."
   }
 ]

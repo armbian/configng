@@ -12,7 +12,7 @@
 # @exitcode 0  If successful.
 #
 # @options none.
-function desktop::configure(){
+function world::Hello(){
 
  	echo "Hello Armbian"
     return 0

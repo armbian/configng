@@ -1,0 +1,257 @@
+[
+  {
+    "command": "docker-shell",
+    "description": "Manage Docker containers",
+    "handler": "docker"
+  },
+  {
+    "command": "uboot-patch",
+    "description": "",
+    "handler": "artifact"
+  },
+  {
+    "command": "config-dump-no-json",
+    "description": "Dump configuration to JSON",
+    "handler": "config_dump_json"
+  },
+  {
+    "command": "armbian-desktop",
+    "description": "",
+    "handler": "artifact"
+  },
+  {
+    "command": "armbian-config",
+    "description": "",
+    "handler": "artifact"
+  },
+  {
+    "command": "artifact",
+    "description": "",
+    "handler": "artifact"
+  },
+  {
+    "command": "debs-to-repo-reprepro",
+    "description": "Display JSON information",
+    "handler": "json_info"
+  },
+  {
+    "command": "uboot-config",
+    "description": "",
+    "handler": "artifact"
+  },
+  {
+    "command": "distccd",
+    "description": "Set up distccd",
+    "handler": "distccd"
+  },
+  {
+    "command": "config-dump",
+    "description": "Dump configuration to JSON",
+    "handler": "config_dump_json"
+  },
+  {
+    "command": "undecided",
+    "description": "",
+    "handler": "undecided"
+  },
+  {
+    "command": "targets-composed",
+    "description": "Display JSON information",
+    "handler": "json_info"
+  },
+  {
+    "command": "download-artifact",
+    "description": "",
+    "handler": "artifact"
+  },
+  {
+    "command": "inventory",
+    "description": "Display JSON information",
+    "handler": "json_info"
+  },
+  {
+    "command": "kernel-config",
+    "description": "",
+    "handler": "artifact"
+  },
+  {
+    "command": "configdump",
+    "description": "Dump configuration to JSON",
+    "handler": "config_dump_json"
+  },
+  {
+    "command": "armbian-bsp-desktop",
+    "description": "",
+    "handler": "artifact"
+  },
+  {
+    "command": "docker-purge",
+    "description": "Manage Docker containers",
+    "handler": "docker"
+  },
+  {
+    "command": "rootfs",
+    "description": "",
+    "handler": "artifact"
+  },
+  {
+    "command": "armbian-base-files",
+    "description": "",
+    "handler": "artifact"
+  },
+  {
+    "command": "flash",
+    "description": "Flash firmware",
+    "handler": "flash"
+  },
+  {
+    "command": "armbian-bsp-cli",
+    "description": "",
+    "handler": "artifact"
+  },
+  {
+    "command": "dockerpurge",
+    "description": "Manage Docker containers",
+    "handler": "docker"
+  },
+  {
+    "command": "crust-patch",
+    "description": "",
+    "handler": "artifact"
+  },
+  {
+    "command": "debs-to-repo-download",
+    "description": "Display JSON information",
+    "handler": "json_info"
+  },
+  {
+    "command": "rewrite-kernel-patches",
+    "description": "Apply kernel patches",
+    "handler": "patch_kernel"
+  },
+  {
+    "command": "armbian-zsh",
+    "description": "",
+    "handler": "artifact"
+  },
+  {
+    "command": "firmware-full",
+    "description": "",
+    "handler": "artifact"
+  },
+  {
+    "command": "kernel-patches-to-git",
+    "description": "Apply kernel patches",
+    "handler": "patch_kernel"
+  },
+  {
+    "command": "requirements",
+    "description": "Install system requirements",
+    "handler": "requirements"
+  },
+  {
+    "command": "dockershell",
+    "description": "Manage Docker containers",
+    "handler": "docker"
+  },
+  {
+    "command": "targets-dashboard",
+    "description": "Display JSON information",
+    "handler": "json_info"
+  },
+  {
+    "command": "generate-dockerfile",
+    "description": "Manage Docker containers",
+    "handler": "docker"
+  },
+  {
+    "command": "build",
+    "description": "Perform standard build",
+    "handler": "standard_build"
+  },
+  {
+    "command": "armbian-plymouth-theme",
+    "description": "",
+    "handler": "artifact"
+  },
+  {
+    "command": "oras-upload",
+    "description": "",
+    "handler": "oras"
+  },
+  {
+    "command": "uboot",
+    "description": "",
+    "handler": "artifact"
+  },
+  {
+    "command": "fake-ubuntu-advantage-tools",
+    "description": "",
+    "handler": "artifact"
+  },
+  {
+    "command": "kernel",
+    "description": "",
+    "handler": "artifact"
+  },
+  {
+    "command": "atf-patch",
+    "description": "",
+    "handler": "artifact"
+  },
+  {
+    "command": "config-dump-json",
+    "description": "Dump configuration to JSON",
+    "handler": "config_dump_json"
+  },
+  {
+    "command": "gha-matrix",
+    "description": "Display JSON information",
+    "handler": "json_info"
+  },
+  {
+    "command": "docker",
+    "description": "Manage Docker containers",
+    "handler": "docker"
+  },
+  {
+    "command": "rewrite-kernel-config",
+    "description": "",
+    "handler": "artifact"
+  },
+  {
+    "command": "artifact-config-dump-json",
+    "description": "",
+    "handler": "artifact"
+  },
+  {
+    "command": "targets",
+    "description": "Display JSON information",
+    "handler": "json_info"
+  },
+  {
+    "command": "gha-template",
+    "description": "Display JSON information",
+    "handler": "json_info"
+  },
+  {
+    "command": "kernel-patch",
+    "description": "",
+    "handler": "artifact"
+  },
+  {
+    "command": "gha-workflow",
+    "description": "Display JSON information",
+    "handler": "json_info"
+  },
+  {
+    "command": "debs-to-repo-json",
+    "description": "Display JSON information",
+    "handler": "json_info"
+  },
+  {
+    "command": "firmware",
+    "description": "",
+    "handler": "artifact"
+  }
+]

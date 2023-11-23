@@ -10,7 +10,8 @@
 directory="$(dirname "${BASH_SOURCE[0]}")"
 cd "$directory" || exit
 filename="$(basename "${BASH_SOURCE[0]}")" ;
-libpath="$directory/../lib"
+libpath="$(dirname "$(dirname "$(realpath "$0")")")/lib"
+share_path="$(dirname "$(dirname "$(realpath "$0")")")/share"
 
 # Set the tui
 if command -v whiptail > /dev/null; then
@@ -54,21 +55,6 @@ declare -A COMMAND_DESCRIPTIONS_EN=(
     ["flash"]="Flash firmware"
 )
 
-generate_descriptions() {
-    mapfile -t commands < <(printf '%s\n' "${!ARMBIAN_COMMANDS_TO_HANDLERS_DICT[@]}")
-
-    local i=1
-    local command
-    local description
-
-    for command in "${commands[@]}"; do
-        description="${COMMAND_DESCRIPTIONS_EN[${ARMBIAN_COMMANDS_TO_HANDLERS_DICT[$command]}]}"
-        handler="${ARMBIAN_COMMANDS_TO_HANDLERS_DICT[$command]}"
-        printf '%d %s  - %s\n    ["%s"]="%s"\n' "$i" "$command" "$description" "$command" "$handler"
-        ((i++))
-    done
-}
-
 generate_json() {
     local i=1
     local command
@@ -96,7 +82,8 @@ generate_json() {
     json_output+="]"
 
     # Print the formatted JSON
-    echo "$json_output" | jq
+    echo "$json_output" | jq > "$share_path"/armbian-build/build-commands.json ;
+    echo "JSON output generated at $share_path"/armbian-build/build-commands.json ;
 }
 
 # html output
@@ -123,7 +110,10 @@ generate_html() {
     html_output+="</ul></body></html>"
 
     # Print the formatted HTML
-    echo "$html_output"
+
+    echo "$html_output" > "$share_path"/armbian-build/build-commands.html ; 
+    
+    echo "HTML output generated at $share_path/armbian-build/build-commands.html"
 }
 
 main_menu(){
@@ -183,10 +173,9 @@ border_width=$((columns - 6 ))
         ((i++))
     done 
 
-#   choice=$($DIALOG --title "Config Options" --menu "Choose an option:" $menu_height $menu_width $border_height $border_width "${options[@]}" 3>&1 1>&2 2>&3)
-
 	choice=$($DIALOG --title "Config Options" --menu "Choose an option:" "$border_height" "$border_width" 0 "${options[@]}" 3>&1 1>&2 2>&3)
 	echo -e "Choice $choice Result:\n\t ${results[$choice]}" | show_message
+
 	}
 
 # TUI OK message
@@ -198,45 +187,10 @@ show_message(){
         input+="$line\n"
     done
 
-    # Display the "OK" message box with the input data
-    $DIALOG --title "Message Box" --msgbox "$input" 0 0
-    clear
+    echo "$input" 
+
     }
 
-generate_bash() {
-    local i=1
-    local command
-    local description
-
-    for command in "${!ARMBIAN_COMMANDS_TO_HANDLERS_DICT[@]}"; do
-        description=${ARMBIAN_COMMANDS_TO_HANDLERS_DICT[$command]}
-        printf '  ["%s"]="%s"\n'  "$command" "$description"
-        ((i++))
-    done
-}
-
-# Bash menu
-generate_menu() {
-    local i=1
-    local command
-    local description
-
-    echo "Config Options:"
-    for command in "${!ARMBIAN_COMMANDS_TO_HANDLERS_DICT[@]}"; do
-        description="${COMMAND_DESCRIPTIONS_EN[${ARMBIAN_COMMANDS_TO_HANDLERS_DICT[$command]}]}"
-        handler="${ARMBIAN_COMMANDS_TO_HANDLERS_DICT[$command]}"
-        echo "$i. $command - $description"
-        ((i++))
-    done
-
-    read -p "Choose an option (enter the number): " choice
-
-    if [[ $choice -ge 1 && $choice -le ${#ARMBIAN_COMMANDS_TO_HANDLERS_DICT[@]} ]]; then
-        echo -e "Choice $choice Result:\n\t []=\${[]}"
-    else
-        echo "Invalid choice. Please enter a valid number."
-    fi
-}
 
 generate_markdown() {
     local i=1
@@ -258,7 +212,8 @@ generate_markdown() {
     done
 
     # Print the formatted Markdown
-    echo -e "$markdown_output"
+    echo -e "$markdown_output" > "$share_path"/armbian-build/readme.md ;
+    echo "Markdown output generated at $share_path/armbian-build/readme.md" ;
 }
 
 generate_help_message() {
@@ -266,24 +221,26 @@ generate_help_message() {
     echo "Options:"
     echo "  -h  Display this help message "
     echo "  -t  Generate TUI output "
-    echo "  -n  Generate Numbered output "
 	echo "  -j  Generate json output "
-    echo "  -b  Generate Bash key pairs output "
     echo "  -m  Generate Markdown output "
-    echo "  -H  Generate HTML output "
+    echo "  -w  Generate HTML output "
+    echo "  -a  Generate all doc files "
 }
-
+call_all() {
+    generate_html
+    generate_json
+    generate_markdown
+}
 # Call the function
 
-while getopts "bhHjmnt" opt; do
+while getopts "abhwjmnt" opt; do
     case "$opt" in
-
+    a)  call_all ; exit 0 ;;
 	b)  generate_bash ; exit 0 ;;
 	h)  generate_help_message ; exit 0 ;;
-	H)  generate_html ; exit 0 ;;
+	w)  generate_html ; exit 0 ;;
 	j)  generate_json ; exit 0 ;;
 	m)  generate_markdown ; exit 0 ;;
-	n)  generate_descriptions ; exit 0 ;;
 	t)  generate_tui ; exit 0 ;;
 	*) echo "Invalid option"; generate_help_message ; exit 1 ;;
     esac

@@ -40,81 +40,66 @@
     </section>
 
 <script>
-		var slideIndex = 0;
-		var jsonData = [{
-				id: "slide1",
-				heading: "heading 1",
-				content: "Slide 1 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non"
-			},
-			{
-				id: "slide2",
-				heading: "heading 2",
-				content: "Slide 2 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non"
-			},
-			{
-				id: "slide3",
-				heading: "heading 3",
-				content: "Slide 3 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non"
-			},
-			{
-				id: "slide4",
-				heading: "heading 4",
-				content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor.    this is the fallback content for slide 4"
-			},
-			{
-				id: "slide5",
-				heading: "heading 5",
-				content: "this is the fallback content for slide 5"
-			}
-		]
 
-		function showSlides() {
-			var slides = document.querySelectorAll(".slide");
-			var navItems = document.querySelectorAll("nav ul li");
-			for (var i = 0; i < slides.length; i++) {
-				slides[i].style.display = "none";
-				navItems[i].classList.remove("active");
-			}
-			slideIndex++;
-			if (slideIndex > slides.length) {
-				slideIndex = 1;
-			}
-			slides[slideIndex - 1].style.display = "block";
-			navItems[slideIndex - 1].classList.add("active");
-			setTimeout(showSlides, 5000);
-		}
+      
+    // javascript to make a menu from the json data and add it to the html5_content
+    var menu = document.querySelector("nav ul");
+    var slides = document.querySelector(".slide-show");
+	var slideIndex = 0;
+	var jsonData =[
+  {
+    "Function Name": "nmtui",
+    "Group Name": "network",
+    "Description": "Set a local net test.",
+    "Options": "none.",
+    "Category": "network",
+    "Category Description": "Setup the Network settings."
+  },
+  {
+    "Function Name": "configure",
+    "Group Name": "desktop",
+    "Description": "Configure armbian desktop.",
+    "Options": "none",
+    "Category": "software",
+    "Category Description": "Setup Custume/Community software."
+  },
+  {
+    "Function Name": "Bencharking",
+    "Group Name": "monitor",
+    "Description": "Armbian Monitor and Bencharking.",
+    "Options": "",
+    "Category": "system",
+    "Category Description": "System Custume configurations."
+  },
+  {
+    "Function Name": "armbian_config",
+    "Group Name": "legacy",
+    "Description": "Armbian config Legacy",
+    "Options": "none",
+    "Category": "legacy",
+    "Category Description": "Legacy applications for Armbian."
+  },
+  {
+    "Function Name": "Hello",
+    "Group Name": "world",
+    "Description": "Hello World.",
+    "Options": "none.",
+    "Category": "other",
+    "Category Description": "Catch all for misc."
+  }
+];
+    var data = jsonData;    
+    var menuItems = [];
+    var slideItems = [];
+    var i;
+    for (i = 0; i < data.length; i++) {
+        menuItems.push("<li><a href=\"#slide" + i + "\">" + data[i]["Function Name"] + "</a></li>");
+        slideItems.push("<div class=\"slide\" id=\"slide" + i + "\"><h2>" + data[i]["Function Name"] + "</h2><p>" + data[i]["Description"] + "</p></div>");
+    }
+    menu.innerHTML = menuItems.join("");
+    slides.innerHTML = slideItems.join("")
+    showSlides(slideIndex);
 
-		function createSlides() {
-			var slideShow = document.querySelector(".slide-show");
-			var nav = document.querySelector("nav ul");
-			for (var i = 0; i < jsonData.length; i++) {
-				var slide = document.createElement("div");
-				slide.classList.add("slide");
-				slide.id = jsonData[i].id;
-				var heading = document.createElement("H2");
-				heading.innerHTML = jsonData[i].heading;
-				var content = document.createElement("p");
-				content.innerHTML = jsonData[i].content;
-				slide.appendChild(heading);
-				slide.appendChild(content);
-				slideShow.appendChild(slide);
-				var navItem = document.createElement("li");
-				navItem.innerHTML = jsonData[i].heading;
-				navItem.setAttribute("data-slide", jsonData[i].id);
-				navItem.addEventListener("click", function() {
-					var slideId = this.getAttribute("data-slide");
-					slideIndex = slideId.split("slide")[1];
-					showSlides();
-				});
-				nav.appendChild(navItem);
-			}
-			// Add fallback content for each slide
-			var fallbackContent = document.createElement("p");
-			fallbackContent.innerHTML = "This is the fallback content for the slide.";
-			slideShow.appendChild(fallbackContent);
-			showSlides();
-		}
-		createSlides();
 </script>
 
 
