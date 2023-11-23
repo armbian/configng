@@ -76,7 +76,9 @@ for category in "${categories[@]}"; do
     done
 done
 
-see_json() {
+
+# This function is used to generate a JSON file containing all functions and their descriptions.
+generate_json() {
     json_objects=()
     for key in "${!functions[@]}"; do
         if [[ $key == *",function_name"* ]]; then
@@ -94,8 +96,26 @@ see_json() {
     echo "[${json_objects[*]}]" | jq
 }
 
-# Untested idea is to use the json output to generate a html page
-see_html5() {
+# This function is used to generate a CSV file containing all functions and their descriptions.
+generate_csv() {
+    echo "Function Name,Group Name,Description,Options,Category,Category Description"
+    for key in "${!functions[@]}"; do
+        if [[ $key == *",function_name"* ]]; then
+            function_key="${key%,function_name}"
+            function_name="${functions[$key]}"
+            group_name="${functions["$function_key,group_name"]}"
+            description="${functions["$function_key,description"]}"
+            options="${functions["$function_key,options"]}"
+            category="${functions["$function_key,category"]}"
+            category_description="${functions["$function_key,category_description"]}"
+            echo "$function_name,$group_name,$description,$options,$category,$category_description"
+        fi
+    done
+
+}
+# 
+# This function is used to generate a Single page app for website  
+generate_html5() {
 
 html5_content='
 <!DOCTYPE html>
@@ -146,7 +166,7 @@ html5_content='
     var slides = document.querySelector(".slide-show");
 	var slideIndex = 0;
 	var jsonData ='
-html5_content+="$(see_json);"       
+html5_content+="$(generate_json);"       
 html5_content+='
     var data = jsonData;    
     var menuItems = [];
@@ -171,8 +191,9 @@ echo "$html5_content" ;
 
 }
 
-# Simple table for github.io pages
-see_html() {
+# This function is used to generate a debug table
+# github.io pages
+generate_html() {
     html_content='<!DOCTYPE html>
     <html>
     <head>
@@ -232,25 +253,10 @@ see_html() {
     echo "$html_content"
 }
 
-see_csv() {
-    echo "Function Name,Group Name,Description,Options,Category,Category Description"
-    for key in "${!functions[@]}"; do
-        if [[ $key == *",function_name"* ]]; then
-            function_key="${key%,function_name}"
-            function_name="${functions[$key]}"
-            group_name="${functions["$function_key,group_name"]}"
-            description="${functions["$function_key,description"]}"
-            options="${functions["$function_key,options"]}"
-            category="${functions["$function_key,category"]}"
-            category_description="${functions["$function_key,category_description"]}"
-            echo "$function_name,$group_name,$description,$options,$category,$category_description"
-        fi
-    done
 
-}
 
 # This function is used to generate a list of all functions and their descriptions.
-see_debug() {
+generate_debug() {
 echo
     for category in "${categories[@]}"; do
         echo "Category: ${category##*/}"
@@ -275,7 +281,7 @@ echo
 }
 
 # the readme.md is generated from this function
-see_markdown() {
+generate_markdown() {
 cat << EOF
 # Armbian ConfigNG 
 Refactor of [armbian-config](https://github.com/armbian/config)       
@@ -355,7 +361,7 @@ may not include Python, C/C++, etc. build/runtime environments )
 EOF
 }
 
-see_list() {
+generate_list() {
     # Loop through each category
     for category in "${categories[@]}"; do
         # Initialize an empty array to store the group names that have been printed
@@ -405,7 +411,7 @@ parse_action() {
     fi
 }
 
-see_tui() {
+generate_tui() {
     local options=()
     local i=0
     declare -A categories_array
@@ -430,11 +436,11 @@ see_tui() {
     
    
     if [[ -n $choice ]]; then
-        see_sub_tui "${categories_array[$choice]}"
+        generate_sub_tui "${categories_array[$choice]}"
     fi
 }
 
-see_sub_tui() {
+generate_sub_tui() {
     local category="$1"
     local options=()
     local i=0
@@ -455,12 +461,12 @@ see_sub_tui() {
     
    
     if [[ -n $choice ]]; then
-        see_action "${functions_array[$choice]}"
+        generate_action "${functions_array[$choice]}"
     fi
 
 }
 
-see_action() {
+generate_action() {
     local function_name="$1"
     local group_name=$(echo "$function_name" | sed 's/::.*//')
     local action_name=$(echo "$function_name" | sed 's/.*:://')
@@ -476,13 +482,13 @@ see_action() {
             # Call the function using variable indirection
             ${function_name}
         elif ((choice == 2)); then
-            see_help 
+            generate_help 
             
         fi
     fi
 }
 
-see_read() {
+generate_read() {
     echo
     echo "Please select an action:"
     echo
@@ -518,8 +524,8 @@ see_read() {
     read -p "Enter your choice: " choice
 
     if ((choice == i-1)); then
-        see_help
-        see_list
+        generate_help
+        generate_list
     elif ((choice == i)); then
         exit 0
     elif ((choice >= 1 && choice <= ${#function_keys[@]})); then
@@ -530,7 +536,7 @@ see_read() {
     fi
 }
 
-see_help(){
+generate_help(){
 cat << EOF 
 Usage: ${filename%.*} [flag] [option] [action]
   flags:
@@ -543,7 +549,8 @@ Usage: ${filename%.*} [flag] [option] [action]
 EOF
 
 }
-
+# Check arguments for short flag options
+# Check -r option first
 if [ "$1" == "-r" ]; then
     shift  # Shifts the arguments to the left, excluding the first argument ("-r")
     group_name="$1"  # Takes the first argument as the group name
@@ -554,52 +561,56 @@ if [ "$1" == "-r" ]; then
         # Call the function using variable indirection
         ${function_name}
     fi
-
+# Generate a help message
 elif [ "$1" == "-h" ]; then
-	see_help
-	see_list
+	generate_help
+	generate_list
+# Generate a text-based user interface
 elif [ "$1" == "-t" ]  ; then
-	see_tui
+	generate_tui
 	exit
+# Generate a html page
 elif [ "$1" == "-j" ]  ; then
-    see_json > ../share/armbian-configng/$filename.json 
+    generate_json > ../share/armbian-configng/$filename.json 
     chmod 755 ../share/armbian-configng/$filename.json
 	exit
+# Generate a readme.md
 elif [ "$1" == "-m" ]  ; then
         # Navigate to the root directory of the repository
     cd "$(dirname "$(dirname "$(realpath "$0")")")/share/armbian-configng/" || exit
-    see_markdown > readme.md  
+    generate_markdown > readme.md  
     chmod 755 readme.md
     cat readme.md
 	exit
+# Generate all doc files
 elif [ "$1" == "-w" ] ; then
     cd "$(dirname "$(dirname "$(realpath "$0")")")/share/armbian-configng/" || exit
 
-    see_markdown > readme.md  
+    generate_markdown > readme.md  
     chmod 755 readme.md
     echo "Markdown generated at 
         ../share/armbian-configng/readme.md 
         " ;
 
-    see_html > index.html ;
+    generate_html > index.html ;
     chmod 755 ../../index.html ;
     echo "github.io Page generated at 
         ../$filename.json
         " ;
 
-    see_html5 > "$filename.html" ;
+    generate_html5 > "$filename.html" ;
     chmod 755 "$filename.html" ;
     echo "HTML5 generated at 
         ../share/armbian-configng/$filename.html
         " ;
     
-    see_json > $filename.json 
+    generate_json > $filename.json 
     chmod 755 $filename.json
     echo "JSON  generated at 
         ../share/armbian-configng/$filename.json
         " ;
 
-    see_csv > "$filename.csv" ;
+    generate_csv > "$filename.csv" ;
     chmod 755 "$filename.csv" ;
     echo "CSV generated at 
         ../share/armbian-configng/$filename.csv
@@ -607,6 +618,6 @@ elif [ "$1" == "-w" ] ; then
 
     exit
 else    
- 	see_tui || see_read ;
+ 	generate_tui || generate_read ;
 	exit ;
 fi
