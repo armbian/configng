@@ -38,7 +38,7 @@ see_menu(){
 	done
 
 	# Use the get_help_msg function and pipe its output into configng-interface -m
-	selected_option=$(echo -e "$menu_string" | configng-interface -m)
+	selected_option=$(echo -e "$menu_string" | armbian-interface -m)
 
 	# Run the armbian-monitor script with the selected option
 	[[ -n "$selected_option" ]] && "$script" -"$selected_option" ;

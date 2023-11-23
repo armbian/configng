@@ -29,7 +29,7 @@ function group::string() {
     echo "hello world"
     return 0
 }
- ~~~ 
+~~~
 ## Codestyle can be used to auto generate
  - Markdown
  - JSON
@@ -62,7 +62,7 @@ Legacy applications for Armbian.
 ## other
 Setup the Network settings.
 
-### setup_desktop.sh
+### hello_world.sh
 
  - **Group Name:** desktop
  - **Action Name:** configure
