@@ -13,19 +13,17 @@
 #
 # @options none
 function monitor::Bencharking(){
-
 	see_menu
 	return 0 ; 
-
 }
 
 see_menu(){
 	# Define the script
-	script="armbian-monitor"
+	script="armbianmonitor"
 
 
 	# Run the script with the -h option and save the output to a variable
-	help_message=$("./$script" -h || "$script" -h ) || exit 2
+	help_message=$("$script" -h || "$script" -h ) || exit 2
 
 	# Reformat the help message into an array line by line
 	readarray -t script_launcher < <(echo "$help_message" | sed 's/-\([a-zA-Z]\)/\1/' | grep '^  [a-zA-Z] ' | grep -v '\[')
@@ -38,10 +36,10 @@ see_menu(){
 	done
 
 	# Use the get_help_msg function and pipe its output into configng-interface -m
-	selected_option=$(echo -e "$menu_string" | armbian-interface -m)
+	selected_option=$(echo -e "$menu_string" | ./armbian-interface -m)
 
 	# Run the armbian-monitor script with the selected option
-	[[ -n "$selected_option" ]] && "$script" -"$selected_option" ;
+	[[ -n "$selected_option" ]] && "$script" -"$selected_option" | ./armbian-interface -o ;
 
 	}
 

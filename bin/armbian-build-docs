@@ -6,7 +6,11 @@
 # This file is a part of the Armbian Build Framework
 # https://github.com/armbian/build/
 
-clear
+
+directory="$(dirname "${BASH_SOURCE[0]}")"
+cd "$directory" || exit
+filename="$(basename "${BASH_SOURCE[0]}")" ;
+libpath="$directory/../lib"
 
 # Set the tui
 if command -v whiptail > /dev/null; then
@@ -18,8 +22,8 @@ else
     exit 1
 fi
 
-# Source the external file
-script_path="$(dirname "$(dirname "$(realpath "$0")")")/src/build/lib/functions/cli/commands.sh"
+# Source the external file                              lib/armbian-build/commands.sh
+script_path="$(dirname "$(dirname "$(realpath "$0")")")/lib/armbian-build/commands.sh"
 
 # Use awk to extract the array
 ARMBIAN_COMMANDS_TO_HANDLERS_DICT=$(awk '/declare -g -A ARMBIAN_COMMANDS_TO_HANDLERS_DICT=/,/^(\}|[[:space:]]*\))/ {print}' "$script_path")
@@ -122,6 +126,31 @@ generate_html() {
     echo "$html_output"
 }
 
+main_menu(){
+	# Define the script
+	script="./armbian-build-docs"
+
+
+	# Run the script with the -h option and save the output to a variable
+	help_message=$("$script" -h ) || exit 2
+
+	# Reformat the help message into an array line by line
+	readarray -t script_launcher < <(echo "$help_message" | sed 's/-\([a-zA-Z]\)/\1/' | grep '^  [a-zA-Z] ' | grep -v '\[')
+
+	# Loop through each line in the array and create a menu string
+	menu_string=""
+	for line in "${script_launcher[@]}"; do
+	  # Append the formatted line to the menu string
+	  menu_string+="$line\n"
+	done
+
+	# Use the get_help_msg function and pipe its output into configng-interface -m
+	selected_option=$(echo -e "$menu_string" | ./armbian-interface -m  )
+
+	# Run the armbian-monitor script with the selected option
+	[[ -n "$selected_option" ]] && "$script" -"$selected_option"  | ./armbian-interface -o ;
+
+	}
 
 # TUI Menu
 generate_tui() {
@@ -236,6 +265,7 @@ generate_help_message() {
     echo "Usage: $0 [options]"
     echo "Options:"
     echo "  -h  Display this help message "
+    echo "  -t  Generate TUI output "
     echo "  -n  Generate Numbered output "
 	echo "  -j  Generate json output "
     echo "  -b  Generate Bash key pairs output "
@@ -265,5 +295,5 @@ if [[ $1 == *"--"* ]]; then
 elif [[ -n $1 ]] && ! [[ $1 == --* || $1 == -* ]]; then
      bash ./compile.sh "$@"
 elif [[ -z $1 ]]; then
-     generate_tui exit 0 ; 
+     main_menu  ; exit 0 ;
 fi
