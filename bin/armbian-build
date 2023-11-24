@@ -138,8 +138,7 @@ generate_html() {
 
 main_menu(){
 	# Define the script
-	script="./armbian-build-docs"
-
+	script="./$filename"
 
 	# Run the script with the -h option and save the output to a variable
 	help_message=$("$script" -h ) || exit 2
@@ -241,7 +240,7 @@ generate_help_message() {
     echo "Usage: $0 [options]"
     echo "Options:"
     echo "  -a  Generate all file "
-    echo "  -b  Generate bash completion file "
+    echo "  -b  Generate Bash file "
     echo "  -c  Generate CSV file "
     echo "  -h  Generate help message "
     echo "  -j  Generate JSON file "
@@ -260,13 +259,11 @@ call_all() {
 while getopts "abchjmntw" opt; do
     case "$opt" in
     a)  call_all ; exit 0 ;;
-	b)  generate_bash ; exit 0 ;;
     c)  generate_csv ; exit 0 ;;
 	h)  generate_help_message ; exit 0 ;;
 	w)  generate_html ; exit 0 ;;
 	j)  generate_json ; exit 0 ;;
 	m)  generate_markdown ; exit 0 ;;
-	t)  generate_tui ; exit 0 ;;
 	*) echo "Invalid option"; generate_help_message ; exit 1 ;;
     esac
 done

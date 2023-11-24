@@ -372,6 +372,8 @@ generate_tui() {
         options+=("$i" "${categories_array[$i]} - ${description_array[$i]}")
         ((++i))
     done
+    options+=("$i" "Legacy - Run Legacy configuration")
+    ((++i))
     options+=("$i" "Help - Show a list of all shell commands and their descriptions")
     ((++i))
 
@@ -383,6 +385,9 @@ generate_tui() {
         
         if ((choice == "$i - 1")); then
             generate_help | ./armbian-interface -o
+            exit ;
+        elif ((choice == "$i - 2")); then
+            armbian-config
             exit ;
         else
             generate_sub_tui "${categories_array[$choice]}"
@@ -541,12 +546,12 @@ elif [ "$1" == "-t" ]  ; then
 elif [ "$1" == "-d" ] ; then
     cd "$(dirname "$(dirname "$(realpath "$0")")")/share/armbian-configng/" || exit
     
-    generate_markdown > ../readme.md  
-    chmod 755 ../readme.md
+    generate_markdown > ../../readme.md  
+    chmod 755 ../../readme.md
     echo "$filename About readme.md" ;
 
-    generate_html > ../index.html ;
-    chmod 755 ../index.html ;
+    generate_html > ../../index.html ;
+    chmod 755 ../../index.html ;
     echo "$filename github.io index.html" ;
 
     generate_markdown > $filename.md  

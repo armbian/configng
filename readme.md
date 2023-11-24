@@ -40,12 +40,12 @@ function group::string() {
 
 ## Up to date list of functions 
 ## Legacy
-
+System Custume configurations.
 
 ### config_legacy.sh
 
  - **Group Name:** legacy
- - **Action Name:** armbian_config
+ - **Action Name:** config
  - **Options:** none
  - **Description:** Armbian config Legacy
 
