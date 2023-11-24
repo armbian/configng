@@ -192,8 +192,8 @@ echo "$html5_content" ;
 
 }
 
-# This function is used to generate a table
-# github.io pages
+# This function is used to generate a debug table
+
 generate_html() {
     html_content='<!DOCTYPE html>
     <html>
@@ -550,9 +550,9 @@ elif [ "$1" == "-d" ] ; then
     chmod 755 ../../readme.md
     echo "$filename About readme.md" ;
 
-    generate_html > ../../index.html ;
-    chmod 755 ../../index.html ;
-    echo "$filename github.io index.html" ;
+    generate_html > ../../$filename-table.html ;
+    chmod 755 ../../$filename-table.html ;
+    echo "$filename -   $filename-table.html" ;
 
     generate_markdown > $filename.md  
     chmod 755 $filename.md
@@ -560,7 +560,7 @@ elif [ "$1" == "-d" ] ; then
 
     generate_html5 > $filename.html ;
     chmod 755 $filename.html ;
-    echo "HTML5     -   generated $filename.html" ;
+    echo "HTML5     -   generated $filename-spa.html" ;
     
     generate_json > $filename.json 
     chmod 755 $filename.json
