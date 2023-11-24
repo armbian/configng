@@ -1,4 +1,0 @@
-# Ignore a specific file in the sbin directory
-sbin/armbian-add-overlay
-sbin/armbian-install
-sbin/armbian-configlg
