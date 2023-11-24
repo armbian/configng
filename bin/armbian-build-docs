@@ -32,10 +32,6 @@ ARMBIAN_COMMANDS_TO_HANDLERS_DICT=$(awk '/declare -g -A ARMBIAN_COMMANDS_TO_HAND
 # Execute the array definition
 eval "$ARMBIAN_COMMANDS_TO_HANDLERS_DICT"
 
-# Now you can use the array in this script
-#echo "Array keys: ${!ARMBIAN_COMMANDS_TO_HANDLERS_DICT[@]}"
-
-
 # EN ARMBIAN_COMMANDS_TO_HANDLERS_DICT Descritions Groups
 declare -A COMMAND_DESCRIPTIONS_EN=(
     ["docker"]="Manage Docker containers"
@@ -84,6 +80,30 @@ generate_json() {
     # Print the formatted JSON
     echo "$json_output" | jq > "$share_path"/armbian-build/build-commands.json ;
     echo "JSON output generated at $share_path"/armbian-build/build-commands.json ;
+}
+
+generate_csv() {
+    local i=1
+    local command
+    local description
+    mapfile -t commands < <(printf '%s\n' "${!ARMBIAN_COMMANDS_TO_HANDLERS_DICT[@]}")
+
+    # Start CSV content
+    csv_output="command,description,handler"
+
+    for command in "${commands[@]}"; do
+        description="${COMMAND_DESCRIPTIONS_EN[${ARMBIAN_COMMANDS_TO_HANDLERS_DICT[$command]}]}"
+        handler="${ARMBIAN_COMMANDS_TO_HANDLERS_DICT[$command]}"
+
+        # Append CSV row to the content
+        csv_output+="\n$command,$description,$handler"
+
+        ((i++))
+    done
+
+    # Print the formatted CSV
+    echo "$csv_output" > "$share_path"/armbian-build/build-commands.csv ;
+    echo "CSV output generated at $share_path"/armbian-build/build-commands.csv ;
 }
 
 # html output
@@ -216,27 +236,32 @@ generate_markdown() {
     echo "Markdown output generated at $share_path/armbian-build/readme.md" ;
 }
 
+# Help message -h
 generate_help_message() {
     echo "Usage: $0 [options]"
     echo "Options:"
-    echo "  -h  Display this help message "
-    echo "  -t  Generate TUI output "
-	echo "  -j  Generate json output "
-    echo "  -m  Generate Markdown output "
-    echo "  -w  Generate HTML output "
-    echo "  -a  Generate all doc files "
+    echo "  -a  Generate all file "
+    echo "  -b  Generate bash completion file "
+    echo "  -c  Generate CSV file "
+    echo "  -h  Generate help message "
+    echo "  -j  Generate JSON file "
+    echo "  -m  Generate Markdown file "
+    echo "  -w  Generate HTML file "
 }
+
 call_all() {
     generate_html
     generate_json
     generate_markdown
+    generate_csv  
 }
 # Call the function
 
-while getopts "abhwjmnt" opt; do
+while getopts "abchjmntw" opt; do
     case "$opt" in
     a)  call_all ; exit 0 ;;
 	b)  generate_bash ; exit 0 ;;
+    c)  generate_csv ; exit 0 ;;
 	h)  generate_help_message ; exit 0 ;;
 	w)  generate_html ; exit 0 ;;
 	j)  generate_json ; exit 0 ;;

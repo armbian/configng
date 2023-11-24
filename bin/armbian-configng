@@ -7,6 +7,11 @@
 # The script requires sudo privileges to run some functions.
 # The script uses whiptail or dialog for the TUI, depending on which is available.
 
+# append the path of the script to the PATH variable
+PATH=$PATH:$(dirname "$(readlink -f "$0")")
+# append the path ../lib/ to the PATH variable
+PATH=$PATH:$(dirname "$(readlink -f "$0")")/../lib 
+
 # TODO: Add more detailed documentation for each function and option in the script.
 directory="$(dirname "${BASH_SOURCE[0]}")"
 cd "$directory" || exit
@@ -21,11 +26,7 @@ if [ "$(id -u)" != "0" ]; then
     exit 1
 fi
 
-# Sudo Users Home use to output local
-if [ "$(id -u)" = "0" ]; then
-    USER_HOME=$(eval echo ~"$SUDO_USER")
-fi
-
+# Set the tui
 declare -A dialogue
 
 # Check if whiptail or dialog is installed and set the variable 'dialogue' accordingly.
@@ -113,7 +114,7 @@ generate_csv() {
     done
 
 }
-# 
+
 # This function is used to generate a Single page app for website  
 generate_html5() {
 
@@ -191,7 +192,7 @@ echo "$html5_content" ;
 
 }
 
-# This function is used to generate a debug table
+# This function is used to generate a table
 # github.io pages
 generate_html() {
     html_content='<!DOCTYPE html>
@@ -253,34 +254,7 @@ generate_html() {
     echo "$html_content"
 }
 
-
-
-# This function is used to generate a list of all functions and their descriptions.
-generate_debug() {
-echo
-    for category in "${categories[@]}"; do
-        echo "Category: ${category##*/}"
-		echo "Category Description: ${functions["$key,category_description"]}"
-
-        for file in "$category"/*.sh; do
-            echo "  File: ${file##*/}"
-
-            mapfile -t functions_in_file < <(grep -oP '(?<=function\s)\w+::\w+' "$file")
-
-            for function in "${functions_in_file[@]}"; do
-                key="${category##*/}:${file##*/}:${function}"
-                echo "        Full Function Name: ${function} - Description: ${functions["$key,description"]}"
-                echo "            Group Name: ${functions["$key,group_name"]}"
-                echo "            Action Name: ${functions["$key,function_name"]}"
-                echo "            Options: ${functions["$key,options"]}"
-            done
-        done
-		echo
-    done
-	echo
-}
-
-# the readme.md is generated from this function
+# This function is used to generate readme.md file
 generate_markdown() {
 cat << EOF
 # Armbian ConfigNG 
@@ -361,39 +335,7 @@ may not include Python, C/C++, etc. build/runtime environments )
 EOF
 }
 
-generate_list() {
-    # Loop through each category
-    for category in "${categories[@]}"; do
-        # Initialize an empty array to store the group names that have been printed
-        declare -A printed_groups
-
-        # Loop through each file in the category
-        for file in "$category"/*.sh; do
-
-            # Extract functions from the file
-            mapfile -t functions_in_file < <(grep -oP '(?<=function\s)\w+::\w+' "$file")
-
-            # Loop through each function in the file
-            for function in "${functions_in_file[@]}"; do
-                key="${category##*/}:${file##*/}:${function}"
-                group_name=${functions["$key,group_name"]}
-
-                # If the group name has not been printed yet, print it and add it to the array
-                declare -A printed_groups
-                if [[ -z ${printed_groups["$group_name"]} ]]; then
-                    echo "        $group_name,    [action]"
-                    printed_groups["$group_name"]=1
-                fi
-
-                echo "               ${functions["$key,function_name"]} - ${functions["$key,description"]}"
-				echo
-            done
-        done
-		echo
-    done
-
-}
-
+# This function is used to parse the action name and return the full function name.
 parse_action() {
     local group=$1
     local action=$2
@@ -411,6 +353,7 @@ parse_action() {
     fi
 }
 
+# This function is used to generate a text-based user interface (TUI) for navigating the menus.
 generate_tui() {
     local options=()
     local i=0
@@ -429,17 +372,25 @@ generate_tui() {
         options+=("$i" "${categories_array[$i]} - ${description_array[$i]}")
         ((++i))
     done
+    options+=("$i" "Help - Show a list of all shell commands and their descriptions")
+    ((++i))
 
     local choice
     
     choice=$($dialogue --menu "Select a category:" 0 0 9 "${options[@]}" 3>&1 1>&2 2>&3)
     
-   
-    if [[ -n $choice ]]; then
-        generate_sub_tui "${categories_array[$choice]}"
+   if [[ -n $choice ]]; then
+        
+        if ((choice == "$i - 1")); then
+            generate_help | ./armbian-interface -o
+            exit ;
+        else
+            generate_sub_tui "${categories_array[$choice]}"
+        fi
     fi
 }
 
+# This function is used to generate a text-based user interface (TUI) for navigating the menus.
 generate_sub_tui() {
     local category="$1"
     local options=()
@@ -459,35 +410,19 @@ generate_sub_tui() {
     
     choice=$($dialogue --menu "Select a function:" 0 0 9 "${options[@]}" 3>&1 1>&2 2>&3)
     
-   
     if [[ -n $choice ]]; then
         generate_action "${functions_array[$choice]}"
     fi
 
 }
 
+# This function is used to generate a whiptail/dialog text-based user interface (TUI) for navigating the menus.
 generate_action() {
     local function_name="$1"
-    local group_name=$(echo "$function_name" | sed 's/::.*//')
-    local action_name=$(echo "$function_name" | sed 's/.*:://')
-    local options="${functions["$group_name:$action_name,options"]}"
-
-    local choice
-    
-    choice=$($dialogue --menu "Select an option:" 0 0 9 "1" "Run $action_name" "2" "Show help" 3>&1 1>&2 2>&3)
-    
-   
-    if [[ -n $choice ]]; then
-        if ((choice == 1)); then
-            # Call the function using variable indirection
             ${function_name}
-        elif ((choice == 2)); then
-            generate_help 
-            
-        fi
-    fi
 }
 
+# This function is used to generate a bash text-based user interface (TUI) for navigating the menus.
 generate_read() {
     echo
     echo "Please select an action:"
@@ -504,7 +439,7 @@ generate_read() {
             function_keys[i]="${key%,function_name}"
 
             # Check if the category has changed and display it if so
-            local category="${functions["${function_keys[i]},category"]}"
+            local category="${functions["${function_keys[i]},category"]}" # < editor"
             if [[ "$category" != "$current_category" ]]; then
                 echo "Category: $category"
                 current_category="$category"
@@ -536,19 +471,52 @@ generate_read() {
     fi
 }
 
+# This function is used to generate a extention to help meassage of all functions and their descriptions.
+generate_list() {
+    # Loop through each category
+    for category in "${categories[@]}"; do
+        # Initialize an empty array to store the group names that have been printed
+        declare -A printed_groups
+
+        # Loop through each file in the category
+        for file in "$category"/*.sh; do
+
+            # Extract functions from the file
+            mapfile -t functions_in_file < <(grep -oP '(?<=function\s)\w+::\w+' "$file")
+
+            # Loop through each function in the file
+            for function in "${functions_in_file[@]}"; do
+                key="${category##*/}:${file##*/}:${function}"
+                group_name=${functions["$key,group_name"]}
+
+                # If the group name has not been printed yet, print it and add it to the array
+                declare -A printed_groups
+                if [[ -z ${printed_groups["$group_name"]} ]]; then
+                    echo "        $group_name,    [action]"
+                    printed_groups["$group_name"]=1
+                fi
+
+                echo "               ${functions["$key,function_name"]} - ${functions["$key,description"]}"
+				echo
+            done
+        done
+    done
+
+}
+# This function is used to generate a help message.
 generate_help(){
 cat << EOF 
 Usage: ${filename%.*} [flag] [option] [action]
   flags:
     -h,   Print this help.
-    -m,   Generate a readme.md. # README.md
-    -j,   show a json ouput. # share/armbian-configng/armbian-commands.json
-    -w,   Show a web ouput. # share/armbian-configng/armbian-commands.html
+    -d,   Generate Documentation.  
     -t,   Show a text user interface.
     -r,   [option]  [action]  To run a feature.
 EOF
+generate_list
 
 }
+
 # Check arguments for short flag options
 # Check -r option first
 if [ "$1" == "-r" ]; then
@@ -569,55 +537,36 @@ elif [ "$1" == "-h" ]; then
 elif [ "$1" == "-t" ]  ; then
 	generate_tui
 	exit
-# Generate a html page
-elif [ "$1" == "-j" ]  ; then
-    generate_json > ../share/armbian-configng/$filename.json 
-    chmod 755 ../share/armbian-configng/$filename.json
-	exit
-# Generate a readme.md
-elif [ "$1" == "-m" ]  ; then
-        # Navigate to the root directory of the repository
-    cd "$(dirname "$(dirname "$(realpath "$0")")")/share/armbian-configng/" || exit
-    generate_markdown > readme.md  
-    chmod 755 readme.md
-    cat readme.md
-	exit
 # Generate all doc files
-elif [ "$1" == "-w" ] ; then
+elif [ "$1" == "-d" ] ; then
     cd "$(dirname "$(dirname "$(realpath "$0")")")/share/armbian-configng/" || exit
+    
+    generate_markdown > ../readme.md  
+    chmod 755 ../readme.md
+    echo "$filename About readme.md" ;
 
-    generate_markdown > readme.md  
-    chmod 755 readme.md
-    echo "Markdown generated at 
-        ../share/armbian-configng/readme.md 
-        " ;
+    generate_html > ../index.html ;
+    chmod 755 ../index.html ;
+    echo "$filename github.io index.html" ;
 
-    generate_html > index.html ;
-    chmod 755 ../../index.html ;
-    echo "github.io Page generated at 
-        ../$filename.json
-        " ;
+    generate_markdown > $filename.md  
+    chmod 755 $filename.md
+    echo "Markdown  -   generated $filename.md " ;
 
-    generate_html5 > "$filename.html" ;
-    chmod 755 "$filename.html" ;
-    echo "HTML5 generated at 
-        ../share/armbian-configng/$filename.html
-        " ;
+    generate_html5 > $filename.html ;
+    chmod 755 $filename.html ;
+    echo "HTML5     -   generated $filename.html" ;
     
     generate_json > $filename.json 
     chmod 755 $filename.json
-    echo "JSON  generated at 
-        ../share/armbian-configng/$filename.json
-        " ;
+    echo "JSON      -   generated $filename.json" ;
 
-    generate_csv > "$filename.csv" ;
-    chmod 755 "$filename.csv" ;
-    echo "CSV generated at 
-        ../share/armbian-configng/$filename.csv
-        " ;
+    generate_csv > $filename.csv ;
+    chmod 755 $filename.csv ;
+    echo "CSV       -   generated $filename.csv" ;
 
     exit
 else    
- 	generate_tui || generate_read ;
+ 	generate_tui ;
 	exit ;
 fi

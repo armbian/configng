@@ -39,8 +39,8 @@ function group::string() {
  - launch a feature
 
 ## Up to date list of functions 
-## legacy
-System Custume configurations.
+## Legacy
+
 
 ### config_legacy.sh
 
@@ -49,7 +49,7 @@ System Custume configurations.
  - **Options:** none
  - **Description:** Armbian config Legacy
 
-## network
+## Network
 Legacy applications for Armbian.
 
 ### set_wifi.sh
@@ -59,17 +59,17 @@ Legacy applications for Armbian.
  - **Options:** none.
  - **Description:** Set a local net test.
 
-## other
+## Others
 Setup the Network settings.
 
 ### hello_world.sh
 
- - **Group Name:** desktop
- - **Action Name:** configure
+ - **Group Name:** world
+ - **Action Name:** Hello
  - **Options:** none.
  - **Description:** Hello World.
 
-## software
+## Software
 Catch all for misc.
 
 ### setup_desktop.sh
@@ -79,7 +79,7 @@ Catch all for misc.
  - **Options:** none
  - **Description:** Configure armbian desktop.
 
-## system
+## System
 Setup Custume/Community software.
 
 ### see_monitor.sh

@@ -6,9 +6,8 @@
 # @exitcode 0  If successful.
 #
 # @options none. 
-function legacy::armbian_config(){
-
-	bash armbian-config
+function legacy::config(){
+	armbian-config
 	return 0
 
 }
