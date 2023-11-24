@@ -1,0 +1,34 @@
+[
+  {
+    "Function Name": "nmtui",
+    "Group Name": "network",
+    "Description": "Set a local net test.",
+    "Options": "none.",
+    "Category": "Network",
+    "Category Description": "Setup the Network settings."
+  },
+  {
+    "Function Name": "configure",
+    "Group Name": "desktop",
+    "Description": "Configure armbian desktop.",
+    "Options": "none",
+    "Category": "Software",
+    "Category Description": "Setup Custume/Community software."
+  },
+  {
+    "Function Name": "Hello",
+    "Group Name": "world",
+    "Description": "Hello World.",
+    "Options": "none.",
+    "Category": "Others",
+    "Category Description": "Catch all for misc."
+  },
+  {
+    "Function Name": "Bencharking",
+    "Group Name": "monitor",
+    "Description": "Armbian Monitor and Bencharking.",
+    "Options": "",
+    "Category": "System",
+    "Category Description": "System Custume configurations."
+  }
+]

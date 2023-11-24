@@ -1,0 +1,5 @@
+Function Name,Group Name,Description,Options,Category,Category Description
+nmtui,network,Set a local net test.,none.,Network,Setup the Network settings.
+configure,desktop,Configure armbian desktop.,none,Software,Setup Custume/Community software.
+Hello,world,Hello World.,none.,Others,Catch all for misc.
+Bencharking,monitor,Armbian Monitor and Bencharking.,,System,System Custume configurations.

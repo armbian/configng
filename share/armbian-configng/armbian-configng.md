@@ -40,7 +40,7 @@ function group::string() {
 
 ## Up to date list of functions 
 ## Network
-System Custume configurations.
+
 
 ### set_wifi.sh
 
