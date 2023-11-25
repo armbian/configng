@@ -550,9 +550,9 @@ elif [ "$1" == "-d" ] ; then
     chmod 755 ../../readme.md
     echo "$filename About readme.md" ;
 
-    generate_html > ../../$filename-table.html ;
-    chmod 755 ../../$filename-table.html ;
-    echo "$filename -   $filename-table.html" ;
+    generate_html > ../../index.html ;
+    chmod 755 ../../index.html ;
+    echo "$filename -   index.html" ;
 
     generate_markdown > $filename.md  
     chmod 755 $filename.md
