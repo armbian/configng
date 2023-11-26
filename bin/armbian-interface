@@ -42,7 +42,7 @@ filename=$(basename "${BASH_SOURCE[0]}")
         DIALOG=whiptail
     elif command -v dialog > /dev/null; then
         DIALOG=dialog
-    else
+    elif command -v bash > /dev/null; then
         echo "Error: Neither whiptail nor dialog is installed."
         exit 1
     fi

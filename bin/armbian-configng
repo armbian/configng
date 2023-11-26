@@ -7,26 +7,24 @@
 # The script requires sudo privileges to run some functions.
 # The script uses whiptail or dialog for the TUI, depending on which is available.
 
-# append the path of the script to the PATH variable
-PATH=$PATH:$(dirname "$(readlink -f "$0")")
-# append the path ../lib/ to the PATH variable
-PATH=$PATH:$(dirname "$(readlink -f "$0")")/../lib 
-
 # TODO: Add more detailed documentation for each function and option in the script.
-directory="$(dirname "${BASH_SOURCE[0]}")"
-cd "$directory" || exit
+
+#Distrabution Compatibility check
+[[ -f /bin/raspi-config ]] && distro_congfig="raspi"
+[[ -f /usr/bin/armbian-config ]] && distro_congfig="armbian"
+#Enable Dynamic directory root use home ~/ , /bin , /usr/sbin etc.. 
+bin="$(dirname "${BASH_SOURCE[0]}")"
+directory="$(cd "$bin/../" && pwd )"
 filename="$(basename "${BASH_SOURCE[0]}")" ;
-script_path=$(realpath "${BASH_SOURCE[0]}")
-libpath=$(dirname "$script_path")/../lib
-share_path=$(dirname "$script_path")/../share
+filename="${filename%.*}"
+#Path to librarie if installed /user/lib/ (system mode)
+[ -f /usr/lib/$filename ] && libpath=/user/lib/$filename
+#path to library if not installed ( dev/user mode)
+[ ! -f /usr/lib/$filename ] && libpath=$(cd $directory/lib/$filename/ && pwd )
 
-# check for sudo or exit
-if [ "$(id -u)" != "0" ]; then
-    echo "This script must be run with sudo privileges" ;
-    exit 1
-fi
+# Check if the script is being run as root
+[ "$(id -u)" != "0" ] && echo "This script must be run with sudo privileges" ; #exit 1
 
-# Set the tui
 declare -A dialogue
 
 # Check if whiptail or dialog is installed and set the variable 'dialogue' accordingly.
@@ -41,11 +39,11 @@ else
 	Warning: Using fallback TUI"
 fi
 
-for file in "$libpath"/"$filename"/*/*.sh; do
+for file in "$libpath"/*/*.sh; do
     source "$file"
 done
 
-mapfile -t categories < <(ls -d "$libpath/$filename"/* )
+mapfile -t categories < <(ls -d "$libpath"/* )
 
 declare -A functions
 
@@ -192,8 +190,7 @@ echo "$html5_content" ;
 
 }
 
-# This function is used to generate a debug table
-
+# This function is used to generate a Single page app for website
 generate_html() {
     html_content='<!DOCTYPE html>
     <html>
@@ -374,7 +371,7 @@ generate_tui() {
     done
     options+=("$i" "Legacy - Run Legacy configuration")
     ((++i))
-    options+=("$i" "Help - Show a list of all shell commands and their descriptions")
+    options+=("$i" "Help - Show help message or sub menu")
     ((++i))
 
     local choice
@@ -384,7 +381,7 @@ generate_tui() {
    if [[ -n $choice ]]; then
         
         if ((choice == "$i - 1")); then
-            generate_help | ./armbian-interface -o
+            generate_help | armbian-interface -o
             exit ;
         elif ((choice == "$i - 2")); then
             armbian-config
@@ -401,7 +398,7 @@ generate_sub_tui() {
     local options=()
     local i=0
     declare -A functions_array
-    for file in "$libpath/$filename/$category"/*.sh; do
+    for file in "$libpath/$category"/*.sh; do
         mapfile -t functions_in_file < <(grep -oP '(?<=function\s)\w+::\w+' "$file")
         for function in "${functions_in_file[@]}"; do
             key="${category##*/}:${file##*/}:${function}"

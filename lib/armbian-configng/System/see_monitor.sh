@@ -13,7 +13,7 @@
 #
 # @options none
 function monitor::Bencharking(){
-	see_menu #| armbian-interface -o
+	see_new #| armbian-interface -o
 	return 0 ; 
 }
 
