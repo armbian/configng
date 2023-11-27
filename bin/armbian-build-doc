@@ -193,7 +193,7 @@ generate_help_message() {
 # usage $filename -h shows a help message in the termanal
 main_menu(){
 	# Define the script
-	script="./$filename"
+	script="$filename"
 
 	# Run the script with the -h option and save the output to a variable
 	help_message=$("$script" -h ) || exit 2

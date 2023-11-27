@@ -26,51 +26,57 @@ function process_output() {
 
     while IFS= read -r line; do
         # if the line starts with O: then it's a success
-        if [[ $line == O:* ]] || [[ $line == E:* ]] || [[ $line == W:* ]]; then
+        if [[ $line == O:* ]]; then
             echo -e "Complete: $line" | armbian-interface -o 
-        elif [[ $line == I:* || $line == "Get:*" || $line == "Hit:*" ]]; then
+        fi
+        
+        if [[ $line == I:* ]]; then
             echo -e "100\n$line" 
             sleep 0.25
             echo -e "0\n$line" 
         fi | dialog --gauge "$line" 6 60 0        
     done 
 }
+
 # This will setup a chroot development environment.
+# work in progress
 function setup_chroot() {
-    
 
     local config_repo="https://github.com/Tearran/configng.git"
     local debootstrap_reliase="jammy"
     local debootstrap_url="http://ports.ubuntu.com/ubuntu-ports"
     local chroot_dir=/opt/armbian
-    
-    [[ -d $chroot_dir ]] && echo "E: Found $chroot_dir Remove it first" && return 1 ;
-    [[ ! -d "$chroot_dir" ]] && sudo mkdir -p "$chroot_dir" && sudo debootstrap --variant=buildd jammy $chroot_dir $debootstrap_url | process_output
-    
-    {
-    sudo rm -rf "$chroot_dir"
-	sudo mkdir -p "$chroot_dir"
-    echo "I: Installing debootstrap..." 
-    } | process_output
-    
-    #mount -t proc proc $chroot_dir/proc   
-    {
+    [[ -d $chroot_dir ]] && echo "E: Found $chroot_dir Remove it first" ; sudo rm -rf $chroot_dir/   
+    [[ ! -d "$chroot_dir" ]] && sudo mkdir -p "$chroot_dir" 
+    [[ ! -d "$chroot_dir" ]] && echo "I: Installing debootstrap..." 
+    sudo debootstrap --variant=buildd jammy $chroot_dir $debootstrap_url    
+
+	mount -t proc proc $chroot_dir/proc   
+    mount --bind /dev $chroot_dir/dev
+
+    echo "I: Installing ubuntu-keyring..." 
+    sudo chroot $chroot_dir apt install -y ubuntu-keyring
     echo "I: echo 'I: Installing git" 
     sudo chroot $chroot_dir apt update 
+
     echo "I: echo 'I: Installing git, this may take a while..." 
     sudo chroot $chroot_dir apt install -y git 
+    sudo chroot $chroot_dir apt install -y whiptail
+    sudo chroot $chroot_dir /bin/bash -c "apt-get install -y locales"
+    sudo chroot $chroot_dir /bin/bash -c "sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen"
+    sudo chroot $chroot_dir /bin/bash -c "dpkg-reconfigure --frontend=noninteractive locales"
+    sudo chroot $chroot_dir /bin/bash -c "update-locale LANG=en_US.UTF-8"
+
     echo "I: Cloning ConfigNG repository into chroot directory..." 
     sudo chroot $chroot_dir git clone $config_repo /opt/configng  
-    } | process_output
-    
-    {
     echo "O: Chroot environment setup complete."
-    } | process_output
+    sudo chroot $chroot_dir 
 
 }
 
 #
-# @description THis will setup a chroot development enviroment .
+# @description WIP: Setup a non destructive Test enviroment.
+#
 # @exitcode 0  If successful.
 #
 # @options none.
