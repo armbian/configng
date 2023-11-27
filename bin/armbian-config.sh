@@ -13,5 +13,6 @@ target_file="/usr/sbin/armbian-config"
 # Creat a Branding symbolic link to armbian-configng-dev
 
 # Use case loading banded libraies
-[[ ! -f "$script_dir/jampi-config" ]] && ln -s "$script_dir/armbian-configng-dev" "$script_dir/jampi-config" || echo "symbolic link already exists"
-[[ ! -f "$script_dir/armbian-configng" ]] && ln -s "$script_dir/armbian-configng-dev" "$script_dir/armbian-configng" || echo "symbolic link already exists"
+[[ ! -f "$script_dir/armbian-configng-dev" ]] && ln -s "$script_dir/jampi-config" "$script_dir/armbian-configng-dev" || echo "symbolic link already exists"
+[[ ! -f "$script_dir/armbian-configng" ]] && ln -s "$script_dir/jampi-config" "$script_dir/armbian-configng" || echo "symbolic link already exists"
+[[ -f "/sbin/armbian-config" && ! -f "$script_dir/armbian-configlg" ]] && ln - "/sbin/armbian-config" "$script_dir/armbian-configlg"
