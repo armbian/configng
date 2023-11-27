@@ -21,7 +21,6 @@ filename="${filename%.*}"
 [ -f /usr/lib/$filename ] && libpath=/user/lib/$filename
 #path to library if not installed ( dev/user mode)
 [ ! -f /usr/lib/$filename ] && libpath=$(cd $directory/lib/$filename/ && pwd )
-
 # Check if the script is being run as root
 [ "$(id -u)" != "0" ] && echo "W: This script will ask sudo privileges" ; #exit 1
 

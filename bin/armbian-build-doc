@@ -6,22 +6,22 @@
 # This file is a part of the Armbian Build Framework
 # https://github.com/armbian/build/
 
-
 directory="$(dirname "${BASH_SOURCE[0]}")"
 cd "$directory" || exit
 filename="$(basename "${BASH_SOURCE[0]}")" ;
 libpath="$(dirname "$(dirname "$(realpath "$0")")")/lib"
 share_path="$(dirname "$(dirname "$(realpath "$0")")")/share"
 
-# Source the external file                              lib/armbian-build/commands.sh
-script_path="$(dirname "$(dirname "$(realpath "$0")")")/lib/armbian-build/commands.sh"
+# Source the external file build commands
+script_path="$(dirname "$(dirname "$(realpath "$0")")")/share/armbian-build/commands.sh"
 
-# Use awk to extract the array
+# Use awk to extract the array definition
 ARMBIAN_COMMANDS_TO_HANDLERS_DICT=$(awk '/declare -g -A ARMBIAN_COMMANDS_TO_HANDLERS_DICT=/,/^(\}|[[:space:]]*\))/ {print}' "$script_path")
 
 # Execute the array definition
 eval "$ARMBIAN_COMMANDS_TO_HANDLERS_DICT"
 
+# Add a long discrption to each command
 # EN ARMBIAN_COMMANDS_TO_HANDLERS_DICT Long descritions help messages readme & manpage
 declare -A COMMAND_DESCRIPTIONS_EN=(
     ["docker"]="Manage Docker containers"
@@ -41,6 +41,7 @@ declare -A COMMAND_DESCRIPTIONS_EN=(
     ["flash"]="Flash firmware"
 )
 
+# Generate JSON output from the new bash array set 
 generate_json() {
     local i=1
     local command
@@ -72,6 +73,7 @@ generate_json() {
     echo "JSON output generated at $share_path"/armbian-build/build-commands.json ;
 }
 
+# Generate CSV output from the new bash array set
 generate_csv() {
     local i=1
     local command
@@ -96,7 +98,7 @@ generate_csv() {
     echo "CSV output generated at $share_path"/armbian-build/build-commands.csv ;
 }
 
-# html output
+# Generate A Table HTML output from the new bash array set
 generate_html() {
     local i=1
     local command
@@ -126,7 +128,7 @@ generate_html() {
     echo "HTML output generated at $share_path/armbian-build/build-commands.html"
 }
 
-# Markdown output
+# Generate Markdown output from the new bash array set
 generate_markdown() {
     local i=1
     local command
@@ -163,7 +165,9 @@ generate_help_message() {
     echo "  -w  Generate HTML file "
 }
 
-# TUI menu from short flag option -h
+# Generate a TUI menu from short flag option -h 
+# Usage "$filename" no flag options shows a tui menu
+# usage $filename -h shows a help message in the termanal
 main_menu(){
 	# Define the script
 	script="./$filename"
@@ -183,12 +187,14 @@ main_menu(){
 
 	# Use the get_help_msg function and pipe its output into configng-interface -m
 	selected_option=$(echo -e "$menu_string" | armbian-interface -m  )
+ 
+	# Check if the user made a choice and run the script with the selected option $filename -h || -m || -o etc 
+	[[ -n "$selected_option" && "$selected_option" != "You cancelled." ]] &&  "$script" -"$selected_option" | armbian-interface -o || return 1
 
-	# Run the script with the selected option
-	[[ -n "$selected_option" ]] && "$script" -"$selected_option"  | show_message ;
+    # Return to the main menu
+    return 0 ;
 
-	}
-
+}
 
 # TUI OK message
 # 
@@ -201,9 +207,7 @@ show_message(){
     done
 
     echo "$input" | armbian-interface -o
-
-    }
-
+}
 
 call_all() {
     generate_html
@@ -236,8 +240,7 @@ elif [[ -n $1 ]] && ! [[ $1 == --* || $1 == -* ]]; then
 elif [[ -z $1 ]]; then
      echo "
      No options passed: 
-        Launching TUI menu from the short flag options -h
-        
+        Launching TUI menu from the short flag options -h     
     " | armbian-interface -o ;
      main_menu  ; exit 0 ;
 fi
