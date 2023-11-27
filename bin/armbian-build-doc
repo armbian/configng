@@ -107,19 +107,42 @@ generate_html() {
 
     # Start HTML content
     html_output="<html><body><h1>Armbian Build Framework Commands</h1><ul>"
-
+    html_output+='<head>
+        <style>
+            body {
+                background-color: #333;
+                color: #fff;
+                font-family: Arial, sans-serif;
+            }
+            table {
+                border-collapse: collapse;
+                width: 100%;
+            }
+            th, td {
+                text-align: left;
+                padding: 8px;
+            }
+            th {
+                background-color: #4CAF50;
+                color: white;
+            }
+            tr:nth-child(even) {color: black; background-color: #f2f2f2; }
+        </style>
+    </head>'
+    html_output+="<table><tr><th>Command</th><th>Description</th><th>Handler</th></tr>"
     for command in "${commands[@]}"; do
         description="${COMMAND_DESCRIPTIONS_EN[${ARMBIAN_COMMANDS_TO_HANDLERS_DICT[$command]}]}"
         handler="${ARMBIAN_COMMANDS_TO_HANDLERS_DICT[$command]}"
 
-        # Append HTML list item to the content
-        html_output+="<li><strong>$command</strong>: $description (Handler: $handler)</li>"
+        # Append HTML tablle item to the content
+        html_output+="<tr><td>$command</td><td>$description</td><td>$handler</td></tr>"
 
         ((i++))
+
     done
 
     # End HTML content
-    html_output+="</ul></body></html>"
+    html_output+="</table></body></html>"
 
     # Print the formatted HTML
 
@@ -193,7 +216,6 @@ main_menu(){
 
     # Return to the main menu
     return 0 ;
-
 }
 
 # TUI OK message

@@ -20,7 +20,7 @@ filename="${filename%.*}"
 #Path to librarie if installed /user/lib/ (system mode)
 [ -f /usr/lib/$filename ] && libpath=/user/lib/$filename
 #path to library if not installed ( dev/user mode)
-[ ! -f /usr/lib/$filename ] && libpath=$(cd $directory/lib/$filename/ && pwd )
+[ ! -f /usr/lib/$filename ] && libpath=$(cd $directory/lib/$filename/ && pwd ) 
 # Check if the script is being run as root
 [ "$(id -u)" != "0" ] && echo "W: This script will ask sudo privileges" ; #exit 1
 
@@ -158,14 +158,11 @@ html5_content='
 
 <script>
 
-      
     // javascript to make a menu from the json data and add it to the html5_content
     var menu = document.querySelector("nav ul");
     var slides = document.querySelector(".slide-show");
 	var slideIndex = 0;
-	var jsonData ='
-html5_content+="$(generate_json);"       
-html5_content+='
+	var jsonData ='$(generate_json)' ;
     var data = jsonData;    
     var menuItems = [];
     var slideItems = [];
@@ -179,7 +176,6 @@ html5_content+='
     showSlides(slideIndex);
 
 </script>
-
 
 </body>
 </html>
