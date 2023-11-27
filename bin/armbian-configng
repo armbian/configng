@@ -23,7 +23,7 @@ filename="${filename%.*}"
 [ ! -f /usr/lib/$filename ] && libpath=$(cd $directory/lib/$filename/ && pwd )
 
 # Check if the script is being run as root
-[ "$(id -u)" != "0" ] && echo "This script must be run with sudo privileges" ; #exit 1
+[ "$(id -u)" != "0" ] && echo "W: This script will ask sudo privileges" ; #exit 1
 
 declare -A dialogue
 
