@@ -534,13 +534,13 @@ generate_doc(){
     chmod 755 $filename.html ;
     echo "HTML5     -   generated $filename-spa.html" ;
     
-    generate_json > $filename.json 
-    chmod 755 $filename.json
-    echo "JSON      -   generated $filename.json" ;
+    generate_json > data/$filename.json 
+    chmod 755 data/$filename.json
+    echo "JSON      -   generated data/$filename.json" ;
 
-    generate_csv > $filename.csv ;
-    chmod 755 $filename.csv ;
-    echo "CSV       -   generated $filename.csv" ;
+    generate_csv > data/$filename.csv ;
+    chmod 755 data/$filename.csv ;
+    echo "CSV       -   generated data/$filename.csv" ;
 
     return 0 ;
 }
