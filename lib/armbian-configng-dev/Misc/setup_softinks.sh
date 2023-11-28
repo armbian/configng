@@ -19,10 +19,8 @@ function setup::Branding(){
     script_dir=$(dirname "$(readlink -f "$0")")
     config_legacy="/usr/sbin/armbian-config"
 
-    [[ -f "$config_legacy" && ! -f "$script_dir/armbian-configlg" ]] && ln - "$config_legacy" "$script_dir/armbian-configlg"
-    [[ ! -f "$script_dir/branded-config" ]] && ln -s "$script_dir/armbian-configng" "$script_dir/branded-config" 
-    [[ ! -f "$script_dir/armbian-configng" ]] && ln -s "$script_dir/armbian-config-dev" "$script_dir/armbian-configng"
-    
+    [[ -f "$config_legacy" && ! -f "$script_dir/armbian-config" ]] && ln -s "$config_legacy" "$script_dir/armbian-config"
+    [[ -f "$script_dir/armbian-configng-dev" && ! -f "$script_dir/armbian-configng" ]] && ln -s "$script_dir/armbian-configng-dev" "$script_dir/armbian-configng"
     return 0
 }
 

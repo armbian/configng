@@ -109,7 +109,6 @@ generate_csv() {
             echo "$function_name,$group_name,$description,$options,$category,$category_description"
         fi
     done
-
 }
 
 # This function is used to generate a Single page app for website  
@@ -256,12 +255,12 @@ Refactor of [armbian-config](https://github.com/armbian/config)
 # User guide
 ## Quick start
 Run the following commands:
-~~~
-sudo apt install git
-cd ~/
-git clone https://github.com/armbian/configng.git
-bash ~/configng/bin/armbian-configng -h
-~~~  
+
+    sudo apt install git
+    cd ~/
+    git clone https://github.com/armbian/configng.git
+    bash ~/configng/bin/armbian-configng -h
+
 If all goes well you should see the Text-Based User Inerface (TUI)
 
 ### To see a list of all functions and their descriptions, run the following command:
@@ -501,20 +500,23 @@ generate_list() {
     done
 
 }
+
 # This function is used to generate a help message.
 generate_help(){
 cat << EOF 
-Usage: ${filename%.*} [flag] [option] [action]
+Usage: ${filename%.*} [flag] [option]
   flags:
     -h,   Print this help.
     -d,   Generate Documentation.  
-    -t,   Show a text user interface.
+    -t,   Show a TUI fallback read.
+--Help,   Prints Help message of long flag options.
 EOF
 
-
 }
+
 generate_doc(){
-cd "$(dirname "$(dirname "$(realpath "$0")")")/share/armbian-configng/" || exit
+    
+    cd "$(dirname "$(dirname "$(realpath "$0")")")/share/armbian-configng/" || exit
     
     generate_markdown > ../../readme.md  
     chmod 755 ../../readme.md
@@ -545,30 +547,37 @@ cd "$(dirname "$(dirname "$(realpath "$0")")")/share/armbian-configng/" || exit
 
 # Check arguments for short flag options
 # Check -r option first
-if [ "$1" == "--run" ]; then
-    shift  # Shifts the arguments to the left, excluding the first argument ("-r")
-    group_name="$1"  # Takes the first argument as the group name
-    shift 1  # Shifts the arguments again to exclude the group name
+if [[ "$1" == *"--"* ]]; then
 
-    function_name=$(parse_action "$group_name" "$1")
-    if [ $? -eq 0 ]; then
-        # Call the function using variable indirection
-        ${function_name}
+    if [ "$1" == "--run" ]; then
+        shift  # Shifts the arguments to the left, excluding the first argument ("-r")
+        group_name="$1"  # Takes the first argument as the group name
+        shift 1  # Shifts the arguments again to exclude the group name
+
+        function_name=$(parse_action "$group_name" "$1")
+        if [ $? -eq 0 ]; then
+            # Call the function using variable indirection
+            ${function_name}
+        fi
+    elif [ "$1" == "--help" ]; then
+    generate_list
+    exit
     fi
-elif [ "$1" == "--help" ]; then
-   generate_list
-   exit
+fi
+
+
 # Generate a help message
-elif [ "$1" == "-h" ]; then
-	generate_help
+if [ "$1" == "-h" ]; then
+    generate_help
+    exit 0 ;
 # Generate a text-based user interface
 elif [ "$1" == "-t" ]  ; then
-	generate_tui
-	exit
+    generate_read ; exit 0 ;    
 # Generate all doc files
 elif [ "$1" == "-d" ] ; then
-    generate_doc ;
-else    
- 	generate_tui ;
-	exit ;
+    generate_doc ; exit 0 ;
+
 fi
+
+
+[[ -z "$1" ]] && generate_tui || generate_read  ; exit 0 ;
