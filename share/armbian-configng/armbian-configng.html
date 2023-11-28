@@ -41,45 +41,20 @@
 
 <script>
 
-      
     // javascript to make a menu from the json data and add it to the html5_content
     var menu = document.querySelector("nav ul");
     var slides = document.querySelector(".slide-show");
 	var slideIndex = 0;
 	var jsonData =[
   {
-    "Function Name": "nmtui",
-    "Group Name": "network",
-    "Description": "Set a local net test.",
-    "Options": "none.",
-    "Category": "Network",
-    "Category Description": "Setup the Network settings."
-  },
-  {
-    "Function Name": "configure",
-    "Group Name": "desktop",
-    "Description": "Configure armbian desktop.",
-    "Options": "none",
-    "Category": "Software",
-    "Category Description": "Setup Custume/Community software."
-  },
-  {
-    "Function Name": "Hello",
-    "Group Name": "world",
-    "Description": "Hello World.",
-    "Options": "none.",
-    "Category": "Others",
-    "Category Description": "Catch all for misc."
-  },
-  {
     "Function Name": "Bencharking",
     "Group Name": "monitor",
     "Description": "Armbian Monitor and Bencharking.",
     "Options": "",
-    "Category": "System",
-    "Category Description": "System Custume configurations."
+    "Category": "Software",
+    "Category Description": "Software  System and 3rd party software install"
   }
-];
+] ;
     var data = jsonData;    
     var menuItems = [];
     var slideItems = [];
@@ -93,7 +68,6 @@
     showSlides(slideIndex);
 
 </script>
-
 
 </body>
 </html>

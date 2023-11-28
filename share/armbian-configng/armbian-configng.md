@@ -5,12 +5,12 @@ Refactor of [armbian-config](https://github.com/armbian/config)
 # User guide
 ## Quick start
 Run the following commands:
-~~~
-sudo apt install git
-cd ~/
-git clone https://github.com/armbian/configng.git
-bash ~/configng/bin/armbian-configng -h
-~~~  
+
+    sudo apt install git
+    cd ~/
+    git clone https://github.com/armbian/configng.git
+    bash ~/configng/bin/armbian-configng -h
+
 If all goes well you should see the Text-Based User Inerface (TUI)
 
 ### To see a list of all functions and their descriptions, run the following command:
@@ -39,38 +39,8 @@ function group::string() {
  - launch a feature
 
 ## Up to date list of functions 
-## Network
-
-
-### set_wifi.sh
-
- - **Group Name:** network
- - **Action Name:** nmtui
- - **Options:** none.
- - **Description:** Set a local net test.
-
-## Others
-Setup the Network settings.
-
-### hello_world.sh
-
- - **Group Name:** world
- - **Action Name:** Hello
- - **Options:** none.
- - **Description:** Hello World.
-
 ## Software
-Catch all for misc.
 
-### setup_desktop.sh
-
- - **Group Name:** desktop
- - **Action Name:** configure
- - **Options:** none
- - **Description:** Configure armbian desktop.
-
-## System
-Setup Custume/Community software.
 
 ### see_monitor.sh
 
