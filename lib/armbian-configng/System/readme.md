@@ -1,3 +1,3 @@
 
-# @description System Custume configurations.
+# @description System configuration and security settings  )
 

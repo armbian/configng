@@ -1,3 +1,3 @@
 
-# @description Setup Custume/Community software.
+# @description 	Software  System and 3rd party software install
 

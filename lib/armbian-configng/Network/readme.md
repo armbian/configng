@@ -1,2 +1,2 @@
 
-# @description Setup the Network settings.
+# @description Network Wired, wireless, Bluetooth, access point

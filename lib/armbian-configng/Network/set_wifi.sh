@@ -14,7 +14,6 @@
 #
 # @options none
 function network::nmtui(){
-
-	 nmtui connect
+	nmtui connect
     return 0
 }
