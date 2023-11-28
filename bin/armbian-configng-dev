@@ -365,7 +365,7 @@ generate_tui() {
     done
     options+=("$i" "Legacy - Run Legacy configuration")
     ((++i))
-    options+=("$i" "Help - Show help message or sub menu")
+    options+=("$i" "Help   - Documentation, support, sources" )
     ((++i))
 
     local choice
