@@ -40,7 +40,7 @@ function group::string() {
 
 ## Up to date list of functions 
 ## Locale
-Personal, Timezone, language hostname
+System and Security
 
 ### hello_world.sh
 
@@ -94,7 +94,7 @@ Network Wired wireless Bluetooth access point
  - **Description:** Armbian Monitor and Bencharking.
 
 ## System
-Software  System and 3rd party software install
+System and 3rd party software install
 
 ### hello_world.sh
 

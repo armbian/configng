@@ -8,12 +8,12 @@
 
 
 
-# @description Set a local net test.
+# @description Network Manager.
 #
 # @exitcode 0  If successful.
 #
 # @options none
-function network::nmtui(){
+function network::NMTUI(){
 	nmtui connect
     return 0
 }

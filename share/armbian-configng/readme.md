@@ -94,7 +94,7 @@ Network Wired wireless Bluetooth access point
  - **Description:** Armbian Monitor and Bencharking.
 
 ## System
-Software  System and 3rd party software install
+System and 3rd party software install
 
 ### hello_world.sh
 

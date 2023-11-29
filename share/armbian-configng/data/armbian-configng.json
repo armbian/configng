@@ -21,7 +21,7 @@
     "Description": "Hello System.",
     "Options": "",
     "Category": "System",
-    "Category Description": "Personal, Timezone, language hostname"
+    "Category Description": "System and Security"
   },
   {
     "Function Name": "setup",
@@ -53,6 +53,6 @@
     "Description": "Armbian Monitor and Bencharking.",
     "Options": "none.",
     "Category": "Software",
-    "Category Description": "Software  System and 3rd party software install"
+    "Category Description": "System and 3rd party software install"
   }
 ]

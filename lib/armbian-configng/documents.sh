@@ -303,28 +303,28 @@ generate_doc(){
     
     cd "$(dirname "$(dirname "$(realpath "$0")")")/share/armbian-configng/" || exit
     
-    generate_markdown > ../../readme.md  
-    chmod 755 ../../readme.md
+    generate_markdown > "../../readme.md" ;
+    chmod 755 "../../readme.md" ;
     echo "$filename About readme.md" ;
 
-    generate_html > ../../index.html ;
-    chmod 755 ../../index.html ;
-    echo "$filename -   index.html" ;
+    generate_html > "$filename-table.html" ;
+    chmod 755 "$filename-table.html" ;
+    echo "$filename -   $filename-table.html" ;
 
-    generate_markdown > $filename.md  
-    chmod 755 $filename.md
-    echo "Markdown  -   generated $filename.md " ;
+    generate_markdown > readme.md  
+    chmod 755 readme.md
+    echo "Markdown  -   generated readme.md " ;
 
-    generate_html5 > $filename.html ;
-    chmod 755 $filename.html ;
+    generate_html5 > "$filename-spa.html" ;
+    chmod 755 "$filename-spa.html" ;
     echo "HTML5     -   generated $filename-spa.html" ;
     
-    generate_json > data/$filename.json 
-    chmod 755 data/$filename.json
+    generate_json > "data/$filename.json" 
+    chmod 755 "data/$filename.json"
     echo "JSON      -   generated data/$filename.json" ;
 
-    generate_csv > data/$filename.csv ;
-    chmod 755 data/$filename.csv ;
+    generate_csv > "data/$filename.csv" ;
+    chmod 755 "data/$filename.csv" ;
     echo "CSV       -   generated data/$filename.csv" ;
 
     return 0 ;
