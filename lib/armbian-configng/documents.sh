@@ -297,7 +297,6 @@ Usage: ${filename%.*} [flag] [option]
     --run,    Run a function.
 EOF
 generate_list
-
 }
 
 generate_doc(){
