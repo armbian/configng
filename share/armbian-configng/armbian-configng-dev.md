@@ -40,7 +40,7 @@ function group::string() {
 
 ## Up to date list of functions 
 ## Locale
-Personal, Timezone, language hostname
+
 
 ### hello_world.sh
 
