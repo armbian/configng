@@ -6,6 +6,7 @@
 # License version 2. This program is licensed "as is" without any
 # warranty of any kind, whether express or implied.
 reset > /dev/null 2>&1
+[[ "$dev" == "0" ]] && echo "E: This function is not available in the live environment." && exit 1 
 #set -x
 check_install() {
     local cmd=$1
