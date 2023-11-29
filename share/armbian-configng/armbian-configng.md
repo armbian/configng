@@ -46,11 +46,18 @@ function group::string() {
 
  - **Group Name:** locale
  - **Action Name:** Hello
- - **Options:** none.
+ - **Options:** none
  - **Description:** Hello World.
 
 ## Misc
 Personal, Timezone, language, and hostname
+
+### hello_world.sh
+
+ - **Group Name:** misc
+ - **Action Name:** Hello
+ - **Options:** none.
+ - **Description:** Hello World.
 
 ### setup_dev_chroot.sh
 

@@ -11,7 +11,7 @@
     "Function Name": "Hello",
     "Group Name": "locale",
     "Description": "Hello World.",
-    "Options": "none.",
+    "Options": "none",
     "Category": "Locale",
     "Category Description": "Personal, Timezone, language, and hostname"
   },
@@ -36,6 +36,14 @@
     "Group Name": "setup",
     "Description": "Banding With Softlinks .",
     "Options": "none",
+    "Category": "Misc",
+    "Category Description": "Catch all for miscellaneous scripts"
+  },
+  {
+    "Function Name": "Hello",
+    "Group Name": "misc",
+    "Description": "Hello World.",
+    "Options": "none.",
     "Category": "Misc",
     "Category Description": "Catch all for miscellaneous scripts"
   },
