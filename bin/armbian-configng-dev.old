@@ -130,8 +130,6 @@ elif [ "$1" == "-t" ]  ; then
 # Generate all doc files
 elif [ "$1" == "-d" ] ; then
     generate_doc ; exit 0 ;
-elif [ "$1" == "-j" ] ; then
-    generate_json ; exit 0 ;
 
 fi
 

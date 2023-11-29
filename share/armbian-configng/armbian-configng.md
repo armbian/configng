@@ -50,7 +50,7 @@ function group::string() {
  - **Description:** Hello World.
 
 ## Misc
-Personal, Timezone, language, hostname"
+Personal, Timezone, language, and hostname
 
 ### setup_dev_chroot.sh
 
@@ -73,21 +73,21 @@ Catch all for miscellaneous scripts
 
  - **Group Name:** network
  - **Action Name:** nmtui
- - **Options:** none.
+ - **Options:** none
  - **Description:** Set a local net test.
 
 ## Software
 Network Wired wireless Bluetooth access point
 
-### hello_world.sh
+### see_monitor.sh
 
- - **Group Name:** Software
- - **Action Name:** Hello
+ - **Group Name:** monitor
+ - **Action Name:** Bencharking
  - **Options:** none.
- - **Description:** Hello Software.
+ - **Description:** Armbian Monitor and Bencharking.
 
 ## System
-System and 3rd party software installers 
+Software  System and 3rd party software install
 
 ### hello_world.sh
 

@@ -1,7 +1,7 @@
 Function Name,Group Name,Description,Options,Category,Category Description
-nmtui,network,Set a local net test.,none.,Network,Network Wired wireless Bluetooth access point
-Hello,Software,Hello Software.,none.,Software,System and 3rd party software installers 
-Hello,locale,Hello World.,none.,Locale,Personal, Timezone, language, hostname"
-Hello,system,Hello System.,,System,Personal, Timezone, language, hostname"
+nmtui,network,Set a local net test.,none,Network,Network Wired wireless Bluetooth access point
+Hello,locale,Hello World.,none.,Locale,Personal, Timezone, language, and hostname
+Hello,system,Hello System.,,System,Personal, Timezone, language hostname
 setup,chroot,WIP: Setup a non destructive Test enviroment.,none.,Misc,Catch all for miscellaneous scripts
 Branding,setup,Banding With Softlinks .,none,Misc,Catch all for miscellaneous scripts
+Bencharking,monitor,Armbian Monitor and Bencharking.,none.,Software,Software  System and 3rd party software install

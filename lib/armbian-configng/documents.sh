@@ -14,7 +14,7 @@ generate_json() {
         fi
     done
     IFS=','
-    echo "[${json_objects[*]}]" #| jq
+    echo "[${json_objects[*]}]" | jq
 }
 
 # This function is used to generate a CSV file containing all functions and their descriptions.
