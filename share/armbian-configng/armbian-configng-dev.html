@@ -3,7 +3,7 @@
 <html>
 <head>
     <title>
-		Armbian armbian-configng </title>
+		Armbian armbian-configng-dev </title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -26,7 +26,7 @@
 </head>
 <body>
     <header>
-        <h1>armbian-configng</h1>
+        <h1>armbian-configng-dev</h1>
     </header>
     <nav>
         <ul>
@@ -45,7 +45,24 @@
     var menu = document.querySelector("nav ul");
     var slides = document.querySelector(".slide-show");
 	var slideIndex = 0;
-	var jsonData = ;
+	var jsonData =[
+  {
+    "Function Name": "nmtui",
+    "Group Name": "network",
+    "Description": "Set a local net test.",
+    "Options": "none",
+    "Category": "Network",
+    "Category Description": "Network Wired wireless Bluetooth access point"
+  },
+  {
+    "Function Name": "Bencharking",
+    "Group Name": "monitor",
+    "Description": "Armbian Monitor and Bencharking.",
+    "Options": "",
+    "Category": "Software",
+    "Category Description": "Software  System and 3rd party software install"
+  }
+] ;
     var data = jsonData;    
     var menuItems = [];
     var slideItems = [];

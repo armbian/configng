@@ -7,15 +7,15 @@
 # warranty of any kind, whether express or implied.
 
 
-# @description Hello Docs.
+# @description Hello System.
 #
 # @exitcode 0  If successful.
 #
 # @options none.
 #
-function world::Hello(){
+function system::Hello(){
 
- 	echo "place for Docs"
+ 	echo "Hello Armbian"
     return 0
 }
 

@@ -13,7 +13,7 @@
 #
 # @options none.
 #
-function world::Hello(){
+function locale::Hello(){
 
  	echo "Hello Armbian"
     return 0

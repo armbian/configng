@@ -1,0 +1,18 @@
+[
+  {
+    "Function Name": "nmtui",
+    "Group Name": "network",
+    "Description": "Set a local net test.",
+    "Options": "none",
+    "Category": "Network",
+    "Category Description": "Network Wired wireless Bluetooth access point"
+  },
+  {
+    "Function Name": "Bencharking",
+    "Group Name": "monitor",
+    "Description": "Armbian Monitor and Bencharking.",
+    "Options": "",
+    "Category": "Software",
+    "Category Description": "Software  System and 3rd party software install"
+  }
+]

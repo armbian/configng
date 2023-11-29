@@ -39,8 +39,18 @@ function group::string() {
  - launch a feature
 
 ## Up to date list of functions 
-## Software
+## Network
 Software  System and 3rd party software install
+
+### set_wifi.sh
+
+ - **Group Name:** network
+ - **Action Name:** nmtui
+ - **Options:** none
+ - **Description:** Set a local net test.
+
+## Software
+Network Wired wireless Bluetooth access point
 
 ### see_monitor.sh
 

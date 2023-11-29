@@ -39,62 +39,25 @@ function group::string() {
  - launch a feature
 
 ## Up to date list of functions 
-## Locale
-
-
-### hello_world.sh
-
- - **Group Name:** locale
- - **Action Name:** Hello
- - **Options:** none.
- - **Description:** Hello World.
-
-## Misc
-Personal, Timezone, language, hostname"
-
-### setup_dev_chroot.sh
-
- - **Group Name:** chroot
- - **Action Name:** setup
- - **Options:** none.
- - **Description:** WIP: Setup a non destructive Test enviroment.
-
-### setup_softinks.sh
-
- - **Group Name:** setup
- - **Action Name:** Branding
- - **Options:** none
- - **Description:** Banding With Softlinks .
-
 ## Network
-Catch all for miscellaneous scripts
+
 
 ### set_wifi.sh
 
  - **Group Name:** network
  - **Action Name:** nmtui
- - **Options:** none.
+ - **Options:** none
  - **Description:** Set a local net test.
 
 ## Software
 Network Wired wireless Bluetooth access point
 
-### hello_world.sh
+### see_monitor.sh
 
- - **Group Name:** Software
- - **Action Name:** Hello
- - **Options:** none.
- - **Description:** Hello Software.
-
-## System
-System and 3rd party software installers 
-
-### hello_world.sh
-
- - **Group Name:** system
- - **Action Name:** Hello
+ - **Group Name:** monitor
+ - **Action Name:** Bencharking
  - **Options:** 
- - **Description:** Hello System.
+ - **Description:** Armbian Monitor and Bencharking.
 
 
 # Inclueded projects
