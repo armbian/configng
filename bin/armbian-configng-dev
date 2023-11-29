@@ -18,11 +18,11 @@ filename="$(basename "${BASH_SOURCE[0]}")" ;
 filename="${filename%.*}"
 libpath=$(cd $directory/lib/$filename/ && pwd ) 
 sharepath=$(cd $directory/share/${filename%-dev}/ && pwd )
+
 # Check if the script is being run as root
 # If not, check if the script is being run in development mode
 # development mode bypassas root check many funtions will not work
 dev="1"
-
 
 if [[ "$(id -u)" != "0" ]] && [[ "$dev" != "1" ]]; then
     echo -e "E: This tool requires root privileges. Try: \"sudo $filename\" " >&2 && exit 1 ;
@@ -30,19 +30,18 @@ if [[ "$(id -u)" != "0" ]] && [[ "$dev" != "1" ]]; then
 elif [[  "$(id -u)" != "0" ]] && [[ "$dev" == "1" ]]; then
     libpath=$(cd $directory/lib/$filename/ && pwd )
     { 
-        echo "Running in UX development mode" 
-        echo "Admin functions will not work" 
+        echo "W: Running in UX development mode" 
+        echo "W: Admin functions will not work" 
         sleep 2
-    } #| armbian-interface -o ;
+    } | armbian-interface -o ;
 elif [[  "$(id -u)" == "0" ]] && [[ "$dev" == "1" ]]; then
     libpath=$(cd $directory/lib/$filename/ && pwd )
     { 
-        echo "Running in UX development mode" 
+        echo "W; Running in UX development mode" 
         echo "W: documents generated will requier root privileges to remove" 
         sleep 2
-    } #| armbian-interface -o ;
+    } | armbian-interface -o ;
 fi
-
 
 declare -A dialogue
 
