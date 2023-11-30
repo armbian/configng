@@ -42,11 +42,11 @@ filename=$(basename "${BASH_SOURCE[0]}")
         DIALOG=whiptail
     elif command -v dialog > /dev/null; then
         DIALOG=dialog
-    elif command -v bash > /dev/null; then
-        echo "Error: Neither whiptail nor dialog is installed."
-        exit 1
+    #elif command -v bash > /dev/null; then
+        # echo "E: TUI not found" >&2 && exit 1
+        #DIALOG=bash
     fi
-    
+     DIALOG=bash
 show_help(){
 
   echo -e "\nUsage: [command] | ${filename%.*} [ -h | -m | -o ]"
@@ -71,8 +71,10 @@ show_message(){
     done
 
     # Display the "OK" message box with the input data
-    $DIALOG --title "Message Box" --msgbox "$input" 0 0
-    clear
+    [[ $DIALOG != "bash" ]] && $DIALOG --title "Message Box" --msgbox "$input" 0 0
+    [[ $DIALOG == "bash" ]] && echo -e "$input"
+    [[ $DIALOG == "bash" ]] && read -p "Press [Enter] to continue..." ; echo "" ; exit 1
+
     }
 
 show_popup(){
@@ -83,15 +85,18 @@ show_popup(){
         input+="$line\n"
     done
     
-    $DIALOG --title "Example Dialog" --infobox "$input" 8 78 ;
-    
+    [[ $DIALOG != "bash" ]] && $DIALOG --title "Popup Box" --infobox "$input" 0 0
+    [[ $DIALOG == "bash" ]] && echo -e "$input"
+
     }
 
 show_menu(){
 
 
     # Get the input and convert it into an array of options
-    input=$(cat)
+    inpu_raw=$(cat)
+    # Remove the lines befor -h 
+	input=$(echo "$inpu_raw" | sed 's/-\([a-zA-Z]\)/\1/' | grep '^  [a-zA-Z] ' | grep -v '\[')
     options=()
     while read -r line; do
         package=$(echo "$line" | awk '{print $1}')
@@ -100,7 +105,10 @@ show_menu(){
     done <<< "$input"
 
     # Display the menu and get the user's choice
-    choice=$($DIALOG --title "Config Options" --menu "Choose an option:" 0 0 9 "${options[@]}" 3>&1 1>&2 2>&3)
+    [[ $DIALOG != "bash" ]] && choice=$($DIALOG --title "Menu" --menu "Choose an option:" 0 0 9 "${options[@]}" 3>&1 1>&2 2>&3)
+    # form $1 space to $2 space to $3. $2 may or may not be blank if $2 is blank show a
+     [[ $DIALOG == "bash" ]] && echo -e "$input" | grep '^ -' | awk '{print NR-1,$0}' | column -t | less -S -X -F -R -P "Press q to exit"
+
 
 	# Check if the user made a choice
 	if [ $? -eq 0 ]; then

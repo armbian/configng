@@ -9,8 +9,7 @@
 
 # TODO: Add more detailed documentation for each function and option in the script.
 
-#Distrabution Compatibility check
-[[ -f /usr/bin/armbian-config ]] && distro_congfig="armbian" ;
+
 #Enable Dynamic directory root use home ~/ , /bin , /usr/sbin etc.. 
 bin="$(dirname "${BASH_SOURCE[0]}")"
 directory="$(cd "$bin/../" && pwd )"
@@ -18,6 +17,24 @@ filename="$(basename "${BASH_SOURCE[0]}")" ;
 filename="${filename%.*}"
 libpath=$(cd $directory/lib/$filename/ && pwd ) 
 sharepath=$(cd $directory/share/${filename%-dev}/ && pwd )
+
+#Distrabution Compatibility checks
+check_distro(){
+    [[ -f /usr/sbin/"${filename%%-*}"-config ]] && distro_congfig="${filename%%-*}" ;
+    [[ -f /etc/"${filename%%-*}"-release ]] && distro_release="${filename%%-*}" ;
+    # if both true then we are good to go
+    if [[ -z "$distro_congfig" ]] || [[ -z "$distro_release" ]] ; then
+     echo "E: This script is not compatible with your distrabution" 
+     echo "I: Check the website you downoaded image for support for this distrobution"
+     exit 1 ;
+    fi | read -p "Press [Enter] to continue..." ; echo "" ;
+    [[ -n "$distro_congfig" ]] && [[ -n "$distro_release" ]] && echo "I: This distrabution build seems to be community supported "  
+    [[ -f /usr/sbin/"${filename%%-*}"-config ]] && distro_congfig="${filename%%-*}" ;
+    [[ -f /etc/"${filename%%-*}"-release ]] && distro_release="${filename%%-*}" ;
+
+} 
+
+
 
 # Check if the script is being run as root
 # If not, check if the script is being run in development mode
@@ -30,17 +47,15 @@ if [[ "$(id -u)" != "0" ]] && [[ "$dev" != "1" ]]; then
 elif [[  "$(id -u)" != "0" ]] && [[ "$dev" == "1" ]]; then
     libpath=$(cd $directory/lib/$filename/ && pwd )
     { 
-        echo "W: Running in UX development mode" 
-        echo "W: Admin functions will not work" 
-        sleep 2
-    } | armbian-interface -o ;
+        echo "W: Running in UX development mode" >&2
+        echo "W: Admin functions will not work"  >&2
+    } 
 elif [[  "$(id -u)" == "0" ]] && [[ "$dev" == "1" ]]; then
     libpath=$(cd $directory/lib/$filename/ && pwd )
     { 
-        echo "W; Running in UX development mode" 
-        echo "W: documents generated will requier root privileges to remove" 
-        sleep 2
-    } | armbian-interface -o ;
+        echo "W; Running in UX development mode" >&2
+        echo "W: documents generated will requier root privileges to remove" >&2
+    } 
 fi
 
 declare -A dialogue
@@ -113,8 +128,10 @@ if [[ "$1" == *"--"* ]]; then
             ${function_name}
         fi
     elif [ "$1" == "--help" ]; then
-    generate_list
-    exit
+        generate_list
+        exit
+    elif [ "$1" == "--test" ]; then
+        check_distro | armbian-interface -o && $1 > /dev/null
     fi
 fi
 
@@ -131,7 +148,6 @@ elif [ "$1" == "-d" ] ; then
     generate_doc ; exit 0 ;
 elif [ "$1" == "-j" ] ; then
     generate_json ; exit 0 ;
-
 fi
 
 
