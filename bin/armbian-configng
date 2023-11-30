@@ -65,8 +65,8 @@ fi
 
 declare -A dialogue
 
+#
 # Check if whiptail or dialog is installed and set the variable 'dialogue' accordingly.
-# If neither is found, print "TUI not found" and return.
 # todo add a fallback TUI and GUI
 if command -v whiptail &> /dev/null; then
     dialogue="whiptail"
@@ -85,6 +85,7 @@ for file in "$libpath"/*/*.sh; do
     source "$file"
 done
 
+#
 # mapfile -t categories < <(ls -d "$libpath"/* )
 mapfile -t categories < <(find "$libpath"/* -type d)
 declare -A functions
@@ -118,7 +119,7 @@ for category in "${categories[@]}"; do
     done
 done
 
-
+#
 # Check arguments for short flag options
 # Check -r option first
 if [[ "$1" == *"--"* ]]; then
