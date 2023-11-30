@@ -79,9 +79,9 @@ Catch all for miscellaneous scripts
 ### set_wifi.sh
 
  - **Group Name:** network
- - **Action Name:** nmtui
+ - **Action Name:** NMTUI
  - **Options:** none
- - **Description:** Set a local net test.
+ - **Description:** Network Manager.
 
 ## Software
 Network Wired wireless Bluetooth access point
