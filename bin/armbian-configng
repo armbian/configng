@@ -31,8 +31,9 @@ check_distro() {
     [[ -n "$distro_config" ]] && [[ -n "$distro_release" ]] && echo "I: This build seems to be community supported"
     [[ -f "/usr/sbin/${filename%%-*}-config" ]] && distro_config="${filename%%-*}"
     [[ -f "/etc/${filename%%-*}-release" ]] && distro_release="${filename%%-*}"
-    
+
 }
+
 
 #
 # Check if the script is dev version.
@@ -40,21 +41,14 @@ suffix="${file_name##*-}"
 
 if [[ "$suffix" == dev ]]; then
     dev=1
-    check_distro | armbian-interface -o
-    
-elif [[ "$(id -u)" != "0" ]] ; then
+    check_distro #| armbian-interface -o
+fi
+
+if [[ "$(id -u)" != "0" ]] && [[ "$suffix" == dev ]] ; then
 
 cat << EOF | armbian-interface -o
 I: Running in UX development mode
 W: Admin functions will not work as expected
-I: To run in normal mode edit $filename and set dev="0", "sudo $filename"
-EOF
-
-elif [[ "$(id -u)" == "0" ]]; then
-
-cat << EOF | armbian-interface -o
-I: Running in UX development mode
-W: Documents generated will require root privileges to remove
 I: To run in normal mode edit $filename and set dev="0", "sudo $filename"
 EOF
 
