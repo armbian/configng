@@ -7,80 +7,91 @@
 # The script requires sudo privileges to run some functions.
 # The script uses whiptail or dialog for the TUI, depending on which is available.
 
-# TODO: Add more detailed documentation for each function and option in the script.
+#set -x
+#set -e
 
-
-#Enable Dynamic directory root use home ~/ , /bin , /usr/sbin etc.. 
+#
+# Enable Dynamic directory root use home ~/ , /bin , /usr/sbin etc.. 
 bin="$(dirname "${BASH_SOURCE[0]}")"
 directory="$(cd "$bin/../" && pwd )"
-filename="$(basename "${BASH_SOURCE[0]}")" ;
-filename="${filename%.*}"
-libpath=$(cd $directory/lib/$filename/ && pwd ) 
-sharepath=$(cd $directory/share/${filename%-dev}/ && pwd )
+file_name="$(basename "${BASH_SOURCE[0]}")"
+filename="${file_name%.*}"
+libpath=$(cd "$directory/lib/$filename/" && pwd)
+sharepath=$(cd "$directory/share/${filename%-dev}/" && pwd)
+dev=0
 
-#Distrabution Compatibility checks
-check_distro(){
-    [[ -f /usr/sbin/"${filename%%-*}"-config ]] && distro_congfig="${filename%%-*}" ;
-    [[ -f /etc/"${filename%%-*}"-release ]] && distro_release="${filename%%-*}" ;
+#
+# Consept Distribution Compatibility checks
+check_distro() {
+
+    [[ -f "/usr/bin/${filename%%-*}-config" ]] && distro_config="${filename%%-*}"
+    [[ -f "/etc/${filename%%-*}-release" ]] && distro_release="${filename%%-*}"
     # if both true then we are good to go
-    if [[ -z "$distro_congfig" ]] || [[ -z "$distro_release" ]] ; then
-     echo "E: This script is not compatible with your distrabution" 
-     echo "I: Check the website you downoaded image for support for this distrobution"
-     exit 1 ;
-    fi | read -p "Press [Enter] to continue..." ; echo "" ;
-    [[ -n "$distro_congfig" ]] && [[ -n "$distro_release" ]] && echo "I: This distrabution build seems to be community supported "  
-    [[ -f /usr/sbin/"${filename%%-*}"-config ]] && distro_congfig="${filename%%-*}" ;
-    [[ -f /etc/"${filename%%-*}"-release ]] && distro_release="${filename%%-*}" ;
+    [[ -z "$distro_config" ]] || [[ -z "$distro_release" ]] && echo "W: Costum build, Tech support links are missing."
+    [[ -n "$distro_config" ]] && [[ -n "$distro_release" ]] && echo "I: This build seems to be community supported"
+    [[ -f "/usr/sbin/${filename%%-*}-config" ]] && distro_config="${filename%%-*}"
+    [[ -f "/etc/${filename%%-*}-release" ]] && distro_release="${filename%%-*}"
+    
+}
 
-} 
+#
+# Check if the script is dev version.
+suffix="${file_name##*-}"
 
+if [[ "$suffix" == dev ]]; then
+    dev=1
+    check_distro | armbian-interface -o
+    
+elif [[ "$(id -u)" != "0" ]] ; then
 
+cat << EOF | armbian-interface -o
+I: Running in UX development mode
+W: Admin functions will not work as expected
+I: To run in normal mode edit $filename and set dev="0", "sudo $filename"
+EOF
 
+elif [[ "$(id -u)" == "0" ]]; then
+
+cat << EOF | armbian-interface -o
+I: Running in UX development mode
+W: Documents generated will require root privileges to remove
+I: To run in normal mode edit $filename and set dev="0", "sudo $filename"
+EOF
+
+fi
+
+#
 # Check if the script is being run as root
-# If not, check if the script is being run in development mode
-# development mode bypassas root check many funtions will not work
-dev="1"
+# UX Development mode bypasses root check, many functions will not work as expected
 
 if [[ "$(id -u)" != "0" ]] && [[ "$dev" != "1" ]]; then
-    echo -e "E: This tool requires root privileges. Try: \"sudo $filename\" " >&2 && exit 1 ;
-    [ -f /usr/lib/$filename ] && libpath=/user/lib/$filename
-elif [[  "$(id -u)" != "0" ]] && [[ "$dev" == "1" ]]; then
-    libpath=$(cd $directory/lib/$filename/ && pwd )
-    { 
-        echo "W: Running in UX development mode" >&2
-        echo "W: Admin functions will not work"  >&2
-    } 
-elif [[  "$(id -u)" == "0" ]] && [[ "$dev" == "1" ]]; then
-    libpath=$(cd $directory/lib/$filename/ && pwd )
-    { 
-        echo "W; Running in UX development mode" >&2
-        echo "W: documents generated will requier root privileges to remove" >&2
-    } 
+    echo -e "E: This tool requires root privileges. Try: \"sudo $filename\"" >&2
+    exit 1
 fi
 
 declare -A dialogue
 
 # Check if whiptail or dialog is installed and set the variable 'dialogue' accordingly.
 # If neither is found, print "TUI not found" and return.
-# todo add a fallback TUI and gui
+# todo add a fallback TUI and GUI
 if command -v whiptail &> /dev/null; then
     dialogue="whiptail"
 elif command -v dialog &> /dev/null; then
     dialogue="dialog"
 else
-    echo "TUI not found
-	Warning: Using fallback TUI"
+    echo "TUI not found"
+    echo "Warning: Using fallback TUI"
     sleep 1
     clear && generate_read
-
 fi
-source "$libpath"/functions.sh
-source "$libpath"/documents.sh
+
+source "$libpath/functions.sh"
+source "$libpath/documents.sh"
 for file in "$libpath"/*/*.sh; do
     source "$file"
 done
 
-#mapfile -t categories < <(ls -d "$libpath"/* )
+# mapfile -t categories < <(ls -d "$libpath"/* )
 mapfile -t categories < <(find "$libpath"/* -type d)
 declare -A functions
 
@@ -98,6 +109,7 @@ for category in "${categories[@]}"; do
             if [[ $line =~ ^#\ @description\ (.*)$ ]]; then
                 description="${BASH_REMATCH[1]}"
             elif [[ $line =~ ^function\ (.*::.*)\(\)\{$ ]]; then
+                # END: be15d9bcejpp
                 function_name="${BASH_REMATCH[1]}"
                 key="$category_name:${file##*/}:${function_name}"
                 functions["$key,function_name"]=$(echo "$function_name" | sed 's/.*:://')
@@ -135,7 +147,6 @@ if [[ "$1" == *"--"* ]]; then
     fi
 fi
 
-
 # Generate a help message
 if [ "$1" == "-h" ]; then
     generate_help
@@ -150,5 +161,12 @@ elif [ "$1" == "-j" ] ; then
     generate_json ; exit 0 ;
 fi
 
-
-[[ -z "$1" ]] && generate_tui  ; exit 0 ;
+if [[ -z "$1" ]] ; then
+ while true; do
+    generate_tui ;
+    if [[ "$?" == "0" ]]; then
+        exit 0  
+    fi
+ done
+   
+fi
