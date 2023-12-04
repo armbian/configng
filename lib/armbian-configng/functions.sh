@@ -37,8 +37,7 @@ generate_tui() {
             armbian-config
             exit ;
         else
-            #generate_sub_tui 
-            echo "${categories_array[$choice]}"
+            generate_sub_tui "${categories_array[$choice]}"
         fi
     fi
 }

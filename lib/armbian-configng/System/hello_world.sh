@@ -7,13 +7,13 @@
 # warranty of any kind, whether express or implied.
 
 
-# @description Hello World.
+# @description Hello System.
 #
-# @exitcode 0 If successful.
+# @exitcode 0  If successful.
 #
-# @options none
+# @options none.
 #
-function locale::Hello(){
+function system::Hello(){
 
  	echo "Hello Armbian"
     return 0

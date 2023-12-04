@@ -1,8 +1,6 @@
 Function Name,Group Name,Description,Options,Category,Category Description
-Hello,locale,Hello World.,none,Locale,Personal, Timezone, language, and hostname
-Hello,system,Hello System.,,System,System and Security
-setup,chroot,WIP: Setup a non destructive Test enviroment.,none.,Misc,Catch all for miscellaneous scripts
+Hello,system,Hello System.,none,System,System and Security
 Branding,setup,Banding With Softlinks .,none,Misc,Catch all for miscellaneous scripts
 Hello,misc,Hello World.,none.,Misc,Catch all for miscellaneous scripts
-Bencharking,monitor,Armbian Monitor and Bencharking.,none.,Software,System and 3rd party software install
-NMTUI,network,Network Manager.,none,Network,Network Wired wireless Bluetooth access point
+Bencharking,monitor,Armbian Monitor and Bencharking.,,System,System and Security
+NMTUI,network,Network Manager.,none.,Network,Network Wired wireless Bluetooth access point
