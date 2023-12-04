@@ -38,15 +38,12 @@
 ## DIRECTORY variable to the absolute path of the script's directory
 directory="$(dirname "$(readlink -f "$0")")"
 filename=$(basename "${BASH_SOURCE[0]}")
-    if command -v whiptail > /dev/null; then
-        DIALOG=whiptail
-    elif command -v dialog > /dev/null; then
-        DIALOG=dialog
-    #elif command -v bash > /dev/null; then
-        # echo "E: TUI not found" >&2 && exit 1
-        #DIALOG=bash
-    fi
-     DIALOG=bash
+
+## DIALOG variable to the absolute path of the script's directory
+DIALOG="bash"
+[[ -x "$(command -v dialog)" ]] && DIALOG="dialog"
+[[ -x "$(command -v whiptail)" ]] && DIALOG="whiptail"
+
 show_help(){
 
   echo -e "\nUsage: [command] | ${filename%.*} [ -h | -m | -o ]"
@@ -106,9 +103,6 @@ show_menu(){
 
     # Display the menu and get the user's choice
     [[ $DIALOG != "bash" ]] && choice=$($DIALOG --title "Menu" --menu "Choose an option:" 0 0 9 "${options[@]}" 3>&1 1>&2 2>&3)
-    # form $1 space to $2 space to $3. $2 may or may not be blank if $2 is blank show a
-     [[ $DIALOG == "bash" ]] && echo -e "$input" | grep '^ -' | awk '{print NR-1,$0}' | column -t | less -S -X -F -R -P "Press q to exit"
-
 
 	# Check if the user made a choice
 	if [ $? -eq 0 ]; then
