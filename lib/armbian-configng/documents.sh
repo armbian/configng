@@ -204,7 +204,8 @@ Run the following commands:
     sudo apt install git
     cd ~/
     git clone https://github.com/armbian/configng.git
-    bash ~/configng/bin/armbian-configng -h
+    cd configng
+    ./bin/${file_name%.*} --dev
 
 If all goes well you should see the Text-Based User Inerface (TUI)
 
