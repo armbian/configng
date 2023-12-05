@@ -229,6 +229,10 @@ function group::string() {
 ## Codestyle can be used to auto generate
  - [Markdown](share/${file_name%.*}/readme.md)
  - [JSON](share/${file_name%.*}/data/${file_name%.*}.json)
+ - [CSV](share/${file_name%.*}/data/${file_name%.*}.csv)
+ - [HTML](share/${file_name%.*}/${file_name%.*}-table.html)
+ - [github.io](//tearran/github.io/${file_name%.*}/index.html)
+## Functions
  - Text User Interface
  - Command Line Interface
  - Help message

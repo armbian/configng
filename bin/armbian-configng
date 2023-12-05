@@ -47,14 +47,16 @@ fi
 
 if [[ "$(id -u)" != "0" ]] && [[ "$dev" == "1" ]] ; then
 
-cat << EOF | ./armbian-interface -o
+cat << EOF #| ./armbian-interface -o
 I: Running in UX development mode
 W: Admin functions will not work as expected
+
 EOF
 elif [[ "$(id -u)" == "0" ]] && [[ "$dev" == "1" ]] ; then
 cat << EOF | ./armbian-interface -o
 I: Running in UX development mode
 W: Document files may need Admin privleges to edit/remove
+
 EOF
 
 fi

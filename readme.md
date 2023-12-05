@@ -34,6 +34,10 @@ function group::string() {
 ## Codestyle can be used to auto generate
  - [Markdown](share/armbian-configng/readme.md)
  - [JSON](share/armbian-configng/data/armbian-configng.json)
+ - [CSV](share/armbian-configng/data/armbian-configng.csv)
+ - [HTML](share/armbian-configng/armbian-configng-table.html)
+ - [github.io](//tearran/github.io/armbian-configng/index.html)
+## Functions
  - Text User Interface
  - Command Line Interface
  - Help message
