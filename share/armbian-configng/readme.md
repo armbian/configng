@@ -39,25 +39,8 @@ function group::string() {
  - launch a feature
 
 ## Up to date list of functions 
-## Misc
-
-
-### hello_world.sh
-
- - **Group Name:** misc
- - **Action Name:** Hello
- - **Options:** none.
- - **Description:** Hello World.
-
-### setup_softinks.sh
-
- - **Group Name:** setup
- - **Action Name:** Branding
- - **Options:** none
- - **Description:** Banding With Softlinks .
-
 ## Network
-Catch all for miscellaneous scripts
+
 
 ### set_wifi.sh
 

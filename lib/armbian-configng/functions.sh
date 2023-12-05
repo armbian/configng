@@ -16,12 +16,16 @@ generate_tui() {
 
         categories_array["$i"]="$category_name"
         description_array["$i"]="$category_description"
-        options+=("$i" "${categories_array[$i]} - ${description_array[$i]}")
+        options+=("$i" "$(printf '%-7s - %-8s' "${categories_array[$i]}" "${description_array[$i]}")")
+        #options+=("$i" "${categories_array[$i]} - ${description_array[$i]}")
         ((++i))
     done
-    options+=("$i" "Legacy - Run Legacy configuration")
+    options+=("$i" "$(printf '%-7s - %-8s' "Legacy" "Run Legacy configuration")") 
+
+    #options+=("$i" "Legacy - Run Legacy configuration")
     ((++i))
-    options+=("$i" "Help   - Documentation, support, sources" )
+    options+=("$i" "$(printf '%-7s - %-8s' "Help" "Documentation, support, sources")") 
+    #options+=("$i" "Help   - Documentation, support, sources" )
     ((++i))
 
     local choice

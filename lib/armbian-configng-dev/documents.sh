@@ -300,9 +300,37 @@ generate_list
 }
 
 generate_doc(){
+    some_docs="$HOME/.local/share/${filename%-dev}"
+    if [[ ! -d "$HOME/.local/share/${filename%-dev}" ]]; then  
+        mkdir -p "$some_docs/html"
+        mkdir -p "$some_docs/data"
+        mkdir -p "$some_docs/settings"
+
+    fi
+
+    generate_markdown > "$some_docs/readme.md" ;
+    generate_html > "$some_docs/$filename-table.html" ;
+    generate_markdown > "$some_docs/readme.md" ;
+    generate_html5 > "$some_docs/html/$filename-spa.html" ;
+    generate_json > "$some_docs/data/$filename.json" ;
+    generate_csv > "$some_docs/data/$filename.csv" ;
+    return 0 ;
+
+
+}
+
+
+#
+# This function is used to generate all docs.
+generate_doc_working(){
     
-    cd "$(dirname "$(dirname "$(realpath "$0")")")/share/armbian-configng/" || exit
-    
+    if [[ ! -d ~/.local ]]; then
+        mkdir -p ~/.local/share/${filename%-dev}
+    fi
+
+    cd "$(dirname "$(dirname "$(realpath "$0")")")/share/" || exit
+
+
     generate_markdown > "../../readme.md" ;
     chmod 755 "../../readme.md" ;
     echo "$filename About readme.md" ;

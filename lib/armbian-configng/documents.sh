@@ -1,4 +1,5 @@
-# This function is used to generate a JSON file containing all functions and their descriptions.
+# This function is used to generate a simple JSON file containing all functions and their descriptions.
+# pthon is more suited to complex arrays this should be handeled during build time
 generate_json() {
     json_objects=()
     for key in "${!functions[@]}"; do
@@ -34,7 +35,27 @@ generate_csv() {
     done
 }
 
-# This function is used to generate a Single page app for website  
+generate_csv_test() {
+    for category in "${categories[@]}"; do
+        echo "Function Name,Group Name,Description,Options,Category,Category Description" > "$category.csv"
+        for key in "${!functions[@]}"; do
+            if [[ $key == *",function_name"* ]]; then
+                function_key="${key%,function_name}"
+                function_name="${functions[$key]}"
+                group_name="${functions["$function_key,group_name"]}"
+                description="${functions["$function_key,description"]}"
+                options="${functions["$function_key,options"]}"
+                category="${functions["$function_key,category"]}"
+                category_description="${functions["$function_key,category_description"]}"
+                if [[ $category == "$category" ]]; then
+                    echo "$function_name,$group_name,$description,$options,$category,$category_description" >> "$category.csv"
+                fi
+            fi
+        done
+    done
+}
+
+# This function is used to generate a Single page app.   
 generate_html5() {
 
 html5_content='
@@ -107,7 +128,8 @@ echo "$html5_content" ;
 
 }
 
-# This function is used to generate a Single page app for website
+# This function is used to generate tabe html file
+# used to check proper array generation and output.
 generate_html() {
     html_content='<!DOCTYPE html>
     <html>
@@ -168,7 +190,7 @@ generate_html() {
     echo "$html_content"
 }
 
-# This function is used to generate readme.md file
+# This function is used to generate the main readme.md file
 generate_markdown() {
 cat << EOF
 # Armbian ConfigNG 
@@ -251,7 +273,7 @@ EOF
 
 
 # This function is used to generate a extention to help meassage of all functions and their descriptions.
-generate_list() {
+generate_list_run() {
     echo "Usage: ${filename%.*} [--run] [option] [action]"
     # Loop through each category
     for category in "${categories[@]}"; do
@@ -284,6 +306,35 @@ generate_list() {
 
 }
 
+generate_list_cli() {
+
+    echo "Usage: ${filename%.*} [group]=[function]"
+    # Loop through each category
+    for category in "${categories[@]}"; do
+        # Initialize an empty array to store the group names that have been printed
+        declare -A printed_groups
+
+        # Loop through each file in the category
+        for file in "$category"/*.sh; do
+
+            # Extract functions from the file
+            mapfile -t functions_in_file < <(grep -oP '(?<=function\s)\w+::\w+' "$file")
+
+            # Loop through each function in the file
+            for function in "${functions_in_file[@]}"; do
+                key="${category##*/}:${file##*/}:${function}"
+                group_name=${functions["$key,group_name"]}               
+              #  echo "    $group_name=${functions["$key,function_name"]} - ${functions["$key,description"]}"
+            #echo "$group_name=${functions["$key,function_name"]} - ${functions["$key,description"]}" | awk -F' - ' '{printf "%-20s\t-\t%-20s\n", $1, $2}'
+            printf "\t%-20s\t-\t%s\n" "$group_name=${functions["$key,function_name"]}" "${functions["$key,description"]}"
+    
+            done
+        done
+    done
+
+}
+
+
 # This function is used to generate a help message.
 generate_help(){
 cat << EOF 
@@ -293,13 +344,13 @@ Usage: ${filename%.*} [flag] [option]
     -d,   Generate Documentation.  
     -t,   Show a TUI fallback read.
 
-    --help,   Prints Help message of long flag options.
-    --run,    Run a function.
+    --help,  Prints Help message of long flag interactive options (WIP).
+    help,    See for advanced no interface options (WIP).
 EOF
 generate_list
 }
 
-generate_doc(){
+generate_doc_old(){
     
     cd "$(dirname "$(dirname "$(realpath "$0")")")/share/armbian-configng/" || exit
     
@@ -328,4 +379,30 @@ generate_doc(){
     echo "CSV       -   generated data/$filename.csv" ;
 
     return 0 ;
+}
+
+generate_and_print() {
+    local generate_func=$1
+    local filename=$2
+    local file_extension=$3
+    local output_message=$4
+
+    "$generate_func" > "$filename.$file_extension"
+    chmod 755 "$filename.$file_extension"
+    echo "$output_message - generated $filename.$file_extension"
+}
+
+generate_doc() {
+    cd "$(dirname "$(dirname "$(realpath "$0")")")/share/" || exit
+
+    generate_and_print generate_markdown "../readme" md "About readme.md"
+    generate_and_print generate_html "${filename%-dev}/$filename-table" html "$filename-table.html"
+    generate_and_print generate_markdown "${filename%-dev}/readme" md "Markdown"
+    generate_and_print generate_html5 "${filename%-dev}/$filename-spa" html "HTML5"
+    generate_and_print generate_json "${filename%-dev}/data/$filename" json "JSON"
+    generate_and_print generate_csv "${filename%-dev}/data/${filename%-dev}" csv "CSV"
+    if [[ "$EUID" -eq 0 && "$HOME" == "$(getent passwd "$SUDO_USER" | cut -d: -f6)" ]]; then
+        chown -R "$USER":"$USER" "${filename%-dev}"
+    fi
+    return 0
 }
