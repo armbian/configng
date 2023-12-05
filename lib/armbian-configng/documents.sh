@@ -325,14 +325,10 @@ generate_list_cli() {
             for function in "${functions_in_file[@]}"; do
                 key="${category##*/}:${file##*/}:${function}"
                 group_name=${functions["$key,group_name"]}               
-              #  echo "    $group_name=${functions["$key,function_name"]} - ${functions["$key,description"]}"
-            #echo "$group_name=${functions["$key,function_name"]} - ${functions["$key,description"]}" | awk -F' - ' '{printf "%-20s\t-\t%-20s\n", $1, $2}'
-            printf "\t%-20s\t-\t%s\n" "$group_name=${functions["$key,function_name"]}" "${functions["$key,description"]}"
-    
+                printf "\t%-20s - \t %s \n" "$group_name=${functions["$key,function_name"]}" "${functions["$key,description"]}"
             done
         done
     done
-
 }
 
 
@@ -341,14 +337,12 @@ generate_help(){
 cat << EOF 
 Usage: ${filename%.*} [flag] [option]
   flags:
-    -h,   Print this help.
-    -d,   Generate Documentation.  
-    -t,   Show a TUI fallback read.
-
-    --help,  Prints Help message of long flag interactive options (WIP).
-    help,    See for advanced no interface options (WIP).
+    -h,      Print this help.
+    -d,      Generate Documentation.  
+    -t,      Show a TUI fallback read.
+    --help,  Prints Help message of long flag interactive options (WIP)."
+    help,    View advanced no-interface options (CURRENT FOCUS)."
 EOF
-generate_list
 }
 
 
@@ -365,11 +359,9 @@ generate_and_print() {
 
 generate_doc() {
     dir="$(dirname "$(dirname "$(realpath "$0")")")/share/${filename%-dev}"
-
     if [[ ! -d "$dir" ]]; then
         mkdir -p "$dir/data/"
     fi
-
     cd "$dir" || exit
     generate_and_print generate_markdown "../../readme" md "readme.md"
     generate_and_print generate_html "$filename-table" html "Table"
@@ -377,10 +369,10 @@ generate_doc() {
     generate_and_print generate_html5 "index.html" html "HTML5"
     generate_and_print generate_json "data/$filename" json "JSON"
     generate_and_print generate_csv "data/${filename%-dev}" csv "CSV"
-if [[ "$EUID" -eq 0 ]]; then
-    chown -R "$SUDO_USER":"$SUDO_USER" "$(dirname "$dir")"
-    cd ../../
-    chown  "$SUDO_USER":"$SUDO_USER" readme.md
-fi
+    if [[ "$EUID" -eq 0 ]]; then
+        chown -R "$SUDO_USER":"$SUDO_USER" "$(dirname "$dir")"
+        cd ../../
+        chown  "$SUDO_USER":"$SUDO_USER" readme.md
+    fi
     return 0
 }
