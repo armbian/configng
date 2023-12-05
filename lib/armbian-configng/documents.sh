@@ -335,8 +335,8 @@ generate_list_cli() {
 # This function is used to generate a help message.
 generate_help(){
 cat << EOF 
-Usage: ${filename%.*} [flag] [option]
-  flags:
+Usage: ${filename%.*} [flag][option]
+  flag options:
     -h,      Print this help.
     -d,      Generate Documentation.  
     -t,      Show a TUI fallback read.

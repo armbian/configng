@@ -18,7 +18,7 @@ file_name="$(basename "${BASH_SOURCE[0]}")"
 filename="${file_name%.*}"
 libpath=$(cd "$directory/lib/$filename/" && pwd)
 #sharepath=$(cd "$directory/share/${filename%-dev}/" && pwd)
-dev=0
+
 
 #
 # Consept Distribution Compatibility checks
@@ -28,12 +28,13 @@ check_distro() {
     [[ -f "/etc/${filename%%-*}-release" ]] && distro_release="${filename%%-*}"
     # if both true then we are good to go
     [[ -z "$distro_config" ]] || [[ -z "$distro_release" ]] && echo "W: Costum build, Tech support links are missing."
-    [[ -n "$distro_config" ]] && [[ -n "$distro_release" ]] && echo "I: This build seems to be community supported"
+    [[ -n "$distro_config" ]] && [[ -n "$distro_release" ]] && echo "I: This build seems to be community supported" | ./armbian-interface -o
     [[ -f "/usr/sbin/${filename%%-*}-config" ]] && distro_config="${filename%%-*}"
     [[ -f "/etc/${filename%%-*}-release" ]] && distro_release="${filename%%-*}"
 
 }
 
+[[ "$1" == "--dev" ]] && dev=1 && shift 1 
 
 #
 # Check if the script is dev version.
@@ -44,12 +45,16 @@ if [[ "$suffix" == dev ]]; then
     check_distro #| armbian-interface -o
 fi
 
-if [[ "$(id -u)" != "0" ]] && [[ "$suffix" == dev ]] ; then
+if [[ "$(id -u)" != "0" ]] && [[ "$dev" == "1" ]] ; then
 
-cat << EOF | armbian-interface -o
+cat << EOF | ./armbian-interface -o
 I: Running in UX development mode
 W: Admin functions will not work as expected
-I: To run in normal mode edit $filename and set dev="0", "sudo $filename"
+EOF
+elif [[ "$(id -u)" == "0" ]] && [[ "$dev" == "1" ]] ; then
+cat << EOF | ./armbian-interface -o
+I: Running in UX development mode
+W: Document files may need Admin privleges to edit/remove
 EOF
 
 fi
