@@ -1,7 +1,7 @@
 # Armbian ConfigNG 
 Refactor of [armbian-config](https://github.com/armbian/config)       
-## relaease 
-2021-09-01
+## Updated
+2023-12-05
 # User guide
 ## Quick start
 Run the following commands:

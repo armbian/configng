@@ -195,8 +195,8 @@ generate_markdown() {
 cat << EOF
 # Armbian ConfigNG 
 Refactor of [armbian-config](https://github.com/armbian/config)       
-## relaease 
-2021-09-01
+## Updated
+$(date +%Y-%m-%d)
 # User guide
 ## Quick start
 Run the following commands:
