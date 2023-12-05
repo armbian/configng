@@ -69,11 +69,11 @@ Network Wired wireless Bluetooth access point
 
 
 # Inclueded projects
-[Bash Utility (https://labbots.github.io/bash-utility) 
+[Bash Utility](https://labbots.github.io/bash-utility) 
 
  This allows for functional programming in Bash. Error handling and validation are also included.
 The idea is to provide an API in Bash that can be called from a Command line interface, Text User interface and others.
 
  Why Bash? Well, because it's going to be in every distribution. Striped down distributions
-may not include Python, C/C++, etc. build/runtime environments )
+may not include Python, C/C++, etc. build/runtime environments
 
