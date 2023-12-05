@@ -1,7 +1,6 @@
 # Armbian ConfigNG 
 Refactor of [armbian-config](https://github.com/armbian/config)       
-## Updated
-2023-12-05
+
 # User guide
 ## Quick start
 Run the following commands:
@@ -37,13 +36,7 @@ function group::string() {
  - [CSV](share/armbian-configng/data/armbian-configng.csv)
  - [HTML](share/armbian-configng/armbian-configng-table.html)
  - [github.io](//tearran/github.io/armbian-configng/index.html)
-## Functions
- - Text User Interface
- - Command Line Interface
- - Help message
- - launch a feature
-
-## Up to date list of functions 
+## Functions list as of 2023-12-05
 ## Network
 
 

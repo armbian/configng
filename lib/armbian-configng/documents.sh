@@ -195,8 +195,7 @@ generate_markdown() {
 cat << EOF
 # Armbian ConfigNG 
 Refactor of [armbian-config](https://github.com/armbian/config)       
-## Updated
-$(date +%Y-%m-%d)
+
 # User guide
 ## Quick start
 Run the following commands:
@@ -232,13 +231,7 @@ function group::string() {
  - [CSV](share/${file_name%.*}/data/${file_name%.*}.csv)
  - [HTML](share/${file_name%.*}/${file_name%.*}-table.html)
  - [github.io](//tearran/github.io/${file_name%.*}/index.html)
-## Functions
- - Text User Interface
- - Command Line Interface
- - Help message
- - launch a feature
-
-## Up to date list of functions 
+## Functions list as of $(date +%Y-%m-%d)
 EOF
 
     for category in "${categories[@]}"; do
