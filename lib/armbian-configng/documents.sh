@@ -364,16 +364,23 @@ generate_and_print() {
 }
 
 generate_doc() {
-    cd "$(dirname "$(dirname "$(realpath "$0")")")/share/" || exit
+    dir="$(dirname "$(dirname "$(realpath "$0")")")/share/${filename%-dev}"
 
-    generate_and_print generate_markdown "../readme" md "readme.md"
-    generate_and_print generate_html "${filename%-dev}/$filename-table" html "Table"
-    generate_and_print generate_markdown "${filename%-dev}/readme" md "Markdown"
-    generate_and_print generate_html5 "${filename%-dev}/$filename-spa" html "HTML5"
-    generate_and_print generate_json "${filename%-dev}/data/$filename" json "JSON"
-    generate_and_print generate_csv "${filename%-dev}/data/${filename%-dev}" csv "CSV"
-    if [[ "$EUID" -eq 0 && "$HOME" == "$(getent passwd "$SUDO_USER" | cut -d: -f6)" ]]; then
-        chown -R "$USER":"$USER" "${filename%-dev}"
+    if [[ ! -d "$dir" ]]; then
+        mkdir -p "$dir/data/"
     fi
+
+    cd "$dir" || exit
+    generate_and_print generate_markdown "../../readme" md "readme.md"
+    generate_and_print generate_html "$filename-table" html "Table"
+    generate_and_print generate_markdown "readme" md "Markdown"
+    generate_and_print generate_html5 "index.html" html "HTML5"
+    generate_and_print generate_json "data/$filename" json "JSON"
+    generate_and_print generate_csv "data/${filename%-dev}" csv "CSV"
+if [[ "$EUID" -eq 0 ]]; then
+    chown -R "$SUDO_USER":"$SUDO_USER" "$(dirname "$dir")"
+    cd ../../
+    chown  "$SUDO_USER":"$SUDO_USER" readme.md
+fi
     return 0
 }

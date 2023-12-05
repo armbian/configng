@@ -17,7 +17,7 @@ directory="$(cd "$bin/../" && pwd )"
 file_name="$(basename "${BASH_SOURCE[0]}")"
 filename="${file_name%.*}"
 libpath=$(cd "$directory/lib/$filename/" && pwd)
-sharepath=$(cd "$directory/share/${filename%-dev}/" && pwd)
+#sharepath=$(cd "$directory/share/${filename%-dev}/" && pwd)
 dev=0
 
 #
