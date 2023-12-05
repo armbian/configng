@@ -227,8 +227,8 @@ function group::string() {
 }
 ~~~
 ## Codestyle can be used to auto generate
- - Markdown
- - JSON
+ - [Markdown](share/${file_name%.*}/readme.md)
+ - [JSON](share/${file_name%.*}/data/${file_name%.*}.json)
  - Text User Interface
  - Command Line Interface
  - Help message
@@ -261,13 +261,8 @@ EOF
 cat << EOF
 
 # Inclueded projects
-[Bash Utility](https://labbots.github.io/bash-utility) 
-
- This allows for functional programming in Bash. Error handling and validation are also included.
-The idea is to provide an API in Bash that can be called from a Command line interface, Text User interface and others.
-
- Why Bash? Well, because it's going to be in every distribution. Striped down distributions
-may not include Python, C/C++, etc. build/runtime environments
+- [Bash Utility](https://labbots.github.io/bash-utility) 
+- [Armbian config](https://github.com/armbian/config.git)
 
 EOF
 }
@@ -367,7 +362,7 @@ generate_doc() {
     generate_and_print generate_markdown "../../readme" md "readme.md"
     generate_and_print generate_html "$filename-table" html "Table"
     generate_and_print generate_markdown "readme" md "Markdown"
-    generate_and_print generate_html5 "index.html" html "HTML5"
+    generate_and_print generate_html5 "index" html "HTML5"
     generate_and_print generate_json "data/$filename" json "JSON"
     generate_and_print generate_csv "data/${filename%-dev}" csv "CSV"
     if [[ "$EUID" -eq 0 ]]; then
