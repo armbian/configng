@@ -306,6 +306,7 @@ generate_list_run() {
 
 }
 
+# This function is used to generate a no flag options help message
 generate_list_cli() {
 
     echo "Usage: ${filename%.*} [group]=[function]"
@@ -350,36 +351,6 @@ EOF
 generate_list
 }
 
-generate_doc_old(){
-    
-    cd "$(dirname "$(dirname "$(realpath "$0")")")/share/armbian-configng/" || exit
-    
-    generate_markdown > "../../readme.md" ;
-    chmod 755 "../../readme.md" ;
-    echo "$filename About readme.md" ;
-
-    generate_html > "$filename-table.html" ;
-    chmod 755 "$filename-table.html" ;
-    echo "$filename -   $filename-table.html" ;
-
-    generate_markdown > readme.md  
-    chmod 755 readme.md
-    echo "Markdown  -   generated readme.md " ;
-
-    generate_html5 > "$filename-spa.html" ;
-    chmod 755 "$filename-spa.html" ;
-    echo "HTML5     -   generated $filename-spa.html" ;
-    
-    generate_json > "data/$filename.json" 
-    chmod 755 "data/$filename.json"
-    echo "JSON      -   generated data/$filename.json" ;
-
-    generate_csv > "data/$filename.csv" ;
-    chmod 755 "data/$filename.csv" ;
-    echo "CSV       -   generated data/$filename.csv" ;
-
-    return 0 ;
-}
 
 generate_and_print() {
     local generate_func=$1
@@ -395,8 +366,8 @@ generate_and_print() {
 generate_doc() {
     cd "$(dirname "$(dirname "$(realpath "$0")")")/share/" || exit
 
-    generate_and_print generate_markdown "../readme" md "About readme.md"
-    generate_and_print generate_html "${filename%-dev}/$filename-table" html "$filename-table.html"
+    generate_and_print generate_markdown "../readme" md "readme.md"
+    generate_and_print generate_html "${filename%-dev}/$filename-table" html "Table"
     generate_and_print generate_markdown "${filename%-dev}/readme" md "Markdown"
     generate_and_print generate_html5 "${filename%-dev}/$filename-spa" html "HTML5"
     generate_and_print generate_json "${filename%-dev}/data/$filename" json "JSON"
