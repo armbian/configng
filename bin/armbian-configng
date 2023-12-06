@@ -146,6 +146,13 @@ fi
 # Check arguments for long flag options
 # Help message related to the functions the back end
 handle_long_flag(){
+    if [[ "$1" == "--help" ]]; then
+        generate_list_run
+        exit 0 ;
+    elif [[ "$1" == "--doc" ]]; then
+        generate_doc
+        exit 0 ;
+    fi
 # WIP: 
     if [ "$1" == "--run" ]; then
         shift  # Shifts the arguments to the left, excluding the first argument ("-r")

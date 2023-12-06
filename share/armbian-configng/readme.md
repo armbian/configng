@@ -25,7 +25,7 @@ follow the following coding style:
 # @exitcode 0  If successful.
 #
 # @options A description if there are options.
-function group::string() {
+function group::string() {s
     echo "hello world"
     return 0
 }
