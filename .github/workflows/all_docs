@@ -1,4 +1,4 @@
-name: Generate and Deploy
+name: Deploy static content to Pages
 
 on:
     push:
@@ -6,21 +6,17 @@ on:
             - main
 
 jobs:
-    build-and-deploy:
+    deploy:
         runs-on: ubuntu-latest
-
         steps:
-        - name: Checkout code
-            uses: actions/checkout@v2
+            - name: Checkout
+                uses: actions/checkout@v2
 
-        - name: Generate web app
-            run: ./bin/armbian-config --doc
+            - name: Build
+                run: ./bin/armbian-config --doc
 
-        - name: Deploy to server
-            uses: SamKirkland/FTP-Deploy-Action@4.0.0
-            with:
-                server: ${{ secrets.SERVER_HOST }}
-                username: ${{ secrets.SERVER_USERNAME }}
-                password: ${{ secrets.SERVER_PASSWORD }}
-                local-dir: "./share/armbian-config"
-                server-dir: "/doc.armbian.tech"
+            - name: Deploy
+                uses: peaceiris/actions-gh-pages@v3
+                with:
+                    github_token: ${{ secrets.GITHUB_TOKEN }}
+                    publish_dir: ./configng/share
