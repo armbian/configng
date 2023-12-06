@@ -1,24 +1,24 @@
-name: Deploy static content to Pages
-
+name: Build and Deploy
 on:
-    push:
-        branches:
-            - main
+  push:
+    branches:
+      - main  # replace with your branch name
 
 jobs:
-    deploy:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v2
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    container:
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v2.3.4
 
-            - name: Build
-              run: |
-                chmod +x ./bin/armbian-configng
-                ./bin/armbian-configng --dev --doc
+      - name: Build 🏗️
+        run: bash ./path_to_your_script.sh  # replace with your bash script path
 
-            - name: Deploy
-              uses: peaceiris/actions-gh-pages@v3
-              with:
-                  github_token: ${{ secrets.GITHUB_TOKEN }}
-                  publish_dir: ./configng/share
+      - name: Deploy 🚀
+        uses: SamKirkland/FTP-Deploy-Action@4.0.0
+        with:
+          server: ftp.yourdomain.com  # replace with your server
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: public_html/your_project  # replace with your server directory
