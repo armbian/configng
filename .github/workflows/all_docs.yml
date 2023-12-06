@@ -9,16 +9,16 @@ jobs:
     runs-on: ubuntu-latest
     container:
     steps:
-      - name: Checkout 🛎️
+      - name: Checkout
         uses: actions/checkout@v2.3.4
 
-      - name: Build 🏗️
+      - name: Build
         run: bash ./bin/armbian-configng --dev --doc  # replace with your bash script path
 
-      - name: Deploy 🚀
+      - name: Deploy
         uses: SamKirkland/FTP-Deploy-Action@4.0.0
         with:
           server: ${{ secrets.SERVER_HOST}}  # replace with your server
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
-          server-dir: public_html/your_project  # replace with your server directory
+          server-dir: /doc.armbian.tech # replace with your server directory
