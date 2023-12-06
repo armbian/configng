@@ -18,7 +18,7 @@ jobs:
       - name: Deploy 🚀
         uses: SamKirkland/FTP-Deploy-Action@4.0.0
         with:
-          server: ftp.yourdomain.com  # replace with your server
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
+          server: ${{ secrets.SERVER_HOST}}  # replace with your server
+          username: ${{ secrets.SERVER_USERNAME }}
+          password: ${{ secrets.SERVER_PASSWORD }}
           server-dir: public_html/your_project  # replace with your server directory
