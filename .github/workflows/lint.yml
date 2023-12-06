@@ -1,0 +1,26 @@
+name: Lint scripts
+
+on:
+  workflow_dispatch:
+  pull_request:
+
+jobs:
+
+  Shellcheck:
+
+    name: Shell script analysis
+    runs-on: ubuntu-latest
+    if: ${{ github.repository_owner == 'Armbian' }}
+    steps:
+
+       - name: Checkout repository
+         uses: actions/checkout@v3
+
+       - name: Environment variables
+         run: sudo -E bash -c set
+
+       - name: "Shellcheck lint error report in diff format"
+         shell: bash {0}
+         run: |
+
+           for file in $(find . -type f -executable ! -path '*/.git*/*' -exec grep -Iq . {} \; -print); do shellcheck -x $file; done
