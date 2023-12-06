@@ -3,6 +3,8 @@
     <img src="https://raw.githubusercontent.com/armbian/build/main/.github/armbian-logo.png" alt="Armbian logo" width="144">
     <br>
     Armbian ConfigNG 
+    <br>
+    <a href="https://www.codefactor.io/repository/github/tearran/configng"><img src="https://www.codefactor.io/repository/github/tearran/configng/badge" alt="CodeFactor" /></a>
 </p>
 
 # User guide
