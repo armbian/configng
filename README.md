@@ -11,7 +11,9 @@
 ## Quick start
 Run the following commands:
 
-    echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] https://armbian.github.io/configng stable main" | sudo tee /etc/apt/sources.list.d/armbian-development.list > /dev/null
+    echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] https://armbian.github.io/configng stable main" \
+    | sudo tee /etc/apt/sources.list.d/armbian-development.list > /dev/null
+    
     armbian-configng --dev
 
 If all goes well you should see the Text-Based User Inerface (TUI)
