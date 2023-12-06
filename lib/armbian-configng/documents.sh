@@ -353,7 +353,7 @@ Usage: ${filename%.*} [flag][option]
 EOF
 }
 
-
+# THis function is used to make documents
 generate_and_print() {
     local generate_func=$1
     local filename=$2
@@ -373,7 +373,7 @@ generate_doc() {
     cd "$dir" || exit
     generate_svg > "$filename.svg"
     generate_and_print generate_markdown "../../readme" md "readme.md"
-    generate_and_print generate_html "$filename-table" html "Table"
+    generate_and_print generate_html "../../index" html "index.html"
     generate_and_print generate_html5 "index" html "HTML5"
     generate_and_print generate_json "data/$filename" json "JSON"
     generate_and_print generate_csv "data/${filename%-dev}" csv "CSV"
