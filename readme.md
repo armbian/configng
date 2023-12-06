@@ -1,8 +1,9 @@
-# Armbian ConfigNG 
-Refactor of [armbian-config](https://github.com/armbian/config)    
-Purpose is to 
-- separate the business end from the front end  
-- generate user documentation
+
+<p align="center">
+    <img src="https://raw.githubusercontent.com/armbian/build/main/.github/armbian-logo.png" alt="Armbian logo" width="144">
+    <br>
+    Armbian ConfigNG 
+</p>
 
 # User guide
 ## Quick start
