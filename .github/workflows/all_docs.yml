@@ -14,4 +14,5 @@ jobs:
         server: ${{ secrets.SERVER_HOST}}  # replace with your server
         username: ${{ secrets.SERVER_USERNAME }}
         password: ${{ secrets.SERVER_PASSWORD }}     
-        server-dir: /doc.armbian.tech # replace with your server directory
+        server-dir: / # replace with your server directory
+        local-dir: dist/share
