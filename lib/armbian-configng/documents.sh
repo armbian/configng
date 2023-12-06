@@ -372,7 +372,6 @@ generate_doc() {
     generate_svg > "$filename.svg"
     generate_and_print generate_markdown "../../readme" md "readme.md"
     generate_and_print generate_html "$filename-table" html "Table"
-    generate_and_print generate_markdown "readme" md "Markdown"
     generate_and_print generate_html5 "index" html "HTML5"
     generate_and_print generate_json "data/$filename" json "JSON"
     generate_and_print generate_csv "data/${filename%-dev}" csv "CSV"
