@@ -14,7 +14,7 @@ jobs:
             uses: actions/checkout@v2
 
         - name: Generate web app
-            run: armbian-config --doc
+            run: ./bin/armbian-config --doc
 
         - name: Deploy to server
             uses: SamKirkland/FTP-Deploy-Action@4.0.0
