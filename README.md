@@ -20,7 +20,7 @@ If all goes well you should see the Text-Based User Inerface (TUI)
 
 ### To see a list of all functions and their descriptions, run the following command:
 ~~~
-bash ~/configng/bin/armbian-configng -h
+armbian-configng -h
 ~~~
 ## Coding Style
 follow the following coding style:
