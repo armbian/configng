@@ -1,5 +1,8 @@
 # Armbian ConfigNG 
-Refactor of [armbian-config](https://github.com/armbian/config)       
+Refactor of [armbian-config](https://github.com/armbian/config)    
+Purpose is to 
+- separate the business end from the front end  
+- generate user documentation
 
 # User guide
 ## Quick start
@@ -37,7 +40,7 @@ function group::string() {s
  - [HTML](share/armbian-configng/armbian-configng-table.html)
  - [github.io](//tearran/github.io/armbian-configng/index.html)
 ## Functions list as of 2023-12-05
-## Network
+## network
 System and Security
 
 ### set_wifi.sh
@@ -47,7 +50,7 @@ System and Security
  - **Options:** none.
  - **Description:** Network Manager.
 
-## System
+## system
 Network Wired wireless Bluetooth access point
 
 ### hello_world.sh

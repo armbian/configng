@@ -1,10 +1,18 @@
 [
   {
+    "Function Name": "NMTUI",
+    "Group Name": "network",
+    "Description": "Network Manager.",
+    "Options": "none.",
+    "Category": "network",
+    "Category Description": "Network Wired wireless Bluetooth access point"
+  },
+  {
     "Function Name": "Hello",
     "Group Name": "system",
     "Description": "Hello System.",
     "Options": "none",
-    "Category": "System",
+    "Category": "system",
     "Category Description": "System and Security"
   },
   {
@@ -12,15 +20,7 @@
     "Group Name": "monitor",
     "Description": "Armbian Monitor and Bencharking.",
     "Options": "",
-    "Category": "System",
+    "Category": "system",
     "Category Description": "System and Security"
-  },
-  {
-    "Function Name": "NMTUI",
-    "Group Name": "network",
-    "Description": "Network Manager.",
-    "Options": "none.",
-    "Category": "Network",
-    "Category Description": "Network Wired wireless Bluetooth access point"
   }
 ]

@@ -18,6 +18,7 @@ generate_json() {
     echo "[${json_objects[*]}]" | jq
 }
 
+# This function is used to generate a armbian CPU logo
 generate_svg(){
 
 cat << EOF
