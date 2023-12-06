@@ -15,7 +15,7 @@ jobs:
             - name: Build
               run: |
                 chmod +x ./bin/armbian-configng
-                ./bin/armbian-configng --doc
+                ./bin/armbian-configng --dev --doc
 
             - name: Deploy
               uses: peaceiris/actions-gh-pages@v3
