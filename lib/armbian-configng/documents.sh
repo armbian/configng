@@ -205,7 +205,10 @@ generate_html() {
 generate_markdown() {
 cat << EOF 
 # Armbian ConfigNG 
-Refactor of [armbian-config](https://github.com/armbian/config)       
+Refactor of [armbian-config](https://github.com/armbian/config)    
+Purpose is to 
+- separate the business end from the front end  
+- generate user documentation
 
 # User guide
 ## Quick start
