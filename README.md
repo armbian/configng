@@ -42,7 +42,7 @@ function group::string() {s
  - [CSV](share/armbian-configng/data/armbian-configng.csv)
  - [HTML](share/armbian-configng/armbian-configng-table.html)
  - [github.io](//tearran/github.io/armbian-configng/index.html)
-## Functions list as of 2023-12-05
+## Functions list as of 2023-12-06
 ## network
 System and Security
 
@@ -55,6 +55,13 @@ System and Security
 
 ## system
 Network Wired wireless Bluetooth access point
+
+### armbian_install.sh
+
+ - **Group Name:** system
+ - **Action Name:** Install
+ - **Options:** none
+ - **Description:** Armbian installer.
 
 ### hello_world.sh
 
