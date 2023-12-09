@@ -218,15 +218,11 @@ cat << EOF
 ## Quick start
 Run the following commands:
 
-    echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] https://armbian.github.io/configng stable main" \
-    | sudo tee /etc/apt/sources.list.d/armbian-development.list > /dev/null
-    
-    
-    sudo armbian-configng
-
-or 
-
-    armbian-configng --dev 
+    sudo apt install git
+    cd ~/
+    git clone https://github.com/armbian/configng.git
+    cd configng
+    ./bin/${file_name%.*} --dev
 
 If all goes well you should see the Text-Based User Inerface (TUI)
 
@@ -372,18 +368,17 @@ generate_and_print() {
 }
 
 generate_doc() {
-    dir="$(dirname "$(dirname "$(realpath "$0")")")/share/doc/$filename"
+    dir="$(dirname "$(dirname "$(realpath "$0")")")/share/${filename%-dev}"
     if [[ ! -d "$dir" ]]; then
-        mkdir -p "$dir"
+        mkdir -p "$dir/data/"
     fi
     cd "$dir" || exit
-    generate_and_print generate_svg "armbianCPU" "svg" "armbianCPU.svg"
-    generate_and_print generate_markdown "README" md "README.md"
-    generate_and_print generate_html "index" html "index.html"
-    generate_and_print generate_html5 "$filename" html "HTML5"
-    generate_and_print generate_json "$filename" json "JSON"
-    generate_and_print generate_csv "$filename" csv "CSV"
-    # May not longer be needed
+    generate_svg > "$filename.svg"
+    generate_and_print generate_markdown "../../readme" md "readme.md"
+    generate_and_print generate_html "../../index" html "index.html"
+    generate_and_print generate_html5 "index" html "HTML5"
+    generate_and_print generate_json "data/$filename" json "JSON"
+    generate_and_print generate_csv "data/${filename%-dev}" csv "CSV"
     if [[ "$EUID" -eq 0 ]]; then
         chown -R "$SUDO_USER":"$SUDO_USER" "$(dirname "$dir")"
         cd ../../
