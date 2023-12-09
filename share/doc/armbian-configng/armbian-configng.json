@@ -22,5 +22,13 @@
     "Options": "",
     "Category": "system",
     "Category Description": "System and Security"
+  },
+  {
+    "Function Name": "Install",
+    "Group Name": "system",
+    "Description": "Armbian installer",
+    "Options": "none.",
+    "Category": "system",
+    "Category Description": "System and Security"
   }
 ]
