@@ -24,7 +24,7 @@ jobs:
          run: |
 
            for file in $(find . -type f -executable ! -path '*/.git*/*' -exec grep -Iq . {} \; -print); do
-               if grep -qE "^#\!/.*" $file; then
+               if grep -qE "^#\!/.*bash" $file; then
                    shellcheck --severity=error $file || ret=$?
                fi
            done
