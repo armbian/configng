@@ -36,7 +36,7 @@
 #
 
 ## DIRECTORY variable to the absolute path of the script's directory
-directory="$(dirname "$(readlink -f "$0")")"
+# directory="$(dirname "$(readlink -f "$0")")"
 filename=$(basename "${BASH_SOURCE[0]}")
 
 ## DIALOG variable to the absolute path of the script's directory
@@ -70,7 +70,7 @@ show_message(){
     # Display the "OK" message box with the input data
     [[ $DIALOG != "bash" ]] && $DIALOG --title "Message Box" --msgbox "$input" 0 0
     [[ $DIALOG == "bash" ]] && echo -e "$input"
-    [[ $DIALOG == "bash" ]] && read -p "Press [Enter] to continue..." ; echo "" ; exit 1
+    [[ $DIALOG == "bash" ]] && read -p -r "Press [Enter] to continue..." ; echo "" ; exit 1
 
     }
 
@@ -116,4 +116,4 @@ show_menu(){
 [[ $1 == "-o" ]] && show_message ;
 [[ $1 == "-h" ]] && show_help ;
 [[ $1 == "-p" ]] && show_popup ;
-[[ -z "$@" ]] && show_help ;
+[[ -z "$*" ]] && show_help ;
