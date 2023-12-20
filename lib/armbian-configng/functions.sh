@@ -17,29 +17,31 @@ generate_tui() {
         categories_array["$i"]="$category_name"
         description_array["$i"]="$category_description"
         options+=("$i" "$(printf '%-7s - %-8s' "${categories_array[$i]}" "${description_array[$i]}")")
-        #options+=("$i" "${categories_array[$i]} - ${description_array[$i]}")
         ((++i))
     done
-    options+=("$i" "$(printf '%-7s - %-8s' "Legacy" "Run Legacy configuration")") 
 
-    #options+=("$i" "Legacy - Run Legacy configuration")
-    ((++i))
+    # Check if armbian-config is installed before adding the Legacy option
+    if which armbian-config > /dev/null; then
+        options+=("$i" "$(printf '%-7s - %-8s' "Legacy" "Run Legacy configuration")") 
+        ((++i))
+    fi
+
     options+=("$i" "$(printf '%-7s - %-8s' "Help" "Documentation, support, sources")") 
-    #options+=("$i" "Help   - Documentation, support, sources" )
     ((++i))
 
     local choice
-    
     choice=$($dialogue --menu "Select a category:" 0 0 9 "${options[@]}" 3>&1 1>&2 2>&3)
     
-   if [[ -n $choice ]]; then
-        
+    if [[ -n $choice ]]; then
         if ((choice == "$i - 1")); then
             generate_help | armbian-interface -o
             exit ;
         elif ((choice == "$i - 2")); then
-            armbian-config
-            exit ;
+            # Check again before running armbian-config
+            if which armbian-config > /dev/null; then
+                armbian-config
+                exit ;
+            fi
         else
             generate_sub_tui "${categories_array[$choice]}"
         fi
