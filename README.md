@@ -12,15 +12,30 @@
   - [Quick start](#quick-start)
     - [Installation Options](#installation-options)
   - [Using Options](#using-options)
-  - [Disclamrs](#disclaimer)
-  - [Refrance](#referance)
 
 # User guide
 ## Quick start
 ### Installation Options
 Our applications support two Run styles
-1. **Run localy from GitHub repository:**
-   ` sudo apt update && sudo apt install git ``
+
+## Limitations 
+Foundation adhering to confirmed best practices in Bash scripting. 
+<!-- For guidance on these best practices, refer to [insert relevant resources or links]. -->
+
+- functionaly may or may not work when requering administration privileges
+  - establsh a roll or funtions resposability
+- armbian-configng does not requier adnistation access. 
+- administraation access
+  - advanced use
+- non administrations access
+  - basic use
+
+  
+
+1. **Run from GitHub repository:**
+   
+   ` sudo apt update && sudo apt install git `
+   
     ```bash
 
     cd ~/
@@ -36,8 +51,11 @@ Our applications support two Run styles
     # rm -rf configng
     ```
 
-2. **Install from a .deb package:**
-    [Disclamer](#disclaimer): Not recomened 
+3. **Install from a .deb package:**
+    [Disclamer](#disclaimer): Not recomened
+
+   <!-- generated readme allowed for dynamic links to be use with safer option of wget" -->
+   
     ```bash
     {  
     latest_release=$(curl -s https://api.github.com/repos/armbian/configng/releases/latest)
@@ -59,7 +77,7 @@ Our applications support two Run styles
     ```bash
       sudo apt remove armbian-configng
     ```
-3. **Install from the Armbian repository(Coming Soon):**
+4. **Install from the Armbian repository(Coming Soon):**
 
     ```bash
     echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] https://armbian.github.io/configng stable main" \
@@ -81,12 +99,24 @@ Our applications support two Run styles
 Our applications support two styles of options:
 
 1. **C-style commands:** The `help` command provides a message with examples of how of use.
+2. These option bypass user interations
+3. Limitations
+  a. small sample size
+    - error handeling
+  b. migration of legacy
+    - A sugested astabliment of responsibilty
+    - configng does not requier super user priveges to run
+       - a default requierment of sudo for every option needed or ad/hoc
+       - armbian-configng does not requer it 
+    - safe and best practie sugest
+      1. /sbin for admin and /bin for others
+      2. 
 
     ```bash
     ./bin/armbian-configng help
     ```
 
-2. **Script-style options:** These are passed as `-option` or `--option`. For example, to request help, you would use `-h` or `--help`.
+5. **Script-style options:** These are passed as `-option` or `--option`. For example, to request help, you would use `-h` or `--help`.
 
     ```bash
     ./bin/armbian-configng -h
@@ -100,7 +130,3 @@ This guide includes the use of `curl` command to download files from the interne
 Please ensure that you trust the source of the files you are downloading. Be aware that downloading files from the internet always carries a risk, and you should only download files from trusted sources.
 
 Always review the scripts and commands you run in your terminal. If you don't understand what a command or script does, take the time to learn about it before running it. This can help prevent unexpected behavior or damage to your system.
-
-## Referance
-
-[curl](https://medium.com/@esotericmeans/the-truth-about-curl-and-installing-software-securely-on-linux-63cd12e7befd)
