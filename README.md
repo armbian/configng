@@ -26,12 +26,13 @@ Run the following commands:
     echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] https://armbian.github.io/configng stable main" \
     | sudo tee /etc/apt/sources.list.d/armbian-development.list > /dev/null
     
-    armbian-configng --dev
+    armbian-configng
 
 If all goes well you should see the Text-Based User Inerface (TUI)
 
 ### To see a list of all functions and their descriptions, run the following command:
-~~~
+
+
 armbian-configng -h
 ~~~
 ## Coding Style
