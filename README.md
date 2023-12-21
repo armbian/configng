@@ -9,6 +9,18 @@
 
 # User guide
 ## Quick start
+
+### Git dev
+~~~
+sudo apt install git
+cd ~/
+git clone https://github.com/armbian/configng.git
+cd configng
+./bin/armbian-configng --dev
+~~~
+
+### Up Comming Apt.
+~~~
 Run the following commands:
 
     echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] https://armbian.github.io/configng stable main" \
@@ -35,49 +47,3 @@ function group::string() {s
     return 0
 }
 ~~~
-## Codestyle can be used to auto generate
- - [Markdown](share/armbian-configng/readme.md)
- - [JSON](share/armbian-configng/data/armbian-configng.json)
- - [CSV](share/armbian-configng/data/armbian-configng.csv)
- - [HTML](share/armbian-configng/armbian-configng-table.html)
- - [github.io](//tearran/github.io/armbian-configng/index.html)
-## Functions list as of 2023-12-06
-## network
-System and Security
-
-### set_wifi.sh
-
- - **Group Name:** network
- - **Action Name:** NMTUI
- - **Options:** none.
- - **Description:** Network Manager.
-
-## system
-Network Wired wireless Bluetooth access point
-
-### armbian_install.sh
-
- - **Group Name:** system
- - **Action Name:** Install
- - **Options:** none
- - **Description:** Armbian installer.
-
-### hello_world.sh
-
- - **Group Name:** system
- - **Action Name:** Hello
- - **Options:** none
- - **Description:** Hello System.
-
-### see_monitor.sh
-
- - **Group Name:** monitor
- - **Action Name:** Bencharking
- - **Options:** 
- - **Description:** Armbian Monitor and Bencharking.
-
-
-# Inclueded projects
-- [Bash Utility](https://labbots.github.io/bash-utility) 
-- [Armbian config](https://github.com/armbian/config.git)
-
