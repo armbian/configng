@@ -7,15 +7,17 @@
     <a href="https://www.codefactor.io/repository/github/tearran/configng"><img src="https://www.codefactor.io/repository/github/tearran/configng/badge" alt="CodeFactor" /></a>
 </p>
 
+ # Table of Contents
+- [User guide](#user-guide)
+  - [Quick start](#quick-start)
+    - [Installation Options](#installation-options)
+  - [Using Options](#using-options)
+
 # User guide
 ## Quick start
-
-
 ### Installation Options
-
-There are three ways to install `armbian-configng`:
-
-1. **Install from the GitHub repository:**
+Our applications support two Run styles
+1. **Run localy from GitHub repository:**
 
     ```bash
     sudo apt install git
@@ -29,18 +31,19 @@ There are three ways to install `armbian-configng`:
 
     ```bash
     cd ~/
-    rm -rf configng
+    # rm -rf configng
     ```
 
 2. **Install from a .deb package:**
 
     ```bash
-    latest_release=$(curl -s https://api.github.com/repos/armbian/configng/releases/latest)
+    {  latest_release=$(curl -s https://api.github.com/repos/armbian/configng/releases/latest)
     deb_url=$(echo "$latest_release" | jq -r '.assets[] | select(.name | endswith(".deb")) | .browser_download_url')
     curl -LO "$deb_url"
     deb_file=$(echo "$deb_url" | awk -F"/" '{print $NF}')
     sudo dpkg -i "$deb_file"
-    sudo apt --fix-broken install
+    sudo dpkg --configure -a
+    sudo apt --fix-broken install  }
     ```
 
     To uninstall:
@@ -48,8 +51,11 @@ There are three ways to install `armbian-configng`:
     ```bash
     sudo dpkg -r armbian-configng
     ```
-
-3. **Comming to a Armbian repository near you:**
+    or
+    ```bash
+      sudo apt remove armbian-configng
+    ```
+3. **Install from the Armbian repository(Coming Soon):**
 
     ```bash
     echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] https://armbian.github.io/configng stable main" \
@@ -61,23 +67,24 @@ There are three ways to install `armbian-configng`:
     To uninstall:
 
     ```bash
-    sudo apt remove armbian-configng
-    sudo rm /etc/apt/sources.list.d/armbian-development.list
-    sudo apt update
+    {  sudo apt remove armbian-configng
+    # sudo rm /etc/apt/sources.list.d/armbian-development.list
+    sudo apt update  }
     ```
 
-Please choose the option that best suits your needs.
+### Using Options
 
-## Coding Style
-follow the following coding style:
-~~~
-# @description A short description of the function.
-#
-# @exitcode 0  If successful.
-#
-# @options A description if there are options.
-function group::string() {s
-    echo "hello world"
-    return 0
-}
-~~~
+Our applications support two styles of options:
+
+1. **C-style commands:** The `help` command provides a message with examples of how of use.
+
+    ```bash
+    ./bin/armbian-configng help
+    ```
+
+2. **Script-style options:** These are passed as `-option` or `--option`. For example, to request help, you would use `-h` or `--help`.
+
+    ```bash
+    ./bin/armbian-configng -h
+    ./bin/armbian-configng --help
+    ```
