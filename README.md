@@ -12,15 +12,17 @@
   - [Quick start](#quick-start)
     - [Installation Options](#installation-options)
   - [Using Options](#using-options)
+  - [Disclamrs](#disclaimer)
+  - [Refrance](#referance)
 
 # User guide
 ## Quick start
 ### Installation Options
 Our applications support two Run styles
 1. **Run localy from GitHub repository:**
-
+   ` sudo apt update && sudo apt install git ``
     ```bash
-    sudo apt install git
+
     cd ~/
     git clone https://github.com/armbian/configng.git
     cd configng
@@ -35,15 +37,17 @@ Our applications support two Run styles
     ```
 
 2. **Install from a .deb package:**
-
+    [Disclamer](#disclaimer): Not recomened 
     ```bash
-    {  latest_release=$(curl -s https://api.github.com/repos/armbian/configng/releases/latest)
+    {  
+    latest_release=$(curl -s https://api.github.com/repos/armbian/configng/releases/latest)
     deb_url=$(echo "$latest_release" | jq -r '.assets[] | select(.name | endswith(".deb")) | .browser_download_url')
     curl -LO "$deb_url"
     deb_file=$(echo "$deb_url" | awk -F"/" '{print $NF}')
     sudo dpkg -i "$deb_file"
     sudo dpkg --configure -a
-    sudo apt --fix-broken install  }
+    sudo apt --fix-broken install  
+    }
     ```
 
     To uninstall:
@@ -88,3 +92,15 @@ Our applications support two styles of options:
     ./bin/armbian-configng -h
     ./bin/armbian-configng --help
     ```
+
+## Disclaimer
+
+This guide includes the use of `curl` command to download files from the internet. While we strive to provide safe and reliable instructions, we cannot guarantee the safety of any files downloaded using `curl`. 
+
+Please ensure that you trust the source of the files you are downloading. Be aware that downloading files from the internet always carries a risk, and you should only download files from trusted sources.
+
+Always review the scripts and commands you run in your terminal. If you don't understand what a command or script does, take the time to learn about it before running it. This can help prevent unexpected behavior or damage to your system.
+
+## Referance
+
+[curl](https://medium.com/@esotericmeans/the-truth-about-curl-and-installing-software-securely-on-linux-63cd12e7befd)
