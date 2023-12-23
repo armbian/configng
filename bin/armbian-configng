@@ -19,8 +19,10 @@ filename="${file_name%.*}"
 libpath=$(cd "$directory/lib/$filename/" && pwd)
 #sharepath=$(cd "$directory/share/${filename%-dev}/" && pwd)
 
-
+requirements=("nmtui" "armbian-config")
+echo "${requirements[@]}" | grep -o "nmtui"
 #
+
 # Consept Distribution Compatibility checks
 check_distro() {
 
