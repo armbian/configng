@@ -60,15 +60,8 @@ Network Wired wireless Bluetooth access point
 
  - **Group Name:** system
  - **Action Name:** Install
- - **Options:** none.
- - **Description:** Armbian installer
-
-### hello_world.sh
-
- - **Group Name:** system
- - **Action Name:** Hello
  - **Options:** none
- - **Description:** Hello System.
+ - **Description:** Armbian installer
 
 ### see_monitor.sh
 

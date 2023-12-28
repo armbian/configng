@@ -374,22 +374,27 @@ generate_doc() {
         mkdir -p "$dir/doc/${filename%-dev}/data"
 	fi
 
-	doc="$dir/doc/${filename%-dev}"
+	doc="/doc/${filename%-dev}"
 
 	if [[ ! -d "$dir/man/" ]] ; then
 		mkdir -p "$dir/man/man1"
 		
     fi
 
-    man="$dir/man/man1"
+    man="/man/man1"
+    if [[ ! -d "$dir/${filename%-dev}" ]]; then
+        mkdir -p "$dir/${filename%-dev}/data"
+    fi
+
+    share="${filename}"
 
     cd "$dir" || exit
-    generate_svg > "$doc/$filename.svg"
-    generate_and_print generate_markdown "$man/${filename%-dev}" md "MAN page"
-    generate_and_print generate_html "$doc/index" html "Table"
-    generate_and_print generate_html5 "$doc/index5" html "HTML"
-    generate_and_print generate_json "$doc/data/$filename" json "JSON"
-    generate_and_print generate_csv "$doc/data/${filename%-dev}" csv "CSV"
+    generate_svg > "$dir/$doc/$filename.svg"
+    generate_and_print generate_markdown "$dir/$man/${filename%-dev}" md "MAN page"
+    generate_and_print generate_html "$dir/$doc/index" html "Table"
+    generate_and_print generate_html5 "$dir/$doc/index5" html "HTML"
+    generate_and_print generate_json "$dir/$share/$filename" json "JSON"
+    generate_and_print generate_csv "$dir/$share/${filename%-dev}" csv "CSV"
     if [[ "$EUID" -eq 0 ]]; then
      #   chown -R "$SUDO_USER":"$SUDO_USER" "$(dirname "$dir")"
         cd ../../
