@@ -67,7 +67,7 @@ generate_csv_test() {
     done
 }
 
-# This function is used to generate a Single page app.   
+# This function is used to generate a Single page app.
 generate_html5() {
 
 html5_content='
@@ -118,7 +118,7 @@ html5_content='
     var slides = document.querySelector(".slide-show");
 	var slideIndex = 0;
 	var jsonData ='$(generate_json)' ;
-    var data = jsonData;    
+    var data = jsonData;
     var menuItems = [];
     var slideItems = [];
     var i;
@@ -204,12 +204,12 @@ generate_html() {
 
 # This function is used to generate the main readme.md file
 generate_markdown() {
-cat << EOF 
+cat << EOF
 
 <p align="center">
     <img src="https://raw.githubusercontent.com/armbian/build/main/.github/armbian-logo.png" alt="Armbian logo" width="144">
     <br>
-    Armbian ConfigNG 
+    Armbian ConfigNG
     <br>
     <a href="https://www.codefactor.io/repository/github/tearran/configng"><img src="https://www.codefactor.io/repository/github/tearran/configng/badge" alt="CodeFactor" /></a>
 </p>
@@ -272,11 +272,11 @@ EOF
                 echo
             done
         done
-    done 
+    done
 cat << EOF
 
 # Inclueded projects
-- [Bash Utility](https://labbots.github.io/bash-utility) 
+- [Bash Utility](https://labbots.github.io/bash-utility)
 - [Armbian config](https://github.com/armbian/config.git)
 
 EOF
@@ -335,7 +335,7 @@ generate_list_cli() {
             # Loop through each function in the file
             for function in "${functions_in_file[@]}"; do
                 key="${category##*/}:${file##*/}:${function}"
-                group_name=${functions["$key,group_name"]}               
+                group_name=${functions["$key,group_name"]}
                 printf "\t%-20s - \t %s \n" "$group_name=${functions["$key,function_name"]}" "${functions["$key,description"]}"
             done
         done
@@ -345,7 +345,7 @@ generate_list_cli() {
 
 # This function is used to generate a help message.
 generate_help(){
-cat << EOF 
+cat << EOF
 Usage: ${filename%.*} [flag][option]
   flag options:
     -h,      Print this help.
@@ -362,27 +362,38 @@ generate_and_print() {
     local file_extension=$3
     local output_message=$4
 
-    "$generate_func" > "$filename.$file_extension"
-    chmod 755 "$filename.$file_extension"
+    "$generate_func" > "$filename.$file_extension" && chmod 755 "$filename.$file_extension"
     echo "$output_message - generated $filename.$file_extension"
 }
 
 generate_doc() {
-    dir="$(dirname "$(dirname "$(realpath "$0")")")/share/${filename%-dev}"
-    if [[ ! -d "$dir" ]]; then
-        mkdir -p "$dir/data/"
+
+    dir="$(dirname "$(dirname "$(realpath "$0")")")/share"
+
+    if [[ ! -d "$dir/doc/${filename%-dev}" ]]; then
+        mkdir -p "$dir/doc/${filename%-dev}/data"
+	fi
+
+	doc="$dir/doc/${filename%-dev}"
+
+	if [[ ! -d "$dir/man/" ]] ; then
+		mkdir -p "$dir/man/man1"
+		
     fi
+
+    man="$dir/man/man1"
+
     cd "$dir" || exit
-    generate_svg > "$filename.svg"
-    generate_and_print generate_markdown "../../readme" md "readme.md"
-    generate_and_print generate_html "../../index" html "index.html"
-    generate_and_print generate_html5 "index" html "HTML5"
-    generate_and_print generate_json "data/$filename" json "JSON"
-    generate_and_print generate_csv "data/${filename%-dev}" csv "CSV"
+    generate_svg > "$doc/$filename.svg"
+    generate_and_print generate_markdown "$man/${filename%-dev}" md "MAN page"
+    generate_and_print generate_html "$doc/index" html "Table"
+    generate_and_print generate_html5 "$doc/index5" html "HTML"
+    generate_and_print generate_json "$doc/data/$filename" json "JSON"
+    generate_and_print generate_csv "$doc/data/${filename%-dev}" csv "CSV"
     if [[ "$EUID" -eq 0 ]]; then
-        chown -R "$SUDO_USER":"$SUDO_USER" "$(dirname "$dir")"
+     #   chown -R "$SUDO_USER":"$SUDO_USER" "$(dirname "$dir")"
         cd ../../
-        chown  "$SUDO_USER":"$SUDO_USER" readme.md
+     #   chown  "$SUDO_USER":"$SUDO_USER" readme.md
     fi
     return 0
 }

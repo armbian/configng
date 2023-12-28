@@ -20,19 +20,6 @@ libpath=$(cd "$directory/lib/$filename/" && pwd)
 #sharepath=$(cd "$directory/share/${filename%-dev}/" && pwd)
 
 
-#
-# Consept Distribution Compatibility checks
-check_distro() {
-
-    [[ -f "/usr/bin/${filename%%-*}-config" ]] && distro_config="${filename%%-*}"
-    [[ -f "/etc/${filename%%-*}-release" ]] && distro_release="${filename%%-*}"
-    # if both true then we are good to go
-    [[ -z "$distro_config" ]] || [[ -z "$distro_release" ]] && echo "W: Costum build, Tech support links are missing."
-    [[ -n "$distro_config" ]] && [[ -n "$distro_release" ]] && echo "I: This build seems to be community supported" | ./armbian-interface -o
-    [[ -f "/usr/sbin/${filename%%-*}-config" ]] && distro_config="${filename%%-*}"
-    [[ -f "/etc/${filename%%-*}-release" ]] && distro_release="${filename%%-*}"
-
-}
 
 [[ "$1" == "--dev" ]] && dev=1 && shift 1 
 
@@ -87,7 +74,9 @@ else
 fi
 
 source "$libpath/functions.sh"
-source "$libpath/documents.sh"
+if [ -f "$libpath/documents.sh" ]; then
+    source "$libpath/documents.sh"
+fi
 for file in "$libpath"/*/*.sh; do
     source "$file"
 done
