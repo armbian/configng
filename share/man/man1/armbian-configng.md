@@ -44,7 +44,7 @@ function group::string() {s
  - [github.io](//tearran/github.io/armbian-configng/index.html)
 ## Functions list as of 2023-12-29
 ## locales
-
+System and Security
 
 ### set_timezones.sh
 
@@ -54,7 +54,7 @@ function group::string() {s
  - **Description:** Time zone configuration
 
 ## system
-
+Locale Language Region Time Keyboard
 
 ### get_system_clone.sh
 

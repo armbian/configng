@@ -87,8 +87,8 @@ declare -A functions
 
 for category in "${categories[@]}"; do
     category_name="${category##*/}"
-
-    category_file="$category/readme.md"
+    category_file="$category/category.conf"
+    #category_file="$category/readme.md"
     if [[ -f "$category_file" ]]; then
         category_description=$(grep -oP "(?<=# @description ).*" "$category_file")
     fi
