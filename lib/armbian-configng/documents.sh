@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 # This function is used to generate a simple JSON file containing all functions and their descriptions.
 # pthon is more suited to complex arrays this should be handeled during build time
 generate_json() {

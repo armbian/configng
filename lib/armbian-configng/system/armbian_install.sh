@@ -1,5 +1,5 @@
 #!/bin/bash
-#
+
 # Copyright (c) Authors: http://www.armbian.com/authors, info@armbian.com
 #
 # This file is licensed under the terms of the GNU General Public

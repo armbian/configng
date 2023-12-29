@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # @description Time zone configuration
 # @requirments timedatectl
 # @exitcode 0  If successful.
