@@ -1,6 +1,4 @@
-
-
-#name: Debian package
+name: Debian package
 #
 # Description
 #
@@ -11,27 +9,22 @@ on:
     branches:
     - main
 
-#jobs:
-#
-#  Debian:
-#    uses: armbian/scripts/.github/workflows/pack-debian.yml@master
-#    with:
-#      matrix: "all:jammy"
-#      maintainer: "Igor Pecovnik <igor@armbian.com>"
-#      package: "configng"
-#      licence: "GPL 2.0"
-#      homepage: "https://www.armbian.com"
-#      section: "default"
-#      priority: "optional"
-#      depends: "bash"
-#      description: "Configng"
-#
-#    secrets:
-#      GPG_PRIVATE_KEY: ${{ secrets.GPG_KEY1 }}
-#      PASSPHRASE: ${{ secrets.GPG_PASSPHRASE1 }}
+jobs:
+  
+  Debian:
+    if: ${{ github.repository_owner == 'Armbian' }}
+    uses: armbian/scripts/.github/workflows/pack-debian.yml@master
+    with:
+      matrix: "all:jammy"
+      maintainer: "Igor Pecovnik <igor@armbian.com>"
+      package: "configng"
+      licence: "GPL 2.0"
+      homepage: "https://www.armbian.com"
+      section: "default"
+      priority: "optional"
+      depends: "bash"
+      description: "Configng"
 
     secrets:
       GPG_PRIVATE_KEY: ${{ secrets.GPG_KEY1 }}
       PASSPHRASE: ${{ secrets.GPG_PASSPHRASE1 }}
-      SSH_KEY_TORRENTS: ${{ secrets.KEY_TORRENTS }}
-      KNOWN_HOSTS_UPLOAD: ${{ secrets.KNOWN_HOSTS_TORRENTS }}

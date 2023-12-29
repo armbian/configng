@@ -10,6 +10,16 @@ jobs:
     - name: 🚚 Get latest code
       uses: actions/checkout@v3
     
+    - name: Install ShellCheck
+      run: sudo apt-get install shellcheck
+    - name: Run ShellCheck
+      run: |
+        ret=0
+        for file in $(find . -type f -name "*.sh"); do
+          shellcheck --severity=error $file || ret=$?
+        done
+        exit $ret 
+           
     - name: 📂 Sync files
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
@@ -18,3 +28,4 @@ jobs:
         password: ${{ secrets.SERVER_PASSWORD }}     
         server-dir: / # replace with your server directory
         local-dir: share/armbian-configng/ # replace with your local directory
+    
