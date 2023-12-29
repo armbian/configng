@@ -1,17 +1,25 @@
 [
   {
+    "Function Name": "Timezone",
+    "Group Name": "locales",
+    "Description": "Time zone configuration",
+    "Options": "none",
+    "Category": "system",
+    "Category Description": "System and Security"
+  },
+  {
     "Function Name": "NMTUI",
     "Group Name": "network",
     "Description": "Network Manager.",
     "Options": "none",
-    "Category": "network",
-    "Category Description": "Network Wired wireless Bluetooth access point"
+    "Category": "system",
+    "Category Description": "System and Security"
   },
   {
     "Function Name": "Bencharking",
     "Group Name": "monitor",
     "Description": "Armbian Monitor and Bencharking.",
-    "Options": "",
+    "Options": "none",
     "Category": "system",
     "Category Description": "System and Security"
   },
@@ -22,13 +30,5 @@
     "Options": "none",
     "Category": "system",
     "Category Description": "System and Security"
-  },
-  {
-    "Function Name": "Timezone",
-    "Group Name": "locales",
-    "Description": "Time zone configuration",
-    "Options": "none",
-    "Category": "locales",
-    "Category Description": "Locale Language Region Time Keyboard"
   }
 ]

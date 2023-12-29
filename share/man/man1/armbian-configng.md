@@ -43,18 +43,15 @@ function group::string() {s
  - [HTML](share/armbian-configng/armbian-configng-table.html)
  - [github.io](//tearran/github.io/armbian-configng/index.html)
 ## Functions list as of 2023-12-29
-## locales
+## system
 System and Security
 
-### timezones.sh
+### see_monitor.sh
 
- - **Group Name:** locales
- - **Action Name:** Timezone
+ - **Group Name:** monitor
+ - **Action Name:** Bencharking
  - **Options:** none
- - **Description:** Time zone configuration
-
-## network
-Locale Language Region Time Keyboard
+ - **Description:** Armbian Monitor and Bencharking.
 
 ### set_wifi.sh
 
@@ -63,22 +60,19 @@ Locale Language Region Time Keyboard
  - **Options:** none
  - **Description:** Network Manager.
 
-## system
-Network Wired wireless Bluetooth access point
+### timezones.sh
 
-### armbian_install.sh
+ - **Group Name:** locales
+ - **Action Name:** Timezone
+ - **Options:** none
+ - **Description:** Time zone configuration
+
+### z-armbian_install.sh
 
  - **Group Name:** system
  - **Action Name:** Install
  - **Options:** none
  - **Description:** Armbian installer
-
-### see_monitor.sh
-
- - **Group Name:** monitor
- - **Action Name:** Bencharking
- - **Options:** 
- - **Description:** Armbian Monitor and Bencharking.
 
 
 # Inclueded projects
