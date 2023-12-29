@@ -88,7 +88,6 @@ declare -A functions
 for category in "${categories[@]}"; do
     category_name="${category##*/}"
     category_file="$category/category.conf"
-    #category_file="$category/readme.md"
     if [[ -f "$category_file" ]]; then
         category_description=$(grep -oP "(?<=# @description ).*" "$category_file")
     fi
@@ -103,13 +102,18 @@ for category in "${categories[@]}"; do
                 functions["$key,group_name"]=$(echo "$function_name" | sed 's/::.*//')
                 functions["$key,description"]=$description
                 IFS= read -r functions["$key,options"] <<< "$options"
+                # Set the toggle array based on the options
+                if [[ $options == "none" ]]; then
+                    functions["$key,toggle"]="show"
+                else
+                    functions["$key,toggle"]="hide"
+                fi
             fi
         done < "$file"
         functions["$key,category"]=$category_name
         functions["$key,category_description"]=$category_description
     done
 done
-
 ###############################################################################################
 ###############################################################################################
 

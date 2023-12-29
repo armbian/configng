@@ -3,7 +3,7 @@
 
 # This function is used to generate a simple JSON file containing all functions and their descriptions.
 # pthon is more suited to complex arrays this should be handeled during build time
-generate_json() {
+generate_json1() {
     json_objects=()
     for key in "${!functions[@]}"; do
         if [[ $key == *",function_name"* ]]; then
@@ -20,6 +20,27 @@ generate_json() {
     IFS=','
     echo "[${json_objects[*]}]" | jq
 }
+
+    generate_json() {
+        json_objects=()
+        for key in "${!functions[@]}"; do
+            if [[ $key == *",function_name"* ]]; then
+                function_key="${key%,function_name}"
+                function_name="${functions[$key]}"
+                group_name="${functions["$function_key,group_name"]}"
+                description="${functions["$function_key,description"]}"
+                options="${functions["$function_key,options"]}"
+                category="${functions["$function_key,category"]}"
+                category_description="${functions["$function_key,category_description"]}"
+                toggle="${functions["$function_key,toggle"]}"
+                json_objects+=("{ \"Function Name\": \"$function_name\", \"Group Name\": \"$group_name\", \"Description\": \"$description\", \"Options\": \"$options\", \"Category\": \"$category\", \"Category Description\": \"$category_description\", \"Toggle\": \"$toggle\" }")
+            fi
+        done
+        IFS=','
+        echo "[${json_objects[*]}]" | jq
+    }
+
+
 
 # This function is used to generate a armbian CPU logo
 generate_svg(){

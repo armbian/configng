@@ -60,7 +60,7 @@ Locale Language Region Time Keyboard
 
  - **Group Name:** system
  - **Action Name:** Install
- - **Options:** none
+ - **Options:** Why What not-How
  - **Description:** Armbian installer
 
 ### see_monitor.sh
