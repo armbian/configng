@@ -46,7 +46,7 @@ function group::string() {s
 ## locales
 System and Security
 
-### time_date.sh
+### timezones.sh
 
  - **Group Name:** locales
  - **Action Name:** Timezone

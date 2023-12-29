@@ -1,4 +1,4 @@
-
+#!/bin/bash
 
 # This function is used to generate a text-based user interface (TUI) for navigating the menus.
 generate_tui() {
