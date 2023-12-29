@@ -43,14 +43,24 @@ function group::string() {s
  - [HTML](share/armbian-configng/armbian-configng-table.html)
  - [github.io](//tearran/github.io/armbian-configng/index.html)
 ## Functions list as of 2023-12-28
-## network
+## locales
 System and Security
+
+### time_date.sh
+
+ - **Group Name:** locales
+ - **Action Name:** select_zone
+ - **Options:** none
+ - **Description:** Time zone configuration
+
+## network
+Locale Language Region Time Keyboard
 
 ### set_wifi.sh
 
  - **Group Name:** network
  - **Action Name:** NMTUI
- - **Options:** none.
+ - **Options:** none
  - **Description:** Network Manager.
 
 ## system

@@ -3,7 +3,7 @@
     "Function Name": "NMTUI",
     "Group Name": "network",
     "Description": "Network Manager.",
-    "Options": "none.",
+    "Options": "none",
     "Category": "network",
     "Category Description": "Network Wired wireless Bluetooth access point"
   },
@@ -22,5 +22,13 @@
     "Options": "none",
     "Category": "system",
     "Category Description": "System and Security"
+  },
+  {
+    "Function Name": "select_zone",
+    "Group Name": "locales",
+    "Description": "Time zone configuration",
+    "Options": "none",
+    "Category": "locales",
+    "Category Description": "Locale Language Region Time Keyboard"
   }
 ]
