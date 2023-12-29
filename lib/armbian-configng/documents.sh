@@ -396,7 +396,7 @@ generate_doc() {
     generate_and_print generate_json "$dir/$share/$filename" json "JSON"
     generate_and_print generate_csv "$dir/$share/${filename%-dev}" csv "CSV"
     if [[ "$EUID" -eq 0 ]]; then
-     #   chown -R "$SUDO_USER":"$SUDO_USER" "$(dirname "$dir")"
+        chown -R "$SUDO_USER":"$SUDO_USER" "$(dirname "$dir")"
         cd ../../
      #   chown  "$SUDO_USER":"$SUDO_USER" readme.md
     fi

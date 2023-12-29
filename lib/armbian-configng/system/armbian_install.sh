@@ -8,11 +8,10 @@
 
 
 # @description Armbian installer
-#
+# @requirments armbian-install,
 # @exitcode 0  If successful.
-#
-# @options none.
-#
+# @default function_name
+# @options none
 function system::Install(){
 
 	armbian-install

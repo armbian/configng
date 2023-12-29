@@ -17,19 +17,16 @@ directory="$(cd "$bin/../" && pwd )"
 file_name="$(basename "${BASH_SOURCE[0]}")"
 filename="${file_name%.*}"
 libpath=$(cd "$directory/lib/$filename/" && pwd)
-#sharepath=$(cd "$directory/share/${filename%-dev}/" && pwd)
-
-
-
-[[ "$1" == "--dev" ]] && dev=1 && shift 1 
 
 #
 # Check if the script is dev version.
+[[ "$1" == "--dev" ]] && dev=1 && shift 1 
+
 suffix="${file_name##*-}"
 
 if [[ "$suffix" == dev ]]; then
     dev=1
-    check_distro #| armbian-interface -o
+    check_distro 
 fi
 
 if [[ "$(id -u)" != "0" ]] && [[ "$dev" == "1" ]] ; then
@@ -40,7 +37,7 @@ W: Admin functions will not work as expected
 
 EOF
 elif [[ "$(id -u)" == "0" ]] && [[ "$dev" == "1" ]] ; then
-cat << EOF | ./armbian-interface -o
+cat << EOF #| ./armbian-interface -o
 I: Running in UX development mode
 W: Document files may need Admin privleges to edit/remove
 
@@ -73,7 +70,7 @@ else
     clear && generate_read
 fi
 
-source "$libpath/functions.sh"
+source "$libpath/functionsng.sh"
 if [ -f "$libpath/documents.sh" ]; then
     source "$libpath/documents.sh"
 fi
@@ -157,7 +154,7 @@ handle_long_flag(){
         generate_list_run
         exit
     elif [ "$1" == "--test" ]; then
-        check_distro | armbian-interface -o && $1 > /dev/null
+        check_distro #| armbian-interface -o && $1 > /dev/null
     fi
 
 }
