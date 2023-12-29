@@ -10,7 +10,7 @@ jobs:
 
     name: Shell script analysis
     runs-on: ubuntu-latest
-    if: ${{ github.repository_owner == 'Tearran' }}
+    if: ${{ github.repository_owner == 'Armbian' || github.repository_owner == 'Tearran' }}
     steps:
 
        - name: Checkout repository
