@@ -20,8 +20,8 @@ generate_tui() {
         #options+=("$i" "${categories_array[$i]} - ${description_array[$i]}")
         ((++i))
     done
-    options+=("$i" "$(printf '%-7s - %-8s' "Legacy" "Run Legacy configuration")") ; ((++i)) ;
-    options+=("$i" "$(printf '%-7s - %-8s' "Help" "Documentation, support, sources")") ; ((++i)) ;
+      [[ -f /sbin/armbian-config ]] && options+=("$i" "$(printf '%-7s - %-8s' "Legacy" "Run Legacy configuration")") ; ((++i)) ;
+      [[ ! -d "$libpath/help" ]] && options+=("$i" "$(printf '%-7s - %-8s' "Help" "Documentation, support, sources")") ; ((++i)) ;
 
     local choice
     
