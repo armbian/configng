@@ -1,5 +1,0 @@
-Function Name,Group Name,Description,Options,Category,Category Description
-Timezone,locales,Time zone configuration,none,system,System and Security
-NMTUI,network,Network Manager.,none,system,System and Security
-Bencharking,monitor,Armbian Monitor and Bencharking.,none,system,System and Security
-Install,system,Armbian installer,none,system,System and Security
