@@ -371,7 +371,7 @@ generate_doc() {
     dir="$(dirname "$(dirname "$(realpath "$0")")")/share"
 
     if [[ ! -d "$dir/doc/${filename%-dev}" ]]; then
-        mkdir -p "$dir/doc/${filename%-dev}/data"
+        mkdir -p "$dir/doc/${filename%-dev}"
 	fi
 
 	doc="/doc/${filename%-dev}"
@@ -383,7 +383,7 @@ generate_doc() {
 
     man="/man/man1"
     if [[ ! -d "$dir/${filename%-dev}" ]]; then
-        mkdir -p "$dir/${filename%-dev}/data"
+        mkdir -p "$dir/${filename}/data"
     fi
 
     share="${filename}"
@@ -391,10 +391,14 @@ generate_doc() {
     cd "$dir" || exit
     generate_svg > "$dir/$doc/$filename.svg"
     generate_and_print generate_markdown "$dir/$man/${filename%-dev}" md "MAN page"
-    generate_and_print generate_html "$dir/$doc/index" html "Table"
-    generate_and_print generate_html5 "$dir/$doc/index5" html "HTML"
-    generate_and_print generate_json "$dir/$share/$filename" json "JSON"
-    generate_and_print generate_csv "$dir/$share/${filename%-dev}" csv "CSV"
+
+    generate_and_print generate_html "$dir/$share/index" html "Table"
+    generate_and_print generate_html5 "$dir/$share/index5" html "HTML"
+    generate_and_print generate_json "$dir/$share/data/$filename" json "JSON"
+    generate_and_print generate_csv "$dir/$share/data/${filename%-dev}" csv "CSV"   
+    
+    generate_and_print generate_json "$dir/$doc/$filename" json "JSON"
+    generate_and_print generate_csv "$dir/$doc/${filename}" csv "CSV"
     if [[ "$EUID" -eq 0 ]]; then
         chown -R "$SUDO_USER":"$SUDO_USER" "$(dirname "$dir")"
         cd ../../

@@ -1,5 +1,0 @@
-Function Name,Group Name,Description,Options,Category,Category Description
-NMTUI,network,Network Manager.,none,network,Network Wired wireless Bluetooth access point
-Bencharking,monitor,Armbian Monitor and Bencharking.,,system,System and Security
-Install,system,Armbian installer,none,system,System and Security
-select_zone,locales,Time zone configuration,none,locales,Locale Language Region Time Keyboard
