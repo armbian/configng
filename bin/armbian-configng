@@ -123,7 +123,7 @@ generate_tui() {
     for category in "${categories[@]}"; do
         local category_name="${category##*/}"
         local category_description=""
-        local category_file="$category/readme.md"
+        local category_file="$category/category.conf"
 
         if [[ -f "$category_file" ]]; then
             category_description=$(grep -oP "(?<=# @description ).*" "$category_file")
