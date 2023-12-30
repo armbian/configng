@@ -339,7 +339,18 @@ footer {
 				<p>THis app is part of a larger project called <a href="https://github.com/Tearran/configng" target="_blank">configng</a> which is a collection of bash scripts that can be used to configure Armbian.</p>
 				<p>This project is written in <a href="https://www.gnu.org/software/bash/" target="_blank">Bash</a> and uses the following libraries:</p>
 				<ul>
-					<li>NONE</li>
+					<li>GNU Bash</li>
+					<li>sed</li>
+					<li>awk</li>
+					<li>grep</li>
+					<li>wget</li>
+					<li>jq</li>
+					<li>dialog</li>
+					<li>git</li>
+					<li>apt</li>
+					<li>dpkg</li>
+					<li>apt-cache</li>
+
 				<ul>
             
             </div>
