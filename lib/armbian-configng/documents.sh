@@ -105,79 +105,292 @@ generate_csv_test() {
 # This function is used to generate a Single page app.
 generate_html5() {
   cat << EOF
-<!doctypehtml><html lang=en><meta content="no-cache, no-store, must-revalidate"http-equiv=Cache-Control><meta content=no-cache http-equiv=Pragma><meta content=0 http-equiv=Expires><meta content="A single-page web app for Armbian configuration"name=description><meta content="The Traveling aspie"name=author><meta content="width=device-width,initial-scale=1"name=viewport><title>armbian-configng</title><style>body,html{width:100%;height:100%;font-family:Arial,sans-serif;background-color:#222;color:#fff;margin:0;padding:0}*{box-sizing:border-box}.container{text-align:center;padding:50px;overflow:hidden}.content{width:100%;height:300px;transition:all 1s ease}nav ul{list-style-type:none;margin:0;padding:0;overflow:hidden;background-color:#333}nav ul li{float:left}nav ul li a{display:block;padding:10px;color:#fff;text-decoration:none}footer{background-color:#333;color:#fff;text-align:center;padding:10px;position:absolute;bottom:0;width:100%}.logo-main{width:300px;height:300px;fill:#000}.dark-mode{background-color:#222;color:#fff}.light-mode{background-color:#e0e0e0;color:#222}body a{color:#00ff26}.top-right{position:absolute;top:0;right:0;padding:10px;padding:10px;z-index:1;color:#fff}.menu{display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;width:100%;background-color:#333;padding:10px;z-index:1;color:#fff}.menu ul{list-style-type:none;padding:0;margin:0;display:block}.menu li{display:inline-block;margin-right:10px}.menu li a{color:#fff;text-decoration:none}.menu li a:hover{color:#ccc}.menu-toggle{cursor:pointer;font-size:24px}.menu-toggle.active+ul{display:block}.menu-toggle+ul{display:none;position:absolute;min-width:160px;z-index:1}.menu-toggle.active+ul{display:block}.menu-toggle+ul li{display:block}.menu-container{position:relative}.dropdown{display:none;position:absolute;background-color:#333;padding:10px;min-width:160px;box-shadow:0 8px 16px 0 rgba(0,0,0,.2);z-index:1}.dropdown li{display:block;padding:5px 10px}.icon{width:24px;height:24px;fill:#fff}body.dark-mode .icon{fill:#000}iframe{width:100%;height:calc(100vh - 100px);margin:50px 0;border:none}</style><div class=menu><div class=menu-container><nav><div class=menu-toggle onclick=toggleMenu()>MENU</div><ul class=dropdown id=menu-list></ul></nav></div><div class=top-right><span id=time></span> <a href=# class="button-style icon"onclick=toggleDarkMode()><img alt="Toggle Dark Mode"height=24px src=imgs/darkmode.svg width=24px></a></div></div><section class=container><div class=page><div class=content id=welcome><h1>Welcome</h1><p><img alt="Armbian Logo"height=300px src=imgs/armbian-cpu.svg width=300px class=logo-main><p>ARM Linux for Single board computor development</div><div class=content id=about style=display:none><h1>About</h1><p>This is a single-page web app.<p>It is designed and tested on a <a href=https://www.khadas.com/vim3 target=_blank>Khadas VIM3</a> board running <a href=https://www.armbian.com/ target=_blank>Armbian</a>.</div></div></section><footer><p>Footer content goes here</footer><script>fetch("data/armbian-configng.json")
-    .then(response => response.json())
-    .then(data => {
-        var menu = document.querySelector("nav ul");
-        var pages = document.querySelector(".page");
-        var menuItems = [];
-        var pageItems = [];
+<!doctypehtml>
+<html lang=en>
+<meta content="no-cache, no-store, must-revalidate" http-equiv=Cache-Control>
+<meta content=no-cache http-equiv=Pragma>
+<meta content=0 http-equiv=Expires>
+<meta content="A single-page web app for Armbian configuration" name=description>
+<meta content="The Traveling aspie" name=author>
+<meta content="width=device-width,initial-scale=1" name=viewport>
+<title>armbian-configng</title>
+<style>
+	body,
+	html {
+		width: 100%;
+		height: 100%;
+		font-family: Arial, sans-serif;
+		background-color: #222;
+		color: #fff;
+		margin: 0;
+		padding: 0
+	}
 
-        // Add Home menu item
-        menuItems.push("<li><a href=\"#welcome\">Home</a></li>");
+	* {
+		box-sizing: border-box
+	}
 
-        // Add Table menu item
-        menuItems.push("<li><a href=\"#table\">Table</a></li>");
-        pageItems.push("<div class=\"content\" id=\"table\" style=\"display: none;\"><iframe src='./table.html' style='width:100%; height:100%; border:none;'></iframe></div>");
+	.container {
+		text-align: center;
+		padding: 50px;
+		overflow: hidden
+	}
 
-        // Add About menu item
-        menuItems.push("<li><a href=\"#about\">About</a></li>");
-        pageItems.push("<div class=\"content\" id=\"about\" style=\"display: none;\"><h2>About</h2><p>Some information about this website...</p></div>");
+	.content {
+		width: 100%;
+		height: 300px;
+		transition: all 1s ease
+	}
 
-        menu.innerHTML = menuItems.join("");
-        pages.innerHTML += pageItems.join(""); // Use += to append the new pages without removing the welcome page
+	nav ul {
+		list-style-type: none;
+		margin: 0;
+		padding: 0;
+		overflow: hidden;
+		background-color: #333
+	}
 
-        // Add event listeners to menu items
-        var menuLinks = menu.querySelectorAll("li a");
-        var pageContents = pages.querySelectorAll(".content");
-        var menuToggle = document.querySelector(".menu-toggle"); // Get the menu toggle
-        for (var i = 0; i < menuLinks.length; i++) {
-            menuLinks[i].addEventListener("click", function(e) {
-                e.preventDefault();
-                // Hide all pages
-                for (var j = 0; j < pageContents.length; j++) {
-                    pageContents[j].style.display = "none";
-                }
-                // Show selected page
-                var targetPage = document.querySelector(this.getAttribute("href"));
-                if (targetPage) {
-                    targetPage.style.display = "block";
-                }
-                // Close the menu
-                menuToggle.classList.remove("active");
-            });
-        }
-    })
-    .catch(error => console.error("Error:", error));
+	nav ul li {
+		float: left
+	}
 
-function toggleMenu() {
-    const menuToggle = document.querySelector(".menu-toggle");
-    const menu = document.querySelector(".menu");
-    menuToggle.classList.toggle("active");
-    menu.classList.toggle("active");
-}
+	nav ul li a {
+		display: block;
+		padding: 10px;
+		color: #fff;
+		text-decoration: none
+	}
 
-function toggleDarkMode() {
-    const body = document.body;
-    body.classList.toggle("dark-mode");
-    body.classList.toggle("light-mode");
-}
+	footer {
+		background-color: #333;
+		color: #fff;
+		text-align: center;
+		padding: 10px;
+		position: absolute;
+		bottom: 0;
+		width: 100%
+	}
 
-function updateTime() {
-    const now = new Date();
-    const timeString = now.toLocaleTimeString();
-    document.getElementById('time').textContent = timeString;
-}
+	.logo-main {
+		width: 300px;
+		height: 300px;
+		fill: #000
+	}
 
-// Update the time every second
-setInterval(updateTime, 1000);</script>
+	.dark-mode {
+		background-color: #222;
+		color: #fff
+	}
 
+	.light-mode {
+		background-color: #e0e0e0;
+		color: #222
+	}
+
+	body a {
+		color: #00ff26
+	}
+
+	.top-right {
+		position: absolute;
+		top: 0;
+		right: 0;
+		padding: 10px;
+		padding: 10px;
+		z-index: 1;
+		color: #fff
+	}
+
+	.menu {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		background-color: #333;
+		padding: 10px;
+		z-index: 1;
+		color: #fff
+	}
+
+	.menu ul {
+		list-style-type: none;
+		padding: 0;
+		margin: 0;
+		display: block
+	}
+
+	.menu li {
+		display: inline-block;
+		margin-right: 10px
+	}
+
+	.menu li a {
+		color: #fff;
+		text-decoration: none
+	}
+
+	.menu li a:hover {
+		color: #ccc
+	}
+
+	.menu-toggle {
+		cursor: pointer;
+		font-size: 24px
+	}
+
+	.menu-toggle.active+ul {
+		display: block
+	}
+
+	.menu-toggle+ul {
+		display: none;
+		position: absolute;
+		min-width: 160px;
+		z-index: 1
+	}
+
+	.menu-toggle.active+ul {
+		display: block
+	}
+
+	.menu-toggle+ul li {
+		display: block
+	}
+
+	.menu-container {
+		position: relative
+	}
+
+	.dropdown {
+		display: none;
+		position: absolute;
+		background-color: #333;
+		padding: 10px;
+		min-width: 160px;
+		box-shadow: 0 8px 16px 0 rgba(0, 0, 0, .2);
+		z-index: 1
+	}
+
+	.dropdown li {
+		display: block;
+		padding: 5px 10px
+	}
+
+	.icon {
+		width: 24px;
+		height: 24px;
+		fill: #fff
+	}
+
+	body.dark-mode .icon {
+		fill: #000
+	}
+
+	iframe {
+		width: 100%;
+		height: calc(100vh - 100px);
+		margin: 50px 0;
+		border: none
+	}
+</style>
+<div class=menu>
+	<div class=menu-container>
+		<nav>
+			<div class=menu-toggle onclick=toggleMenu()>MENU</div>
+			<ul class=dropdown id=menu-list></ul>
+		</nav>
+	</div>
+	<div class=top-right><span id=time></span> <a href=# class="button-style icon" onclick=toggleDarkMode()><img alt="Toggle Dark Mode" height=24px src=imgs/darkmode.svg width=24px></a></div>
+</div>
+<section class=container>
+	<div class=page>
+		<div class=content id=welcome>
+			<h1>Welcome</h1>
+			<p><img alt="Armbian Logo" height=300px src=imgs/armbian-cpu.svg width=300px class=logo-main>
+			<p>ARM Linux for Single board computor development
+		</div>
+		<div class=content id=about style=display:none>
+			<h1>About</h1>
+			<p>This is a single-page web app.
+			<p>It is designed and tested on a <a href=https://www.khadas.com/vim3 target=_blank>Khadas VIM3</a> board running <a href=https://www.armbian.com/ target=_blank>Armbian</a>.
+		</div>
+	</div>
+</section>
+<footer>
+	<p>    <p>&copy; 2022 The Traveling Aspie. All rights reserved. | Armbian &copy; 2022 Armbian authors. All rights reserved.</p>
+</footer>
+<script>
+	fetch("data/armbian-configng.json")
+		.then(response => response.json())
+		.then(data => {
+			var menu = document.querySelector("nav ul");
+			var pages = document.querySelector(".page");
+			var menuItems = [];
+			var pageItems = [];
+			// Add Home menu item
+			menuItems.push("<li><a href=\"#welcome\">Home</a></li>");
+			// Add Table menu item
+			menuItems.push("<li><a href=\"#table\">Table</a></li>");
+			pageItems.push("<div class=\"content\" id=\"table\" style=\"display: none;\"><iframe src='./table.html' style='width:100%; height:100%; border:none;'></iframe></div>");
+			// Add About menu item
+			menuItems.push("<li><a href=\"#about\">About</a></li>");
+			pageItems.push("<div class=\"content\" id=\"about\" style=\"display: none;\"><h2>About</h2><p>Some information about this website...</p></div>");
+			menu.innerHTML = menuItems.join("");
+			pages.innerHTML += pageItems.join(""); // Use += to append the new pages without removing the welcome page
+			// Add event listeners to menu items
+			var menuLinks = menu.querySelectorAll("li a");
+			var pageContents = pages.querySelectorAll(".content");
+			var menuToggle = document.querySelector(".menu-toggle"); // Get the menu toggle
+			for (var i = 0; i < menuLinks.length; i++) {
+				menuLinks[i].addEventListener("click", function(e) {
+					e.preventDefault();
+					// Hide all pages
+					for (var j = 0; j < pageContents.length; j++) {
+						pageContents[j].style.display = "none";
+					}
+					// Show selected page
+					var targetPage = document.querySelector(this.getAttribute("href"));
+					if (targetPage) {
+						targetPage.style.display = "block";
+					}
+					// Close the menu
+					menuToggle.classList.remove("active");
+				});
+			}
+		})
+		.catch(error => console.error("Error:", error));
+
+	function toggleMenu() {
+		const menuToggle = document.querySelector(".menu-toggle");
+		const menu = document.querySelector(".menu");
+		menuToggle.classList.toggle("active");
+		menu.classList.toggle("active");
+	}
+
+	function toggleDarkMode() {
+		const body = document.body;
+		body.classList.toggle("dark-mode");
+		body.classList.toggle("light-mode");
+	}
+
+	function updateTime() {
+		const now = new Date();
+		const timeString = now.toLocaleTimeString();
+		document.getElementById('time').textContent = timeString;
+	}
+	// Update the time every second
+	setInterval(updateTime, 1000);
 </script>
 
+</script>
 
 </body>
 </html>
 EOF
+
 }
 
 # This function is used to generate tabe html file
