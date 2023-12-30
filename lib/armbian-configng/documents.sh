@@ -93,137 +93,407 @@ generate_csv_test() {
 
 # This function is used to generate a Single page app.
 generate_html5() {
+  cat << EOF
 
-html5_content='
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>
-		Armbian '$(echo "$filename")' </title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #222;
-            color: #fff;
-        }
-        .slider {
-            width: 100%;
+	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+	<meta name="description" content="A single-page web app for Armbian configuration">
+	<meta name="author" content="The Traveling aspie">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>armbian-configng</title>
+	<!-- <link rel="stylesheet" href="css/style.css"> -->
+
+	<style>
+		html,
+		body {
+			width: 100%;
+			height: 100%;
+			font-family: Arial, sans-serif;
+			background-color: #222;
+			color: #fff;
+			margin: 0;
+			padding: 0;
+		}
+		* {
+			box-sizing: border-box;
+		}
+
+		.container {
+			text-align: center;
+            padding: 50px;
+			overflow: hidden;
+		}
+
+		.content {
+			width: 100%;
+			height: 300px;
+			transition: all 1s ease;
+		}
+
+		nav ul {
+			list-style-type: none;
+			margin: 0;
+			padding: 0;
+			overflow: hidden;
+			background-color: #333;
+		}
+
+		nav ul li {
+			float: left;
+		}
+
+		nav ul li a {
+			display: block;
+			padding: 10px;
+			color: #fff;
+			text-decoration: none;
+		}
+
+		footer {
+			background-color: #333;
+			color: #fff;
+			text-align: center;
+			padding: 10px;
+			position: absolute;
+			bottom: 0;
+			width: 100%;
+		}
+
+        .logo-main {
+            width: 300px;
             height: 300px;
-            overflow: hidden;
-            background-color: #333;
+            fill: black;
+
+
         }
-        .slide {
-            width: 100%;
-            height: 300px;
-            transition: all 1s ease;
-            background-color: #444;
-        }
-    </style>
+
+		.dark-mode {
+			background-color: #222;
+			color: #fff;
+		}
+
+		.light-mode {
+			background-color: #fff;
+			color: #222;
+		}
+
+		body.dark-mode a {
+			color: #eee;
+			/* Light color for dark mode */
+		}
+
+		body a {
+			color: #333;
+			/* Dark color for light mode */
+		}
+
+		.top-right {
+			position: absolute;
+			top: 0;
+			right: 0;
+			padding: 10px;
+			padding: 10px;
+			z-index: 1;
+			color: #fff;
+		}
+
+		.menu {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			background-color: #333;
+			padding: 10px;
+			z-index: 1;
+			color: #fff;
+		}
+
+		.menu ul {
+			list-style-type: none;
+			padding: 0;
+			margin: 0;
+			display: block;
+		}
+
+		.menu li {
+			display: inline-block;
+			margin-right: 10px;
+		}
+
+		.menu li a {
+			color: #fff;
+			text-decoration: none;
+		}
+
+		.menu li a:hover {
+			color: #ccc;
+		}
+
+		.menu-toggle {
+			cursor: pointer;
+			font-size: 24px;
+			/* Increase the font size of the hamburger icon */
+		}
+
+		.menu-toggle.active+ul {
+			display: block;
+			/* Show the dropdown menu when the menu toggle is active */
+		}
+
+		.menu-toggle+ul {
+			display: none;
+			/* Hide the dropdown menu by default */
+			position: absolute;
+			/* Position the dropdown relative to the menu toggle */
+			min-width: 160px;
+			/* Set a minimum width for the dropdown */
+			z-index: 1;
+			/* Ensure the dropdown appears on top of other elements */
+		}
+
+		.menu-toggle.active+ul {
+			display: block;
+			/* Show the dropdown menu when the menu toggle is active */
+		}
+
+		.menu-toggle+ul li {
+			display: block;
+			/* Make the list items appear vertically */
+		}
+
+		.menu-container {
+			position: relative;
+			/* This makes the dropdown menu position itself relative to this container */
+		}
+
+		.dropdown {
+			display: none;
+			position: absolute;
+			background-color: #333;
+			/* Set the background color of the dropdown menu */
+			padding: 10px;
+			/* Add padding to the dropdown menu */
+			min-width: 160px;
+			box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+			z-index: 1;
+		}
+
+		.dropdown li {
+			display: block;
+			padding: 5px 10px;
+			/* Add padding to each list item in the dropdown menu */
+		}
+
+		.icon {
+			width: 24px;
+			/* Adjust as needed */
+			height: 24px;
+			/* Adjust as needed */
+			fill: #fff;
+			/* Adjust to match your light mode color */
+		}
+
+		body.dark-mode .icon {
+			fill: #000;
+
+			/* Adjust to match your dark mode color */
+		}
+
+	</style>
 </head>
+
 <body>
-    <header>
-        <h1>'$(echo "$filename")'</h1>
-    </header>
-    <nav>
-        <ul>
-            <!-- MENU -->
-        </ul>
-    </nav>
-    <section class="slider">
-        <div class="slide-show">
-            <!-- SLIDES -->
+	<div class="menu">
+		<div class="menu-container">
+			<nav>
+				<div class="menu-toggle" onclick="toggleMenu()">MENU</div>
+				<ul id="menu-list" class="dropdown">
+					
+					<!-- MENU -->
+				</ul>
+			</nav>
+		</div>
+		<div class="top-right">
+			<span id="time"></span>
+			<a href="#" onclick="toggleDarkMode()" class="button-style icon"><img src="imgs/darkmode.svg" alt="Toggle Dark Mode"></a>
+		</div>
+	</div>
+
+	<section class="container">
+        <div class="page">
+            <div class="content" id="welcome">
+            	<h1>Welcome</h1>
+            	<p><img class="logo-main" src="imgs/armbian-cpu.svg " alt="Armbian Logo" width="300px" height="300px"></p>
+				<P>ARM Linux for Single board computor development </P>
+			</div>
+
+            <div class="content" id="about" style="display: none;" >
+            <h1>About</h1>
+            <p>This is a single-page web app.</p>
+            <p>It is designed and tested on a <a href="https://www.khadas.com/vim3" target="_blank">Khadas VIM3</a> board running <a href="https://www.armbian.com/" target="_blank">Armbian</a>.</p>
+			</div>
+            <!-- Other pages will be added here by JavaScript -->
         </div>
-    </section>
+	</section>
+	<footer>
+		<p>Footer content goes here</p>
+	</footer>
 
-<script>
+	<script>
+fetch("data/armbian-configng.json")
+    .then(response => response.json())
+    .then(data => {
+        var menu = document.querySelector("nav ul");
+        var pages = document.querySelector(".page");
+        var pageIndex = 0;
+        var menuItems = [];
+        var pageItems = [];
+        var i;
 
-    // javascript to make a menu from the json data and add it to the html5_content
-    var menu = document.querySelector("nav ul");
-    var slides = document.querySelector(".slide-show");
-	var slideIndex = 0;
-	var jsonData ='$(generate_json)' ;
-    var data = jsonData;
-    var menuItems = [];
-    var slideItems = [];
-    var i;
-    for (i = 0; i < data.length; i++) {
-        menuItems.push("<li><a href=\"#slide" + i + "\">" + data[i]["Function Name"] + "</a></li>");
-        slideItems.push("<div class=\"slide\" id=\"slide" + i + "\"><h2>" + data[i]["Function Name"] + "</h2><p>" + data[i]["Description"] + "</p></div>");
-    }
-    menu.innerHTML = menuItems.join("");
-    slides.innerHTML = slideItems.join("")
-    showSlides(slideIndex);
+        // Add Home menu item
+        menuItems.push("<li><a href=\"#welcome\">Home</a></li>");
 
-</script>
+        for (i = 0; i < data.length; i++) {
+            menuItems.push("<li><a href=\"#content" + i + "\">" + data[i]["Group Name"] + "</a></li>");
+            pageItems.push("<div class=\"content\" id=\"content" + i + "\" style=\"display: none;\"><h2>" + data[i]["Group Name"] + "</h2><p>" + data[i]["Function Name"] + "</p><p>" + data[i]["Description"] + "</p></div>");
+        }
 
+        // Add About menu item
+        menuItems.push("<li><a href=\"#about\">About</a></li>");
+        pageItems.push("<div class=\"content\" id=\"about\" style=\"display: none;\"><h2>About</h2><p>Some information about this website...</p></div>");
+
+        menu.innerHTML = menuItems.join("");
+        pages.innerHTML += pageItems.join(""); // Use += to append the new pages without removing the welcome page
+
+        // Add event listeners to menu items
+        var menuLinks = menu.querySelectorAll("li a");
+        var pageContents = pages.querySelectorAll(".content");
+        var menuToggle = document.querySelector(".menu-toggle"); // Get the menu toggle
+        for (i = 0; i < menuLinks.length; i++) {
+            menuLinks[i].addEventListener("click", function(e) {
+                e.preventDefault();
+                // Hide all pages
+                for (var j = 0; j < pageContents.length; j++) {
+                    pageContents[j].style.display = "none";
+                }
+                // Show selected page
+                var targetPage = document.querySelector(this.getAttribute("href"));
+                if (targetPage) {
+                    targetPage.style.display = "block";
+                }
+                // Close the menu
+                menuToggle.classList.remove("active");
+            });
+        }
+    })
+    .catch(error => console.error("Error:", error));
+
+function toggleMenu() {
+    const menuToggle = document.querySelector(".menu-toggle");
+    const menu = document.querySelector(".menu");
+    menuToggle.classList.toggle("active");
+    menu.classList.toggle("active");
+}
+
+function toggleDarkMode() {
+            const body = document.body;
+            body.classList.toggle("dark-mode");
+            body.classList.toggle("light-mode");
+        }
+function updateTime() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString();
+    document.getElementById('time').textContent = timeString;
+}
+
+// Update the time every second
+setInterval(updateTime, 1000);
+        
+	</script>
 </body>
 </html>
-'
-
-echo "$html5_content" ;
-
+EOF
 }
 
 # This function is used to generate tabe html file
 # used to check proper array generation and output.
 generate_html() {
-    html_content='<!DOCTYPE html>
-    <html>
-    <head>
-        <style>
-            body {
-                background-color: #333;
-                color: #fff;
-                font-family: Arial, sans-serif;
-            }
-            table {
-                border-collapse: collapse;
-                width: 100%;
-            }
-            th, td {
-                text-align: left;
-                padding: 8px;
-            }
-            th {
-                background-color: #4CAF50;
-                color: white;
-            }
-            tr:nth-child(even) {color: black; background-color: #f2f2f2; }
-        </style>
-    </head>
-    <body>
-        <table>
-            <thead>
-                <tr>
-                    <th>Function Name</th>
-                    <th>Group Name</th>
-                    <th>Description</th>
-                    <th>Options</th>
-                    <th>Category</th>
-                    <th>Category Description</th>
-                </tr>
-            </thead>
-            <tbody>'
-    for key in "${!functions[@]}"; do
-        if [[ $key == *",function_name"* ]]; then
-            function_key="${key%,function_name}"
-            function_name="${functions[$key]}"
-            group_name="${functions["$function_key,group_name"]}"
-            description="${functions["$function_key,description"]}"
-            options="${functions["$function_key,options"]}"
-            category="${functions["$function_key,category"]}"
-            category_description="${functions["$function_key,category_description"]}"
-            html_content+="<tr><td>$function_name</td><td>$group_name</td><td>$description</td><td>$options</td><td>$category</td><td>$category_description</td></tr>"
-        fi
-    done
-    html_content+='
-            </tbody>
-        </table>
+  cat << EOF
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dynamic Table</title>
+    <style>
+        body {
+            background-color: #333;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {color: black; background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <table id="dynamicTable">
+        <!-- Table data will be inserted here -->
+    </table>
 
-    </body>
-    </html>'
+    <script>
+        // Fetch JSON data
+        fetch('data/armbian-configng.json') // Corrected filename here
+            .then(response => response.json())
+            .then(data => {
+                // Get table element
+                var table = document.getElementById('dynamicTable');
 
-    echo "$html_content"
+                // Create table header
+                var thead = document.createElement('thead');
+                var headerRow = document.createElement('tr');
+                Object.keys(data[0]).forEach(function(key) {
+                    var th = document.createElement('th');
+                    th.textContent = key;
+                    headerRow.appendChild(th);
+                });
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+
+                // Create table body
+                var tbody = document.createElement('tbody');
+                data.forEach(function(item) {
+                    var row = document.createElement('tr');
+                    Object.values(item).forEach(function(value) {
+                        var td = document.createElement('td');
+                        td.textContent = value;
+                        row.appendChild(td);
+                    });
+                    tbody.appendChild(row);
+                });
+                table.appendChild(tbody);
+            })
+            .catch(error => console.error('Error:', error));
+    </script>
+</body>
+</html>
+EOF
 }
 
 # This function is used to generate the main readme.md file
@@ -408,18 +678,18 @@ generate_doc() {
     man="/man/man1"
     if [[ ! -d "$dir/${filename%-dev}" ]]; then
         mkdir -p "$dir/${filename}/data"
+        mkdir -p "$dir/${filename}/imgs"
     fi
 
-    share="${filename}"
+    web="${filename%-dev}"
 
     cd "$dir" || exit
-    generate_svg > "$dir/$doc/$filename.svg"
+    generate_svg > "$dir/$web/imgs/armbian-cpu.svg"
     generate_and_print generate_markdown "$dir/$man/${filename%-dev}" md "MAN page"
-
-    generate_and_print generate_html "$dir/$share/index" html "Table"
-    generate_and_print generate_html5 "$dir/$share/index5" html "HTML"
-    generate_and_print generate_json "$dir/$share/data/$filename" json "JSON"
-    generate_and_print generate_csv "$dir/$share/data/${filename%-dev}" csv "CSV"   
+    generate_and_print generate_html "$dir/$web/table" html "Table"
+    generate_and_print generate_html5 "$dir/$web/index" html "HTML"
+    generate_and_print generate_json "$dir/$web/data/$filename" json "JSON"
+    generate_and_print generate_csv "$dir/$web/data/${filename%-dev}" csv "CSV"   
     
     generate_and_print generate_json "$dir/$doc/$filename" json "JSON"
     generate_and_print generate_csv "$dir/$doc/${filename}" csv "CSV"

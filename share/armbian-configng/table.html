@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dynamic Table</title>
+    <style>
+        body {
+            background-color: #333;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {color: black; background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <table id="dynamicTable">
+        <!-- Table data will be inserted here -->
+    </table>
+
+    <script>
+        // Fetch JSON data
+        fetch('data/armbian-configng.json') // Corrected filename here
+            .then(response => response.json())
+            .then(data => {
+                // Get table element
+                var table = document.getElementById('dynamicTable');
+
+                // Create table header
+                var thead = document.createElement('thead');
+                var headerRow = document.createElement('tr');
+                Object.keys(data[0]).forEach(function(key) {
+                    var th = document.createElement('th');
+                    th.textContent = key;
+                    headerRow.appendChild(th);
+                });
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+
+                // Create table body
+                var tbody = document.createElement('tbody');
+                data.forEach(function(item) {
+                    var row = document.createElement('tr');
+                    Object.values(item).forEach(function(value) {
+                        var td = document.createElement('td');
+                        td.textContent = value;
+                        row.appendChild(td);
+                    });
+                    tbody.appendChild(row);
+                });
+                table.appendChild(tbody);
+            })
+            .catch(error => console.error('Error:', error));
+    </script>
+</body>
+</html>
