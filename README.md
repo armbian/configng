@@ -9,75 +9,110 @@
 
 # User guide
 ## Quick start
-Run the following commands:
+### Installation Options
+Our applications support two Run styles
 
+## Limitations 
+<!-- For guidance on these best practices, refer to [insert relevant resources or links]. -->
+- functionaly may or may not work when not useing administration privileges
+  - Lager sample size needed
+- armbian-configng does not requier adnistation access. 
+  - Fallbacks need to be set for admin and no admn access.
+- Non admin is limited to --dev
+
+  
+
+1. **Run from GitHub repository:**
+   
+   ` sudo apt update && sudo apt install git `
+   
+    ```bash
+
+    cd ~/
+    git clone https://github.com/armbian/configng.git
+    cd configng
+    ./bin/armbian-configng --dev
+    ```
+
+    To uninstall:
+
+    ```bash
+    cd ~/
+    # rm -rf configng
+    ```
+
+3. **Install from a .deb package:**
+    [Disclamer](#disclaimer): Not recomened
+
+   <!-- generated readme allowed for dynamic links to be use with safer option of wget" -->
+   
+    ```bash
+    {  
+    latest_release=$(curl -s https://api.github.com/repos/armbian/configng/releases/latest)
+    deb_url=$(echo "$latest_release" | jq -r '.assets[] | select(.name | endswith(".deb")) | .browser_download_url')
+    curl -LO "$deb_url"
+    deb_file=$(echo "$deb_url" | awk -F"/" '{print $NF}')
+    sudo dpkg -i "$deb_file"
+    sudo dpkg --configure -a
+    sudo apt --fix-broken install  
+    }
+    ```
+
+    To uninstall:
+
+    ```bash
+    sudo dpkg -r armbian-configng
+    ```
+    or
+    ```bash
+      sudo apt remove armbian-configng
+    ```
+4. **Install from the Armbian repository(Coming Soon):**
+
+    ```bash
     echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] https://armbian.github.io/configng stable main" \
     | sudo tee /etc/apt/sources.list.d/armbian-development.list > /dev/null
-    
-    armbian-configng --dev
+    sudo apt update
+    sudo apt install armbian-configng
+    ```
 
-If all goes well you should see the Text-Based User Inerface (TUI)
+    To uninstall:
 
-### To see a list of all functions and their descriptions, run the following command:
-~~~
-armbian-configng -h
-~~~
-## Coding Style
-follow the following coding style:
-~~~
-# @description A short description of the function.
-#
-# @exitcode 0  If successful.
-#
-# @options A description if there are options.
-function group::string() {s
-    echo "hello world"
-    return 0
-}
-~~~
-## Codestyle can be used to auto generate
- - [Markdown](share/armbian-configng/readme.md)
- - [JSON](share/armbian-configng/data/armbian-configng.json)
- - [CSV](share/armbian-configng/data/armbian-configng.csv)
- - [HTML](share/armbian-configng/armbian-configng-table.html)
- - [github.io](//tearran/github.io/armbian-configng/index.html)
-## Functions list as of 2023-12-06
-## network
-System and Security
+    ```bash
+    {  sudo apt remove armbian-configng
+    # sudo rm /etc/apt/sources.list.d/armbian-development.list
+    sudo apt update  }
+    ```
 
-### set_wifi.sh
+### Using Options
 
- - **Group Name:** network
- - **Action Name:** NMTUI
- - **Options:** none.
- - **Description:** Network Manager.
+Our applications support two styles of options:
 
-## system
-Network Wired wireless Bluetooth access point
-
-### armbian_install.sh
-
- - **Group Name:** system
- - **Action Name:** Install
- - **Options:** none
- - **Description:** Armbian installer.
-
-### hello_world.sh
-
- - **Group Name:** system
- - **Action Name:** Hello
- - **Options:** none
- - **Description:** Hello System.
-
-### see_monitor.sh
-
- - **Group Name:** monitor
- - **Action Name:** Bencharking
- - **Options:** 
- - **Description:** Armbian Monitor and Bencharking.
+1. **C-style commands:** The `help` command provides a message with examples of how of use.
+2. These option bypass user interations
+3. Limitations
+  a. small sample size
+    - Not much error handeling
+    - Two way communication layer placeholder need filling
+   b. Bash Tools
+    - A Prosidual based language
 
 
-# Inclueded projects
-- [Bash Utility](https://labbots.github.io/bash-utility) 
-- [Armbian config](https://github.com/armbian/config.git)
+    ```bash
+    ./bin/armbian-configng help
+    ```
 
+5. **Script-style options:** These are passed as `-option` or `--option`. For example, to request help, you would use `-h` or `--help`.
+
+    ```bash
+    ./bin/armbian-configng -h
+    ./bin/armbian-configng --help
+    ```
+
+## Disclaimer
+
+This guide includes the use of `curl` command to download files from the internet. While we strive to provide safe and reliable instructions, we cannot guarantee the safety of any files downloaded using `curl`. 
+
+Please ensure that you trust the source of the files you are downloading. Be aware that downloading files from the internet always carries a risk, and you should only download files from trusted sources.
+
+Always review the scripts and commands you run in your terminal. If you don't understand what a command or script does, take the time to learn about it before running it. This can help prevent unexpected behavior or damage to your system.
