@@ -3,24 +3,6 @@
 
 # This function is used to generate a simple JSON file containing all functions and their descriptions.
 # pthon is more suited to complex arrays this should be handeled during build time
-generate_json1() {
-    json_objects=()
-    for key in "${!functions[@]}"; do
-        if [[ $key == *",function_name"* ]]; then
-            function_key="${key%,function_name}"
-            function_name="${functions[$key]}"
-            group_name="${functions["$function_key,group_name"]}"
-            description="${functions["$function_key,description"]}"
-            options="${functions["$function_key,options"]}"
-            category="${functions["$function_key,category"]}"
-            category_description="${functions["$function_key,category_description"]}"
-            json_objects+=("{ \"Function Name\": \"$function_name\", \"Group Name\": \"$group_name\", \"Description\": \"$description\", \"Options\": \"$options\", \"Category\": \"$category\", \"Category Description\": \"$category_description\" }")
-        fi
-    done
-    IFS=','
-    echo "[${json_objects[*]}]" | jq
-}
-
 generate_json() {
     json_objects=()
     for key in "${!functions[@]}"; do
@@ -682,6 +664,7 @@ generate_doc() {
     fi
 
     man="/man/man1"
+
     if [[ ! -d "$dir/${filename%-dev}" ]]; then
         mkdir -p "$dir/${filename}/data"
         mkdir -p "$dir/${filename}/imgs"
@@ -690,19 +673,19 @@ generate_doc() {
     web="${filename%-dev}"
 
     cd "$dir" || exit
-    generate_darkmode_svg > "$dir/$web/imgs/darkmode.svg"
-             generate_svg > "$dir/$web/imgs/armbian-cpu.svg"
-    generate_and_print generate_markdown "$dir/$man/${filename%-dev}" md "MAN page"
-    generate_and_print generate_html "$dir/$web/table" html "Table"
-    generate_and_print generate_html5 "$dir/$web/index" html "HTML"
-    generate_and_print generate_json "$dir/$web/data/$filename" json "JSON"
-    generate_and_print generate_csv "$dir/$web/data/${filename%-dev}" csv "CSV"     
+
+	generate_darkmode_svg > "$dir/$web/imgs/darkmode.svg"
+	generate_svg > "$dir/$web/imgs/armbian-cpu.svg"
+	generate_and_print generate_html "$dir/$web/table" html "Table"
+	generate_and_print generate_html5 "$dir/$web/index" html "HTML"
+	generate_and_print generate_json "$dir/$web/data/$filename" json "JSON"
+	generate_and_print generate_csv "$dir/$web/data/${filename%-dev}" csv "CSV"
+
+	    
     generate_and_print generate_json "$dir/$doc/$filename" json "JSON"
     generate_and_print generate_csv "$dir/$doc/${filename}" csv "CSV"
-    if [[ "$EUID" -eq 0 ]]; then
-        chown -R "$SUDO_USER":"$SUDO_USER" "$(dirname "$dir")"
-        cd ../../
-     #   chown  "$SUDO_USER":"$SUDO_USER" readme.md
-    fi
+    generate_and_print generate_markdown "$dir/$man/${filename%-dev}" md "MAN page"
+
+
     return 0
 }
