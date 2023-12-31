@@ -646,14 +646,13 @@ serve_and_open_html() {
     generate_and_print generate_json "$dir/$web/data/$filename" json "JSON"
     generate_and_print generate_csv "$dir/$web/data/${filename%-dev}" csv "CSV"
     cd "$dir/$web" || exit
-    local html_file=""
+    
+	local html_file="table.html"
 
     # Determine the command-line browser to use
     local browser_cmd
-    if command -v w3m &> /dev/null; then
-        browser_cmd="w3m"
-    elif command -v lynx &> /dev/null; then
-        browser_cmd="lynx"
+    if command -v links2 &> /dev/null; then
+        browser_cmd="links2"
     elif command -v elinks &> /dev/null; then
         browser_cmd="elinks"
     elif command -v firefox &> /dev/null; then
@@ -675,13 +674,10 @@ serve_and_open_html() {
         clear; echo "Starting server..."
         sleep 1
             # Open the HTML file in the browser
-        $browser_cmd http://localhost:8000/$html_file
+        #[[ -n $browser_cmd ]] && $browser_cmd http://localhost:8000/$html_file
         read -p "Press enter to continue"
         # Stop the server
         kill $server_pid
-    else
-        echo "Python 3 is not installed"
-        # You can put additional commands here to run if Python 3 is not installed
     fi
 }
 

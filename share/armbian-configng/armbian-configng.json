@@ -1,0 +1,38 @@
+[
+  {
+    "Function Name": "Install",
+    "Group Name": "system",
+    "Description": "Armbian installer",
+    "Options": "Why What not-How",
+    "Category": "system",
+    "Category Description": "System and Security",
+    "Toggle": "hide"
+  },
+  {
+    "Function Name": "NMTUI",
+    "Group Name": "network",
+    "Description": "Network Manager.",
+    "Options": "none",
+    "Category": "system",
+    "Category Description": "System and Security",
+    "Toggle": "show"
+  },
+  {
+    "Function Name": "Bencharking",
+    "Group Name": "monitor",
+    "Description": "Armbian Monitor and Bencharking.",
+    "Options": "none",
+    "Category": "system",
+    "Category Description": "System and Security",
+    "Toggle": "show"
+  },
+  {
+    "Function Name": "Timezone",
+    "Group Name": "locales",
+    "Description": "Time zone configuration",
+    "Options": "none",
+    "Category": "locales",
+    "Category Description": "Locale Language Region Time Keyboard",
+    "Toggle": "show"
+  }
+]
