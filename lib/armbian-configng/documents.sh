@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 # This function is used to generate a simple JSON file containing all functions and their descriptions.
 # pthon is more suited to complex arrays this should be handeled during build time
 generate_json() {
@@ -23,7 +22,6 @@ generate_json() {
 }
 
 
-
 # This function is used to generate a armbian CPU logo
 generate_svg(){
 
@@ -36,6 +34,7 @@ cat << EOF
 EOF
 }
 
+# This function is used to generate a lightbulb SVG for use as web darkmode toggle.
 generate_darkmode_svg(){
 
 cat << EOF
@@ -61,26 +60,6 @@ generate_csv() {
             category_description="${functions["$function_key,category_description"]}"
             echo "$function_name,$group_name,$description,$options,$category,$category_description"
         fi
-    done
-}
-
-generate_csv_test() {
-    for category in "${categories[@]}"; do
-        echo "Function Name,Group Name,Description,Options,Category,Category Description" > "$category.csv"
-        for key in "${!functions[@]}"; do
-            if [[ $key == *",function_name"* ]]; then
-                function_key="${key%,function_name}"
-                function_name="${functions[$key]}"
-                group_name="${functions["$function_key,group_name"]}"
-                description="${functions["$function_key,description"]}"
-                options="${functions["$function_key,options"]}"
-                category="${functions["$function_key,category"]}"
-                category_description="${functions["$function_key,category_description"]}"
-                if [[ $category == "$category" ]]; then
-                    echo "$function_name,$group_name,$description,$options,$category,$category_description" >> "$category.csv"
-                fi
-            fi
-        done
     done
 }
 
@@ -648,11 +627,69 @@ generate_and_print() {
     echo "$output_message - generated $filename.$file_extension"
 }
 
+# This function is used to check for a command-line or X browser
+serve_and_open_html() {
+    # The HTML file to open
+    local dir="$(dirname "$(dirname "$(realpath "$0")")")/share"
+
+    if [[ ! -d "$dir/${filename%-dev}" ]]; then
+        mkdir -p "$dir/${filename}/data"
+        mkdir -p "$dir/${filename}/imgs"
+    fi
+
+    web="${filename%-dev}"
+
+        generate_darkmode_svg > "$dir/$web/imgs/darkmode.svg"
+    generate_svg > "$dir/$web/imgs/armbian-cpu.svg"
+    generate_and_print generate_html "$dir/$web/table" html "Table"
+    generate_and_print generate_html5 "$dir/$web/index" html "HTML"
+    generate_and_print generate_json "$dir/$web/data/$filename" json "JSON"
+    generate_and_print generate_csv "$dir/$web/data/${filename%-dev}" csv "CSV"
+    cd "$dir/$web" || exit
+    local html_file=""
+
+    # Determine the command-line browser to use
+    local browser_cmd
+    if command -v w3m &> /dev/null; then
+        browser_cmd="w3m"
+    elif command -v lynx &> /dev/null; then
+        browser_cmd="lynx"
+    elif command -v elinks &> /dev/null; then
+        browser_cmd="elinks"
+    elif command -v firefox &> /dev/null; then
+        browser_cmd="firefox"
+    elif command -v google-chrome &> /dev/null; then
+        browser_cmd="google-chrome"
+    elif command -v chromium &> /dev/null; then
+        browser_cmd="chromium"
+    else
+        echo "No command-line or X browser found."
+        return
+    fi
+
+    if command -v python3 &> /dev/null
+    then
+        # Start the Python server in the background
+        python3 -m http.server > /tmp/config.log 2>&1 &
+        local server_pid=$!	
+        clear; echo "Starting server..."
+        sleep 1
+            # Open the HTML file in the browser
+        $browser_cmd http://localhost:8000/$html_file
+        read -p "Press enter to continue"
+        # Stop the server
+        kill $server_pid
+    else
+        echo "Python 3 is not installed"
+        # You can put additional commands here to run if Python 3 is not installed
+    fi
+}
+
 generate_doc() {
 
-    dir="$(dirname "$(dirname "$(realpath "$0")")")/share"
-
-    if [[ ! -d "$dir/doc/${filename%-dev}" ]]; then
+    local dir="$(dirname "$(dirname "$(realpath "$0")")")/share"
+    
+	if [[ ! -d "$dir/doc/${filename%-dev}" ]]; then
         mkdir -p "$dir/doc/${filename%-dev}"
 	fi
 
@@ -673,19 +710,16 @@ generate_doc() {
     web="${filename%-dev}"
 
     cd "$dir" || exit
-
-	generate_darkmode_svg > "$dir/$web/imgs/darkmode.svg"
-	generate_svg > "$dir/$web/imgs/armbian-cpu.svg"
-	generate_and_print generate_html "$dir/$web/table" html "Table"
-	generate_and_print generate_html5 "$dir/$web/index" html "HTML"
-	generate_and_print generate_json "$dir/$web/data/$filename" json "JSON"
-	generate_and_print generate_csv "$dir/$web/data/${filename%-dev}" csv "CSV"
-
-	    
+	
+        generate_darkmode_svg > "$dir/$web/imgs/darkmode.svg"
+    generate_svg > "$dir/$web/imgs/armbian-cpu.svg"
+    generate_and_print generate_html "$dir/$web/table" html "Table"
+    generate_and_print generate_html5 "$dir/$web/index" html "HTML"
+    generate_and_print generate_json "$dir/$web/data/$filename" json "JSON"
+    generate_and_print generate_csv "$dir/$web/data/${filename%-dev}" csv "CSV"
     generate_and_print generate_json "$dir/$doc/$filename" json "JSON"
     generate_and_print generate_csv "$dir/$doc/${filename}" csv "CSV"
     generate_and_print generate_markdown "$dir/$man/${filename%-dev}" md "MAN page"
-
 
     return 0
 }

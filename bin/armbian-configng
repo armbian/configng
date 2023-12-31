@@ -114,6 +114,7 @@ for category in "${categories[@]}"; do
         functions["$key,category_description"]=$category_description
     done
 done
+
 ###############################################################################################
 ###############################################################################################
 
@@ -293,6 +294,9 @@ handle_long_flag(){
         exit 0 ;
     elif [[ "$1" == "--doc" ]]; then
         generate_doc
+        exit 0 ;
+    elif [[ "$1" == "--web" ]]; then
+        serve_and_open_html
         exit 0 ;
     fi
 # WIP: 
