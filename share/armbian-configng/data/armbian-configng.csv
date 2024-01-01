@@ -1,6 +1,6 @@
 Function Name,Group Name,Description,Options,Category,Category Description
-Install,system,Armbian installer,Why What not-How,system,System and Security
+Install,system,Armbian installer,[sdcard] [emmc] [usb],system,System and Security
 NMTUI,network,Network Manager.,none,system,System and Security
-Bencharking,monitor,Armbian Monitor and Bencharking.,none,system,System and Security
+Bencharking,monitor,Monitor and Bencharking., [-h] [-b] [-c $path] [-d $device] [-D] [-m] [-p] [-r] [-u],system,System and Security
 Timezone,locales,Time zone configuration,none,locales,Locale Language Region Time Keyboard
-Kernel,status,Kernal U-boot update Hold/Unhold.,frozen unfrozen,system,System and Security
+Kernel,status,Kernal U-boot update Hold/Unhold.,[frozen] [unfrozen],system,System and Security

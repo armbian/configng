@@ -8,10 +8,10 @@
 
 
 # @description Armbian installer
-# @requirments armbian-install,
-# @exitcode 0  If successful.
-# @default function_name
-# @options Why What not-How
+# @requirments armbian-install
+# @exitcode 0  If successful
+# @default sdcard
+# @options [sdcard] [emmc] [usb]
 function system::Install(){
 
 	armbian-install

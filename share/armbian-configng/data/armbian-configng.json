@@ -1,47 +1,47 @@
 [
   {
-    "Function Name": "Install",
-    "Group Name": "system",
-    "Description": "Armbian installer",
-    "Options": "Why What not-How",
-    "Category": "system",
     "Category Description": "System and Security",
-    "Toggle": "hide"
+    "Category": "system",
+    "Group": "system",
+    "Function": "Install",
+    "Group Description": "Armbian installer",
+    "Options": "[sdcard] [emmc] [usb]",
+    "Toggle": "sdcard"
   },
   {
-    "Function Name": "NMTUI",
-    "Group Name": "network",
-    "Description": "Network Manager.",
-    "Options": "none",
-    "Category": "system",
     "Category Description": "System and Security",
-    "Toggle": "show"
+    "Category": "system",
+    "Group": "network",
+    "Function": "NMTUI",
+    "Group Description": "Network Manager.",
+    "Options": "none",
+    "Toggle": "none"
   },
   {
-    "Function Name": "Bencharking",
-    "Group Name": "monitor",
-    "Description": "Armbian Monitor and Bencharking.",
-    "Options": "none",
-    "Category": "system",
     "Category Description": "System and Security",
-    "Toggle": "show"
+    "Category": "system",
+    "Group": "monitor",
+    "Function": "Bencharking",
+    "Group Description": "Monitor and Bencharking.",
+    "Options": " [-h] [-b] [-c $path] [-d $device] [-D] [-m] [-p] [-r] [-u]",
+    "Toggle": "none"
   },
   {
-    "Function Name": "Timezone",
-    "Group Name": "locales",
-    "Description": "Time zone configuration",
-    "Options": "none",
-    "Category": "locales",
     "Category Description": "Locale Language Region Time Keyboard",
-    "Toggle": "show"
+    "Category": "locales",
+    "Group": "locales",
+    "Function": "Timezone",
+    "Group Description": "Time zone configuration",
+    "Options": "none",
+    "Toggle": "none"
   },
   {
-    "Function Name": "Kernel",
-    "Group Name": "status",
-    "Description": "Kernal U-boot update Hold/Unhold.",
-    "Options": "frozen unfrozen",
-    "Category": "system",
     "Category Description": "System and Security",
-    "Toggle": "hide"
+    "Category": "system",
+    "Group": "status",
+    "Function": "Kernel",
+    "Group Description": "Kernal U-boot update Hold/Unhold.",
+    "Options": "[frozen] [unfrozen]",
+    "Toggle": "unfrozen"
   }
 ]

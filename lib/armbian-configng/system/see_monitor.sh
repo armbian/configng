@@ -6,11 +6,11 @@
 # License version 2. This program is licensed "as is" without any
 # warranty of any kind, whether express or implied.
 
-# @description Armbian Monitor and Bencharking.
+# @description Monitor and Bencharking.
 # @requirments armbiam-monitor,
 # @exitcode 0  If successful.
-# @default function_name
-# @options none
+# @default none
+# @options  [-h] [-b] [-c $path] [-d $device] [-D] [-m] [-p] [-r] [-u]
 function monitor::Bencharking(){
 	see_menu #| armbian-interface -o
 	return 0 ; 

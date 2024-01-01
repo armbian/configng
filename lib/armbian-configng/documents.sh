@@ -14,7 +14,7 @@ generate_json() {
             category="${functions["$function_key,category"]}"
             category_description="${functions["$function_key,category_description"]}"
             toggle="${functions["$function_key,toggle"]}"
-            json_objects+=("{ \"Function Name\": \"$function_name\", \"Group Name\": \"$group_name\", \"Description\": \"$description\", \"Options\": \"$options\", \"Category\": \"$category\", \"Category Description\": \"$category_description\", \"Toggle\": \"$toggle\" }")
+            json_objects+=("{ \"Category Description\": \"$category_description\", \"Category\": \"$category\", \"Group\": \"$group_name\", \"Function\": \"$function_name\",\"Group Description\": \"$description\", \"Options\": \"$options\", \"Toggle\": \"$toggle\" }")
         fi
     done
     IFS=','
@@ -629,6 +629,11 @@ generate_and_print() {
 
 # This function is used to check for a command-line or X browser
 serve_and_open_html() {
+generate_web
+serve_web_open
+}
+
+generate_web() {
     # The HTML file to open
     local dir="$(dirname "$(dirname "$(realpath "$0")")")/share"
 
@@ -646,7 +651,9 @@ serve_and_open_html() {
     generate_and_print generate_json "$dir/$web/data/$filename" json "JSON"
     generate_and_print generate_csv "$dir/$web/data/${filename%-dev}" csv "CSV"
     cd "$dir/$web" || exit
-    
+}
+
+serve_web_open() {
 	local html_file="table.html"
 
     # Determine the command-line browser to use
@@ -665,19 +672,22 @@ serve_and_open_html() {
         echo "No command-line or X browser found."
         return
     fi
-
-    if command -v python3 &> /dev/null
-    then
-        # Start the Python server in the background
-        python3 -m http.server > /tmp/config.log 2>&1 &
-        local server_pid=$!	
-        clear; echo "Starting server..."
-        sleep 1
-            # Open the HTML file in the browser
-        #[[ -n $browser_cmd ]] && $browser_cmd http://localhost:8000/$html_file
-        read -p "Press enter to continue"
-        # Stop the server
-        kill $server_pid
+    if [[ -z $CODESPACES ]]; then
+        if command -v python3 &> /dev/null
+        then
+            # Start the Python server in the background
+            python3 -m http.server > /tmp/config.log 2>&1 &
+            local server_pid=$!	
+            clear; echo "Starting server..."
+            sleep 1
+                # Open the HTML file in the browser
+            #[[ -n $browser_cmd ]] && $browser_cmd http://localhost:8000/$html_file
+            read -p "Press enter to continue"
+            # Stop the server
+            kill $server_pid
+        fi
+    else
+        echo "GitHub Codespace"
     fi
 }
 

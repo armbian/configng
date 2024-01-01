@@ -8,7 +8,6 @@
 # The script uses whiptail or dialog for the TUI, depending on which is available.
 
 #set -x
-#set -e
 
 #
 # Enable Dynamic directory root use home ~/ , /bin , /usr/sbin etc.. 
@@ -94,6 +93,8 @@ for category in "${categories[@]}"; do
     for file in "$category"/*.sh; do
         description=$(grep -oP "(?<=# @description ).*" "$file")
         options=$(grep -oP "(?<=# @options ).*" "$file")
+        default=$(grep -oP "(?<=# @default ).*" "$file")
+        require=$(grep -oP "(?<=# @requirments ).*" "$file")
         while IFS= read -r line; do
             if [[ $line =~ ^function\ (.*::.*)\(\)\{$ ]]; then
                 function_name="${BASH_REMATCH[1]}"
@@ -101,12 +102,13 @@ for category in "${categories[@]}"; do
                 functions["$key,function_name"]=$(echo "$function_name" | sed 's/.*:://')
                 functions["$key,group_name"]=$(echo "$function_name" | sed 's/::.*//')
                 functions["$key,description"]=$description
+                functions["$key,default" ]="$default"
                 IFS= read -r functions["$key,options"] <<< "$options"
                 # Set the toggle array based on the options
                 if [[ $options == "none" ]]; then
-                    functions["$key,toggle"]="show"
+                    functions["$key,toggle"]="none"
                 else
-                    functions["$key,toggle"]="hide"
+                    functions["$key,toggle"]="$default"
                 fi
             fi
         done < "$file"
@@ -295,7 +297,7 @@ handle_long_flag(){
     elif [[ "$1" == "--doc" ]]; then
         generate_doc
         exit 0 ;
-    elif [[ "$1" == "--web" ]]; then
+    elif [[ "$1" == "--server" ]]; then
         serve_and_open_html
         exit 0 ;
     fi
