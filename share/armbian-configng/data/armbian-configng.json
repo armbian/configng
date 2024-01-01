@@ -36,10 +36,10 @@
     "Toggle": "show"
   },
   {
-    "Function Name": "Uboot",
+    "Function Name": "Kernel",
     "Group Name": "status",
-    "Description": "U-boot update Freeze",
-    "Options": "freeze unfreeze",
+    "Description": "Kernal U-boot update Hold/Unhold.",
+    "Options": "frozen unfrozen",
     "Category": "system",
     "Category Description": "System and Security",
     "Toggle": "hide"

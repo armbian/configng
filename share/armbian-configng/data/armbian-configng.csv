@@ -3,4 +3,4 @@ Install,system,Armbian installer,Why What not-How,system,System and Security
 NMTUI,network,Network Manager.,none,system,System and Security
 Bencharking,monitor,Armbian Monitor and Bencharking.,none,system,System and Security
 Timezone,locales,Time zone configuration,none,locales,Locale Language Region Time Keyboard
-Uboot,status,U-boot update Freeze,freeze unfreeze,system,System and Security
+Kernel,status,Kernal U-boot update Hold/Unhold.,frozen unfrozen,system,System and Security

@@ -73,9 +73,9 @@ Locale Language Region Time Keyboard
 ### set_freeze.sh
 
  - **Group Name:** status
- - **Action Name:** Uboot
- - **Options:** freeze unfreeze
- - **Description:** U-boot update Freeze
+ - **Action Name:** Kernel
+ - **Options:** frozen unfrozen
+ - **Description:** Kernal U-boot update Hold/Unhold.
 
 ### set_wifi.sh
 
