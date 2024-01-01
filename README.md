@@ -94,8 +94,6 @@ Our applications support two styles of options:
   a. small sample size
     - Not much error handeling
     - Two way communication layer placeholder need filling
-   b. Bash Tools
-    - A Prosidual based language
 
 
     ```bash
