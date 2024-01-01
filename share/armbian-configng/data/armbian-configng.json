@@ -34,5 +34,14 @@
     "Category": "locales",
     "Category Description": "Locale Language Region Time Keyboard",
     "Toggle": "show"
+  },
+  {
+    "Function Name": "Uboot",
+    "Group Name": "status",
+    "Description": "U-boot update Freeze",
+    "Options": "freeze unfreeze",
+    "Category": "system",
+    "Category Description": "System and Security",
+    "Toggle": "hide"
   }
 ]

@@ -70,6 +70,13 @@ Locale Language Region Time Keyboard
  - **Options:** none
  - **Description:** Armbian Monitor and Bencharking.
 
+### set_freeze.sh
+
+ - **Group Name:** status
+ - **Action Name:** Uboot
+ - **Options:** freeze unfreeze
+ - **Description:** U-boot update Freeze
+
 ### set_wifi.sh
 
  - **Group Name:** network
