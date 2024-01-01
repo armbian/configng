@@ -2,7 +2,7 @@
   {
     "Category Description": "System and Security",
     "Category": "system",
-    "Group": "system",
+    "Group": "testing",
     "Function": "Install",
     "Group Description": "Armbian installer",
     "Options": "[sdcard] [emmc] [usb]",
@@ -14,8 +14,17 @@
     "Group": "network",
     "Function": "NMTUI",
     "Group Description": "Network Manager.",
-    "Options": "none",
-    "Toggle": "none"
+    "Options": "connect",
+    "Toggle": "connect"
+  },
+  {
+    "Category Description": "System and Security",
+    "Category": "system",
+    "Group": "testing",
+    "Function": "Kernel_hold",
+    "Group Description": "Kernal U-boot update Hold/Unhold.",
+    "Options": "[frozen] [unfrozen]",
+    "Toggle": "unfrozen"
   },
   {
     "Category Description": "System and Security",
@@ -23,8 +32,8 @@
     "Group": "monitor",
     "Function": "Bencharking",
     "Group Description": "Monitor and Bencharking.",
-    "Options": " [-h] [-b] [-c $path] [-d $device] [-D] [-m] [-p] [-r] [-u]",
-    "Toggle": "none"
+    "Options": "help message",
+    "Toggle": "None"
   },
   {
     "Category Description": "Locale Language Region Time Keyboard",
@@ -32,16 +41,7 @@
     "Group": "locales",
     "Function": "Timezone",
     "Group Description": "Time zone configuration",
-    "Options": "none",
+    "Options": "user selection",
     "Toggle": "none"
-  },
-  {
-    "Category Description": "System and Security",
-    "Category": "system",
-    "Group": "status",
-    "Function": "Kernel",
-    "Group Description": "Kernal U-boot update Hold/Unhold.",
-    "Options": "[frozen] [unfrozen]",
-    "Toggle": "unfrozen"
   }
 ]

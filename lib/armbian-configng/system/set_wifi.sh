@@ -9,10 +9,10 @@
 
 
 # @description Network Manager.
-#
+# @requirments armbiam-monitor,
 # @exitcode 0  If successful.
-#
-# @options none
+# @default connect
+# @options connect
 function network::NMTUI(){
 	nmtui connect
     return 0

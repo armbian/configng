@@ -4,7 +4,7 @@
 # @requirments timedatectl
 # @exitcode 0  If successful.
 # @default none
-# @options none
+# @options user selection
 function locales::Timezone(){
     echo "Please select a country:"
     countries=$(timedatectl list-timezones | cut -d'/' -f1 | uniq)

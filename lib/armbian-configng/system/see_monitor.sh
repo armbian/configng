@@ -7,10 +7,10 @@
 # warranty of any kind, whether express or implied.
 
 # @description Monitor and Bencharking.
-# @requirments armbiam-monitor,
+# @requirments armbiam-monitor
 # @exitcode 0  If successful.
-# @default none
-# @options  [-h] [-b] [-c $path] [-d $device] [-D] [-m] [-p] [-r] [-u]
+# @default None
+# @options help message
 function monitor::Bencharking(){
 	see_menu #| armbian-interface -o
 	return 0 ; 

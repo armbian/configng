@@ -11,7 +11,7 @@
 # @exitcode 0  If successful
 # @default unfrozen
 # @options [frozen] [unfrozen]
-function status::Kernel(){
+function testing::Kernel_hold(){
     if apt-mark showhold | grep -q "^u-boot$"; then   
             echo "uboot_package=frozen" > "$etcpath"/"$filename".sh
     else 
