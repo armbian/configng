@@ -54,10 +54,10 @@ fi
 # Freeze the packages
 if [ -n "$kernel_package" ]; then
     sudo apt-mark hold $kernel_package
-    echo "$kernel_package=frozen" 
+    echo "kernel_package=frozen" 
 fi
 
-if [ -n "uboot_package" ]; then
+if [ -n "$uboot_package" ]; then
     sudo apt-mark hold $uboot_package
     echo "uboot_package=frozen" 
 fi
