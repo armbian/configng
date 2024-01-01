@@ -19,6 +19,9 @@ jobs:
           shellcheck --severity=error $file || ret=$?
         done
         exit $ret 
+
+    - name: Generate website 
+      run: ./bin/armbian-configng --dev --web
            
     - name: 📂 Sync files
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4

@@ -21,6 +21,29 @@ generate_json() {
     echo "[${json_objects[*]}]" | jq
 }
 
+generate_keypairs() {
+    for key in "${!functions[@]}"; do
+        if [[ $key == *",function_name"* ]]; then
+            function_key="${key%,function_name}"
+            function_name="${functions[$key]}"
+            group_name="${functions["$function_key,group_name"]}"
+            description="${functions["$function_key,description"]}"
+            options="${functions["$function_key,options"]}"
+            category="${functions["$function_key,category"]}"
+            category_description="${functions["$function_key,category_description"]}"
+            toggle="${functions["$function_key,toggle"]}"
+            
+            # Output the key-value pairs
+            echo "export FUNCTION_NAME=\"$function_name\""
+            echo "export GROUP_NAME=\"$group_name\""
+            echo "export DESCRIPTION=\"$description\""
+            echo "export OPTIONS=\"$options\""
+            echo "export CATEGORY=\"$category\""
+            echo "export CATEGORY_DESCRIPTION=\"$category_description\""
+            echo "export TOGGLE=\"$toggle\""
+        fi
+    done
+}
 
 # This function is used to generate a armbian CPU logo
 generate_svg(){
@@ -637,12 +660,12 @@ generate_web() {
     # The HTML file to open
     local dir="$(dirname "$(dirname "$(realpath "$0")")")/share"
 
-    if [[ ! -d "$dir/${filename%-dev}" ]]; then
-        mkdir -p "$dir/${filename}/data"
-        mkdir -p "$dir/${filename}/imgs"
+    if [[ ! -d "$dir/${filename%-dev}/web" ]]; then
+        mkdir -p "$dir/${filename}/web/data"
+        mkdir -p "$dir/${filename}/web/imgs"
     fi
 
-    web="${filename%-dev}"
+    web="${filename%-dev}/web"
 
         generate_darkmode_svg > "$dir/$web/imgs/darkmode.svg"
     generate_svg > "$dir/$web/imgs/armbian-cpu.svg"
@@ -699,33 +722,27 @@ generate_doc() {
         mkdir -p "$dir/doc/${filename%-dev}"
 	fi
 
-	doc="/doc/${filename%-dev}"
+	doc="doc/${filename%-dev}"
 
 	if [[ ! -d "$dir/man/" ]] ; then
 		mkdir -p "$dir/man/man1"
 		
     fi
 
-    man="/man/man1"
+    man="man/man1"
 
     if [[ ! -d "$dir/${filename%-dev}" ]]; then
-        mkdir -p "$dir/${filename}/data"
-        mkdir -p "$dir/${filename}/imgs"
+        mkdir -p "$dir/${filename}"
     fi
 
-    web="${filename%-dev}"
+    conf="${filename%-dev}"
 
     cd "$dir" || exit
-	
-        generate_darkmode_svg > "$dir/$web/imgs/darkmode.svg"
-    generate_svg > "$dir/$web/imgs/armbian-cpu.svg"
-    generate_and_print generate_html "$dir/$web/table" html "Table"
-    generate_and_print generate_html5 "$dir/$web/index" html "HTML"
-    generate_and_print generate_json "$dir/$web/data/$filename" json "JSON"
-    generate_and_print generate_csv "$dir/$web/data/${filename%-dev}" csv "CSV"
-    generate_and_print generate_json "$dir/$doc/$filename" json "JSON"
-    generate_and_print generate_csv "$dir/$doc/${filename}" csv "CSV"
-    generate_and_print generate_markdown "$dir/$man/${filename%-dev}" md "MAN page"
+	#generate_and_print generate_keypairs "$dir/$conf/$filename" sh "Bash"
+    generate_and_print generate_json "$dir/$conf/$filename" json "JSON"
+    generate_and_print generate_csv "$dir/$conf/$filename" csv "CSV"
+    generate_and_print generate_markdown "$dir/$doc/$filename" md "MAN page"
+    generate_and_print generate_markdown "$dir/$man/$filename" md "MAN page"
 
     return 0
 }

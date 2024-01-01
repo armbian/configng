@@ -300,7 +300,13 @@ handle_long_flag(){
     elif [[ "$1" == "--server" ]]; then
         serve_and_open_html
         exit 0 ;
+    elif [[ "$1" == "--web" ]]; then
+        generate_web
+        exit 0 ;
+    elif [[ "$1" == "--key" ]]; then
+        generate_keypairs
     fi
+
 # WIP: 
     if [ "$1" == "--run" ]; then
         shift  # Shifts the arguments to the left, excluding the first argument ("-r")
