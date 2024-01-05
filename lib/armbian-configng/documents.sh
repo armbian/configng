@@ -751,7 +751,6 @@ generate_doc() {
     generate_and_print generate_json "$dir/$conf/$filename" json "JSON"
     generate_and_print generate_csv "$dir/$conf/$filename" csv "CSV"
     generate_and_print generate_markdown "$dir/$doc/$filename" md "MAN page"
-    generate_and_print generate_markdown "$dir/$man/$filename" md "MAN page"
 
     return 0
 }
