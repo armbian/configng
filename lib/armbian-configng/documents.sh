@@ -629,13 +629,22 @@ generate_list_cli() {
 
 # This function is used to generate a help message.
 generate_help(){
-cat << EOF
-Usage: ${filename%.*} [flag][option]
-  flag options:
-    -h,      Print this help.
-    -t,      Show a TUI fallback read.
-    --help,  Prints Help message of long flag interactive options (WIP)."
-    help,    View advanced no-interface options (CURRENT FOCUS)."
+
+#Usage: ${filename%.*} [flag][option]
+
+    cat << EOF
+Usage: ${0##*/} [OPTION]...
+Available options:
+  -h, --help    Show this help message and exit
+  -d, --doc     Generate documentation
+  --server      Serve and open HTML
+  --web         Generate web
+  --key         Generate keypairs
+  --run         Run a function
+  --test        Check distro
+  -t            Generate read
+  -j            Generate JSON
+   help         View advanced no-interface options (CURRENT FOCUS)."
 EOF
 }
 
