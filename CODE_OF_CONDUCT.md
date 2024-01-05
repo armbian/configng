@@ -1,42 +1,13 @@
-# Code of Conduct
+## Being Human and Acknowledging Diversity
 
-## 1. Purpose
+We recognize that we are all human beings, coming from different backgrounds and with different experiences. We acknowledge that misunderstandings can occur and that behavior acceptable in one culture or context may not be acceptable in another. 
 
-A primary goal of [Your Project] is to be inclusive to the largest number of contributors, with the most varied and diverse backgrounds possible. As such, we are committed to providing a friendly, safe and welcoming environment for all, regardless of gender, sexual orientation, ability, ethnicity, socioeconomic status, and religion (or lack thereof).
+We expect all community members to be open to learning from these misunderstandings and to be willing to adjust their behavior as necessary. We also expect community members to be patient and respectful when misunderstandings occur.
 
-## 2. Expected Behavior
+## Unacceptable Behavior
 
-The following behaviors are expected and requested of all community members:
+Unacceptable behavior will not be tolerated. This includes, but is not limited to: harassment, discrimination, personal attacks, or any other behavior that could reasonably be considered inappropriate in a professional setting.
 
-- Participate in an authentic and active way. In doing so, you contribute to the health and longevity of this community.
-- Exercise consideration and respect in your speech and actions.
-- Attempt collaboration before conflict.
-- Refrain from demeaning, discriminatory, or harassing behavior and speech.
-- Be mindful of your surroundings and of your fellow participants.
+If a community member engages in unacceptable behavior, the community organizers may take any action they deem appropriate, up to and including a temporary ban or permanent expulsion from the community without warning (see [Enforcement Guidelines](LINK_TO_GUIDELINES)).
 
-## 3. Unacceptable Behavior
-
-The following behaviors are considered harassment and are unacceptable within our community:
-
-- Violence, threats of violence or violent language directed against another person.
-- Sexist, racist, homophobic, transphobic, ableist or otherwise discriminatory jokes and language.
-- Posting or displaying sexually explicit or violent material.
-- Personal insults, particularly those related to gender, sexual orientation, race, religion, or disability.
-
-## 4. Consequences of Unacceptable Behavior
-
-Unacceptable behavior from any community member will not be tolerated. Anyone asked to stop unacceptable behavior is expected to comply immediately.
-
-If a community member engages in unacceptable behavior, the community organizers may take any action they deem appropriate, up to and including a temporary ban or permanent expulsion from the community without warning.
-
-## 5. Reporting Guidelines
-
-If you are subject to or witness unacceptable behavior, or have any other concerns, please notify a community organizer as soon as possible.
-
-## 6. Addressing Grievances
-
-If you feel you have been falsely or unfairly accused of violating this Code of Conduct, you should notify a project steward with a concise description of your grievance.
-
-```
-
-Please replace `[Your Project]` with the name of your project and `community organizer` or `project steward` with the appropriate contact or role.
+Please replace `LINK_TO_GUIDELINES` with the appropriate link to your enforcement guidelines.
