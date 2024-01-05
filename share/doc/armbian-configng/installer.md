@@ -1,2 +1,0 @@
-# Armbian Installer
-TDOD

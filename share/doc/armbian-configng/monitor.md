@@ -1,2 +1,0 @@
-# Armbian monitor
-TODO
