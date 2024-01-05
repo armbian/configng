@@ -43,7 +43,7 @@ function group::string() {s
  - [HTML](share/armbian-configng/armbian-configng-table.html)
  - [github.io](//tearran/github.io/armbian-configng/index.html)
 ## Functions list as of 2024-01-05
-## locales
+## Locales
 
 
 ### set_timezones.sh
@@ -53,8 +53,28 @@ function group::string() {s
  - **Options:** user selection
  - **Description:** Time zone configuration
 
-## system
+## Network
 Locale Language Region Time Keyboard
+
+### set_wifi.sh
+
+ - **Group Name:** network
+ - **Action Name:** NMTUI
+ - **Options:** connect
+ - **Description:** Network Manager.
+
+## SoftWare
+Ehternet Wierless Blutooth AccessPoint
+
+### get_softy.sh
+
+ - **Group Name:** locales
+ - **Action Name:** Timezone
+ - **Options:** user selection
+ - **Description:** Time zone configuration
+
+## System
+Third-party applications
 
 ### get_system_clone.sh
 
@@ -76,13 +96,6 @@ Locale Language Region Time Keyboard
  - **Action Name:** Kernel_hold
  - **Options:** [frozen] [unfrozen]
  - **Description:** Kernal U-boot update Hold/Unhold.
-
-### set_wifi.sh
-
- - **Group Name:** network
- - **Action Name:** NMTUI
- - **Options:** connect
- - **Description:** Network Manager.
 
 
 # Inclueded projects

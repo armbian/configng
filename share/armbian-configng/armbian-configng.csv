@@ -1,6 +1,7 @@
 Function Name,Group Name,Description,Options,Category,Category Description
-Install,testing,Armbian installer,[sdcard] [emmc] [usb],system,System and Security
-NMTUI,network,Network Manager.,connect,system,System and Security
-Kernel_hold,testing,Kernal U-boot update Hold/Unhold.,[frozen] [unfrozen],system,System and Security
-Bencharking,monitor,Monitor and Bencharking.,help message,system,System and Security
-Timezone,locales,Time zone configuration,user selection,locales,Locale Language Region Time Keyboard
+Timezone,locales,Time zone configuration,user selection,Locales,Locale Language Region Time Keyboard
+Kernel_hold,testing,Kernal U-boot update Hold/Unhold.,[frozen] [unfrozen],System,System and Security
+Install,testing,Armbian installer,[sdcard] [emmc] [usb],System,System and Security
+Timezone,locales,Time zone configuration,user selection,SoftWare,Third-party applications
+Bencharking,monitor,Monitor and Bencharking.,help message,System,System and Security
+NMTUI,network,Network Manager.,connect,Network,Ehternet Wierless Blutooth AccessPoint

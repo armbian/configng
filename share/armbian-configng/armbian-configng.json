@@ -1,25 +1,16 @@
 [
   {
-    "Category Description": "System and Security",
-    "Category": "system",
-    "Group": "testing",
-    "Function": "Install",
-    "Group Description": "Armbian installer",
-    "Options": "[sdcard] [emmc] [usb]",
-    "Toggle": "sdcard"
+    "Category Description": "Locale Language Region Time Keyboard",
+    "Category": "Locales",
+    "Group": "locales",
+    "Function": "Timezone",
+    "Group Description": "Time zone configuration",
+    "Options": "user selection",
+    "Toggle": "none"
   },
   {
     "Category Description": "System and Security",
-    "Category": "system",
-    "Group": "network",
-    "Function": "NMTUI",
-    "Group Description": "Network Manager.",
-    "Options": "connect",
-    "Toggle": "connect"
-  },
-  {
-    "Category Description": "System and Security",
-    "Category": "system",
+    "Category": "System",
     "Group": "testing",
     "Function": "Kernel_hold",
     "Group Description": "Kernal U-boot update Hold/Unhold.",
@@ -28,7 +19,25 @@
   },
   {
     "Category Description": "System and Security",
-    "Category": "system",
+    "Category": "System",
+    "Group": "testing",
+    "Function": "Install",
+    "Group Description": "Armbian installer",
+    "Options": "[sdcard] [emmc] [usb]",
+    "Toggle": "sdcard"
+  },
+  {
+    "Category Description": "Third-party applications",
+    "Category": "SoftWare",
+    "Group": "locales",
+    "Function": "Timezone",
+    "Group Description": "Time zone configuration",
+    "Options": "user selection",
+    "Toggle": "none"
+  },
+  {
+    "Category Description": "System and Security",
+    "Category": "System",
     "Group": "monitor",
     "Function": "Bencharking",
     "Group Description": "Monitor and Bencharking.",
@@ -36,12 +45,12 @@
     "Toggle": "None"
   },
   {
-    "Category Description": "Locale Language Region Time Keyboard",
-    "Category": "locales",
-    "Group": "locales",
-    "Function": "Timezone",
-    "Group Description": "Time zone configuration",
-    "Options": "user selection",
-    "Toggle": "none"
+    "Category Description": "Ehternet Wierless Blutooth AccessPoint",
+    "Category": "Network",
+    "Group": "network",
+    "Function": "NMTUI",
+    "Group Description": "Network Manager.",
+    "Options": "connect",
+    "Toggle": "connect"
   }
 ]
