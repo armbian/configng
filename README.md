@@ -1,116 +1,28 @@
+# My Project
 
-<p align="center">
-    <img src="https://raw.githubusercontent.com/armbian/build/main/.github/armbian-logo.png" alt="Armbian logo" width="144">
-    <br>
-    Armbian ConfigNG 
-    <br>
-    <a href="https://www.codefactor.io/repository/github/tearran/configng"><img src="https://www.codefactor.io/repository/github/tearran/configng/badge" alt="CodeFactor" /></a>
-</p>
+## Overview
 
-# User guide
-## Quick start
-### Installation Options
-Our applications support two Run styles
+This is a brief description of my project. It explains what the project does and why it is useful.
 
-## Limitations 
-<!-- For guidance on these best practices, refer to [insert relevant resources or links]. -->
-- functionaly may or may not work when not useing administration privileges
-  - Lager sample size needed
-- armbian-configng does not requier adnistation access. 
-  - Fallbacks need to be set for admin and no admn access.
-- Non admin is limited to --dev
+## Setup
 
-  
+Instructions for setting up my project. This might include information about required software, how to install the project, and any configuration settings.
 
-1. **Run from GitHub repository:**
-   
-   ` sudo apt update && sudo apt install git `
-   
-    ```bash
+## Usage
 
-    cd ~/
-    git clone https://github.com/armbian/configng.git
-    cd configng
-    ./bin/armbian-configng --dev
-    ```
+Instructions for using my project. This might include code examples, screenshots, or a video demonstration.
 
-    To uninstall:
+## Contributing
 
-    ```bash
-    cd ~/
-    # rm -rf configng
-    ```
+Information about how to contribute to my project. This might include steps for creating good bug reports or feature requests, rules for filing pull requests, and links to the `CODE_OF_CONDUCT.md` and `GOVERNANCE.md` files.
 
-3. **Install from a .deb package:**
-    [Disclamer](#disclaimer): Not recomened
+## License
 
-   <!-- generated readme allowed for dynamic links to be use with safer option of wget" -->
-   
-    ```bash
-    {  
-    latest_release=$(curl -s https://api.github.com/repos/armbian/configng/releases/latest)
-    deb_url=$(echo "$latest_release" | jq -r '.assets[] | select(.name | endswith(".deb")) | .browser_download_url')
-    curl -LO "$deb_url"
-    deb_file=$(echo "$deb_url" | awk -F"/" '{print $NF}')
-    sudo dpkg -i "$deb_file"
-    sudo dpkg --configure -a
-    sudo apt --fix-broken install  
-    }
-    ```
+A short statement about the license, with a link to the `LICENSE` file. For example: "This project is licensed under the GPL-2.0 license. See the `LICENSE` file for details."
 
-    To uninstall:
+## Security
 
-    ```bash
-    sudo dpkg -r armbian-configng
-    ```
-    or
-    ```bash
-      sudo apt remove armbian-configng
-    ```
-4. **Install from the Armbian repository(Coming Soon):**
+A short statement about the project's security policy, with a link to the `SECURITY.md` file. For example: "We take security seriously. Please read our `SECURITY.md` to learn how to responsibly report security vulnerabilities."
+```
 
-    ```bash
-    echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] https://armbian.github.io/configng stable main" \
-    | sudo tee /etc/apt/sources.list.d/armbian-development.list > /dev/null
-    sudo apt update
-    sudo apt install armbian-configng
-    ```
-
-    To uninstall:
-
-    ```bash
-    {  sudo apt remove armbian-configng
-    # sudo rm /etc/apt/sources.list.d/armbian-development.list
-    sudo apt update  }
-    ```
-
-### Using Options
-
-Our applications support two styles of options:
-
-1. **C-style commands:** The `help` command provides a message with examples of how of use.
-2. These option bypass user interations
-3. Limitations
-  a. small sample size
-    - Not much error handeling
-    - Two way communication layer placeholder need filling
-
-
-    ```bash
-    ./bin/armbian-configng help
-    ```
-
-5. **Script-style options:** These are passed as `-option` or `--option`. For example, to request help, you would use `-h` or `--help`.
-
-    ```bash
-    ./bin/armbian-configng -h
-    ./bin/armbian-configng --help
-    ```
-
-## Disclaimer
-
-This guide includes the use of `curl` command to download files from the internet. While we strive to provide safe and reliable instructions, we cannot guarantee the safety of any files downloaded using `curl`. 
-
-Please ensure that you trust the source of the files you are downloading. Be aware that downloading files from the internet always carries a risk, and you should only download files from trusted sources.
-
-Always review the scripts and commands you run in your terminal. If you don't understand what a command or script does, take the time to learn about it before running it. This can help prevent unexpected behavior or damage to your system.
+Please replace the placeholder text with information specific to your project.
