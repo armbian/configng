@@ -42,7 +42,7 @@ function group::string() {s
  - [CSV](share/armbian-configng/data/armbian-configng.csv)
  - [HTML](share/armbian-configng/armbian-configng-table.html)
  - [github.io](//tearran/github.io/armbian-configng/index.html)
-## Functions list as of 2024-01-03
+## Functions list as of 2024-01-05
 ## locales
 
 
