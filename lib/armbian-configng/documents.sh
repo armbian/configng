@@ -21,7 +21,7 @@ generate_json() {
     echo "[${json_objects[*]}]" | jq
 }
 
-generate_keypairs() {
+generate_keypairs_test_01() {
     for key in "${!functions[@]}"; do
         if [[ $key == *",function_name"* ]]; then
             function_key="${key%,function_name}"
@@ -43,6 +43,29 @@ generate_keypairs() {
             echo "export TOGGLE=\"$toggle\""
         fi
     done
+}
+
+generate_keypairs() {
+
+# Define the output file
+output_file="keypairs.sh"
+
+# Define the key-value pairs
+declare -A keypairs=(
+    ["KEY1"]="VALUE1"
+    ["KEY2"]="VALUE2"
+    ["KEY3"]="VALUE3"
+)
+
+# Write the key-value pairs to the output file
+echo "#!/bin/bash" > $output_file
+for key in "${!keypairs[@]}"; do
+    echo "export $key=${keypairs[$key]}" >> $output_file
+done
+
+# Make the output file executable
+chmod +x $output_file
+
 }
 
 # This function is used to generate a armbian CPU logo
