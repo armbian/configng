@@ -32,6 +32,7 @@ jobs:
           run: |
                 git config --global user.name 'GitHub Actions'
                 git config --global user.email 'github-actions@github.com'
+                git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
                 git add -A
-                git commit -m "Generated man pages"
-                git push
+                git commit -m "Generated man pages" || echo "No changes to commit"
+                git push origin HEAD:${{ github.ref }}
