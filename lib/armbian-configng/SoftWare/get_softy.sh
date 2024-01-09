@@ -5,6 +5,6 @@
 # @exitcode 0  If successful.
 # @default none
 # @options none
-function testing::dowloads(){
+function placeholder::dowloads(){
    echo "Softy"
 }

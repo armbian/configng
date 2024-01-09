@@ -20,9 +20,7 @@ libpath=$(cd "$directory/lib/$filename/" && pwd)
 [[ -f "/etc/os-release" ]] && source /etc/os-release
 [[ -f "$libpath/set_get_system.sh" ]] && source "$libpath/set_get_system.sh" 
 
-get_config
-see_ping
-is_apt_list_current
+
 
 #
 # Check if the script is dev version.
@@ -60,6 +58,10 @@ if [[ "$(id -u)" != "0" ]] && [[ "$dev" != "1" ]]; then
     exit 1
 fi
 
+get_config
+see_ping
+is_apt_list_current
+
 declare -A dialogue
 
 #
@@ -70,11 +72,6 @@ if command -v whiptail &> /dev/null; then
 elif command -v dialog &> /dev/null; then
     dialogue="dialog"
 else
-    echo "TUI not found"
-    echo "try -t for text based interface"
-    # WIP: Add a fallback TUI
-    #echo "Warning: Using fallback TUI"
-    #sleep 1
     dialogue="$file_name"
 fi
 
@@ -244,8 +241,8 @@ generate_read() {
     done
 
     echo
-    echo "$i. Show help"
-    ((i++))
+    #echo "$i. Show help"
+    #((i++))
     echo "$i. Exit"
 
     read -p "Enter your choice: " choice

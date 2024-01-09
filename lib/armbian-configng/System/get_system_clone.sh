@@ -12,7 +12,7 @@
 # @exitcode 0  If successful
 # @default sdcard
 # @options [sdcard] [emmc] [usb]
-function testing::Install(){
+function placeholder::Install(){
 
 	armbian-install
     return 0
