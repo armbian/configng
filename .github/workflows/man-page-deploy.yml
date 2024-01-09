@@ -1,0 +1,29 @@
+name: Generate Man Pages
+
+on:
+    push:
+        paths:
+            - 'share/doc/armbian-configng/*.1.md'
+
+jobs:
+    man-page-gen:
+        name: Generate Man Pages
+        runs-on: ubuntu-latest
+        if: ${{ github.repository_owner == 'Tearran' }}
+        steps:
+        - name: Checkout
+          uses: actions/checkout@v2
+
+        - name: Install Pandoc
+          run: sudo apt-get install -y pandoc
+
+        - name: Convert Markdown to Man Pages
+          run: |
+                for file in share/doc/armbian-configng/*.1.md; do
+                    pandoc -s -t man $file -o ${file%.1.md}.1
+                done
+
+        - name: Move Man Pages
+          run: |
+                mkdir -p share/man/man1
+                mv share/doc/armbian-configng/*.1 share/man/man1/
