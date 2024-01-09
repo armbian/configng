@@ -42,9 +42,19 @@ function group::string() {s
  - [CSV](share/armbian-configng/data/armbian-configng.csv)
  - [HTML](share/armbian-configng/armbian-configng-table.html)
  - [github.io](//tearran/github.io/armbian-configng/index.html)
-## Functions list as of 2024-01-05
-## Locales
+## Functions list as of 2024-01-09
+## help
 
+
+### see_help.sh
+
+ - **Group Name:** testing
+ - **Action Name:** Help
+ - **Options:** none
+ - **Description:** Help message.
+
+## Locales
+Locale Language Region Time Keyboard
 
 ### set_timezones.sh
 

@@ -18,6 +18,15 @@
     "Toggle": "unfrozen"
   },
   {
+    "Category Description": "Locale Language Region Time Keyboard",
+    "Category": "help",
+    "Group": "testing",
+    "Function": "Help",
+    "Group Description": "Help message.",
+    "Options": "none",
+    "Toggle": "none"
+  },
+  {
     "Category Description": "System and Security",
     "Category": "System",
     "Group": "testing",

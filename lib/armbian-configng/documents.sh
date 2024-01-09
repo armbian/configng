@@ -21,30 +21,6 @@ generate_json() {
     echo "[${json_objects[*]}]" | jq
 }
 
-generate_keypairs_test_01() {
-    for key in "${!functions[@]}"; do
-        if [[ $key == *",function_name"* ]]; then
-            function_key="${key%,function_name}"
-            function_name="${functions[$key]}"
-            group_name="${functions["$function_key,group_name"]}"
-            description="${functions["$function_key,description"]}"
-            options="${functions["$function_key,options"]}"
-            category="${functions["$function_key,category"]}"
-            category_description="${functions["$function_key,category_description"]}"
-            toggle="${functions["$function_key,toggle"]}"
-            
-            # Output the key-value pairs
-            echo "export FUNCTION_NAME=\"$function_name\""
-            echo "export GROUP_NAME=\"$group_name\""
-            echo "export DESCRIPTION=\"$description\""
-            echo "export OPTIONS=\"$options\""
-            echo "export CATEGORY=\"$category\""
-            echo "export CATEGORY_DESCRIPTION=\"$category_description\""
-            echo "export TOGGLE=\"$toggle\""
-        fi
-    done
-}
-
 generate_keypairs() {
 
 # Define the output file
@@ -651,25 +627,7 @@ generate_list_cli() {
 
 
 # This function is used to generate a help message.
-generate_help(){
 
-#Usage: ${filename%.*} [flag][option]
-
-    cat << EOF
-Usage: ${0##*/} [OPTION]...
-Available options:
-  -h, --help    Show this help message and exit
-  -d, --doc     Generate documentation
-  --server      Serve and open HTML
-  --web         Generate web
-  --key         Generate keypairs
-  --run         Run a function
-  --test        Check distro
-  -t            Generate read
-  -j            Generate JSON
-   help         View advanced no-interface options (CURRENT FOCUS)."
-EOF
-}
 
 # THis function is used to make documents
 generate_and_print() {
@@ -684,8 +642,8 @@ generate_and_print() {
 
 # This function is used to check for a command-line or X browser
 serve_and_open_html() {
-generate_web
-serve_web_open
+    generate_web
+    serve_web_open
 }
 
 generate_web() {

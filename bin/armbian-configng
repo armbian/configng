@@ -8,7 +8,7 @@
 # The script uses whiptail or dialog for the TUI, depending on which is available.
 
 #set -x
-
+clear
 #
 # Enable Dynamic directory root use home ~/ , /bin , /usr/sbin etc.. 
 bin="$(dirname "${BASH_SOURCE[0]}")"
@@ -18,6 +18,11 @@ filename="${file_name%.*}"
 libpath=$(cd "$directory/lib/$filename/" && pwd)
 [[ -f "/etc/armbian-release" ]] && source /etc/armbian-release
 [[ -f "/etc/os-release" ]] && source /etc/os-release
+[[ -f "$libpath/set_get_system.sh" ]] && source "$libpath/set_get_system.sh" 
+
+get_config
+see_ping
+is_apt_list_current
 
 #
 # Check if the script is dev version.
@@ -70,7 +75,7 @@ else
     # WIP: Add a fallback TUI
     #echo "Warning: Using fallback TUI"
     #sleep 1
-    #clear && generate_read
+    dialogue="$file_name"
 fi
 
 if [ -f "$libpath/documents.sh" ]; then
@@ -198,7 +203,7 @@ generate_sub_tui() {
     choice=$($dialogue --menu "Select a function:" 0 0 9 "${options[@]}" 3>&1 1>&2 2>&3)
     
     if [[ -n $choice ]]; then
-        generate_action "${functions_array[$choice]}"
+        generate_action "${functions_array[$choice]}" | "$directory/bin/armbian-interface" -o
     fi
 
 }
@@ -228,7 +233,7 @@ generate_read() {
             # Check if the category has changed and display it if so
             local category="${functions["${function_keys[i]},category"]}" # < editor"
             if [[ "$category" != "$current_category" ]]; then
-                echo "Category: $category"
+                echo " $category"
                 current_category="$category"
             fi
 
@@ -294,7 +299,10 @@ handle_no_flag(){
 # Help message related to the functions the back end
 handle_long_flag(){
     if [[ "$1" == "--help" ]]; then
-        generate_list_run
+        generate_help
+        exit 0 ;
+    elif [[ "$1" == "--menu" ]]; then
+    generate_read ; exit 0 ; 
         exit 0 ;
     elif [[ "$1" == "--doc" ]]; then
         generate_doc
@@ -305,8 +313,12 @@ handle_long_flag(){
     elif [[ "$1" == "--web" ]]; then
         generate_web
         exit 0 ;
-    elif [[ "$1" == "--key" ]]; then
-        generate_keypairs
+    elif [[ "$1" == "--json" ]]; then
+        generate_json
+        exit 0 ;
+    elif [[ "$1" == "--csv" ]]; then
+        generate_csv
+        exit 0 ;
     fi
 
 # WIP: 
@@ -320,11 +332,6 @@ handle_long_flag(){
             # Call the function using variable indirection
             ${function_name}
         fi
-    elif [ "$1" == "--help" ]; then
-        generate_list_run
-        exit
-    elif [ "$1" == "--test" ]; then
-        check_distro #| armbian-interface -o && $1 > /dev/null
     fi
 
 }
@@ -368,11 +375,17 @@ case "$1" in
 esac
 
 if [[ -z "$1" ]] ; then
- while true; do
-    generate_tui ;
-    if [[ "$?" == "0" ]]; then
-        exit 0  
+ 
+while true; do
+    if [[ "$dialogue" == "$file_name" ]]; then
+        generate_read
+    elif [[ "$dialogue" != "$file_name" ]]; then
+        generate_tui 
     fi
- done
+
+    if [[ "$?" == "0" ]]; then
+        break
+    fi
+done
    
 fi
