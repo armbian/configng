@@ -1,4 +1,4 @@
-
+#!/bin/bash
 
 function set_config() {
     CONFIG_FILE="/etc/armbian/configng.sh"
