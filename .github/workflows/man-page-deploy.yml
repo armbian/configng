@@ -9,7 +9,6 @@ jobs:
     man-page-gen:
         name: Generate Man Pages
         runs-on: ubuntu-latest
-        if: ${{ github.repository_owner == 'Tearran' }}
         steps:
         - name: Checkout
           uses: actions/checkout@v2
@@ -20,13 +19,8 @@ jobs:
         - name: Convert Markdown to Man Pages
           run: |
                 for file in share/doc/armbian-configng/*.1.md; do
-                    pandoc -s -t man $file -o ${file%.1.md}.1
-                done
-
-        - name: Compress Man Pages
-          run: |
-                for file in share/doc/armbian-configng/*.1; do
-                    gzip $file
+                    pandoc -s -t man $file -o ${file%.md}
+                    gzip ${file%.md}
                 done
 
         - name: Move Man Pages
