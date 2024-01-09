@@ -30,8 +30,8 @@ jobs:
 
         - name: Commit and Push Changes
           run: |
-                git config --global user.name 'GitHub Actions'
-                git config --global user.email 'github-actions@github.com'
-                git add -A
-                git commit -m "Generated man pages"
-                git push
+            git config --global user.name 'GitHub Actions'
+            git config --global user.email 'github-actions@github.com'
+            git add -A
+            git commit -m "Generated man pages"
+            git push
