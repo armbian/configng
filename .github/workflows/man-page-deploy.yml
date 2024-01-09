@@ -23,15 +23,21 @@ jobs:
                     pandoc -s -t man $file -o ${file%.1.md}.1
                 done
 
+        - name: Compress Man Pages
+          run: |
+                for file in share/doc/armbian-configng/*.1; do
+                    gzip $file
+                done
+
         - name: Move Man Pages
           run: |
                 mkdir -p share/man/man1
-                mv share/doc/armbian-configng/*.1 share/man/man1/
+                mv share/doc/armbian-configng/*.1.gz share/man/man1/
 
         - name: Commit and Push Changes
           run: |
-            git config --global user.name 'GitHub Actions'
-            git config --global user.email 'github-actions@github.com'
-            git add -A
-            git commit -m "Generated man pages"
-            git push
+                git config --global user.name 'GitHub Actions'
+                git config --global user.email 'github-actions@github.com'
+                git add -A
+                git commit -m "Generated man pages"
+                git push
