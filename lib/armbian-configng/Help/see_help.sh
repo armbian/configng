@@ -24,7 +24,7 @@ Usage: ${0##*/} [OPTION]...
         --csv         Generate CSV
         help          Advanced no-interface options help message
 
-    `generate_list_cli`
+    $( generate_list_cli )
 
     This will parse the command to the Group function, and the function will be run.
 
