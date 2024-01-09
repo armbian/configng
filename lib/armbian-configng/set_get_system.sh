@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function set_config() {
-    CONFIG_FILE="/etc/armbian/configng.sh"
+    CONFIG_FILE="/etc/armbian/configng.sh" || echo "No CONFIG_FILE"
 
     echo "Creating $CONFIG_FILE with example key pair."
 
@@ -14,8 +14,7 @@ function set_config() {
 }
 
 function get_config() {
-    CONFIG_FILE="/etc/armbian/configng.sh"
-
+    CONFIG_FILE="/etc/armbian/configng.sh" || echo "No CONFIG_FILE"
     if [[ -f "$CONFIG_FILE" ]]; then
 
         echo "System Checks."  
