@@ -16,6 +16,9 @@ jobs:
         - name: Install Pandoc
           run: sudo apt-get install -y pandoc
 
+        - name: Check Pandoc Version
+          run: pandoc --version
+
         - name: Convert Markdown to Man Pages
           run: |
                 for file in share/doc/armbian-configng/*.1.md; do
