@@ -1,14 +1,5 @@
 [
   {
-    "Category Description": "Locale Language Region Time Keyboard",
-    "Category": "Help",
-    "Group": "testing",
-    "Function": "Help",
-    "Group Description": "Help message.",
-    "Options": "none",
-    "Toggle": "none"
-  },
-  {
     "Category Description": "System and Security",
     "Category": "System",
     "Group": "testing",
@@ -23,6 +14,15 @@
     "Group": "placeholder",
     "Function": "dowloads",
     "Group Description": "Softy is a software manager for Armbian.",
+    "Options": "none",
+    "Toggle": "none"
+  },
+  {
+    "Category Description": "Locale Language Region Time Keyboard",
+    "Category": "help",
+    "Group": "help",
+    "Function": "interface",
+    "Group Description": "armbian-intrface Help message.",
     "Options": "none",
     "Toggle": "none"
   },
@@ -43,6 +43,24 @@
     "Group Description": "Network Manager.",
     "Options": "connect",
     "Toggle": "connect"
+  },
+  {
+    "Category Description": "Locale Language Region Time Keyboard",
+    "Category": "help",
+    "Group": "help",
+    "Function": "configng",
+    "Group Description": "Configng Library Help message.",
+    "Options": "none",
+    "Toggle": "none"
+  },
+  {
+    "Category Description": "Locale Language Region Time Keyboard",
+    "Category": "help",
+    "Group": "help",
+    "Function": "monitor",
+    "Group Description": "armbianmonitor Help message.",
+    "Options": "none",
+    "Toggle": "none"
   },
   {
     "Category Description": "System and Security",

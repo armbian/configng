@@ -736,7 +736,7 @@ generate_doc() {
     generate_and_print generate_markdown "$dir/$doc/$filename" md "MAN page"
     
     
-    check_dependencies pandoc git whiptail
+    see_get_dependencies pandoc git whiptail
     [[ -f "$dir/$doc/$filename.md" ]] && pandoc --standalone -t man "$dir/$doc/$filename.md" -o "$dir/$man/$filename.1.gz"
     [[ -f "$dir/$doc/armbianmonitor.md" ]] && pandoc --standalone -t man "$dir/$doc/armbianmonitor.md" -o "$dir/$man/armbianmonitor.1.gz"
     

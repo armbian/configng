@@ -42,16 +42,30 @@ function group::string() {s
  - [CSV](share/armbian-configng/data/armbian-configng.csv)
  - [HTML](share/armbian-configng/armbian-configng-table.html)
  - [github.io](//tearran/github.io/armbian-configng/index.html)
-## Functions list as of 2024-01-09
-## Help
+## Functions list as of 2024-01-10
+## help
 
 
-### see_help.sh
+### see_group_lib_help.sh
 
- - **Group Name:** testing
- - **Action Name:** Help
+ - **Group Name:** help
+ - **Action Name:** configng
  - **Options:** none
- - **Description:** Help message.
+ - **Description:** Configng Library Help message.
+
+### see_interface_help.sh
+
+ - **Group Name:** help
+ - **Action Name:** interface
+ - **Options:** none
+ - **Description:** armbian-intrface Help message.
+
+### see_monitor_help.sh
+
+ - **Group Name:** help
+ - **Action Name:** monitor
+ - **Options:** none
+ - **Description:** armbianmonitor Help message.
 
 ## Locales
 Locale Language Region Time Keyboard
