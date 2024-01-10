@@ -43,7 +43,7 @@ function group::string() {s
  - [HTML](share/armbian-configng/armbian-configng-table.html)
  - [github.io](//tearran/github.io/armbian-configng/index.html)
 ## Functions list as of 2024-01-09
-## help
+## Help
 
 
 ### see_help.sh
@@ -59,7 +59,7 @@ Locale Language Region Time Keyboard
 ### set_timezones.sh
 
  - **Group Name:** locales
- - **Action Name:** Timezone
+ - **Action Name:** timezone
  - **Options:** user selection
  - **Description:** Time zone configuration
 
@@ -78,17 +78,17 @@ Ehternet Wierless Blutooth AccessPoint
 
 ### get_softy.sh
 
- - **Group Name:** locales
- - **Action Name:** Timezone
- - **Options:** user selection
- - **Description:** Time zone configuration
+ - **Group Name:** placeholder
+ - **Action Name:** dowloads
+ - **Options:** none
+ - **Description:** Softy is a software manager for Armbian.
 
 ## System
 Third-party applications
 
 ### get_system_clone.sh
 
- - **Group Name:** testing
+ - **Group Name:** placeholder
  - **Action Name:** Install
  - **Options:** [sdcard] [emmc] [usb]
  - **Description:** Armbian installer

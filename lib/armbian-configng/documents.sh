@@ -705,7 +705,9 @@ serve_web_open() {
 }
 
 generate_doc() {
-
+    
+   
+    
     local dir="$(dirname "$(dirname "$(realpath "$0")")")/share"
     
 	if [[ ! -d "$dir/doc/${filename%-dev}" ]]; then
@@ -732,6 +734,12 @@ generate_doc() {
     generate_and_print generate_json "$dir/$conf/$filename" json "JSON"
     generate_and_print generate_csv "$dir/$conf/$filename" csv "CSV"
     generate_and_print generate_markdown "$dir/$doc/$filename" md "MAN page"
-
+    
+    
+    check_dependencies pandoc git whiptail
+    [[ -f "$dir/$doc/$filename.md" ]] && pandoc --standalone -t man "$dir/$doc/$filename.md" -o "$dir/$man/$filename.1.gz"
+    [[ -f "$dir/$doc/armbianmonitor.md" ]] && pandoc --standalone -t man "$dir/$doc/armbianmonitor.md" -o "$dir/$man/armbianmonitor.1.gz"
+    
     return 0
+
 }

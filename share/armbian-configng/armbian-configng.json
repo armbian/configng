@@ -1,11 +1,11 @@
 [
   {
     "Category Description": "Locale Language Region Time Keyboard",
-    "Category": "Locales",
-    "Group": "locales",
-    "Function": "Timezone",
-    "Group Description": "Time zone configuration",
-    "Options": "user selection",
+    "Category": "Help",
+    "Group": "testing",
+    "Function": "Help",
+    "Group Description": "Help message.",
+    "Options": "none",
     "Toggle": "none"
   },
   {
@@ -18,30 +18,12 @@
     "Toggle": "unfrozen"
   },
   {
-    "Category Description": "Locale Language Region Time Keyboard",
-    "Category": "help",
-    "Group": "testing",
-    "Function": "Help",
-    "Group Description": "Help message.",
-    "Options": "none",
-    "Toggle": "none"
-  },
-  {
-    "Category Description": "System and Security",
-    "Category": "System",
-    "Group": "testing",
-    "Function": "Install",
-    "Group Description": "Armbian installer",
-    "Options": "[sdcard] [emmc] [usb]",
-    "Toggle": "sdcard"
-  },
-  {
     "Category Description": "Third-party applications",
     "Category": "SoftWare",
-    "Group": "locales",
-    "Function": "Timezone",
-    "Group Description": "Time zone configuration",
-    "Options": "user selection",
+    "Group": "placeholder",
+    "Function": "dowloads",
+    "Group Description": "Softy is a software manager for Armbian.",
+    "Options": "none",
     "Toggle": "none"
   },
   {
@@ -61,5 +43,23 @@
     "Group Description": "Network Manager.",
     "Options": "connect",
     "Toggle": "connect"
+  },
+  {
+    "Category Description": "System and Security",
+    "Category": "System",
+    "Group": "placeholder",
+    "Function": "Install",
+    "Group Description": "Armbian installer",
+    "Options": "[sdcard] [emmc] [usb]",
+    "Toggle": "sdcard"
+  },
+  {
+    "Category Description": "Locale Language Region Time Keyboard",
+    "Category": "Locales",
+    "Group": "locales",
+    "Function": "timezone",
+    "Group Description": "Time zone configuration",
+    "Options": "user selection",
+    "Toggle": "none"
   }
 ]

@@ -80,11 +80,42 @@ function is_apt_list_current() {
         echo -e "\e[5;33mINFORMATION:\e[0m"
         echo "  Checking for apt-daily.service"
         echo "    The package lists are up-to-date."
+        echo ""
         return 0  # The package lists are up-to-date
     else
         echo -e "\e[5;31mWARNING:\e[0m"
         echo "  Checking for apt-daily.service"
         echo "    The package lists are not up-to-date."
+        echo ""
         return 1  # The package lists are not up-to-date
+    fi
+}
+
+# Function to check if dependencies are installed
+see_get_dependencies() {
+    # Array to hold missing dependencies
+    local missing_dependencies=()
+
+    # Check if dependencies are installed
+    for dep in "$@"; do
+        if ! command -v $dep &> /dev/null; then
+            echo "$dep could not be found."
+            missing_dependencies+=($dep)
+        fi
+    done
+
+    # Check if any dependencies are missing
+    if [ ${#missing_dependencies[@]} -eq 0 ]; then
+        echo -e "\e[5;33mINFORMATION:\e[0m"
+        echo "  Checking for dependencies ${dep[@]}"
+        echo "    All dependencies are installed."
+        echo ""
+        return 0
+    else
+        echo "Installing following dependencies: ${missing_dependencies[@]}"
+        for dep in "${missing_dependencies[@]}"; do
+            sudo apt-get install -y $dep
+        done
+        return 0
     fi
 }

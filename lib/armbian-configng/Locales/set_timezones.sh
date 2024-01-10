@@ -6,6 +6,12 @@
 # @default none
 # @options user selection
 function locales::timezone(){
+    echo "Time zone configuration"
+    set_timezone
+    
+    }
+
+set_timezone(){
     echo "Please select a country:"
     countries=$(timedatectl list-timezones | cut -d'/' -f1 | uniq)
     select country in $countries; do

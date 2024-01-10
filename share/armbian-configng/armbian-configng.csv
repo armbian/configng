@@ -1,8 +1,8 @@
 Function Name,Group Name,Description,Options,Category,Category Description
-Timezone,locales,Time zone configuration,user selection,Locales,Locale Language Region Time Keyboard
+Help,testing,Help message.,none,Help,Locale Language Region Time Keyboard
 Kernel_hold,testing,Kernal U-boot update Hold/Unhold.,[frozen] [unfrozen],System,System and Security
-Help,testing,Help message.,none,help,Locale Language Region Time Keyboard
-Install,testing,Armbian installer,[sdcard] [emmc] [usb],System,System and Security
-Timezone,locales,Time zone configuration,user selection,SoftWare,Third-party applications
+dowloads,placeholder,Softy is a software manager for Armbian.,none,SoftWare,Third-party applications
 Bencharking,monitor,Monitor and Bencharking.,help message,System,System and Security
 NMTUI,network,Network Manager.,connect,Network,Ehternet Wierless Blutooth AccessPoint
+Install,placeholder,Armbian installer,[sdcard] [emmc] [usb],System,System and Security
+timezone,locales,Time zone configuration,user selection,Locales,Locale Language Region Time Keyboard

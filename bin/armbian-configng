@@ -20,8 +20,6 @@ libpath=$(cd "$directory/lib/$filename/" && pwd)
 [[ -f "/etc/os-release" ]] && source /etc/os-release
 [[ -f "$libpath/set_get_system.sh" ]] && source "$libpath/set_get_system.sh" 
 
-
-
 #
 # Check if the script is dev version.
 [[ "$1" == "--dev" ]] && dev=1 && shift 1 
@@ -57,10 +55,6 @@ if [[ "$(id -u)" != "0" ]] && [[ "$dev" != "1" ]]; then
     echo -e "E: This tool requires root privileges. Try: \"sudo $filename\"" >&2
     exit 1
 fi
-
-# get_config
-# see_ping
-is_apt_list_current
 
 declare -A dialogue
 
@@ -121,95 +115,49 @@ for category in "${categories[@]}"; do
     done
 done
 
-###############################################################################################
-###############################################################################################
-
-# This function is used to generate a text-based user interface (TUI) for navigating the menus.
-generate_tui() {
-    local options=()
-    local i=0
-    declare -A categories_array
-    local help_index=-1
-
-    for category in "${categories[@]}"; do
-        local category_name="${category##*/}"
-        local category_description=""
-        local category_file="$category/category.conf"
-
-        if [[ -f "$category_file" ]]; then
-            category_description=$(grep -oP "(?<=# @description ).*" "$category_file")
-        fi
-
-        if [[ "$category_name" == "help" ]]; then
-            help_index=$i
-        else
-            categories_array["$i"]="$category_name"
-            description_array["$i"]="$category_description"
-            options+=("$i" "$(printf '%-7s - %-8s' "${categories_array[$i]}" "${description_array[$i]}")")
-            ((++i))
-        fi
-    done
-
-    # Add the help category if it exists
-    if [[ $help_index -ne -1 ]]; then
-        categories_array["$i"]="help"
-        description_array["$i"]="Documentation, support, sources"
-        options+=("$i" "$(printf '%-7s - %-8s' "${categories_array[$i]}" "${description_array[$i]}")")
-        ((++i))
-    fi
-
-    [[ -f /sbin/armbian-config ]] && options+=("$i" "$(printf '%-7s - %-8s' "Legacy" "Run Legacy configuration")") ; ((++i)) ;
-    [[ ! -d "$libpath/help" ]] && options+=("$i" "$(printf '%-7s - %-8s' "Help" "Documentation, support, sources")") ; ((++i)) ;
-
-    local choice
-    choice=$($dialogue --menu "Select a category:" 0 0 9 "${options[@]}" 3>&1 1>&2 2>&3)
-    
-    if [[ -n $choice ]]; then
-        if ((choice == "$i - 1")); then
-            generate_help ;
-            echo "" ;
-            generate_list_cli ; 
-            exit 0 ;
-        elif ((choice == "$i - 2")); then
-            armbian-config
-            exit ;
-        else
-            generate_sub_tui "${categories_array[$choice]}"
-        fi
-    fi
-}
-
-# This function is used to generate a text-based user interface (TUI) for navigating the menus.
-generate_sub_tui() {
-    local category="$1"
-    local options=()
-    local i=0
-    declare -A functions_array
-    for file in "$libpath/$category"/*.sh; do
-        mapfile -t functions_in_file < <(grep -oP '(?<=function\s)\w+::\w+' "$file")
-        for function in "${functions_in_file[@]}"; do
-            key="${category##*/}:${file##*/}:${function}"
-            functions_array["$i"]="$function"
-            options+=("$i" "${functions["$key,function_name"]} - ${functions["$key,description"]}")
-            ((++i))
-        done
-    done
-
-    local choice
-    
-    choice=$($dialogue --menu "Select a function:" 0 0 9 "${options[@]}" 3>&1 1>&2 2>&3)
-    
-    if [[ -n $choice ]]; then
-        generate_action "${functions_array[$choice]}" | "$directory/bin/armbian-interface" -o
-    fi
-
-}
-
 # This function is used to generate a whiptail/dialog text-based user interface (TUI) for navigating the menus.
 generate_action() {
     local function_name="$1"
             ${function_name}
 }
+
+
+generate_help(){
+
+#Usage: ${filename%.*} [flag][option]
+
+    cat << EOF
+    
+Usage: ${0##*/} [OPTION]...
+    options:
+        -h, --help    Show this help message and exit
+        -d, --doc     Generate documentation
+        -t, --menu    Generate Text-based user interface (TUI)
+        --deps        Check dependencies are installed and install if not
+        --web         Generate debug web page 
+        --json        Generate JSON
+        --csv         Generate CSV
+        --server      Serve and open HTML
+
+      example:
+        ${0##*/} --deps git  
+    
+  
+     
+    options:   
+         help         Advanced no-interface options help message
+
+    $( generate_list_cli )
+
+    This will parse the command to the Group function, and the function will be run.
+
+    example:
+       ${0##*/} [group]=[function]
+
+EOF
+
+}
+
 
 # This function is used to generate a bash text-based user interface (TUI) for navigating the menus.
 generate_read() {
@@ -230,26 +178,23 @@ generate_read() {
             # Check if the category has changed and display it if so
             local category="${functions["${function_keys[i]},category"]}" # < editor"
             if [[ "$category" != "$current_category" ]]; then
-                echo " $category"
+                #echo "  $category"
                 current_category="$category"
             fi
 
             # Display the function and its description as an option in the menu
-            echo "  $i. ${functions["${function_keys[i]},group_name"]} ${functions[$key]}  - ${functions["${function_keys[i]},description"]}" #" < for my editor
+            echo "$i. ${functions["${function_keys[i]},group_name"]} ${functions[$key]}  - ${functions["${function_keys[i]},description"]}" #" < for my editor
             ((i++))
         fi
     done
 
     echo
     #echo "$i. Show help"
-    #((i++))
     echo "$i. Exit"
 
     read -p "Enter your choice: " choice
 
-    if ((choice == i-1)); then
-        generate_help ; 
-    elif ((choice == i)); then
+    if ((choice == i)); then
         exit 0
     elif ((choice >= 1 && choice <= ${#function_keys[@]})); then
         # Call the selected function using variable indirection
@@ -276,6 +221,7 @@ parse_action() {
         return 1
     fi
 }
+
 ###############################################################################################
 # WIP: Check arguments for no flag options
 # armbian-config --help
@@ -294,15 +240,44 @@ handle_no_flag(){
 #
 # Check arguments for long flag options
 # Help message related to the functions the back end
-handle_long_flag(){
-    if [[ "$1" == "--help" ]]; then
+run_long_flag(){
+# WIP: 
+    if [ "$1" == "--run" ]; then
+        shift  # Shifts the arguments to the left, excluding the first argument ("-r")
+        group_name="$1"  # Takes the first argument as the group name
+        shift 1  # Shifts the arguments again to exclude the group name
+
+        function_name=$(parse_action "$group_name" "$1")
+        if [ $? -eq 0 ]; then
+            # Call the function using variable indirection
+            ${function_name}
+        fi
+    fi
+
+}
+
+#
+# Check arguments for short flag options
+# THe interface help message 
+handle_short_flag(){
+
+    if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
         generate_help
         exit 0 ;
-    elif [[ "$1" == "--menu" ]]; then
-    generate_read ; exit 0 ; 
+    elif [[ "$1" == "--menu" ]] || [[ "$1" == "-t" ]]; then
+        see_ping
+        is_apt_list_current
+        generate_read ; exit 0 ; 
         exit 0 ;
-    elif [[ "$1" == "--doc" ]]; then
+    elif [[ "$1" == "--doc" ]] || [[ "$1" == "-d" ]]; then
+        see_ping
+        is_apt_list_current
+        see_get_dependencies pandoc git || exit 1
         generate_doc
+        exit 0 ;
+    elif [[ "$1" == "--deps" ]] ; then
+        shift
+        check_dependencies "${@}"
         exit 0 ;
     elif [[ "$1" == "--server" ]]; then
         serve_and_open_html
@@ -318,37 +293,6 @@ handle_long_flag(){
         exit 0 ;
     fi
 
-# WIP: 
-    if [ "$1" == "--run" ]; then
-        shift  # Shifts the arguments to the left, excluding the first argument ("-r")
-        group_name="$1"  # Takes the first argument as the group name
-        shift 1  # Shifts the arguments again to exclude the group name
-
-        function_name=$(parse_action "$group_name" "$1")
-        if [ $? -eq 0 ]; then
-            # Call the function using variable indirection
-            ${function_name}
-        fi
-    fi
-
-}
-#
-# Check arguments for short flag options
-# THe interface help message 
-handle_short_flag(){
-if [ "$1" == "-h" ]; then
-    generate_help
-    exit 0 ;
-# Generate a text-based user interface
-elif [ "$1" == "-t" ]  ; then
-    generate_read ; exit 0 ;    
-# Generate all doc files
-elif [ "$1" == "-d" ] ; then
-    generate_doc ; exit 0 ;
-elif [ "$1" == "-j" ] ; then
-    generate_json ; exit 0 ;
-fi
-
 }
 
 case "$1" in
@@ -358,7 +302,7 @@ case "$1" in
         ;;
     *"--"*)
         # Handle the case where $1 starts with "--"
-        handle_long_flag "$@"
+        handle_short_flag "$@"
         ;;
     *"-"*)
         # Handle the case where $1 starts with "-"
@@ -370,19 +314,3 @@ case "$1" in
         # You can add your code here
         ;;
 esac
-
-if [[ -z "$1" ]] ; then
- 
-while true; do
-    if [[ "$dialogue" == "$file_name" ]]; then
-        generate_read
-    elif [[ "$dialogue" != "$file_name" ]]; then
-        generate_tui 
-    fi
-
-    if [[ "$?" == "0" ]]; then
-        break
-    fi
-done
-   
-fi
