@@ -13,8 +13,8 @@
 # @default sdcard
 # @options [sdcard] [emmc] [usb]
 function placeholder::Install(){
-
-	armbian-install
+    see_get_dependencies armbian-install
+    [[ -f "/usr/sbin/armbian-install" ]] && armbian-install
     return 0
 }
 

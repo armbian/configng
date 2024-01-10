@@ -115,6 +115,7 @@ for category in "${categories[@]}"; do
     done
 done
 
+
 # This function is used to generate a whiptail/dialog text-based user interface (TUI) for navigating the menus.
 generate_action() {
     local function_name="$1"
@@ -398,11 +399,14 @@ generate_sub_tui() {
 
 
 if [[ -z "$1" ]] ; then
+        
+echo -e "\nWarning:\ntry:\n\tarmbain-interface --help" | $bin/armbian-interface -o
+   
     while true; do
         if [[ "$dialogue" == "$file_name" ]]; then
             generate_read
         elif [[ "$dialogue" != "$file_name" ]]; then
-            generate_tui 
+             generate_tui 
         fi
 
         if [[ "$?" == "0" ]]; then
