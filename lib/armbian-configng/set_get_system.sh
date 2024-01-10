@@ -107,12 +107,12 @@ see_get_dependencies() {
     # Check if any dependencies are missing
     if [ ${#missing_dependencies[@]} -eq 0 ]; then
         echo -e "\e[5;33mINFORMATION:\e[0m"
-        echo "  Checking for dependencies ${dep[@]}"
+        echo "  Checking for dependencies ${dep[*]}"
         echo "    All dependencies are installed."
         echo ""
         return 0
     else
-        echo "Installing following dependencies: ${missing_dependencies[@]}"
+        echo "Installing following dependencies: ${missing_dependencies[*]}"
         for dep in "${missing_dependencies[@]}"; do
             sudo apt-get install -y $dep
         done
