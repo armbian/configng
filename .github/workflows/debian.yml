@@ -10,8 +10,9 @@ on:
     - main
 
 jobs:
-
+  
   Debian:
+    if: ${{ github.repository_owner == 'Armbian' }}
     uses: armbian/scripts/.github/workflows/pack-debian.yml@master
     with:
       matrix: "all:jammy"

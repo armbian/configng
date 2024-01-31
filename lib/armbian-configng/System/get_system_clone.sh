@@ -1,5 +1,5 @@
 #!/bin/bash
-#
+
 # Copyright (c) Authors: http://www.armbian.com/authors, info@armbian.com
 #
 # This file is licensed under the terms of the GNU General Public
@@ -8,14 +8,13 @@
 
 
 # @description Armbian installer
-#
-# @exitcode 0  If successful.
-#
-# @options none.
-#
-function system::Install(){
-
-	armbian-install
+# @requirments armbian-install
+# @exitcode 0  If successful
+# @default sdcard
+# @options [sdcard] [emmc] [usb]
+function placeholder::Install(){
+    see_get_dependencies armbian-install
+    [[ -f "/usr/sbin/armbian-install" ]] && armbian-install
     return 0
 }
 

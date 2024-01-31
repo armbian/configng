@@ -1,5 +1,0 @@
-Function Name,Group Name,Description,Options,Category,Category Description
-NMTUI,network,Network Manager.,none.,network,Network Wired wireless Bluetooth access point
-Hello,system,Hello System.,none,system,System and Security
-Bencharking,monitor,Armbian Monitor and Bencharking.,,system,System and Security
-Install,system,Armbian installer,none.,system,System and Security
