@@ -1,0 +1,308 @@
+#!/bin/bash
+
+bin_dir="$(dirname "$(readlink -f "$BASH_SOURCE")")"
+# Define the path to the JSON file
+json_file="$bin_dir/array.json"
+
+if command -v whiptail &> /dev/null
+then
+    dialog_cmd="whiptail"
+elif command -v dialog &> /dev/null
+then
+    dialog_cmd="dialog"
+else
+    cat << EOF
+Error: Neither 'dialog' nor 'whiptail' is installed.
+Please install whiptail for best of them and try again.
+
+EOF
+
+	exit 1
+fi
+
+############################
+# colors
+############################    
+set_colors() {
+    local color_code=$1
+
+    if [ "$dialog_cmd" = "whiptail" ]; then
+        set_newt_colors $color_code
+    elif [ "$dialog_cmd" = "dialog" ]; then
+        set_term_colors $color_code
+    else
+        echo "Invalid dialog type"
+        return 1
+    fi
+}
+
+set_newt_colors() {
+    local color_code=$1
+    case $color_code in
+        0) color="black" ;;
+        1) color="red" ;;
+        2) color="green" ;;
+        3) color="yellow" ;;
+        4) color="blue" ;;
+        5) color="magenta" ;;
+        6) color="cyan" ;;
+        7) color="white" ;;
+        *) echo "Invalid color code"; return 1 ;;
+    esac
+    export NEWT_COLORS="root=,$color"
+}
+
+set_term_colors() {
+    local color_code=$1
+    case $color_code in
+        0) color="\e[40m" ;;  # black
+        1) color="\e[41m" ;;  # red
+        2) color="\e[42m" ;;  # green
+        3) color="\e[43m" ;;  # yellow
+        4) color="\e[44m" ;;  # blue
+        5) color="\e[45m" ;;  # magenta
+        6) color="\e[46m" ;;  # cyan
+        7) color="\e[47m" ;;  # white
+        *) echo "Invalid color code"; return 1 ;;
+    esac
+    echo -e "$color"
+}
+
+reset_colors() {
+    echo -e "\e[0m"
+}
+
+#############################
+trap reset_colors EXIT
+#############################
+
+# display a dialog box with pipe 'echo -e "test" | display_dialog'
+# display a dialog box with "$1" 'display_dialog "test"'
+display_dialog() {
+    local input
+    if [ -p /dev/stdin ]; then
+        input=$(cat)
+    else
+        input="$1"
+    fi
+    $dialog_cmd --title "Script Completed" --msgbox "$input " 0 78
+}
+
+display_infobox() {
+    export TERM=ansi
+    local input
+    local BACKTITLE="Processing"
+    local -a buffer  # Declare buffer as an array
+    if [ -p /dev/stdin ]; then
+        while IFS= read -r line; do
+            buffer+=("$line")  # Add the line to the buffer
+            # If the buffer has more than 10 lines, remove the oldest line
+            if (( ${#buffer[@]} > 10 )); then
+                buffer=("${buffer[@]:1}")
+            fi
+            # Display the lines in the buffer in the infobox
+
+            TERM=ansi $dialog_cmd --title "$BACKTITLE" --infobox "$(printf "%s\n" "${buffer[@]}" )" 16 80
+            sleep 0.5
+        done
+    else
+        
+        input="$1"
+        TERM=ansi $dialog_cmd --title "$BACKTITLE" --infobox "$( echo "$input" )" 8 80
+    fi
+        echo -ne '\033[3J' # clear the screen
+}
+
+display_yesno() {
+    local title="Continue"
+    local message="$1"
+    local height="8"
+    local width="80"
+    if "$dialog_cmd" --title "$title" --yesno "$message" 8 80 ; then
+        echo "User selected Yes, exit status was $?."
+    else
+        echo "User selected No, exit status was $?."
+        exit 0
+    fi
+}
+
+display_inputbox() {
+
+    local prompt="$2"
+    local default_value=""
+    local height="8"
+    local width="39"
+    local input=$(whiptail --inputbox "$prompt" "$height" "$width" "$default_value" --title "$title" 3>&1 1>&2 2>&3)
+    local exitstatus=$?
+    if [ $exitstatus = 0 ]; then
+        echo "User selected Ok and entered " $input
+    else
+        echo "User selected Cancel."
+    fi
+    echo "(Exit status was $exitstatus)"
+}
+
+execute_command() {
+    local id=$1
+    local param=$2  # This is your new parameter
+    [[ "$id" == "" ]] && exit 0
+    local command=$(jq -r --arg id "$id" '.menu[] | .. | objects | select(.id==$id) | .command' $json_file)
+    local requirements=$(jq -r --arg id "$id" '.menu[] | .. | objects | select(.id==$id) | .requirements[]?' $json_file)
+    command=${command:-null}  # If command is null or empty, set it to 'null'
+    if [ "$command" != "null" ]; then
+        # If it does, execute the command
+        #"Executing command associated with ID '$id'..." | 
+        #echo "About to execute command: $command"
+        [[ -n "$param" ]] && echo "with parameter: $param"
+
+        # Check requirements before executing the command
+        if check_requirements $requirements; then
+            # Start the command in the background
+            (eval "$command $param" ) &
+            local command_pid=$!
+
+            # Wait for the command to finish
+            wait $command_pid
+        else
+            {
+                echo "Error: Requirements: [$requirements] for command associated with ID '$id' are not met"
+                exit 1
+            } | display_dialog
+        fi
+        
+        return 0
+    else
+        # If command is 'null', print an error message and return a specific exit status
+        {
+            echo "Error: No command associated with ID '$id'"
+            exit 1
+        } | display_dialog
+    fi 
+}
+
+
+# generate a menu for a given parent_id
+generate_menu() {
+    local parent_id=$1
+
+    # Get the submenu options for the current parent_id
+    local submenu_options=()
+    while IFS= read -r id
+    do
+        IFS= read -r description
+        local requirements=$(jq -r --arg id "$id" '.menu[] | .. | objects | select(.id==$id) | .requirements[]?' $json_file)
+        if check_requirements $requirements; then
+            submenu_options+=("$id" "$description")
+        fi
+    done < <(jq -r --arg parent_id "$parent_id" '.menu[] | .. | objects | select(.id==$parent_id) | .sub[]? | select(.show==true) | "\(.id)\n\(.description)"' $json_file)
+    set_colors 2 # "$?"
+    
+    local OPTION=$($dialog_cmd --title "Menu" --menu "Choose an option" 0 80 9 "${submenu_options[@]}" \
+                            --ok-button Select --cancel-button Back 3>&1 1>&2 2>&3)
+
+    local exitstatus=$?
+
+    if [ $exitstatus = 0 ]; then
+        if [ "$OPTION" == "" ]; then
+            generate_top_menu
+        fi
+        # Check if the selected option has a submenu
+        local submenu_count=$(jq -r --arg id "$OPTION" '.menu[] | .. | objects | select(.id==$id) | .sub[]? | length' $json_file)
+        submenu_count=${submenu_count:-0}  # If submenu_count is null or empty, set it to 0
+        if [ $submenu_count -gt 0 ]; then
+            # If it does, generate a new menu for the submenu
+            set_colors 2 # "$?"
+            generate_menu "$OPTION"
+        else
+            # If it doesn't, execute the command
+            execute_command "$OPTION"
+        fi
+    fi
+
+    }
+
+# generate the top-level menu
+generate_top_menu() {
+    clear
+    # Get the top-level menu options
+    color_option="green"
+    local menu_options=()
+    while IFS= read -r id
+    do
+        IFS= read -r description
+        menu_options+=("$id" "$description")
+    done < <(jq -r '.menu[] | "\(.id)\n\(.description)"' $json_file)
+
+    set_colors 4 # "$?"
+
+    # Generate the $dialog_cmd menu
+    local OPTION=$($dialog_cmd --title "Menu" --menu "Choose an option" 0 80 9 "${menu_options[@]}" 3>&1 1>&2 2>&3)
+    local exitstatus=$?
+
+    if [ $exitstatus = 0 ]; then
+        if [ "$OPTION" == "" ]; then
+            exit 0
+        fi    
+        generate_menu "$OPTION"
+    fi
+}
+
+check_requirements() {
+    local requirements=("$@")
+    for cmd in "${requirements[@]}"; do
+        if ! command -v $cmd &> /dev/null; then
+            #echo "Command $cmd not found"
+            return 1
+        fi
+    done
+    return 0
+}
+
+serve_debug() {
+    cd $bin_dir && local html_file="index.html"
+    requirements=("python3" "nmtui" "apt" "armbianmonitor" "timedatectl" "bash" "armbian-config")
+    check_requirements "${requirements[@]}"
+
+    if [[ -z $CODESPACES ]]; then
+        if command -v python3 &> /dev/null
+        then
+            # Start the Python server in the background
+            python3 -m http.server > /tmp/config.log 2>&1 &
+            local server_pid=$!
+
+            # Get the IP address of the server
+            local server_ip=$(hostname -I | cut -d' ' -f1)
+
+            {
+                echo " Python3 server started"
+                echo -e  "\n  pid $server_pid"
+                echo -e  "\n  Server URL: http://$server_ip:8000"
+                echo -e  "\n  Press enter to exit"
+            } | display_dialog 
+
+            # Stop the server
+            kill $server_pid
+            exit 0
+        fi
+    else
+        echo "GitHub Codespace"
+        exit 0
+    fi
+}
+
+display_help() {
+    echo "Usage: $0 [option...]" >&2
+    echo
+    echo "   -h, --help       display this help and exit"
+    echo "       --server     start a local server to debug the script"
+    echo
+    exit 1
+}
+
+# Check if script is run with `-h` or `--help` option
+[[ $1 == "-h" || $1 == "--help" ]] && display_help
+[[ "$1" == "--server" ]] && serve_debug ;
+[[ $(id -u) -ne 0 ]] && display_yesno "You are not root. Do you want to continue?" 
+
+generate_top_menu 
+
