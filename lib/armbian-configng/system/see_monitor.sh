@@ -7,12 +7,12 @@
 # warranty of any kind, whether express or implied.
 
 
-# @description Armbian Monitor and Bencharking.
+# @description Armbian Monitor and Benchmarking.
 #
 # @exitcode 0  If successful.
 #
 # @options none
-function monitor::Bencharking(){
+function monitor::Benchmarking(){
 	see_menu #| armbian-interface -o
 	return 0 ; 
 }
