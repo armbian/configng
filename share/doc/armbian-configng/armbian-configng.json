@@ -16,9 +16,9 @@
     "Category Description": "System and Security"
   },
   {
-    "Function Name": "Bencharking",
+    "Function Name": "Benchmarking",
     "Group Name": "monitor",
-    "Description": "Armbian Monitor and Bencharking.",
+    "Description": "Armbian Monitor and Benchmarking.",
     "Options": "",
     "Category": "system",
     "Category Description": "System and Security"

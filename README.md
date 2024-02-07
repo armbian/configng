@@ -72,12 +72,12 @@ Network Wired wireless Bluetooth access point
 ### see_monitor.sh
 
  - **Group Name:** monitor
- - **Action Name:** Bencharking
+ - **Action Name:** Benchmarking
  - **Options:** 
- - **Description:** Armbian Monitor and Bencharking.
+ - **Description:** Armbian Monitor and Benchmarking.
 
 
-# Inclueded projects
+# Included projects
 - [Bash Utility](https://labbots.github.io/bash-utility) 
 - [Armbian config](https://github.com/armbian/config.git)
 
