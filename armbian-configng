@@ -1,0 +1,76 @@
+#!/bin/bash
+
+#
+# Language-based variable assignment for script directory path
+# This serves as a Rosetta Stone for developers,
+# allowing them to use the variable name they are most comfortable with.
+
+
+#
+# This script/binary directory
+binary="$(dirname "$0")" 
+
+
+#
+# Tearran_US
+script_dir="$binary"
+
+
+#
+# (WIP) Flat file placeholder for Object data
+json_file="$script_dir/config.ng.jobs.json"
+
+#
+# Load The Bash procedure Objects
+json_data=$(cat "$json_file")
+
+#
+# We're checking if the 'whiptail' command is available on the system.
+# 'whiptail' is a simple dialog box utility that works well with Bash. It doesn't have all the features of some other dialog box utilities, but it does everything we need for this script.
+# If 'whiptail' is available, we assign its name to the variable DIALOG. This way, we can easily switch to another dialog box utility in the future if we need to, just by changing this one line of code.
+[[ -x "$(command -v whiptail)" ]] && DIALOG="whiptail"
+
+#
+# We need 'whiptail' to run this script, so if it's not available, we print an error message and exit.
+# TODO Directt ot commandline options for tty ssh
+[[ ! -x "$(command -v whiptail)" ]] && echo "whiptail is required for this script to run. Exiting." && exit 1
+
+
+#
+# Prepare the module options array
+declare -A module_options
+
+#
+# Load configng core functions and module options array
+source "$script_dir"/config.ng.functions.sh
+
+#
+# Load module options array handeling, Formats include markdown, json-like objects, HTML, and more 
+source "$script_dir"/config.ng.docs.sh
+
+
+#
+# Loads the varibles from beta armbian-config for runtime handeling
+set_runtime_variables
+
+
+#
+# if sudo
+# Runtime "include this script" For SYSTEM ADMINISTRATION conditions
+[[ $EUID == 0 ]] && source "$script_dir"/config.ng.runtime.admin.sh ;
+
+
+#
+# if not sudo
+# Runtime "include this script" for USER and development setup condistion
+[[ $EUID != 0 ]] && source "$script_dir"/config.ng.runtime.user.sh ;
+
+
+# Generate the top menu with the modified Object data
+# Move the cursor to the bottom of the screen using an ANSI escape sequence
+while generate_top_menu "$json_data"; do clear ; echo -e "\033[999;1H" ; done;
+
+
+
+
+exit 0

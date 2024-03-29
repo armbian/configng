@@ -1,0 +1,337 @@
+{
+    "menu": [
+        {
+            "id": "Development",
+            "description": "Prosedures Testing grounds (WIP)",
+            "show": false,
+            "sub": [
+                {
+                    "id": "T00",
+                    "description": "Check Colors (beta)",
+                    "command": [
+                        "get_user_continue \"Change background procedure\n'set_colors #' number 0-7\nDo you want to continue?\" process_input",
+                        "for i in {0..7}; do set_colors $i && echo Color code $i | show_infobox; done;",
+                        "clear && set_colors 0 ; show_message <<< 'Colors 0-7 test complete' ;"
+                    ],
+                    "show": true,
+                    "requirements": [
+                        ""
+                    ]
+                },
+                {
+                    "id": "T01",
+                    "description": "Chack if apt up to date (beta)",
+                    "command": [
+                        "echo \"Usage:\n see_current_apt | show_message ; \" | show_message ",
+                        "see_current_apt | show_message ; "
+                    ],
+                    "show": false,
+                    "requirements": [
+                        "apt"
+                    ]
+                },
+                {
+                    "id": "T02",
+                    "description": "Yes/NO,Check for internet and OK message box (stable)",
+                    "command": [
+                        "get_user_continue \"Usage:\n\t'see_ping | show_message'\n\n Continue?\" process_input",
+                        "see_ping  | show_message"
+                    ],
+                    "show": true,
+                    "requirements": [
+                        ""
+                    ]
+                },
+                {
+                    "id": "T02",
+                    "description": "GUI Poof of consept (alpha)",
+                    "command": [
+                        "get_user_continue \"Usage:\n\tThis will launch a Xorg dialog input.\n\n Continue?\" process_input",
+                        "desktop_keyboard"
+                    ],
+                    "show": true,
+                    "requirements": [
+                        ""
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "System",
+            "description": "System wide and admin settings",
+            "show": true,
+            "sub": [
+                {
+                    "id": "S01",
+                    "description": "Enable Armbina kernal upgrades",
+                    "command": [
+                        	"get_user_continue \"This will allow apt to update boot critical items\n\n  Continue?\" process_input",
+                        	"set_safe_boot unhold"
+                    ],
+                    "show": true,
+                    "requirements": [
+                        ""
+                    ]
+                },
+                {
+                    "id": "S02",
+                    "description": "Disable Armbina kernal upgrades",
+                    "command": [
+                        "get_user_continue \"This will apt hold boot critical items\n\n  Continue?\" process_input",
+                        "set_safe_boot freeze"
+                    ],
+                    "show": true,
+                    "requirements": [
+                        ""
+                    ]
+                },
+                {
+                    "id": "S03",
+                    "description": "Edit the boot enviroment (WIP)",
+                    "command": [
+                        "get_user_continue \"This will open /boot/armbianEnv.txt file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?\" process_input",
+                        "nano /boot/armbianEnv.txt"
+                    ],
+                    "show": true,
+                    "requirements": [
+                        ""
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "Network",
+            "description": "Wireless, Ethernet, and Network settings",
+            "show": true,
+            "sub": [
+                {
+                    "id": "N00",
+                    "description": "Manage wifi network connections",
+                    "command": [
+                        "nmtui connect"
+                    ],
+                    "show": true,
+                    "requirements": [
+                        ""
+                    ]
+                },
+                {
+                    "id": "BT0",
+                    "description": "Install Bluetooth support",
+                    "command": [
+                        "see_current_apt ",
+                        "debconf-apt-progress -- apt-get -y install bluetooth bluez bluez-tools",
+                        "check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y --no-install-recommends install pulseaudio-module-bluetooth blueman"
+                    ],
+                    "show": false,
+                    "requirements": [
+                        ""
+                    ]
+                },
+                {
+                    "id": "BT1",
+                    "description": "Remove Bluetooth support",
+                    "command": [
+                        "see_current_apt ",
+						"debconf-apt-progress -- apt-get -y remove bluetooth bluez bluez-tools",
+						"check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y remove pulseaudio-module-bluetooth blueman",
+                        "debconf-apt-progress -- apt -y -qq autoremove"
+		       ],
+                    "show": false,
+                    "requirements": [
+                        ""
+                    ]
+                },
+                                {
+                    "id": "BT3",
+                    "description": "Bluetooth Discover",
+                    "command": [
+						"get_user_continue \"Verify that your Bluetooth device is discoverable!\" process_input ; connect_bt_interface"
+
+                    ],
+                    "show": false,
+                    "requirements": [
+                        ""
+                    ]
+                },
+                {
+                    "id": "IR0",
+                    "description": "Install Infrared support",
+                    "command": [
+                        "see_current_apt; debconf-apt-progress -- apt-get -y --no-install-recommends install lirc"
+                    ],
+                    "show": false,
+                    "requirements": [
+                        ""
+                    ]
+                },
+                {
+                    "id": "IR1",
+                    "description": "Uninstall Infrared support",
+                    "command": [
+                        "see_current_apt; debconf-apt-progress -- apt-get -y --no-install-recommends install lirc"
+                    ],
+                    "show": false,
+                    "requirements": [
+                        ""
+                    ]
+                },
+                {
+                    "id": "N05",
+                    "description": "Advanced Edit /etc/network/interface",
+                    "command": [
+                        "get_user_continue \"This will open interface file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?\" process_input",
+                        "nano /etc/network/interfaces"
+                    ],
+                    "show": true,
+                    "requirements": [
+                        ""
+                    ]
+                },
+                {
+                    "id": "N06",
+                    "description": "Disconect and forget all wifi connections (Advanced)",
+                    "command": [
+                        "get_user_continue \"Disconect and forget all wifi connections\nWould you like to contiue?\" process_input",
+                        "LC_ALL=C nmcli --fields UUID,TIMESTAMP-REAL,TYPE con show | grep wifi |  awk '{print $1}' | while read line; \\ ",
+						"do nmcli con delete uuid  $line; done > /dev/null"
+                    ],
+                    "show": true,
+                    "requirements": [
+                        ""
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "Localisation",
+            "description": "Localisation",
+            "show": true,
+            "sub": [
+                {
+                    "id": "L00",
+                    "description": "Change Globla timezone (WIP)",
+                    "command": [
+						"dpkg-reconfigure tzdata"
+                    ],
+                    "show": true,
+                    "requirements": [
+                        ""
+                    ]
+                },
+                {
+                    "id": "L01",
+                    "description": "Change Locales reconfigure the language and charitorset",
+                    "command": [
+                        	"dpkg-reconfigure locales",
+							"source /etc/default/locale ; sed -i \"s/^LANGUAGE=.*/LANGUAGE=$LANG/\" /etc/default/locale",
+		                    "export LANGUAGE=$LANG"
+                    ],
+                    "show": true,
+                    "requirements": [
+                        ""
+                    ]
+                },
+                {
+                    "id": "L02",
+                    "description": "Change Keyboard layout",
+                    "command": [
+						"dpkg-reconfigure keyboard-configuration ; setupcon "
+                    ],
+                    "show": true,
+                    "requirements": [
+                        ""
+                    ]
+                },
+                {
+                    "id": "L03",
+                    "description": "Change APT mirrors",
+                    "command": [
+                        "get_user_continue \"This is only a frontend test\" process_input"
+                    ],
+                    "show": false,
+                    "requirements": [
+                        ""
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "Software",
+            "description": "Run/Install 3rd party apllications",
+            "show": true,
+            "sub": [
+                {
+                    "id": "I00",
+                    "description": "Update Application Repository",
+                    "command": [
+                        "get_user_continue \"This will update apt\" process_input",
+                        "debconf-apt-progress -- apt update"
+                    ],
+                    "show": true,
+                    "requirements": [
+                        ""
+                    ]
+                },
+                {
+                    "id": "I01",
+                    "description": "CLI System Monitor",
+                    "command": [
+                        "armbianmonitor -m | show_infobox"
+                    ],
+                    "show": true,
+                    "requirements": [
+                        ""
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "Downloads",
+            "description": "Download and run 3rd party apllications",
+            "show": false,
+            "sub": [
+                {
+                    "id": "D00",
+                    "description": "CLI System Monitor",
+                    "command": [
+                        "armbianmonitor -m | show_infobox"
+                    ],
+                    "show": true,
+                    "requirements": [
+                        ""
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "Help",
+            "description": "About this app",
+            "show": true,
+            "sub": [
+                {
+                    "id": "H00",
+                    "description": "About This systme. (WIP)",
+                    "command": [
+                        "show_message <<< \"This app is to help exicute prosedures to configure your system\n\nSome option may not work on manualy modified sytemes\""
+                    ],
+                    "show": true,
+                    "requirements": [
+                        ""
+                    ]
+                },
+                {
+                    "id": "H02",
+                    "description": "List of Config function(WIP)",
+                    "command": [
+                        "show_message <<< see_use"
+                    ],
+                    "show": false,
+                    "requirements": [
+                        ""
+                    ]
+                }
+            ]
+        }
+    ]
+}
