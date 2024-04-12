@@ -12,9 +12,11 @@ Utility for configuring your board, divided into four main sections:
 To Configure and change global sytem settings, run the following command: `./armbian-configng`
 
 ***
-
+## Screenshots
+![edit-boot-env-2024-04-03 10-06-58](https://github.com/armbian/configng/assets/2831630/448f0515-0854-4a8a-8421-53c8b72bb5c5)
+![BT-connect-2024-04-03 10-06-58](https://github.com/armbian/configng/assets/2831630/fef037ce-346d-4d70-9025-90f69fbdf5d3)
 Following was updated on:
-Thu Apr 11 02:23:43 AM MST 2024.
+Fri Apr 12 01:33:08 AM MST 2024.
 
 ***
 - ## **System** 
@@ -73,9 +75,17 @@ Thu Apr 11 02:23:43 AM MST 2024.
 
 
 ***
+## Quick start
+Run the following commands:
 
-# Development
-get the lastet version of the utility by running the following command:
+    echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] https://armbian.github.io/configng stable main"     | sudo tee /etc/apt/sources.list.d/armbian-development.list > /dev/null
+    
+    armbian-configng --dev
+
+If all goes well you should see the Text-Based User Inerface (TUI)
+
+## Development
+Development test brances are available for testing. To clone the development branch, run the following commands:
 
 ~~~
 git clone https://github.com/armbian/configng.git
