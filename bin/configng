@@ -1,0 +1,78 @@
+#!/bin/bash
+
+
+tput init
+#
+# Language-based variable assignment for script directory path
+# This serves as a Rosetta Stone for developers,
+# allowing them to use the variable name they are most comfortable with.
+
+# allows CTRL c to exit
+trap "exit" INT TERM
+
+# Get the script directory
+script_dir="$(dirname "$0")" 
+
+# Define the lib directory one level up from the script directory
+lib_dir="$script_dir/../lib/armbian-configng"
+doc_dir="$script_dir/../share/doc/armbian-configng"
+# Check for the existence of the config.ng.jobs.json file in the lib directory
+json_file="$lib_dir/config.ng.jobs.json"
+
+#
+# Load The Bash procedure Objects
+json_data=$(cat "$json_file")
+
+
+#
+# We're checking if the 'whiptail' command is available on the system.
+# 'whiptail' is a simple dialog box utility that works well with Bash. It doesn't have all the features of some other dialog box utilities, but it does everything we need for this script.
+# If 'whiptail' is available, we assign its name to the variable DIALOG. This way, we can easily switch to another dialog box utility in the future if we need to, just by changing this one line of code.
+[[ -x "$(command -v whiptail)" ]] && DIALOG="whiptail"
+
+
+#
+# Prepare the module options array
+declare -A module_options
+
+
+#
+# Load configng core functions and module options array
+
+
+source "$lib_dir/config.ng.functions.sh" 
+set_runtime_variables
+echo "Loaded Runtime variables..." | show_infobox ;
+set_newt_colors 2
+echo "Loaded Dialog..." | show_infobox ;
+source "$lib_dir/config.ng.docs.sh"
+echo "Loaded Docs..." | show_infobox ;
+source "$lib_dir/config.ng.network.sh"
+echo "Loaded Network helpers..." | show_infobox ;
+
+
+#
+# Loads the varibles from beta armbian-config for runtime handeling
+
+source "$lib_dir/config.ng.runtime.sh" ;
+echo "Loaded Runtime conditions..." | show_infobox ;
+
+#
+# if not sudo
+# Runtime "include this script" for USER and development setup condistion
+if [[ $EUID != 0 ]]; then
+     source   "$lib_dir/config.ng.runtime.dev.sh" ;
+     echo "Loaded Develoment 
+Runtime conditions..." | show_infobox ;
+
+fi
+
+tput clear
+#
+# Generate the top menu with the modified Object data
+while generate_top_menu "$json_data"; do tput clear ; done
+
+
+#
+# Exit the script with a success status code
+exit 0
