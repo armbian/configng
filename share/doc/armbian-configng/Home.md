@@ -20,9 +20,9 @@ Fri Apr 12 01:33:08 AM MST 2024.
 
 ***
 - ## **System** 
-  - **S01** - Description: Enable Armbina kernal upgrades
+  - **S01** - Description: Enable Armbian kernal upgrades
     - Status: [WIP](https://github.com/armbian/configng/wiki/Menu#s01)
-  - **S02** - Description: Disable Armbina kernal upgrades
+  - **S02** - Description: Disable Armbian kernal upgrades
     - Status: [WIP](https://github.com/armbian/configng/wiki/Menu#s02)
   - **S03** - Description: Edit the boot enviroment (WIP)
     - Status: [WIP](https://github.com/armbian/configng/wiki/Menu#s03)
@@ -50,9 +50,9 @@ Fri Apr 12 01:33:08 AM MST 2024.
 
 
 - ## **Localisation** 
-  - **L00** - Description: Change Globla timezone (WIP)
+  - **L00** - Description: Change Global timezone (WIP)
     - Status: [review](https://github.com/armbian/configng/wiki/Menu#l00)
-  - **L01** - Description: Change Locales reconfigure the language and charitorset
+  - **L01** - Description: Change Locales reconfigure the language and character set
     - Status: [review](https://github.com/armbian/configng/wiki/Menu#l01)
   - **L02** - Description: Change Keyboard layout
     - Status: [review](https://github.com/armbian/configng/wiki/Menu#l02)
@@ -68,7 +68,7 @@ Fri Apr 12 01:33:08 AM MST 2024.
 
 
 - ## **Help** 
-  - **H00** - Description: About This systme. (WIP)
+  - **H00** - Description: About This system. (WIP)
     - Status: [review](https://github.com/armbian/configng/wiki/Menu#h00)
   - **H02** - Description: List of Config function(WIP)
     - Status: [review](https://github.com/armbian/configng/wiki/Menu#h02)

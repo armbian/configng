@@ -1,0 +1,222 @@
+#!/bin/bash
+
+# This script provides a command-line interface for managing Armbian configuration.
+# It loads libraries of functions from the lib directory and displays them in a menu.
+# The user can select a function to run, or use a text-based user interface (TUI) to navigate the menus.
+# The script also provides a help option and a debug option for developers.
+# The script requires sudo privileges to run some functions.
+# The script uses whiptail or dialog for the TUI, depending on which is available.
+
+#set -x
+#set -e
+
+#
+# Enable Dynamic directory root use home ~/ , /bin , /usr/sbin etc.. 
+bin="$(dirname "${BASH_SOURCE[0]}")"
+directory="$(cd "$bin/../" && pwd )"
+file_name="$(basename "${BASH_SOURCE[0]}")"
+filename="${file_name%.*}"
+libpath=$(cd "$directory/lib/$filename/" && pwd)
+#sharepath=$(cd "$directory/share/${filename%-dev}/" && pwd)
+
+
+#
+# Consept Distribution Compatibility checks
+check_distro() {
+
+    [[ -f "/usr/bin/${filename%%-*}-config" ]] && distro_config="${filename%%-*}"
+    [[ -f "/etc/${filename%%-*}-release" ]] && distro_release="${filename%%-*}"
+    # if both true then we are good to go
+    [[ -z "$distro_config" ]] || [[ -z "$distro_release" ]] && echo "W: Costum build, Tech support links are missing."
+    [[ -n "$distro_config" ]] && [[ -n "$distro_release" ]] && echo "I: This build seems to be community supported" | ./armbian-interface -o
+    [[ -f "/usr/sbin/${filename%%-*}-config" ]] && distro_config="${filename%%-*}"
+    [[ -f "/etc/${filename%%-*}-release" ]] && distro_release="${filename%%-*}"
+
+}
+
+[[ "$1" == "--dev" ]] && dev=1 && shift 1 
+
+#
+# Check if the script is dev version.
+suffix="${file_name##*-}"
+
+if [[ "$suffix" == dev ]]; then
+    dev=1
+    check_distro #| armbian-interface -o
+fi
+
+if [[ "$(id -u)" != "0" ]] && [[ "$dev" == "1" ]] ; then
+
+cat << EOF #| ./armbian-interface -o
+I: Running in UX development mode
+W: Admin functions will not work as expected
+
+EOF
+elif [[ "$(id -u)" == "0" ]] && [[ "$dev" == "1" ]] ; then
+cat << EOF | ./armbian-interface -o
+I: Running in UX development mode
+W: Document files may need Admin privleges to edit/remove
+
+EOF
+
+fi
+
+#
+# Check if the script is being run as root
+# UX Development mode bypasses root check, many functions will not work as expected
+
+if [[ "$(id -u)" != "0" ]] && [[ "$dev" != "1" ]]; then
+    echo -e "E: This tool requires root privileges. Try: \"sudo $filename\"" >&2
+    exit 1
+fi
+
+declare -A dialogue
+
+#
+# Check if whiptail or dialog is installed and set the variable 'dialogue' accordingly.
+# todo add a fallback TUI and GUI
+if command -v whiptail &> /dev/null; then
+    dialogue="whiptail"
+elif command -v dialog &> /dev/null; then
+    dialogue="dialog"
+else
+    echo "TUI not found"
+    echo "Warning: Using fallback TUI"
+    sleep 1
+    clear && generate_read
+fi
+
+source "$libpath/functions.sh"
+source "$libpath/documents.sh"
+for file in "$libpath"/*/*.sh; do
+    source "$file"
+done
+
+#
+# mapfile -t categories < <(ls -d "$libpath"/* )
+mapfile -t categories < <(find "$libpath"/* -type d)
+declare -A functions
+
+for category in "${categories[@]}"; do
+    category_name="${category##*/}"
+
+    category_file="$category/readme.md"
+    if [[ -f "$category_file" ]]; then
+        category_description=$(grep -oP "(?<=# @description ).*" "$category_file")
+    fi
+
+    for file in "$category"/*.sh; do
+        description=""
+        while IFS= read -r line; do
+            if [[ $line =~ ^#\ @description\ (.*)$ ]]; then
+                description="${BASH_REMATCH[1]}"
+            elif [[ $line =~ ^function\ (.*::.*)\(\)\{$ ]]; then
+                # END: be15d9bcejpp
+                function_name="${BASH_REMATCH[1]}"
+                key="$category_name:${file##*/}:${function_name}"
+                functions["$key,function_name"]=$(echo "$function_name" | sed 's/.*:://')
+                functions["$key,group_name"]=$(echo "$function_name" | sed 's/::.*//')
+                functions["$key,description"]=$description
+            elif [[ $line =~ ^#\ @options\ (.*)$ ]]; then
+                functions["$key,options"]="${BASH_REMATCH[1]}"
+            fi
+        done < "$file"
+        functions["$key,category"]=$category_name
+        functions["$key,category_description"]=$category_description
+    done
+done
+
+
+#
+# WIP: Check arguments for no flag options
+# armbian-config --help
+# Change to BASH: /usr/sbin/armbian-config main=System selection=BASH
+handle_no_flag(){
+if [[ "$1" == *"="* ]]; then
+    IFS='=' read -r key value <<< "$1"
+    function_name=$(parse_action "$key" "$value")
+    # Call the function using variable indirection
+    ${function_name}
+elif [[ "$1" == "help"* ]]; then
+    generate_list_cli
+fi
+}
+
+#
+# Check arguments for long flag options
+# Help message related to the functions the back end
+handle_long_flag(){
+    if [[ "$1" == "--help" ]]; then
+        generate_list_run
+        exit 0 ;
+    elif [[ "$1" == "--doc" ]]; then
+        generate_doc
+        exit 0 ;
+    fi
+# WIP: 
+    if [ "$1" == "--run" ]; then
+        shift  # Shifts the arguments to the left, excluding the first argument ("-r")
+        group_name="$1"  # Takes the first argument as the group name
+        shift 1  # Shifts the arguments again to exclude the group name
+
+        function_name=$(parse_action "$group_name" "$1")
+        if [ $? -eq 0 ]; then
+            # Call the function using variable indirection
+            ${function_name}
+        fi
+    elif [ "$1" == "--help" ]; then
+        generate_list_run
+        exit
+    elif [ "$1" == "--test" ]; then
+        check_distro | armbian-interface -o && $1 > /dev/null
+    fi
+
+}
+#
+# Check arguments for short flag options
+# THe interface help message 
+handle_short_flag(){
+if [ "$1" == "-h" ]; then
+    generate_help
+    exit 0 ;
+# Generate a text-based user interface
+elif [ "$1" == "-t" ]  ; then
+    generate_read ; exit 0 ;    
+# Generate all doc files
+elif [ "$1" == "-d" ] ; then
+    generate_doc ; exit 0 ;
+elif [ "$1" == "-j" ] ; then
+    generate_json ; exit 0 ;
+fi
+
+}
+
+case "$1" in
+    *"="*)
+        # Handle the case where $1 contains "="
+        handle_no_flag "$@"
+        ;;
+    *"--"*)
+        # Handle the case where $1 starts with "--"
+        handle_long_flag "$@"
+        ;;
+    *"-"*)
+        # Handle the case where $1 starts with "-"
+        handle_short_flag "$1"
+        ;;
+    *)
+        handle_no_flag "$@"
+        # Handle the case where $1 does not match any of the above patterns
+        # You can add your code here
+        ;;
+esac
+
+if [[ -z "$1" ]] ; then
+ while true; do
+    generate_tui ;
+    if [[ "$?" == "0" ]]; then
+        exit 0  
+    fi
+ done
+   
+fi

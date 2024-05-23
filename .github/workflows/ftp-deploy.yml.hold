@@ -1,0 +1,34 @@
+on: push
+name: 🚀 Deploy website on push
+
+jobs:
+  web-deploy:
+    name: 🎉 Deploy
+    runs-on: ubuntu-latest
+    if: ${{ github.repository_owner == 'Tearran' }}
+    steps:
+    - name: 🚚 Get latest code
+      uses: actions/checkout@v3
+    
+    - name: Install ShellCheck
+      run: sudo apt-get install pandoc git shellcheck
+    - name: Run ShellCheck
+      run: |
+        ret=0
+        for file in $(find . -type f -name "*.sh"); do
+          shellcheck --severity=error $file || ret=$?
+        done
+        exit $ret 
+
+    - name: Generate website 
+      run: ./bin/armbian-configng --dev --web
+           
+    - name: 📂 Sync files
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.SERVER_HOST}}  # replace with your server
+        username: ${{ secrets.SERVER_USERNAME }}
+        password: ${{ secrets.SERVER_PASSWORD }}     
+        server-dir: / # replace with your server directory
+        local-dir: share/armbian-configng/web/ # replace with your local directory
+    
