@@ -1,0 +1,29 @@
+name: Debian package
+#
+# Description
+#
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+    - main
+
+jobs:
+
+  Debian:
+    uses: armbian/scripts/.github/workflows/pack-debian.yml@master
+    with:
+      matrix: "all:jammy"
+      maintainer: "Igor Pecovnik <igor@armbian.com>"
+      package: "configng"
+      licence: "GPL 2.0"
+      homepage: "https://www.armbian.com"
+      section: "default"
+      priority: "optional"
+      depends: "bash"
+      description: "Configng"
+
+    secrets:
+      GPG_PRIVATE_KEY: ${{ secrets.GPG_KEY1 }}
+      PASSPHRASE: ${{ secrets.GPG_PASSPHRASE1 }}
