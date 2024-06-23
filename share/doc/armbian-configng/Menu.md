@@ -1,5 +1,5 @@
 
-# Armbian-config Menu list.
+# Menu list.
 armbian-config jobs list.
 
 ### S01
@@ -9,9 +9,6 @@ Enable Armbina kernal upgrades
 Jobs:
 
 ~~~
-get_user_continue "This will allow apt to update boot critical items
-
-  Continue?" process_input
 set_safe_boot unhold
 ~~~
 
@@ -22,9 +19,6 @@ Disable Armbina kernal upgrades
 Jobs:
 
 ~~~
-get_user_continue "This will apt hold boot critical items
-
-  Continue?" process_input
 set_safe_boot freeze
 ~~~
 
@@ -40,6 +34,26 @@ CTRL+S to save
 CTLR+X to exit
 would you like to continue?" process_input
 nano /boot/armbianEnv.txt
+~~~
+
+### S04
+
+Install Linux headers
+
+Jobs:
+
+~~~
+Headers_install
+~~~
+
+### S05
+
+Remove Linux headers
+
+Jobs:
+
+~~~
+Headers_remove
 ~~~
 
 ### BT0

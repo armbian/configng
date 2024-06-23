@@ -35,11 +35,4 @@ if [[ "$1" == "dev" || "$1" == "--dev" ]]; then
 elif [[ "$1" == "--docs" ]]; then
     generate_readme
     exit 0
-elif [[ "$1" == "--help" ]]; then
-    see_use
-    exit 0
-else
-    # exit admin tool
-    echo -e "error: Exiting \nTry: 'sudo armbian-config'\n or: 'armbian-config --help' for More info\n\n"
-    exit 0
 fi

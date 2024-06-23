@@ -9,11 +9,10 @@
                     "id": "S01",
                     "description": "Enable Armbina kernal upgrades",
                     "command": [
-                        	"get_user_continue \"This will allow apt to update boot critical items\n\n  Continue?\" process_input",
-                        	"set_safe_boot unhold"
+                        "set_safe_boot unhold"
                     ],
                     "show": true,
-                    "status": "WIP",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -22,11 +21,10 @@
                     "id": "S02",
                     "description": "Disable Armbina kernal upgrades",
                     "command": [
-                        "get_user_continue \"This will apt hold boot critical items\n\n  Continue?\" process_input",
                         "set_safe_boot freeze"
                     ],
                     "show": true,
-                    "status": "WIP",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -39,10 +37,34 @@
                         "nano /boot/armbianEnv.txt"
                     ],
                     "show": true,
-                    "status": "WIP",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
+                },
+                {
+                    "id": "S04",
+                    "description": "Install Linux headers",
+                    "command": [
+                        "Headers_install"
+                    ],
+                    "show": true,
+                    "status": "Pending Review",
+                    "doc_link": "https://github.com/armbian/config/wiki#System",
+                    "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L160",
+                    "author": "https://github.com/Tearran"
+                },
+                {
+                    "id": "S05",
+                    "description": "Remove Linux headers",
+                    "command": [
+                        "Headers_remove"
+                    ],
+                    "show": true,
+                    "status": "Pending Review",
+                    "doc_link": "https://github.com/armbian/config/wiki#System",
+                    "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L160",
+                    "author": "https://github.com/Tearran"
                 }
             ]
         },
@@ -60,7 +82,7 @@
                         "check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y --no-install-recommends install pulseaudio-module-bluetooth blueman"
                     ],
                     "show": false,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -75,7 +97,7 @@
                         "debconf-apt-progress -- apt -y -qq autoremove"
 		       ],
                     "show": false,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -88,7 +110,7 @@
 
                     ],
                     "show": false,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -100,7 +122,7 @@
                         "see_current_apt; debconf-apt-progress -- apt-get -y --no-install-recommends install lirc"
                     ],
                     "show": false,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -112,7 +134,7 @@
                         "see_current_apt; debconf-apt-progress -- apt-get -y --no-install-recommends install lirc"
                     ],
                     "show": false,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -124,7 +146,7 @@
                         "nmtui connect"
                     ],
                     "show": true,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -137,7 +159,7 @@
                         "nano /etc/network/interfaces"
                     ],
                     "show": true,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -151,7 +173,7 @@
 						"do nmcli con delete uuid  $line; done > /dev/null"
                     ],
                     "show": true,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -164,7 +186,20 @@
                         "toggle_ipv6 | show_infobox"
                     ],
                     "show": true,
-                    "status": "review",
+                    "status": "Active",
+                    "doc_link": "",
+                    "src_reference": "",
+                    "author": ""
+                },
+                {
+                    "id": "N04",
+                    "description": "(WIP) Setup Hotspot?Access point",
+                    "command": [
+                        "get_user_continue \"This operation will install necessary software and add configuration files.\nDo you wish to continue?\" process_input",
+                        "hotspot_setup"
+                    ],
+                    "show": false,
+                    "status": "WIP",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -183,7 +218,7 @@
 						"dpkg-reconfigure tzdata"
                     ],
                     "show": true,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -197,7 +232,7 @@
 		                    "export LANGUAGE=$LANG"
                     ],
                     "show": true,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -209,7 +244,7 @@
 						"dpkg-reconfigure keyboard-configuration ; setupcon "
                     ],
                     "show": true,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -221,7 +256,7 @@
                         "get_user_continue \"This is only a frontend test\" process_input"
                     ],
                     "show": false,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -241,7 +276,7 @@
                         "debconf-apt-progress -- apt update"
                     ],
                     "show": true,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -253,7 +288,7 @@
                         "armbianmonitor -m | show_infobox"
                     ],
                     "show": true,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -272,7 +307,7 @@
                         "show_message <<< \"This app is to help exicute prosedures to configure your system\n\nSome option may not work on manualy modified sytemes\""
                     ],
                     "show": true,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -284,7 +319,7 @@
                         "show_message <<< see_use"
                     ],
                     "show": false,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""

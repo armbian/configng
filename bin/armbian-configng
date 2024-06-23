@@ -10,13 +10,6 @@ tput init
 # allows CTRL c to exit
 trap "exit" INT TERM
 
-if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
-# TODO : Add help message
-     echo -e "\nComming soon:\nsimple help meassage\n"
-     exit 0 ;
-fi
-
-
 # Get the script directory
 script_dir="$(dirname "$0")" 
 
@@ -44,38 +37,103 @@ declare -A module_options
 #
 # Load configng core functions and module options array
 
-
 source "$lib_dir/config.ng.functions.sh" 
 set_runtime_variables
-echo "Loaded Runtime variables..." | show_infobox ;
-set_newt_colors 2
-echo "Loaded Dialog..." | show_infobox ;
+echo "Loaded Runtime variables..." #| show_infobox ;
+#set_newt_colors 2
+echo "Loaded Dialog..." #| show_infobox ;
 source "$lib_dir/config.ng.docs.sh"
-echo "Loaded Docs..." | show_infobox ;
+echo "Loaded Docs..." #| show_infobox ;
 source "$lib_dir/config.ng.network.sh"
-echo "Loaded Network helpers..." | show_infobox ;
-
+echo "Loaded Network helpers..." #| show_infobox ;
 
 #
 # Loads the varibles from beta armbian-config for runtime handeling
 
 source "$lib_dir/config.ng.runtime.sh" ;
-echo "Loaded Runtime conditions..." | show_infobox ;
-
-#
-# if not sudo
-# Runtime "include this script" for USER and development setup condistion
-if [[ $EUID != 0 ]]; then
-     source   "$lib_dir/config.ng.runtime.dev.sh" ;
-     echo "Loaded Develoment 
-Runtime conditions..." | show_infobox ;
-
-fi
+echo "Loaded Runtime conditions..." #| show_infobox ;
 
 
+clear
 
+case "$1" in
+     "--dev")
+          if [[ $EUID != 0 ]]; then
+               source "$lib_dir/config.ng.runtime.dev.sh"
+               echo "Loaded Development Runtime conditions..." | show_infobox
+          fi
+          ;;
+     "--help")
+          see_cli_list
+          exit 0
+          ;;
+     "--doc")
+      if [[ $EUID != 0 ]]; then
+          generate_readme
+          exit 0
+     else 
+          echo "Error: You must run this command as a normal user"
+          exit 1
+     fi
+          ;; 
+     "--cli")
+          shift
+          args=$(sanitize_input "$@")
+          execute_command "$args"
+          exit 0
+          ;;
+     "main=help" | "main=Help")
+          see_cli_legacy
+          echo ""
+          exit 0
+          ;;   
+     "main="*)
+          cat << EOF 
+Legacy help commands are deprecated. May not work as expected.
+Please use 'armbian-config --help' for more information.
 
-tput clear
+EOF
+          declare -A main_map
+          main_map=(
+               # map name to menu catagory
+               ["System"]="S" 
+               ["Software"]="I" 
+               ["Network"]="N" 
+               ["Localisation"]="L"
+           )
+          main_value="${1#main=}"
+          main_value="${main_map[$main_value]}"
+
+          if [ -z "$main_value" ]; then
+               echo "Error: Invalid List $1"
+               exit 1
+          fi
+          declare -A select_map
+          # map name to menu number
+          select_map=(
+               ["Headers"]="04"
+               ["Headers_install"]="04"
+               ["Headers_remove"]="05"
+               ["Firmware"]="06" 
+               ["Nightly"]="07"
+          )
+          select_value="${2#selection=}"
+          select_value="${select_map[$select_value]}"
+          if [ -z "$select_value" ]; then
+               echo "Error: Invalid Option $2"
+               exit 1
+          fi
+          echo "$main_value""$select_value" 
+          execute_command "$main_value""$select_value" 
+          exit 0
+          ;;
+     *)
+          if [[ $EUID != 0 ]]; then
+               echo -e "error: Exiting \nTry: 'sudo armbian-config'\n or: 'armbian-config --help' for More info\n\n"
+               exit 0
+          fi
+          ;;
+esac
 
 #
 # Generate the top menu with the modified Object data
