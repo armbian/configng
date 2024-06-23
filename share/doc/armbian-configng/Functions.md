@@ -28,6 +28,7 @@ A list of the heper function ie bash prosedures used in Jobs file.
 | see_jq_menu_list | Generate a markdown list json objects using jq. | Tearran | [Source](https://github.com/armbian/configng/blob/main/lib/armbian-configng/config.ng.functions.sh#L304) | X | review | 
 | generate_jobs_from_json | Generate jobs from JSON file. | Tearran | [Source](https://github.com/armbian/configng/blob/main/lib/armbian-configng/config.ng.functions.sh#L253) | X | review | 
 | Headers_install | Install kernel headers | https://github.com/Tearran | [Source](https://github.com/armbian/config/blob/master/debian-config-jobs#L160) | [Document](https://github.com/armbian/config/wiki#System) | Review | 
+| hotspot_setup | Set up a WiFi hotspot on the device | Joey Turner | X | X | source link Needed | 
 | toggle_ipv6 | Toggle IPv6 on or off | Joey Turner | X | X | source link Needed | 
 | see_cli_list | Generate a Help message for cli commands. | Tearran | X | X | source link Needed | 
 | generate_json | Generate JSON-like object file. | Tearran | [Source](https://github.com/armbian/configng/blob/main/lib/armbian-configng/config.ng.functions.sh#L174) | X | review | 

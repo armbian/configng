@@ -160,6 +160,18 @@ Would you like to contiue?" process_input
 toggle_ipv6 | show_infobox
 ~~~
 
+### N04
+
+(WIP) Setup Hotspot/Access point
+
+Jobs:
+
+~~~
+get_user_continue "This operation will install necessary software and add configuration files.
+Do you wish to continue?" process_input
+hotspot_setup
+~~~
+
 ### L00
 
 Change Globla timezone (WIP)

@@ -27,6 +27,7 @@ Usage:  armbian-configng [option] [arguments]
     --cli N01  -  Advanced Edit /etc/network/interface
     --cli N02  -  Disconect and forget all wifi connections (Advanced)
     --cli N03  -  Toggle system IPv6/IPv4 internet protical
+    --cli N04  -  (WIP) Setup Hotspot/Access point
     --cli L00  -  Change Globla timezone (WIP)
     --cli L01  -  Change Locales reconfigure the language and charitorset
     --cli L02  -  Change Keyboard layout
