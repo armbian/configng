@@ -32,13 +32,13 @@ echo "Updating Readme.md" # current_date
 ######################################
 
 
-cp  "$script_dir/../README.md" "$doc_dir/Home.md"
+cp  "$script_dir/../README.md" "$doc_dir/User-Guide_Armbian-ConfigNG.md"
 echo "README.md has been updated." # current_date
 
 ######################################
 
 echo "Updating WIKI Functions" # current_date
-cat << EOF > "$doc_dir/Functions.md"
+cat << EOF > "$doc_dir/User-Guide_Armbian-ConfigNG-Functions.md"
 
 # Helper functions
 A list of the heper function ie bash prosedures used in Jobs file.
@@ -50,7 +50,7 @@ EOF
 ######################################
 
 echo "Updating WIKI HowTo" # current_date
-cat << EOF > "$doc_dir/Menu.md"
+cat << EOF > "$doc_dir/User-Guide_Armbian-ConfigNG-Menu.md"
 
 # Menu list.
 armbian-config jobs list.
@@ -62,7 +62,7 @@ EOF
 ######################################
 
 echo "Updating WIKI Command line options" # current_date
-cat << EOF > "$doc_dir/Command.md"
+cat << EOF > "$doc_dir/User-Guide_Armbian-ConfigNG-Command.md"
 
 ## CLI options
 Command ine options.
@@ -93,7 +93,7 @@ EOF
 
 module_options+=(
     ["serve_doc,author"]="Tearran"
-    ["serve_doc,ref_link"]="https://github.com/armbian/configng/blob/main/lib/armbian-configng/config.ng.functions.sh#L106"
+    ["serve_doc,ref_link"]="#L106"
     ["serve_doc,feature"]="serve_doc"
     ["serve_doc,desc"]="Serve the edit and debug server."
     ["serve_doc,example"]="serve_doc"

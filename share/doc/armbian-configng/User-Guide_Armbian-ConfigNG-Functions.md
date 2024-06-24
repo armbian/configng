@@ -21,6 +21,8 @@ A list of the heper function ie bash prosedures used in Jobs file.
 | check_if_installed | Migrated procedures from Armbian config. | Igor Pecovnik | [Source](https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#L88) | X | Active | 
 | generate_svg | Generate 'Armbian CPU logo' SVG for docunment file. | Tearran | [Source](https://github.com/armbian/configng/blob/main/lib/armbian-configng/config.ng.functions.sh#L201) | X | review | 
 | Headers_remove | Remove Linux headers | https://github.com/Tearran | [Source](https://github.com/armbian/config/blob/master/debian-config-jobs#L160) | [Document](https://github.com/armbian/config/wiki#System) | Review | 
+| toggle_menu_item | Show or hide menu items based on conditions | Joey Turner | X | X | source link Needed | 
+| update_submenu_data | Update submenu descriptions based on conditions | Joey Turner | X | X | source link Needed | 
 | Headers_remove | Remove Linux headers | https://github.com/Tearran | [Source](https://github.com/armbian/config/blob/master/debian-config-jobs#L160) | [Document](https://github.com/armbian/config/wiki#System) | Review | 
 | check_ip_version | Check if a domain is reachable via IPv4 and IPv6 | Joey Turner | X | X | source link Needed | 
 | set_header_remove | Migrated procedures from Armbian config. | Igor Pecovnik | [Source](https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#L64) | X | Active | 
@@ -34,6 +36,7 @@ A list of the heper function ie bash prosedures used in Jobs file.
 | generate_json | Generate JSON-like object file. | Tearran | [Source](https://github.com/armbian/configng/blob/main/lib/armbian-configng/config.ng.functions.sh#L174) | X | review | 
 | set_colors | Change the background color of the terminal or dialoge box | Joey Turner | [Source](https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#L287) | X | Active | 
 | serve_doc | Serve the edit and debug server. | Tearran | [Source](https://github.com/armbian/configng/blob/main/lib/armbian-configng/config.ng.functions.sh#L106) | X | review | 
+| update_json_data | Update JSON data with system information | Joey Turner | X | X | source link Needed | 
 | show_infobox | pipe line strings to a infobox  | Joey Turner | [Source](https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#512) | X | Active | 
 | see_use | Show the usage of the functions. | Tearran | [Source](https://github.com/armbian/configng/blob/main/lib/armbian-configng/config.ng.functions.sh#L145) | X | review | 
 | see_ping | Check the internet connection with fallback DNS | Joey Turner | [Source](https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#632) | X | review | 
