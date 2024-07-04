@@ -82,6 +82,12 @@ case "$1" in
           execute_command "$args"
           exit 0
           ;;
+     "--api")
+          shift
+          args=$(sanitize_input "$@")
+          "$args"
+          exit 0
+          ;;
      "main=help" | "main=Help")
           see_cli_legacy
           echo ""
@@ -89,7 +95,7 @@ case "$1" in
           ;;   
      "main="*)
           cat << EOF 
-Legacy help commands are deprecated. May not work as expected.
+Legacy help commands.
 Please use 'armbian-config --help' for more information.
 
 EOF

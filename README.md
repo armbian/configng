@@ -1,98 +1,66 @@
 
-# Armbian configuration utility
-Utility for configuring your board, divided into four main sections:
+# Armbian Configuration Utility
+Thu Jul  4 09:10:49 AM MDT 2024
 
-- System - system and security settings,
-- Network - wired, wireless, Bluetooth, access point,
-- Personal - timezone, language, hostname,
-- Software - system and 3rd party software install.
+Utility for configuring your board, adjusting services, and installing applications. It comes with Armbian by default.
 
+To start the Armbian configuration utility, use the following command:
+~~~
+sudo armbian-config
+~~~
 
 - ## **System** 
-  - **S01** - Description: Enable Armbina kernal upgrades
-    - Status: [Active](https://github.com/armbian/configng/wiki/Menu#s01)
-  - **S02** - Description: Disable Armbina kernal upgrades
-    - Status: [Active](https://github.com/armbian/configng/wiki/Menu#s02)
-  - **S03** - Description: Edit the boot enviroment (WIP)
-    - Status: [Active](https://github.com/armbian/configng/wiki/Menu#s03)
-  - **S04** - Description: Install Linux headers
-    - Status: [Pending Review](https://github.com/armbian/config/wiki#System)
-  - **S05** - Description: Remove Linux headers
-    - Status: [Pending Review](https://github.com/armbian/config/wiki#System)
+  - **S01** - Enable Armbina kernal upgrades
+  - **S02** - Disable Armbina kernal upgrades
+  - **S03** - Edit the boot enviroment (WIP)
+  - **S04** - Install Linux headers
+  - **S05** - Remove Linux headers
 
 
 - ## **Network** 
-  - **BT0** - Description: Install Bluetooth support
-    - Status: [Active](https://github.com/armbian/configng/wiki/Menu#bt0)
-  - **BT1** - Description: Remove Bluetooth support
-    - Status: [Active](https://github.com/armbian/configng/wiki/Menu#bt1)
-  - **BT3** - Description: Bluetooth Discover
-    - Status: [Active](https://github.com/armbian/configng/wiki/Menu#bt3)
-  - **IR0** - Description: Install Infrared support
-    - Status: [Active](https://github.com/armbian/configng/wiki/Menu#ir0)
-  - **IR1** - Description: Uninstall Infrared support
-    - Status: [Active](https://github.com/armbian/configng/wiki/Menu#ir1)
-  - **N00** - Description: Manage wifi network connections
-    - Status: [Active](https://github.com/armbian/configng/wiki/Menu#n00)
-  - **N01** - Description: Advanced Edit /etc/network/interface
-    - Status: [Active](https://github.com/armbian/configng/wiki/Menu#n01)
-  - **N02** - Description: Disconect and forget all wifi connections (Advanced)
-    - Status: [Active](https://github.com/armbian/configng/wiki/Menu#n02)
-  - **N03** - Description: Toggle system IPv6/IPv4 internet protical
-    - Status: [Active](https://github.com/armbian/configng/wiki/Menu#n03)
-  - **N04** - Description: (WIP) Setup Hotspot/Access point
-    - Status: [WIP](https://github.com/armbian/configng/wiki/Menu#n04)
+  - **BT0** - Install Bluetooth support
+  - **BT1** - Remove Bluetooth support
+  - **BT3** - Bluetooth Discover
+  - **IR0** - Install Infrared support
+  - **IR1** - Uninstall Infrared support
+  - **N00** - Manage wifi network connections
+  - **N01** - Advanced Edit /etc/network/interface
+  - **N02** - Disconect and forget all wifi connections (Advanced)
+  - **N03** - Toggle system IPv6/IPv4 internet protical
+  - **N04** - (WIP) Setup Hotspot/Access point
 
 
 - ## **Localisation** 
-  - **L00** - Description: Change Globla timezone (WIP)
-    - Status: [Active](https://github.com/armbian/configng/wiki/Menu#l00)
-  - **L01** - Description: Change Locales reconfigure the language and charitorset
-    - Status: [Active](https://github.com/armbian/configng/wiki/Menu#l01)
-  - **L02** - Description: Change Keyboard layout
-    - Status: [Active](https://github.com/armbian/configng/wiki/Menu#l02)
-  - **L03** - Description: Change APT mirrors
-    - Status: [Active](https://github.com/armbian/configng/wiki/Menu#l03)
+  - **L00** - Change Globla timezone (WIP)
+  - **L01** - Change Locales reconfigure the language and charitorset
+  - **L02** - Change Keyboard layout
+  - **L03** - Change APT mirrors
 
 
 - ## **Software** 
-  - **I00** - Description: Update Application Repository
-    - Status: [Active](https://github.com/armbian/configng/wiki/Menu#i00)
-  - **I01** - Description: CLI System Monitor
-    - Status: [Active](https://github.com/armbian/configng/wiki/Menu#i01)
+  - **I00** - Update Application Repository
+  - **I01** - CLI System Monitor
 
 
 - ## **Help** 
-  - **H00** - Description: About This systme. (WIP)
-    - Status: [Active](https://github.com/armbian/configng/wiki/Menu#h00)
-  - **H02** - Description: List of Config function(WIP)
-    - Status: [Active](https://github.com/armbian/configng/wiki/Menu#h02)
+  - **H00** - About This systme. (WIP)
+  - **H02** - List of Config function(WIP)
 
-
-***
-
-## Development
-
-To clone this development branch, run the following commands:
-
+## Install 
+Armbian installation 
 ~~~
-    git clone https://github.com/armbian/configng
-    cd configng
-    ./armbian-configng --help
+sudo apt install armbian-config
 ~~~
 
-## Install latest release
-dowload .deb package: 
-
+3rd party Debian based distributions
 ~~~
 {
-    latest_release=$(curl -s https://api.github.com/repos/armbian/configng/releases/latest)
-    deb_url=$(echo "$latest_release" | jq -r '.assets[] | select(.name | endswith(".deb")) | .browser_download_url')
-    curl -LO "$deb_url"
-    deb_file=$(echo "$deb_url" | awk -F"/" '{print $NF}')
-    sudo dpkg -i "$deb_file"
-    sudo dpkg --configure -a
-    sudo apt --fix-broken install
+    sudo wget https://apt.armbian.com/armbian.key -O key
+    sudo gpg --dearmor < key | sudo tee /usr/share/keyrings/armbian.gpg > /dev/null
+    sudo chmod go+r /usr/share/keyrings/armbian.gpg
+    sudo echo "deb [arch=arm64 signed-by=/usr/share/keyrings/armbian.gpg] http://apt.armbian.com bookworm main  bookworm-utils  bookworm-desktop" | sudo tee /etc/apt/sources.list.d/armbian.list
+    sudo apt update
+    sudo apt install armbian-config
 }
 ~~~
 
@@ -103,7 +71,7 @@ Command ine options.
 
 Use:
 ~~~
-    armbian-config --help
+armbian-config --help
 ~~~
 
 Outputs:
@@ -140,8 +108,9 @@ Usage:  armbian-configng [option] [arguments]
 Backward Compatible options.
 
 Use:
-
-    armbian-config main=Help
+~~~
+armbian-config main=Help
+~~~
 
 Outputs:
 ~~~
@@ -154,9 +123,370 @@ Usage:  armbian-configng main=[arguments] selection=[options]
     armbian-configng main=System selection=Headers_remove   -  Remove headers:                                 
 ~~~
 
+***
+
+## Development
+
+Develoment is divided into three sections:
+
+Click for more info:
+
+<details>
+<summary><b>Jobs / JSON Object</b></summary>
+
+A list of the jobs defined in the Jobs file.
+
+ ### S01
+
+Enable Armbina kernal upgrades
+
+Jobs:
+
+~~~
+set_safe_boot unhold
+~~~
+
+### S02
+
+Disable Armbina kernal upgrades
+
+Jobs:
+
+~~~
+set_safe_boot freeze
+~~~
+
+### S03
+
+Edit the boot enviroment (WIP)
+
+Jobs:
+
+~~~
+get_user_continue "This will open /boot/armbianEnv.txt file to edit
+CTRL+S to save
+CTLR+X to exit
+would you like to continue?" process_input
+nano /boot/armbianEnv.txt
+~~~
+
+### S04
+
+Install Linux headers
+
+Jobs:
+
+~~~
+Headers_install
+~~~
+
+### S05
+
+Remove Linux headers
+
+Jobs:
+
+~~~
+Headers_remove
+~~~
+
+### BT0
+
+Install Bluetooth support
+
+Jobs:
+
+~~~
+see_current_apt 
+debconf-apt-progress -- apt-get -y install bluetooth bluez bluez-tools
+check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y --no-install-recommends install pulseaudio-module-bluetooth blueman
+~~~
+
+### BT1
+
+Remove Bluetooth support
+
+Jobs:
+
+~~~
+see_current_apt 
+debconf-apt-progress -- apt-get -y remove bluetooth bluez bluez-tools
+check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y remove pulseaudio-module-bluetooth blueman
+debconf-apt-progress -- apt -y -qq autoremove
+~~~
+
+### BT3
+
+Bluetooth Discover
+
+Jobs:
+
+~~~
+get_user_continue "Verify that your Bluetooth device is discoverable!" process_input ; connect_bt_interface
+~~~
+
+### IR0
+
+Install Infrared support
+
+Jobs:
+
+~~~
+see_current_apt; debconf-apt-progress -- apt-get -y --no-install-recommends install lirc
+~~~
+
+### IR1
+
+Uninstall Infrared support
+
+Jobs:
+
+~~~
+see_current_apt; debconf-apt-progress -- apt-get -y --no-install-recommends install lirc
+~~~
+
+### N00
+
+Manage wifi network connections
+
+Jobs:
+
+~~~
+nmtui connect
+~~~
+
+### N01
+
+Advanced Edit /etc/network/interface
+
+Jobs:
+
+~~~
+get_user_continue "This will open interface file to edit
+CTRL+S to save
+CTLR+X to exit
+would you like to continue?" process_input
+nano /etc/network/interfaces
+~~~
+
+### N02
+
+Disconect and forget all wifi connections (Advanced)
+
+Jobs:
+
+~~~
+get_user_continue "Disconect and forget all wifi connections
+Would you like to contiue?" process_input
+LC_ALL=C nmcli --fields UUID,TIMESTAMP-REAL,TYPE con show | grep wifi |  awk '{print $1}' | while read line; \ 
+do nmcli con delete uuid  $line; done > /dev/null
+~~~
+
+### N03
+
+Toggle system IPv6/IPv4 internet protical
+
+Jobs:
+
+~~~
+get_user_continue "This will toggle your internet protical
+Would you like to contiue?" process_input
+toggle_ipv6 | show_infobox
+~~~
+
+### N04
+
+(WIP) Setup Hotspot/Access point
+
+Jobs:
+
+~~~
+get_user_continue "This operation will install necessary software and add configuration files.
+Do you wish to continue?" process_input
+hotspot_setup
+~~~
+
+### L00
+
+Change Globla timezone (WIP)
+
+Jobs:
+
+~~~
+dpkg-reconfigure tzdata
+~~~
+
+### L01
+
+Change Locales reconfigure the language and charitorset
+
+Jobs:
+
+~~~
+dpkg-reconfigure locales
+source /etc/default/locale ; sed -i "s/^LANGUAGE=.*/LANGUAGE=$LANG/" /etc/default/locale
+export LANGUAGE=$LANG
+~~~
+
+### L02
+
+Change Keyboard layout
+
+Jobs:
+
+~~~
+dpkg-reconfigure keyboard-configuration ; setupcon 
+~~~
+
+### L03
+
+Change APT mirrors
+
+Jobs:
+
+~~~
+get_user_continue "This is only a frontend test" process_input
+~~~
+
+### I00
+
+Update Application Repository
+
+Jobs:
+
+~~~
+get_user_continue "This will update apt" process_input
+debconf-apt-progress -- apt update
+~~~
+
+### I01
+
+CLI System Monitor
+
+Jobs:
+
+~~~
+armbianmonitor -m | show_infobox
+~~~
+
+### H00
+
+About This systme. (WIP)
+
+Jobs:
+
+~~~
+show_message <<< "This app is to help exicute prosedures to configure your system
+
+Some option may not work on manualy modified sytemes"
+~~~
+
+### H02
+
+List of Config function(WIP)
+
+Jobs:
+
+~~~
+show_message <<< see_use
+~~~
+
+</details>
 
 
-## Note:
->
-> The Bash procedures embedded within the JSON structure are meticulously designed with a focus on clear naming conventions and the simplicity of key pairs. These procedures serve multiple purposes, including facilitating the generation of content in various formats, such as Whiptail, Markdown, json out and others. Moreover, they are utilized for evaluation and execution of commands outlined in the JSON structure.
->
+<details>
+<summary><b>Jobs API / Helper Functions</b></summary>
+
+These helper functions facilitate various operations related to job management, such as creation, updating, deletion, and listing of jobs, acting as a practical API for developers.
+
+| Description | Example | Credit |
+|:----------- | ------- |:------:|
+| Generate a Help message legacy cli commands. | see_cli_legacy | Joey Turner 
+| Run time varibales Migrated procedures from Armbian config. | set_runtime_variables | Igor Pecovnik 
+| Generate this markdown table of all module_options | see_function_table_md | Joey Turner 
+| Display a menu from pipe | show_menu <<< armbianmonitor -h  ;  | Joey Turner 
+| Build the main menu from a object | generate_top_menu 'json_data' | Joey Turner 
+| Migrated procedures from Armbian config. | is_package_manager_running | Igor Pecovnik 
+| Migrated procedures from Armbian config. | check_desktop | Igor Pecovnik 
+| Generate Document files. | generate_readme | Joey Turner 
+| Needed by generate_menu |  | Joey Turner 
+| Display a Yes/No dialog box and prosees continue/exit | get_user_continue 'Do you wish to continue?' process_input | Joey Turner 
+| Display a message box | show_message <<< 'hello world'  | Joey Turner 
+| Migrated procedures from Armbian config. | connect_bt_interface | Igor Pecovnik 
+| Freeze/unhold Migrated procedures from Armbian config. | set_safe_boot unhold or set_safe_boot freeze | Igor Pecovnik 
+| Check when apt list was last updated | see_current_apt | Joey Turner 
+| Migrated procedures from Armbian config. | check_if_installed nano | Igor Pecovnik 
+| Generate 'Armbian CPU logo' SVG for docunment file. | generate_svg | Joey Turner 
+| Remove Linux headers | Headers_remove | Joey Turner 
+| Show or hide menu items based on conditions | toggle_menu_item | Joey Turner 
+| Update submenu descriptions based on conditions | update_submenu_data | Joey Turner 
+| sanitize input cli | sanitize_input |  
+| Check if a domain is reachable via IPv4 and IPv6 | check_ip_version google.com | Joey Turner 
+| Migrated procedures from Armbian config. | set_header_remove | Igor Pecovnik 
+| Generate a submenu from a parent_id | generate_menu 'parent_id' | Joey Turner 
+| Generate a markdown list json objects using jq. | see_jq_menu_list | Joey Turner 
+| Generate jobs from JSON file. | generate_jobs_from_json | Joey Turner 
+| Install kernel headers | is_package_manager_running | Joey Turner 
+| Set up a WiFi hotspot on the device | hotspot_setup | Joey Turner 
+| Toggle IPv6 on or off | toggle_ipv6 | Joey Turner 
+| Generate a Help message for cli commands. | see_cli_list | Joey Turner 
+| Generate JSON-like object file. | generate_json | Joey Turner 
+| Change the background color of the terminal or dialoge box | set_colors 0-7 | Joey Turner 
+| Serve the edit and debug server. | serve_doc | Joey Turner 
+| Update JSON data with system information | update_json_data | Joey Turner 
+| pipe line strings to a infobox  | show_infobox <<< 'hello world' ;  | Joey Turner 
+| Show the usage of the functions. | see_use | Joey Turner 
+| Check the internet connection with fallback DNS | see_ping | Joey Turner 
+| Secure version of get_user_continue | get_user_continue_secure 'Do you wish to continue?' process_input | Joey Turner 
+
+
+</details>
+
+
+<details>
+<summary><b>Runtime / Board Statuses</b></summary>
+
+(WIP)
+
+This section outlines the runtime environment to check configurations and statuses for dynamically managing jobs based on JSON data.
+
+(WIP)
+
+</details>
+
+
+## Testing and contributing
+
+<details>
+<summary><b>Get Devleopment</b></summary>
+
+Install the dependencys:
+~~~
+sudo apt install git jq whiptail
+~~~
+
+Get Developent and contribute:
+~~~
+{
+    git clone https://github.com/armbian/configng
+    cd configng
+    ./armbian-configng --help
+}
+~~~
+
+Install and test Development deb:
+~~~
+{
+    sudo apt install whiptail
+    latest_release=$(curl -s https://api.github.com/repos/armbian/configng/releases/latest)
+    deb_url=$(echo "$latest_release" | jq -r '.assets[] | select(.name | endswith(".deb")) | .browser_download_url')
+    curl -LO "$deb_url"
+    deb_file=$(echo "$deb_url" | awk -F"/" '{print $NF}')
+    sudo dpkg -i "$deb_file"
+    sudo dpkg --configure -a
+    sudo apt --fix-broken install
+}
+~~~
+
+</details>
+
