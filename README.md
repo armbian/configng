@@ -1,6 +1,6 @@
 
 # Armbian Configuration Utility
-Thu Jul  4 09:10:49 AM MDT 2024
+Updated: Thu Jul  4 10:57:01 PM MDT 2024
 
 Utility for configuring your board, adjusting services, and installing applications. It comes with Armbian by default.
 
@@ -18,16 +18,16 @@ sudo armbian-config
 
 
 - ## **Network** 
-  - **BT0** - Install Bluetooth support
-  - **BT1** - Remove Bluetooth support
-  - **BT3** - Bluetooth Discover
-  - **IR0** - Install Infrared support
-  - **IR1** - Uninstall Infrared support
-  - **N00** - Manage wifi network connections
-  - **N01** - Advanced Edit /etc/network/interface
-  - **N02** - Disconect and forget all wifi connections (Advanced)
-  - **N03** - Toggle system IPv6/IPv4 internet protical
-  - **N04** - (WIP) Setup Hotspot/Access point
+  - **N00** - Install Bluetooth support
+  - **N01** - Remove Bluetooth support
+  - **N02** - Bluetooth Discover
+  - **N03** - Install Infrared support
+  - **N04** - Uninstall Infrared support
+  - **N05** - Manage wifi network connections
+  - **N06** - Advanced Edit /etc/network/interface
+  - **N07** - Disconect and forget all wifi connections (Advanced)
+  - **N08** - Toggle system IPv6/IPv4 internet protical
+  - **N09** - (WIP) Setup Hotspot/Access point
 
 
 - ## **Localisation** 
@@ -86,16 +86,16 @@ Usage:  armbian-configng [option] [arguments]
     --cli S03  -  Edit the boot enviroment (WIP)
     --cli S04  -  Install Linux headers
     --cli S05  -  Remove Linux headers
-    --cli BT0  -  Install Bluetooth support
-    --cli BT1  -  Remove Bluetooth support
-    --cli BT3  -  Bluetooth Discover
-    --cli IR0  -  Install Infrared support
-    --cli IR1  -  Uninstall Infrared support
-    --cli N00  -  Manage wifi network connections
-    --cli N01  -  Advanced Edit /etc/network/interface
-    --cli N02  -  Disconect and forget all wifi connections (Advanced)
-    --cli N03  -  Toggle system IPv6/IPv4 internet protical
-    --cli N04  -  (WIP) Setup Hotspot/Access point
+    --cli N00  -  Install Bluetooth support
+    --cli N01  -  Remove Bluetooth support
+    --cli N02  -  Bluetooth Discover
+    --cli N03  -  Install Infrared support
+    --cli N04  -  Uninstall Infrared support
+    --cli N05  -  Manage wifi network connections
+    --cli N06  -  Advanced Edit /etc/network/interface
+    --cli N07  -  Disconect and forget all wifi connections (Advanced)
+    --cli N08  -  Toggle system IPv6/IPv4 internet protical
+    --cli N09  -  (WIP) Setup Hotspot/Access point
     --cli L00  -  Change Globla timezone (WIP)
     --cli L01  -  Change Locales reconfigure the language and charitorset
     --cli L02  -  Change Keyboard layout
@@ -190,7 +190,7 @@ Jobs:
 Headers_remove
 ~~~
 
-### BT0
+### N00
 
 Install Bluetooth support
 
@@ -202,7 +202,7 @@ debconf-apt-progress -- apt-get -y install bluetooth bluez bluez-tools
 check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y --no-install-recommends install pulseaudio-module-bluetooth blueman
 ~~~
 
-### BT1
+### N01
 
 Remove Bluetooth support
 
@@ -215,7 +215,7 @@ check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y remove pul
 debconf-apt-progress -- apt -y -qq autoremove
 ~~~
 
-### BT3
+### N02
 
 Bluetooth Discover
 
@@ -225,7 +225,7 @@ Jobs:
 get_user_continue "Verify that your Bluetooth device is discoverable!" process_input ; connect_bt_interface
 ~~~
 
-### IR0
+### N03
 
 Install Infrared support
 
@@ -235,7 +235,7 @@ Jobs:
 see_current_apt; debconf-apt-progress -- apt-get -y --no-install-recommends install lirc
 ~~~
 
-### IR1
+### N04
 
 Uninstall Infrared support
 
@@ -245,7 +245,7 @@ Jobs:
 see_current_apt; debconf-apt-progress -- apt-get -y --no-install-recommends install lirc
 ~~~
 
-### N00
+### N05
 
 Manage wifi network connections
 
@@ -255,7 +255,7 @@ Jobs:
 nmtui connect
 ~~~
 
-### N01
+### N06
 
 Advanced Edit /etc/network/interface
 
@@ -269,7 +269,7 @@ would you like to continue?" process_input
 nano /etc/network/interfaces
 ~~~
 
-### N02
+### N07
 
 Disconect and forget all wifi connections (Advanced)
 
@@ -282,7 +282,7 @@ LC_ALL=C nmcli --fields UUID,TIMESTAMP-REAL,TYPE con show | grep wifi |  awk '{p
 do nmcli con delete uuid  $line; done > /dev/null
 ~~~
 
-### N03
+### N08
 
 Toggle system IPv6/IPv4 internet protical
 
@@ -294,7 +294,7 @@ Would you like to contiue?" process_input
 toggle_ipv6 | show_infobox
 ~~~
 
-### N04
+### N09
 
 (WIP) Setup Hotspot/Access point
 

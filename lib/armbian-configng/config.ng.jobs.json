@@ -74,7 +74,7 @@
             "show": true,
             "sub": [
                 {
-                    "id": "BT0",
+                    "id": "N00",
                     "description": "Install Bluetooth support",
                     "command": [
                         "see_current_apt ",
@@ -88,7 +88,7 @@
                     "author": ""
                 },
                 {
-                    "id": "BT1",
+                    "id": "N01",
                     "description": "Remove Bluetooth support",
                     "command": [
                         "see_current_apt ",
@@ -103,7 +103,7 @@
                     "author": ""
                 },
                                 {
-                    "id": "BT3",
+                    "id": "N02",
                     "description": "Bluetooth Discover",
                     "command": [
 						"get_user_continue \"Verify that your Bluetooth device is discoverable!\" process_input ; connect_bt_interface"
@@ -116,31 +116,31 @@
                     "author": ""
                 },
                 {
-                    "id": "IR0",
+                    "id": "N03",
                     "description": "Install Infrared support",
                     "command": [
                         "see_current_apt; debconf-apt-progress -- apt-get -y --no-install-recommends install lirc"
                     ],
                     "show": false,
-                    "status": "Active",
+                    "status": "Testing",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
                 },
                 {
-                    "id": "IR1",
+                    "id": "N04",
                     "description": "Uninstall Infrared support",
                     "command": [
                         "see_current_apt; debconf-apt-progress -- apt-get -y --no-install-recommends install lirc"
                     ],
                     "show": false,
-                    "status": "Active",
+                    "status": "Testing",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
                 },
                 {
-                    "id": "N00",
+                    "id": "N05",
                     "description": "Manage wifi network connections",
                     "command": [
                         "nmtui connect"
@@ -152,7 +152,7 @@
                     "author": ""
                 },
                 {
-                    "id": "N01",
+                    "id": "N06",
                     "description": "Advanced Edit /etc/network/interface",
                     "command": [
                         "get_user_continue \"This will open interface file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?\" process_input",
@@ -165,7 +165,7 @@
                     "author": ""
                 },
                 {
-                    "id": "N02",
+                    "id": "N07",
                     "description": "Disconect and forget all wifi connections (Advanced)",
                     "command": [
                         "get_user_continue \"Disconect and forget all wifi connections\nWould you like to contiue?\" process_input",
@@ -179,7 +179,7 @@
                     "author": ""
                 },
                 {
-                    "id": "N03",
+                    "id": "N08",
                     "description": "Toggle system IPv6/IPv4 internet protical",
                     "command": [
                         "get_user_continue \"This will toggle your internet protical\nWould you like to contiue?\" process_input",
@@ -192,7 +192,7 @@
                     "author": ""
                 },
                 {
-                    "id": "N04",
+                    "id": "N09",
                     "description": "(WIP) Setup Hotspot/Access point",
                     "command": [
                         "get_user_continue \"This operation will install necessary software and add configuration files.\nDo you wish to continue?\" process_input",

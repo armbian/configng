@@ -16,7 +16,6 @@ script_dir="$(dirname "$0")"
 # Define the lib directory one level up from the script directory
 lib_dir="$script_dir/../lib/armbian-configng"
 doc_dir="$script_dir/../share/doc/armbian-configng"
-# Check for the existence of the config.ng.jobs.json file in the lib directory
 json_file="$lib_dir/config.ng.jobs.json"
 
 #
@@ -64,25 +63,33 @@ case "$1" in
           fi
           ;;
      "--help")
-          see_cli_list
-          exit 0
+               see_cli_list
+               exit 0
           ;;
      "--doc")
-      if [[ $EUID != 0 ]]; then
-          generate_readme
-          exit 0
-     else 
-          echo "Error: You must run this command as a normal user"
-          exit 1
-     fi
+          if [[ $EUID != 0 ]]; then
+               generate_readme
+               exit 0
+          else 
+               echo "Error: You must run this command as a normal user"
+               exit 1
+          fi
           ;; 
      "--cli")
+          if [[ $EUID != 0 ]]; then
+               echo "Error: The --cli option requires root privileges. Please run as root or use sudo."
+               exit 1
+          fi
           shift
           args=$(sanitize_input "$@")
           execute_command "$args"
           exit 0
           ;;
      "--api")
+          if [[ $EUID != 0 ]]; then
+               echo "Error: The --api option requires root privileges. Please run as root or use sudo."
+               exit 1
+          fi
           shift
           args=$(sanitize_input "$@")
           "$args"
@@ -94,11 +101,6 @@ case "$1" in
           exit 0
           ;;   
      "main="*)
-          cat << EOF 
-Legacy help commands.
-Please use 'armbian-config --help' for more information.
-
-EOF
           declare -A main_map
           main_map=(
                # map name to menu catagory

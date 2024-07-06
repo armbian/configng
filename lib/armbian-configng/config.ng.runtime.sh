@@ -86,18 +86,18 @@ update_submenu_data "Install" "I0" "$installed_software"
 
 # Conditional submenu updates based on network type
 if [ "$network_adapter" = "IPv6" ]; then
-    update_submenu_data "Network" "N03" "IPV6"
+    update_submenu_data "Network" "N08" "IPV6"
 else
-    update_submenu_data "Network" "N03" "IPV4"
+    update_submenu_data "Network" "N08" "IPV4"
 fi
 
 # Bluetooth menu item visibility
 if [ "$bluetooth_status" = false ] || [ "$bluez_status" = false ] || [ "$bluez_tools_status" = false ]; then
-    toggle_menu_item "Network" "BT0" "true"
-    toggle_menu_item "Network" "BT3" "false"
+    toggle_menu_item "Network" "N00" "true"
+    toggle_menu_item "Network" "N02" "false"
 else
-    toggle_menu_item "Network" "BT1" "true"
-    toggle_menu_item "Network" "BT3" "true"
+    toggle_menu_item "Network" "N01" "true"
+    toggle_menu_item "Network" "N02" "true"
 fi
 
 if [ "$system_info" ]; then
