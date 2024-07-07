@@ -60,7 +60,7 @@ sudo apt install armbian-config
 ***
 
 ## CLI options
-Command ine options.
+Command line options.
 
 Use:
 ~~~
@@ -89,7 +89,7 @@ $(see_cli_legacy)
 
 ## Development
 
-Develoment is divided into three sections:
+Development is divided into three sections:
 
 Click for more info:
 
@@ -129,7 +129,7 @@ This section outlines the runtime environment to check configurations and status
 ## Testing and contributing
 
 <details>
-<summary><b>Get Devleopment</b></summary>
+<summary><b>Get Development</b></summary>
 
 Install the dependencys:
 ~~~
@@ -292,7 +292,7 @@ module_options+=(
     ["generate_svg,author"]="Joey Turner"
     ["generate_svg,ref_link"]=""
     ["generate_svg,feature"]="generate_svg"
-    ["generate_svg,desc"]="Generate 'Armbian CPU logo' SVG for docunment file."
+    ["generate_svg,desc"]="Generate 'Armbian CPU logo' SVG for document file."
     ["generate_svg,example"]="generate_svg"
     ["generate_svg,status"]="review"
     ["generate_svg,doc_link"]=""
