@@ -7,54 +7,102 @@
 
 set_colors 2 # Set the color to green
 
-# Main menu items
-system="$(uname -m)"
-network="$(echo "$DEFAULT_ADAPTER")"
-localisation="$LANG"
-software="$(see_current_apt)"
+# Dynamically updates a JSON menu structure based on system checks.
 
+# Initialize variables
+system_info="$(uname -m)"
+network_adapter="$DEFAULT_ADAPTER"
+locale_setting="$LANG"
+installed_software="$(see_current_apt)"
+bluetooth_status=$(dpkg -s bluetooth &> /dev/null && echo true || echo false)
+bluez_status=$(dpkg -s bluez &> /dev/null && echo true || echo false)
+bluez_tools_status=$(dpkg -s bluez-tools &> /dev/null && echo true || echo false)
 
-# Sub menu items
-bluetooth_installed=$(dpkg -s bluetooth &> /dev/null && echo true || echo false)
-bluez_installed=$(dpkg -s bluez &> /dev/null && echo true || echo false)
-bluez_tools_installed=$(dpkg -s bluez-tools &> /dev/null && echo true || echo false)
-#check_hold=$(apt-mark showhold)
+module_options+=(
+    ["update_json_data,author"]="Joey Turner"
+    ["update_json_data,ref_link"]=""
+    ["update_json_data,feature"]="update_json_data"
+    ["update_json_data,desc"]="Update JSON data with system information"
+    ["update_json_data,example"]="update_json_data"
+    ["update_json_data,status"]="review"
+    ["update_json_data,doc_link"]=""
 
-# Append Items to menu descriptions 
-json_data=$(echo "$json_data" | jq --arg str "$system"       '(.menu[] | select(.id == "System"       ) .description) += " (" + $str + ")"')  
-json_data=$(echo "$json_data" | jq --arg str "$network"      '(.menu[] | select(.id == "Network"      ) .description) += " (" + $str + ")"')
-json_data=$(echo "$json_data" | jq --arg str "$localisation" '(.menu[] | select(.id == "Localisation" ) .description) += " (" + $str + ")"')
-json_data=$(echo "$json_data" | jq --arg str "$software"      '(.menu[] | select(.id == "Software"      ) .description) += " (" + $str + ")"')
-
+)
 #
-# Append Items to Sub menu descriptions 
-json_data=$(echo "$json_data" | jq --arg str "$network" '(.menu[] | select(.id=="Testing").sub[] | select(.id == "T2").description) += " (" + $str + ")"')
-json_data=$(echo "$json_data" | jq --arg str "$software" '(.menu[] | select(.id=="Testing").sub[] | select(.id == "T1").description) += " (" + $str + ")"')
-json_data=$(echo "$json_data" | jq --arg str "$software" '(.menu[] | select(.id=="Install").sub[] | select(.id == "I0").description) += " (" + $str + ")"')
+# Update JSON data with system information
+update_json_data() {
+    json_data=$(echo "$json_data" | jq --arg key "$1" --arg value "$2" \
+        '(.menu[] | select(.id == $key).description) += " (" + $value + ")"')
+}
 
-# Show or hide Sub menu items dynamicly
 
-if [ "$network" = "IPv6" ]; then
-    # If IPv6 is being used, do something
-    json_data=$(echo "$json_data" | jq --arg str "IPV6" '(.menu[] | select(.id=="Network").sub[] | select(.id == "N03").description) += " (" + $str + ")"')
+module_options+=(
+    ["update_submenu_data,author"]="Joey Turner"
+    ["update_submenu_data,ref_link"]=""
+    ["update_submenu_data,feature"]="update_submenu_data"
+    ["update_submenu_data,desc"]="Update submenu descriptions based on conditions"
+    ["update_submenu_data,example"]="update_submenu_data"
+    ["update_submenu_data,status"]="review"
+    ["update_submenu_data,doc_link"]=""
+)
+#
+# Update submenu descriptions based on conditions
+update_submenu_data() {
+    json_data=$(echo "$json_data" | jq --arg key "$1" --arg subkey "$2" --arg value "$3" \
+        '(.menu[] | select(.id==$key).sub[] | select(.id == $subkey).description) += " (" + $value + ")"')
+}
+
+
+module_options+=(
+    ["toggle_menu_item,author"]="Joey Turner"
+    ["toggle_menu_item,ref_link"]=""
+    ["toggle_menu_item,feature"]="toggle_menu_item"
+    ["toggle_menu_item,desc"]="Show or hide menu items based on conditions"
+    ["toggle_menu_item,example"]="toggle_menu_item"
+    ["toggle_menu_item,status"]="review"
+    ["toggle_menu_item,doc_link"]=""
+)
+#
+# Show or hide menu items based on conditions
+toggle_menu_item() {
+    json_data=$(echo "$json_data" | jq --arg key "$1" --arg subkey "$2" --arg show "$3" \
+        '(.menu[] | select(.id==$key).sub[] | select(.id == $subkey).show) |= ($show | test("true"))')
+}
+
+
+# Main menu updates
+update_json_data "System" "$system_info"
+update_json_data "Network" "$network_adapter"
+update_json_data "Localisation" "$locale_setting"
+update_json_data "Software" "$installed_software"
+
+
+# Submenu updates based on network and software
+update_submenu_data "Testing" "T2" "$network_adapter"
+update_submenu_data "Testing" "T1" "$installed_software"
+update_submenu_data "Install" "I0" "$installed_software"
+
+
+
+# Conditional submenu updates based on network type
+if [ "$network_adapter" = "IPv6" ]; then
+    update_submenu_data "Network" "N08" "IPV6"
 else
-    # If IPv4 is being used or the domain is unreachable, do something else
-    json_data=$(echo "$json_data" | jq --arg str "IPV4" '(.menu[] | select(.id=="Network").sub[] | select(.id == "N03").description) += " (" + $str + ")"')
+    update_submenu_data "Network" "N08" "IPV4"
 fi
 
-if [ "$bluetooth_installed" = false ] || [ "$bluez_installed" = false ] || [ "$bluez_tools_installed" = false ]; then
-    json_data=$(echo "$json_data" | jq '(.menu[] | select(.id=="Network").sub[] | select(.id == "BT0").show) |= true')
-    json_data=$(echo "$json_data" | jq '(.menu[] | select(.id=="Network").sub[] | select(.id == "BT3").show) |= false')
-
+# Bluetooth menu item visibility
+if [ "$bluetooth_status" = false ] || [ "$bluez_status" = false ] || [ "$bluez_tools_status" = false ]; then
+    toggle_menu_item "Network" "N00" "true"
+    toggle_menu_item "Network" "N02" "false"
 else
-    json_data=$(echo "$json_data" | jq '(.menu[] | select(.id=="Network").sub[] | select(.id == "BT1").show) |= true')
-    json_data=$(echo "$json_data" | jq '(.menu[] | select(.id=="Network").sub[] | select(.id == "BT3").show) |= true')
+    toggle_menu_item "Network" "N01" "true"
+    toggle_menu_item "Network" "N02" "true"
 fi
 
-# Show or hide Sub menu items dynamicly
-#
-
-[[ -n "$check_hold" ]] &&  json_data=$(echo "$json_data" | jq '(.menu[] | select(.id=="System").sub[] | select(.id == "S03").show) |= true')
-[[ -z "$check_hold" ]] &&  json_data=$(echo "$json_data" | jq '(.menu[] | select(.id=="System").sub[] | select(.id == "S04").show) |= true')
-
+if [ "$system_info" ]; then
+    toggle_menu_item "System" "S01" "true"
+else
+    toggle_menu_item "System" "S01" "false"
+fi
 

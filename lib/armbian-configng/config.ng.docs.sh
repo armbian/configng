@@ -4,7 +4,7 @@
 
 module_options+=(
     ["generate_readme,author"]="Joey Turner"
-    ["generate_readme,ref_link"]="https://github.com/armbian/configng/blob/main/lib/armbian-configng/documents.sh#L18"
+    ["generate_readme,ref_link"]="#L17"
     ["generate_readme,feature"]="generate_readme"
     ["generate_readme,desc"]="Generate Document files."
     ["generate_readme,example"]="generate_readme"
@@ -18,66 +18,161 @@ function generate_readme() {
 
     # Get the current date
     local current_date=$(date)  
+    # setup doc folders
+    #mkdir -p "$script_dir/../share/doc/armbian-configng"
+   
 
-#    [[ ! -d "$script_dir/images" ]] && mkdir -p "$script_dir/images" && generate_svg > "$script_dir/images/logo.svg" ;
-#    [[ ! -f "$script_dir/images/logo.svg" ]]  && generate_svg > "$script_dir/images/logo.svg" ;
-
-
-echo "Sorting data\nUpdating documentation" | show_infobox ;
-
-######################################
-# Generate the README.md file   
-echo "$(see_jobs_list)" > "$script_dir/README.md" 
-echo "Updating Readme.md" | show_infobox
+echo -e "Sorting data\nUpdating documentation" # current_date ;
 
 
-######################################
+cat << EOF > "$script_dir/../README.md"
+
+# Armbian Configuration Utility
+Updated: $current_date
+
+Utility for configuring your board, adjusting services, and installing applications. It comes with Armbian by default.
+
+To start the Armbian configuration utility, use the following command:
+~~~
+sudo armbian-config
+~~~
+
+$(see_full_list)
+
+## Install 
+Armbian installation 
+~~~
+sudo apt install armbian-config
+~~~
+
+3rd party Debian based distributions
+~~~
+{
+    sudo wget https://apt.armbian.com/armbian.key -O key
+    sudo gpg --dearmor < key | sudo tee /usr/share/keyrings/armbian.gpg > /dev/null
+    sudo chmod go+r /usr/share/keyrings/armbian.gpg
+    sudo echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/armbian.gpg] http://apt.armbian.com $(lsb_release -cs) main  $(lsb_release -cs)-utils  $(lsb_release -cs)-desktop" | sudo tee /etc/apt/sources.list.d/armbian.list
+    sudo apt update
+    sudo apt install armbian-config
+}
+~~~
+
+***
+
+## CLI options
+Command line options.
+
+Use:
+~~~
+armbian-config --help
+~~~
+
+Outputs:
+~~~
+$(see_cli_list)
+~~~
+
+## Legacy options
+Backward Compatible options.
+
+Use:
+~~~
+armbian-config main=Help
+~~~
+
+Outputs:
+~~~
+$(see_cli_legacy)
+~~~
+
+***
+
+## Development
+
+Development is divided into three sections:
+
+Click for more info:
+
+<details>
+<summary><b>Jobs / JSON Object</b></summary>
+
+A list of the jobs defined in the Jobs file.
+
+ $(see_jq_menu_list)
+
+</details>
 
 
-cp  "$script_dir/README.md" "$doc_dir/Home.md"
-cd "$script_dir" && cp ./README.md "../README.md"
-echo "README.md has been updated." | show_infobox
+<details>
+<summary><b>Jobs API / Helper Functions</b></summary>
 
-######################################
-
-echo "Updating WIKI Functions" | show_infobox
-cat << EOF > "$doc_dir/Functions.md"
-
-# Helper functions
-A list of the heper function ie bash prosedures used in Jobs file.
+These helper functions facilitate various operations related to job management, such as creation, updating, deletion, and listing of jobs, acting as a practical API for developers.
 
 $(see_function_table_md)
 
+
+</details>
+
+
+<details>
+<summary><b>Runtime / Board Statuses</b></summary>
+
+(WIP)
+
+This section outlines the runtime environment to check configurations and statuses for dynamically managing jobs based on JSON data.
+
+(WIP)
+
+</details>
+
+
+## Testing and contributing
+
+<details>
+<summary><b>Get Development</b></summary>
+
+Install the dependencys:
+~~~
+sudo apt install git jq whiptail
+~~~
+
+Get Developent and contribute:
+~~~
+{
+    git clone https://github.com/armbian/configng
+    cd configng
+    ./armbian-configng --help
+}
+~~~
+
+Install and test Development deb:
+~~~
+{
+    sudo apt install whiptail
+    latest_release=\$(curl -s https://api.github.com/repos/armbian/configng/releases/latest)
+    deb_url=\$(echo "\$latest_release" | jq -r '.assets[] | select(.name | endswith(".deb")) | .browser_download_url')
+    curl -LO "\$deb_url"
+    deb_file=\$(echo "\$deb_url" | awk -F"/" '{print \$NF}')
+    sudo dpkg -i "\$deb_file"
+    sudo dpkg --configure -a
+    sudo apt --fix-broken install
+}
+~~~
+
+</details>
+
 EOF
-
-######################################
-
-echo "Updating WIKI HowTo" | show_infobox
-cat << EOF > "$doc_dir/Menu.md"
-
-# Armbian-config Menu list.
-armbian-config jobs list.
-
-$(see_jq_menu_list)
-
-EOF
-
-######################################
-
-# show_infobox <<< $( echo "$(generate_json_options)" > "$script_dir/docs/config-helpers.json" )
-# Print a message indicating that README.md has been updated
-# echo "Documents have been updated." | show_infobox
 
 }
 
 
 module_options+=(
-    ["serve_doc,author"]="Tearran"
-    ["serve_doc,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#L89"
+    ["serve_doc,author"]="Joey Turner"
+    ["serve_doc,ref_link"]=""
     ["serve_doc,feature"]="serve_doc"
     ["serve_doc,desc"]="Serve the edit and debug server."
     ["serve_doc,example"]="serve_doc"
-    ["serve_doc,status"]="review"
+    ["serve_doc,status"]="acive"
     ["serve_doc,doc_link"]=""
 )
 #
@@ -111,8 +206,8 @@ function serve_doc() {
 
 
 module_options+=(
-    ["see_use,author"]="Tearran"
-    ["see_use,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#L126"
+    ["see_use,author"]="Joey Turner"
+    ["see_use,ref_link"]=""
     ["see_use,feature"]="see_use"
     ["see_use,desc"]="Show the usage of the functions."
     ["see_use,example"]="see_use"
@@ -140,8 +235,8 @@ function see_use() {
 
 
 module_options+=(
-    ["generate_json_options,author"]="Tearran"
-    ["generate_json_options,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#L149"
+    ["generate_json_options,author"]="Joey Turner"
+    ["generate_json_options,ref_link"]=""
     ["generate_json_options,feature"]="generate_json"
     ["generate_json_options,desc"]="Generate JSON-like object file."
     ["generate_json_options,example"]="generate_json"
@@ -194,10 +289,10 @@ echo "}"
 
 
 module_options+=(
-    ["generate_svg,author"]="Tearran"
-    ["generate_svg,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#201"
+    ["generate_svg,author"]="Joey Turner"
+    ["generate_svg,ref_link"]=""
     ["generate_svg,feature"]="generate_svg"
-    ["generate_svg,desc"]="Generate 'Armbian CPU logo' SVG for docunment file."
+    ["generate_svg,desc"]="Generate 'Armbian CPU logo' SVG for document file."
     ["generate_svg,example"]="generate_svg"
     ["generate_svg,status"]="review"
     ["generate_svg,doc_link"]=""
@@ -215,12 +310,13 @@ cat << EOF
 </svg>
 
 EOF
+
 }
 
 
 module_options+=(
-    ["generate_jobs_from_json,author"]="Tearran"
-    ["generate_jobs_from_json,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#L223"
+    ["generate_jobs_from_json,author"]="Joey Turner"
+    ["generate_jobs_from_json,ref_link"]=""
     ["generate_jobs_from_json,feature"]="generate_jobs_from_json"
     ["generate_jobs_from_json,desc"]="Generate jobs from JSON file."
     ["generate_jobs_from_json,example"]="generate_jobs_from_json"
@@ -258,7 +354,7 @@ do
         doc_link=$(jq -r ".menu[$i].sub[$j].doc_link" "$json_file")
 
         # Check if src_reference and doc_link are null
-        if [ "$doc_link" == "" ]; then doc_link="https://github.com/armbian/configng/wiki/Menu#$id_link"; else doc_link="[Document]($doc_link)"; fi
+        if [ "$doc_link" == "" ]; then doc_link="#$id_link"; else doc_link="[Document]($doc_link)"; fi
 
         echo -e "| | $id | $description | $doc_link | $status |"
 
@@ -268,33 +364,10 @@ done
 
 }
 
-function see_jobs_list() {
-
-    cat << EOF
-
-# Armbian configuration utility
-Utility for configuring your board, divided into four main sections:
-
-- System - system and security settings,
-- Network - wired, wireless, Bluetooth, access point,
-- Personal - timezone, language, hostname,
-- Software - system and 3rd party software install.
+function see_full_list() {
 
 
-
-To Configure and change global sytem settings, run the following command: \`./armbian-configng\`
-
-***
-## Screenshots
-![edit-boot-env-2024-04-03 10-06-58](https://github.com/armbian/configng/assets/2831630/448f0515-0854-4a8a-8421-53c8b72bb5c5)
-![BT-connect-2024-04-03 10-06-58](https://github.com/armbian/configng/assets/2831630/fef037ce-346d-4d70-9025-90f69fbdf5d3)
-Following was updated on:
-$current_date.
-
-***
-EOF
-
-    # Use jq to parse the JSON
+    # Use jq to parse the JSON into markdown
     menu_items=$(jq -r '.menu | length' "$json_file")
 
     for (( i=0; i<$menu_items; i++ ))
@@ -318,51 +391,23 @@ EOF
 
             # Check if src_reference and doc_link are null
             if [ "$doc_link" == "" ]; then 
-                doc_link="https://github.com/armbian/configng/wiki/Menu#$id_link"; 
+                doc_link="#$id_link"; 
                 else doc_link="$doc_link"; 
             fi
 
-            echo -e "  - **$id** - Description: $description"
-            echo -e "    - Status: [$status]($doc_link)"
+            echo -e "  - **$id** - $description"
+#            echo -e "    - Status: [$status]($doc_link)"
 
         done
         echo -e "\n"
     done
 
-cat << EOF
-***
-## Quick start
-Run the following commands:
-
-    echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] https://armbian.github.io/configng stable main" \
-    | sudo tee /etc/apt/sources.list.d/armbian-development.list > /dev/null
-    
-    armbian-configng --dev
-
-If all goes well you should see the Text-Based User Inerface (TUI)
-
-## Development
-Development test brances are available for testing. To clone the development branch, run the following commands:
-
-~~~
-git clone https://github.com/armbian/configng.git
-cd configng
-~~~
-
-
-
-## Note:
->
-> The Bash procedures embedded within the JSON structure are meticulously designed with a focus on clear naming conventions and the simplicity of key pairs. These procedures serve multiple purposes, including facilitating the generation of content in various formats, such as Whiptail, Markdown, json out and others. Moreover, they are utilized for evaluation and execution of commands outlined in the JSON structure.
->
-
-EOF
 
 }
 
 
 module_options+=(
-    ["see_function_table_md,author"]="Tearran"
+    ["see_function_table_md,author"]="Joey Turner"
     ["see_function_table_md,ref_link"]=""
     ["see_function_table_md,feature"]="see_function_table_md"
     ["see_function_table_md,desc"]="Generate this markdown table of all module_options"
@@ -374,8 +419,8 @@ module_options+=(
 # This function is used to generate a markdown table from the module_options array
 #
 function see_function_table_md() {
-     mod_message="| Feature | Description | Credit | Reference | Documents | Status |\n"
-    mod_message+="|:------- | ----------- | ----------- |:---------:|:---------:|:------:|\n"
+     mod_message="| Description | Example | Credit |\n"
+    mod_message+="|:----------- | ------- |:------:|\n"
     # Iterate over the options
     for key in "${!module_options[@]}"; do
         # Split the key into function_name and type
@@ -388,17 +433,16 @@ function see_function_table_md() {
             ref_link_md=$([[ -n "$ref_link" ]] && echo "[Source]($ref_link)" || echo "X")
             doc_link_md=$([[ -n "$doc_link" ]] && echo "[Document]($doc_link)" || echo "X")
             status_md=$([[ -z "$ref_link" ]] && echo "source link Needed" || ([[ ( -n "$ref_link" && -n "$doc_link") ]] && echo "Review" || echo "$status" ) )          
-            mod_message+="| ${module_options["$function_name,feature"]} | ${module_options["$function_name,desc"]} | ${module_options["$function_name,author"]} | $ref_link_md | $doc_link_md | $status_md | \n"
+            mod_message+="| ${module_options["$function_name,desc"]} | ${module_options["$function_name,example"]} | ${module_options["$function_name,author"]} \n"
         fi
     done
 
     echo -e "$mod_message"
 }
 
-
 module_options+=(
-    ["see_jq_menu_list,author"]="Tearran"
-    ["see_jq_menu_list,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#L304"
+    ["see_jq_menu_list,author"]="Joey Turner"
+    ["see_jq_menu_list,ref_link"]=""
     ["see_jq_menu_list,feature"]="see_jq_menu_list"
     ["see_jq_menu_list,desc"]="Generate a markdown list json objects using jq."
     ["see_jq_menu_list,example"]="see_jq_menu_list"
@@ -419,4 +463,74 @@ jq -r '
     "\n~~~\n"
 ' $json_file
 }
+module_options+=(
+    ["see_cli_list,author"]="Joey Turner"
+    ["see_cli_list,ref_link"]=""
+    ["see_cli_list,feature"]="see_cli_list"
+    ["see_cli_list,desc"]="Generate a Help message for cli commands."
+    ["see_cli_list,example"]="see_cli_list"
+    ["see_cli_list,status"]="review"
+    ["see_cli_list,doc_link"]=""
+)
+#
+# See command line options
+#
+function see_cli_list() {
+    local script_name=$(basename "$0")
+    cat << EOF
+Usage:  $script_name [option] [arguments]
 
+    --help      -  Display this help message.
+    main=Help   -  Display Legacy Options (Backward Compatible)
+
+EOF
+    # TODO: Migrate More features. 
+    #echo " main=help   -  Display Legacy cli commands."
+    jq -r --arg script_name "$script_name" '
+        .menu[] | 
+        .sub[] | 
+        select(.id | startswith("H") | not) |
+       "    --cli " + .id + "  -  " + .description
+    ' $json_file
+}
+
+module_options+=(
+    ["see_cli_legacy,author"]="Joey Turner"
+    ["see_cli_legacy,ref_link"]=""
+    ["see_cli_legacy,feature"]="see_cli_legacy"
+    ["see_cli_legacy,desc"]="Generate a Help message legacy cli commands."
+    ["see_cli_legacy,example"]="see_cli_legacy"
+    ["see_cli_legacy,status"]="review"
+    ["see_cli_legacy,doc_link"]=""
+)
+function see_cli_legacy() {
+        local script_name=$(basename "$0")
+        cat << EOF 
+Legacy Options (Backward Compatible)
+Please use 'armbian-config --help' for more information.
+
+Usage:  $script_name main=[arguments] selection=[options]
+
+EOF
+        cat << EOF
+    $script_name main=System selection=Headers          -  Install headers:                                        
+    $script_name main=System selection=Headers_remove   -  Remove headers:                                 
+
+EOF
+
+# TODO Migrate following features
+
+# $script_name main=System   selection=Firmware         -  Update, upgrade and reboot:                
+# $script_name main=System   selection=Nightly          -  Switch to nightly builds:                             
+# $script_name main=System   selection=Stable           -  Switch to stable builds:                                
+# $script_name main=System   selection=Default          -  Install default desktop:                          
+# $script_name main=System   selection=ZSH              -  Change to ZSH:                                  
+# $script_name main=System   selection=BASH             -  Change to BASH:                                         
+# $script_name main=System   selection=Stable           -  Change to stable repository [branch=dev]:               
+# $script_name main=System   selection=Nightly          -  Change to nightly repository [branch=dev]:      
+# $script_name main=Software selection=Source_install   -  Install kernel source:                          
+# $script_name main=Software selection=Source_remove    -  Remove kernel source:                           
+# $script_name main=Software selection=Avahi            -  Install Avahi mDNS/DNS-SD daemon:
+
+
+}
