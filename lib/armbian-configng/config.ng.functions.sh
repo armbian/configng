@@ -558,7 +558,7 @@ show_menu(){
 
     # Get the input and convert it into an array of options
     inpu_raw=$(cat)
-    # Remove the lines befor -h 
+    # Remove the lines before -h 
 	input=$(echo "$inpu_raw" | sed 's/-\([a-zA-Z]\)/\1/' | grep '^  [a-zA-Z] ' | grep -v '\[')
     options=()
     while read -r line; do
@@ -821,7 +821,3 @@ sanitize_input() {
     done
     echo "${sanitized_input[@]}"
 }
-
-
-
-	
