@@ -7,7 +7,7 @@
             "sub": [
                 {
                     "id": "S01",
-                    "description": "Enable Armbina kernel upgrades",
+                    "description": "Enable Armbian kernel upgrades",
                     "command": [
                         "set_safe_boot unhold"
                     ],
@@ -19,7 +19,7 @@
                 },
                 {
                     "id": "S02",
-                    "description": "Disable Armbina kernel upgrades",
+                    "description": "Disable Armbian kernel upgrades",
                     "command": [
                         "set_safe_boot freeze"
                     ],
@@ -168,7 +168,7 @@
                     "id": "N07",
                     "description": "Disconnect and forget all wifi connections (Advanced)",
                     "command": [
-                        "get_user_continue \"Disconnect and forget all wifi connections\nWould you like to contiue?\" process_input",
+                        "get_user_continue \"Disconnect and forget all wifi connections\nWould you like to continue?\" process_input",
                         "LC_ALL=C nmcli --fields UUID,TIMESTAMP-REAL,TYPE con show | grep wifi |  awk '{print $1}' | while read line; \\ ",
 						"do nmcli con delete uuid  $line; done > /dev/null"
                     ],
@@ -182,7 +182,7 @@
                     "id": "N08",
                     "description": "Toggle system IPv6/IPv4 internet protocol",
                     "command": [
-                        "get_user_continue \"This will toggle your internet protocol\nWould you like to contiue?\" process_input",
+                        "get_user_continue \"This will toggle your internet protocol\nWould you like to continue?\" process_input",
                         "toggle_ipv6 | show_infobox"
                     ],
                     "show": true,
@@ -265,7 +265,7 @@
         },
         {
             "id": "Software",
-            "description": "Run/Install 3rd party apllications",
+            "description": "Run/Install 3rd party applications",
             "show": true,
             "sub": [
                 {
@@ -304,7 +304,7 @@
                     "id": "H00",
                     "description": "About This system. (WIP)",
                     "command": [
-                        "show_message <<< \"This app is to help exicute prosedures to configure your system\n\nSome option may not work on manualy modified sytemes\""
+                        "show_message <<< \"This app is to help execute procedures to configure your system\n\nSome options may not work on manually modified systems\""
                     ],
                     "show": true,
                     "status": "Active",
