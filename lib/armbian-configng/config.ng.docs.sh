@@ -131,12 +131,12 @@ This section outlines the runtime environment to check configurations and status
 <details>
 <summary><b>Get Development</b></summary>
 
-Install the dependencys:
+Install the dependencies:
 ~~~
 sudo apt install git jq whiptail
 ~~~
 
-Get Developent and contribute:
+Get Development and contribute:
 ~~~
 {
     git clone https://github.com/armbian/configng
@@ -172,7 +172,7 @@ module_options+=(
     ["serve_doc,feature"]="serve_doc"
     ["serve_doc,desc"]="Serve the edit and debug server."
     ["serve_doc,example"]="serve_doc"
-    ["serve_doc,status"]="acive"
+    ["serve_doc,status"]="active"
     ["serve_doc,doc_link"]=""
 )
 #
@@ -180,7 +180,7 @@ module_options+=(
 #
 function serve_doc() {
     if [[ "$(id -u)" == "0" ]] ; then
-        echo "Red alert! not for sude user"
+        echo "Red alert! not for sudo user"
         exit 1
     fi
     if [[ -z $CODESPACES ]]; then
