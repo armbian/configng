@@ -71,7 +71,7 @@ Command line options.
 
 Use:
 ~~~
-armbian-config --help
+armbian-configng --help
 ~~~
 
 Outputs:
@@ -109,13 +109,13 @@ Backward Compatible options.
 
 Use:
 ~~~
-armbian-config main=Help
+armbian-configng main=Help
 ~~~
 
 Outputs:
 ~~~
 Legacy Options (Backward Compatible)
-Please use 'armbian-config --help' for more information.
+Please use 'armbian-configng --help' for more information.
 
 Usage:  armbian-configng main=[arguments] selection=[options]
 
