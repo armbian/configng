@@ -508,7 +508,7 @@ module_options+=(
 ["show_infobox,author"]="Joey Turner"
 ["show_infobox,ref_link"]=""
 ["show_infobox,feature"]="show_infobox"
-["show_infobox,desc"]="pipeline strings to a infobox "
+["show_infobox,desc"]="pipeline strings to an infobox "
 ["show_infobox,example"]="show_infobox <<< 'hello world' ; "
 ["show_infobox,doc_link"]=""
 ["show_infobox,status"]="Active"
@@ -558,7 +558,7 @@ show_menu(){
 
     # Get the input and convert it into an array of options
     inpu_raw=$(cat)
-    # Remove the lines befor -h 
+    # Remove the lines before -h 
 	input=$(echo "$inpu_raw" | sed 's/-\([a-zA-Z]\)/\1/' | grep '^  [a-zA-Z] ' | grep -v '\[')
     options=()
     while read -r line; do
@@ -821,7 +821,3 @@ sanitize_input() {
     done
     echo "${sanitized_input[@]}"
 }
-
-
-
-	

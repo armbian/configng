@@ -47,7 +47,7 @@ source "$lib_dir/config.ng.network.sh"
 echo "Loaded Network helpers..." #| show_infobox ;
 
 #
-# Loads the varibles from beta armbian-config for runtime handeling
+# Loads the variables from beta armbian-config for runtime handling
 
 source "$lib_dir/config.ng.runtime.sh" ;
 echo "Loaded Runtime conditions..." #| show_infobox ;
@@ -103,7 +103,7 @@ case "$1" in
      "main="*)
           declare -A main_map
           main_map=(
-               # map name to menu catagory
+               # map name to menu category
                ["System"]="S" 
                ["Software"]="I" 
                ["Network"]="N" 

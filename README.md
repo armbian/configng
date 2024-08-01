@@ -1,6 +1,6 @@
 
 # Armbian Configuration Utility
-Updated: Thu Jul  4 10:57:01 PM MDT 2024
+Updated: Wed 31 Jul 2024 23:44:46 NZST
 
 Utility for configuring your board, adjusting services, and installing applications. It comes with Armbian by default.
 
@@ -10,9 +10,9 @@ sudo armbian-config
 ~~~
 
 - ## **System** 
-  - **S01** - Enable Armbina kernal upgrades
-  - **S02** - Disable Armbina kernal upgrades
-  - **S03** - Edit the boot enviroment (WIP)
+  - **S01** - Enable Armbian kernel upgrades
+  - **S02** - Disable Armbian kernel upgrades
+  - **S03** - Edit the boot environment (WIP)
   - **S04** - Install Linux headers
   - **S05** - Remove Linux headers
 
@@ -25,14 +25,14 @@ sudo armbian-config
   - **N04** - Uninstall Infrared support
   - **N05** - Manage wifi network connections
   - **N06** - Advanced Edit /etc/network/interface
-  - **N07** - Disconect and forget all wifi connections (Advanced)
-  - **N08** - Toggle system IPv6/IPv4 internet protical
+  - **N07** - Disconnect and forget all wifi connections (Advanced)
+  - **N08** - Toggle system IPv6/IPv4 internet protocol
   - **N09** - (WIP) Setup Hotspot/Access point
 
 
 - ## **Localisation** 
-  - **L00** - Change Globla timezone (WIP)
-  - **L01** - Change Locales reconfigure the language and charitorset
+  - **L00** - Change Global timezone (WIP)
+  - **L01** - Change Locales reconfigure the language and character set
   - **L02** - Change Keyboard layout
   - **L03** - Change APT mirrors
 
@@ -43,7 +43,7 @@ sudo armbian-config
 
 
 - ## **Help** 
-  - **H00** - About This systme. (WIP)
+  - **H00** - About This system. (WIP)
   - **H02** - List of Config function(WIP)
 
 ## Install 
@@ -58,7 +58,7 @@ sudo apt install armbian-config
     sudo wget https://apt.armbian.com/armbian.key -O key
     sudo gpg --dearmor < key | sudo tee /usr/share/keyrings/armbian.gpg > /dev/null
     sudo chmod go+r /usr/share/keyrings/armbian.gpg
-    sudo echo "deb [arch=arm64 signed-by=/usr/share/keyrings/armbian.gpg] http://apt.armbian.com bookworm main  bookworm-utils  bookworm-desktop" | sudo tee /etc/apt/sources.list.d/armbian.list
+    sudo echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/armbian.gpg] http://apt.armbian.com $(lsb_release -cs) main  $(lsb_release -cs)-utils  $(lsb_release -cs)-desktop" | sudo tee /etc/apt/sources.list.d/armbian.list
     sudo apt update
     sudo apt install armbian-config
 }
@@ -67,7 +67,7 @@ sudo apt install armbian-config
 ***
 
 ## CLI options
-Command ine options.
+Command line options.
 
 Use:
 ~~~
@@ -81,9 +81,9 @@ Usage:  armbian-configng [option] [arguments]
     --help      -  Display this help message.
     main=Help   -  Display Legacy Options (Backward Compatible)
 
-    --cli S01  -  Enable Armbina kernal upgrades
-    --cli S02  -  Disable Armbina kernal upgrades
-    --cli S03  -  Edit the boot enviroment (WIP)
+    --cli S01  -  Enable Armbian kernel upgrades
+    --cli S02  -  Disable Armbian kernel upgrades
+    --cli S03  -  Edit the boot environment (WIP)
     --cli S04  -  Install Linux headers
     --cli S05  -  Remove Linux headers
     --cli N00  -  Install Bluetooth support
@@ -93,11 +93,11 @@ Usage:  armbian-configng [option] [arguments]
     --cli N04  -  Uninstall Infrared support
     --cli N05  -  Manage wifi network connections
     --cli N06  -  Advanced Edit /etc/network/interface
-    --cli N07  -  Disconect and forget all wifi connections (Advanced)
-    --cli N08  -  Toggle system IPv6/IPv4 internet protical
+    --cli N07  -  Disconnect and forget all wifi connections (Advanced)
+    --cli N08  -  Toggle system IPv6/IPv4 internet protocol
     --cli N09  -  (WIP) Setup Hotspot/Access point
-    --cli L00  -  Change Globla timezone (WIP)
-    --cli L01  -  Change Locales reconfigure the language and charitorset
+    --cli L00  -  Change Global timezone (WIP)
+    --cli L01  -  Change Locales reconfigure the language and character set
     --cli L02  -  Change Keyboard layout
     --cli L03  -  Change APT mirrors
     --cli I00  -  Update Application Repository
@@ -127,7 +127,7 @@ Usage:  armbian-configng main=[arguments] selection=[options]
 
 ## Development
 
-Develoment is divided into three sections:
+Development is divided into three sections:
 
 Click for more info:
 
@@ -138,7 +138,7 @@ A list of the jobs defined in the Jobs file.
 
  ### S01
 
-Enable Armbina kernal upgrades
+Enable Armbian kernel upgrades
 
 Jobs:
 
@@ -148,7 +148,7 @@ set_safe_boot unhold
 
 ### S02
 
-Disable Armbina kernal upgrades
+Disable Armbian kernel upgrades
 
 Jobs:
 
@@ -158,7 +158,7 @@ set_safe_boot freeze
 
 ### S03
 
-Edit the boot enviroment (WIP)
+Edit the boot environment (WIP)
 
 Jobs:
 
@@ -271,26 +271,26 @@ nano /etc/network/interfaces
 
 ### N07
 
-Disconect and forget all wifi connections (Advanced)
+Disconnect and forget all wifi connections (Advanced)
 
 Jobs:
 
 ~~~
-get_user_continue "Disconect and forget all wifi connections
-Would you like to contiue?" process_input
+get_user_continue "Disconnect and forget all wifi connections
+Would you like to continue?" process_input
 LC_ALL=C nmcli --fields UUID,TIMESTAMP-REAL,TYPE con show | grep wifi |  awk '{print $1}' | while read line; \ 
 do nmcli con delete uuid  $line; done > /dev/null
 ~~~
 
 ### N08
 
-Toggle system IPv6/IPv4 internet protical
+Toggle system IPv6/IPv4 internet protocol
 
 Jobs:
 
 ~~~
-get_user_continue "This will toggle your internet protical
-Would you like to contiue?" process_input
+get_user_continue "This will toggle your internet protocol
+Would you like to continue?" process_input
 toggle_ipv6 | show_infobox
 ~~~
 
@@ -308,7 +308,7 @@ hotspot_setup
 
 ### L00
 
-Change Globla timezone (WIP)
+Change Global timezone (WIP)
 
 Jobs:
 
@@ -318,7 +318,7 @@ dpkg-reconfigure tzdata
 
 ### L01
 
-Change Locales reconfigure the language and charitorset
+Change Locales reconfigure the language and character set
 
 Jobs:
 
@@ -371,14 +371,14 @@ armbianmonitor -m | show_infobox
 
 ### H00
 
-About This systme. (WIP)
+About This system. (WIP)
 
 Jobs:
 
 ~~~
-show_message <<< "This app is to help exicute prosedures to configure your system
+show_message <<< "This app is to help execute procedures to configure your system
 
-Some option may not work on manualy modified sytemes"
+Some options may not work on manually modified systems"
 ~~~
 
 ### H02
@@ -402,7 +402,7 @@ These helper functions facilitate various operations related to job management, 
 | Description | Example | Credit |
 |:----------- | ------- |:------:|
 | Generate a Help message legacy cli commands. | see_cli_legacy | Joey Turner 
-| Run time varibales Migrated procedures from Armbian config. | set_runtime_variables | Igor Pecovnik 
+| Run time variables Migrated procedures from Armbian config. | set_runtime_variables | Igor Pecovnik 
 | Generate this markdown table of all module_options | see_function_table_md | Joey Turner 
 | Display a menu from pipe | show_menu <<< armbianmonitor -h  ;  | Joey Turner 
 | Build the main menu from a object | generate_top_menu 'json_data' | Joey Turner 
@@ -410,13 +410,13 @@ These helper functions facilitate various operations related to job management, 
 | Migrated procedures from Armbian config. | check_desktop | Igor Pecovnik 
 | Generate Document files. | generate_readme | Joey Turner 
 | Needed by generate_menu |  | Joey Turner 
-| Display a Yes/No dialog box and prosees continue/exit | get_user_continue 'Do you wish to continue?' process_input | Joey Turner 
+| Display a Yes/No dialog box and process continue/exit | get_user_continue 'Do you wish to continue?' process_input | Joey Turner 
 | Display a message box | show_message <<< 'hello world'  | Joey Turner 
 | Migrated procedures from Armbian config. | connect_bt_interface | Igor Pecovnik 
 | Freeze/unhold Migrated procedures from Armbian config. | set_safe_boot unhold or set_safe_boot freeze | Igor Pecovnik 
 | Check when apt list was last updated | see_current_apt | Joey Turner 
 | Migrated procedures from Armbian config. | check_if_installed nano | Igor Pecovnik 
-| Generate 'Armbian CPU logo' SVG for docunment file. | generate_svg | Joey Turner 
+| Generate 'Armbian CPU logo' SVG for document file. | generate_svg | Joey Turner 
 | Remove Linux headers | Headers_remove | Joey Turner 
 | Show or hide menu items based on conditions | toggle_menu_item | Joey Turner 
 | Update submenu descriptions based on conditions | update_submenu_data | Joey Turner 
@@ -431,10 +431,10 @@ These helper functions facilitate various operations related to job management, 
 | Toggle IPv6 on or off | toggle_ipv6 | Joey Turner 
 | Generate a Help message for cli commands. | see_cli_list | Joey Turner 
 | Generate JSON-like object file. | generate_json | Joey Turner 
-| Change the background color of the terminal or dialoge box | set_colors 0-7 | Joey Turner 
+| Change the background color of the terminal or dialog box | set_colors 0-7 | Joey Turner 
 | Serve the edit and debug server. | serve_doc | Joey Turner 
 | Update JSON data with system information | update_json_data | Joey Turner 
-| pipe line strings to a infobox  | show_infobox <<< 'hello world' ;  | Joey Turner 
+| pipeline strings to an infobox  | show_infobox <<< 'hello world' ;  | Joey Turner 
 | Show the usage of the functions. | see_use | Joey Turner 
 | Check the internet connection with fallback DNS | see_ping | Joey Turner 
 | Secure version of get_user_continue | get_user_continue_secure 'Do you wish to continue?' process_input | Joey Turner 
@@ -458,14 +458,14 @@ This section outlines the runtime environment to check configurations and status
 ## Testing and contributing
 
 <details>
-<summary><b>Get Devleopment</b></summary>
+<summary><b>Get Development</b></summary>
 
-Install the dependencys:
+Install the dependencies:
 ~~~
 sudo apt install git jq whiptail
 ~~~
 
-Get Developent and contribute:
+Get Development and contribute:
 ~~~
 {
     git clone https://github.com/armbian/configng

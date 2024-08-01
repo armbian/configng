@@ -51,7 +51,7 @@ sudo apt install armbian-config
     sudo wget https://apt.armbian.com/armbian.key -O key
     sudo gpg --dearmor < key | sudo tee /usr/share/keyrings/armbian.gpg > /dev/null
     sudo chmod go+r /usr/share/keyrings/armbian.gpg
-    sudo echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/armbian.gpg] http://apt.armbian.com $(lsb_release -cs) main  $(lsb_release -cs)-utils  $(lsb_release -cs)-desktop" | sudo tee /etc/apt/sources.list.d/armbian.list
+    sudo echo "deb [arch=\$(dpkg --print-architecture) signed-by=/usr/share/keyrings/armbian.gpg] http://apt.armbian.com \$(lsb_release -cs) main  \$(lsb_release -cs)-utils  \$(lsb_release -cs)-desktop" | sudo tee /etc/apt/sources.list.d/armbian.list
     sudo apt update
     sudo apt install armbian-config
 }
@@ -131,12 +131,12 @@ This section outlines the runtime environment to check configurations and status
 <details>
 <summary><b>Get Development</b></summary>
 
-Install the dependencys:
+Install the dependencies:
 ~~~
 sudo apt install git jq whiptail
 ~~~
 
-Get Developent and contribute:
+Get Development and contribute:
 ~~~
 {
     git clone https://github.com/armbian/configng
@@ -172,7 +172,7 @@ module_options+=(
     ["serve_doc,feature"]="serve_doc"
     ["serve_doc,desc"]="Serve the edit and debug server."
     ["serve_doc,example"]="serve_doc"
-    ["serve_doc,status"]="acive"
+    ["serve_doc,status"]="active"
     ["serve_doc,doc_link"]=""
 )
 #
@@ -180,7 +180,7 @@ module_options+=(
 #
 function serve_doc() {
     if [[ "$(id -u)" == "0" ]] ; then
-        echo "Red alert! not for sude user"
+        echo "Red alert! not for sudo user"
         exit 1
     fi
     if [[ -z $CODESPACES ]]; then

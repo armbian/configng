@@ -6,7 +6,7 @@ if [[ "$1" == "dev" || "$1" == "--dev" ]]; then
     get_user_continue "Development Mode:\n\nYou are entering development mode. System Administration features will be unavailable. Do you wish to continue?" process_input
     json_data=$(echo "$json_data" | jq '(.menu[] | select(.id=="Development") .show) |= true')
 
-    # sets backgrount to black
+    # sets background to black
     set_colors 0
 
     # Append Items to main menu descriptions
