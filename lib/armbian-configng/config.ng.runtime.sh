@@ -91,6 +91,16 @@ else
     update_submenu_data "Network" "N08" "IPV4"
 fi
 
+# Conditional submenu network service discovery and hostname resolution
+if ! check_if_installed avahi-daemon ; then
+    toggle_menu_item "Network" "N10" "true"
+    toggle_menu_item "Network" "N11" "false"
+else
+    toggle_menu_item "Network" "N10" "false"
+    toggle_menu_item "Network" "N11" "true"
+fi
+
+
 # Bluetooth menu item visibility
 if [ "$bluetooth_status" = false ] || [ "$bluez_status" = false ] || [ "$bluez_tools_status" = false ]; then
     toggle_menu_item "Network" "N00" "true"

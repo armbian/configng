@@ -31,7 +31,7 @@
                 },
                 {
                     "id": "S03",
-                    "description": "Edit the boot environment (WIP)",
+                    "description": "Edit the boot environment",
                     "command": [
                         "get_user_continue \"This will open /boot/armbianEnv.txt file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?\" process_input",
                         "nano /boot/armbianEnv.txt"
@@ -200,6 +200,38 @@
                     ],
                     "show": false,
                     "status": "WIP",
+                    "doc_link": "",
+                    "src_reference": "",
+                    "author": ""
+                },
+                {
+                    "id": "N10",
+                    "description": "Announce system in the network (Avahi) ",
+                    "command": [
+                        "get_user_continue \"This operation will install avahi-daemon and add configuration files.\nDo you wish to continue?\" process_input",
+                        "check_if_installed avahi-daemon",
+						"debconf-apt-progress -- apt-get -y install avahi-daemon libnss-mdns",
+						"cp /usr/share/doc/avahi-daemon/examples/sftp-ssh.service /etc/avahi/services/",
+						"cp /usr/share/doc/avahi-daemon/examples/ssh.service /etc/avahi/services/",
+						"service avahi-daemon restart"
+                    ],
+                    "show": true,
+                    "status": "Active",
+                    "doc_link": "",
+                    "src_reference": "",
+                    "author": ""
+                },
+                {
+                    "id": "N11",
+                    "description": "Disable system announce in the network (Avahi) ",
+                    "command": [
+                        "get_user_continue \"This operation will purge avahi-daemon \nDo you wish to continue?\" process_input",
+                        "check_if_installed avahi-daemon",
+						"systemctl stop avahi-daemon avahi-daemon.socket",
+						"debconf-apt-progress -- apt-get -y purge avahi-daemon"
+                    ],
+                    "show": true,
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
