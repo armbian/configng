@@ -17,6 +17,8 @@ installed_software="$(see_current_apt)"
 bluetooth_status=$(dpkg -s bluetooth &> /dev/null && echo true || echo false)
 bluez_status=$(dpkg -s bluez &> /dev/null && echo true || echo false)
 bluez_tools_status=$(dpkg -s bluez-tools &> /dev/null && echo true || echo false)
+held_packages=$(apt-mark showhold)
+
 
 module_options+=(
     ["update_json_data,author"]="Joey Turner"
@@ -110,9 +112,14 @@ else
     toggle_menu_item "Network" "N02" "true"
 fi
 
-if [ "$system_info" ]; then
-    toggle_menu_item "System" "S01" "true"
-else
-    toggle_menu_item "System" "S01" "false"
-fi
+# Check if packages are held
+held_packages=$(apt-mark showhold)
 
+# Toggle menu items for freeze and unfreeze
+if [[ -z "$held_packages" ]]; then
+    toggle_menu_item "System" "S02" "true"  # Show unfreeze
+    toggle_menu_item "System" "S01" "false" # Hide freeze
+else
+    toggle_menu_item "System" "S02" "false" # Hide unfreeze
+    toggle_menu_item "System" "S01" "true"  # Show freeze
+fi
