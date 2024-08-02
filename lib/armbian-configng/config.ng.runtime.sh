@@ -18,7 +18,7 @@ bluetooth_status=$(dpkg -s bluetooth &> /dev/null && echo true || echo false)
 bluez_status=$(dpkg -s bluez &> /dev/null && echo true || echo false)
 bluez_tools_status=$(dpkg -s bluez-tools &> /dev/null && echo true || echo false)
 held_packages=$(apt-mark showhold)
-
+is_avahi_installed=$(check_if_installed avahi-daemon)
 
 module_options+=(
     ["update_json_data,author"]="Joey Turner"
@@ -80,9 +80,9 @@ update_json_data "Software" "$installed_software"
 
 
 # Submenu updates based on network and software
-update_submenu_data "Testing" "T2" "$network_adapter"
-update_submenu_data "Testing" "T1" "$installed_software"
-update_submenu_data "Install" "I0" "$installed_software"
+#update_submenu_data "Testing" "T2" "$network_adapter"
+#update_submenu_data "Testing" "T1" "$installed_software"
+#update_submenu_data "Install" "I0" "$installed_software"
 
 
 
