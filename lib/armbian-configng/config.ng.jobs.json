@@ -451,7 +451,8 @@
                     "id": "L02",
                     "description": "Change Keyboard layout",
                     "command": [
-						"dpkg-reconfigure keyboard-configuration ; setupcon "
+						"dpkg-reconfigure keyboard-configuration ; setupcon ",
+			    "update-initramfs -u"
                     ],
                     "status": "Active",
                     "doc_link": "",
