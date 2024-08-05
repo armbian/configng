@@ -25,127 +25,18 @@ function generate_readme() {
 echo -e "Sorting data\nUpdating documentation" # current_date ;
 
 
-cat << EOF > "$script_dir/../README.md"
+cat << EOF > "$script_dir/../User-Guide_Armbian-Config.md"
 
 # Armbian Configuration Utility
-Updated: $current_date
+Utility for configuring your board, adjusting services, and installing applications. 
 
-Utility for configuring your board, adjusting services, and installing applications. It comes with Armbian by default.
+## Armbian-configng is divided into four main sections:
+1. System - system and security settings,
+2. Network - wired, wireless, Bluetooth, access point,
+3. Localisation - timezone, language, hostname,
+4. Software - system and 3rd party software install.
 
-To start the Armbian configuration utility, use the following command:
-~~~
-sudo armbian-config
-~~~
-
-$(see_full_list)
-
-## Install 
-Armbian installation 
-~~~
-sudo apt install armbian-config
-~~~
-
-3rd party Debian based distributions
-~~~
-{
-    sudo wget https://apt.armbian.com/armbian.key -O key
-    sudo gpg --dearmor < key | sudo tee /usr/share/keyrings/armbian.gpg > /dev/null
-    sudo chmod go+r /usr/share/keyrings/armbian.gpg
-    sudo echo "deb [arch=\$(dpkg --print-architecture) signed-by=/usr/share/keyrings/armbian.gpg] http://apt.armbian.com \$(lsb_release -cs) main  \$(lsb_release -cs)-utils  \$(lsb_release -cs)-desktop" | sudo tee /etc/apt/sources.list.d/armbian.list
-    sudo apt update
-    sudo apt install armbian-config
-}
-~~~
-
-***
-
-## CLI options
-Command line options.
-
-Use:
-~~~
-armbian-config --help
-~~~
-
-Outputs:
-~~~
-$(see_cli_list)
-~~~
-
-## Legacy options
-Backward Compatible options.
-
-Use:
-~~~
-armbian-config main=Help
-~~~
-
-Outputs:
-~~~
-$(see_cli_legacy)
-~~~
-
-***
-
-## Development
-
-Development is divided into three sections:
-
-Click for more info:
-
-<details>
-<summary><b>Jobs / JSON Object</b></summary>
-
-A list of the jobs defined in the Jobs file.
-
- $(see_jq_menu_list)
-
-</details>
-
-
-<details>
-<summary><b>Jobs API / Helper Functions</b></summary>
-
-These helper functions facilitate various operations related to job management, such as creation, updating, deletion, and listing of jobs, acting as a practical API for developers.
-
-$(see_function_table_md)
-
-
-</details>
-
-
-<details>
-<summary><b>Runtime / Board Statuses</b></summary>
-
-(WIP)
-
-This section outlines the runtime environment to check configurations and statuses for dynamically managing jobs based on JSON data.
-
-(WIP)
-
-</details>
-
-
-## Testing and contributing
-
-<details>
-<summary><b>Get Development</b></summary>
-
-Install the dependencies:
-~~~
-sudo apt install git jq whiptail
-~~~
-
-Get Development and contribute:
-~~~
-{
-    git clone https://github.com/armbian/configng
-    cd configng
-    ./armbian-configng --help
-}
-~~~
-
-Install and test Development deb:
+## Install latest release
 ~~~
 {
     sudo apt install whiptail
@@ -159,7 +50,127 @@ Install and test Development deb:
 }
 ~~~
 
-</details>
+Armbian_config requires root privilege. To start the Armbian configuration utility, use the following sudo "super user do" command:
+~~~
+sudo armbian-configng
+~~~
+
+## list of features
+Updated: $current_date
+
+$(see_full_list)
+
+
+***
+
+## CLI options
+Command line options.
+
+Use:
+~~~
+armbian-configng --help
+~~~
+
+Outputs:
+~~~
+$(see_cli_list)
+~~~
+
+## Legacy options
+Backward Compatible options.
+
+Use:
+~~~
+armbian-configng main=Help
+~~~
+
+Outputs:
+~~~
+$(see_cli_legacy)
+~~~
+
+***
+
+Sources
+
+https://github.com/armbian/configng
+
+EOF
+
+cat << EOF > "$script_dir/../README.md"
+
+# Armbian Configuration Utility
+Utility for configuring your board, adjusting services, and installing applications. 
+
+## Armbian-configng is divided into four main sections:
+1. System - system and security settings,
+2. Network - wired, wireless, Bluetooth, access point,
+3. Localisation - timezone, language, hostname,
+4. Software - system and 3rd party software install.
+
+## Development
+
+Development is divided into three sections:
+1. Jobs - JSON object
+    - lib/armbian-configng/config.ng.jobs.json
+2. API - Helper functions
+    - lib/armbian-configng/config.ng.functions.sh
+    - lib/armbian-configng/config.ng.docs.sh
+    - lib/armbian-configng/config.ng.network.sh
+3. Runtime - Board statuses.
+    - lib/armbian-configng/config.ng.jobs.json
+
+***
+
+### Jobs / JSON Object
+
+A list of BASH prosedures, jobs defined in the Jobs file.
+
+ $(see_jq_menu_list)
+
+
+### API / Helper Functions
+
+These helper functions facilitate various operations related to job management, such as creation, updating, deletion, and listing of jobs, acting as a practical API for developers.
+
+$(see_function_table_md)
+
+
+### Runtime / Board Statuses
+
+(WIP)
+
+This section outlines the runtime environment to check configurations and statuses for dynamically managing jobs based on JSON data.
+
+(WIP)
+
+
+
+## Testing and contributing
+
+***Development***
+
+
+
+Git Development and contribute:
+~~~
+{
+    git clone https://github.com/armbian/configng
+    cd configng
+    ./armbian-configng --help
+}
+~~~
+
+Install the dependencies:
+~~~
+sudo apt install git jq whiptail
+~~~
+
+Make changes, test and update documents:
+Note: \`sudo\` is not used for development.
+~~~
+armbian-configng --doc
+~~~
 
 EOF
 
@@ -375,7 +386,7 @@ function see_full_list() {
         cat=$(jq -r ".menu[$i].id" "$json_file")
         description=$(jq -r ".menu[$i].description" "$json_file")
 
-        echo -e "- ## **$cat** "
+        echo -e "- ### **$cat** "
         #echo   "$description"
 
         sub_items=$(jq -r ".menu[$i].sub | length" "$json_file")
@@ -507,7 +518,7 @@ function see_cli_legacy() {
         local script_name=$(basename "$0")
         cat << EOF 
 Legacy Options (Backward Compatible)
-Please use 'armbian-config --help' for more information.
+Please use 'armbian-configng --help' for more information.
 
 Usage:  $script_name main=[arguments] selection=[options]
 

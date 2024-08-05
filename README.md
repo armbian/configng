@@ -1,140 +1,30 @@
 
 # Armbian Configuration Utility
-Updated: Wed 31 Jul 2024 23:44:46 NZST
+Utility for configuring your board, adjusting services, and installing applications. 
 
-Utility for configuring your board, adjusting services, and installing applications. It comes with Armbian by default.
-
-To start the Armbian configuration utility, use the following command:
-~~~
-sudo armbian-configng
-~~~
-
-- ## **System** 
-  - **S01** - Enable Armbian kernel upgrades
-  - **S02** - Disable Armbian kernel upgrades
-  - **S03** - Edit the boot environment (WIP)
-  - **S04** - Install Linux headers
-  - **S05** - Remove Linux headers
-
-
-- ## **Network** 
-  - **N00** - Install Bluetooth support
-  - **N01** - Remove Bluetooth support
-  - **N02** - Bluetooth Discover
-  - **N03** - Install Infrared support
-  - **N04** - Uninstall Infrared support
-  - **N05** - Manage wifi network connections
-  - **N06** - Advanced Edit /etc/network/interface
-  - **N07** - Disconnect and forget all wifi connections (Advanced)
-  - **N08** - Toggle system IPv6/IPv4 internet protocol
-  - **N09** - (WIP) Setup Hotspot/Access point
-
-
-- ## **Localisation** 
-  - **L00** - Change Global timezone (WIP)
-  - **L01** - Change Locales reconfigure the language and character set
-  - **L02** - Change Keyboard layout
-  - **L03** - Change APT mirrors
-
-
-- ## **Software** 
-  - **I00** - Update Application Repository
-  - **I01** - CLI System Monitor
-
-
-- ## **Help** 
-  - **H00** - About This system. (WIP)
-  - **H02** - List of Config function(WIP)
-
-## Install 
-Armbian installation 
-~~~
-sudo apt install armbian-config
-~~~
-
-3rd party Debian based distributions
-~~~
-{
-    sudo wget https://apt.armbian.com/armbian.key -O key
-    sudo gpg --dearmor < key | sudo tee /usr/share/keyrings/armbian.gpg > /dev/null
-    sudo chmod go+r /usr/share/keyrings/armbian.gpg
-    sudo echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/armbian.gpg] http://apt.armbian.com $(lsb_release -cs) main  $(lsb_release -cs)-utils  $(lsb_release -cs)-desktop" | sudo tee /etc/apt/sources.list.d/armbian.list
-    sudo apt update
-    sudo apt install armbian-config
-}
-~~~
-
-***
-
-## CLI options
-Command line options.
-
-Use:
-~~~
-armbian-config --help
-~~~
-
-Outputs:
-~~~
-Usage:  armbian-configng [option] [arguments]
-
-    --help      -  Display this help message.
-    main=Help   -  Display Legacy Options (Backward Compatible)
-
-    --cli S01  -  Enable Armbian kernel upgrades
-    --cli S02  -  Disable Armbian kernel upgrades
-    --cli S03  -  Edit the boot environment (WIP)
-    --cli S04  -  Install Linux headers
-    --cli S05  -  Remove Linux headers
-    --cli N00  -  Install Bluetooth support
-    --cli N01  -  Remove Bluetooth support
-    --cli N02  -  Bluetooth Discover
-    --cli N03  -  Install Infrared support
-    --cli N04  -  Uninstall Infrared support
-    --cli N05  -  Manage wifi network connections
-    --cli N06  -  Advanced Edit /etc/network/interface
-    --cli N07  -  Disconnect and forget all wifi connections (Advanced)
-    --cli N08  -  Toggle system IPv6/IPv4 internet protocol
-    --cli N09  -  (WIP) Setup Hotspot/Access point
-    --cli L00  -  Change Global timezone (WIP)
-    --cli L01  -  Change Locales reconfigure the language and character set
-    --cli L02  -  Change Keyboard layout
-    --cli L03  -  Change APT mirrors
-    --cli I00  -  Update Application Repository
-    --cli I01  -  CLI System Monitor
-~~~
-
-## Legacy options
-Backward Compatible options.
-
-Use:
-~~~
-armbian-config main=Help
-~~~
-
-Outputs:
-~~~
-Legacy Options (Backward Compatible)
-Please use 'armbian-config --help' for more information.
-
-Usage:  armbian-configng main=[arguments] selection=[options]
-
-    armbian-configng main=System selection=Headers          -  Install headers:                                        
-    armbian-configng main=System selection=Headers_remove   -  Remove headers:                                 
-~~~
-
-***
+## Armbian-configng is divided into four main sections:
+1. System - system and security settings,
+2. Network - wired, wireless, Bluetooth, access point,
+3. Localisation - timezone, language, hostname,
+4. Software - system and 3rd party software install.
 
 ## Development
 
 Development is divided into three sections:
+1. Jobs - JSON object
+    - lib/armbian-configng/config.ng.jobs.json
+2. API - Helper functions
+    - lib/armbian-configng/config.ng.functions.sh
+    - lib/armbian-configng/config.ng.docs.sh
+    - lib/armbian-configng/config.ng.network.sh
+3. Runtime - Board statuses.
+    - lib/armbian-configng/config.ng.jobs.json
 
-Click for more info:
+***
 
-<details>
-<summary><b>Jobs / JSON Object</b></summary>
+### Jobs / JSON Object
 
-A list of the jobs defined in the Jobs file.
+A list of BASH prosedures, jobs defined in the Jobs file.
 
  ### S01
 
@@ -158,7 +48,7 @@ set_safe_boot freeze
 
 ### S03
 
-Edit the boot environment (WIP)
+Edit the boot environment
 
 Jobs:
 
@@ -306,6 +196,36 @@ Do you wish to continue?" process_input
 hotspot_setup
 ~~~
 
+### N10
+
+Announce system in the network (Avahi) 
+
+Jobs:
+
+~~~
+get_user_continue "This operation will install avahi-daemon and add configuration files.
+Do you wish to continue?" process_input
+check_if_installed avahi-daemon
+debconf-apt-progress -- apt-get -y install avahi-daemon libnss-mdns
+cp /usr/share/doc/avahi-daemon/examples/sftp-ssh.service /etc/avahi/services/
+cp /usr/share/doc/avahi-daemon/examples/ssh.service /etc/avahi/services/
+service avahi-daemon restart
+~~~
+
+### N11
+
+Disable system announce in the network (Avahi) 
+
+Jobs:
+
+~~~
+get_user_continue "This operation will purge avahi-daemon 
+Do you wish to continue?" process_input
+check_if_installed avahi-daemon
+systemctl stop avahi-daemon avahi-daemon.socket
+debconf-apt-progress -- apt-get -y purge avahi-daemon
+~~~
+
 ### L00
 
 Change Global timezone (WIP)
@@ -391,11 +311,8 @@ Jobs:
 show_message <<< see_use
 ~~~
 
-</details>
 
-
-<details>
-<summary><b>Jobs API / Helper Functions</b></summary>
+### API / Helper Functions
 
 These helper functions facilitate various operations related to job management, such as creation, updating, deletion, and listing of jobs, acting as a practical API for developers.
 
@@ -440,11 +357,7 @@ These helper functions facilitate various operations related to job management, 
 | Secure version of get_user_continue | get_user_continue_secure 'Do you wish to continue?' process_input | Joey Turner 
 
 
-</details>
-
-
-<details>
-<summary><b>Runtime / Board Statuses</b></summary>
+### Runtime / Board Statuses
 
 (WIP)
 
@@ -452,20 +365,15 @@ This section outlines the runtime environment to check configurations and status
 
 (WIP)
 
-</details>
 
 
 ## Testing and contributing
 
-<details>
-<summary><b>Get Development</b></summary>
+***Development***
 
-Install the dependencies:
-~~~
-sudo apt install git jq whiptail
-~~~
 
-Get Development and contribute:
+
+Git Development and contribute:
 ~~~
 {
     git clone https://github.com/armbian/configng
@@ -474,19 +382,14 @@ Get Development and contribute:
 }
 ~~~
 
-Install and test Development deb:
+Install the dependencies:
 ~~~
-{
-    sudo apt install whiptail
-    latest_release=$(curl -s https://api.github.com/repos/armbian/configng/releases/latest)
-    deb_url=$(echo "$latest_release" | jq -r '.assets[] | select(.name | endswith(".deb")) | .browser_download_url')
-    curl -LO "$deb_url"
-    deb_file=$(echo "$deb_url" | awk -F"/" '{print $NF}')
-    sudo dpkg -i "$deb_file"
-    sudo dpkg --configure -a
-    sudo apt --fix-broken install
-}
+sudo apt install git jq whiptail
 ~~~
 
-</details>
+Make changes, test and update documents:
+Note: `sudo` is not used for development.
+~~~
+armbian-configng --doc
+~~~
 
