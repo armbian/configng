@@ -30,7 +30,8 @@ cat << EOF > "$script_dir/../User-Guide_Armbian-Config.md"
 # Armbian Configuration Utility
 Utility for configuring your board, adjusting services, and installing applications. 
 
-## Armbian-configng is divided into four main sections:
+## Sections
+Armbian-configng is divided into four main sections:
 1. System - system and security settings,
 2. Network - wired, wireless, Bluetooth, access point,
 3. Localisation - timezone, language, hostname,
