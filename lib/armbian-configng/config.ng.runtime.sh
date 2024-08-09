@@ -15,7 +15,7 @@ system_info="$(uname -m)"
 locale_setting="$LANG"
 installed_software="$(see_current_apt)"
 held_packages=$(apt-mark showhold)
-
+network_adapter="$DEFAULT_ADAPTER"
 
 module_options+=(
     ["update_json_data,author"]="Joey Turner"
@@ -77,9 +77,7 @@ update_json_data "Localisation" "$locale_setting"
 update_json_data "Software" "$installed_software"
 
 
-#
-# Check if network adapter is IPv6 or IPv4
-network_adapter="$DEFAULT_ADAPTER"
+
 
 # Conditional submenu updates based on network type
 if [ "$network_adapter" = "IPv6" ]; then
