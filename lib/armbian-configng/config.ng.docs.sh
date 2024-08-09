@@ -25,17 +25,17 @@ function generate_readme() {
 echo -e "Sorting data\nUpdating documentation" # current_date ;
 
 
-cat << EOF > "$script_dir/../User-Guide_Armbian-Config.md"
+cat << EOF > "$script_dir/../User-Guide_Armbian-ConfigNG.md"
 
 # Armbian Configuration Utility
 Utility for configuring your board, adjusting services, and installing applications. 
 
 ## Sections
 Armbian-configng is divided into four main sections:
-1. System - system and security settings,
-2. Network - wired, wireless, Bluetooth, access point,
-3. Localisation - timezone, language, hostname,
-4. Software - system and 3rd party software install.
+- System - system and security settings,
+- Network - wired, wireless, Bluetooth, access point,
+- Localisation - timezone, language, hostname,
+- Software - system and 3rd party software install.
 
 ## Install latest release
 ~~~
@@ -98,82 +98,7 @@ https://github.com/armbian/configng
 
 EOF
 
-cat << EOF > "$script_dir/../README.md"
 
-# Armbian Configuration Utility
-Utility for configuring your board, adjusting services, and installing applications. 
-
-## Armbian-configng is divided into four main sections:
-1. System - system and security settings,
-2. Network - wired, wireless, Bluetooth, access point,
-3. Localisation - timezone, language, hostname,
-4. Software - system and 3rd party software install.
-
-## Development
-
-Development is divided into three sections:
-1. Jobs - JSON object
-    - lib/armbian-configng/config.ng.jobs.json
-2. API - Helper functions
-    - lib/armbian-configng/config.ng.functions.sh
-    - lib/armbian-configng/config.ng.docs.sh
-    - lib/armbian-configng/config.ng.network.sh
-3. Runtime - Board statuses.
-    - lib/armbian-configng/config.ng.jobs.json
-
-***
-
-### Jobs / JSON Object
-
-A list of BASH prosedures, jobs defined in the Jobs file.
-
- $(see_jq_menu_list)
-
-
-### API / Helper Functions
-
-These helper functions facilitate various operations related to job management, such as creation, updating, deletion, and listing of jobs, acting as a practical API for developers.
-
-$(see_function_table_md)
-
-
-### Runtime / Board Statuses
-
-(WIP)
-
-This section outlines the runtime environment to check configurations and statuses for dynamically managing jobs based on JSON data.
-
-(WIP)
-
-
-
-## Testing and contributing
-
-***Development***
-
-
-
-Git Development and contribute:
-~~~
-{
-    git clone https://github.com/armbian/configng
-    cd configng
-    ./armbian-configng --help
-}
-~~~
-
-Install the dependencies:
-~~~
-sudo apt install git jq whiptail
-~~~
-
-Make changes, test and update documents:
-Note: \`sudo\` is not used for development.
-~~~
-armbian-configng --doc
-~~~
-
-EOF
 
 }
 

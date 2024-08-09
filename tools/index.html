@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="description" content="Contribute wizzrd for ConfigNG">
+	<meta name="keywords" content="Linux, Dashboard, JavaScript, armbian, configng">
+	<meta name="author" content="Joey Turner">
+	<link rel="icon" href="/path/to/favicon.ico">
+	<title>Contribute</title>
+	<style>
+		body {
+			background-color: #2b2b2b;
+			color: #a9b7c6;
+			justify-content: center;
+			align-items: center;
+			height: 100vh;
+		}
+
+		#pre,
+		button,
+		input[type="submit"],
+		input[type="reset"],
+		input[type="text"],
+		textarea,
+		select {
+			padding: 1em;
+			background-color: #3c3f41;
+			color: #a9b7c6;
+			border: none;
+		}
+
+		pre,
+		form {
+			margin: 0 auto;
+			width: 80%;
+		}
+
+		.hidden {
+			display: none;
+		}
+
+		form div {
+			margin-bottom: 1em;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		small {
+			display: block;
+		}
+
+		label {
+			color: #a9b7c6;
+			flex: 1;
+		}
+
+		input[type="text"],
+		textarea,
+		select {
+			flex: 2;
+		}
+
+		input[type="radio"] {
+			background-color: #3c3f41;
+		}
+
+		form {
+			margin: 0 auto;
+		}
+
+		@media (orientation: landscape) {
+			form {
+				width: 66.66%;
+				/* 4/6 of the screen */
+			}
+		}
+
+		@media (orientation: portrait) {
+			form {
+				width: 100%;
+				/* full width */
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<div id="mainContent">
+		<form id="jsonForm">
+
+			<h2>
+				<label for="sub_id">Feature:</label>
+			</h2>
+			<fieldset>
+				<div>
+					<label for="isAdmin">Admin?</label>
+					<input type="radio" id="yes" name="isAdmin" value="Yes">
+					<label for="yes">Yes</label>
+					<input type="radio" id="no" name="isAdmin" value="No" checked>
+					<label for="no">No</label>
+				</div>
+
+				<div>
+					<label for="sub_description">Description:</label>
+					<input type="text" id="sub_description" name="sub_description" placeholder="A short description for helo_world" required>
+				</div>
+				<div>
+
+					<label for="id">Category: </label>
+					<select id="id" name="id">
+						<optgroup label="Admin (sudo)">
+							<option value="System">System</option>
+							<option value="Network">Network</option>
+							<option value="Localisation">Localisation</option>
+							<option value="Software">Software</option>
+						</optgroup>
+						<optgroup label="User (non sudo)">
+							<option value="Other" selected>Other</option>
+						</optgroup>
+					</select>
+				</div>
+			</fieldset>
+
+			<h2>
+				Contributor information:
+			</h2>
+			<fieldset>
+				<div>
+					Please provide your GitHub or Armbian forum profile link:
+				</div>
+				<div>
+					<label for="author">Profile Link:</label>
+					<input type="text" id="author" name="link" placeholder="Github, Email, Forum">
+				</div>
+				<div>
+					If this code or idea was used elsewhere, provide the link to the original source.
+				</div>
+				<div>
+					<label for="src_reference">Reference:</label>
+					<input type="text" id="src_reference" name="src_reference" placeholder="Link to the original source of the code or idea">
+				</div>
+
+			</fieldset>
+			<h2>
+				Bash Commands:
+			</h2>
+			<fieldset>
+
+				<div>
+					Helper functions: are for complex commands that may require options and are more then 4 lines of code.
+				</div>
+				<div>
+					Job feature: are for simple commands that contain one or more helper function typicly these are 3 to 4 line of code.
+				</div>
+				<div>
+					<label for="isHelper">Helper?</label>
+
+					<input type="radio" id="hel" name="isHelper" value="Yes">
+					<label for="yes">Helper</label>
+					<input type="radio" id="no" name="isHelper" value="No" checked>
+					<label for="no">Job</label>
+
+				</div>
+				<div>
+					<label for="sub_id">Unique Name:</label>
+					<input type="text" id="sub_id" name="sub_id" placeholder="helo_world" required>
+				</div>
+				<div>
+					<label for="command">Commands:</label>
+					<textarea id="command" name="command" placeholder='echo "Hello Armbian"' style="white-space: pre; overflow-x: auto;" required></textarea>
+				</div>
+			</fieldset>
+
+			<div id="defaultValues" style="display: none;">
+				<input type="hidden" id="show" name="show" value="true">
+				<input type="hidden" id="status" name="status" value="Pending Review" readonly tabindex="-1">
+				<input type="text" id="doc_link" name="doc_link" value="https://github.com/armbian/config/wiki">
+
+			</div>
+			<div>
+				<label>Create Block</label>
+				<input type="submit" value="Next">
+			</div>
+
+		</form>
+
+	</div>
+
+	<pre>
+        <button id="copyButton" style="display: none;">Copy</button>
+		<fieldset id="pre" style="display: none;">
+            <code id="output"></code>
+    	</fieldset>  
+		<button id="backLink" style="display: none;">Back</button>
+   </pre>
+
+	</div>
+	<script>
+		const jsonForm = document.getElementById('jsonForm');
+		const backLink = document.getElementById('backLink');
+		const copyButton = document.getElementById('copyButton');
+		const output = document.getElementById('output');
+		const mainContent = document.getElementById('mainContent');
+		const pre = document.getElementById('pre');
+		const isAdmin = document.querySelector('input[name="isAdmin"]:checked').value;
+		const handleSubmit = (event) => {
+			event.preventDefault();
+			const isAdmin = document.querySelector('input[name="isAdmin"]:checked').value;
+			const isHelper = document.querySelector('input[name="isHelper"]:checked').value;
+			const subBlock = {
+				id: isHelper === 'No' ? '' : event.target.sub_id.value,
+				description: event.target.sub_description.value,
+				command: event.target.command.value.split('\n'),
+				show: isAdmin === 'Yes',
+				status: event.target.status.value,
+				doc_link: event.target.doc_link.value + "#" + event.target.id.value,
+				src_reference: event.target.src_reference.value,
+				author: event.target.author.value
+			};
+			const outputBlock = {
+				id: isHelper === 'No' ? event.target.id.value : '',
+
+				sub: [subBlock]
+			};
+
+			if (isAdmin === 'No') {
+            outputBlock.show = event.target.id.value;
+        }
+			
+			let markdown = `
+# Feature Request:
+
+	`;
+			if (isHelper === 'Yes') {
+				markdown += `
+## Bash
+
+\`\`\`bash
+module_options+=(
+["${outputBlock.id},author"]="${outputBlock.sub[0].author}"
+["${outputBlock.id},ref_link"]="${outputBlock.sub[0].src_reference}"
+["${outputBlock.id},feature"]="${outputBlock.sub[0].id}"
+["${outputBlock.id},desc"]="${outputBlock.sub[0].description}"
+["${outputBlock.id},example"]="${outputBlock.sub[0].command}"
+["${outputBlock.id},status"]="${outputBlock.sub[0].status}"
+["${outputBlock.id},doc_link"]="${outputBlock.sub[0].doc_link}"
+)
+#
+# @description ${outputBlock.sub[0].description}
+#
+function ${outputBlock.sub[0].id} \(\) {
+\t${outputBlock.sub[0].command.join('\n\t')}
+}
+
+\`\`\`
+	`;
+			} else {
+				markdown += `
+## Catagory
+### ${outputBlock.id}
+${outputBlock.sub[0].description}
+
+\`\`\`json
+${JSON.stringify(subBlock, null, 4)}
+\`\`\`
+	`;
+			}
+			output.textContent = markdown;
+			mainContent.classList.add('hidden');
+			backLink.style.display = 'block';
+			pre.style.display = 'block';
+			copyButton.style.display = 'block';
+		};
+		const handleBackLinkClick = (event) => {
+			event.preventDefault();
+			mainContent.classList.remove('hidden');
+			output.textContent = '';
+			backLink.style.display = 'none';
+			pre.style.display = 'none';
+			copyButton.style.display = 'none';
+		};
+		const handleCopyButtonClick = () => {
+			const text = output.textContent;
+			navigator.clipboard.writeText(text).then(() => {
+				console.log('Copying to clipboard was successful!');
+			}, (err) => {
+				console.error('Could not copy text: ', err);
+			});
+		};
+		jsonForm.addEventListener('submit', handleSubmit);
+		backLink.addEventListener('click', handleBackLinkClick);
+		copyButton.addEventListener('click', handleCopyButtonClick);
+	</script>
+</body>
+
+</html>

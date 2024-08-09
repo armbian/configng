@@ -4,10 +4,10 @@ Utility for configuring your board, adjusting services, and installing applicati
 
 ## Sections
 Armbian-configng is divided into four main sections:
-1. System - system and security settings,
-2. Network - wired, wireless, Bluetooth, access point,
-3. Localisation - timezone, language, hostname,
-4. Software - system and 3rd party software install.
+- System - system and security settings,
+- Network - wired, wireless, Bluetooth, access point,
+- Localisation - timezone, language, hostname,
+- Software - system and 3rd party software install.
 
 ## Install latest release
 ~~~
@@ -29,7 +29,7 @@ sudo armbian-configng
 ~~~
 
 ## list of features
-Updated: Mon Aug  5 02:11:14 PM EDT 2024
+Updated: Thu Aug  8 11:47:36 PM EDT 2024
 
 - ### **System** 
   - **S01** - Enable Armbian kernel upgrades
