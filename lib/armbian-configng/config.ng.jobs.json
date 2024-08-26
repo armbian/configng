@@ -7,42 +7,64 @@
             "sub": [
                 {
                     "id": "S01",
-                    "description": "Enable Armbina kernal upgrades",
+                    "description": "Enable Armbian kernel upgrades",
                     "command": [
-                        	"get_user_continue \"This will allow apt to update boot critical items\n\n  Continue?\" process_input",
-                        	"set_safe_boot unhold"
+                        "set_safe_boot unhold"
                     ],
                     "show": true,
-                    "status": "WIP",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
                 },
                 {
                     "id": "S02",
-                    "description": "Disable Armbina kernal upgrades",
+                    "description": "Disable Armbian kernel upgrades",
                     "command": [
-                        "get_user_continue \"This will apt hold boot critical items\n\n  Continue?\" process_input",
                         "set_safe_boot freeze"
                     ],
                     "show": true,
-                    "status": "WIP",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
                 },
                 {
                     "id": "S03",
-                    "description": "Edit the boot enviroment (WIP)",
+                    "description": "Edit the boot environment",
                     "command": [
                         "get_user_continue \"This will open /boot/armbianEnv.txt file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?\" process_input",
                         "nano /boot/armbianEnv.txt"
                     ],
                     "show": true,
-                    "status": "WIP",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
+                },
+                {
+                    "id": "S04",
+                    "description": "Install Linux headers",
+                    "command": [
+                        "Headers_install"
+                    ],
+                    "show": true,
+                    "status": "Pending Review",
+                    "doc_link": "https://github.com/armbian/config/wiki#System",
+                    "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L160",
+                    "author": "https://github.com/Tearran"
+                },
+                {
+                    "id": "S05",
+                    "description": "Remove Linux headers",
+                    "command": [
+                        "Headers_remove"
+                    ],
+                    "show": true,
+                    "status": "Pending Review",
+                    "doc_link": "https://github.com/armbian/config/wiki#System",
+                    "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L160",
+                    "author": "https://github.com/Tearran"
                 }
             ]
         },
@@ -52,7 +74,7 @@
             "show": true,
             "sub": [
                 {
-                    "id": "BT0",
+                    "id": "N00",
                     "description": "Install Bluetooth support",
                     "command": [
                         "see_current_apt ",
@@ -60,13 +82,13 @@
                         "check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y --no-install-recommends install pulseaudio-module-bluetooth blueman"
                     ],
                     "show": false,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
                 },
                 {
-                    "id": "BT1",
+                    "id": "N01",
                     "description": "Remove Bluetooth support",
                     "command": [
                         "see_current_apt ",
@@ -75,96 +97,141 @@
                         "debconf-apt-progress -- apt -y -qq autoremove"
 		       ],
                     "show": false,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
                 },
                                 {
-                    "id": "BT3",
+                    "id": "N02",
                     "description": "Bluetooth Discover",
                     "command": [
 						"get_user_continue \"Verify that your Bluetooth device is discoverable!\" process_input ; connect_bt_interface"
 
                     ],
                     "show": false,
-                    "status": "review",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": ""
-                },
-                {
-                    "id": "IR0",
-                    "description": "Install Infrared support",
-                    "command": [
-                        "see_current_apt; debconf-apt-progress -- apt-get -y --no-install-recommends install lirc"
-                    ],
-                    "show": false,
-                    "status": "review",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": ""
-                },
-                {
-                    "id": "IR1",
-                    "description": "Uninstall Infrared support",
-                    "command": [
-                        "see_current_apt; debconf-apt-progress -- apt-get -y --no-install-recommends install lirc"
-                    ],
-                    "show": false,
-                    "status": "review",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": ""
-                },
-                {
-                    "id": "N00",
-                    "description": "Manage wifi network connections",
-                    "command": [
-                        "nmtui connect"
-                    ],
-                    "show": true,
-                    "status": "review",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": ""
-                },
-                {
-                    "id": "N01",
-                    "description": "Advanced Edit /etc/network/interface",
-                    "command": [
-                        "get_user_continue \"This will open interface file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?\" process_input",
-                        "nano /etc/network/interfaces"
-                    ],
-                    "show": true,
-                    "status": "review",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": ""
-                },
-                {
-                    "id": "N02",
-                    "description": "Disconect and forget all wifi connections (Advanced)",
-                    "command": [
-                        "get_user_continue \"Disconect and forget all wifi connections\nWould you like to contiue?\" process_input",
-                        "LC_ALL=C nmcli --fields UUID,TIMESTAMP-REAL,TYPE con show | grep wifi |  awk '{print $1}' | while read line; \\ ",
-						"do nmcli con delete uuid  $line; done > /dev/null"
-                    ],
-                    "show": true,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
                 },
                 {
                     "id": "N03",
-                    "description": "Toggle system IPv6/IPv4 internet protical",
+                    "description": "Install Infrared support",
                     "command": [
-                        "get_user_continue \"This will toggle your internet protical\nWould you like to contiue?\" process_input",
+                        "see_current_apt; debconf-apt-progress -- apt-get -y --no-install-recommends install lirc"
+                    ],
+                    "show": false,
+                    "status": "Testing",
+                    "doc_link": "",
+                    "src_reference": "",
+                    "author": ""
+                },
+                {
+                    "id": "N04",
+                    "description": "Uninstall Infrared support",
+                    "command": [
+                        "see_current_apt; debconf-apt-progress -- apt-get -y --no-install-recommends install lirc"
+                    ],
+                    "show": false,
+                    "status": "Testing",
+                    "doc_link": "",
+                    "src_reference": "",
+                    "author": ""
+                },
+                {
+                    "id": "N05",
+                    "description": "Manage wifi network connections",
+                    "command": [
+                        "nmtui connect"
+                    ],
+                    "show": true,
+                    "status": "Active",
+                    "doc_link": "",
+                    "src_reference": "",
+                    "author": ""
+                },
+                {
+                    "id": "N06",
+                    "description": "Advanced Edit /etc/network/interface",
+                    "command": [
+                        "get_user_continue \"This will open interface file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?\" process_input",
+                        "nano /etc/network/interfaces"
+                    ],
+                    "show": true,
+                    "status": "Active",
+                    "doc_link": "",
+                    "src_reference": "",
+                    "author": ""
+                },
+                {
+                    "id": "N07",
+                    "description": "Disconnect and forget all wifi connections (Advanced)",
+                    "command": [
+                        "get_user_continue \"Disconnect and forget all wifi connections\nWould you like to continue?\" process_input",
+                        "LC_ALL=C nmcli --fields UUID,TIMESTAMP-REAL,TYPE con show | grep wifi |  awk '{print $1}' | while read line; \\ ",
+						"do nmcli con delete uuid  $line; done > /dev/null"
+                    ],
+                    "show": true,
+                    "status": "Active",
+                    "doc_link": "",
+                    "src_reference": "",
+                    "author": ""
+                },
+                {
+                    "id": "N08",
+                    "description": "Toggle system IPv6/IPv4 internet protocol",
+                    "command": [
+                        "get_user_continue \"This will toggle your internet protocol\nWould you like to continue?\" process_input",
                         "toggle_ipv6 | show_infobox"
                     ],
                     "show": true,
-                    "status": "review",
+                    "status": "Active",
+                    "doc_link": "",
+                    "src_reference": "",
+                    "author": ""
+                },
+                {
+                    "id": "N09",
+                    "description": "(WIP) Setup Hotspot/Access point",
+                    "command": [
+                        "get_user_continue \"This operation will install necessary software and add configuration files.\nDo you wish to continue?\" process_input",
+                        "hotspot_setup"
+                    ],
+                    "show": false,
+                    "status": "WIP",
+                    "doc_link": "",
+                    "src_reference": "",
+                    "author": ""
+                },
+                {
+                    "id": "N10",
+                    "description": "Announce system in the network (Avahi) ",
+                    "command": [
+                        "get_user_continue \"This operation will install avahi-daemon and add configuration files.\nDo you wish to continue?\" process_input",
+                        "check_if_installed avahi-daemon",
+						"debconf-apt-progress -- apt-get -y install avahi-daemon libnss-mdns",
+						"cp /usr/share/doc/avahi-daemon/examples/sftp-ssh.service /etc/avahi/services/",
+						"cp /usr/share/doc/avahi-daemon/examples/ssh.service /etc/avahi/services/",
+						"service avahi-daemon restart"
+                    ],
+                    "show": true,
+                    "status": "Active",
+                    "doc_link": "",
+                    "src_reference": "",
+                    "author": ""
+                },
+                {
+                    "id": "N11",
+                    "description": "Disable system announce in the network (Avahi) ",
+                    "command": [
+                        "get_user_continue \"This operation will purge avahi-daemon \nDo you wish to continue?\" process_input",
+                        "check_if_installed avahi-daemon",
+						"systemctl stop avahi-daemon avahi-daemon.socket",
+						"debconf-apt-progress -- apt-get -y purge avahi-daemon"
+                    ],
+                    "show": true,
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -178,26 +245,26 @@
             "sub": [
                 {
                     "id": "L00",
-                    "description": "Change Globla timezone (WIP)",
+                    "description": "Change Global timezone (WIP)",
                     "command": [
 						"dpkg-reconfigure tzdata"
                     ],
                     "show": true,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
                 },
                 {
                     "id": "L01",
-                    "description": "Change Locales reconfigure the language and charitorset",
+                    "description": "Change Locales reconfigure the language and character set",
                     "command": [
                         	"dpkg-reconfigure locales",
 							"source /etc/default/locale ; sed -i \"s/^LANGUAGE=.*/LANGUAGE=$LANG/\" /etc/default/locale",
 		                    "export LANGUAGE=$LANG"
                     ],
                     "show": true,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -209,7 +276,7 @@
 						"dpkg-reconfigure keyboard-configuration ; setupcon "
                     ],
                     "show": true,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -221,7 +288,7 @@
                         "get_user_continue \"This is only a frontend test\" process_input"
                     ],
                     "show": false,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -230,7 +297,7 @@
         },
         {
             "id": "Software",
-            "description": "Run/Install 3rd party apllications",
+            "description": "Run/Install 3rd party applications",
             "show": true,
             "sub": [
                 {
@@ -241,7 +308,7 @@
                         "debconf-apt-progress -- apt update"
                     ],
                     "show": true,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -253,7 +320,7 @@
                         "armbianmonitor -m | show_infobox"
                     ],
                     "show": true,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -267,12 +334,12 @@
             "sub": [
                 {
                     "id": "H00",
-                    "description": "About This systme. (WIP)",
+                    "description": "About This system. (WIP)",
                     "command": [
-                        "show_message <<< \"This app is to help exicute prosedures to configure your system\n\nSome option may not work on manualy modified sytemes\""
+                        "show_message <<< \"This app is to help execute procedures to configure your system\n\nSome options may not work on manually modified systems\""
                     ],
                     "show": true,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -284,7 +351,7 @@
                         "show_message <<< see_use"
                     ],
                     "show": false,
-                    "status": "review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""

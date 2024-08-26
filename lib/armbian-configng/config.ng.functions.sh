@@ -6,11 +6,11 @@
 
 module_options+=(
 ["check_desktop,author"]="Igor Pecovnik"
-["check_desktop,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#L16"
+["check_desktop,ref_link"]=""
 ["check_desktop,feature"]="check_desktop"
 ["check_desktop,desc"]="Migrated procedures from Armbian config."
 ["check_desktop,example"]="check_desktop"
-["check_desktop,status"]="review"
+["check_desktop,status"]="Active"
 ["check_desktop,doc_link"]=""
 )
 #
@@ -32,11 +32,11 @@ function check_desktop() {
 
 menu_options+=(
 ["get_headers_kernel,author"]="Igor Pecovnik"
-["get_headers_kernel,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#L39"
-["get_headers_kernel,feature"]="get_headers_kernel"
+["get_headers_kernel,ref_link"]=""
+["get_headers_kernel,feature"]="get_headers_install"
 ["get_headers_kernel,desc"]="Migrated procedures from Armbian config."
-["get_headers_kernel,example"]="get_headers_kernel"
-["get_headers_kernel,status"]="review"
+["get_headers_kernel,example"]="get_headers_install"
+["get_headers_kernel,status"]="Active"
 ["get_headers_kernel,doc_link"]=""
 )
 #
@@ -56,12 +56,12 @@ function get_headers_install() {
 
 module_options+=(
 ["set_header_remove,author"]="Igor Pecovnik"
-["set_header_remove,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#L64"
+["set_header_remove,ref_link"]=""
 ["set_header_remove,feature"]="set_header_remove"
 ["set_header_remove,desc"]="Migrated procedures from Armbian config."
 ["set_header_remove,example"]="set_header_remove"
 ["set_header_remove,doc_link"]=""
-["set_header_remove,status"]="review"
+["set_header_remove,status"]="Active"
 ["set_header_remove,doc_ink"]=""
 )
 #
@@ -85,11 +85,11 @@ function set_header_remove() {
 
 module_options+=(
 ["check_if_installed,author"]="Igor Pecovnik"
-["check_if_installed,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#L88"
+["check_if_installed,ref_link"]=""
 ["check_if_installed,feature"]="check_if_installed"
 ["check_if_installed,desc"]="Migrated procedures from Armbian config."
 ["check_if_installed,example"]="check_if_installed nano"
-["check_if_installed,status"]="review"
+["check_if_installed,status"]="Active"
 )
 #
 # check dpkg status of $1 -- currently only 'not installed at all' case caught
@@ -108,11 +108,11 @@ function check_if_installed (){
 
 module_options+=(
 ["is_package_manager_running,author"]="Igor Pecovnik"
-["is_package_manager_running,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#L111"
+["is_package_manager_running,ref_link"]=""
 ["is_package_manager_running,feature"]="is_package_manager_running"
 ["is_package_manager_running,desc"]="Migrated procedures from Armbian config."
 ["is_package_manager_running,example"]="is_package_manager_running"
-["is_package_manager_running,status"]="review"
+["is_package_manager_running,status"]="Active"
 )
 #
 # check if package manager is doing something
@@ -131,11 +131,11 @@ function is_package_manager_running() {
 
 module_options+=(
 ["set_runtime_variables,author"]="Igor Pecovnik"
-["set_runtime_variables,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#L136"
+["set_runtime_variables,ref_link"]=""
 ["set_runtime_variables,feature"]="set_runtime_variables"
-["set_runtime_variables,desc"]="Run time varibales Migrated procedures from Armbian config."
+["set_runtime_variables,desc"]="Run time variables Migrated procedures from Armbian config."
 ["set_runtime_variables,example"]="set_runtime_variables"
-["set_runtime_variables,status"]="review"
+["set_runtime_variables,status"]="Active"
 )
 #
 # gather info about the board and start with loading menu variables
@@ -181,11 +181,11 @@ function set_runtime_variables(){
 
 module_options+=(
 ["set_safe_boot,author"]="Igor Pecovnik"
-["set_safe_boot,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#L188"
+["set_safe_boot,ref_link"]=""
 ["set_safe_boot,feature"]="set_safe_boot"
 ["set_safe_boot,desc"]="Freeze/unhold Migrated procedures from Armbian config."
 ["set_safe_boot,example"]="set_safe_boot unhold or set_safe_boot freeze"
-["set_safe_boot,status"]="review"
+["set_safe_boot,status"]="Active"
 )
 #
 # freeze/unhold packages
@@ -216,11 +216,11 @@ set_safe_boot() {
 
 module_options+=(
 ["connect_bt_interface,author"]="Igor Pecovnik"
-["connect_bt_interface,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#L221"
+["connect_bt_interface,ref_link"]=""
 ["connect_bt_interface,feature"]="connect_bt_interface"
 ["connect_bt_interface,desc"]="Migrated procedures from Armbian config."
 ["connect_bt_interface,example"]="connect_bt_interface"
-["connect_bt_interface,status"]="review"
+["connect_bt_interface,status"]="Active"
 )
 #
 # connect to bluetooth device
@@ -273,12 +273,12 @@ function connect_bt_interface(){
 
 module_options+=(
 ["set_colors,author"]="Joey Turner"
-["set_colors,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#L287"
+["set_colors,ref_link"]=""
 ["set_colors,feature"]="set_colors"
-["set_colors,desc"]="Change the background color of the terminal or dialoge box"
+["set_colors,desc"]="Change the background color of the terminal or dialog box"
 ["set_colors,example"]="set_colors 0-7"
 ["set_colors,doc_link"]=""
-["set_colors,status"]="review"
+["set_colors,status"]="Active"
 )
 #
 # Function to set the tui colors
@@ -352,12 +352,12 @@ function reset_colors() {
 
 module_options+=(
 ["generate_top_menu,author"]="Joey Turner"
-["generate_top_menu,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#L370"
+["generate_top_menu,ref_link"]=""
 ["generate_top_menu,feature"]="generate_top_menu"
 ["generate_top_menu,desc"]="Build the main menu from a object"
 ["generate_top_menu,example"]="generate_top_menu 'json_data'"
 ["generate_top_menu,doc_link"]=""
-["generate_top_menu,status"]="review"
+["generate_top_menu,status"]="Active"
 )
 #
 # Function to generate the main menu from a JSON object
@@ -402,12 +402,12 @@ generate_top_menu() {
 
 module_options+=(
 ["generate_menu,author"]="Joey Turner"
-["generate_menu,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#L416"
+["generate_menu,ref_link"]=""
 ["generate_menu,feature"]="generate_menu"
 ["generate_menu,desc"]="Generate a submenu from a parent_id"
 ["generate_menu,example"]="generate_menu 'parent_id'"
 ["generate_menu,doc_link"]=""
-["generate_menu,status"]="review"
+["generate_menu,status"]="Active"
 )
 #
 # Function to generate the submenu
@@ -445,6 +445,7 @@ function generate_menu() {
             # If it doesn't, execute the command
             [[ -n "$debug" ]] &&  echo "$OPTION"
             execute_command "$OPTION"
+            #show_message <<< "$OPTION"
         fi
     fi
 
@@ -455,12 +456,12 @@ function generate_menu() {
 
 module_options+=(
 ["execute_command,author"]="Joey Turner"
-["execute_command,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#L464"
+["execute_command,ref_link"]=""
 ["execute_command,feature"]="execute_command"
 ["execute_command,desc"]="Needed by generate_menu"
 ["execute_command,example"]=""
 ["execute_command,doc_link"]=""
-["execute_command,status"]="review"
+["execute_command,status"]="Active"
 )
 #
 # Function to execute the command
@@ -479,12 +480,12 @@ function execute_command() {
 
 module_options+=(
 ["show_message,author"]="Joey Turner"
-["show_message,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#486"
+["show_message,ref_link"]=""
 ["show_message,feature"]="show_message"
 ["show_message,desc"]="Display a message box"
 ["show_message,example"]="show_message <<< 'hello world' "
-["show_message,doc_link"]="https://github.com/armbian/configng/wiki/interface"
-["show_message,status"]="review"
+["show_message,doc_link"]=""
+["show_message,status"]="Active"
 )
 #
 # Function to display a message box
@@ -505,12 +506,12 @@ function show_message() {
 
 module_options+=(
 ["show_infobox,author"]="Joey Turner"
-["show_infobox,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#512"
+["show_infobox,ref_link"]=""
 ["show_infobox,feature"]="show_infobox"
-["show_infobox,desc"]="pipe line strings to a infobox "
+["show_infobox,desc"]="pipeline strings to an infobox "
 ["show_infobox,example"]="show_infobox <<< 'hello world' ; "
 ["show_infobox,doc_link"]=""
-["show_infobox,status"]="review"
+["show_infobox,status"]="Active"
 )
 #
 # Function to display an infobox with a message
@@ -543,12 +544,12 @@ function show_infobox() {
 
 module_options+=(
 ["show_menu,author"]="Joey Turner"
-["show_menu,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#L550"
+["show_menu,ref_link"]=""
 ["show_menu,feature"]="show_menu"
 ["show_menu,desc"]="Display a menu from pipe"
 ["show_menu,example"]="show_menu <<< armbianmonitor -h  ; "
 ["show_menu,doc_link"]=""
-["show_menu,status"]="WIP"
+["show_menu,status"]="Active"
 )
 #
 #
@@ -557,7 +558,7 @@ show_menu(){
 
     # Get the input and convert it into an array of options
     inpu_raw=$(cat)
-    # Remove the lines befor -h 
+    # Remove the lines before -h 
 	input=$(echo "$inpu_raw" | sed 's/-\([a-zA-Z]\)/\1/' | grep '^  [a-zA-Z] ' | grep -v '\[')
     options=()
     while read -r line; do
@@ -581,15 +582,15 @@ show_menu(){
 
 module_options+=(
 ["get_user_continue,author"]="Joey Turner"
-["get_user_continue,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#L588"
+["get_user_continue,ref_link"]=""
 ["get_user_continue,feature"]="get_user_continue"
-["get_user_continue,desc"]="Display a Yes/No dialog box and prosees continue/exit"
+["get_user_continue,desc"]="Display a Yes/No dialog box and process continue/exit"
 ["get_user_continue,example"]="get_user_continue 'Do you wish to continue?' process_input"
 ["get_user_continue,doc_link"]=""
-["get_user_continue,status"]="review"
+["get_user_continue,status"]="Active"
 )
 #
-# Function to display a Yes/No dialog box (WIP)
+# Function to display a Yes/No dialog box
 #
 function get_user_continue() {
     local message="$1"
@@ -605,11 +606,11 @@ function get_user_continue() {
 
 menu_options+=(
 ["get_user_continue,author"]="Joey Turner"
-["get_user_continue,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#612"
+["get_user_continue,ref_link"]=""
 ["get_user_continue,feature"]="process_input"
 ["get_user_continue,desc"]="used to process the user's choice paired with get_user_continue"
 ["get_user_continue,example"]="get_user_continue 'Do you wish to continue?' process_input"
-["get_user_continue,status"]="review"
+["get_user_continue,status"]="Active"
 ["get_user_continue,doc_link"]=""
 )
 #
@@ -630,7 +631,7 @@ module_options+=(
 ["get_user_continue_secure,desc"]="Secure version of get_user_continue"
 ["get_user_continue_secure,example"]="get_user_continue_secure 'Do you wish to continue?' process_input"
 ["get_user_continue_secure,doc_link"]=""
-["get_user_continue_secure,status"]="WIP"
+["get_user_continue_secure,status"]="Active"
 )
 #
 # Secure version of get_user_continue
@@ -641,9 +642,16 @@ function get_user_continue_secure() {
 
     # Define a list of allowed functions
     local allowed_functions=("process_input" "other_function")
-
     # Check if the next_action is in the list of allowed functions
-    if [[ " ${allowed_functions[@]} " =~ " ${next_action} " ]]; then
+    found=0
+    for func in "${allowed_functions[@]}"; do
+        if [[ "$func" == "$next_action" ]]; then
+            found=1
+            break
+        fi
+    done
+
+    if [[ "$found" -eq 1 ]]; then
         if $($DIALOG --yesno "$message" 10 80 3>&1 1>&2 2>&3); then
             $next_action
         else
@@ -660,12 +668,12 @@ function get_user_continue_secure() {
 
 module_options+=(
 ["see_ping,author"]="Joey Turner"
-["see_ping,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#632"
+["see_ping,ref_link"]=""
 ["see_ping,feature"]="see_ping"
 ["see_ping,desc"]="Check the internet connection with fallback DNS"
 ["see_ping,example"]="see_ping"
 ["see_ping,doc_link"]=""
-["see_ping,status"]="review"
+["see_ping,status"]="Active"
 )
 #
 # Function to check the internet connection
@@ -695,12 +703,12 @@ function see_ping() {
 
 module_options+=(
 ["see_current_apt,author"]="Joey Turner"
-["see_current_apt,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#667"
+["see_current_apt,ref_link"]=""
 ["see_current_apt,feature"]="see_current_apt"
 ["see_current_apt,desc"]="Check when apt list was last updated"
 ["see_current_apt,example"]="see_current_apt"
 ["see_current_apt,doc_link"]=""
-["see_current_apt,status"]="review"
+["see_current_apt,status"]="Active"
 )
 #
 # Function to check when the package list was last updated
@@ -736,4 +744,80 @@ see_current_apt() {
         echo "Update the package lists"
         return 1  # The package lists are not up-to-date
     fi
+}
+
+
+module_options+=(
+["Headers_install,author"]="Joey Turner"
+["Headers_install,ref_link"]=""
+["Headers_install,feature"]="Headers_install"
+["Headers_install,desc"]="Install kernel headers"
+["Headers_install,example"]="is_package_manager_running"
+["Headers_install,status"]="Pending Review"
+["Headers_install,doc_link"]=""
+)
+#
+# @description Install kernel headers
+#
+function Headers_install () {
+	if ! is_package_manager_running; then
+	  if [[ -f /etc/armbian-release ]]; then
+	    INSTALL_PKG="linux-headers-${BRANCH}-${LINUXFAMILY}";
+	    else
+	    INSTALL_PKG="linux-headers-$(uname -r | sed 's/'-$(dpkg --print-architecture)'//')";
+	  fi
+	  debconf-apt-progress -- apt-get -y install ${INSTALL_PKG}
+	fi
+}
+
+module_options+=(
+["Headers_remove,author"]="Joey Turner"
+["Headers_remove,ref_link"]="https://github.com/armbian/config/blob/master/debian-config-jobs#L160"
+["Headers_remove,feature"]="Headers_remove"
+["Headers_remove,desc"]="Remove Linux headers"
+["Headers_remove,example"]="Headers_remove"
+["Headers_remove,status"]="Pending Review"
+["Headers_remove,doc_link"]="https://github.com/armbian/config/wiki#System"
+)
+#
+# @description Remove Linux headers
+#
+function Headers_remove () {
+	if ! is_package_manager_running; then
+		REMOVE_PKG="linux-headers-*"
+		if [[ -n $(dpkg -l | grep linux-headers) ]]; then
+			debconf-apt-progress -- apt-get -y purge ${REMOVE_PKG}
+			rm -rf /usr/src/linux-headers*
+		else
+			debconf-apt-progress -- apt-get -y install ${INSTALL_PKG}
+		fi
+		# cleanup
+		apt clean
+		debconf-apt-progress -- apt -y autoremove
+	fi
+}
+
+module_options+=(
+["sanitize_input,author"]=""
+["sanitize_input,ref_link"]=""
+["sanitize_input,feature"]="sanitize_input"
+["sanitize_input,desc"]="sanitize input cli"
+["sanitize_input,example"]="sanitize_input"
+["sanitize_input,status"]="Pending Review"
+["sanitize_input,doc_link"]=""
+)
+#
+# sanitize input cli
+#
+sanitize_input() {
+    local sanitized_input=()
+    for arg in "$@"; do
+        if [[ $arg =~ ^[a-zA-Z0-9_=]+$ ]]; then
+            sanitized_input+=("$arg")
+        else
+            echo "Invalid argument: $arg"
+            exit 1
+        fi
+    done
+    echo "${sanitized_input[@]}"
 }
