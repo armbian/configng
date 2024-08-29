@@ -351,6 +351,38 @@ function reset_colors() {
 
 
 module_options+=(
+["parse_menu_items,author"]="Gunjan Gupta"
+["parse_menu_items,ref_link"]=""
+["parse_menu_items,feature"]="parse_menu_items"
+["parse_menu_items,desc"]="Parse json to get list of desired menu or submenu items"
+["parse_menu_items,example"]="parse_menu_items 'menu_options_array'"
+["parse_menu_items,doc_link"]=""
+["parse_menu_items,status"]="Active"
+)
+#
+# Function to parse the menu items
+#
+parse_menu_items() {
+    local -n options=$1
+    while IFS= read -r id
+    do
+        IFS= read -r description
+        IFS= read -r condition
+        # If the condition field is not empty and not null, run the function specified in the condition
+        if [[ -n $condition && $condition != "null" ]]; then
+            # If the function returns a truthy value, add the menu item to the menu
+            if eval $condition; then
+                options+=("$id" "  -  $description")
+            fi
+        else
+            # If the condition field is empty or null, add the menu item to the menu
+            options+=("$id" "  -  $description ")
+        fi
+    done < <(echo "$json_data" | jq -r '.menu[] | '${parent_id:+".. | objects | select(.id==\"$parent_id\") | .sub[]? |"}' select(.show) | "\(.id)\n\(.description)\n\(.condition)"' || exit 1 )
+}
+
+
+module_options+=(
 ["generate_top_menu,author"]="Joey Turner"
 ["generate_top_menu,ref_link"]=""
 ["generate_top_menu,feature"]="generate_top_menu"
@@ -364,39 +396,22 @@ module_options+=(
 #
 generate_top_menu() {
     local json_data=$1
-    local menu_options=()
-    while IFS= read -r id
-    do
-        IFS= read -r description
-        IFS= read -r requirements
-        # If the condition field is not empty and not null, run the function specified in the condition
-        if [[ -n $requirements && $requirements != "null" ]]; then
-            local condition_result=$(eval $requirements)
-            # If the function returns a truthy value, add the menu item to the menu
-            if [[ $condition_result ]]; then
-                menu_options+=("$id" "  -  $description ($something)")
-            fi
-        else
-            # If the condition field is empty or null, add the menu item to the menu
-            menu_options+=("$id" "  -  $description ")
+
+    while true; do
+        local menu_options=()
+
+        parse_menu_items menu_options
+
+        local OPTION=$($DIALOG --title "$TITLE"  --menu "$BACKTITLE" 0 80 9 "${menu_options[@]}" \
+                                --ok-button Select --cancel-button Exit 3>&1 1>&2 2>&3)
+        local exitstatus=$?
+
+        if [ $exitstatus = 0 ]; then
+            [ -z "$OPTION" ] && break
+            [[ -n "$debug" ]] && echo "$OPTION"
+            generate_menu "$OPTION"
         fi
-    done < <(echo "$json_data" | jq -r '.menu[] | select(.show==true) | "\(.id)\n\(.description)\n\(.condition)"' || exit 1 )
-
-    set_colors 4
-
-    local OPTION=$($DIALOG --title "$TITLE"  --menu "$BACKTITLE" 0 80 9 "${menu_options[@]}" 3>&1 1>&2 2>&3)
-    local exitstatus=$?
-
-    if [ $exitstatus = 0 ]; then
-        if [ "$OPTION" == "" ]; then
-            exit 0
-        fi    
-        [[ -n "$debug" ]] && echo "$OPTION"
-        generate_menu "$OPTION"
-    fi
-
-#    echo "Menu options: ${menu_options[@]}"
-
+    done
 }
 
 
@@ -415,42 +430,33 @@ module_options+=(
 function generate_menu() {
     local parent_id=$1
 
-    # Get the submenu options for the current parent_id
-    local submenu_options=()
-    while IFS= read -r id
-    do
-        IFS= read -r description
-        submenu_options+=("$id" "  -  $description")
-    done < <(jq -r --arg parent_id "$parent_id" '.menu[] | select(.id==$parent_id) | .sub[]? | select(.show==true) | "\(.id)\n\(.description)"' <<< "$json_data")
+    while true; do
+        # Get the submenu options for the current parent_id
+        local submenu_options=()
+        parse_menu_items submenu_options
 
+        local OPTION=$($DIALOG --title "$TITLE"  --menu "$BACKTITLE" 0 80 9 "${submenu_options[@]}" \
+                                --ok-button Select --cancel-button Back 3>&1 1>&2 2>&3)
 
-    local OPTION=$($DIALOG --title "$TITLE"  --menu "$BACKTITLE" 0 80 9 "${submenu_options[@]}" \
-                            --ok-button Select --cancel-button Back 3>&1 1>&2 2>&3)
+        local exitstatus=$?
 
-    local exitstatus=$?
+        if [ $exitstatus = 0 ]; then
+            [ -z "$OPTION" ] && break
 
-    if [ $exitstatus = 0 ]; then
-        if [ "$OPTION" == "" ]; then
-            generate_top_menu
+            # Check if the selected option has a submenu
+            local submenu_count=$(jq -r --arg id "$OPTION" '.menu[] | .. | objects | select(.id==$id) | .sub? | length' "$json_file")
+            submenu_count=${submenu_count:-0}  # If submenu_count is null or empty, set it to 0
+            if [ "$submenu_count" -gt 0 ]; then
+                # If it does, generate a new menu for the submenu
+                [[ -n "$debug" ]] && echo "$OPTION"
+                generate_menu "$OPTION"
+            else
+                # If it doesn't, execute the command
+                [[ -n "$debug" ]] &&  echo "$OPTION"
+                execute_command "$OPTION"
+            fi
         fi
-        # Check if the selected option has a submenu
-        local submenu_count=$(jq -r --arg id "$OPTION" '.menu[] | .. | objects | select(.id==$id) | .sub[]? | length' "$json_file")
-        submenu_count=${submenu_count:-0}  # If submenu_count is null or empty, set it to 0
-        if [ "$submenu_count" -gt 0 ]; then
-            # If it does, generate a new menu for the submenu
-            set_colors 2 # "$?"
-            [[ -n "$debug" ]] && echo "$OPTION"
-            generate_menu "$OPTION"
-        else
-            # If it doesn't, execute the command
-            [[ -n "$debug" ]] &&  echo "$OPTION"
-            execute_command "$OPTION"
-            #show_message <<< "$OPTION"
-        fi
-    fi
-
-           # echo "Submenu options: ${submenu_options[@]}"
-
+    done
 }
 
 

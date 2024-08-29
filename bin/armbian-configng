@@ -145,7 +145,8 @@ esac
 
 #
 # Generate the top menu with the modified Object data
-while generate_top_menu "$json_data"; do tput clear ; done
+set_colors 4
+generate_top_menu "$json_data"
 
 
 #
