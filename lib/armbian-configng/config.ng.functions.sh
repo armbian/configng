@@ -378,7 +378,7 @@ parse_menu_items() {
             # If the condition field is empty or null, add the menu item to the menu
             options+=("$id" "  -  $description ")
         fi
-    done < <(echo "$json_data" | jq -r '.menu[] | '${parent_id:+".. | objects | select(.id==\"$parent_id\") | .sub[]? |"}' select(.show) | "\(.id)\n\(.description)\n\(.condition)"' || exit 1 )
+    done < <(echo "$json_data" | jq -r '.menu[] | '${parent_id:+".. | objects | select(.id==\"$parent_id\") | .sub[]? |"}' select(.disabled|not) | "\(.id)\n\(.description)\n\(.condition)"' || exit 1 )
 }
 
 
@@ -480,7 +480,6 @@ function execute_command() {
             [[ -n "$debug" ]] && echo "$command"
             eval "$command"
     done
-
 }
 
 
@@ -750,6 +749,29 @@ see_current_apt() {
         echo "Update the package lists"
         return 1  # The package lists are not up-to-date
     fi
+}
+
+module_options+=(
+["are_headers_installed,author"]="Gunjan Gupta"
+["are_headers_installed,ref_link"]=""
+["are_headers_installed,feature"]="are_headers_installed"
+["are_headers_installed,desc"]="Check if kernel headers are installed"
+["are_headers_installed,example"]="are_headers_installed"
+["are_headers_installed,status"]="Pending Review"
+["are_headers_installed,doc_link"]=""
+)
+#
+# @description Install kernel headers
+#
+function are_headers_installed () {
+    if [[ -f /etc/armbian-release ]]; then
+        PKG_NAME="linux-headers-${BRANCH}-${LINUXFAMILY}";
+    else
+        PKG_NAME="linux-headers-$(uname -r | sed 's/'-$(dpkg --print-architecture)'//')";
+    fi
+
+    check_if_installed ${PKG_NAME}
+    return $?
 }
 
 
