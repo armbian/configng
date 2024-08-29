@@ -56,12 +56,6 @@ echo "Loaded Runtime conditions..." #| show_infobox ;
 clear
 
 case "$1" in
-     "--dev")
-          if [[ $EUID != 0 ]]; then
-               source "$lib_dir/config.ng.runtime.dev.sh"
-               echo "Loaded Development Runtime conditions..." | show_infobox
-          fi
-          ;;
      "--help")
                see_cli_list
                exit 0
