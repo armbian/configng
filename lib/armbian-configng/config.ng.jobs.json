@@ -200,7 +200,7 @@
                 },
                 {
                     "id": "N10",
-                    "description": "Announce system in the network (Avahi) ",
+                    "description": "Announce system in the network (Avahi)",
                     "command": [
                         "get_user_continue \"This operation will install avahi-daemon and add configuration files.\nDo you wish to continue?\" process_input",
                         "check_if_installed avahi-daemon",
@@ -217,7 +217,7 @@
                 },
                 {
                     "id": "N11",
-                    "description": "Disable system announce in the network (Avahi) ",
+                    "description": "Disable system announce in the network (Avahi)",
                     "command": [
                         "get_user_continue \"This operation will purge avahi-daemon \nDo you wish to continue?\" process_input",
                         "check_if_installed avahi-daemon",
