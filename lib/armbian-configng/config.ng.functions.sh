@@ -142,8 +142,24 @@ module_options+=(
 #
 function set_runtime_variables(){
 
-    [[ -z "$DIALOG" ]] && echo "Please install whiptail" && exit 1 ;
-
+	missing_dependencies=()
+	
+	# Check if whiptail is available and set DIALOG
+	if [[ -z "$DIALOG" ]]; then
+	    missing_dependencies+=("whiptail")
+	fi
+	
+	# Check if jq is available
+	if ! [[ -x "$(command -v jq)" ]]; then
+	    missing_dependencies+=("jq")
+	fi
+	
+	# If any dependencies are missing, print a combined message and exit
+	if [[ ${#missing_dependencies[@]} -ne 0 ]]; then
+	    echo "Error: Please install the following dependencies using 'sudo apt install ${missing_dependencies[*]}'"
+	    exit 1
+	fi
+ 
 	DIALOG_CANCEL=1
 	DIALOG_ESC=255
 
@@ -283,8 +299,6 @@ module_options+=(
 #
 # Function to set the tui colors
 #
-[[ -x "$(command -v whiptail)" ]] && DIALOG="whiptail" ||  exit 1 ;
-
 function set_colors() {
     local color_code=$1
 
