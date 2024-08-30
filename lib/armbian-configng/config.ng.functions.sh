@@ -142,7 +142,9 @@ module_options+=(
 #
 function set_runtime_variables(){
 
-    [[ -z "$DIALOG" ]] && echo "Please install whiptail" && exit 1 ;
+    [[ -z "$DIALOG" ]] && { echo "Please install whiptail using 'sudo apt install whiptail'"; exit 1; }
+    [[ -x "$(command -v jq)" ]] || { echo "Please install jq using 'sudo apt install jq'"; exit 1; }
+
 
 	DIALOG_CANCEL=1
 	DIALOG_ESC=255
@@ -283,8 +285,6 @@ module_options+=(
 #
 # Function to set the tui colors
 #
-[[ -x "$(command -v whiptail)" ]] && DIALOG="whiptail" ||  exit 1 ;
-
 function set_colors() {
     local color_code=$1
 
