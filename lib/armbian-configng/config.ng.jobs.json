@@ -63,7 +63,20 @@
                     "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L160",
                     "author": "https://github.com/Tearran",
                     "condition": "are_headers_installed"
+                },
+                {
+                    "id": "S06",
+                    "description": "Install to internal storage",
+                    "command": [
+                        "armbian-install"
+                    ],
+                    "status": "Pending Review",
+                    "doc_link": "https://github.com/armbian/config/wiki#System",
+                    "src_reference": "",
+                    "author": "https://github.com/igorpecovnik",
+                    "condition": ""
                 }
+
             ]
         },
         {
