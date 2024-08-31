@@ -21,7 +21,7 @@ jobs:
       homepage: "https://www.armbian.com"
       section: "default"
       priority: "optional"
-      depends: "bash jq whiptail"
+      depends: "bash, jq, whiptail"
       description: "Configng"
 
     secrets:
