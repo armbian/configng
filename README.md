@@ -1,6 +1,6 @@
 
 # Armbian Configuration Utility
-Updated: Thu Aug 29 11:45:21 AM UTC 2024
+Updated: Sun Sep  1 03:03:48 PM EDT 2024
 
 Utility for configuring your board, adjusting services, and installing applications. It comes with Armbian by default.
 
@@ -15,6 +15,9 @@ sudo armbian-config
   - **S03** - Edit the boot environment
   - **S04** - Install Linux headers
   - **S05** - Remove Linux headers
+  - **S06** - Install to internal storage
+  - **S30** - Change shell system wide to BASH
+  - **S31** - Change shell system wide to ZSH
 
 
 - ## **Network** 
@@ -88,6 +91,9 @@ Usage:  armbian-configng [option] [arguments]
     --cli S03  -  Edit the boot environment
     --cli S04  -  Install Linux headers
     --cli S05  -  Remove Linux headers
+    --cli S06  -  Install to internal storage
+    --cli S30  -  Change shell system wide to BASH
+    --cli S31  -  Change shell system wide to ZSH
     --cli N00  -  Install Bluetooth support
     --cli N01  -  Remove Bluetooth support
     --cli N02  -  Bluetooth Discover
@@ -192,6 +198,46 @@ Jobs:
 
 ~~~
 Headers_remove
+~~~
+
+### S06
+
+Install to internal storage
+
+Jobs:
+
+~~~
+armbian-install
+~~~
+
+### S30
+
+Change shell system wide to BASH
+
+Jobs:
+
+~~~
+export BASHLOCATION=$(grep /bash$ /etc/shells | tail -1)
+sed -i "s|^SHELL=.*|SHELL=${BASHLOCATION}|" /etc/default/useradd
+sed -i "s|^DSHELL=.*|DSHELL=${BASHLOCATION}|" /etc/adduser.conf
+debconf-apt-progress -- apt-get -y purge armbian-zsh
+update_skel
+awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534 || $3 == 0) print $1}' /etc/passwd | xargs -L1 chsh -s $(grep /bash$ /etc/shells | tail -1)
+~~~
+
+### S31
+
+Change shell system wide to ZSH
+
+Jobs:
+
+~~~
+export ZSHLOCATION=$(grep /zsh$ /etc/shells | tail -1)
+sed -i "s|^SHELL=.*|SHELL=${ZSHLOCATION}|" /etc/default/useradd
+sed -i "s|^DSHELL=.*|DSHELL=${ZSHLOCATION}|" /etc/adduser.conf
+debconf-apt-progress -- apt-get -y install armbian-zsh
+update_skel
+awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534 || $3 == 0) print $1}' /etc/passwd | xargs -L1 chsh -s $(grep /zsh$ /etc/shells | tail -1)
 ~~~
 
 ### N00
@@ -447,6 +493,7 @@ These helper functions facilitate various operations related to job management, 
 | Display a Yes/No dialog box and process continue/exit | get_user_continue 'Do you wish to continue?' process_input | Joey Turner 
 | Display a message box | show_message <<< 'hello world'  | Joey Turner 
 | Migrated procedures from Armbian config. | connect_bt_interface | Igor Pecovnik 
+| Show or generate QR code for Google OTP | qr_code generate | Igor Pecovnik 
 | Freeze/unhold Migrated procedures from Armbian config. | set_safe_boot unhold or set_safe_boot freeze | Igor Pecovnik 
 | Check if kernel headers are installed | are_headers_installed | Gunjan Gupta 
 | Check when apt list was last updated | see_current_apt | Joey Turner 
@@ -472,6 +519,7 @@ These helper functions facilitate various operations related to job management, 
 | Parse json to get list of desired menu or submenu items | parse_menu_items 'menu_options_array' | Gunjan Gupta 
 | Show the usage of the functions. | see_use | Joey Turner 
 | Check the internet connection with fallback DNS | see_ping | Joey Turner 
+| Update the /etc/skel files in users directories | update_skel | Igor Pecovnik 
 | Secure version of get_user_continue | get_user_continue_secure 'Do you wish to continue?' process_input | Joey Turner 
 
 
