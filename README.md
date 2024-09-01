@@ -15,7 +15,8 @@ sudo armbian-config
   - **S03** - Edit the boot environment
   - **S04** - Install Linux headers
   - **S05** - Remove Linux headers
-
+  - **S06** - Install to internal storage
+  - **S07** - Manage SSH login options
 
 - ## **Network** 
   - **N00** - Install Bluetooth support

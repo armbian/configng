@@ -75,6 +75,145 @@
                     "src_reference": "",
                     "author": "https://github.com/igorpecovnik",
                     "condition": "[[ -n $(ls /sbin/armbian-install) ]]"
+                },
+                {
+                    "id": "S07",
+                    "description": "Manage SSH login options",
+                    "sub": [
+                            {
+                            "id": "S08",
+                            "description": "Disable root login",
+                            "command": [
+                                           "sed -i \"s|^#\\?PermitRootLogin.*|PermitRootLogin no|\" /etc/ssh/sshd_config",
+                                           "systemctl restart sshd.service"
+                                       ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q '^PermitRootLogin yes'  /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "S09",
+                            "description": "Enable root login",
+                            "command": [
+                                           "sed -i \"s/^#\\?PermitRootLogin.*/PermitRootLogin yes/\" /etc/ssh/sshd_config" ,
+                                           "systemctl restart sshd.service"
+                                       ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q '^PermitRootLogin no' /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "S10",
+                            "description": "Disable password login",
+                            "command": [
+                                           "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication no/\" /etc/ssh/sshd_config" ,
+                                           "systemctl restart sshd.service"
+                                       ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q 'PasswordAuthentication yes' /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "S11",
+                            "description": "Enable password login",
+                            "command": [
+                                           "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication yes/\" /etc/ssh/sshd_config" ,
+                                           "systemctl restart sshd.service"
+                                       ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q 'PasswordAuthentication no' /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "S12",
+                            "description": "Disable Public key authentication login",
+                            "command": [
+                                           "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication no/\" /etc/ssh/sshd_config" ,
+                                           "systemctl restart sshd.service"
+                                       ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q 'PubkeyAuthentication yes' /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "S13",
+                            "description": "Enable Public key authentication login",
+                            "command": [
+                                           "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication yes/\" /etc/ssh/sshd_config" ,
+                                           "systemctl restart sshd.service"
+                                       ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q 'PubkeyAuthentication no' /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "S14",
+                            "description": "Disable OTP authentication",
+                            "command": [
+                                           "clear",
+                                           "! check_if_installed libpam-google-authenticator && ! check_if_installed qrencode || debconf-apt-progress -- apt-get -y purge libpam-google-authenticator qrencode",
+                                           "sed -i \"s/^#\\?ChallengeResponseAuthentication.*/ChallengeResponseAuthentication no/\" /etc/ssh/sshd_config || sed -i \"0,/KbdInteractiveAuthentication/s//ChallengeResponseAuthentication yes/\" /etc/ssh/sshd_config" ,
+                                           "sed -i '/^auth required pam_google_authenticator.so nullok/ d' /etc/pam.d/sshd",
+                                           "systemctl restart sshd.service"
+                                       ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q 'ChallengeResponseAuthentication yes' /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "S15",
+                            "description": "Enable OTP authentication",
+                            "command": [
+                                           "check_if_installed libpam-google-authenticator || debconf-apt-progress -- apt-get -y install libpam-google-authenticator",
+                                           "check_if_installed qrencode || debconf-apt-progress -- apt-get -y install qrencode",
+                                           "sed -i \"s/^#\\?ChallengeResponseAuthentication.*/ChallengeResponseAuthentication yes/\" /etc/ssh/sshd_config",
+                                           "sed -i $'/KbdInteractiveAuthentication/{iChallengeResponseAuthentication yes\\n:a;n;ba}' /etc/ssh/sshd_config || sed -n -i '/password updating/{p;:a;N;/@include common-password/!ba;s/.*\\n/auth required pam_google_authenticator.so nullok\\nauth required pam_permit.so\\n/};p' /etc/pam.d/sshd",
+                                           "[ ! -f /root/.google_authenticator ] && qr_code generate",
+                                           "systemctl restart sshd.service"
+                                       ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "! check_if_installed libpam-google-authenticator || ! check_if_installed qrencode || grep -q '^ChallengeResponseAuthentication no' /etc/ssh/sshd_config || ! grep -q 'ChallengeResponseAuthentication' /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "S16",
+                            "description": "Generate new OTP authentication QR code",
+                            "command": [
+                                           "qr_code generate"
+                                       ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "S17",
+                            "description": "Show OTP authentication QR code",
+                            "command": ["qr_code"],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "Igor Pecovnik",
+                            "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config && [ -f /root/.google_authenticator ]"
+                            }
+                           ]
                 }
 
             ]
@@ -242,149 +381,8 @@
                     "src_reference": "",
                     "author": "",
                     "condition": "check_if_installed avahi-daemon"
-                },
-                {
-                    "id": "N12",
-                    "description": "Reconfigure OpenSSH daemon (secure shell)",
-                    "sub": [
-                            {
-                            "id": "SSH01",
-                            "description": "Disable root login",
-                            "command": [
-                                           "sed -i \"s|^#\\?PermitRootLogin.*|PermitRootLogin no|\" /etc/ssh/sshd_config",
-                                           "systemctl restart sshd.service"
-                                       ],
-                            "status": "Active",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
-                            "condition": "grep -q '^PermitRootLogin yes'  /etc/ssh/sshd_config"
-                            },
-                            {
-                            "id": "SSH02",
-                            "description": "Enable root login",
-                            "command": [
-                                           "sed -i \"s/^#\\?PermitRootLogin.*/PermitRootLogin yes/\" /etc/ssh/sshd_config" ,
-                                           "systemctl restart sshd.service"
-                                       ],
-                            "status": "Active",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
-                            "condition": "grep -q '^PermitRootLogin no' /etc/ssh/sshd_config"
-                            },
-                            {
-                            "id": "SSH03",
-                            "description": "Disable password login",
-                            "command": [
-                                           "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication no/\" /etc/ssh/sshd_config" ,
-                                           "systemctl restart sshd.service"
-                                       ],
-                            "status": "Active",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
-                            "condition": "grep -q 'PasswordAuthentication yes' /etc/ssh/sshd_config"
-                            },
-                            {
-                            "id": "SSH04",
-                            "description": "Enable password login",
-                            "command": [
-                                           "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication yes/\" /etc/ssh/sshd_config" ,
-                                           "systemctl restart sshd.service"
-                                       ],
-                            "status": "Active",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
-                            "condition": "grep -q 'PasswordAuthentication no' /etc/ssh/sshd_config"
-                            },
-                            {
-                            "id": "SSH05",
-                            "description": "Disable Public key authentication login",
-                            "command": [
-                                           "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication no/\" /etc/ssh/sshd_config" ,
-                                           "systemctl restart sshd.service"
-                                       ],
-                            "status": "Active",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
-                            "condition": "grep -q 'PubkeyAuthentication yes' /etc/ssh/sshd_config"
-                            },
-                            {
-                            "id": "SSH06",
-                            "description": "Enable Public key authentication login",
-                            "command": [
-                                           "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication yes/\" /etc/ssh/sshd_config" ,
-                                           "systemctl restart sshd.service"
-                                       ],
-                            "status": "Active",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
-                            "condition": "grep -q 'PubkeyAuthentication no' /etc/ssh/sshd_config"
-                            },
-                            {
-                            "id": "SSH07",
-                            "description": "Disable OTP authentication",
-                            "command": [
-                                           "clear",
-                                           "! check_if_installed libpam-google-authenticator && ! check_if_installed qrencode || debconf-apt-progress -- apt-get -y purge libpam-google-authenticator qrencode",
-                                           "sed -i \"s/^#\\?ChallengeResponseAuthentication.*/ChallengeResponseAuthentication no/\" /etc/ssh/sshd_config || sed -i \"0,/KbdInteractiveAuthentication/s//ChallengeResponseAuthentication yes/\" /etc/ssh/sshd_config" ,
-                                            "sed -i '/^auth required pam_google_authenticator.so nullok/ d' /etc/pam.d/sshd",
-                                           "systemctl restart sshd.service"
-                                       ],
-                            "status": "Active",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
-                            "condition": "grep -q 'ChallengeResponseAuthentication yes' /etc/ssh/sshd_config"
-                            },
-                            {
-                            "id": "SSH08",
-                            "description": "Enable OTP authentication",
-                            "command": [
-                                           "check_if_installed libpam-google-authenticator || debconf-apt-progress -- apt-get -y install libpam-google-authenticator",
-                                           "check_if_installed qrencode || debconf-apt-progress -- apt-get -y install qrencode",
-                                           "sed -i \"s/^#\\?ChallengeResponseAuthentication.*/ChallengeResponseAuthentication yes/\" /etc/ssh/sshd_config || sed -i $'/KbdInteractiveAuthentication/{iChallengeResponseAuthentication yes\\n:a;n;ba}' /etc/ssh/sshd_config" ,
-                                           "sed -n -i '/password updating/{p;:a;N;/@include common-password/!ba;s/.*\\n/auth required pam_google_authenticator.so nullok\\nauth required pam_permit.so\\n/};p' /etc/pam.d/sshd",
-                                           "[ ! -f /root/.google_authenticator ] && qr_code generate",
-                                           "systemctl restart sshd.service"
-                                       ],
-                            "status": "Active",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
-                            "condition": "! check_if_installed libpam-google-authenticator || ! check_if_installed qrencode || grep -q '^ChallengeResponseAuthentication no' /etc/ssh/sshd_config || ! grep -q 'ChallengeResponseAuthentication' /etc/ssh/sshd_config"
-                            },
-                            {
-                            "id": "SSH09",
-                            "description": "Generate new OTP authentication QR code",
-                            "command": [
-                                           "qr_code generate"
-                                       ],
-                            "status": "Active",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
-                            "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config"
-                            },
-                            {
-                            "id": "SSH10",
-                            "description": "Show OTP authentication QR code",
-                            "command": [
-                                           "qr_code"
-                                       ],
-                            "status": "Active",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "Igor Pecovnik",
-                            "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config && [ -f /root/.google_authenticator ]"
-                            }
-                           ]
                 }
-             ]
+            ]
         },
         {
             "id": "Localisation",
