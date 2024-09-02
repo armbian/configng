@@ -138,7 +138,7 @@ function Headers_install () {
 
 module_options+=(
 ["Headers_remove,author"]="Joey Turner"
-["Headers_remove,ref_link"]="https://github.com/armbian/config/blob/master/debian-config-jobs#L160"
+["Headers_remove,ref_link"]=""
 ["Headers_remove,feature"]="Headers_remove"
 ["Headers_remove,desc"]="Remove Linux headers"
 ["Headers_remove,example"]="Headers_remove"
@@ -161,4 +161,67 @@ function Headers_remove () {
 		apt clean
 		debconf-apt-progress -- apt -y autoremove
 	fi
+}
+
+
+module_options+=(
+	["setup_google_authenticator,author"]="Igor"
+	["setup_google_authenticator,ref_link"]=""
+	["setup_google_authenticator,feature"]="setup_google_authenticator"
+	["setup_google_authenticator,desc"]="Setup Google Authenticator and configure SSH"
+	["setup_google_authenticator,example"]="setup_google_authenticator"
+	["setup_google_authenticator,status"]="Pending Review"
+	["setup_google_authenticator,doc_link"]="https://github.com/armbian/config/wiki#System"
+)
+#
+# @description Setup Google Authenticator and configure SSH
+#
+setup_google_authenticator() {
+	clear
+    # Check and install libpam-google-authenticator if not installed
+    check_if_installed libpam-google-authenticator || debconf-apt-progress -- apt-get -y install libpam-google-authenticator
+
+    # Check and install qrencode if not installed
+    check_if_installed qrencode || debconf-apt-progress -- apt-get -y install qrencode
+
+    # Enable ChallengeResponseAuthentication in sshd_config
+    sed -i "s/^#\\?ChallengeResponseAuthentication.*/ChallengeResponseAuthentication yes/" /etc/ssh/sshd_config
+
+    # Update sshd_config and pam.d/sshd for Google Authenticator
+    sed -i $'/KbdInteractiveAuthentication/{iChallengeResponseAuthentication yes\\n:a;n;ba}' /etc/ssh/sshd_config || \
+    sed -n -i '/password updating/{p;:a;N;/@include common-password/!ba;s/.*\\n/auth required pam_google_authenticator.so nullok\\nauth required pam_permit.so\\n/};p' /etc/pam.d/sshd
+
+    # Generate QR code if .google_authenticator file does not exist
+    [ ! -f /root/.google_authenticator ] && qr_code generate
+
+    # Restart sshd service
+    systemctl restart sshd.service
+}
+
+module_options+=(
+    ["clear_google_authenticator,author"]="Igor"
+    ["clear_google_authenticator,ref_link"]=""
+    ["clear_google_authenticator,feature"]="clear_google_authenticator"
+    ["clear_google_authenticator,desc"]="Remove Google Authenticator and revert SSH configuration"
+    ["clear_google_authenticator,example"]="clear_google_authenticator"
+    ["clear_google_authenticator,status"]="Pending Review"
+    ["clear_google_authenticator,doc_link"]="https://github.com/armbian/config/wiki#System"
+)
+#
+# @description Remove Google Authenticator and revert SSH configuration
+#
+clear_google_authenticator() {
+	clear
+    # Purge libpam-google-authenticator and qrencode if installed
+    ! check_if_installed libpam-google-authenticator && ! check_if_installed qrencode || debconf-apt-progress -- apt-get -y purge libpam-google-authenticator qrencode
+
+    # Disable ChallengeResponseAuthentication in sshd_config
+    sed -i "s/^#\\?ChallengeResponseAuthentication.*/ChallengeResponseAuthentication no/" /etc/ssh/sshd_config || \
+    sed -i "0,/KbdInteractiveAuthentication/s//ChallengeResponseAuthentication yes/" /etc/ssh/sshd_config
+
+    # Remove Google Authenticator configuration from pam.d/sshd
+    sed -i '/^auth required pam_google_authenticator.so nullok/ d' /etc/pam.d/sshd
+
+    # Restart sshd service
+    systemctl restart sshd.service
 }

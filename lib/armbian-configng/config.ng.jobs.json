@@ -5,7 +5,7 @@
             "description": "System wide and admin settings",
             "sub": [
                 {
-                    "id": "S01",
+                    "id": "S00",
                     "description": "Enable Armbian kernel upgrades",
                     "command": [
                         "set_safe_boot unhold"
@@ -17,7 +17,7 @@
                     "condition": "[[ -n \"$(apt-mark showhold)\" ]]"
                 },
                 {
-                    "id": "S02",
+                    "id": "S01",
                     "description": "Disable Armbian kernel upgrades",
                     "command": [
                         "set_safe_boot freeze"
@@ -29,7 +29,7 @@
                     "condition": "[[ -z \"$(apt-mark showhold)\" ]]"
                 },
                 {
-                    "id": "S03",
+                    "id": "S02",
                     "description": "Edit the boot environment",
                     "command": [
                         "get_user_continue \"This will open /boot/armbianEnv.txt file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?\" process_input",
@@ -41,19 +41,19 @@
                     "author": ""
                 },
                 {
-                    "id": "S04",
+                    "id": "S03",
                     "description": "Install Linux headers",
                     "command": [
                         "Headers_install"
                     ],
-                    "status": "Pending Review",
+                    "status": "Active",
                     "doc_link": "https://github.com/armbian/config/wiki#System",
                     "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L160",
                     "author": "https://github.com/Tearran",
                     "condition": "! are_headers_installed"
                 },
                 {
-                    "id": "S05",
+                    "id": "S04",
                     "description": "Remove Linux headers",
                     "command": [
                         "Headers_remove"
@@ -65,19 +65,19 @@
                     "condition": "are_headers_installed"
                 },
                 {
-                    "id": "S06",
+                    "id": "S05",
                     "description": "Install to internal storage",
                     "command": [
                         "armbian-install"
                     ],
-                    "status": "Pending Review",
+                    "status": "Testing",
                     "doc_link": "https://github.com/armbian/config/wiki#System",
                     "src_reference": "",
                     "author": "https://github.com/igorpecovnik",
                     "condition": "[[ -n $(ls /sbin/armbian-install) ]]"
                 },
                 {
-                    "id": "S30",
+                    "id": "S06",
                     "description": "Change shell system wide to BASH",
                     "command": [
                         "export BASHLOCATION=$(grep /bash$ /etc/shells | tail -1)",
@@ -87,14 +87,14 @@
                         "update_skel",
                         "awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534 || $3 == 0) print $1}' /etc/passwd | xargs -L1 chsh -s $(grep /bash$ /etc/shells | tail -1)"
                     ],
-                    "status": "Pending Review",
+                    "status": "Testing",
                     "doc_link": "",
                     "src_reference": "",
                     "author": "https://github.com/igorpecovnik",
                     "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"zsh\" ]]"
                 },
                 {
-                    "id": "S31",
+                    "id": "S07",
                     "description": "Change shell system wide to ZSH",
                     "command": [
                         "export ZSHLOCATION=$(grep /zsh$ /etc/shells | tail -1)",
@@ -104,59 +104,147 @@
                         "update_skel",
                         "awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534 || $3 == 0) print $1}' /etc/passwd | xargs -L1 chsh -s $(grep /zsh$ /etc/shells | tail -1)"
                     ],
-                    "status": "Pending Review",
+                    "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
                     "author": "https://github.com/igorpecovnik",
                     "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"bash\" ]]"
                 },
                 {
-                    "id": "S40",
-                    "description": "Sub sub menu test",
+                    "id": "S08",
+                    "description": "Manage SSH login options",
                     "sub": [
                         {
-                            "id": "S41",
-                            "description": "Sub sub menu item",
+                            "id": "SS01",
+                            "description": "Disable root login",
                             "command": [
-                                "echo \"Sub sub menu item\""
-                            ],
-                            "status": "Active",
+                                           "sed -i \"s|^#\\?PermitRootLogin.*|PermitRootLogin no|\" /etc/ssh/sshd_config",
+                                           "systemctl restart sshd.service"
+                                       ],
+                            "status": "Testing",
+                            "doc_link": "",
+                            "src_reference": "",
                             "author": "",
-                            "condition": ""
-                        },
-                        {
-                            "id": "S42",
-                            "description": "Sub sub menu item 2",
+                            "condition": "grep -q '^PermitRootLogin yes'  /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "SS02",
+                            "description": "Enable root login",
                             "command": [
-                                "echo \"Sub sub menu item 2\""
-                            ],
-                            "status": "Active",
+                                           "sed -i \"s/^#\\?PermitRootLogin.*/PermitRootLogin yes/\" /etc/ssh/sshd_config" ,
+                                           "systemctl restart sshd.service"
+                                       ],
+                            "status": "Testing",
+                            "doc_link": "",
+                            "src_reference": "",
                             "author": "",
-                            "condition": ""
-                        },
-                        {
-                            "id": "S43",
-                            "description": "Sub sub menu item 3",
+                            "condition": "grep -q '^PermitRootLogin no' /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "SS03",
+                            "description": "Disable password login",
                             "command": [
-                                "echo \"Sub sub menu item 3\""
-                            ],
-                            "status": "Active",
+                                           "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication no/\" /etc/ssh/sshd_config" ,
+                                           "systemctl restart sshd.service"
+                                       ],
+                            "status": "Testing",
+                            "doc_link": "",
+                            "src_reference": "",
                             "author": "",
-                            "condition": ""
-                                                                    },
-                        {
-                            "id": "S44",
-                            "description": "Sub sub menu item 4",
+                            "condition": "grep -q 'PasswordAuthentication yes' /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "SS04",
+                            "description": "Enable password login",
                             "command": [
-                                "echo \"Sub sub menu item 4\""
-                            ],
-                            "status": "Active",
+                                           "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication yes/\" /etc/ssh/sshd_config" ,
+                                           "systemctl restart sshd.service"
+                                       ],
+                            "status": "Testing",
+                            "doc_link": "",
+                            "src_reference": "",
                             "author": "",
-                            "condition": ""
-                        }
+                            "condition": "grep -q 'PasswordAuthentication no' /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "SS05",
+                            "description": "Disable Public key authentication login",
+                            "command": [
+                                           "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication no/\" /etc/ssh/sshd_config" ,
+                                           "systemctl restart sshd.service"
+                                       ],
+                            "status": "Testing",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q 'PubkeyAuthentication yes' /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "SS06",
+                            "description": "Enable Public key authentication login",
+                            "command": [
+                                           "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication yes/\" /etc/ssh/sshd_config" ,
+                                           "systemctl restart sshd.service"
+                                       ],
+                            "status": "Testing",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q 'PubkeyAuthentication no' /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "SS07",
+                            "description": "Disable OTP authentication",
+                            "command": [
+                                           "clear",
+                                           "! check_if_installed libpam-google-authenticator && ! check_if_installed qrencode || debconf-apt-progress -- apt-get -y purge libpam-google-authenticator qrencode",
+                                           "sed -i \"s/^#\\?ChallengeResponseAuthentication.*/ChallengeResponseAuthentication no/\" /etc/ssh/sshd_config || sed -i \"0,/KbdInteractiveAuthentication/s//ChallengeResponseAuthentication yes/\" /etc/ssh/sshd_config" ,
+                                           "sed -i '/^auth required pam_google_authenticator.so nullok/ d' /etc/pam.d/sshd",
+                                           "systemctl restart sshd.service"
+                                       ],
+                            "status": "Testing",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q 'ChallengeResponseAuthentication yes' /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "SS08",
+                            "description": "Enable OTP authentication",
+                            "command": [
+                                           "setup_google_authenticator"
+                                       ],
+                            "status": "Testing",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "! check_if_installed libpam-google-authenticator || ! check_if_installed qrencode || grep -q '^ChallengeResponseAuthentication no' /etc/ssh/sshd_config || ! grep -q 'ChallengeResponseAuthentication' /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "SS09",
+                            "description": "Generate new OTP authentication QR code",
+                            "command": [
+                                           "qr_code generate"
+                                       ],
+                            "status": "Testing",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "SS10",
+                            "description": "Show OTP authentication QR code",
+                            "command": ["qr_code"],
+                            "status": "Testing",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "Igor Pecovnik",
+                            "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config && [ -f /root/.google_authenticator ]"
+                            }
                     ],
                     "disabled": true,
-                    "status": "WIP",
+                    "status": "Testing",
                     "author": "",
                     "condition": ""
                 }
