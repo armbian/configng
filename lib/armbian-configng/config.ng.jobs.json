@@ -241,7 +241,7 @@
                             "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config && [ -f /root/.google_authenticator ]"
                             }
                     ],
-                    "disabled": false,
+                    "disabled": true,
                     "status": "Testing",
                     "author": "",
                     "condition": ""
