@@ -1,6 +1,6 @@
 
 # Armbian Configuration Utility
-Updated: Sun Sep  1 03:03:48 PM EDT 2024
+Updated: Mon Sep  2 01:19:18 PM EDT 2024
 
 Utility for configuring your board, adjusting services, and installing applications. It comes with Armbian by default.
 
@@ -18,6 +18,7 @@ sudo armbian-config
   - **S06** - Install to internal storage
   - **S30** - Change shell system wide to BASH
   - **S31** - Change shell system wide to ZSH
+  - **S40** - Sub sub menu test
 
 
 - ## **Network** 
@@ -94,6 +95,7 @@ Usage:  armbian-configng [option] [arguments]
     --cli S06  -  Install to internal storage
     --cli S30  -  Change shell system wide to BASH
     --cli S31  -  Change shell system wide to ZSH
+    --cli S40  -  Sub sub menu test
     --cli N00  -  Install Bluetooth support
     --cli N01  -  Remove Bluetooth support
     --cli N02  -  Bluetooth Discover
@@ -238,6 +240,16 @@ sed -i "s|^DSHELL=.*|DSHELL=${ZSHLOCATION}|" /etc/adduser.conf
 debconf-apt-progress -- apt-get -y install armbian-zsh
 update_skel
 awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534 || $3 == 0) print $1}' /etc/passwd | xargs -L1 chsh -s $(grep /zsh$ /etc/shells | tail -1)
+~~~
+
+### S40
+
+Sub sub menu test
+
+Jobs:
+
+~~~
+No commands available
 ~~~
 
 ### N00
@@ -491,8 +503,8 @@ These helper functions facilitate various operations related to job management, 
 | Generate Document files. | generate_readme | Joey Turner 
 | Needed by generate_menu |  | Joey Turner 
 | Display a Yes/No dialog box and process continue/exit | get_user_continue 'Do you wish to continue?' process_input | Joey Turner 
-| Display a message box | show_message <<< 'hello world'  | Joey Turner 
 | Migrated procedures from Armbian config. | connect_bt_interface | Igor Pecovnik 
+| Display a message box | show_message <<< 'hello world'  | Joey Turner 
 | Show or generate QR code for Google OTP | qr_code generate | Igor Pecovnik 
 | Freeze/unhold Migrated procedures from Armbian config. | set_safe_boot unhold or set_safe_boot freeze | Igor Pecovnik 
 | Check if kernel headers are installed | are_headers_installed | Gunjan Gupta 
@@ -503,7 +515,6 @@ These helper functions facilitate various operations related to job management, 
 | Update submenu descriptions based on conditions | update_submenu_data | Joey Turner 
 | sanitize input cli | sanitize_input |  
 | Check if a domain is reachable via IPv4 and IPv6 | check_ip_version google.com | Joey Turner 
-| Migrated procedures from Armbian config. | set_header_remove | Igor Pecovnik 
 | Generate a submenu from a parent_id | generate_menu 'parent_id' | Joey Turner 
 | Generate a markdown list json objects using jq. | see_jq_menu_list | Joey Turner 
 | Generate jobs from JSON file. | generate_jobs_from_json | Joey Turner 
