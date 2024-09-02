@@ -453,16 +453,17 @@ module_options+=(
 # This function is used to generate a markdown list from the json object using jq.
 #
 function see_jq_menu_list() {
-
-jq -r '
-    .menu[] | 
-    .sub[] | 
-    "### " + .id + "\n\n" + 
-    .description + "\n\nJobs:\n\n~~~\n" + 
-    (.command | join("\n")) + 
-    "\n~~~\n"
-' $json_file
+    
+    jq -r '
+        .menu[] | 
+        .sub[]? | 
+        "### " + .id + "\n\n" + 
+        (.description // "No description available") + "\n\nJobs:\n\n~~~\n" + 
+        ((.command // ["No commands available"]) | join("\n")) + 
+        "\n~~~\n"
+    ' $json_file
 }
+
 module_options+=(
     ["see_cli_list,author"]="Joey Turner"
     ["see_cli_list,ref_link"]=""

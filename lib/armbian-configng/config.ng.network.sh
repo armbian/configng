@@ -215,3 +215,58 @@ systemctl enable dnsmasq
 whiptail --msgbox "Hotspot setup complete. Rebooting now." 8 40
 reboot
 }
+
+
+module_options+=(
+["connect_bt_interface,author"]="Igor Pecovnik"
+["connect_bt_interface,ref_link"]=""
+["connect_bt_interface,feature"]="connect_bt_interface"
+["connect_bt_interface,desc"]="Migrated procedures from Armbian config."
+["connect_bt_interface,example"]="connect_bt_interface"
+["connect_bt_interface,status"]="Active"
+)
+#
+# connect to bluetooth device
+#
+function connect_bt_interface(){
+
+	IFS=$'\r\n'
+	GLOBIGNORE='*'
+	show_infobox <<< "\nDiscovering Bluetooth devices ... "
+	BT_INTERFACES=($(hcitool scan | sed '1d'))
+
+	local LIST=()
+	for i in "${BT_INTERFACES[@]}"
+	do
+		local a=$(echo ${i[0]//[[:blank:]]/} | sed -e 's/^\(.\{17\}\).*/\1/')
+		local b=${i[0]//$a/}
+		local b=$(echo $b | sed -e 's/^[ \t]*//')
+		LIST+=( "$a" "$b")
+	done
+
+	LIST_LENGTH=$((${#LIST[@]}/2));
+	if [ "$LIST_LENGTH" -eq 0 ]; then
+		BT_ADAPTER=${WLAN_INTERFACES[0]}
+		show_message <<< "\nNo nearby Bluetooth devices were found!"
+	else
+		exec 3>&1
+		BT_ADAPTER=$(whiptail --title "Select interface" \
+		--clear --menu "" $((6+${LIST_LENGTH})) 50 $LIST_LENGTH "${LIST[@]}" 2>&1 1>&3)
+		exec 3>&-
+		if [[ $BT_ADAPTER != "" ]]; then
+			show_infobox <<< "\nConnecting to $BT_ADAPTER "
+			BT_EXEC=$(
+			expect -c 'set prompt "#";set address '$BT_ADAPTER';spawn bluetoothctl;expect -re $prompt;send "disconnect $address\r";
+			sleep 1;send "remove $address\r";sleep 1;expect -re $prompt;send "scan on\r";sleep 8;send "scan off\r";
+			expect "Controller";send "trust $address\r";sleep 2;send "pair $address\r";sleep 2;send "connect $address\r";
+			send_user "\nShould be paired now.\r";sleep 2;send "quit\r";expect eof')
+			echo "$BT_EXEC" > /tmp/bt-connect-debug.log
+				if [[ $(echo "$BT_EXEC" | grep "Connection successful" ) != "" ]]; then
+					show_message <<< "\nYour device is ready to use!"
+				else
+					show_message <<< "\nError connecting. Try again!" 
+				fi
+		fi
+	fi
+
+}

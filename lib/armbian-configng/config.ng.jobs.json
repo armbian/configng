@@ -109,6 +109,56 @@
                     "src_reference": "",
                     "author": "https://github.com/igorpecovnik",
                     "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"bash\" ]]"
+                },
+                {
+                    "id": "S40",
+                    "description": "Sub sub menu test",
+                    "sub": [
+                        {
+                            "id": "S41",
+                            "description": "Sub sub menu item",
+                            "command": [
+                                "echo \"Sub sub menu item\""
+                            ],
+                            "status": "Active",
+                            "author": "",
+                            "condition": ""
+                        },
+                        {
+                            "id": "S42",
+                            "description": "Sub sub menu item 2",
+                            "command": [
+                                "echo \"Sub sub menu item 2\""
+                            ],
+                            "status": "Active",
+                            "author": "",
+                            "condition": ""
+                        },
+                        {
+                            "id": "S43",
+                            "description": "Sub sub menu item 3",
+                            "command": [
+                                "echo \"Sub sub menu item 3\""
+                            ],
+                            "status": "Active",
+                            "author": "",
+                            "condition": ""
+                                                                    },
+                        {
+                            "id": "S44",
+                            "description": "Sub sub menu item 4",
+                            "command": [
+                                "echo \"Sub sub menu item 4\""
+                            ],
+                            "status": "Active",
+                            "author": "",
+                            "condition": ""
+                        }
+                    ],
+                    "disabled": false,
+                    "status": "Active",
+                    "author": "",
+                    "condition": ""
                 }
             ]
         },

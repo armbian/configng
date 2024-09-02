@@ -52,3 +52,113 @@ function qr_code (){
 	read -n 1 -s -r -p "Press any key to continue"
 
 }
+
+
+module_options+=(
+["set_safe_boot,author"]="Igor Pecovnik"
+["set_safe_boot,ref_link"]=""
+["set_safe_boot,feature"]="set_safe_boot"
+["set_safe_boot,desc"]="Freeze/unhold Migrated procedures from Armbian config."
+["set_safe_boot,example"]="set_safe_boot unhold or set_safe_boot freeze"
+["set_safe_boot,status"]="Active"
+)
+#
+# freeze/unhold packages
+#
+set_safe_boot() {
+
+	check_if_installed linux-u-boot-${BOARD}-${BRANCH} && PACKAGE_LIST+=" linux-u-boot-${BOARD}-${BRANCH}"
+	check_if_installed linux-image-${BRANCH}-${LINUXFAMILY} && PACKAGE_LIST+=" linux-image-${BRANCH}-${LINUXFAMILY}"
+	check_if_installed linux-dtb-${BRANCH}-${LINUXFAMILY} && PACKAGE_LIST+=" linux-dtb-${BRANCH}-${LINUXFAMILY}"
+	check_if_installed linux-headers-${BRANCH}-${LINUXFAMILY} && PACKAGE_LIST+=" linux-headers-${BRANCH}-${LINUXFAMILY}"
+
+	# new BSP
+	check_if_installed armbian-${LINUXFAMILY} && PACKAGE_LIST+=" armbian-${LINUXFAMILY}"
+	check_if_installed armbian-${BOARD} && PACKAGE_LIST+=" armbian-${BOARD}"
+	check_if_installed armbian-${DISTROID} && PACKAGE_LIST+=" armbian-${DISTROID}"
+	check_if_installed armbian-bsp-cli-${BOARD} && PACKAGE_LIST+=" armbian-bsp-cli-${BOARD}"
+	check_if_installed armbian-${DISTROID}-desktop-xfce && PACKAGE_LIST+=" armbian-${DISTROID}-desktop-xfce"
+	check_if_installed armbian-firmware && PACKAGE_LIST+=" armbian-firmware"
+	check_if_installed armbian-firmware-full && PACKAGE_LIST+=" armbian-firmware-full"
+	IFS=" "
+	[[ "$1" == "unhold" ]] && local command="apt-mark unhold" && for word in $PACKAGE_LIST; do $command $word; done | show_infobox
+
+	[[ "$1" == "freeze" ]] && local command="apt-mark hold" && for word in $PACKAGE_LIST; do $command $word; done | show_infobox
+
+}
+
+
+module_options+=(
+["are_headers_installed,author"]="Gunjan Gupta"
+["are_headers_installed,ref_link"]=""
+["are_headers_installed,feature"]="are_headers_installed"
+["are_headers_installed,desc"]="Check if kernel headers are installed"
+["are_headers_installed,example"]="are_headers_installed"
+["are_headers_installed,status"]="Pending Review"
+["are_headers_installed,doc_link"]=""
+)
+#
+# @description Install kernel headers
+#
+function are_headers_installed () {
+    if [[ -f /etc/armbian-release ]]; then
+        PKG_NAME="linux-headers-${BRANCH}-${LINUXFAMILY}";
+    else
+        PKG_NAME="linux-headers-$(uname -r | sed 's/'-$(dpkg --print-architecture)'//')";
+    fi
+
+    check_if_installed ${PKG_NAME}
+    return $?
+}
+
+
+module_options+=(
+["Headers_install,author"]="Joey Turner"
+["Headers_install,ref_link"]=""
+["Headers_install,feature"]="Headers_install"
+["Headers_install,desc"]="Install kernel headers"
+["Headers_install,example"]="is_package_manager_running"
+["Headers_install,status"]="Pending Review"
+["Headers_install,doc_link"]=""
+)
+#
+# @description Install kernel headers
+#
+function Headers_install () {
+	if ! is_package_manager_running; then
+	  if [[ -f /etc/armbian-release ]]; then
+	    INSTALL_PKG="linux-headers-${BRANCH}-${LINUXFAMILY}";
+	    else
+	    INSTALL_PKG="linux-headers-$(uname -r | sed 's/'-$(dpkg --print-architecture)'//')";
+	  fi
+	  debconf-apt-progress -- apt-get -y install ${INSTALL_PKG}
+	fi
+}
+
+
+module_options+=(
+["Headers_remove,author"]="Joey Turner"
+["Headers_remove,ref_link"]="https://github.com/armbian/config/blob/master/debian-config-jobs#L160"
+["Headers_remove,feature"]="Headers_remove"
+["Headers_remove,desc"]="Remove Linux headers"
+["Headers_remove,example"]="Headers_remove"
+["Headers_remove,status"]="Pending Review"
+["Headers_remove,doc_link"]="https://github.com/armbian/config/wiki#System"
+)
+#
+# @description Remove Linux headers
+#
+function Headers_remove () {
+	if ! is_package_manager_running; then
+		REMOVE_PKG="linux-headers-*"
+		if [[ -n $(dpkg -l | grep linux-headers) ]]; then
+			debconf-apt-progress -- apt-get -y purge ${REMOVE_PKG}
+			rm -rf /usr/src/linux-headers*
+		else
+			debconf-apt-progress -- apt-get -y install ${INSTALL_PKG}
+		fi
+		# cleanup
+		apt clean
+		debconf-apt-progress -- apt -y autoremove
+	fi
+}
