@@ -196,11 +196,7 @@
                             "id": "SS07",
                             "description": "Disable OTP authentication",
                             "command": [
-                                           "clear",
-                                           "! check_if_installed libpam-google-authenticator && ! check_if_installed qrencode || debconf-apt-progress -- apt-get -y purge libpam-google-authenticator qrencode",
-                                           "sed -i \"s/^#\\?ChallengeResponseAuthentication.*/ChallengeResponseAuthentication no/\" /etc/ssh/sshd_config || sed -i \"0,/KbdInteractiveAuthentication/s//ChallengeResponseAuthentication yes/\" /etc/ssh/sshd_config" ,
-                                           "sed -i '/^auth required pam_google_authenticator.so nullok/ d' /etc/pam.d/sshd",
-                                           "systemctl restart sshd.service"
+                                           "clear_google_authenticatore"
                                        ],
                             "status": "Testing",
                             "doc_link": "",
@@ -235,7 +231,9 @@
                             {
                             "id": "SS10",
                             "description": "Show OTP authentication QR code",
-                            "command": ["qr_code"],
+                            "command": [
+                                "qr_code"
+                            ],
                             "status": "Testing",
                             "doc_link": "",
                             "src_reference": "",
@@ -243,7 +241,7 @@
                             "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config && [ -f /root/.google_authenticator ]"
                             }
                     ],
-                    "disabled": true,
+                    "disabled": false,
                     "status": "Testing",
                     "author": "",
                     "condition": ""
