@@ -214,6 +214,41 @@
                             "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config && [ -f /root/.google_authenticator ]"
                             }
                            ]
+                },
+		    
+                {
+                    "id": "S30",
+                    "description": "Change shell system wide to BASH",
+                    "command": [
+                        "export BASHLOCATION=$(grep /bash$ /etc/shells | tail -1)",
+                        "sed -i \"s|^SHELL=.*|SHELL=${BASHLOCATION}|\" /etc/default/useradd",
+                        "sed -i \"s|^DSHELL=.*|DSHELL=${BASHLOCATION}|\" /etc/adduser.conf",
+                        "debconf-apt-progress -- apt-get -y purge armbian-zsh",
+                        "update_skel",
+                        "awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534 || $3 == 0) print $1}' /etc/passwd | xargs -L1 chsh -s $(grep /bash$ /etc/shells | tail -1)"
+                    ],
+                    "status": "Pending Review",
+                    "doc_link": "",
+                    "src_reference": "",
+                    "author": "https://github.com/igorpecovnik",
+                    "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"zsh\" ]]"
+                },
+                {
+                    "id": "S31",
+                    "description": "Change shell system wide to ZSH",
+                    "command": [
+                        "export ZSHLOCATION=$(grep /zsh$ /etc/shells | tail -1)",
+                        "sed -i \"s|^SHELL=.*|SHELL=${ZSHLOCATION}|\" /etc/default/useradd",
+                        "sed -i \"s|^DSHELL=.*|DSHELL=${ZSHLOCATION}|\" /etc/adduser.conf",
+                        "debconf-apt-progress -- apt-get -y install armbian-zsh",
+                        "update_skel",
+                        "awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534 || $3 == 0) print $1}' /etc/passwd | xargs -L1 chsh -s $(grep /zsh$ /etc/shells | tail -1)"
+                    ],
+                    "status": "Pending Review",
+                    "doc_link": "",
+                    "src_reference": "",
+                    "author": "https://github.com/igorpecovnik",
+                    "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"bash\" ]]"
                 }
 
             ]
