@@ -458,11 +458,12 @@ jq -r '
     .menu[] | 
     .sub[] | 
     "### " + .id + "\n\n" + 
-    .description + "\n\nJobs:\n\n~~~\n" + 
-    (.command | join("\n")) + 
+    (.description // "No description available") + "\n\nJobs:\n\n~~~\n" + 
+    ((.command // ["No commands available"]) | join("\n")) +  
     "\n~~~\n"
 ' $json_file
 }
+
 module_options+=(
     ["see_cli_list,author"]="Joey Turner"
     ["see_cli_list,ref_link"]=""
