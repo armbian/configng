@@ -8,7 +8,7 @@
                     "id": "S01",
                     "description": "Enable Armbian kernel upgrades",
                     "command": [
-                        "set_safe_boot unhold"
+                        "armbian_fw_manipulate unhold"
                     ],
                     "status": "Active",
                     "doc_link": "",
@@ -20,7 +20,7 @@
                     "id": "S02",
                     "description": "Disable Armbian kernel upgrades",
                     "command": [
-                        "set_safe_boot freeze"
+                        "armbian_fw_manipulate hold"
                     ],
                     "status": "Active",
                     "doc_link": "",

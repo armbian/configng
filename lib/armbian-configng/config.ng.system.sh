@@ -69,6 +69,7 @@ function set_stable () {
 
 if ! grep -q 'apt.armbian.com' /etc/apt/sources.list.d/armbian.list; then
     sed -i "s/http:\/\/[^ ]*/http:\/\/apt.armbian.com/" /etc/apt/sources.list.d/armbian.list
+	armbian_fw_manipulate "reinstall"
 fi
 }
 
@@ -87,5 +88,6 @@ function set_rolling () {
 
 if ! grep -q 'beta.armbian.com' /etc/apt/sources.list.d/armbian.list; then
 	sed -i "s/http:\/\/[^ ]*/http:\/\/beta.armbian.com/" /etc/apt/sources.list.d/armbian.list
+	armbian_fw_manipulate "reinstall"
 fi
 }
