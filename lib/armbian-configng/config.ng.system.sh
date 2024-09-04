@@ -52,3 +52,30 @@ function qr_code (){
 	read -n 1 -s -r -p "Press any key to continue"
 
 }
+
+function set_rolling () {
+
+        # Set rolling release if not already set
+        if ! grep -q 'beta.armbian.com' /etc/apt/sources.list.d/armbian.list; then
+            sed -i "s/http:\/\/[^ ]*/http:\/\/beta.armbian.com/" /etc/apt/sources.list.d/armbian.list
+        fi
+}
+
+module_options+=(
+["set_stable,author"]="Igor Pecovnik"
+["set_stable,ref_link"]=""
+["set_stable,feature"]="set_stable"
+["set_stable,desc"]="Set Armbian to stable release"
+["set_stable,example"]="set_stable"
+["set_stable,status"]="Active"
+)
+#
+# @description Set Armbian to stable release
+#
+function set_stable () {
+
+if ! grep -q 'beta.armbian.com' /etc/apt/sources.list.d/armbian.list; then
+    sed -i "s/http:\/\/[^ ]*/http:\/\/apt.armbian.com/" /etc/apt/sources.list.d/armbian.list
+fi
+
+}
