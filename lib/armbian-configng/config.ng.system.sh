@@ -52,3 +52,40 @@ function qr_code (){
 	read -n 1 -s -r -p "Press any key to continue"
 
 }
+
+
+module_options+=(
+["set_stable,author"]="Tearran"
+["set_stable,ref_link"]="https://github.com/armbian/config/blob/master/debian-config-jobs#L1446"
+["set_stable,feature"]="set_stable"
+["set_stable,desc"]="Set Armbian to stable release"
+["set_stable,example"]="set_stable"
+["set_stable,status"]="Active"
+)
+#
+# @description Set Armbian to stable release
+#
+function set_stable () {
+
+if ! grep -q 'apt.armbian.com' /etc/apt/sources.list.d/armbian.list; then
+    sed -i "s/http:\/\/[^ ]*/http:\/\/apt.armbian.com/" /etc/apt/sources.list.d/armbian.list
+fi
+}
+
+module_options+=(
+["set_rolling,author"]="Tearran"
+["set_rolling,ref_link"]="https://github.com/armbian/config/blob/master/debian-config-jobs#L1446"
+["set_rolling,feature"]="set_rolling"
+["set_rolling,desc"]="Set Armbian to rolling release"
+["set_rolling,example"]="set_rolling"
+["set_rolling,status"]="Active"
+)
+#
+# @description Set Armbian to rolling release
+#
+function set_rolling () {
+
+if ! grep -q 'beta.armbian.com' /etc/apt/sources.list.d/armbian.list; then
+	sed -i "s/http:\/\/[^ ]*/http:\/\/beta.armbian.com/" /etc/apt/sources.list.d/armbian.list
+fi
+}
