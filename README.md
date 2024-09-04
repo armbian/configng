@@ -17,6 +17,8 @@ sudo armbian-config
   - **S05** - Remove Linux headers
   - **S06** - Install to internal storage
   - **S07** - Manage SSH login options
+  - **S30** - Change shell system wide to BASH
+  - **S31** - Change shell system wide to ZSH
 
 - ## **Network** 
   - **N00** - Install Bluetooth support
