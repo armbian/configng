@@ -262,32 +262,45 @@ armbian_fw_manipulate() {
 
 	function=$1
 
+	# fallback to current
+	[[ -z $BRANCH ]] && BRANCH="current"
+
 	ARMBIAN_PACKAGES=(
 	    "linux-u-boot-${BOARD}-${BRANCH}"
 	    "linux-image-${BRANCH}-${LINUXFAMILY}"
 	    "linux-dtb-${BRANCH}-${LINUXFAMILY}"
 	    "linux-headers-${BRANCH}-${LINUXFAMILY}"
 	    "armbian-config"
-	    "armbian-plymouth-theme"
 	    "armbian-zsh"
-	    "base-files"
 	    "armbian-bsp-cli-${BOARD}-${BRANCH}"
-	    "armbian-bsp-desktop-${BOARD}-${BRANCH}"
-	    "armbian-firmware-full"
-	    "armbian-firmware"
 	)
 
-	SELECTION=$(for PACKAGE in "${ARMBIAN_PACKAGES[@]}"
-	do
-		if check_if_installed $PACKAGE; then
-		echo $PACKAGE
+	if [[ "${function}" == reinstall ]]; then
+		debconf-apt-progress -- apt-get update
 	fi
-	done)
+
+	PACKAGES=""
+	for PACKAGE in "${ARMBIAN_PACKAGES[@]}"
+	do
+			if [[ "${function}" == reinstall ]]; then
+				apt search $PACKAGE 2>/dev/null | grep "^$PACKAGE" >/dev/null
+				if [[ $? -eq 0 ]]; then PACKAGES+="$PACKAGE "; fi
+			else
+				if check_if_installed $PACKAGE; then
+				PACKAGES+="$PACKAGE "
+				fi
+			fi
+	done
 
 	case $function in
-		unhold)            apt-mark unhold ${SELECTION} | show_infobox ;;
-		hold)              apt-mark hold ${SELECTION} | show_infobox ;;
-		reinstall)         echo ${SELECTION}; debconf-apt-progress -- apt-get update; debconf-apt-progress -- apt-get -y --reinstall install ${SELECTION};;
+		unhold)            apt-mark unhold ${PACKAGES} | show_infobox ;;
+		hold)              apt-mark hold ${PACKAGES} | show_infobox ;;
+		reinstall)
+					debconf-apt-progress -- apt-get -y --download-only install ${PACKAGES}
+					debconf-apt-progress -- apt-get -y purge ${PACKAGES}
+					debconf-apt-progress -- apt-get -y install ${PACKAGES}
+					debconf-apt-progress -- apt-get -y autoremove
+		;;
 		*) return ;;
 	esac
 
