@@ -255,8 +255,132 @@
         },
         {
             "id": "Network",
-            "description": "Wireless, Ethernet, and Network settings",
+            "description": "Fixed and wireless network settings",
             "sub": [
+                {
+                    "id": "NP00",
+                    "description": "Configure network interfaces",
+                    "sub": [
+                            {
+                                "id": "LAN00",
+                                "description": "Apply configuration",
+                                "command": [
+                                    "netplan apply"
+                                    ],
+                                "status": "Active",
+                                "doc_link": "",
+                                "src_reference": "",
+                                "author": "",
+                                "condition": ""
+                            },
+                            {
+                                "id": "LAN01",
+                                "description": "Wired",
+                                "sub": [
+                                    {
+                                        "id": "LAN02",
+                                        "description": "Show configuration",                                    
+                                        "command": [ "show_message <<< \"$(sudo netplan get ethernets)\"" ],
+                                        "condition": "[ -f /etc/netplan/30-*static-interfaces.yaml ] || [ -f /etc/netplan/10-dhcp-all-interfaces.yaml ]",
+                                        "status": "Active",
+                                        "author": "Igor Pecovnik"
+                                    },
+                                    {
+                                        "id": "LAN03",
+                                        "description": "Enable DHCP on all interfaces",
+                                        "command": [
+                                                    "rm -f /etc/netplan/30-*-static-interfaces.yaml",
+                                                    "netplan set --origin-hint 10-dhcp-all-interfaces renderer=networkd",
+                                                    "netplan set --origin-hint 10-dhcp-all-interfaces ethernets.all-eth-interfaces.dhcp4=true",
+                                                    "netplan set --origin-hint 10-dhcp-all-interfaces ethernets.all-eth-interfaces.dhcp6=true",
+                                                    "netplan set --origin-hint 10-dhcp-all-interfaces ethernets.all-eth-interfaces.match.name=e*",
+                                                    "show_message <<< \"$(sudo netplan get ethernets)\""
+                                                ],
+                                        "status": "Active",
+                                        "author": "Igor Pecovnik",
+                                        "condition": "[ ! -f /etc/netplan/10-dhcp-all-interfaces.yaml ]"
+                                    },
+                                    {
+                                        "id": "LAN04",
+                                        "description": "Set fixed IP address",
+                                        "command": [
+                                            "rm -f /etc/netplan/10-dhcp-all-interfaces.yaml",
+                                            "eth_index=\"eth0\"",
+                                            "eth_ip=\"10.0.10.199/24\"",
+                                            "netplan set --origin-hint 30-eth0-static-interfaces renderer=networkd",
+                                            "netplan set --origin-hint 30-eth0-static-interfaces ethernets.${eth_index}.addresses=[$eth_ip]",
+                                            "show_message <<< \"$(sudo netplan get ethernets)\""
+                                                   ],
+                                        "status": "Active",
+                                        "doc_link": "",
+                                        "src_reference": "",
+                                        "author": "Igor Pecovnik",
+                                        "condition": "[ -f /etc/netplan/10-dhcp-all-interfaces.yaml ] || true"
+                                    },
+                                    {
+                                        "id": "LAN05",
+                                        "description": "Disable wired networking",                                    
+                                        "command": [ "rm -f /etc/netplan/10-dhcp-all-interfaces.yaml /etc/netplan/30-*static-interfaces.yaml" ],
+                                        "condition": "[ -f /etc/netplan/30-*static-interfaces.yaml ] || [ -f /etc/netplan/10-dhcp-all-interfaces.yaml ]",
+                                        "status": "Active",
+                                        "author": "Igor Pecovnik"
+                                    }
+                                ]
+                            },
+                            {
+                                "id": "WLAN01",
+                                "description": "Wireless",
+                                "sub": [
+                                    {
+                                        "id": "WLAN02",
+                                        "description": "Show configuration",                                    
+                                        "command": [ "show_message <<< \"$(sudo netplan get wifis)\"" ],
+                                        "condition": "[ -f /etc/netplan/20-dhcp-wlan-interface.yaml ]",
+                                        "status": "Active",
+                                        "author": "Igor Pecovnik"
+                                    },
+                                    {
+                                        "id": "WLAN03",
+                                        "description": "Disable wireless networking",
+                                        "command": [ "rm -f /etc/netplan/20-dhcp-wlan-interface.yaml" ],
+                                        "condition": "[ -f /etc/netplan/20-dhcp-wlan-interface.yaml ]",
+                                        "status": "Active",
+                                        "author": "Igor Pecovnik"
+                                    },
+                                    {
+                                        "id": "WLAN04",
+                                        "description": "Disable IPV6 in wireless configuration",
+                                        "command": [ 
+                                                        "wifi_index=$(netplan get wifis | head -1 | cut -d\":\" -f1)",
+                                                        "netplan set --origin-hint 20-dhcp-wlan-interface wifis.$wifi_index.dhcp6=false",
+                                                        "show_message <<< \"$(sudo netplan get wifis)\""
+                                                    ],
+                                        "condition": "[ -f /etc/netplan/20-dhcp-wlan-interface.yaml ]",
+                                        "status": "Active",
+                                        "author": "Igor Pecovnik"
+                                    },
+                                    {
+                                        "id": "WLAN05",
+                                        "description": "Enable DHCP on wireless network interface",
+                                        "command": [
+                                                    "wifi_index=\"wlx44334c47dec3\"",
+                                                    "SSID=GOSTJE24",
+                                                    "PASSWORD=password",
+                                                    "rm -f /etc/netplan/20-dhcp-wlan-interface",
+                                                    "netplan set --origin-hint 20-dhcp-wlan-interface renderer=networkd",
+                                                    "netplan set --origin-hint 20-dhcp-wlan-interface wifis.$wifi_index.access-points.\"${SSID}\".${PASSWORD}=password",
+                                                    "netplan set --origin-hint 20-dhcp-wlan-interface wifis.$wifi_index.dhcp4=true",
+                                                    "netplan set --origin-hint 20-dhcp-wlan-interface wifis.$wifi_index.dhcp6=true",
+                                                    "show_message <<< \"$(sudo netplan get wifis)\""
+                                                ],
+                                        "status": "Active",
+                                        "author": "Igor Pecovnik",
+                                        "condition": "[ ! -f /etc/netplan/20-dhcp-wlan-interface.yaml ]"
+                                    }
+                                ]
+                            }
+                            ]
+                },
                 {
                     "id": "N00",
                     "description": "Install Bluetooth support",
