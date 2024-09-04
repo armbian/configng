@@ -283,11 +283,11 @@
             "description": "Fixed and wireless network settings",
             "sub": [
                 {
-                    "id": "NP00",
+                    "id": "N01",
                     "description": "Configure network interfaces",
                     "sub": [
                             {
-                                "id": "LAN00",
+                                "id": "N02",
                                 "description": "Apply configuration",
                                 "command": [
                                     "netplan apply"
@@ -295,15 +295,15 @@
                                 "status": "Active",
                                 "doc_link": "",
                                 "src_reference": "",
-                                "author": "",
+                                "author": "https://github.com/igorpecovnik",
                                 "condition": ""
                             },
                             {
-                                "id": "LAN01",
+                                "id": "N03",
                                 "description": "Wired",
                                 "sub": [
                                     {
-                                        "id": "LAN02",
+                                        "id": "N04",
                                         "description": "Show configuration",                                    
                                         "command": [ "show_message <<< \"$(sudo netplan get ethernets)\"" ],
                                         "condition": "[ -f /etc/netplan/30-*static-interfaces.yaml ] || [ -f /etc/netplan/10-dhcp-all-interfaces.yaml ]",
@@ -311,7 +311,7 @@
                                         "author": "Igor Pecovnik"
                                     },
                                     {
-                                        "id": "LAN03",
+                                        "id": "N05",
                                         "description": "Enable DHCP on all interfaces",
                                         "command": [
                                                     "rm -f /etc/netplan/30-*-static-interfaces.yaml",
@@ -326,7 +326,7 @@
                                         "condition": "[ ! -f /etc/netplan/10-dhcp-all-interfaces.yaml ]"
                                     },
                                     {
-                                        "id": "LAN04",
+                                        "id": "N06",
                                         "description": "Set fixed IP address",
                                         "command": [
                                             "rm -f /etc/netplan/10-dhcp-all-interfaces.yaml",
@@ -343,7 +343,7 @@
                                         "condition": "[ -f /etc/netplan/10-dhcp-all-interfaces.yaml ] || true"
                                     },
                                     {
-                                        "id": "LAN05",
+                                        "id": "N07",
                                         "description": "Disable wired networking",                                    
                                         "command": [ "rm -f /etc/netplan/10-dhcp-all-interfaces.yaml /etc/netplan/30-*static-interfaces.yaml" ],
                                         "condition": "[ -f /etc/netplan/30-*static-interfaces.yaml ] || [ -f /etc/netplan/10-dhcp-all-interfaces.yaml ]",
@@ -353,11 +353,11 @@
                                 ]
                             },
                             {
-                                "id": "WLAN01",
+                                "id": "N08",
                                 "description": "Wireless",
                                 "sub": [
                                     {
-                                        "id": "WLAN02",
+                                        "id": "N09",
                                         "description": "Show configuration",                                    
                                         "command": [ "show_message <<< \"$(sudo netplan get wifis)\"" ],
                                         "condition": "[ -f /etc/netplan/20-dhcp-wlan-interface.yaml ]",
@@ -365,7 +365,7 @@
                                         "author": "Igor Pecovnik"
                                     },
                                     {
-                                        "id": "WLAN03",
+                                        "id": "N10",
                                         "description": "Disable wireless networking",
                                         "command": [ "rm -f /etc/netplan/20-dhcp-wlan-interface.yaml" ],
                                         "condition": "[ -f /etc/netplan/20-dhcp-wlan-interface.yaml ]",
@@ -373,7 +373,7 @@
                                         "author": "Igor Pecovnik"
                                     },
                                     {
-                                        "id": "WLAN04",
+                                        "id": "N11",
                                         "description": "Disable IPV6 in wireless configuration",
                                         "command": [ 
                                                         "wifi_index=$(netplan get wifis | head -1 | cut -d\":\" -f1)",
@@ -385,7 +385,7 @@
                                         "author": "Igor Pecovnik"
                                     },
                                     {
-                                        "id": "WLAN05",
+                                        "id": "N12",
                                         "description": "Enable DHCP on wireless network interface",
                                         "command": [
                                                     "wifi_index=\"wlx44334c47dec3\"",
@@ -407,7 +407,7 @@
                             ]
                 },
                 {
-                    "id": "N00",
+                    "id": "N13",
                     "description": "Install Bluetooth support",
                     "command": [
                         "see_current_apt ",
@@ -421,7 +421,7 @@
                     "condition": "! check_if_installed bluetooth && ! check_if_installed bluez && ! check_if_installed bluez-tools"
                 },
                 {
-                    "id": "N01",
+                    "id": "N14",
                     "description": "Remove Bluetooth support",
                     "command": [
                         "see_current_apt ",
@@ -436,7 +436,7 @@
                     "condition": "check_if_installed bluetooth || check_if_installed bluez || check_if_installed bluez-tools"
                 },
                 {
-                    "id": "N02",
+                    "id": "N15",
                     "description": "Bluetooth Discover",
                     "command": [
 						"get_user_continue \"Verify that your Bluetooth device is discoverable!\" process_input ; connect_bt_interface"
@@ -449,68 +449,7 @@
                     "condition": "check_if_installed bluetooth || check_if_installed bluez || check_if_installed bluez-tools"
                 },
                 {
-                    "id": "N03",
-                    "description": "Install Infrared support",
-                    "command": [
-                        "see_current_apt; debconf-apt-progress -- apt-get -y --no-install-recommends install lirc"
-                    ],
-                    "status": "Testing",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "",
-                    "condition": "! check_if_installed lirc"
-                },
-                {
-                    "id": "N04",
-                    "description": "Uninstall Infrared support",
-                    "command": [
-                        "see_current_apt; debconf-apt-progress -- apt-get -y --no-install-recommends install lirc"
-                    ],
-                    "status": "Testing",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "",
-                    "condition": "check_if_installed lirc"
-                },
-                {
-                    "id": "N05",
-                    "description": "Manage wifi network connections",
-                    "command": [
-                        "nmtui connect"
-                    ],
-                    "status": "Active",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": ""
-                },
-                {
-                    "id": "N06",
-                    "description": "Advanced Edit /etc/network/interface",
-                    "command": [
-                        "get_user_continue \"This will open interface file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?\" process_input",
-                        "nano /etc/network/interfaces"
-                    ],
-                    "status": "Active",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "",
-                    "condition": "[ -f /etc/network/interface ]"
-                },
-                {
-                    "id": "N07",
-                    "description": "Disconnect and forget all wifi connections (Advanced)",
-                    "command": [
-                        "get_user_continue \"Disconnect and forget all wifi connections\nWould you like to continue?\" process_input",
-                        "LC_ALL=C nmcli --fields UUID,TIMESTAMP-REAL,TYPE con show | grep wifi |  awk '{print $1}' | while read line; \\ ",
-						"do nmcli con delete uuid  $line; done > /dev/null"
-                    ],
-                    "status": "Active",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": ""
-                },
-                {
-                    "id": "N08",
+                    "id": "N16",
                     "description": "Toggle system IPv6/IPv4 internet protocol",
                     "command": [
                         "get_user_continue \"This will toggle your internet protocol\nWould you like to continue?\" process_input",
@@ -522,20 +461,7 @@
                     "author": ""
                 },
                 {
-                    "id": "N09",
-                    "description": "(WIP) Setup Hotspot/Access point",
-                    "command": [
-                        "get_user_continue \"This operation will install necessary software and add configuration files.\nDo you wish to continue?\" process_input",
-                        "hotspot_setup"
-                    ],
-                    "disabled": true,
-                    "status": "WIP",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": ""
-                },
-                {
-                    "id": "N10",
+                    "id": "N17",
                     "description": "Announce system in the network (Avahi)",
                     "command": [
                         "get_user_continue \"This operation will install avahi-daemon and add configuration files.\nDo you wish to continue?\" process_input",
@@ -552,7 +478,7 @@
                     "condition": "! check_if_installed avahi-daemon"
                 },
                 {
-                    "id": "N11",
+                    "id": "N18",
                     "description": "Disable system announce in the network (Avahi)",
                     "command": [
                         "get_user_continue \"This operation will purge avahi-daemon \nDo you wish to continue?\" process_input",
