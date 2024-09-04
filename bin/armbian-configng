@@ -82,7 +82,7 @@ case "$1" in
           exit 0
           ;;
      "--api")
-            if [[ $EUID != 0 ]]; then
+          if [[ $EUID != 0 ]]; then
                echo "Error: The --api option requires root privileges. Please run as root or use sudo."
                exit 1
           fi
@@ -93,10 +93,6 @@ case "$1" in
           fi
           option="$1"
           shift
-          if [[ -z "$1" ]]; then
-               echo "Error: Missing arguments for --api."
-               exit 1
-          fi
           args=$(sanitize_input "$@")
           # echo -e "\"$option\" \"$args\""
           "$option" "$args"
