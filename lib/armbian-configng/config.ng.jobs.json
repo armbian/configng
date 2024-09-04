@@ -249,6 +249,32 @@
                     "src_reference": "",
                     "author": "https://github.com/igorpecovnik",
                     "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"bash\" ]]"
+                },
+                {
+                    "id": "S10",
+                    "description": "Switch to rolling release",
+                    "command": [
+                        "get_user_continue \"This will switch to rolling releases\n\nwould you like to continue?\" process_input",
+                        "sed -i \"s\/http:\\/\\/[^ ]*\/http:\\/\\/beta.armbian.com/\" /etc/apt/sources.list.d/armbian.list"
+                    ],
+                    "status": "Active",
+                    "doc_link": "",
+                    "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L1446",
+                    "author": "Igor Pecovnik",
+                    "condition": "grep -q 'apt.armbian.com' /etc/apt/sources.list.d/armbian.list"
+                },
+                {
+                    "id": "S11",
+                    "description": "Switch to stable release",
+                    "command": [
+                        "get_user_continue \"This will switch to stable releases\n\nwould you like to continue?\" process_input",
+                        "sed -i \"s\/http:\\/\\/[^ ]*\/http:\\/\\/apt.armbian.com/\" /etc/apt/sources.list.d/armbian.list"
+                    ],
+                    "status": "Active",
+                    "doc_link": "",
+                    "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L1446",
+                    "author": "Igor Pecovnik",
+                    "condition": "grep -q 'beta.armbian.com' /etc/apt/sources.list.d/armbian.list"
                 }
 
             ]
