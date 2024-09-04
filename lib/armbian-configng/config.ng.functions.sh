@@ -82,7 +82,6 @@ function set_header_remove() {
 
 }
 
-
 module_options+=(
 ["check_if_installed,author"]="Igor Pecovnik"
 ["check_if_installed,ref_link"]=""
@@ -96,12 +95,65 @@ module_options+=(
 #
 function check_if_installed (){
 
-	local DPKG_Status="$(dpkg -s "$1" 2>/dev/null | awk -F": " '/^Status/ {print $2}')"
-	if [[ "X${DPKG_Status}" = "X" || "${DPKG_Status}" = *deinstall* ]]; then
-		return 1
-	else
-		return 0
+        local DPKG_Status="$(dpkg -s "$1" 2>/dev/null | awk -F": " '/^Status/ {print $2}')"
+        if [[ "X${DPKG_Status}" = "X" || "${DPKG_Status}" = *deinstall* ]]; then
+                return 1
+        else
+                return 0
+        fi
+
+}
+
+
+module_options+=(
+["update_skel,author"]="Igor Pecovnik"
+["update_skel,ref_link"]=""
+["update_skel,feature"]="update_skel"
+["update_skel,desc"]="Update the /etc/skel files in users directories"
+["update_skel,example"]="update_skel"
+["update_skel,status"]="Active"
+)
+#
+# check dpkg status of $1 -- currently only 'not installed at all' case caught
+#
+function update_skel (){
+
+	getent passwd |
+	while IFS=: read -r username x uid gid gecos home shell
+	do
+	if [ ! -d "$home" ] || [ "$username" == 'root' ] || [ "$uid" -lt 1000 ]
+	then
+		continue
 	fi
+        tar -C /etc/skel/ -cf - . | su - "$username" -c "tar --skip-old-files -xf -"
+	done
+
+}
+
+
+module_options+=(
+["qr_code,author"]="Igor Pecovnik"
+["qr_code,ref_link"]=""
+["qr_code,feature"]="qr_code"
+["qr_code,desc"]="Show or generate QR code for Google OTP"
+["qr_code,example"]="qr_code generate"
+["qr_code,status"]="Active"
+)
+#
+# check dpkg status of $1 -- currently only 'not installed at all' case caught
+#
+function qr_code (){
+
+	clear
+	if [[ "$1" == "generate" ]]; then
+		google-authenticator -t -d -f -r 3 -R 30 -W -q
+		cp /root/.google_authenticator /etc/skel
+		update_skel
+	fi
+	export TOP_SECRET=$(head -1 /root/.google_authenticator)
+	qrencode -m 2 -d 9 -8 -t ANSI256 "otpauth://totp/test?secret=$TOP_SECRET"
+	echo -e '\nScan QR code with your OTP application on mobile phone\n'
+	read -n 1 -s -r -p "Press any key to continue"
 
 }
 
@@ -142,8 +194,24 @@ module_options+=(
 #
 function set_runtime_variables(){
 
-    [[ -z "$DIALOG" ]] && echo "Please install whiptail" && exit 1 ;
-
+	missing_dependencies=()
+	
+	# Check if whiptail is available and set DIALOG
+	if [[ -z "$DIALOG" ]]; then
+	    missing_dependencies+=("whiptail")
+	fi
+	
+	# Check if jq is available
+	if ! [[ -x "$(command -v jq)" ]]; then
+	    missing_dependencies+=("jq")
+	fi
+	
+	# If any dependencies are missing, print a combined message and exit
+	if [[ ${#missing_dependencies[@]} -ne 0 ]]; then
+	    echo "Error: Please install the following dependencies using 'sudo apt install ${missing_dependencies[*]}'"
+	    exit 1
+	fi
+ 
 	DIALOG_CANCEL=1
 	DIALOG_ESC=255
 
@@ -283,8 +351,6 @@ module_options+=(
 #
 # Function to set the tui colors
 #
-[[ -x "$(command -v whiptail)" ]] && DIALOG="whiptail" ||  exit 1 ;
-
 function set_colors() {
     local color_code=$1
 
@@ -351,6 +417,38 @@ function reset_colors() {
 
 
 module_options+=(
+["parse_menu_items,author"]="Gunjan Gupta"
+["parse_menu_items,ref_link"]=""
+["parse_menu_items,feature"]="parse_menu_items"
+["parse_menu_items,desc"]="Parse json to get list of desired menu or submenu items"
+["parse_menu_items,example"]="parse_menu_items 'menu_options_array'"
+["parse_menu_items,doc_link"]=""
+["parse_menu_items,status"]="Active"
+)
+#
+# Function to parse the menu items
+#
+parse_menu_items() {
+    local -n options=$1
+    while IFS= read -r id
+    do
+        IFS= read -r description
+        IFS= read -r condition
+        # If the condition field is not empty and not null, run the function specified in the condition
+        if [[ -n $condition && $condition != "null" ]]; then
+            # If the function returns a truthy value, add the menu item to the menu
+            if eval $condition; then
+                options+=("$id" "  -  $description")
+            fi
+        else
+            # If the condition field is empty or null, add the menu item to the menu
+            options+=("$id" "  -  $description ")
+        fi
+    done < <(echo "$json_data" | jq -r '.menu[] | '${parent_id:+".. | objects | select(.id==\"$parent_id\") | .sub[]? |"}' select(.disabled|not) | "\(.id)\n\(.description)\n\(.condition)"' || exit 1 )
+}
+
+
+module_options+=(
 ["generate_top_menu,author"]="Joey Turner"
 ["generate_top_menu,ref_link"]=""
 ["generate_top_menu,feature"]="generate_top_menu"
@@ -364,39 +462,22 @@ module_options+=(
 #
 generate_top_menu() {
     local json_data=$1
-    local menu_options=()
-    while IFS= read -r id
-    do
-        IFS= read -r description
-        IFS= read -r requirements
-        # If the condition field is not empty and not null, run the function specified in the condition
-        if [[ -n $requirements && $requirements != "null" ]]; then
-            local condition_result=$(eval $requirements)
-            # If the function returns a truthy value, add the menu item to the menu
-            if [[ $condition_result ]]; then
-                menu_options+=("$id" "  -  $description ($something)")
-            fi
-        else
-            # If the condition field is empty or null, add the menu item to the menu
-            menu_options+=("$id" "  -  $description ")
+
+    while true; do
+        local menu_options=()
+
+        parse_menu_items menu_options
+
+        local OPTION=$($DIALOG --title "$TITLE"  --menu "$BACKTITLE" 0 80 9 "${menu_options[@]}" \
+                                --ok-button Select --cancel-button Exit 3>&1 1>&2 2>&3)
+        local exitstatus=$?
+
+        if [ $exitstatus = 0 ]; then
+            [ -z "$OPTION" ] && break
+            [[ -n "$debug" ]] && echo "$OPTION"
+            generate_menu "$OPTION"
         fi
-    done < <(echo "$json_data" | jq -r '.menu[] | select(.show==true) | "\(.id)\n\(.description)\n\(.condition)"' || exit 1 )
-
-    set_colors 4
-
-    local OPTION=$($DIALOG --title "$TITLE"  --menu "$BACKTITLE" 0 80 9 "${menu_options[@]}" 3>&1 1>&2 2>&3)
-    local exitstatus=$?
-
-    if [ $exitstatus = 0 ]; then
-        if [ "$OPTION" == "" ]; then
-            exit 0
-        fi    
-        [[ -n "$debug" ]] && echo "$OPTION"
-        generate_menu "$OPTION"
-    fi
-
-#    echo "Menu options: ${menu_options[@]}"
-
+    done
 }
 
 
@@ -415,42 +496,33 @@ module_options+=(
 function generate_menu() {
     local parent_id=$1
 
-    # Get the submenu options for the current parent_id
-    local submenu_options=()
-    while IFS= read -r id
-    do
-        IFS= read -r description
-        submenu_options+=("$id" "  -  $description")
-    done < <(jq -r --arg parent_id "$parent_id" '.menu[] | select(.id==$parent_id) | .sub[]? | select(.show==true) | "\(.id)\n\(.description)"' <<< "$json_data")
+    while true; do
+        # Get the submenu options for the current parent_id
+        local submenu_options=()
+        parse_menu_items submenu_options
 
+        local OPTION=$($DIALOG --title "$TITLE"  --menu "$BACKTITLE" 0 80 9 "${submenu_options[@]}" \
+                                --ok-button Select --cancel-button Back 3>&1 1>&2 2>&3)
 
-    local OPTION=$($DIALOG --title "$TITLE"  --menu "$BACKTITLE" 0 80 9 "${submenu_options[@]}" \
-                            --ok-button Select --cancel-button Back 3>&1 1>&2 2>&3)
+        local exitstatus=$?
 
-    local exitstatus=$?
+        if [ $exitstatus = 0 ]; then
+            [ -z "$OPTION" ] && break
 
-    if [ $exitstatus = 0 ]; then
-        if [ "$OPTION" == "" ]; then
-            generate_top_menu
+            # Check if the selected option has a submenu
+            local submenu_count=$(jq -r --arg id "$OPTION" '.menu[] | .. | objects | select(.id==$id) | .sub? | length' "$json_file")
+            submenu_count=${submenu_count:-0}  # If submenu_count is null or empty, set it to 0
+            if [ "$submenu_count" -gt 0 ]; then
+                # If it does, generate a new menu for the submenu
+                [[ -n "$debug" ]] && echo "$OPTION"
+                generate_menu "$OPTION"
+            else
+                # If it doesn't, execute the command
+                [[ -n "$debug" ]] &&  echo "$OPTION"
+                execute_command "$OPTION"
+            fi
         fi
-        # Check if the selected option has a submenu
-        local submenu_count=$(jq -r --arg id "$OPTION" '.menu[] | .. | objects | select(.id==$id) | .sub[]? | length' "$json_file")
-        submenu_count=${submenu_count:-0}  # If submenu_count is null or empty, set it to 0
-        if [ "$submenu_count" -gt 0 ]; then
-            # If it does, generate a new menu for the submenu
-            set_colors 2 # "$?"
-            [[ -n "$debug" ]] && echo "$OPTION"
-            generate_menu "$OPTION"
-        else
-            # If it doesn't, execute the command
-            [[ -n "$debug" ]] &&  echo "$OPTION"
-            execute_command "$OPTION"
-            #show_message <<< "$OPTION"
-        fi
-    fi
-
-           # echo "Submenu options: ${submenu_options[@]}"
-
+    done
 }
 
 
@@ -474,7 +546,6 @@ function execute_command() {
             [[ -n "$debug" ]] && echo "$command"
             eval "$command"
     done
-
 }
 
 
@@ -744,6 +815,29 @@ see_current_apt() {
         echo "Update the package lists"
         return 1  # The package lists are not up-to-date
     fi
+}
+
+module_options+=(
+["are_headers_installed,author"]="Gunjan Gupta"
+["are_headers_installed,ref_link"]=""
+["are_headers_installed,feature"]="are_headers_installed"
+["are_headers_installed,desc"]="Check if kernel headers are installed"
+["are_headers_installed,example"]="are_headers_installed"
+["are_headers_installed,status"]="Pending Review"
+["are_headers_installed,doc_link"]=""
+)
+#
+# @description Install kernel headers
+#
+function are_headers_installed () {
+    if [[ -f /etc/armbian-release ]]; then
+        PKG_NAME="linux-headers-${BRANCH}-${LINUXFAMILY}";
+    else
+        PKG_NAME="linux-headers-$(uname -r | sed 's/'-$(dpkg --print-architecture)'//')";
+    fi
+
+    check_if_installed ${PKG_NAME}
+    return $?
 }
 
 

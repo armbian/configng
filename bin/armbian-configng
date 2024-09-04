@@ -36,13 +36,15 @@ declare -A module_options
 #
 # Load configng core functions and module options array
 
-source "$lib_dir/config.ng.functions.sh" 
+source "$lib_dir/config.ng.functions.sh"  
 set_runtime_variables
 echo "Loaded Runtime variables..." #| show_infobox ;
 #set_newt_colors 2
 echo "Loaded Dialog..." #| show_infobox ;
 source "$lib_dir/config.ng.docs.sh"
 echo "Loaded Docs..." #| show_infobox ;
+source "$lib_dir/config.ng.system.sh"
+echo "Loaded System helpers..." #| show_infobox ;
 source "$lib_dir/config.ng.network.sh"
 echo "Loaded Network helpers..." #| show_infobox ;
 
@@ -56,12 +58,6 @@ echo "Loaded Runtime conditions..." #| show_infobox ;
 clear
 
 case "$1" in
-     "--dev")
-          if [[ $EUID != 0 ]]; then
-               source "$lib_dir/config.ng.runtime.dev.sh"
-               echo "Loaded Development Runtime conditions..." | show_infobox
-          fi
-          ;;
      "--help")
                see_cli_list
                exit 0
@@ -145,7 +141,8 @@ esac
 
 #
 # Generate the top menu with the modified Object data
-while generate_top_menu "$json_data"; do tput clear ; done
+set_colors 4
+generate_top_menu "$json_data"
 
 
 #

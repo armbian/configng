@@ -52,23 +52,6 @@ update_submenu_data() {
 }
 
 
-module_options+=(
-    ["toggle_menu_item,author"]="Joey Turner"
-    ["toggle_menu_item,ref_link"]=""
-    ["toggle_menu_item,feature"]="toggle_menu_item"
-    ["toggle_menu_item,desc"]="Show or hide menu items based on conditions"
-    ["toggle_menu_item,example"]="toggle_menu_item"
-    ["toggle_menu_item,status"]="review"
-    ["toggle_menu_item,doc_link"]=""
-)
-#
-# Show or hide menu items based on conditions
-toggle_menu_item() {
-    json_data=$(echo "$json_data" | jq --arg key "$1" --arg subkey "$2" --arg show "$3" \
-        '(.menu[] | select(.id==$key).sub[] | select(.id == $subkey).show) |= ($show | test("true"))')
-}
-
-
 #
 # Main menu updates
 update_json_data "System" "$system_info"
@@ -86,68 +69,4 @@ if [ "$network_adapter" = "IPv6" ]; then
     update_submenu_data "Network" "N08" "IPV6"
 else
     update_submenu_data "Network" "N08" "IPV4"
-fi
-
-
-#
-# Check for avahi-daemon installed
-is_avahi_installed=$(check_if_installed avahi-daemon)
-
-# Conditional submenu network service discovery and hostname resolution
-if ! check_if_installed avahi-daemon ; then
-    toggle_menu_item "Network" "N10" "true"
-    toggle_menu_item "Network" "N11" "false"
-else
-    toggle_menu_item "Network" "N10" "false"
-    toggle_menu_item "Network" "N11" "true"
-fi
-
-
-#
-# Check Bluetooth installed
-bluetooth_status=$(dpkg -s bluetooth &> /dev/null && echo true || echo false)
-bluez_status=$(dpkg -s bluez &> /dev/null && echo true || echo false)
-bluez_tools_status=$(dpkg -s bluez-tools &> /dev/null && echo true || echo false)
-
-# Bluetooth menu item visibility
-if [ "$bluetooth_status" = false ] || [ "$bluez_status" = false ] || [ "$bluez_tools_status" = false ]; then
-    toggle_menu_item "Network" "N00" "true"
-    toggle_menu_item "Network" "N02" "false"
-else
-    toggle_menu_item "Network" "N01" "true"
-    toggle_menu_item "Network" "N02" "true"
-fi
-
-
-#
-# Check if packages are held
-held_packages=$(apt-mark showhold)
-
-# Toggle menu items for freeze and unfreeze
-if [[ -z "$held_packages" ]]; then
-    toggle_menu_item "System" "S02" "true"  # Show unfreeze
-    toggle_menu_item "System" "S01" "false" # Hide freeze
-else
-    toggle_menu_item "System" "S02" "false" # Hide unfreeze
-    toggle_menu_item "System" "S01" "true"  # Show freeze
-fi
-
-
-#
-# Check if kernel headers are installed
-if dpkg-query -W -f='${Status}' "linux-headers-${BRANCH}-${LINUXFAMILY}" 2>/dev/null | grep -q "install ok installed"; then
-    is_kernel_headers_installed=true
-elif dpkg-query -W -f='${Status}' "linux-headers-$(uname -r | sed 's/'-$(dpkg --print-architecture)'//')" 2>/dev/null | grep -q "install ok installed"; then
-    is_kernel_headers_installed=true
-else
-    is_kernel_headers_installed=false
-fi
-
-# Toggle menu items for kernel headers
-if [ "$is_kernel_headers_installed" = true ]; then
-    toggle_menu_item "System" "S05" "true"  # Show kernel headers installed
-    toggle_menu_item "System" "S04" "false" # Hide install Linux headers
-else
-    toggle_menu_item "System" "S05" "false" # Hide kernel headers installed
-    toggle_menu_item "System" "S04" "true"  # Show install Linux headers
 fi

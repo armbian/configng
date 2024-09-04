@@ -3,7 +3,6 @@
         {
             "id": "System",
             "description": "System wide and admin settings",
-            "show": true,
             "sub": [
                 {
                     "id": "S01",
@@ -11,11 +10,11 @@
                     "command": [
                         "set_safe_boot unhold"
                     ],
-                    "show": true,
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
-                    "author": ""
+                    "author": "",
+                    "condition": "[[ -n \"$(apt-mark showhold)\" ]]"
                 },
                 {
                     "id": "S02",
@@ -23,11 +22,11 @@
                     "command": [
                         "set_safe_boot freeze"
                     ],
-                    "show": true,
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
-                    "author": ""
+                    "author": "",
+                    "condition": "[[ -z \"$(apt-mark showhold)\" ]]"
                 },
                 {
                     "id": "S03",
@@ -36,7 +35,6 @@
                         "get_user_continue \"This will open /boot/armbianEnv.txt file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?\" process_input",
                         "nano /boot/armbianEnv.txt"
                     ],
-                    "show": true,
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
@@ -48,11 +46,11 @@
                     "command": [
                         "Headers_install"
                     ],
-                    "show": true,
                     "status": "Pending Review",
                     "doc_link": "https://github.com/armbian/config/wiki#System",
                     "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L160",
-                    "author": "https://github.com/Tearran"
+                    "author": "https://github.com/Tearran",
+                    "condition": "! are_headers_installed"
                 },
                 {
                     "id": "S05",
@@ -60,18 +58,204 @@
                     "command": [
                         "Headers_remove"
                     ],
-                    "show": true,
                     "status": "Pending Review",
                     "doc_link": "https://github.com/armbian/config/wiki#System",
                     "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L160",
-                    "author": "https://github.com/Tearran"
+                    "author": "https://github.com/Tearran",
+                    "condition": "are_headers_installed"
+                },
+                {
+                    "id": "S06",
+                    "description": "Install to internal storage",
+                    "command": [
+                        "armbian-install"
+                    ],
+                    "status": "Pending Review",
+                    "doc_link": "https://github.com/armbian/config/wiki#System",
+                    "src_reference": "",
+                    "author": "https://github.com/igorpecovnik",
+                    "condition": "[[ -n $(ls /sbin/armbian-install) ]]"
+                },
+                {
+                    "id": "S07",
+                    "description": "Manage SSH login options",
+                    "sub": [
+                            {
+                            "id": "S08",
+                            "description": "Disable root login",
+                            "command": [
+                                           "sed -i \"s|^#\\?PermitRootLogin.*|PermitRootLogin no|\" /etc/ssh/sshd_config",
+                                           "systemctl restart sshd.service"
+                                       ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q '^PermitRootLogin yes'  /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "S09",
+                            "description": "Enable root login",
+                            "command": [
+                                           "sed -i \"s/^#\\?PermitRootLogin.*/PermitRootLogin yes/\" /etc/ssh/sshd_config" ,
+                                           "systemctl restart sshd.service"
+                                       ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q '^PermitRootLogin no' /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "S10",
+                            "description": "Disable password login",
+                            "command": [
+                                           "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication no/\" /etc/ssh/sshd_config" ,
+                                           "systemctl restart sshd.service"
+                                       ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q 'PasswordAuthentication yes' /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "S11",
+                            "description": "Enable password login",
+                            "command": [
+                                           "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication yes/\" /etc/ssh/sshd_config" ,
+                                           "systemctl restart sshd.service"
+                                       ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q 'PasswordAuthentication no' /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "S12",
+                            "description": "Disable Public key authentication login",
+                            "command": [
+                                           "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication no/\" /etc/ssh/sshd_config" ,
+                                           "systemctl restart sshd.service"
+                                       ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q 'PubkeyAuthentication yes' /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "S13",
+                            "description": "Enable Public key authentication login",
+                            "command": [
+                                           "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication yes/\" /etc/ssh/sshd_config" ,
+                                           "systemctl restart sshd.service"
+                                       ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q 'PubkeyAuthentication no' /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "S14",
+                            "description": "Disable OTP authentication",
+                            "command": [
+                                           "clear",
+                                           "! check_if_installed libpam-google-authenticator && ! check_if_installed qrencode || debconf-apt-progress -- apt-get -y purge libpam-google-authenticator qrencode",
+                                           "sed -i \"s/^#\\?ChallengeResponseAuthentication.*/ChallengeResponseAuthentication no/\" /etc/ssh/sshd_config || sed -i \"0,/KbdInteractiveAuthentication/s//ChallengeResponseAuthentication yes/\" /etc/ssh/sshd_config" ,
+                                           "sed -i '/^auth required pam_google_authenticator.so nullok/ d' /etc/pam.d/sshd",
+                                           "systemctl restart sshd.service"
+                                       ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q 'ChallengeResponseAuthentication yes' /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "S15",
+                            "description": "Enable OTP authentication",
+                            "command": [
+                                           "check_if_installed libpam-google-authenticator || debconf-apt-progress -- apt-get -y install libpam-google-authenticator",
+                                           "check_if_installed qrencode || debconf-apt-progress -- apt-get -y install qrencode",
+                                           "sed -i \"s/^#\\?ChallengeResponseAuthentication.*/ChallengeResponseAuthentication yes/\" /etc/ssh/sshd_config",
+                                           "sed -i $'/KbdInteractiveAuthentication/{iChallengeResponseAuthentication yes\\n:a;n;ba}' /etc/ssh/sshd_config || sed -n -i '/password updating/{p;:a;N;/@include common-password/!ba;s/.*\\n/auth required pam_google_authenticator.so nullok\\nauth required pam_permit.so\\n/};p' /etc/pam.d/sshd",
+                                           "[ ! -f /root/.google_authenticator ] && qr_code generate",
+                                           "systemctl restart sshd.service"
+                                       ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "! check_if_installed libpam-google-authenticator || ! check_if_installed qrencode || grep -q '^ChallengeResponseAuthentication no' /etc/ssh/sshd_config || ! grep -q 'ChallengeResponseAuthentication' /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "S16",
+                            "description": "Generate new OTP authentication QR code",
+                            "command": [
+                                           "qr_code generate"
+                                       ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config"
+                            },
+                            {
+                            "id": "S17",
+                            "description": "Show OTP authentication QR code",
+                            "command": ["qr_code"],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "Igor Pecovnik",
+                            "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config && [ -f /root/.google_authenticator ]"
+                            }
+                           ]
+                },
+		    
+                {
+                    "id": "S30",
+                    "description": "Change shell system wide to BASH",
+                    "command": [
+                        "export BASHLOCATION=$(grep /bash$ /etc/shells | tail -1)",
+                        "sed -i \"s|^SHELL=.*|SHELL=${BASHLOCATION}|\" /etc/default/useradd",
+                        "sed -i \"s|^DSHELL=.*|DSHELL=${BASHLOCATION}|\" /etc/adduser.conf",
+                        "debconf-apt-progress -- apt-get -y purge armbian-zsh",
+                        "update_skel",
+                        "awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534 || $3 == 0) print $1}' /etc/passwd | xargs -L1 chsh -s $(grep /bash$ /etc/shells | tail -1)"
+                    ],
+                    "status": "Pending Review",
+                    "doc_link": "",
+                    "src_reference": "",
+                    "author": "https://github.com/igorpecovnik",
+                    "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"zsh\" ]]"
+                },
+                {
+                    "id": "S31",
+                    "description": "Change shell system wide to ZSH",
+                    "command": [
+                        "export ZSHLOCATION=$(grep /zsh$ /etc/shells | tail -1)",
+                        "sed -i \"s|^SHELL=.*|SHELL=${ZSHLOCATION}|\" /etc/default/useradd",
+                        "sed -i \"s|^DSHELL=.*|DSHELL=${ZSHLOCATION}|\" /etc/adduser.conf",
+                        "debconf-apt-progress -- apt-get -y install armbian-zsh",
+                        "update_skel",
+                        "awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534 || $3 == 0) print $1}' /etc/passwd | xargs -L1 chsh -s $(grep /zsh$ /etc/shells | tail -1)"
+                    ],
+                    "status": "Pending Review",
+                    "doc_link": "",
+                    "src_reference": "",
+                    "author": "https://github.com/igorpecovnik",
+                    "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"bash\" ]]"
                 }
+
             ]
         },
         {
             "id": "Network",
             "description": "Wireless, Ethernet, and Network settings",
-            "show": true,
             "sub": [
                 {
                     "id": "N00",
@@ -81,11 +265,11 @@
                         "debconf-apt-progress -- apt-get -y install bluetooth bluez bluez-tools",
                         "check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y --no-install-recommends install pulseaudio-module-bluetooth blueman"
                     ],
-                    "show": false,
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
-                    "author": ""
+                    "author": "",
+                    "condition": "! check_if_installed bluetooth && ! check_if_installed bluez && ! check_if_installed bluez-tools"
                 },
                 {
                     "id": "N01",
@@ -95,25 +279,25 @@
 						"debconf-apt-progress -- apt-get -y remove bluetooth bluez bluez-tools",
 						"check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y remove pulseaudio-module-bluetooth blueman",
                         "debconf-apt-progress -- apt -y -qq autoremove"
-		       ],
-                    "show": false,
+		            ],
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
-                    "author": ""
+                    "author": "",
+                    "condition": "check_if_installed bluetooth || check_if_installed bluez || check_if_installed bluez-tools"
                 },
-                                {
+                {
                     "id": "N02",
                     "description": "Bluetooth Discover",
                     "command": [
 						"get_user_continue \"Verify that your Bluetooth device is discoverable!\" process_input ; connect_bt_interface"
 
                     ],
-                    "show": false,
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
-                    "author": ""
+                    "author": "",
+                    "condition": "check_if_installed bluetooth || check_if_installed bluez || check_if_installed bluez-tools"
                 },
                 {
                     "id": "N03",
@@ -121,11 +305,11 @@
                     "command": [
                         "see_current_apt; debconf-apt-progress -- apt-get -y --no-install-recommends install lirc"
                     ],
-                    "show": false,
                     "status": "Testing",
                     "doc_link": "",
                     "src_reference": "",
-                    "author": ""
+                    "author": "",
+                    "condition": "! check_if_installed lirc"
                 },
                 {
                     "id": "N04",
@@ -133,11 +317,11 @@
                     "command": [
                         "see_current_apt; debconf-apt-progress -- apt-get -y --no-install-recommends install lirc"
                     ],
-                    "show": false,
                     "status": "Testing",
                     "doc_link": "",
                     "src_reference": "",
-                    "author": ""
+                    "author": "",
+                    "condition": "check_if_installed lirc"
                 },
                 {
                     "id": "N05",
@@ -145,7 +329,6 @@
                     "command": [
                         "nmtui connect"
                     ],
-                    "show": true,
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
@@ -158,11 +341,11 @@
                         "get_user_continue \"This will open interface file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?\" process_input",
                         "nano /etc/network/interfaces"
                     ],
-                    "show": true,
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
-                    "author": ""
+                    "author": "",
+                    "condition": "[ -f /etc/network/interface ]"
                 },
                 {
                     "id": "N07",
@@ -172,7 +355,6 @@
                         "LC_ALL=C nmcli --fields UUID,TIMESTAMP-REAL,TYPE con show | grep wifi |  awk '{print $1}' | while read line; \\ ",
 						"do nmcli con delete uuid  $line; done > /dev/null"
                     ],
-                    "show": true,
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
@@ -185,7 +367,6 @@
                         "get_user_continue \"This will toggle your internet protocol\nWould you like to continue?\" process_input",
                         "toggle_ipv6 | show_infobox"
                     ],
-                    "show": true,
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
@@ -198,7 +379,7 @@
                         "get_user_continue \"This operation will install necessary software and add configuration files.\nDo you wish to continue?\" process_input",
                         "hotspot_setup"
                     ],
-                    "show": false,
+                    "disabled": true,
                     "status": "WIP",
                     "doc_link": "",
                     "src_reference": "",
@@ -206,7 +387,7 @@
                 },
                 {
                     "id": "N10",
-                    "description": "Announce system in the network (Avahi) ",
+                    "description": "Announce system in the network (Avahi)",
                     "command": [
                         "get_user_continue \"This operation will install avahi-daemon and add configuration files.\nDo you wish to continue?\" process_input",
                         "check_if_installed avahi-daemon",
@@ -215,33 +396,32 @@
 						"cp /usr/share/doc/avahi-daemon/examples/ssh.service /etc/avahi/services/",
 						"service avahi-daemon restart"
                     ],
-                    "show": true,
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
-                    "author": ""
+                    "author": "",
+                    "condition": "! check_if_installed avahi-daemon"
                 },
                 {
                     "id": "N11",
-                    "description": "Disable system announce in the network (Avahi) ",
+                    "description": "Disable system announce in the network (Avahi)",
                     "command": [
                         "get_user_continue \"This operation will purge avahi-daemon \nDo you wish to continue?\" process_input",
                         "check_if_installed avahi-daemon",
 						"systemctl stop avahi-daemon avahi-daemon.socket",
 						"debconf-apt-progress -- apt-get -y purge avahi-daemon"
                     ],
-                    "show": true,
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
-                    "author": ""
+                    "author": "",
+                    "condition": "check_if_installed avahi-daemon"
                 }
             ]
         },
         {
             "id": "Localisation",
             "description": "Localisation",
-            "show": true,
             "sub": [
                 {
                     "id": "L00",
@@ -249,7 +429,6 @@
                     "command": [
 						"dpkg-reconfigure tzdata"
                     ],
-                    "show": true,
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
@@ -263,7 +442,6 @@
 							"source /etc/default/locale ; sed -i \"s/^LANGUAGE=.*/LANGUAGE=$LANG/\" /etc/default/locale",
 		                    "export LANGUAGE=$LANG"
                     ],
-                    "show": true,
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
@@ -275,7 +453,6 @@
                     "command": [
 						"dpkg-reconfigure keyboard-configuration ; setupcon "
                     ],
-                    "show": true,
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
@@ -287,7 +464,7 @@
                     "command": [
                         "get_user_continue \"This is only a frontend test\" process_input"
                     ],
-                    "show": false,
+                    "disabled": true,
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
@@ -298,7 +475,6 @@
         {
             "id": "Software",
             "description": "Run/Install 3rd party applications",
-            "show": true,
             "sub": [
                 {
                     "id": "I00",
@@ -307,7 +483,6 @@
                         "get_user_continue \"This will update apt\" process_input",
                         "debconf-apt-progress -- apt update"
                     ],
-                    "show": true,
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
@@ -319,7 +494,6 @@
                     "command": [
                         "armbianmonitor -m | show_infobox"
                     ],
-                    "show": true,
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
@@ -330,7 +504,6 @@
         {
             "id": "Help",
             "description": "About this app",
-            "show": true,
             "sub": [
                 {
                     "id": "H00",
@@ -338,7 +511,6 @@
                     "command": [
                         "show_message <<< \"This app is to help execute procedures to configure your system\n\nSome options may not work on manually modified systems\""
                     ],
-                    "show": true,
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
@@ -350,7 +522,6 @@
                     "command": [
                         "show_message <<< see_use"
                     ],
-                    "show": false,
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
