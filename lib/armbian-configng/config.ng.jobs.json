@@ -81,7 +81,7 @@
                     "description": "Manage SSH login options",
                     "sub": [
                             {
-                            "id": "S08",
+                            "id": "SS01",
                             "description": "Disable root login",
                             "command": [
                                            "sed -i \"s|^#\\?PermitRootLogin.*|PermitRootLogin no|\" /etc/ssh/sshd_config",
@@ -94,7 +94,7 @@
                             "condition": "grep -q '^PermitRootLogin yes'  /etc/ssh/sshd_config"
                             },
                             {
-                            "id": "S09",
+                            "id": "SS02",
                             "description": "Enable root login",
                             "command": [
                                            "sed -i \"s/^#\\?PermitRootLogin.*/PermitRootLogin yes/\" /etc/ssh/sshd_config" ,
@@ -107,7 +107,7 @@
                             "condition": "grep -q '^PermitRootLogin no' /etc/ssh/sshd_config"
                             },
                             {
-                            "id": "S10",
+                            "id": "SS03",
                             "description": "Disable password login",
                             "command": [
                                            "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication no/\" /etc/ssh/sshd_config" ,
@@ -120,7 +120,7 @@
                             "condition": "grep -q 'PasswordAuthentication yes' /etc/ssh/sshd_config"
                             },
                             {
-                            "id": "S11",
+                            "id": "SS04",
                             "description": "Enable password login",
                             "command": [
                                            "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication yes/\" /etc/ssh/sshd_config" ,
@@ -133,7 +133,7 @@
                             "condition": "grep -q 'PasswordAuthentication no' /etc/ssh/sshd_config"
                             },
                             {
-                            "id": "S12",
+                            "id": "SS05",
                             "description": "Disable Public key authentication login",
                             "command": [
                                            "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication no/\" /etc/ssh/sshd_config" ,
@@ -146,7 +146,7 @@
                             "condition": "grep -q 'PubkeyAuthentication yes' /etc/ssh/sshd_config"
                             },
                             {
-                            "id": "S13",
+                            "id": "SS06",
                             "description": "Enable Public key authentication login",
                             "command": [
                                            "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication yes/\" /etc/ssh/sshd_config" ,
@@ -159,7 +159,7 @@
                             "condition": "grep -q 'PubkeyAuthentication no' /etc/ssh/sshd_config"
                             },
                             {
-                            "id": "S14",
+                            "id": "SS07",
                             "description": "Disable OTP authentication",
                             "command": [
                                            "clear",
@@ -175,7 +175,7 @@
                             "condition": "grep -q 'ChallengeResponseAuthentication yes' /etc/ssh/sshd_config"
                             },
                             {
-                            "id": "S15",
+                            "id": "SS08",
                             "description": "Enable OTP authentication",
                             "command": [
                                            "check_if_installed libpam-google-authenticator || debconf-apt-progress -- apt-get -y install libpam-google-authenticator",
@@ -192,7 +192,7 @@
                             "condition": "! check_if_installed libpam-google-authenticator || ! check_if_installed qrencode || grep -q '^ChallengeResponseAuthentication no' /etc/ssh/sshd_config || ! grep -q 'ChallengeResponseAuthentication' /etc/ssh/sshd_config"
                             },
                             {
-                            "id": "S16",
+                            "id": "SS09",
                             "description": "Generate new OTP authentication QR code",
                             "command": [
                                            "qr_code generate"
@@ -204,7 +204,7 @@
                             "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config"
                             },
                             {
-                            "id": "S17",
+                            "id": "SS10",
                             "description": "Show OTP authentication QR code",
                             "command": ["qr_code"],
                             "status": "Active",
@@ -217,7 +217,7 @@
                 },
 		    
                 {
-                    "id": "S30",
+                    "id": "S08",
                     "description": "Change shell system wide to BASH",
                     "command": [
                         "export BASHLOCATION=$(grep /bash$ /etc/shells | tail -1)",
@@ -234,7 +234,7 @@
                     "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"zsh\" ]]"
                 },
                 {
-                    "id": "S31",
+                    "id": "S09",
                     "description": "Change shell system wide to ZSH",
                     "command": [
                         "export ZSHLOCATION=$(grep /zsh$ /etc/shells | tail -1)",

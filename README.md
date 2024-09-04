@@ -1,6 +1,6 @@
 
 # Armbian Configuration Utility
-Updated: Tue Sep  3 09:22:06 PM EDT 2024
+Updated: Tue Sep  3 09:45:40 PM EDT 2024
 
 Utility for configuring your board, adjusting services, and installing applications. It comes with Armbian by default.
 
@@ -17,8 +17,8 @@ sudo armbian-config
   - **S05** - Remove Linux headers
   - **S06** - Install to internal storage
   - **S07** - Manage SSH login options
-  - **S30** - Change shell system wide to BASH
-  - **S31** - Change shell system wide to ZSH
+  - **S08** - Change shell system wide to BASH
+  - **S09** - Change shell system wide to ZSH
 
 
 - ## **Network** 
@@ -94,8 +94,8 @@ Usage:  armbian-configng [option] [arguments]
     --cli S05  -  Remove Linux headers
     --cli S06  -  Install to internal storage
     --cli S07  -  Manage SSH login options
-    --cli S30  -  Change shell system wide to BASH
-    --cli S31  -  Change shell system wide to ZSH
+    --cli S08  -  Change shell system wide to BASH
+    --cli S09  -  Change shell system wide to ZSH
     --cli N00  -  Install Bluetooth support
     --cli N01  -  Remove Bluetooth support
     --cli N02  -  Bluetooth Discover
@@ -222,7 +222,7 @@ Jobs:
 No commands available
 ~~~
 
-### S30
+### S08
 
 Change shell system wide to BASH
 
@@ -237,7 +237,7 @@ update_skel
 awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534 || $3 == 0) print $1}' /etc/passwd | xargs -L1 chsh -s $(grep /bash$ /etc/shells | tail -1)
 ~~~
 
-### S31
+### S09
 
 Change shell system wide to ZSH
 
