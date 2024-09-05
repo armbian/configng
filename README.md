@@ -19,6 +19,8 @@ sudo armbian-config
   - **S07** - Manage SSH login options
   - **S08** - Change shell system wide to BASH
   - **S09** - Change shell system wide to ZSH
+  - **S10** - Switch to rolling release
+  - **S11** - Switch to stable release
 
 
 - ## **Network** 
@@ -96,6 +98,8 @@ Usage:  armbian-configng [option] [arguments]
     --cli S07  -  Manage SSH login options
     --cli S08  -  Change shell system wide to BASH
     --cli S09  -  Change shell system wide to ZSH
+    --cli S10  -  Switch to rolling release
+    --cli S11  -  Switch to stable release
     --cli N00  -  Install Bluetooth support
     --cli N01  -  Remove Bluetooth support
     --cli N02  -  Bluetooth Discover
