@@ -566,7 +566,14 @@ module_options+=(
 #
 function execute_command() {
     local id=$1
-    local commands=$(jq -r --arg id "$id" '.menu[] | .. | objects | select(.id==$id) | .command[]' "$json_file")
+    #local commands=$(jq -r --arg id "$id" '.menu[] | .. | objects | select(.id==$id) | .command[]' "$json_file")
+    local commands=$(jq -r --arg id "$id" '
+  .menu[] | 
+  .. | 
+  objects | 
+  select(.id == $id) | 
+  .command[]?' "$json_file")
+    
     for command in "${commands[@]}"; do
         # Check if the command is not in the list of restricted commands       
             [[ -n "$debug" ]] && echo "$command"
