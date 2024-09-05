@@ -8,7 +8,7 @@
                     "id": "S01",
                     "description": "Enable Armbian kernel upgrades",
                     "command": [
-                        "set_safe_boot unhold"
+                        "armbian_fw_manipulate unhold"
                     ],
                     "status": "Active",
                     "doc_link": "",
@@ -20,7 +20,7 @@
                     "id": "S02",
                     "description": "Disable Armbian kernel upgrades",
                     "command": [
-                        "set_safe_boot freeze"
+                        "armbian_fw_manipulate hold"
                     ],
                     "status": "Active",
                     "doc_link": "",
@@ -215,7 +215,6 @@
                             }
                            ]
                 },
-		    
                 {
                     "id": "S08",
                     "description": "Change shell system wide to BASH",
@@ -261,7 +260,7 @@
                     "doc_link": "",
                     "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L1446",
                     "author": "Igor Pecovnik",
-                    "condition": "grep -q 'apt.armbian.com' /etc/apt/sources.list.d/armbian.list"
+                    "condition": "grep -q 'apt.armbian.com' /etc/apt/sources.list.d/armbian.list && [[ -z \"$(apt-mark showhold)\" ]]"
                 },
                 {
                     "id": "S11",
@@ -274,7 +273,7 @@
                     "doc_link": "",
                     "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L1446",
                     "author": "Igor Pecovnik",
-                    "condition": "grep -q 'beta.armbian.com' /etc/apt/sources.list.d/armbian.list"
+                    "condition": "grep -q 'beta.armbian.com' /etc/apt/sources.list.d/armbian.list && [[ -z \"$(apt-mark showhold)\" ]]"
                 }
 
             ]
