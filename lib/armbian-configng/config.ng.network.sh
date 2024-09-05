@@ -215,3 +215,87 @@ systemctl enable dnsmasq
 whiptail --msgbox "Hotspot setup complete. Rebooting now." 8 40
 reboot
 }
+
+
+module_options+=(
+["choose_adapter,author"]="Igor Pecovnik"
+["choose_adapter,ref_link"]=""
+["choose_adapter,feature"]="choose_adapter"
+["choose_adapter,desc"]="Displays available adapters"
+["choose_adapter,example"]="choose_adapter"
+["choose_adapter,doc_link"]=""
+["choose_adapter,status"]="review"
+)
+#
+# Function to check the internet connection
+#
+function choose_adapter() {
+
+        local type=$1
+        local getip=$2
+
+        LIST=()
+        HIDE_IP_PATTERN="^dummy0|^lo|^docker"
+        for f in /sys/class/net/*; do
+                interface=$(basename $f)
+                if [[ $intf =~ $HIDE_IP_PATTERN ]]; then
+                        continue
+                else
+                        QUERY=$(ip -br addr show dev $interface | grep "^$type" | awk '{print $1" " $3}')
+                        [[ -n $QUERY ]] && LIST+=($QUERY)
+                fi
+        done
+        LIST_LENGTH=$((${#LIST[@]}/2));
+        SELECTED_ADAPTER=$(whiptail --title "Select interface" --menu "" $((${LIST_LENGTH} + 8)) 40 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
+        if [[ -n $SELECTED_ADAPTER && "${getip}" != false ]]; then
+        IP_ADDRESS=$(whiptail --title "Enter new IP for $SELECTED_ADAPTER" --inputbox "\nValid format: 1.2.3.4/5" 9 40 3>&1 1>&2 2>&3)
+        fi
+
+}
+
+function wifi_connect() {
+
+    choose_adapter "w" "false"
+
+    LIST=()
+    LIST=($(sudo iw dev ${SELECTED_ADAPTER} scan 2> /dev/null | grep 'SSID\|^BSS' | cut -d" " -f2 | sed "s/(.*//g" | xargs -n2 -d'\n' | awk '{print $2,$1}'))
+    LIST_LENGTH=$((${#LIST[@]}/2));
+    SELECTED_SSID=$(whiptail --title "Select SSID" --menu "rf" $((${LIST_LENGTH} + 6)) 50 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
+    if [[ -n $SELECTED_SSID ]]; then
+        SELECTED_PASSWORD=$(whiptail --title "Enter new password for $SELECTED_SSID" --passwordbox "" 7 50 3>&1 1>&2 2>&3)
+        if [[ -n $SELECTED_PASSWORD ]]; then
+        rm -f /etc/netplan/20-dhcp-wlan-interface
+        netplan set --origin-hint 20-dhcp-wlan-interface renderer=networkd
+        netplan set --origin-hint 20-dhcp-wlan-interface wifis.$SELECTED_ADAPTER.access-points."${SELECTED_SSID}".password=${SELECTED_PASSWORD}
+        netplan set --origin-hint 20-dhcp-wlan-interface wifis.$SELECTED_ADAPTER.dhcp4=true
+        netplan set --origin-hint 20-dhcp-wlan-interface wifis.$SELECTED_ADAPTER.dhcp6=true
+        fi
+    fi
+}
+
+module_options+=(
+["netplan_wrapper,author"]="Igor Pecovnik"
+["netplan_wrapper,ref_link"]=""
+["netplan_wrapper,feature"]="netplan_wrapper"
+["netplan_wrapper,desc"]="Displays available adapters"
+["netplan_wrapper,example"]="netplan_wrapper"
+["netplan_wrapper,doc_link"]=""
+["netplan_wrapper,status"]="review"
+)
+#
+# Function to check the internet connection
+#
+function netplan_wrapper() {
+
+    local config=$1
+    local type=$2
+    local renderer=$3
+    local adapter=$4
+    local address=$5
+
+    #rm -f /etc/netplan/${config}.yaml
+    netplan set --origin-hint ${config} renderer=${renderer}
+    netplan set --origin-hint ${config} ethernets.${adapter}.addresses=[$address]
+    show_message <<< "$(sudo netplan get ${type})"
+
+}

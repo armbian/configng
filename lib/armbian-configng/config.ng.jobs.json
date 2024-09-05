@@ -287,18 +287,6 @@
                     "description": "Configure network interfaces",
                     "sub": [
                             {
-                                "id": "N02",
-                                "description": "Apply configuration",
-                                "command": [
-                                    "netplan apply"
-                                    ],
-                                "status": "Active",
-                                "doc_link": "",
-                                "src_reference": "",
-                                "author": "https://github.com/igorpecovnik",
-                                "condition": ""
-                            },
-                            {
                                 "id": "N03",
                                 "description": "Wired",
                                 "sub": [
@@ -329,12 +317,8 @@
                                         "id": "N06",
                                         "description": "Set fixed IP address",
                                         "command": [
-                                            "rm -f /etc/netplan/10-dhcp-all-interfaces.yaml",
-                                            "eth_index=\"eth0\"",
-                                            "eth_ip=\"10.0.10.199/24\"",
-                                            "netplan set --origin-hint 30-eth0-static-interfaces renderer=networkd",
-                                            "netplan set --origin-hint 30-eth0-static-interfaces ethernets.${eth_index}.addresses=[$eth_ip]",
-                                            "show_message <<< \"$(sudo netplan get ethernets)\""
+                                                        "choose_adapter \"e\"",
+                                                        "[[ -n \"$IP_ADDRESS\" ]] && netplan_wrapper \"10-dhcp-all-interfaces\" \"ethernets\" \"networkd\" \"${SELECTED_ADAPTER}\" \"$IP_ADDRESS\""
                                                    ],
                                         "status": "Active",
                                         "doc_link": "",
@@ -388,21 +372,26 @@
                                         "id": "N12",
                                         "description": "Enable DHCP on wireless network interface",
                                         "command": [
-                                                    "wifi_index=\"wlx44334c47dec3\"",
-                                                    "SSID=GOSTJE24",
-                                                    "PASSWORD=password",
-                                                    "rm -f /etc/netplan/20-dhcp-wlan-interface",
-                                                    "netplan set --origin-hint 20-dhcp-wlan-interface renderer=networkd",
-                                                    "netplan set --origin-hint 20-dhcp-wlan-interface wifis.$wifi_index.access-points.\"${SSID}\".${PASSWORD}=password",
-                                                    "netplan set --origin-hint 20-dhcp-wlan-interface wifis.$wifi_index.dhcp4=true",
-                                                    "netplan set --origin-hint 20-dhcp-wlan-interface wifis.$wifi_index.dhcp6=true",
-                                                    "show_message <<< \"$(sudo netplan get wifis)\""
+                                                    "wifi_connect"
                                                 ],
                                         "status": "Active",
                                         "author": "Igor Pecovnik",
                                         "condition": "[ ! -f /etc/netplan/20-dhcp-wlan-interface.yaml ]"
                                     }
                                 ]
+                            },
+                            {
+                                "id": "N02",
+                                "description": "Apply configs",
+                                "command": [                                    
+                                    "get_user_continue \"This will apply new network configuration\n\nwould you like to continue?\" process_input",
+                                    "netplan apply"
+                                    ],
+                                "status": "Active",
+                                "doc_link": "",
+                                "src_reference": "",
+                                "author": "https://github.com/igorpecovnik",
+                                "condition": ""
                             }
                             ]
                 },
