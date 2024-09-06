@@ -47,7 +47,8 @@ source "$lib_dir/config.ng.system.sh"
 echo "Loaded System helpers..." #| show_infobox ;
 source "$lib_dir/config.ng.network.sh"
 echo "Loaded Network helpers..." #| show_infobox ;
-
+source "$lib_dir/config.ng.software.sh"
+echo "Loaded Software helpers..." #| show_infobox ;
 #
 # Loads the variables from beta armbian-config for runtime handling
 
