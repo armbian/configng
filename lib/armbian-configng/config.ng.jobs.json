@@ -516,14 +516,16 @@
                 },
                 {
                     "id": "I01",
-                    "description": "CLI System Monitor",
+                    "description": "System benchmaking and diagnostics",
                     "command": [
-                        "armbianmonitor -m | show_infobox"
+                        "see_monitoring"
                     ],
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
-                    "author": ""
+                    "author": "",
+                    "condition": "ls /usr/bin/armbianmonitor"
+        
                 }
             ]
         },
