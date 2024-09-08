@@ -566,7 +566,14 @@ module_options+=(
 #
 function execute_command() {
     local id=$1
-    local commands=$(jq -r --arg id "$id" '.menu[] | .. | objects | select(.id==$id) | .command[]' "$json_file")
+    #local commands=$(jq -r --arg id "$id" '.menu[] | .. | objects | select(.id==$id) | .command[]' "$json_file")
+    local commands=$(jq -r --arg id "$id" '
+  .menu[] | 
+  .. | 
+  objects | 
+  select(.id == $id) | 
+  .command[]?' "$json_file")
+    
     for command in "${commands[@]}"; do
         # Check if the command is not in the list of restricted commands       
             [[ -n "$debug" ]] && echo "$command"
@@ -940,4 +947,28 @@ sanitize_input() {
         fi
     done
     echo "${sanitized_input[@]}"
+}
+
+
+
+module_options+=(
+["get_user_input,author"]="tearran"
+["get_user_input,ref_link"]=""
+["get_user_input,feature"]="get_user_input"
+["get_user_input,desc"]="Get user input from a dialog input box"
+["get_user_input,example"]="get_user_input"
+["get_user_input,status"]="Pending Review"
+["get_user_input,doc_link"]=""
+)
+#
+# @description Get user input from a dialog input box
+function get_user_input() {
+      
+    local choice=$($DIALOG --backtitle "$(uname --all)" --title "$TITLE" --inputbox "$INSTUCTION" 10 50 "$default" 3>&1 1>&2 2>&3)
+
+    if [ $? -eq 0 ]; then
+        echo "$choice"
+    fi
+
+
 }
