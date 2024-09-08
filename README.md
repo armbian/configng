@@ -159,7 +159,7 @@ Enable Armbian kernel upgrades
 Jobs:
 
 ~~~
-set_safe_boot unhold
+armbian_fw_manipulate unhold
 ~~~
 
 ### S02
@@ -169,7 +169,7 @@ Disable Armbian kernel upgrades
 Jobs:
 
 ~~~
-set_safe_boot freeze
+armbian_fw_manipulate freeze
 ~~~
 
 ### S03
@@ -510,7 +510,7 @@ These helper functions facilitate various operations related to job management, 
 | Display a message box | show_message <<< 'hello world'  | Joey Turner 
 | Migrated procedures from Armbian config. | connect_bt_interface | Igor Pecovnik 
 | Show or generate QR code for Google OTP | qr_code generate | Igor Pecovnik 
-| Freeze/unhold Migrated procedures from Armbian config. | set_safe_boot unhold or set_safe_boot freeze | Igor Pecovnik 
+| Freeze/unhold Migrated procedures from Armbian config. | armbian_fw_manipulate unhold or armbian_fw_manipulate freeze or armbian_fw_manipulate reinstall | Igor Pecovnik 
 | Check if kernel headers are installed | are_headers_installed | Gunjan Gupta 
 | Check when apt list was last updated | see_current_apt | Joey Turner 
 | Migrated procedures from Armbian config. | check_if_installed nano | Igor Pecovnik 

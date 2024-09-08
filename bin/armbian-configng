@@ -87,8 +87,15 @@ case "$1" in
                exit 1
           fi
           shift
+          if [[ -z "$1" ]]; then
+               echo "Error: Missing option for --api."
+               exit 1
+          fi
+          option="$1"
+          shift
           args=$(sanitize_input "$@")
-          "$args"
+          # echo -e "\"$option\" \"$args\""
+          "$option" "$args"
           exit 0
           ;;
      "main=help" | "main=Help")

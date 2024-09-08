@@ -248,35 +248,61 @@ function set_runtime_variables(){
 
 
 module_options+=(
-["set_safe_boot,author"]="Igor Pecovnik"
-["set_safe_boot,ref_link"]=""
-["set_safe_boot,feature"]="set_safe_boot"
-["set_safe_boot,desc"]="Freeze/unhold Migrated procedures from Armbian config."
-["set_safe_boot,example"]="set_safe_boot unhold or set_safe_boot freeze"
-["set_safe_boot,status"]="Active"
+["armbian_fw_manipulate,author"]="Igor Pecovnik"
+["armbian_fw_manipulate,ref_link"]=""
+["armbian_fw_manipulate,feature"]="armbian_fw_manipulate"
+["armbian_fw_manipulate,desc"]="freeze/unhold/reinstall armbian related packages."
+["armbian_fw_manipulate,example"]="armbian_fw_manipulate unhold|freeze|reinstall"
+["armbian_fw_manipulate,status"]="Active"
 )
 #
-# freeze/unhold packages
+# freeze/unhold/reinstall armbian firmware packages
 #
-set_safe_boot() {
+armbian_fw_manipulate() {
 
-	check_if_installed linux-u-boot-${BOARD}-${BRANCH} && PACKAGE_LIST+=" linux-u-boot-${BOARD}-${BRANCH}"
-	check_if_installed linux-image-${BRANCH}-${LINUXFAMILY} && PACKAGE_LIST+=" linux-image-${BRANCH}-${LINUXFAMILY}"
-	check_if_installed linux-dtb-${BRANCH}-${LINUXFAMILY} && PACKAGE_LIST+=" linux-dtb-${BRANCH}-${LINUXFAMILY}"
-	check_if_installed linux-headers-${BRANCH}-${LINUXFAMILY} && PACKAGE_LIST+=" linux-headers-${BRANCH}-${LINUXFAMILY}"
+	function=$1
 
-	# new BSP
-	check_if_installed armbian-${LINUXFAMILY} && PACKAGE_LIST+=" armbian-${LINUXFAMILY}"
-	check_if_installed armbian-${BOARD} && PACKAGE_LIST+=" armbian-${BOARD}"
-	check_if_installed armbian-${DISTROID} && PACKAGE_LIST+=" armbian-${DISTROID}"
-	check_if_installed armbian-bsp-cli-${BOARD} && PACKAGE_LIST+=" armbian-bsp-cli-${BOARD}"
-	check_if_installed armbian-${DISTROID}-desktop-xfce && PACKAGE_LIST+=" armbian-${DISTROID}-desktop-xfce"
-	check_if_installed armbian-firmware && PACKAGE_LIST+=" armbian-firmware"
-	check_if_installed armbian-firmware-full && PACKAGE_LIST+=" armbian-firmware-full"
-	IFS=" "
-	[[ "$1" == "unhold" ]] && local command="apt-mark unhold" && for word in $PACKAGE_LIST; do $command $word; done | show_infobox
+	# fallback to current
+	[[ -z $BRANCH ]] && BRANCH="current"
 
-	[[ "$1" == "freeze" ]] && local command="apt-mark hold" && for word in $PACKAGE_LIST; do $command $word; done | show_infobox
+	ARMBIAN_PACKAGES=(
+	    "linux-u-boot-${BOARD}-${BRANCH}"
+	    "linux-image-${BRANCH}-${LINUXFAMILY}"
+	    "linux-dtb-${BRANCH}-${LINUXFAMILY}"
+	    "linux-headers-${BRANCH}-${LINUXFAMILY}"
+	    "armbian-config"
+	    "armbian-zsh"
+	    "armbian-bsp-cli-${BOARD}-${BRANCH}"
+	)
+
+	if [[ "${function}" == reinstall ]]; then
+		debconf-apt-progress -- apt-get update
+	fi
+
+	PACKAGES=""
+	for PACKAGE in "${ARMBIAN_PACKAGES[@]}"
+	do
+			if [[ "${function}" == reinstall ]]; then
+				apt search $PACKAGE 2>/dev/null | grep "^$PACKAGE" >/dev/null
+				if [[ $? -eq 0 ]]; then PACKAGES+="$PACKAGE "; fi
+			else
+				if check_if_installed $PACKAGE; then
+				PACKAGES+="$PACKAGE "
+				fi
+			fi
+	done
+
+	case $function in
+		unhold)            apt-mark unhold ${PACKAGES} | show_infobox ;;
+		hold)              apt-mark hold ${PACKAGES} | show_infobox ;;
+		reinstall)
+					debconf-apt-progress -- apt-get -y --download-only install ${PACKAGES}
+					debconf-apt-progress -- apt-get -y purge ${PACKAGES}
+					debconf-apt-progress -- apt-get -y install ${PACKAGES}
+					debconf-apt-progress -- apt-get -y autoremove
+		;;
+		*) return ;;
+	esac
 
 }
 
