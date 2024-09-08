@@ -227,14 +227,17 @@ module_options+=(
 ["choose_adapter,status"]="review"
 )
 #
-# Function to check the internet connection
+# Function to select network adapter
 #
 function choose_adapter() {
 
-        local type=$1
-        local getip=$2
+        local type=$1           # w = wireless , e = ethernet
+        local getip=$2          # true = also ask for new IP address
+        local hide_all=$3       # true = hides selection for all-eth-interfaces
 
         LIST=()
+        # this functionality is exposed only on wired network
+        [[ $hide_all != true && ${type} == e && -f /etc/netplan/10-dhcp-all-interfaces.yaml ]] && LIST=("all-eth-interfaces" "")
         HIDE_IP_PATTERN="^dummy0|^lo|^docker"
         for f in /sys/class/net/*; do
                 interface=$(basename $f)
@@ -246,19 +249,31 @@ function choose_adapter() {
                 fi
         done
         LIST_LENGTH=$((${#LIST[@]}/2));
-        SELECTED_ADAPTER=$(whiptail --title "Select interface" --menu "" $((${LIST_LENGTH} + 8)) 40 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
-        if [[ -n $SELECTED_ADAPTER && "${getip}" != false ]]; then
-        IP_ADDRESS=$(whiptail --title "Enter new IP for $SELECTED_ADAPTER" --inputbox "\nValid format: 1.2.3.4/5" 9 40 3>&1 1>&2 2>&3)
+        adapter=$(whiptail --title "Select interface" --menu "" $((${LIST_LENGTH} + 8)) 40 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
+        if [[ -n $adapter && adapter != "all-eth-interfaces" && "${getip}" != false ]]; then
+        address=$(whiptail --title "Enter new IP for $SELECTED_ADAPTER" --inputbox "\nValid format: 1.2.3.4/5" 9 40 3>&1 1>&2 2>&3)
         fi
 
 }
 
+module_options+=(
+["wifi_connect,author"]="Igor Pecovnik"
+["wifi_connect,ref_link"]=""
+["wifi_connect,feature"]="wifi_connect"
+["wifi_connect,desc"]="List and connect to wireless network"
+["wifi_connect,example"]="wifi_connect"
+["wifi_connect,doc_link"]=""
+["wifi_connect,status"]="review"
+)
+#
+# Function to list and connect to wireless network
+#
 function wifi_connect() {
 
-    choose_adapter "w" "false"
+    choose_adapter "w" "false" "true"
 
     LIST=()
-    LIST=($(sudo iw dev ${SELECTED_ADAPTER} scan 2> /dev/null | grep 'SSID\|^BSS' | cut -d" " -f2 | sed "s/(.*//g" | xargs -n2 -d'\n' | awk '{print $2,$1}'))
+    LIST=($(sudo iw dev ${adapter} scan 2> /dev/null | grep 'SSID\|^BSS' | cut -d" " -f2 | sed "s/(.*//g" | xargs -n2 -d'\n' | awk '{print $2,$1}'))
     LIST_LENGTH=$((${#LIST[@]}/2));
     SELECTED_SSID=$(whiptail --title "Select SSID" --menu "rf" $((${LIST_LENGTH} + 6)) 50 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
     if [[ -n $SELECTED_SSID ]]; then
@@ -266,9 +281,9 @@ function wifi_connect() {
         if [[ -n $SELECTED_PASSWORD ]]; then
         rm -f /etc/netplan/20-dhcp-wlan-interface
         netplan set --origin-hint 20-dhcp-wlan-interface renderer=networkd
-        netplan set --origin-hint 20-dhcp-wlan-interface wifis.$SELECTED_ADAPTER.access-points."${SELECTED_SSID}".password=${SELECTED_PASSWORD}
-        netplan set --origin-hint 20-dhcp-wlan-interface wifis.$SELECTED_ADAPTER.dhcp4=true
-        netplan set --origin-hint 20-dhcp-wlan-interface wifis.$SELECTED_ADAPTER.dhcp6=true
+        netplan set --origin-hint 20-dhcp-wlan-interface wifis.$adapter.access-points."${SELECTED_SSID}".password=${SELECTED_PASSWORD}
+        netplan set --origin-hint 20-dhcp-wlan-interface wifis.$adapter.dhcp4=true
+        netplan set --origin-hint 20-dhcp-wlan-interface wifis.$adapter.dhcp6=true
         fi
     fi
 }
@@ -277,25 +292,65 @@ module_options+=(
 ["netplan_wrapper,author"]="Igor Pecovnik"
 ["netplan_wrapper,ref_link"]=""
 ["netplan_wrapper,feature"]="netplan_wrapper"
-["netplan_wrapper,desc"]="Displays available adapters"
+["netplan_wrapper,desc"]="Wrapping Netplan commands"
 ["netplan_wrapper,example"]="netplan_wrapper"
 ["netplan_wrapper,doc_link"]=""
 ["netplan_wrapper,status"]="review"
 )
 #
-# Function to check the internet connection
+# Function to feed netplan CLI
 #
 function netplan_wrapper() {
+    local what=$1
+    local get_ip=$2
+    local config=$3
+    local type=$4
+    local renderer=$5
+    local adapter=$6
+    local address=$7
 
-    local config=$1
-    local type=$2
-    local renderer=$3
-    local adapter=$4
-    local address=$5
+    case "$1" in
 
-    #rm -f /etc/netplan/${config}.yaml
-    netplan set --origin-hint ${config} renderer=${renderer}
-    netplan set --origin-hint ${config} ethernets.${adapter}.addresses=[$address]
-    show_message <<< "$(sudo netplan get ${type})"
+        show_message)
+            show_message <<< $(sudo netplan get ${type})
+            ;;
 
+        dhcp_all_wired_interfaces)
+            rm -f /etc/netplan/30-*-static-interfaces.yaml
+            netplan set --origin-hint ${config} renderer=${renderer}
+            netplan set --origin-hint ${config} ethernets.all-eth-interfaces.dhcp4=true
+            netplan set --origin-hint ${config} ethernets.all-eth-interfaces.dhcp6=true
+            netplan set --origin-hint ${config} ethernets.all-eth-interfaces.match.name=e*
+            show_message <<< "$(sudo netplan get ${type})"
+        ;;
+
+        set_ip)
+            choose_adapter "${type:0:1}" "${get_ip}" "true"
+            if [[ "${address}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\/[0-9]+$ ]]; then
+                rm -f /etc/netplan/10-dhcp-all-interfaces.yaml
+                netplan set --origin-hint ${config} renderer=${renderer}
+                netplan set --origin-hint ${config} ethernets.${adapter}.addresses=[$address]
+                netplan set --origin-hint ${config} ${type}.${adapter}.dhcp6=false
+                netplan set --origin-hint ${config} ${type}.${adapter}.dhcp4=false
+                show_message <<< "$(sudo netplan get ${type})"
+            else
+                [[ -n "${address}" ]] && show_message <<< "IP address is wrong. Try 1.2.3.4/5"
+            fi
+        ;;
+
+        disable_ipv6)
+            choose_adapter "${type:0:1}" "${get_ip}" "false"
+            netplan set --origin-hint ${config} renderer=${renderer}
+            netplan set --origin-hint ${config} ${type}.${adapter}.dhcp6=false
+            show_message <<< "$(sudo netplan get ${type})"
+        ;;
+
+        enable_ipv6)
+            choose_adapter "${type:0:1}" "${get_ip}" "true"
+            netplan set --origin-hint ${config} renderer=${renderer}
+            netplan set --origin-hint ${config} ${type}.${adapter}.dhcp6=true
+            show_message <<< "$(sudo netplan get ${type})"
+        ;;
+    *)
+    esac
 }
