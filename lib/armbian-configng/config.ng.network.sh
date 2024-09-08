@@ -215,3 +215,36 @@ systemctl enable dnsmasq
 whiptail --msgbox "Hotspot setup complete. Rebooting now." 8 40
 reboot
 }
+
+
+module_options+=(
+["network_hostname,author"]=""
+["network_hostname,ref_link"]=""
+["network_hostname,feature"]="network_hostname"
+["network_hostname,desc"]="Set hostname"
+["network_hostname,example"]="network_hostname"
+["network_hostname,status"]="Pending Review"
+["network_hostname,doc_link"]=""
+)
+#
+# @description pass arg, if none prompts user for input
+#
+network_hostname(){
+
+    local arg="$1"
+
+    if [[ -n $arg ]]; then
+        # Set hostname for cli
+        nmcli general hostname "$arg"
+        #echo "Set hostname: $arg"
+        exit 0
+    else
+        # Pass The Title and Instruction to get_user_input
+        TITLE="Networking"
+        INSTUCTION="Please input Hostname"
+        default="$HOSTNAME"
+        # use get_user_input to get the user input
+        nmcli general hostname $(get_user_input)
+    fi
+
+}
