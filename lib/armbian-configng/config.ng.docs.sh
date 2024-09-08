@@ -488,10 +488,11 @@ EOF
     # TODO: Migrate More features. 
     #echo " main=help   -  Display Legacy cli commands."
     jq -r --arg script_name "$script_name" '
-        .menu[] | 
-        .sub[] | 
-        select(.id | startswith("H") | not) |
-       "    --cli " + .id + "  -  " + .description
+        def process_item(item):
+	    "    --cli " + item.id + "  -  " + item.description,
+	    (item.sub[]? | process_item(.));
+	    .menu[] |
+	    .sub[]? | process_item(.)
     ' $json_file
 }
 
