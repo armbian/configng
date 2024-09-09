@@ -72,6 +72,7 @@ case "$1" in
           fi
           ;; 
      "--cli")
+          INPUTMODE="cli"
           if [[ $EUID != 0 ]]; then
                echo "Error: The --cli option requires root privileges. Please run as root or use sudo."
                exit 1
