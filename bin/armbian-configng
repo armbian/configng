@@ -93,8 +93,8 @@ case "$1" in
           fi
           option="$1"
           shift
-          args=$(sanitize_input "$@")
-          # echo -e "\"$option\" \"$args\""
+          args="$@"
+          
           "$option" "$args"
           exit 0
           ;;
