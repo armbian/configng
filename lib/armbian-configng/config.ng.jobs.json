@@ -7,6 +7,7 @@
                 {
                     "id": "S01",
                     "description": "Enable Armbian kernel upgrades",
+                    "prompt": "TThis will Place a defreeze/unhold the firmware\nwould you like to continue?",
                     "command": [
                         "armbian_fw_manipulate unhold"
                     ],
@@ -19,6 +20,7 @@
                 {
                     "id": "S02",
                     "description": "Disable Armbian kernel upgrades",
+                    "prompt": "This will Place a freeze/hold on the firmware\nwould you like to continue?",
                     "command": [
                         "armbian_fw_manipulate hold"
                     ],
@@ -31,8 +33,8 @@
                 {
                     "id": "S03",
                     "description": "Edit the boot environment",
+                    "prompt": "This will open /boot/armbianEnv.txt file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?",
                     "command": [
-                        "get_user_continue \"This will open /boot/armbianEnv.txt file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?\" process_input",
                         "nano /boot/armbianEnv.txt"
                     ],
                     "status": "Active",
@@ -252,9 +254,9 @@
                 {
                     "id": "S10",
                     "description": "Switch to rolling release",
+                    "prompt": "This will switch to rolling releases\n\nwould you like to continue?",
                     "command": [
-                        "get_user_continue \"This will switch to rolling releases\n\nwould you like to continue?\" process_input",
-                        "set_rolling"
+                       "set_rolling"
                     ],
                     "status": "Active",
                     "doc_link": "",
@@ -265,8 +267,8 @@
                 {
                     "id": "S11",
                     "description": "Switch to stable release",
+                    "prompt": "This will switch to stable releases\n\nwould you like to continue?",
                     "command": [
-                        "get_user_continue \"This will switch to stable releases\n\nwould you like to continue?\" process_input",
                         "set_stable"
                     ],
                     "status": "Active",
@@ -318,8 +320,8 @@
                         {
                             "id": "SN02",
                             "description": "Bluetooth Discover",
+                            "prompt": "Verify that your Bluetooth device is discoverable!",
                             "command": [
-                                "get_user_continue \"Verify that your Bluetooth device is discoverable!\" process_input ",
                                 "connect_bt_interface"
         
                             ],
@@ -483,8 +485,8 @@
                             {
                                 "id": "N02",
                                 "description": "Apply configs",
+                                "prompt": "This will apply new network configuration\n\nwould you like to continue?",
                                 "command": [                                    
-                                    "get_user_continue \"This will apply new network configuration\n\nwould you like to continue?\" process_input",
                                     "netplan apply"
                                     ],
                                 "status": "Active",

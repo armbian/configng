@@ -82,19 +82,20 @@ case "$1" in
           exit 0
           ;;
      "--api")
+          
           if [[ $EUID != 0 ]]; then
                echo "Error: The --api option requires root privileges. Please run as root or use sudo."
                exit 1
-          fi
+          fi   
+ 
           shift
-          if [[ -z "$1" ]]; then
-               echo "Error: Missing option for --api."
+          if [[ -z "$1" || "$1" == "help" ]]; then
+              see_use;
                exit 1
           fi
           option="$1"
           shift
           args="$@"
-          
           "$option" "$args"
           exit 0
           ;;
