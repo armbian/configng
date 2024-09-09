@@ -195,23 +195,24 @@ module_options+=(
 function set_runtime_variables(){
 
 	missing_dependencies=()
-	
+
 	# Check if whiptail is available and set DIALOG
 	if [[ -z "$DIALOG" ]]; then
 	    missing_dependencies+=("whiptail")
 	fi
-	
+
 	# Check if jq is available
 	if ! [[ -x "$(command -v jq)" ]]; then
 	    missing_dependencies+=("jq")
 	fi
-	
+
 	# If any dependencies are missing, print a combined message and exit
 	if [[ ${#missing_dependencies[@]} -ne 0 ]]; then
-	    echo "Error: Please install the following dependencies using 'sudo apt install ${missing_dependencies[*]}'"
-	    exit 1
+		if is_package_manager_running; then
+			sudo apt install ${missing_dependencies[*]}
+		fi
 	fi
- 
+
 	DIALOG_CANCEL=1
 	DIALOG_ESC=255
 
@@ -224,8 +225,6 @@ function set_runtime_variables(){
 		debconf-apt-progress -- apt -y -qq --allow-downgrades --no-install-recommends install lsb-release
 	fi
 
-
-
 	[[ -f /etc/armbian-release ]] && source /etc/armbian-release && ARMBIAN="Armbian $VERSION $IMAGE_TYPE";
 	DISTRO=$(lsb_release -is)
 	DISTROID=$(lsb_release -sc)
@@ -233,14 +232,10 @@ function set_runtime_variables(){
 	[[ -z "${ARMBIAN// }" ]] && ARMBIAN="$DISTRO $DISTROID"
 	DEFAULT_ADAPTER=$(ip -4 route ls | grep default | tail -1 | grep -Po '(?<=dev )(\S+)')
 	LOCALIPADD=$(ip -4 addr show dev $DEFAULT_ADAPTER | awk '/inet/ {print $2}' | cut -d'/' -f1)
-	BACKTITLE="Configuration utility, $ARMBIAN"
-	[[ -n "$LOCALIPADD" ]] && BACKTITLE=$BACKTITLE", "$LOCALIPADD
-	TITLE="$BOARD_NAME "
+	BACKTITLE="\n"
+	TITLE="Armbian configuration utility"
 	[[ -z "${DEFAULT_ADAPTER// }" ]] && DEFAULT_ADAPTER="lo"
-	OVERLAYDIR="/boot/dtb/overlay";
-	[[ "$LINUXFAMILY" == "sunxi64" ]] && OVERLAYDIR="/boot/dtb/allwinner/overlay";
-	[[ "$LINUXFAMILY" == "meson64" ]] && OVERLAYDIR="/boot/dtb/amlogic/overlay";
-	[[ "$LINUXFAMILY" == "rockchip64" || "$LINUXFAMILY" == "rk3399" || "$LINUXFAMILY" == "rockchip-rk3588" || "$LINUXFAMILY" == "rk35xx" ]] && OVERLAYDIR="/boot/dtb/rockchip/overlay";
+
 	# detect desktop
 	check_desktop
 
@@ -593,7 +588,7 @@ function show_message() {
 
     # Display the "OK" message box with the input data
     if [[ $DIALOG != "bash" ]]; then
-        $DIALOG  --title "$BACKTITLE"  --msgbox "$input" 0 0
+        $DIALOG  --title "$TITLE"  --msgbox "$input" 0 0
     else
         echo -e "$input"
         read -p -r "Press [Enter] to continue..."
@@ -627,13 +622,13 @@ function show_infobox() {
             fi
             # Display the lines in the buffer in the infobox
 
-            TERM=ansi $DIALOG --title "$BACKTITLE" --infobox "$(printf "%s\n" "${buffer[@]}" )" 16 90
+            TERM=ansi $DIALOG --title "$TITLE" --infobox "$(printf "%s\n" "${buffer[@]}" )" 16 90
             sleep 0.5
         done
     else
-        
+
         input="$1"
-        TERM=ansi $DIALOG --title "$BACKTITLE" --infobox "$input" 6 80
+        TERM=ansi $DIALOG --title "$TITLE" --infobox "$input" 6 80
     fi
         echo -ne '\033[3J' # clear the screen
 }
