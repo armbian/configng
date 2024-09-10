@@ -60,7 +60,7 @@ clear
 
 case "$1" in
      "--help")
-               see_cli_list
+               see_cmd_list
                exit 0
           ;;
      "--doc")
@@ -72,12 +72,18 @@ case "$1" in
                exit 1
           fi
           ;; 
-     "--cli")
+     "--cmd")
+          INPUTMODE="cmd"
           if [[ $EUID != 0 ]]; then
-               echo "Error: The --cli option requires root privileges. Please run as root or use sudo."
+               echo "Error: Requires root privileges. Please run as root or use sudo."
                exit 1
           fi
+
           shift
+          if [[ -z "$1" || "$1" == "help" ]]; then
+               see_cmd_list
+               exit 0
+          fi
           args=$(sanitize_input "$@")
           execute_command "$args"
           exit 0

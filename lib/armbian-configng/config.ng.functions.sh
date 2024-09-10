@@ -3,7 +3,6 @@
 
 
 
-
 module_options+=(
 ["check_desktop,author"]="Igor Pecovnik"
 ["check_desktop,ref_link"]=""
@@ -561,18 +560,32 @@ module_options+=(
 #
 function execute_command() {
     local id=$1
-    #local commands=$(jq -r --arg id "$id" '.menu[] | .. | objects | select(.id==$id) | .command[]' "$json_file")
-    local commands=$(jq -r --arg id "$id" '
-  .menu[] | 
-  .. | 
-  objects | 
-  select(.id == $id) | 
-  .command[]?' "$json_file")
 
+    # Extract commands
+    local commands=$(jq -r --arg id "$id" '
+      .menu[] | 
+      .. | 
+      objects | 
+      select(.id == $id) | 
+      .command[]?' "$json_file")
+
+    # Check if a prompt exists
+    local prompt=$(jq -r --arg id "$id" '
+      .menu[] | 
+      .. | 
+      objects | 
+      select(.id == $id) | 
+      .prompt?' "$json_file")
+
+    # If a prompt exists, display it and wait for user confirmation
+    if [[ "$prompt" != "null" && $INPUTMODE != "cmd" ]]; then
+        get_user_continue "$prompt" process_input
+    fi
+
+    # Execute each command
     for command in "${commands[@]}"; do
-        # Check if the command is not in the list of restricted commands
-            [[ -n "$debug" ]] && echo "$command"
-            eval "$command"
+        [[ -n "$debug" ]] && echo "$command"
+        eval "$command"
     done
 }
 

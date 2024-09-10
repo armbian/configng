@@ -2,6 +2,7 @@
 
 # This file is part of Armbian configuration utility.
 
+
 module_options+=(
     ["generate_readme,author"]="Joey Turner"
     ["generate_readme,ref_link"]="#L17"
@@ -69,7 +70,7 @@ armbian-config --help
 
 Outputs:
 ~~~
-$(see_cli_list)
+$(see_cmd_list)
 ~~~
 
 ## Legacy options
@@ -465,18 +466,18 @@ jq -r '
 }
 
 module_options+=(
-    ["see_cli_list,author"]="Joey Turner"
-    ["see_cli_list,ref_link"]=""
-    ["see_cli_list,feature"]="see_cli_list"
-    ["see_cli_list,desc"]="Generate a Help message for cli commands."
-    ["see_cli_list,example"]="see_cli_list"
-    ["see_cli_list,status"]="review"
-    ["see_cli_list,doc_link"]=""
+    ["see_cmd_list,author"]="Joey Turner"
+    ["see_cmd_list,ref_link"]=""
+    ["see_cmd_list,feature"]="see_cmd_list"
+    ["see_cmd_list,desc"]="Generate a Help message for cli commands."
+    ["see_cmd_list,example"]="see_cmd_list"
+    ["see_cmd_list,status"]="review"
+    ["see_cmd_list,doc_link"]=""
 )
 #
 # See command line options
 #
-function see_cli_list() {
+function see_cmd_list() {
     local script_name=$(basename "$0")
     cat << EOF
 Usage:  $script_name [option] [arguments]
@@ -485,15 +486,14 @@ Usage:  $script_name [option] [arguments]
     main=Help   -  Display Legacy Options (Backward Compatible)
 
 EOF
-    # TODO: Migrate More features.
+    # TODO: Migrate More features. 
     #echo " main=help   -  Display Legacy cli commands."
     jq -r --arg script_name "$script_name" '
-	def process_item(item):
-	    "    --cli " + item.id + "  -  " + item.description,
+        def process_item(item):
+	    "    --cmd " + item.id + "  -  " + item.description,
 	    (item.sub[]? | process_item(.));
-
-	.menu[] |
-	.sub[]? | process_item(.)
+	    .menu[] |
+	    .sub[]? | process_item(.)
     ' $json_file
 }
 
