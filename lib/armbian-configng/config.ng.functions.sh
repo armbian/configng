@@ -573,14 +573,13 @@ function execute_command() {
   objects | 
   select(.id == $id) | 
   .command[]?' "$json_file")
-    
+
     for command in "${commands[@]}"; do
-        # Check if the command is not in the list of restricted commands       
+        # Check if the command is not in the list of restricted commands
             [[ -n "$debug" ]] && echo "$command"
             eval "$command"
     done
 }
-
 
 module_options+=(
 ["show_message,author"]="Joey Turner"
