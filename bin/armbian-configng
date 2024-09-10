@@ -60,7 +60,7 @@ clear
 
 case "$1" in
      "--help")
-               see_cli_list
+               see_cmd_list
                exit 0
           ;;
      "--doc")
