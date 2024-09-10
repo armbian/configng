@@ -2,6 +2,63 @@
 
 
 module_options+=(
+["install_de,author"]="Igor Pecovnik"
+["install_de,ref_link"]=""
+["install_de,feature"]="install_de"
+["install_de,desc"]="Install DE"
+["install_de,example"]="install_de"
+["install_de,status"]="Active"
+)
+#
+# Install desktop
+#
+function install_de (){
+
+	# get user who executed this script
+	if [ $SUDO_USER ]; then local user=$SUDO_USER; else local user=`whoami`; fi
+
+	debconf-apt-progress -- apt-get update
+	debconf-apt-progress -- apt-get -y --install-recommends install "armbian-${DISTROID}-desktop-$1 armbian-bsp-desktop-${BOARD}-${BRANCH}"
+
+	# clean apt cache
+	apt-get -y clean
+
+	# add user to groups
+	for additionalgroup in sudo netdev audio video dialout plugdev input bluetooth systemd-journal ssh; do
+			usermod -aG ${additionalgroup} ${user} 2>/dev/null
+	done
+
+	# set up profile sync daemon on desktop systems
+	which psd >/dev/null 2>&1
+	if [[ $? -eq 0 && -z $(grep overlay-helper /etc/sudoers) ]]; then
+		echo "${user} ALL=(ALL) NOPASSWD: /usr/bin/psd-overlay-helper" >> /etc/sudoers
+		touch /home/${user}/.activate_psd
+	fi
+
+	# update skel
+	update_skel
+
+	# desktops has different default login managers
+    case "$1" in
+        gnome)
+		# gdm3
+		;;
+    *)
+		# lightdm
+		mkdir -p /etc/lightdm/lightdm.conf.d
+		echo "[Seat:*]" > /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf
+		echo "autologin-user=${username}" >> /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf
+		echo "autologin-user-timeout=0" >> /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf
+		echo "user-session=xfce" >> /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf
+		ln -s /lib/systemd/system/lightdm.service /etc/systemd/system/display-manager.service >/dev/null 2>&1
+		service lightdm start >/dev/null 2>&1
+	;;
+    esac
+exit
+}
+
+
+module_options+=(
 ["update_skel,author"]="Igor Pecovnik"
 ["update_skel,ref_link"]=""
 ["update_skel,feature"]="update_skel"

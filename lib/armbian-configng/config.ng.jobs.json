@@ -474,38 +474,6 @@
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
-                },
-                {
-                    "id": "N17",
-                    "description": "Announce system in the network (Avahi)",
-                    "command": [
-                        "get_user_continue \"This operation will install avahi-daemon and add configuration files.\nDo you wish to continue?\" process_input",
-                        "check_if_installed avahi-daemon",
-						"debconf-apt-progress -- apt-get -y install avahi-daemon libnss-mdns",
-						"cp /usr/share/doc/avahi-daemon/examples/sftp-ssh.service /etc/avahi/services/",
-						"cp /usr/share/doc/avahi-daemon/examples/ssh.service /etc/avahi/services/",
-						"service avahi-daemon restart"
-                    ],
-                    "status": "Active",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "",
-                    "condition": "! check_if_installed avahi-daemon"
-                },
-                {
-                    "id": "N18",
-                    "description": "Disable system announce in the network (Avahi)",
-                    "command": [
-                        "get_user_continue \"This operation will purge avahi-daemon \nDo you wish to continue?\" process_input",
-                        "check_if_installed avahi-daemon",
-						"systemctl stop avahi-daemon avahi-daemon.socket",
-						"debconf-apt-progress -- apt-get -y purge avahi-daemon"
-                    ],
-                    "status": "Active",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "",
-                    "condition": "check_if_installed avahi-daemon"
                 }
             ]
         },
@@ -568,6 +536,210 @@
             "description": "Run/Install 3rd party applications",
             "sub": [
                 {
+                    "id": "D01",
+                    "description": "Desktop Environments",
+                    "sub": [
+                        {
+                            "id": "DE01",
+                            "description": "Install XFCE desktop",
+                            "command": [ "install_de \"xfce\""],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": ""
+                        },
+                        {
+                            "id": "DE02",
+                            "description": "Install Gnome desktop",
+                            "command": [ "install_de \"gnome\""],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": ""
+                        },
+                        {
+                            "id": "DE03",
+                            "description": "Install i3-wm desktop",
+                            "command": [ "install_de \"i3-wm\""],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": ""
+                        },
+                        {
+                            "id": "DE04",
+                            "description": "Install Cinnamon desktop",
+                            "command": [ "install_de \"cinnamon\""],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": ""
+                        },
+                        {
+                            "id": "DE05",
+                            "description": "Install kde-neon desktop",
+                            "command": [ "install_de \"kde-neon\""],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": ""
+                        }
+                    ]
+                },
+                {
+                    "id": "I01",
+                    "description": "Network tools",
+                    "sub": [
+                        {
+                            "id": "X01",
+                            "description": "Install realtime console network usage monitor (nload)",
+                            "command": [
+                                "get_user_continue \"This operation will install nload.\n\nDo you wish to continue?\" process_input",
+                                "debconf-apt-progress -- apt-get -y install nload"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "! check_if_installed nload"
+                        },
+                        {
+                            "id": "X02",
+                            "description": "Remove realtime console network usage monitor (nload)",
+                            "command": [
+                                "get_user_continue \"This operation will purge nload.\n\nDo you wish to continue?\" process_input",
+                                "debconf-apt-progress -- apt-get -y purge nload"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "check_if_installed nload"
+                        },
+                        {
+                            "id": "X03",
+                            "description": "Install bandwidth measuring tool (iperf3)",
+                            "command": [
+                                "get_user_continue \"This operation will install iperf3.\n\nDo you wish to continue?\" process_input",
+                                "debconf-apt-progress -- apt-get -y install iperf3"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "! check_if_installed iperf3"
+                        },
+                        {
+                            "id": "X04",
+                            "description": "Remove bandwidth measuring tool (iperf3)",
+                            "command": [
+                                "get_user_continue \"This operation will purge iperf3.\n\nDo you wish to continue?\" process_input",
+                                "debconf-apt-progress -- apt-get -y purge iperf3"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "check_if_installed iperf3"
+                        },
+                        {
+                            "id": "X05",
+                            "description": "Install IP LAN monitor (iptraf-ng)",
+                            "command": [
+                                "get_user_continue \"This operation will install iptraf-ng.\n\nDo you wish to continue?\" process_input",
+                                "debconf-apt-progress -- apt-get -y install iptraf-ng"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "! check_if_installed iptraf-ng"
+                        },
+                        {
+                            "id": "X06",
+                            "description": "Remove IP LAN monitor (iptraf-ng)",
+                            "command": [
+                                "get_user_continue \"This operation will purge nload.\n\nDo you wish to continue?\" process_input",
+                                "debconf-apt-progress -- apt-get -y purge iptraf-ng"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "check_if_installed iptraf-ng"
+                        },
+                        {
+                            "id": "X07",
+                            "description": "Install hostname broadcast via mDNS (avahi-daemon)",
+                            "command": [
+                                "get_user_continue \"This operation will install avahi-daemon and add configuration files.\nDo you wish to continue?\" process_input",
+                                "check_if_installed avahi-daemon",
+                                "debconf-apt-progress -- apt-get -y install avahi-daemon libnss-mdns",
+                                "cp /usr/share/doc/avahi-daemon/examples/sftp-ssh.service /etc/avahi/services/",
+                                "cp /usr/share/doc/avahi-daemon/examples/ssh.service /etc/avahi/services/",
+                                "service avahi-daemon restart"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "! check_if_installed avahi-daemon"
+                        },
+                        {
+                            "id": "X08",
+                            "description": "Remove hostname broadcast via mDNS (avahi-daemon)",
+                            "command": [
+                                "get_user_continue \"This operation will purge avahi-daemon \nDo you wish to continue?\" process_input",
+                                "check_if_installed avahi-daemon",
+                                "systemctl stop avahi-daemon avahi-daemon.socket",
+                                "debconf-apt-progress -- apt-get -y purge avahi-daemon"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "check_if_installed avahi-daemon"
+                        }
+                    ]
+                },
+                {
+                "id": "I31",
+                "description": "Development",
+                "sub": [
+                    {
+                        "id": "X21",
+                        "description": "Install tools for cloning and managing repositories (git)",
+                        "command": [
+                            "get_user_continue \"This operation will install git.\n\nDo you wish to continue?\" process_input",
+                            "debconf-apt-progress -- apt-get -y install git"
+                        ],
+                        "status": "Active",
+                        "doc_link": "",
+                        "src_reference": "",
+                        "author": "",
+                        "condition": "! check_if_installed git"
+                     },
+                     {
+                        "id": "X22",
+                        "description": "Remove tools for cloning and managing repositories (git)",
+                        "command": [
+                            "get_user_continue \"This operation will remove git.\n\nDo you wish to continue?\" process_input",
+                            "debconf-apt-progress -- apt-get -y purge git"
+                        ],
+                        "status": "Active",
+                        "doc_link": "",
+                        "src_reference": "",
+                        "author": "",
+                        "condition": "check_if_installed git"
+                     }
+                    ]
+                },
+                {
                     "id": "I00",
                     "description": "Update Application Repository",
                     "command": [
@@ -580,7 +752,7 @@
                     "author": ""
                 },
                 {
-                    "id": "I01",
+                    "id": "I02",
                     "description": "System benchmaking and diagnostics",
                     "command": [
                         "see_monitoring"
@@ -589,7 +761,7 @@
                     "doc_link": "",
                     "src_reference": "",
                     "author": "",
-                    "condition": "ls /usr/bin/armbianmonitor"
+                    "condition": "[ -f /usr/bin/armbianmonitor ]"
         
                 }
             ]
