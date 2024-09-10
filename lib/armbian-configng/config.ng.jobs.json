@@ -6,7 +6,8 @@
             "sub": [
                 {
                     "id": "S01",
-                    "description": "Enable Armbian kernel upgrades",
+                    "description": "Enable Armbian kernel/firmware upgrades",
+                    "prompt": "This will enable Armbian kernel upgrades?\nWould you like to continue?",
                     "command": [
                         "armbian_fw_manipulate unhold"
                     ],
@@ -19,6 +20,7 @@
                 {
                     "id": "S02",
                     "description": "Disable Armbian kernel upgrades",
+                    "prompt": "Disable Armbian kernel/firmware upgrades\nWould you like to continue?",
                     "command": [
                         "armbian_fw_manipulate hold"
                     ],
@@ -31,8 +33,8 @@
                 {
                     "id": "S03",
                     "description": "Edit the boot environment",
+                    "prompt": "This will open /boot/armbianEnv.txt file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?",
                     "command": [
-                        "get_user_continue \"This will open /boot/armbianEnv.txt file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?\" process_input",
                         "nano /boot/armbianEnv.txt"
                     ],
                     "status": "Active",
@@ -252,10 +254,8 @@
                 {
                     "id": "S10",
                     "description": "Switch to rolling release",
-                    "command": [
-                        "get_user_continue \"This will switch to rolling releases\n\nwould you like to continue?\" process_input",
-                        "set_rolling"
-                    ],
+                    "prompt": "This will switch to rolling releases\n\nwould you like to continue?",
+                    "command": [ "set_rolling" ],
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L1446",
@@ -265,10 +265,8 @@
                 {
                     "id": "S11",
                     "description": "Switch to stable release",
-                    "command": [
-                        "get_user_continue \"This will switch to stable releases\n\nwould you like to continue?\" process_input",
-                        "set_stable"
-                    ],
+                    "prompt": "This will switch to stable releases\n\nwould you like to continue?",
+                    "command": [ "set_stable" ],
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L1446",
@@ -409,10 +407,8 @@
                             {
                                 "id": "N05",
                                 "description": "Apply common configs",
-                                "command": [                                    
-                                                "get_user_continue \"This will apply new network configuration\n\nwould you like to continue?\" process_input",
-                                                "netplan apply"
-                                    ],
+                                "prompt": "This will apply new network configuration\n\nwould you like to continue?",
+                                "command": [ "netplan apply" ],
                                 "status": "Active",
                                 "doc_link": "",
                                 "src_reference": "",
@@ -453,10 +449,8 @@
                 {
                     "id": "N15",
                     "description": "Bluetooth Discover",
-                    "command": [
-						"get_user_continue \"Verify that your Bluetooth device is discoverable!\" process_input ; connect_bt_interface"
-
-                    ],
+                    "prompt": "This will enable bluetooth and discover devices\n\nWould you like to continue?",
+                    "command": [ "connect_bt_interface" ],
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
@@ -466,10 +460,8 @@
                 {
                     "id": "N16",
                     "description": "Toggle system IPv6/IPv4 internet protocol",
-                    "command": [
-                        "get_user_continue \"This will toggle your internet protocol\nWould you like to continue?\" process_input",
-                        "toggle_ipv6 | show_infobox"
-                    ],
+                    "prompt": "This will toggle your internet protocol\nWould you like to continue?",
+                    "command": [ "toggle_ipv6 | show_infobox" ],
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
@@ -478,8 +470,8 @@
                 {
                     "id": "N17",
                     "description": "Announce system in the network (Avahi)",
+                    "prompt": "This operation will install avahi-daemon and add configuration files.\nDo you wish to continue?",
                     "command": [
-                        "get_user_continue \"This operation will install avahi-daemon and add configuration files.\nDo you wish to continue?\" process_input",
                         "check_if_installed avahi-daemon",
 						"debconf-apt-progress -- apt-get -y install avahi-daemon libnss-mdns",
 						"cp /usr/share/doc/avahi-daemon/examples/sftp-ssh.service /etc/avahi/services/",
@@ -495,8 +487,8 @@
                 {
                     "id": "N18",
                     "description": "Disable system announce in the network (Avahi)",
+                    "prompt": "This operation will purge avahi-daemon\nDo you wish to continue?",
                     "command": [
-                        "get_user_continue \"This operation will purge avahi-daemon \nDo you wish to continue?\" process_input",
                         "check_if_installed avahi-daemon",
 						"systemctl stop avahi-daemon avahi-daemon.socket",
 						"debconf-apt-progress -- apt-get -y purge avahi-daemon"
@@ -552,13 +544,12 @@
                 {
                     "id": "L03",
                     "description": "Change APT mirrors",
+                    "prompt": "This will change the APT mirrors\nWould you like to continue?",
                     "command": [
                         "get_user_continue \"This is only a frontend test\" process_input"
                     ],
                     "disabled": true,
                     "status": "Active",
-                    "doc_link": "",
-                    "src_reference": "",
                     "author": ""
                 }
             ]
@@ -570,10 +561,8 @@
                 {
                     "id": "I00",
                     "description": "Update Application Repository",
-                    "command": [
-                        "get_user_continue \"This will update apt\" process_input",
-                        "debconf-apt-progress -- apt update"
-                    ],
+                    "prompt": "This will update the apt repository\nWould you like to continue?",
+                    "command": [ "debconf-apt-progress -- apt update" ],
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
