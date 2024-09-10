@@ -2,7 +2,7 @@ name: Bug Report for the Armbian Config
 description: Create a bug report if there is something wrong with the Armbian config.
 title: "[Bug]: "
 labels: ["Bug"]
-assignees: ""
+assignees: [""]
 body:
   - type: markdown
     attributes:

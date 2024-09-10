@@ -2,7 +2,7 @@ name: Feature Request for the Armbian Config
 description: Suggest a feature that you want to see implemented.
 title: "[Feature Request]: "
 labels: ["Feature Request"]
-assignees: ""
+assignees: [""]
 body:
   - type: markdown
     attributes:
