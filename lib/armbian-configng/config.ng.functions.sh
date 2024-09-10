@@ -566,12 +566,12 @@ module_options+=(
 #
 function execute_command() {
     local id=$1
-        #local commands=$(jq -r --arg id "$id" '.menu[] | .. | objects | select(.id==$id) | .command[]' "$json_file")
+    #local commands=$(jq -r --arg id "$id" '.menu[] | .. | objects | select(.id==$id) | .command[]' "$json_file")
     local commands=$(jq -r --arg id "$id" '
-  .menu[] |
-  .. |
-  objects |
-  select(.id == $id) |
+  .menu[] | 
+  .. | 
+  objects | 
+  select(.id == $id) | 
   .command[]?' "$json_file")
 
     for command in "${commands[@]}"; do
