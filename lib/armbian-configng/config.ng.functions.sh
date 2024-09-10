@@ -232,7 +232,7 @@ function set_runtime_variables(){
 	[[ -z "${ARMBIAN// }" ]] && ARMBIAN="$DISTRO $DISTROID"
 	DEFAULT_ADAPTER=$(ip -4 route ls | grep default | tail -1 | grep -Po '(?<=dev )(\S+)')
 	LOCALIPADD=$(ip -4 addr show dev $DEFAULT_ADAPTER | awk '/inet/ {print $2}' | cut -d'/' -f1)
-	BACKTITLE="\n"
+	BACKTITLE="\n    Contribute: https://github.com/armbian/configng\n"
 	TITLE="Armbian configuration utility"
 	[[ -z "${DEFAULT_ADAPTER// }" ]] && DEFAULT_ADAPTER="lo"
 
