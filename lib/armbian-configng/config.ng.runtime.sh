@@ -51,6 +51,9 @@ update_submenu_data() {
         '(.menu[] | select(.id==$key).sub[] | select(.id == $subkey).description) += " (" + $value + ")"')
 }
 
+#
+# Check if network adapter is IPv6 or IPv4
+network_adapter="$DEFAULT_ADAPTER"
 
 #
 # Main menu updates
@@ -58,11 +61,6 @@ update_json_data "System" "$system_info"
 update_json_data "Network" "$network_adapter"
 update_json_data "Localisation" "$locale_setting"
 update_json_data "Software" "$installed_software"
-
-
-#
-# Check if network adapter is IPv6 or IPv4
-network_adapter="$DEFAULT_ADAPTER"
 
 # Conditional submenu updates based on network type
 if [ "$network_adapter" = "IPv6" ]; then
