@@ -470,7 +470,7 @@ module_options+=(
     ["see_cmd_list,ref_link"]=""
     ["see_cmd_list,feature"]="see_cmd_list"
     ["see_cmd_list,desc"]="Generate a Help message for cli commands."
-    ["see_cmd_list,example"]="see_cmd_list"
+    ["see_cmd_list,example"]="see_cmd_list [catagory]"
     ["see_cmd_list,status"]="review"
     ["see_cmd_list,doc_link"]=""
 )
@@ -479,23 +479,46 @@ module_options+=(
 #
 function see_cmd_list() {
     local script_name=$(basename "$0")
+    local help_menu="$1"  # Capture the first argument passed to --help
+
     cat << EOF
 Usage:  $script_name [option] [arguments]
 
-    --help      -  Display this help message.
-    main=Help   -  Display Legacy Options (Backward Compatible)
-
+    --help [catagory]  -  Display this help message.
+        Use [catagory] to filter specific menu options.
 EOF
-    # TODO: Migrate More features. 
-    #echo " main=help   -  Display Legacy cli commands."
+
+    # Check if a specific menu was provided
+    if [ -z "$help_menu" ]; then
     jq -r --arg script_name "$script_name" '
-        def process_item(item):
-	    "    --cmd " + item.id + "  -  " + item.description,
-	    (item.sub[]? | process_item(.));
-	    .menu[] |
-	    .sub[]? | process_item(.)
-    ' $json_file
+        # Define a function to process each menu item and include its parent menu id
+        def process_item(item; menu_id):
+            "    --cmd " + item.id + " - " + (item.description // "No description available"),
+            # Recursively process sub-items, passing the parent menu_id
+            (item.sub[]? | process_item(. ; menu_id));
+
+        # Start by iterating through the main menu
+        .menu[] |
+        "\n" + .id + " - " + (.description // "No description available") ,
+        .id as $menu_id |
+        # Process both the main menu and its sub-items
+        .sub[]? | process_item(.; $menu_id)
+    ' "$json_file"
+    else
+        # Parse the JSON file and display the filtered commands based on the menu
+        jq -r --arg menu "$help_menu" '
+            # Function to process items and print commands
+            def process_item(item; menu_id):
+                "    --cmd " + item.id + " - " + (item.description // "No description available"),
+                (item.sub[]? | process_item(. ; menu_id));
+
+            # Filter by the provided menu name and display only the matching menu and sub-commands
+            .menu[] | select(.id | ascii_downcase == ($menu | ascii_downcase)) |
+            (.sub[]? | process_item(.; .id))
+        ' "$json_file"
+    fi
 }
+
 
 module_options+=(
     ["see_cli_legacy,author"]="Joey Turner"

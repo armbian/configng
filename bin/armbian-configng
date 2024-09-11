@@ -60,14 +60,21 @@ clear
 
 case "$1" in
      "--help")
-     echo "Usage:  armbian-configng --[option] [arguments]
+     if [[ -n "$2" ]]; then
+          see_cmd_list "$2"
+          echo ""
+          exit 0
+     fi
+
+     echo "Usage:  armbian-configng --[option]
      Options:
-     --help          Display this help message
-     --cmd           Run a command from the menu (simple)
-     --api           Run a helper command        (advanced)
-     --doc           Generate the README.md file 
+     --help [catagory]   Use [catagory] to filter specific menu options.
+     --cmd  [option]     Run a command from the menu (simple)
+     --api  [option]     Run a helper command        (advanced)
+     --doc               Generate the README.md file 
 
      Examples:
+     armbian-configng --help [System|Software|Network|Localisation]
      armbian-configng --cmd help 
      armbian-configng --api help
 "
