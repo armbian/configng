@@ -503,6 +503,8 @@ EOF
         # Process both the main menu and its sub-items
         .sub[]? | process_item(.; $menu_id)
     ' "$json_file"
+    elif [[ "$help_menu" == "api" ]]; then
+        see_use
     else
         # Parse the JSON file and display the filtered commands based on the menu
         jq -r --arg menu "$help_menu" '
