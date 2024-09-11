@@ -484,8 +484,7 @@ function see_cmd_list() {
     cat << EOF
 Usage:  $script_name [option] [arguments]
 
-    --help [catagory]  -  Display this help message.
-        Use [catagory] to filter specific menu options.
+    --help [category]  -  Use [category] to filter specific menu options.
 EOF
 
     # Check if a specific menu was provided
