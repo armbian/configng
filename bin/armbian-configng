@@ -74,7 +74,7 @@ case "$1" in
      --doc               Generate the README.md file 
 
      Examples:
-     armbian-configng --help [System|Software|Network|Localisation]
+     armbian-configng --help [cmd||System||Software||Network||Localisation]
      armbian-configng --cmd help 
      armbian-configng --api help
 "

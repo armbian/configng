@@ -484,21 +484,21 @@ function see_cmd_list() {
     cat << EOF
 Usage:  $script_name [option] [arguments]
 
-    --help [category]  -  Use [category] to filter specific menu options.
+  --help [category]  -  Use [category] to filter specific menu options.
 EOF
 
     # Check if a specific menu was provided
-    if [ -z "$help_menu" ]; then
+    if [[ -z "$help_menu" || "$help_menu" == "cmd" ]]; then
     jq -r --arg script_name "$script_name" '
         # Define a function to process each menu item and include its parent menu id
         def process_item(item; menu_id):
-            "    --cmd " + item.id + " - " + (item.description // "No description available"),
+            "\t  --cmd " + item.id + " - " + (item.description // "No description available"),
             # Recursively process sub-items, passing the parent menu_id
             (item.sub[]? | process_item(. ; menu_id));
 
         # Start by iterating through the main menu
         .menu[] |
-        "\n" + .id + " - " + (.description // "No description available") ,
+        "\n  " + .id + " - " + (.description // "No description available") ,
         .id as $menu_id |
         # Process both the main menu and its sub-items
         .sub[]? | process_item(.; $menu_id)
