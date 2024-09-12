@@ -60,7 +60,24 @@ clear
 
 case "$1" in
      "--help")
-               see_cmd_list
+     if [[ -n "$2" ]]; then
+          see_cmd_list "$2"
+          echo ""
+          exit 0
+     fi
+
+     echo "Usage:  armbian-configng --[option]
+     Options:
+     --help [catagory]   Use [catagory] to filter specific menu options.
+     --cmd  [option]     Run a command from the menu (simple)
+     --api  [option]     Run a helper command        (advanced)
+     --doc               Generate the README.md file 
+
+     Examples:
+     armbian-configng --help [cmd||System||Software||Network||Localisation]
+     armbian-configng --cmd help 
+     armbian-configng --api help
+"
                exit 0
           ;;
      "--doc")
@@ -84,6 +101,7 @@ case "$1" in
                see_cmd_list
                exit 0
           fi
+
           args=$(sanitize_input "$@")
           execute_command "$args"
           exit 0
@@ -94,9 +112,9 @@ case "$1" in
                exit 1
           fi
           shift
-          if [[ -z "$1" ]]; then
-               echo "Error: Missing option for --api."
-               exit 1
+          if [[ -z "$1" || "$1" == "help" ]]; then
+               see_use
+               exit 0
           fi
           option="$1"
           shift

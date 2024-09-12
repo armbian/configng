@@ -1,6 +1,6 @@
 
 # Armbian Configuration Utility
-Updated: Tue Sep  3 09:45:40 PM EDT 2024
+Updated: Tue Sep 10 08:13:32 PM CDT 2024
 
 Utility for configuring your board, adjusting services, and installing applications. It comes with Armbian by default.
 
@@ -10,7 +10,7 @@ sudo armbian-config
 ~~~
 
 - ## **System** 
-  - **S01** - Enable Armbian kernel upgrades
+  - **S01** - Enable Armbian kernel/firmware upgrades
   - **S02** - Disable Armbian kernel upgrades
   - **S03** - Edit the boot environment
   - **S04** - Install Linux headers
@@ -24,18 +24,13 @@ sudo armbian-config
 
 
 - ## **Network** 
-  - **N00** - Install Bluetooth support
-  - **N01** - Remove Bluetooth support
-  - **N02** - Bluetooth Discover
-  - **N03** - Install Infrared support
-  - **N04** - Uninstall Infrared support
-  - **N05** - Manage wifi network connections
-  - **N06** - Advanced Edit /etc/network/interface
-  - **N07** - Disconnect and forget all wifi connections (Advanced)
-  - **N08** - Toggle system IPv6/IPv4 internet protocol
-  - **N09** - (WIP) Setup Hotspot/Access point
-  - **N10** - Announce system in the network (Avahi)
-  - **N11** - Disable system announce in the network (Avahi)
+  - **N01** - Configure network interfaces
+  - **N13** - Install Bluetooth support
+  - **N14** - Remove Bluetooth support
+  - **N15** - Bluetooth Discover
+  - **N16** - Toggle system IPv6/IPv4 internet protocol
+  - **N17** - Announce system in the network (Avahi)
+  - **N18** - Disable system announce in the network (Avahi)
 
 
 - ## **Localisation** 
@@ -47,7 +42,7 @@ sudo armbian-config
 
 - ## **Software** 
   - **I00** - Update Application Repository
-  - **I01** - CLI System Monitor
+  - **I01** - System benchmaking and diagnostics
 
 
 - ## **Help** 
@@ -86,38 +81,69 @@ Outputs:
 ~~~
 Usage:  armbian-configng [option] [arguments]
 
-    --help      -  Display this help message.
-    main=Help   -  Display Legacy Options (Backward Compatible)
+    --help [catagory]  -  Display this help message.
+        Use [catagory] to filter specific menu options.
 
-    --cli S01  -  Enable Armbian kernel upgrades
-    --cli S02  -  Disable Armbian kernel upgrades
-    --cli S03  -  Edit the boot environment
-    --cli S04  -  Install Linux headers
-    --cli S05  -  Remove Linux headers
-    --cli S06  -  Install to internal storage
-    --cli S07  -  Manage SSH login options
-    --cli S08  -  Change shell system wide to BASH
-    --cli S09  -  Change shell system wide to ZSH
-    --cli S10  -  Switch to rolling release
-    --cli S11  -  Switch to stable release
-    --cli N00  -  Install Bluetooth support
-    --cli N01  -  Remove Bluetooth support
-    --cli N02  -  Bluetooth Discover
-    --cli N03  -  Install Infrared support
-    --cli N04  -  Uninstall Infrared support
-    --cli N05  -  Manage wifi network connections
-    --cli N06  -  Advanced Edit /etc/network/interface
-    --cli N07  -  Disconnect and forget all wifi connections (Advanced)
-    --cli N08  -  Toggle system IPv6/IPv4 internet protocol
-    --cli N09  -  (WIP) Setup Hotspot/Access point
-    --cli N10  -  Announce system in the network (Avahi)
-    --cli N11  -  Disable system announce in the network (Avahi)
-    --cli L00  -  Change Global timezone (WIP)
-    --cli L01  -  Change Locales reconfigure the language and character set
-    --cli L02  -  Change Keyboard layout
-    --cli L03  -  Change APT mirrors
-    --cli I00  -  Update Application Repository
-    --cli I01  -  CLI System Monitor
+System - System wide and admin settings
+    --cmd S01 - Enable Armbian kernel/firmware upgrades
+    --cmd S02 - Disable Armbian kernel upgrades
+    --cmd S03 - Edit the boot environment
+    --cmd S04 - Install Linux headers
+    --cmd S05 - Remove Linux headers
+    --cmd S06 - Install to internal storage
+    --cmd S07 - Manage SSH login options
+    --cmd SS01 - Disable root login
+    --cmd SS02 - Enable root login
+    --cmd SS03 - Disable password login
+    --cmd SS04 - Enable password login
+    --cmd SS05 - Disable Public key authentication login
+    --cmd SS06 - Enable Public key authentication login
+    --cmd SS07 - Disable OTP authentication
+    --cmd SS08 - Enable OTP authentication
+    --cmd SS09 - Generate new OTP authentication QR code
+    --cmd SS10 - Show OTP authentication QR code
+    --cmd S08 - Change shell system wide to BASH
+    --cmd S09 - Change shell system wide to ZSH
+    --cmd S10 - Switch to rolling release
+    --cmd S11 - Switch to stable release
+
+Network - Fixed and wireless network settings
+    --cmd N01 - Configure network interfaces
+    --cmd N02 - Wired
+    --cmd N06 - Show configuration
+    --cmd N07 - Enable DHCP on all interfaces
+    --cmd N08 - Set fixed IP address
+    --cmd N09 - Disable IPV6
+    --cmd N10 - Enable IPV6
+    --cmd N11 - Disable wired networking
+    --cmd N03 - Wireless
+    --cmd N25 - Show configuration
+    --cmd N26 - Disable wireless networking
+    --cmd N27 - Disable IPV6
+    --cmd N28 - Enable IPV6
+    --cmd N29 - Enable DHCP on wireless network interface
+    --cmd N04 - Show common configs
+    --cmd N05 - Apply common configs
+    --cmd N13 - Install Bluetooth support
+    --cmd N14 - Remove Bluetooth support
+    --cmd N15 - Bluetooth Discover
+    --cmd N16 - Toggle system IPv6/IPv4 internet protocol
+    --cmd N17 - Announce system in the network (Avahi)
+    --cmd N18 - Disable system announce in the network (Avahi)
+
+Localisation - Localisation
+    --cmd L00 - Change Global timezone (WIP)
+    --cmd L01 - Change Locales reconfigure the language and character set
+    --cmd L02 - Change Keyboard layout
+    --cmd L03 - Change APT mirrors
+
+Software - Run/Install 3rd party applications
+    --cmd I00 - Update Application Repository
+    --cmd I01 - System benchmaking and diagnostics
+
+Help - About this app
+    --cmd H00 - About This system. (WIP)
+    --cmd H02 - List of Config function(WIP)
 ~~~
 
 ## Legacy options
@@ -154,7 +180,7 @@ A list of the jobs defined in the Jobs file.
 
  ### S01
 
-Enable Armbian kernel upgrades
+Enable Armbian kernel/firmware upgrades
 
 Jobs:
 
@@ -169,7 +195,7 @@ Disable Armbian kernel upgrades
 Jobs:
 
 ~~~
-armbian_fw_manipulate freeze
+armbian_fw_manipulate hold
 ~~~
 
 ### S03
@@ -179,10 +205,6 @@ Edit the boot environment
 Jobs:
 
 ~~~
-get_user_continue "This will open /boot/armbianEnv.txt file to edit
-CTRL+S to save
-CTLR+X to exit
-would you like to continue?" process_input
 nano /boot/armbianEnv.txt
 ~~~
 
@@ -256,7 +278,37 @@ update_skel
 awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534 || $3 == 0) print $1}' /etc/passwd | xargs -L1 chsh -s $(grep /zsh$ /etc/shells | tail -1)
 ~~~
 
-### N00
+### S10
+
+Switch to rolling release
+
+Jobs:
+
+~~~
+set_rolling
+~~~
+
+### S11
+
+Switch to stable release
+
+Jobs:
+
+~~~
+set_stable
+~~~
+
+### N01
+
+Configure network interfaces
+
+Jobs:
+
+~~~
+No commands available
+~~~
+
+### N13
 
 Install Bluetooth support
 
@@ -268,7 +320,7 @@ debconf-apt-progress -- apt-get -y install bluetooth bluez bluez-tools
 check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y --no-install-recommends install pulseaudio-module-bluetooth blueman
 ~~~
 
-### N01
+### N14
 
 Remove Bluetooth support
 
@@ -281,106 +333,33 @@ check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y remove pul
 debconf-apt-progress -- apt -y -qq autoremove
 ~~~
 
-### N02
+### N15
 
 Bluetooth Discover
 
 Jobs:
 
 ~~~
-get_user_continue "Verify that your Bluetooth device is discoverable!" process_input ; connect_bt_interface
+connect_bt_interface
 ~~~
 
-### N03
-
-Install Infrared support
-
-Jobs:
-
-~~~
-see_current_apt; debconf-apt-progress -- apt-get -y --no-install-recommends install lirc
-~~~
-
-### N04
-
-Uninstall Infrared support
-
-Jobs:
-
-~~~
-see_current_apt; debconf-apt-progress -- apt-get -y --no-install-recommends install lirc
-~~~
-
-### N05
-
-Manage wifi network connections
-
-Jobs:
-
-~~~
-nmtui connect
-~~~
-
-### N06
-
-Advanced Edit /etc/network/interface
-
-Jobs:
-
-~~~
-get_user_continue "This will open interface file to edit
-CTRL+S to save
-CTLR+X to exit
-would you like to continue?" process_input
-nano /etc/network/interfaces
-~~~
-
-### N07
-
-Disconnect and forget all wifi connections (Advanced)
-
-Jobs:
-
-~~~
-get_user_continue "Disconnect and forget all wifi connections
-Would you like to continue?" process_input
-LC_ALL=C nmcli --fields UUID,TIMESTAMP-REAL,TYPE con show | grep wifi |  awk '{print $1}' | while read line; \ 
-do nmcli con delete uuid  $line; done > /dev/null
-~~~
-
-### N08
+### N16
 
 Toggle system IPv6/IPv4 internet protocol
 
 Jobs:
 
 ~~~
-get_user_continue "This will toggle your internet protocol
-Would you like to continue?" process_input
 toggle_ipv6 | show_infobox
 ~~~
 
-### N09
-
-(WIP) Setup Hotspot/Access point
-
-Jobs:
-
-~~~
-get_user_continue "This operation will install necessary software and add configuration files.
-Do you wish to continue?" process_input
-hotspot_setup
-~~~
-
-### N10
+### N17
 
 Announce system in the network (Avahi)
 
 Jobs:
 
 ~~~
-get_user_continue "This operation will install avahi-daemon and add configuration files.
-Do you wish to continue?" process_input
 check_if_installed avahi-daemon
 debconf-apt-progress -- apt-get -y install avahi-daemon libnss-mdns
 cp /usr/share/doc/avahi-daemon/examples/sftp-ssh.service /etc/avahi/services/
@@ -388,15 +367,13 @@ cp /usr/share/doc/avahi-daemon/examples/ssh.service /etc/avahi/services/
 service avahi-daemon restart
 ~~~
 
-### N11
+### N18
 
 Disable system announce in the network (Avahi)
 
 Jobs:
 
 ~~~
-get_user_continue "This operation will purge avahi-daemon 
-Do you wish to continue?" process_input
 check_if_installed avahi-daemon
 systemctl stop avahi-daemon avahi-daemon.socket
 debconf-apt-progress -- apt-get -y purge avahi-daemon
@@ -432,6 +409,7 @@ Jobs:
 
 ~~~
 dpkg-reconfigure keyboard-configuration ; setupcon 
+update-initramfs -u
 ~~~
 
 ### L03
@@ -451,18 +429,17 @@ Update Application Repository
 Jobs:
 
 ~~~
-get_user_continue "This will update apt" process_input
 debconf-apt-progress -- apt update
 ~~~
 
 ### I01
 
-CLI System Monitor
+System benchmaking and diagnostics
 
 Jobs:
 
 ~~~
-armbianmonitor -m | show_infobox
+see_monitoring
 ~~~
 
 ### H00
@@ -497,8 +474,10 @@ These helper functions facilitate various operations related to job management, 
 
 | Description | Example | Credit |
 |:----------- | ------- |:------:|
+| Wrapping Netplan commands | netplan_wrapper | Igor Pecovnik 
 | Generate a Help message legacy cli commands. | see_cli_legacy | Joey Turner 
 | Run time variables Migrated procedures from Armbian config. | set_runtime_variables | Igor Pecovnik 
+| Set Armbian to rolling release | set_rolling | Tearran 
 | Generate this markdown table of all module_options | see_function_table_md | Joey Turner 
 | Display a menu from pipe | show_menu <<< armbianmonitor -h  ;  | Joey Turner 
 | Build the main menu from a object | generate_top_menu 'json_data' | Joey Turner 
@@ -509,13 +488,14 @@ These helper functions facilitate various operations related to job management, 
 | Display a Yes/No dialog box and process continue/exit | get_user_continue 'Do you wish to continue?' process_input | Joey Turner 
 | Display a message box | show_message <<< 'hello world'  | Joey Turner 
 | Migrated procedures from Armbian config. | connect_bt_interface | Igor Pecovnik 
+| Menu for armbianmonitor features | see_monitoring | Joey Turner 
 | Show or generate QR code for Google OTP | qr_code generate | Igor Pecovnik 
-| Freeze/unhold Migrated procedures from Armbian config. | armbian_fw_manipulate unhold or armbian_fw_manipulate freeze or armbian_fw_manipulate reinstall | Igor Pecovnik 
 | Check if kernel headers are installed | are_headers_installed | Gunjan Gupta 
 | Check when apt list was last updated | see_current_apt | Joey Turner 
 | Migrated procedures from Armbian config. | check_if_installed nano | Igor Pecovnik 
 | Generate 'Armbian CPU logo' SVG for document file. | generate_svg | Joey Turner 
 | Remove Linux headers | Headers_remove | Joey Turner 
+| Displays available adapters | choose_adapter | Igor Pecovnik 
 | Update submenu descriptions based on conditions | update_submenu_data | Joey Turner 
 | sanitize input cli | sanitize_input |  
 | Check if a domain is reachable via IPv4 and IPv6 | check_ip_version google.com | Joey Turner 
@@ -526,7 +506,6 @@ These helper functions facilitate various operations related to job management, 
 | Install kernel headers | is_package_manager_running | Joey Turner 
 | Set up a WiFi hotspot on the device | hotspot_setup | Joey Turner 
 | Toggle IPv6 on or off | toggle_ipv6 | Joey Turner 
-| Generate a Help message for cli commands. | see_cli_list | Joey Turner 
 | Generate JSON-like object file. | generate_json | Joey Turner 
 | Change the background color of the terminal or dialog box | set_colors 0-7 | Joey Turner 
 | Serve the edit and debug server. | serve_doc | Joey Turner 
@@ -534,8 +513,12 @@ These helper functions facilitate various operations related to job management, 
 | pipeline strings to an infobox  | show_infobox <<< 'hello world' ;  | Joey Turner 
 | Parse json to get list of desired menu or submenu items | parse_menu_items 'menu_options_array' | Gunjan Gupta 
 | Show the usage of the functions. | see_use | Joey Turner 
+| List and connect to wireless network | wifi_connect | Igor Pecovnik 
+| Generate a Help message for cli commands. | see_cmd_list [catagory] | Joey Turner 
+| freeze/unhold/reinstall armbian related packages. | armbian_fw_manipulate unhold|freeze|reinstall | Igor Pecovnik 
 | Check the internet connection with fallback DNS | see_ping | Joey Turner 
 | Update the /etc/skel files in users directories | update_skel | Igor Pecovnik 
+| Set Armbian to stable release | set_stable | Tearran 
 | Secure version of get_user_continue | get_user_continue_secure 'Do you wish to continue?' process_input | Joey Turner 
 
 
