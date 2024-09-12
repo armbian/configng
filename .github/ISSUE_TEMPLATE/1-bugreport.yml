@@ -1,0 +1,51 @@
+name: Bug Report for the Armbian Config
+description: Create a bug report if there is something wrong with the Armbian config.
+title: "[Bug]: "
+labels: ["Bug"]
+assignees: [""]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping us make Armbian better!
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: |
+
+        Please tell us what you expected to happen and what actually happened.
+      placeholder: An error x ocurred when I did y! But I expected z to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce?
+      description: |
+
+        Provide the command you ran or explain the steps you did.
+      placeholder: Tell us step by step how to reproduce the issue! E.g. the command you gave to the framework.
+    validations:
+      required: true
+  - type: dropdown
+    id: host
+    attributes:
+      label: On which host OS are you running the build script and observing this problem?
+      multiple: false
+      options:
+        - Ubuntu 24.04 Noble
+        - Ubuntu 22.04 Jammy
+        - Debian 13 Trixie
+        - Debian 12 Bookworm
+        - Other
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/armbian/configng/blob/main/.github/CODE_OF_CONDUCT.md)
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true

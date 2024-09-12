@@ -16,7 +16,7 @@ jobs:
     with:
       matrix: "all:jammy"
       maintainer: "Igor Pecovnik <igor@armbian.com>"
-      package: "configng"
+      package: "armbian-configng"
       licence: "GPL 2.0"
       homepage: "https://www.armbian.com"
       section: "default"

@@ -2,6 +2,7 @@
 
 # This file is part of Armbian configuration utility.
 
+
 module_options+=(
     ["generate_readme,author"]="Joey Turner"
     ["generate_readme,ref_link"]="#L17"
@@ -69,7 +70,7 @@ armbian-config --help
 
 Outputs:
 ~~~
-$(see_cli_list)
+$(see_cmd_list)
 ~~~
 
 ## Legacy options
@@ -465,37 +466,60 @@ jq -r '
 }
 
 module_options+=(
-    ["see_cli_list,author"]="Joey Turner"
-    ["see_cli_list,ref_link"]=""
-    ["see_cli_list,feature"]="see_cli_list"
-    ["see_cli_list,desc"]="Generate a Help message for cli commands."
-    ["see_cli_list,example"]="see_cli_list"
-    ["see_cli_list,status"]="review"
-    ["see_cli_list,doc_link"]=""
+    ["see_cmd_list,author"]="Joey Turner"
+    ["see_cmd_list,ref_link"]=""
+    ["see_cmd_list,feature"]="see_cmd_list"
+    ["see_cmd_list,desc"]="Generate a Help message for cli commands."
+    ["see_cmd_list,example"]="see_cmd_list [catagory]"
+    ["see_cmd_list,status"]="review"
+    ["see_cmd_list,doc_link"]=""
 )
 #
 # See command line options
 #
-function see_cli_list() {
+function see_cmd_list() {
     local script_name=$(basename "$0")
+    local help_menu="$1"  # Capture the first argument passed to --help
+
     cat << EOF
 Usage:  $script_name [option] [arguments]
 
-    --help      -  Display this help message.
-    main=Help   -  Display Legacy Options (Backward Compatible)
-
+  --help [category]  -  Use [category] to filter specific menu options.
 EOF
-    # TODO: Migrate More features.
-    #echo " main=help   -  Display Legacy cli commands."
-    jq -r --arg script_name "$script_name" '
-	def process_item(item):
-	    "    --cli " + item.id + "  -  " + item.description,
-	    (item.sub[]? | process_item(.));
 
-	.menu[] |
-	.sub[]? | process_item(.)
-    ' $json_file
+    # Check if a specific menu was provided
+    if [[ -z "$help_menu" || "$help_menu" == "cmd" ]]; then
+    jq -r --arg script_name "$script_name" '
+        # Define a function to process each menu item and include its parent menu id
+        def process_item(item; menu_id):
+            "\t  --cmd " + item.id + " - " + (item.description // "No description available"),
+            # Recursively process sub-items, passing the parent menu_id
+            (item.sub[]? | process_item(. ; menu_id));
+
+        # Start by iterating through the main menu
+        .menu[] |
+        "\n  " + .id + " - " + (.description // "No description available") ,
+        .id as $menu_id |
+        # Process both the main menu and its sub-items
+        .sub[]? | process_item(.; $menu_id)
+    ' "$json_file"
+    elif [[ "$help_menu" == "api" ]]; then
+        see_use
+    else
+        # Parse the JSON file and display the filtered commands based on the menu
+        jq -r --arg menu "$help_menu" '
+            # Function to process items and print commands
+            def process_item(item; menu_id):
+                "    --cmd " + item.id + " - " + (item.description // "No description available"),
+                (item.sub[]? | process_item(. ; menu_id));
+
+            # Filter by the provided menu name and display only the matching menu and sub-commands
+            .menu[] | select(.id | ascii_downcase == ($menu | ascii_downcase)) |
+            (.sub[]? | process_item(.; .id))
+        ' "$json_file"
+    fi
 }
+
 
 module_options+=(
     ["see_cli_legacy,author"]="Joey Turner"
