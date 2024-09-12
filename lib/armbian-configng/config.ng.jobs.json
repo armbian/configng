@@ -527,11 +527,11 @@
             "description": "Run/Install 3rd party applications",
             "sub": [
                 {
-                    "id": "D01",
+                    "id": "SW01",
                     "description": "Desktop Environments",
                     "sub": [
                         {
-                            "id": "DE01",
+                            "id": "SW02",
                             "description": "Install XFCE desktop",
                             "command": [ "install_de \"xfce\""],
                             "status": "Active",
@@ -541,7 +541,7 @@
                             "condition": ""
                         },
                         {
-                            "id": "DE02",
+                            "id": "SW03",
                             "description": "Install Gnome desktop",
                             "command": [ "install_de \"gnome\""],
                             "status": "Active",
@@ -551,7 +551,7 @@
                             "condition": ""
                         },
                         {
-                            "id": "DE03",
+                            "id": "SW04",
                             "description": "Install i3-wm desktop",
                             "command": [ "install_de \"i3-wm\""],
                             "status": "Active",
@@ -561,7 +561,7 @@
                             "condition": ""
                         },
                         {
-                            "id": "DE04",
+                            "id": "SW05",
                             "description": "Install Cinnamon desktop",
                             "command": [ "install_de \"cinnamon\""],
                             "status": "Active",
@@ -571,7 +571,7 @@
                             "condition": ""
                         },
                         {
-                            "id": "DE05",
+                            "id": "SW06",
                             "description": "Install kde-neon desktop",
                             "command": [ "install_de \"kde-neon\""],
                             "status": "Active",
@@ -583,11 +583,11 @@
                     ]
                 },
                 {
-                    "id": "I01",
+                    "id": "SW07",
                     "description": "Network tools",
                     "sub": [
                         {
-                            "id": "X01",
+                            "id": "SW08",
                             "description": "Install realtime console network usage monitor (nload)",
                             "command": [
                                 "get_user_continue \"This operation will install nload.\n\nDo you wish to continue?\" process_input",
@@ -600,7 +600,7 @@
                             "condition": "! check_if_installed nload"
                         },
                         {
-                            "id": "X02",
+                            "id": "SW09",
                             "description": "Remove realtime console network usage monitor (nload)",
                             "command": [
                                 "get_user_continue \"This operation will purge nload.\n\nDo you wish to continue?\" process_input",
@@ -613,7 +613,7 @@
                             "condition": "check_if_installed nload"
                         },
                         {
-                            "id": "X03",
+                            "id": "SW10",
                             "description": "Install bandwidth measuring tool (iperf3)",
                             "command": [
                                 "get_user_continue \"This operation will install iperf3.\n\nDo you wish to continue?\" process_input",
@@ -626,7 +626,7 @@
                             "condition": "! check_if_installed iperf3"
                         },
                         {
-                            "id": "X04",
+                            "id": "SW11",
                             "description": "Remove bandwidth measuring tool (iperf3)",
                             "command": [
                                 "get_user_continue \"This operation will purge iperf3.\n\nDo you wish to continue?\" process_input",
@@ -639,7 +639,7 @@
                             "condition": "check_if_installed iperf3"
                         },
                         {
-                            "id": "X05",
+                            "id": "SW12",
                             "description": "Install IP LAN monitor (iptraf-ng)",
                             "command": [
                                 "get_user_continue \"This operation will install iptraf-ng.\n\nDo you wish to continue?\" process_input",
@@ -652,7 +652,7 @@
                             "condition": "! check_if_installed iptraf-ng"
                         },
                         {
-                            "id": "X06",
+                            "id": "SW13",
                             "description": "Remove IP LAN monitor (iptraf-ng)",
                             "command": [
                                 "get_user_continue \"This operation will purge nload.\n\nDo you wish to continue?\" process_input",
@@ -665,7 +665,7 @@
                             "condition": "check_if_installed iptraf-ng"
                         },
                         {
-                            "id": "X07",
+                            "id": "SW14",
                             "description": "Install hostname broadcast via mDNS (avahi-daemon)",
                             "command": [
                                 "get_user_continue \"This operation will install avahi-daemon and add configuration files.\nDo you wish to continue?\" process_input",
@@ -682,7 +682,7 @@
                             "condition": "! check_if_installed avahi-daemon"
                         },
                         {
-                            "id": "X08",
+                            "id": "SW15",
                             "description": "Remove hostname broadcast via mDNS (avahi-daemon)",
                             "command": [
                                 "get_user_continue \"This operation will purge avahi-daemon \nDo you wish to continue?\" process_input",
@@ -699,11 +699,11 @@
                     ]
                 },
                 {
-                "id": "I31",
+                "id": "SW16",
                 "description": "Development",
                 "sub": [
                     {
-                        "id": "X21",
+                        "id": "SW17",
                         "description": "Install tools for cloning and managing repositories (git)",
                         "command": [
                             "get_user_continue \"This operation will install git.\n\nDo you wish to continue?\" process_input",
@@ -716,7 +716,7 @@
                         "condition": "! check_if_installed git"
                      },
                      {
-                        "id": "X22",
+                        "id": "SW18",
                         "description": "Remove tools for cloning and managing repositories (git)",
                         "command": [
                             "get_user_continue \"This operation will remove git.\n\nDo you wish to continue?\" process_input",
@@ -731,7 +731,7 @@
                     ]
                 },
                 {
-                    "id": "I00",
+                    "id": "SW19",
                     "description": "Update Application Repository",
                     "prompt": "This will update the apt repository\nWould you like to continue?",
                     "command": [ "debconf-apt-progress -- apt update" ],
@@ -741,8 +741,8 @@
                     "author": ""
                 },
                 {
-                    "id": "I02",
-                    "description": "System benchmaking and diagnostics",
+                    "id": "SW20",
+                    "description": "SWystem benchmaking and diagnostics",
                     "command": [
                         "see_monitoring"
                     ],
