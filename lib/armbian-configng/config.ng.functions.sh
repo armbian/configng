@@ -458,11 +458,12 @@ parse_menu_items() {
         if [[ -n $condition && $condition != "null" ]]; then
             # If the function returns a truthy value, add the menu item to the menu
             if eval $condition; then
-                options+=("$id" "  -  $description")
+                #options+=("$id" "  -  $description")
+                options+=("$id" " - $description")
             fi
         else
             # If the condition field is empty or null, add the menu item to the menu
-            options+=("$id" "  -  $description ")
+            options+=("$id" " - $description ")
         fi
     done < <(echo "$json_data" | jq -r '.menu[] | '${parent_id:+".. | objects | select(.id==\"$parent_id\") | .sub[]? |"}' select(.disabled|not) | "\(.id)\n\(.description)\n\(.condition)"' || exit 1 )
 }
@@ -488,8 +489,32 @@ generate_top_menu() {
 
         parse_menu_items menu_options
 
-        local OPTION=$($DIALOG --title "$TITLE"  --menu "$BACKTITLE" 0 80 9 "${menu_options[@]}" \
-                                --ok-button Select --cancel-button Exit 3>&1 1>&2 2>&3)
+        if [[ $GUI == "zenity" ]]; then
+            local zenity_options=()
+                for ((i=0; i<${#menu_options[@]}; i+=2)); do
+                    local id="${menu_options[i]}"
+                    local description="${menu_options[i+1]}"
+                    zenity_options+=("$id" "$description")
+                done
+
+                # Display menu with zenity
+                local OPTION=$(zenity --list --title="Select an Option" \
+                                    --column="ID" --column="Description" \
+                                    "${zenity_options[@]}" \
+                                    --height=300 --width=400 --ok-label="Select" --cancel-label="Exit")
+            
+        else
+
+            local OPTION=$(whiptail --title "$TITLE" \
+                                    --backtitle "$BACKTITLE" \
+                                    --menu "Select an option:" 0 80 9 \
+                                    "${menu_options[@]}" \
+                                    --ok-button Select \
+                                    --cancel-button Exit \
+                                    3>&1 1>&2 2>&3)
+
+        fi           
+
         local exitstatus=$?
 
         if [ $exitstatus = 0 ]; then
@@ -521,8 +546,25 @@ function generate_menu() {
         local submenu_options=()
         parse_menu_items submenu_options
 
-        local OPTION=$($DIALOG --title "$TITLE"  --menu "$BACKTITLE" 0 80 9 "${submenu_options[@]}" \
-                                --ok-button Select --cancel-button Back 3>&1 1>&2 2>&3)
+        if [[ $GUI == "zenity" ]]; then
+            local zenity_options=()
+                for ((i=0; i<${#menu_options[@]}; i+=2)); do
+                    local id="${submenu_options[i]}"
+                    local description="${submenu_options[i+1]}"
+                    zenity_options+=("$id" "$description")
+                done
+
+                # Display menu with zenity
+                local OPTION=$(zenity --list --title="Select an Option" \
+                                    --column="ID" --column="Description" \
+                                    "${zenity_options[@]}" \
+                                    --height=300 --width=400 --ok-label="Select" --cancel-label="Exit")
+            
+        else
+
+            local OPTION=$(whiptail --title "$TITLE"  --menu "$BACKTITLE" 0 80 9 "${submenu_options[@]}" \
+                                    --ok-button Select --cancel-button Back 3>&1 1>&2 2>&3)
+        fi
 
         local exitstatus=$?
 
@@ -606,11 +648,10 @@ function show_message() {
     input=$(cat)
 
     # Display the "OK" message box with the input data
-    if [[ $DIALOG != "bash" ]]; then
-        $DIALOG  --title "$TITLE"  --msgbox "$input" 0 0
+    if [[ $GUI == "zenity" ]]; then
+        zenity --info --title="$TITLE" --text="$input." --ok-label="OK"
     else
-        echo -e "$input"
-        read -p -r "Press [Enter] to continue..."
+        $DIALOG  --title "$TITLE"  --msgbox "$input" 0 0
     fi
 }
 
@@ -706,23 +747,33 @@ module_options+=(
 function get_user_continue() {
     local message="$1"
     local next_action="$2"
-
-    if $($DIALOG --yesno "$message" 10 80 3>&1 1>&2 2>&3); then
-        $next_action
+if [[ "$GUI" == "zenity" ]]; then
+    if zenity --question --title="Confirm Action" --text="$message" --width=300 --height=200; then
+        eval $next_action
     else
-        $next_action "No"
+        eval $next_action "No"
     fi
+elif [[ "$GUI" == "whiptail" ]]; then
+    if whiptail --yesno "$message" 10 80 3>&1 1>&2 2>&3; then
+        eval $next_action
+    else
+        eval $next_action "No"
+    fi
+else
+    echo "Error: Unsupported GUI tool specified."
+    exit 1
+fi
 }
 
 
 menu_options+=(
-["get_user_continue,author"]="Joey Turner"
-["get_user_continue,ref_link"]=""
-["get_user_continue,feature"]="process_input"
-["get_user_continue,desc"]="used to process the user's choice paired with get_user_continue"
-["get_user_continue,example"]="get_user_continue 'Do you wish to continue?' process_input"
-["get_user_continue,status"]="Active"
-["get_user_continue,doc_link"]=""
+["process_input,author"]="Joey Turner"
+["process_input,ref_link"]=""
+["process_input,feature"]="process_input"
+["process_input,desc"]="used to process the user's choice paired with get_user_continue"
+["process_input,example"]="get_user_continue 'Do you wish to continue?' process_input"
+["process_input,status"]="Active"
+["process_input,doc_link"]=""
 )
 #
 # Function to process the user's choice paired with get_user_continue
@@ -733,7 +784,6 @@ function process_input() {
         exit 1
    fi
 }
-
 
 module_options+=(
 ["see_ping,author"]="Joey Turner"
