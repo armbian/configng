@@ -391,7 +391,7 @@ function see_full_list() {
             doc_link=$(jq -r ".menu[$i].sub[$j].doc_link" "$json_file")
 
             # Check if src_reference and doc_link are null
-            [ -z "$doc_link" == "" ] && doc_link="#$id_link" || doc_link="$doc_link"
+            [ -z "$doc_link" ] && doc_link="#$id_link" || doc_link="$doc_link"
 	    
             echo -e "  - **$id** - $description"
 #            echo -e "    - Status: [$status]($doc_link)"
