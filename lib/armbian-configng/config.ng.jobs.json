@@ -435,6 +435,16 @@
                                 "src_reference": "",
                                 "author": "Igor Pecovnik",
                                 "condition": ""
+                            },
+                            {
+                                "id": "N90",
+                                "description": "Display status",
+                                "command": [ "show_message <<< \"$(sudo netplan status)\"" ],
+                                "status": "Active",
+                                "doc_link": "",
+                                "src_reference": "",
+                                "author": "Igor Pecovnik",
+                                "condition": ""
                             }
                             ]
                 },
