@@ -10,11 +10,11 @@ module_options+=(
 ["check_ip_version,doc_link"]=""
 )
 #
-# 
+#
 #
 check_ip_version() {
     domain=${1:-armbian.com}
-    
+
     if ping -c 1 $domain > /dev/null 2>&1; then
         echo "IPv4"
     elif ping6 -c 1 $domain > /dev/null 2>&1; then
@@ -249,9 +249,11 @@ function choose_adapter() {
                 fi
         done
         LIST_LENGTH=$((${#LIST[@]}/2));
+
         adapter=$(whiptail --title "Select interface" --menu "" $((${LIST_LENGTH} + 8)) 40 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
         if [[ -n $adapter && adapter != "all-eth-interfaces" && "${getip}" != false ]]; then
-        address=$(whiptail --title "Enter new IP for $SELECTED_ADAPTER" --inputbox "\nValid format: 1.2.3.4/5" 9 40 3>&1 1>&2 2>&3)
+        address=$(ip -br addr show dev $adapter | awk '{print $3}')
+        address=$(whiptail --title "Enter new IP for $adapter" --inputbox "\nValid format: $address" 9 40 "$address" 3>&1 1>&2 2>&3)
         fi
 
 }
