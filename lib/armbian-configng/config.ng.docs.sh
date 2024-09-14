@@ -355,7 +355,7 @@ do
         doc_link=$(jq -r ".menu[$i].sub[$j].doc_link" "$json_file")
 
         # Check if src_reference and doc_link are null
-        if [ "$doc_link" == "" ]; then doc_link="#$id_link"; else doc_link="[Document]($doc_link)"; fi
+        [ -z "$doc_link" ] && doc_link="#$id_link" || doc_link="[Document]($doc_link)"
 
         echo -e "| | $id | $description | $doc_link | $status |"
 
@@ -391,11 +391,8 @@ function see_full_list() {
             doc_link=$(jq -r ".menu[$i].sub[$j].doc_link" "$json_file")
 
             # Check if src_reference and doc_link are null
-            if [ "$doc_link" == "" ]; then 
-                doc_link="#$id_link"; 
-                else doc_link="$doc_link"; 
-            fi
-
+            [ -z "$doc_link" == "" ] && doc_link="#$id_link" || doc_link="$doc_link"
+	    
             echo -e "  - **$id** - $description"
 #            echo -e "    - Status: [$status]($doc_link)"
 
@@ -478,7 +475,7 @@ module_options+=(
 # See command line options
 #
 function see_cmd_list() {
-    local script_name=$(basename "$0")
+    local script_name="${0##*/}"
     local help_menu="$1"  # Capture the first argument passed to --help
 
     cat << EOF

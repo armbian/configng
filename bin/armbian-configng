@@ -20,7 +20,7 @@ json_file="$lib_dir/config.ng.jobs.json"
 
 #
 # Load The Bash procedure Objects
-json_data=$(cat "$json_file")
+json_data=$(< "$json_file")
 
 
 #
