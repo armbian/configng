@@ -79,11 +79,11 @@
                     "condition": "[[ -n $(ls /sbin/armbian-install) ]]"
                 },
                 {
-                    "id": "S07",
+                    "id": "S07.1",
                     "description": "Manage SSH login options",
                     "sub": [
                             {
-                            "id": "SS01",
+                            "id": "S07",
                             "description": "Disable root login",
                             "command": [
                                            "sed -i \"s|^#\\?PermitRootLogin.*|PermitRootLogin no|\" /etc/ssh/sshd_config",
@@ -96,7 +96,7 @@
                             "condition": "grep -q '^PermitRootLogin yes'  /etc/ssh/sshd_config"
                             },
                             {
-                            "id": "SS02",
+                            "id": "S08",
                             "description": "Enable root login",
                             "command": [
                                            "sed -i \"s/^#\\?PermitRootLogin.*/PermitRootLogin yes/\" /etc/ssh/sshd_config" ,
@@ -109,7 +109,7 @@
                             "condition": "grep -q '^PermitRootLogin no' /etc/ssh/sshd_config"
                             },
                             {
-                            "id": "SS03",
+                            "id": "S09",
                             "description": "Disable password login",
                             "command": [
                                            "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication no/\" /etc/ssh/sshd_config" ,
@@ -122,7 +122,7 @@
                             "condition": "grep -q 'PasswordAuthentication yes' /etc/ssh/sshd_config"
                             },
                             {
-                            "id": "SS04",
+                            "id": "S10",
                             "description": "Enable password login",
                             "command": [
                                            "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication yes/\" /etc/ssh/sshd_config" ,
@@ -135,7 +135,7 @@
                             "condition": "grep -q 'PasswordAuthentication no' /etc/ssh/sshd_config"
                             },
                             {
-                            "id": "SS05",
+                            "id": "S11",
                             "description": "Disable Public key authentication login",
                             "command": [
                                            "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication no/\" /etc/ssh/sshd_config" ,
@@ -148,7 +148,7 @@
                             "condition": "grep -q 'PubkeyAuthentication yes' /etc/ssh/sshd_config"
                             },
                             {
-                            "id": "SS06",
+                            "id": "S12",
                             "description": "Enable Public key authentication login",
                             "command": [
                                            "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication yes/\" /etc/ssh/sshd_config" ,
@@ -161,7 +161,7 @@
                             "condition": "grep -q 'PubkeyAuthentication no' /etc/ssh/sshd_config"
                             },
                             {
-                            "id": "SS07",
+                            "id": "S13",
                             "description": "Disable OTP authentication",
                             "command": [
                                            "clear",
@@ -177,7 +177,7 @@
                             "condition": "grep -q 'ChallengeResponseAuthentication yes' /etc/ssh/sshd_config"
                             },
                             {
-                            "id": "SS08",
+                            "id": "S14",
                             "description": "Enable OTP authentication",
                             "command": [
                                            "check_if_installed libpam-google-authenticator || debconf-apt-progress -- apt-get -y install libpam-google-authenticator",
@@ -194,7 +194,7 @@
                             "condition": "! check_if_installed libpam-google-authenticator || ! check_if_installed qrencode || grep -q '^ChallengeResponseAuthentication no' /etc/ssh/sshd_config || ! grep -q 'ChallengeResponseAuthentication' /etc/ssh/sshd_config"
                             },
                             {
-                            "id": "SS09",
+                            "id": "S15",
                             "description": "Generate new OTP authentication QR code",
                             "command": [
                                            "qr_code generate"
@@ -206,7 +206,7 @@
                             "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config"
                             },
                             {
-                            "id": "SS10",
+                            "id": "S16",
                             "description": "Show OTP authentication QR code",
                             "command": ["qr_code"],
                             "status": "Active",
@@ -218,7 +218,7 @@
                            ]
                 },
                 {
-                    "id": "S08",
+                    "id": "S17",
                     "description": "Change shell system wide to BASH",
                     "command": [
                         "export BASHLOCATION=$(grep /bash$ /etc/shells | tail -1)",
@@ -235,7 +235,7 @@
                     "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"zsh\" ]]"
                 },
                 {
-                    "id": "S09",
+                    "id": "S18",
                     "description": "Change shell system wide to ZSH",
                     "command": [
                         "export ZSHLOCATION=$(grep /zsh$ /etc/shells | tail -1)",
@@ -252,7 +252,7 @@
                     "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"bash\" ]]"
                 },
                 {
-                    "id": "S10",
+                    "id": "S19",
                     "description": "Switch to rolling release",
                     "prompt": "This will switch to rolling releases\n\nwould you like to continue?",
                     "command": [ "set_rolling" ],
@@ -263,7 +263,7 @@
                     "condition": "grep -q 'apt.armbian.com' /etc/apt/sources.list.d/armbian.list && [[ -z \"$(apt-mark showhold)\" ]]"
                 },
                 {
-                    "id": "S11",
+                    "id": "S20",
                     "description": "Switch to stable release",
                     "prompt": "This will switch to stable releases\n\nwould you like to continue?",
                     "command": [ "set_stable" ],
@@ -274,7 +274,7 @@
                     "condition": "grep -q 'beta.armbian.com' /etc/apt/sources.list.d/armbian.list && [[ -z \"$(apt-mark showhold)\" ]]"
                 },
                 {
-                    "id": "S12",
+                    "id": "S21",
                     "description": "Enable read only filesystem",
                     "prompt": "This will enable Armbian read-only filesystem. Reboot is mandatory?\n\nWould you like to continue?",
                     "command": [ "manage_overlayfs enable" ],
@@ -285,7 +285,7 @@
                     "condition": "modinfo overlay > /dev/null 2>&1 && [[ -z $(findmnt -k /media/root-ro | tail -1) ]] && [[ \"${DISTRO}\"=Ubuntu ]]"
                 },
                 {
-                    "id": "S13",
+                    "id": "S22",
                     "description": "Disable read only filesystem",
                     "prompt": "This will disable Armbian read-only filesystem. Reboot is mandatory?\n\nWould you like to continue?",
                     "command": [ "manage_overlayfs disable" ],
@@ -302,15 +302,15 @@
             "description": "Fixed and wireless network settings",
             "sub": [
                 {
-                    "id": "N01",
+                    "id": "N01.1",
                     "description": "Configure network interfaces",
                     "sub": [
                             {
-                                "id": "N02",
+                                "id": "N01.1.1",
                                 "description": "Wired",
                                 "sub": [
                                     {
-                                        "id": "N06",
+                                        "id": "N01",
                                         "description": "Show configuration",
                                         "command": [ "netplan_wrapper \"show_message\" \"\" \"\" \"ethernets\"" ],
                                         "status": "Active",
@@ -320,7 +320,7 @@
                                         "condition": "[ -f /etc/netplan/30-*static-interfaces.yaml ] || [ -f /etc/netplan/10-dhcp-all-interfaces.yaml ]"
                                     },
                                     {
-                                        "id": "N07",
+                                        "id": "N02",
                                         "description": "Enable DHCP on all interfaces",
                                         "command": [ "netplan_wrapper \"dhcp_all_wired_interfaces\" \"false\" \"10-dhcp-all-interfaces\" \"ethernets\" \"networkd\"" ],
                                         "status": "Active",
@@ -328,7 +328,7 @@
                                         "condition": "[ ! -f /etc/netplan/10-dhcp-all-interfaces.yaml ]"
                                     },
                                     {
-                                        "id": "N08",
+                                        "id": "N03",
                                         "description": "Set fixed IP address",
                                         "command": [" netplan_wrapper \"set_ip\" \"true\" \"10-dhcp-all-interfaces\" \"ethernets\" \"networkd\""],
                                         "status": "Active",
@@ -338,7 +338,7 @@
                                         "condition": ""
                                     },
                                     {
-                                        "id": "N09",
+                                        "id": "N04",
                                         "description": "Disable IPV6",
                                         "command": [" netplan_wrapper \"disable_ipv6\" \"false\" \"10-dhcp-all-interfaces\" \"ethernets\" \"networkd\""],
                                         "status": "Pending Review",
@@ -348,7 +348,7 @@
                                         "condition": "[ -f /etc/netplan/30-*static-interfaces.yaml ] || [ -f /etc/netplan/10-dhcp-all-interfaces.yaml ]"
                                     },
                                     {
-                                        "id": "N10",
+                                        "id": "N05",
                                         "description": "Enable IPV6",
                                         "command": [" netplan_wrapper \"enable_ipv6\" \"false\" \"10-dhcp-all-interfaces\" \"ethernets\" \"networkd\""],
                                         "status": "Pending Review",
@@ -358,7 +358,7 @@
                                         "condition": "[ -f /etc/netplan/30-*static-interfaces.yaml ] || [ -f /etc/netplan/10-dhcp-all-interfaces.yaml ]"
                                     },
                                     {
-                                        "id": "N11",
+                                        "id": "N06",
                                         "description": "Disable wired networking",                                    
                                         "command": [ "rm -f /etc/netplan/10-dhcp-all-interfaces.yaml /etc/netplan/30-*static-interfaces.yaml" ],
                                         "condition": "[ -f /etc/netplan/30-*static-interfaces.yaml ] || [ -f /etc/netplan/10-dhcp-all-interfaces.yaml ]",
@@ -368,11 +368,11 @@
                                 ]
                             },
                             {
-                                "id": "N03",
+                                "id": "N01.1.2",
                                 "description": "Wireless",
                                 "sub": [
                                     {
-                                        "id": "N25",
+                                        "id": "N07",
                                         "description": "Show configuration",
                                         "command": [ "netplan_wrapper \"show_message\" \"\" \"\" \"wifis\"" ],
                                         "condition": "[ -f /etc/netplan/20-dhcp-wlan-interface.yaml ]",
@@ -380,7 +380,7 @@
                                         "author": "Igor Pecovnik"
                                     },
                                     {
-                                        "id": "N26",
+                                        "id": "N08",
                                         "description": "Disable wireless networking",
                                         "command": [ "rm -f /etc/netplan/20-dhcp-wlan-interface.yaml" ],
                                         "condition": "[ -f /etc/netplan/20-dhcp-wlan-interface.yaml ]",
@@ -388,7 +388,7 @@
                                         "author": "Igor Pecovnik"
                                     },
                                     {
-                                        "id": "N27",
+                                        "id": "N09",
                                         "description": "Disable IPV6",
                                         "command": [" netplan_wrapper \"disable_ipv6\" \"false\" \"20-dhcp-wlan-interface\" \"wifis\" \"networkd\""],
                                         "condition": "[ -f /etc/netplan/20-dhcp-wlan-interface.yaml ]",
@@ -396,7 +396,7 @@
                                         "author": "Igor Pecovnik"
                                     },
                                     {
-                                        "id": "N28",
+                                        "id": "N10",
                                         "description": "Enable IPV6",
                                         "command": [" netplan_wrapper \"enable_ipv6\" \"false\" \"20-dhcp-wlan-interface\" \"wifis\" \"networkd\""],
                                         "condition": "[ -f /etc/netplan/20-dhcp-wlan-interface.yaml ]",
@@ -404,7 +404,7 @@
                                         "author": "Igor Pecovnik"
                                     },
                                     {
-                                        "id": "N29",
+                                        "id": "N11",
                                         "description": "Enable DHCP on wireless network interface",
                                         "command": [
                                                     "wifi_connect"
@@ -416,7 +416,7 @@
                                 ]
                             },
                             {
-                                "id": "N04",
+                                "id": "N12",
                                 "description": "Show common configs",
                                 "command": [ "show_message <<< \"$(sudo netplan get all)\"" ],
                                 "status": "Active",
@@ -426,10 +426,20 @@
                                 "condition": ""
                             },
                             {
-                                "id": "N05",
+                                "id": "N13",
                                 "description": "Apply common configs",
                                 "prompt": "This will apply new network configuration\n\nwould you like to continue?",
                                 "command": [ "netplan apply" ],
+                                "status": "Active",
+                                "doc_link": "",
+                                "src_reference": "",
+                                "author": "Igor Pecovnik",
+                                "condition": ""
+                            },
+                            {
+                                "id": "N14",
+                                "description": "Display status",
+                                "command": [ "show_message <<< \"$(sudo netplan status)\"" ],
                                 "status": "Active",
                                 "doc_link": "",
                                 "src_reference": "",
@@ -439,7 +449,7 @@
                             ]
                 },
                 {
-                    "id": "N13",
+                    "id": "N15",
                     "description": "Install Bluetooth support",
                     "command": [
                         "see_current_apt ",
@@ -453,7 +463,7 @@
                     "condition": "! check_if_installed bluetooth && ! check_if_installed bluez && ! check_if_installed bluez-tools"
                 },
                 {
-                    "id": "N14",
+                    "id": "N16",
                     "description": "Remove Bluetooth support",
                     "command": [
                         "see_current_apt ",
@@ -468,7 +478,7 @@
                     "condition": "check_if_installed bluetooth || check_if_installed bluez || check_if_installed bluez-tools"
                 },
                 {
-                    "id": "N15",
+                    "id": "N17",
                     "description": "Bluetooth Discover",
                     "prompt": "This will enable bluetooth and discover devices\n\nWould you like to continue?",
                     "command": [ "connect_bt_interface" ],
@@ -479,7 +489,7 @@
                     "condition": "check_if_installed bluetooth || check_if_installed bluez || check_if_installed bluez-tools"
                 },
                 {
-                    "id": "N16",
+                    "id": "N18",
                     "description": "Toggle system IPv6/IPv4 internet protocol",
                     "prompt": "This will toggle your internet protocol\nWould you like to continue?",
                     "command": [ "toggle_ipv6 | show_infobox" ],
@@ -548,7 +558,7 @@
             "description": "Run/Install 3rd party applications",
             "sub": [
                 {
-                    "id": "SW01",
+                    "id": "SW01.1",
                     "description": "Desktop Environments",
                     "sub": [
                         {
@@ -604,7 +614,7 @@
                     ]
                 },
                 {
-                    "id": "SW07",
+                    "id": "SW01.2",
                     "description": "Network tools",
                     "sub": [
                         {
@@ -720,7 +730,7 @@
                     ]
                 },
                 {
-                "id": "SW16",
+                "id": "SW01.3",
                 "description": "Development",
                 "sub": [
                     {

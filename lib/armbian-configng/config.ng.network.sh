@@ -244,16 +244,23 @@ function choose_adapter() {
                 if [[ $intf =~ $HIDE_IP_PATTERN ]]; then
                         continue
                 else
-                        QUERY=$(ip -br addr show dev $interface | grep "^$type" | awk '{print $1" " $3}')
+                        QUERY=$(ip -br addr show dev $interface | grep "^$type" | awk '{ print $1, " " , ($3==""?"unassigned":$3) }')
                         [[ -n $QUERY ]] && LIST+=($QUERY)
                 fi
         done
         LIST_LENGTH=$((${#LIST[@]}/2));
-
         adapter=$(whiptail --title "Select interface" --menu "" $((${LIST_LENGTH} + 8)) 40 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
-        if [[ -n $adapter && adapter != "all-eth-interfaces" && "${getip}" != false ]]; then
-        address=$(ip -br addr show dev $adapter | awk '{print $3}')
-        address=$(whiptail --title "Enter new IP for $adapter" --inputbox "\nValid format: $address" 9 40 "$address" 3>&1 1>&2 2>&3)
+        if [[ -n $adapter && adapter != "all-eth-interfaces" && "${getip}" != false && $? == 0 ]]; then
+            address=$(ip -br addr show dev $adapter | awk '{print $3}')
+            address=$(whiptail --title "Enter IP for $adapter" --inputbox "\nValid format: $address" 9 40 "$address" 3>&1 1>&2 2>&3)
+            if [[ -n $address && $? == 0 ]]; then
+                defaultroute=$(ip route show default | grep "$adapter" | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]")
+                defaultroute=$(whiptail --title "Enter IP for default route" --inputbox "\nValid format: $defaultroute" 9 40 "$defaultroute" 3>&1 1>&2 2>&3)
+                if [[ -n $defaultroute && $? == 0 ]]; then
+                    nameservers="9.9.9.9,1.1.1.1"
+                    nameservers=$(whiptail --title "Enter DNS server" --inputbox "\nValid format: $nameservers" 9 40 "$nameservers" 3>&1 1>&2 2>&3)
+                fi
+            fi
         fi
 
 }
@@ -273,9 +280,10 @@ module_options+=(
 function wifi_connect() {
 
     choose_adapter "w" "false" "true"
-
+    # enable adapter
+    ip link set ${adapter} up
     LIST=()
-    LIST=($(sudo iw dev ${adapter} scan 2> /dev/null | grep 'SSID\|^BSS' | cut -d" " -f2 | sed "s/(.*//g" | xargs -n2 -d'\n' | awk '{print $2,$1}'))
+    LIST=($(iw dev ${adapter} scan 2> /dev/null | grep 'SSID\|^BSS' | cut -d" " -f2 | sed "s/(.*//g" | xargs -n2 -d'\n' | awk '{print $2,$1}'))
     LIST_LENGTH=$((${#LIST[@]}/2));
     SELECTED_SSID=$(whiptail --title "Select SSID" --menu "rf" $((${LIST_LENGTH} + 6)) 50 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
     if [[ -n $SELECTED_SSID ]]; then
@@ -332,8 +340,8 @@ function netplan_wrapper() {
                 rm -f /etc/netplan/10-dhcp-all-interfaces.yaml
                 netplan set --origin-hint ${config} renderer=${renderer}
                 netplan set --origin-hint ${config} ethernets.${adapter}.addresses=[$address]
-                netplan set --origin-hint ${config} ${type}.${adapter}.dhcp6=false
-                netplan set --origin-hint ${config} ${type}.${adapter}.dhcp4=false
+                netplan set --origin-hint ${config} ${type}.${adapter}.routes='[{"to":"0.0.0.0/0", "via": "'$defaultroute'","metric":200}]'
+                netplan set --origin-hint ${config} ${type}.${adapter}.nameservers.addresses=[$nameservers]
                 show_message <<< "$(sudo netplan get ${type})"
             else
                 [[ -n "${address}" ]] && show_message <<< "IP address is wrong. Try 1.2.3.4/5"
