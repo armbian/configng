@@ -21,7 +21,7 @@ os::detect_os() {
     uname=$(command -v uname)
     declare os_lower_case=$("${uname}")
     os_lower_case=${os_lower_case,,}
-    case $(os_lower_case) in
+    case $os_lower_case in
     linux*)
         os="linux"
         ;;
