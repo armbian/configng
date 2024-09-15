@@ -234,20 +234,22 @@ function choose_adapter() {
         local type=$1           # w = wireless , e = ethernet
         local getip=$2          # true = also ask for new IP address
         local hide_all=$3       # true = hides selection for all-eth-interfaces
+        local filter=$4
 
         LIST=()
         # this functionality is exposed only on wired network
-        [[ $hide_all != true && ${type} == e && -f /etc/netplan/10-dhcp-all-interfaces.yaml ]] && LIST=("all-eth-interfaces" "")
+        [[ $hide_all != true && ${type} == ethernets && -f /etc/netplan/10-dhcp-all-interfaces.yaml ]] && LIST=("all-eth-interfaces" "")
         HIDE_IP_PATTERN="^dummy0|^lo|^docker"
         for f in /sys/class/net/*; do
                 interface=$(basename $f)
                 if [[ $intf =~ $HIDE_IP_PATTERN ]]; then
                         continue
                 else
-                        QUERY=$(ip -br addr show dev $interface | grep "^$type" | awk '{ print $1, " " , ($3==""?"unassigned":$3) }')
+                        QUERY=$(ip -br addr show dev $interface | grep "$filter" | awk '{ print $1, " " , ($3==""?"unassigned":$3) }')
                         [[ -n $QUERY ]] && LIST+=($QUERY)
                 fi
         done
+
         LIST_LENGTH=$((${#LIST[@]}/2));
         adapter=$(whiptail --title "Select interface" --menu "" $((${LIST_LENGTH} + 8)) 40 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
         if [[ -n $adapter && adapter != "all-eth-interfaces" && "${getip}" != false && $? == 0 ]]; then
@@ -319,7 +321,18 @@ function netplan_wrapper() {
     local adapter=$6
     local address=$7
 
-    case "$1" in
+    case "$type" in
+
+        ethernets)
+            filter="^e\|^lan\|^wan"
+            ;;
+        wifis)
+            filter="^w"
+            ;;
+        *)
+    esac
+
+    case "$what" in
 
         show_message)
             show_message <<< $(sudo netplan get ${type})
@@ -335,7 +348,7 @@ function netplan_wrapper() {
         ;;
 
         set_ip)
-            choose_adapter "${type:0:1}" "${get_ip}" "true"
+            choose_adapter "${type}" "${get_ip}" "true" "${filter}"
             if [[ "${address}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\/[0-9]+$ ]]; then
                 rm -f /etc/netplan/10-dhcp-all-interfaces.yaml
                 netplan set --origin-hint ${config} renderer=${renderer}
@@ -349,14 +362,14 @@ function netplan_wrapper() {
         ;;
 
         disable_ipv6)
-            choose_adapter "${type:0:1}" "${get_ip}" "false"
+            choose_adapter "${type}" "${get_ip}" "false" "${filter}"
             netplan set --origin-hint ${config} renderer=${renderer}
             netplan set --origin-hint ${config} ${type}.${adapter}.dhcp6=false
             show_message <<< "$(sudo netplan get ${type})"
         ;;
 
         enable_ipv6)
-            choose_adapter "${type:0:1}" "${get_ip}" "true"
+            choose_adapter "${type}" "${get_ip}" "true" "${filter}"
             netplan set --origin-hint ${config} renderer=${renderer}
             netplan set --origin-hint ${config} ${type}.${adapter}.dhcp6=true
             show_message <<< "$(sudo netplan get ${type})"
