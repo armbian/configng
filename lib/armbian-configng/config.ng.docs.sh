@@ -180,7 +180,7 @@ module_options+=(
 # Function to serve the edit and debug server
 #
 function serve_doc() {
-    if [[ "$(id -u)" == "0" ]] ; then
+    if [ "$UID" == "0" ] ; then
         echo "Red alert! not for sudo user"
         exit 1
     fi
