@@ -28,7 +28,7 @@ check::command_exists() {
 # @exitcode 0  If the script is executed with root privilege.
 # @exitcode 1  If the script is not executed with root privilege
 check::is_sudo() {
-    if [[ $(id -u) -ne 0 ]]; then
+    if [ $UID -ne 0 ]; then
         return 1
     fi
 }
