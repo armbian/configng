@@ -17,10 +17,11 @@
 #
 # @stdout Operating system name (linux, mac or windows).
 os::detect_os() {
-    declare uname os
+    declare uname os os_lower_case
     uname=$(command -v uname)
-
-    case $("${uname}" | tr '[:upper:]' '[:lower:]') in
+    declare os_lower_case=$("${uname}")
+    os_lower_case=${os_lower_case,,}
+    case $(os_lower_case) in
     linux*)
         os="linux"
         ;;
@@ -76,7 +77,7 @@ os::detect_linux_distro() {
     else
         return 1
     fi
-    printf "%s" "${distro}" | tr '[:upper:]' '[:lower:]'
+    printf "%s" "${distro,,}"
 }
 
 # @description Identify the Linux version.
