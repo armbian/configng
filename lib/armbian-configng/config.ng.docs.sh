@@ -462,6 +462,7 @@ jq -r '
 ' $json_file
 }
 
+
 module_options+=(
     ["see_cmd_list,author"]="Joey Turner"
     ["see_cmd_list,ref_link"]=""
@@ -472,50 +473,68 @@ module_options+=(
     ["see_cmd_list,doc_link"]=""
 )
 #
-# See command line options
+# See command options
 #
-function see_cmd_list() {
-    local script_name="${0##*/}"
-    local help_menu="$1"  # Capture the first argument passed to --help
+see_cmd_list() {
+    local help_menu="$1"
 
-    cat << EOF
-Usage:  $script_name [option] [arguments]
+    if [[ -n "$help_menu" && "$help_menu" != "cmd" ]] ; then
+    echo "$json_data" | jq -r --arg menu "$help_menu" '
+        def recurse_menu(menu; level):
+        menu | .id as $id | .description as $desc |
+        if has("sub") then
+            if level == 0 then
+            "\n  \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
+            elif level == 1 then
+            "    \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
+            else
+            "      \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
+            end
+        else
+            if level == 0 then
+            "  --cmd \($id) - \($desc)"
+            elif level == 1 then
+            "    --cmd \($id) - \($desc)"
+            else
+            "\t--cmd \($id) - \($desc)"
+            end
+        end;
 
-  --help [category]  -  Use [category] to filter specific menu options.
-EOF
+        # Find the correct menu if $menu is passed, otherwise show all
+        if $menu == "" then
+            .menu | map(recurse_menu(. ; 0)) | join("\n")
+        else
+            .menu | map(select(.id == $menu) | recurse_menu(. ; 0)) | join("\n")
+        end
+    '
+    elif [[ -z "$1" || "$1" == "cmd" ]]; then
+        echo "$json_data" | jq -r --arg menu "$help_menu" '
+            def recurse_menu(menu; level):
+            menu | .id as $id | .description as $desc |
+            if has("sub") then
+                if level == 0 then
+                "\n  \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
+                elif level == 1 then
+                "    \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
+                else
+                "      \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
+                end
+            else
+                if level == 0 then
+                "  --cmd \($id) - \($desc)"
+                elif level == 1 then
+                "    --cmd \($id) - \($desc)"
+                else
+                "\t--cmd \($id) - \($desc)"
+                end
+            end;
+            .menu | map(recurse_menu(. ; 0)) | join("\n")
+        '
 
-    # Check if a specific menu was provided
-    if [[ -z "$help_menu" || "$help_menu" == "cmd" ]]; then
-    jq -r --arg script_name "$script_name" '
-        # Define a function to process each menu item and include its parent menu id
-        def process_item(item; menu_id):
-            "\t  --cmd " + item.id + " - " + (item.description // "No description available"),
-            # Recursively process sub-items, passing the parent menu_id
-            (item.sub[]? | process_item(. ; menu_id));
-
-        # Start by iterating through the main menu
-        .menu[] |
-        "\n  " + .id + " - " + (.description // "No description available") ,
-        .id as $menu_id |
-        # Process both the main menu and its sub-items
-        .sub[]? | process_item(.; $menu_id)
-    ' "$json_file"
-    elif [[ "$help_menu" == "api" ]]; then
-        see_use
-    else
-        # Parse the JSON file and display the filtered commands based on the menu
-        jq -r --arg menu "$help_menu" '
-            # Function to process items and print commands
-            def process_item(item; menu_id):
-                "    --cmd " + item.id + " - " + (item.description // "No description available"),
-                (item.sub[]? | process_item(. ; menu_id));
-
-            # Filter by the provided menu name and display only the matching menu and sub-commands
-            .menu[] | select(.id | ascii_downcase == ($menu | ascii_downcase)) |
-            (.sub[]? | process_item(.; .id))
-        ' "$json_file"
-    fi
+        else echo "nope"
+        fi
 }
+
 
 
 module_options+=(
