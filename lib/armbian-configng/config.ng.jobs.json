@@ -383,7 +383,19 @@
                             "author": "Igor Pecovnik",
                             "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade rolling verify"
                         }
-                ]
+                    ]
+                },
+                {
+                    "id": "S28",
+                    "description": "Manage device tree overlays",
+                    "command": [
+                        "manage_dtoverlays"
+                    ],
+                    "status": "Active",
+                    "doc_link": "",
+                    "src_reference": "",
+                    "author": "Gunjan Gupta",
+                    "condition": "[ -n $OVERLAYDIR ] && [ -n $BOOT_SOC ]"
                 }
             ] 
         },
