@@ -214,7 +214,33 @@
                             "src_reference": "",
                             "author": "Igor Pecovnik",
                             "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config && [ -f /root/.google_authenticator ]"
-                            }
+                            },
+                            {
+                                "id": "S30",
+                                "description": "Disable last login banner",
+                                "command": [
+                                               "sed -i \"s/^#\\?PrintLastLog.*/PrintLastLog no/\" /etc/ssh/sshd_config" ,
+                                               "systemctl restart ssh.service "
+                                           ],
+                                "status": "Active",
+                                "doc_link": "",
+                                "src_reference": "",
+                                "author": "",
+                                "condition": "grep -q '^PrintLastLog yes' /etc/ssh/sshd_config"
+                                },
+                                {
+                                "id": "S31",
+                                "description": "Enable last login banner",
+                                "command": [
+                                               "sed -i \"s/^#\\?PrintLastLog.*/PrintLastLog yes/\" /etc/ssh/sshd_config" ,
+                                               "systemctl restart ssh.service "
+                                           ],
+                                "status": "Active",
+                                "doc_link": "",
+                                "src_reference": "",
+                                "author": "",
+                                "condition": "grep -q '^PrintLastLog no' /etc/ssh/sshd_config"
+                                }
                            ]
                 },
                 {
