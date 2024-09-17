@@ -106,274 +106,175 @@ function see_ping() {
 
 }
 
-
-
 module_options+=(
-["hotspot_setup,author"]="Joey Turner"
-["hotspot_setup,ref_link"]=""
-["hotspot_setup,feature"]="hotspot_setup"
-["hotspot_setup,desc"]="Set up a WiFi hotspot on the device"
-["hotspot_setup,example"]="hotspot_setup"
-["hotspot_setup,status"]="review"
-["hotspot_setup,doc_link"]=""
+["default_network_config,author"]="Igor Pecovnik"
+["default_network_config,ref_link"]=""
+["default_network_config,feature"]="default_network_config"
+["default_network_config,desc"]="Revert network config back to Armbian defaults"
+["default_network_config,example"]="default_network_config"
+["default_network_config,doc_link"]=""
+["default_network_config,status"]="review"
 )
+#
+# Function to revert network configuration to defaults
+#
+function default_network_config() {
 
-# Function to display an error message and exit
-function error_exit {
-    whiptail --msgbox "$1" 8 40
-    exit 1
+    local renderer=networkd
+    local yamlfile=10-dhcp-all-interfaces
+
+    # remove all configs
+    rm -f /etc/netplan/*.yaml
+    netplan set --origin-hint ${yamlfile} renderer=${renderer}
+    netplan set --origin-hint ${yamlfile} ethernets.all-eth-interfaces.dhcp4=true
+    netplan set --origin-hint ${yamlfile} ethernets.all-eth-interfaces.dhcp6=true
+    netplan set --origin-hint ${yamlfile} ethernets.all-eth-interfaces.match.name=e*
+    show_message <<< "$(sudo netplan get ${type})"
+
 }
-
-function hotspot_setup() {
-# Ensure the script is run as root
-if [[ $EUID -ne 0 ]]; then
-   error_exit "This script must be run as root."
-fi
-
-# Gather SSID and passphrase for the hotspot
-SSID=$(whiptail --inputbox "Enter SSID for the Hotspot:" 8 40 3>&1 1>&2 2>&3)
-if [ $? -ne 0 ]; then
-    error_exit "SSID input cancelled."
-fi
-
-PASSPHRASE=$(whiptail --passwordbox "Enter Passphrase for the Hotspot:" 8 40 3>&1 1>&2 2>&3)
-if [ $? -ne 0 ]; then
-    error_exit "Passphrase input cancelled."
-fi
-
-# Confirm SSID and Passphrase
-whiptail --msgbox "SSID: $SSID\nPassphrase: $PASSPHRASE" 8 40
-
-# Update and install necessary packages
-apt update
-apt install -y hostapd dnsmasq
-
-# Stop services while configuring
-systemctl stop hostapd
-systemctl stop dnsmasq
-
-# Configure hostapd
-cat > /etc/hostapd/hostapd.conf <<EOL
-interface=wlan1
-driver=nl80211
-ssid=$SSID1
-hw_mode=g
-channel=7
-wmm_enabled=0
-macaddr_acl=0
-auth_algs=1
-ignore_broadcast_ssid=0
-wpa=2
-wpa_passphrase=$PASSPHRASE
-wpa_key_mgmt=WPA-PSK
-wpa_pairwise=TKIP
-rsn_pairwise=CCMP
-EOL
-
-# Point hostapd to the configuration file
-sed -i 's|#DAEMON_CONF=""|DAEMON_CONF="/etc/hostapd/hostapd.conf"|' /etc/default/hostapd
-
-# Configure dnsmasq
-mv /etc/dnsmasq.conf /etc/dnsmasq.conf.orig
-cat > /etc/dnsmasq.conf <<EOL
-interface=wlan1
-dhcp-range=192.168.50.10,192.168.50.50,12h
-EOL
-
-# Configure the network interfaces
-cat >> /etc/network/interfaces <<EOL
-allow-hotplug wlan1
-iface wlan1 inet static
-  address 192.168.50.1
-  netmask 255.255.255.0
-EOL
-
-# Enable IP forwarding
-sed -i 's|#net.ipv4.ip_forward=1|net.ipv4.ip_forward=1|' /etc/sysctl.conf
-sysctl -p
-
-# Set up NAT
-iptables -t nat -A POSTROUTING -o wlan0 -j MASQUERADE
-sh -c "iptables-save > /etc/iptables.ipv4.nat"
-
-# Ensure iptables rule is loaded on boot
-cat > /etc/rc.local <<EOL
-#!/bin/sh -e
-iptables-restore < /etc/iptables.ipv4.nat
-exit 0
-EOL
-chmod +x /etc/rc.local
-
-# Start services
-systemctl start hostapd
-systemctl start dnsmasq
-
-# Enable services on boot
-systemctl enable hostapd
-systemctl enable dnsmasq
-
-whiptail --msgbox "Hotspot setup complete. Rebooting now." 8 40
-reboot
-}
-
 
 module_options+=(
-["choose_adapter,author"]="Igor Pecovnik"
-["choose_adapter,ref_link"]=""
-["choose_adapter,feature"]="choose_adapter"
-["choose_adapter,desc"]="Displays available adapters"
-["choose_adapter,example"]="choose_adapter"
-["choose_adapter,doc_link"]=""
-["choose_adapter,status"]="review"
+["network_config,author"]="Igor Pecovnik"
+["network_config,ref_link"]=""
+["network_config,feature"]="network_config"
+["network_config,desc"]="Netplan wrapper"
+["network_config,example"]="network_config"
+["network_config,doc_link"]=""
+["network_config,status"]="review"
 )
 #
 # Function to select network adapter
 #
-function choose_adapter() {
+function network_config() {
 
-        local type=$1           # w = wireless , e = ethernet
-        local getip=$2          # true = also ask for new IP address
-        local hide_all=$3       # true = hides selection for all-eth-interfaces
-        local filter=$4
+        # defaul yaml file
+        local yamlfile=${1:-armbian}
+
+        # delete default automatic DHCP on all wired networks setup
+        rm -f /etc/netplan/10-dhcp-all-interfaces.yaml
 
         LIST=()
-        # this functionality is exposed only on wired network
-        [[ $hide_all != true && ${type} == ethernets && -f /etc/netplan/10-dhcp-all-interfaces.yaml ]] && LIST=("all-eth-interfaces" "")
-        HIDE_IP_PATTERN="^dummy0|^lo|^docker"
+        HIDE_IP_PATTERN="^dummy0|^lo|^docker|^virbr|^br"
         for f in /sys/class/net/*; do
                 interface=$(basename $f)
-                if [[ $intf =~ $HIDE_IP_PATTERN ]]; then
+                if [[ $interface =~ $HIDE_IP_PATTERN ]]; then
                         continue
                 else
-                        QUERY=$(ip -br addr show dev $interface | grep "$filter" | awk '{ print $1, " " , ($3==""?"unassigned":$3) }')
+                        [[ $interface == w* ]] && devicetype="wifi" || devicetype="wired"
+                        QUERY=$(ip -br addr show dev $interface | awk '{ print $1, " " , ($3==""?"unassigned":$3)"['$devicetype']" }')
                         [[ -n $QUERY ]] && LIST+=($QUERY)
                 fi
         done
-
         LIST_LENGTH=$((${#LIST[@]}/2));
-        adapter=$(whiptail --title "Select interface" --menu "" $((${LIST_LENGTH} + 8)) 40 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
-        if [[ -n $adapter && adapter != "all-eth-interfaces" && "${getip}" != false && $? == 0 ]]; then
-            address=$(ip -br addr show dev $adapter | awk '{print $3}')
-            address=$(whiptail --title "Enter IP for $adapter" --inputbox "\nValid format: $address" 9 40 "$address" 3>&1 1>&2 2>&3)
-            if [[ -n $address && $? == 0 ]]; then
-                defaultroute=$(ip route show default | grep "$adapter" | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]")
-                defaultroute=$(whiptail --title "Enter IP for default route" --inputbox "\nValid format: $defaultroute" 9 40 "$defaultroute" 3>&1 1>&2 2>&3)
-                if [[ -n $defaultroute && $? == 0 ]]; then
-                    nameservers="9.9.9.9,1.1.1.1"
-                    nameservers=$(whiptail --title "Enter DNS server" --inputbox "\nValid format: $nameservers" 9 40 "$nameservers" 3>&1 1>&2 2>&3)
+        adapter=$(whiptail --title "Select interface" --menu "" $((${LIST_LENGTH} + 8)) 60 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
+        if [[ -n $adapter && $? == 0 ]]; then
+            #
+            # Wireless networking
+            #
+            if [[ "$adapter" == w* ]]; then
+                # wireless
+                LIST=("sta" "Connect to access point")
+                LIST+=("ap" "Become an access point")
+                LIST_LENGTH=$((${#LIST[@]}/2));
+                wifimode=$(whiptail --title "Select wifi mode" --menu "" $((${LIST_LENGTH} + 8)) 60 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
+                if [[ "${wifimode}" == "sta" && $? == 0 ]]; then
+                    ip link set ${adapter} up
+                    systemctl stop hostapd 1>/dev/null
+                    systemctl disable hostapd 1>/dev/null
+                    LIST=()
+                    LIST=($(iw dev ${adapter} scan 2> /dev/null | grep 'SSID\|^BSS' | cut -d" " -f2 | sed "s/(.*//g" | xargs -n2 -d'\n' | awk '{print $2,$1}'))
+                    sleep 2
+                    LIST_LENGTH=$((${#LIST[@]}/2));
+                    SELECTED_SSID=$(whiptail --title "Select SSID" --menu "rf" $((${LIST_LENGTH} + 6)) 50 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
+                    if [[ -n $SELECTED_SSID ]]; then
+                            SELECTED_PASSWORD=$(whiptail --title "Enter new password for $SELECTED_SSID" --passwordbox "" 7 50 3>&1 1>&2 2>&3)
+                            if [[ -n $SELECTED_PASSWORD ]]; then
+                                # connect to AP
+                                netplan set --origin-hint ${yamlfile} renderer=${renderer}
+                                netplan set --origin-hint ${yamlfile} wifis.$adapter.access-points."${SELECTED_SSID}".password=${SELECTED_PASSWORD}
+                                netplan set --origin-hint ${yamlfile} wifis.$adapter.dhcp4=true
+                                netplan set --origin-hint ${yamlfile} wifis.$adapter.dhcp6=true
+                                show_message <<< "$(netplan get all)"
+                            fi
+                    fi
+                elif [[ "${wifimode}" == "ap" ]]; then
+
+                    check_if_installed hostapd && debconf-apt-progress -- apt-get -y --no-install-recommends hostapd
+
+                    SELECTED_SSID=$(whiptail --title "Enter SSID for AP" --inputbox "" 7 50 3>&1 1>&2 2>&3)
+                    if [[ -n "${SELECTED_SSID}" && $? == 0 ]]; then
+                        SELECTED_PASSWORD=$(whiptail --title "Enter new password for $SELECTED_SSID" --passwordbox "" 7 50 3>&1 1>&2 2>&3)
+                        if [[ -n "${SELECTED_PASSWORD}" && $? == 0 ]]; then
+						# start bridged AP
+						netplan set --origin-hint ${yamlfile} renderer=${renderer}
+						netplan set --origin-hint ${yamlfile} ethernets.$adapter.dhcp4=no
+						netplan set --origin-hint ${yamlfile} ethernets.$adapter.dhcp6=no
+						netplan set --origin-hint ${yamlfile} bridges.br0.interfaces='['$adapter']'
+						cat <<- EOF > "/etc/hostapd/hostapd.conf"
+						interface=$adapter
+						driver=nl80211
+						ssid=$SELECTED_SSID
+						hw_mode=g
+						channel=7
+						wmm_enabled=0
+						macaddr_acl=0
+						auth_algs=1
+						ignore_broadcast_ssid=0
+						wpa=2
+						wpa_passphrase=$SELECTED_PASSWORD
+						wpa_key_mgmt=WPA-PSK
+						wpa_pairwise=TKIP
+						rsn_pairwise=CCMP
+						EOF
+						# Start services
+						systemctl stop hostapd
+						sleep 2
+						systemctl start hostapd
+						# Enable services on boot
+						systemctl enable hostapd
+						show_message <<< "$(netplan get all)"
+						fi
+                    fi
+                fi
+
+            else
+
+            #
+            # Wireless networking
+            #
+            LIST=("dhcp" "Auto IP assigning")
+            LIST+=("static" "Set IP manually")
+            wiredmode=$(whiptail --title "Select IP mode" --menu "" $((${LIST_LENGTH} + 8)) 60 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
+            if [[ "${wiredmode}" == "dhcp" && $? == 0 ]]; then
+                netplan set --origin-hint ${yamlfile} renderer=${renderer}
+                netplan set --origin-hint ${yamlfile} ethernets.$adapter.dhcp4=no
+                netplan set --origin-hint ${yamlfile} ethernets.$adapter.dhcp6=no
+                netplan set --origin-hint ${yamlfile} bridges.br0.interfaces='['$adapter']'
+                netplan set --origin-hint ${yamlfile} bridges.br0.dhcp4=yes
+                netplan set --origin-hint ${yamlfile} bridges.br0.dhcp6=yes
+                show_message <<< "$(netplan get all)"
+                elif [[ "${wiredmode}" == "static" ]]; then
+                    address=$(ip -br addr show dev $adapter | awk '{print $3}')
+                    [[ -z "${address}" ]] && address="1.2.3.4/5"
+                    address=$(whiptail --title "Enter IP for $adapter" --inputbox "\nValid format: $address" 9 40 "$address" 3>&1 1>&2 2>&3)
+                    if [[ -n $address && $? == 0 ]]; then
+                        defaultroute=$(ip route show default | grep "$adapter" | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]" | head 1 | xargs)
+                        defaultroute=$(whiptail --title "Enter IP for default route" --inputbox "\nValid format: $defaultroute" 9 40 "$defaultroute" 3>&1 1>&2 2>&3)
+                        if [[ -n $defaultroute && $? == 0 ]]; then
+                            nameservers="9.9.9.9,1.1.1.1"
+                            nameservers=$(whiptail --title "Enter DNS server" --inputbox "\nValid format: $nameservers" 9 40 "$nameservers" 3>&1 1>&2 2>&3)
+                        fi
+                        if [[ -n $nameservers && $? == 0 ]]; then
+                            netplan set --origin-hint ${yamlfile} renderer=${renderer}
+                            netplan set --origin-hint ${yamlfile} ethernets.$adapter.dhcp4=no
+                            netplan set --origin-hint ${yamlfile} ethernets.$adapter.dhcp6=no
+                            netplan set --origin-hint ${yamlfile} bridges.br0.interfaces='['$adapter']'
+                            netplan set --origin-hint ${yamlfile} bridges.br0.addresses='['$address']'
+                            netplan set --origin-hint ${yamlfile} bridges.br0.routes='[{"to":"0.0.0.0/0", "via": "'$defaultroute'","metric":200}]'
+                            netplan set --origin-hint ${yamlfile} bridges.br0.nameservers.addresses='['$nameservers']'
+                        fi
+                    fi
                 fi
             fi
         fi
-
-}
-
-module_options+=(
-["wifi_connect,author"]="Igor Pecovnik"
-["wifi_connect,ref_link"]=""
-["wifi_connect,feature"]="wifi_connect"
-["wifi_connect,desc"]="List and connect to wireless network"
-["wifi_connect,example"]="wifi_connect"
-["wifi_connect,doc_link"]=""
-["wifi_connect,status"]="review"
-)
-#
-# Function to list and connect to wireless network
-#
-function wifi_connect() {
-
-    choose_adapter "w" "false" "true"
-    # enable adapter
-    ip link set ${adapter} up
-    LIST=()
-    LIST=($(iw dev ${adapter} scan 2> /dev/null | grep 'SSID\|^BSS' | cut -d" " -f2 | sed "s/(.*//g" | xargs -n2 -d'\n' | awk '{print $2,$1}'))
-    LIST_LENGTH=$((${#LIST[@]}/2));
-    SELECTED_SSID=$(whiptail --title "Select SSID" --menu "rf" $((${LIST_LENGTH} + 6)) 50 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
-    if [[ -n $SELECTED_SSID ]]; then
-        SELECTED_PASSWORD=$(whiptail --title "Enter new password for $SELECTED_SSID" --passwordbox "" 7 50 3>&1 1>&2 2>&3)
-        if [[ -n $SELECTED_PASSWORD ]]; then
-        rm -f /etc/netplan/20-dhcp-wlan-interface
-        netplan set --origin-hint 20-dhcp-wlan-interface renderer=networkd
-        netplan set --origin-hint 20-dhcp-wlan-interface wifis.$adapter.access-points."${SELECTED_SSID}".password=${SELECTED_PASSWORD}
-        netplan set --origin-hint 20-dhcp-wlan-interface wifis.$adapter.dhcp4=true
-        netplan set --origin-hint 20-dhcp-wlan-interface wifis.$adapter.dhcp6=true
-        fi
-    fi
-}
-
-module_options+=(
-["netplan_wrapper,author"]="Igor Pecovnik"
-["netplan_wrapper,ref_link"]=""
-["netplan_wrapper,feature"]="netplan_wrapper"
-["netplan_wrapper,desc"]="Wrapping Netplan commands"
-["netplan_wrapper,example"]="netplan_wrapper"
-["netplan_wrapper,doc_link"]=""
-["netplan_wrapper,status"]="review"
-)
-#
-# Function to feed netplan CLI
-#
-function netplan_wrapper() {
-    local what=$1
-    local get_ip=$2
-    local config=$3
-    local type=$4
-    local renderer=$5
-    local adapter=$6
-    local address=$7
-
-    case "$type" in
-
-        ethernets)
-            filter="^e\|^lan\|^wan"
-            ;;
-        wifis)
-            filter="^w"
-            ;;
-        *)
-    esac
-
-    case "$what" in
-
-        show_message)
-            show_message <<< $(sudo netplan get ${type})
-            ;;
-
-        dhcp_all_wired_interfaces)
-            rm -f /etc/netplan/30-*-static-interfaces.yaml
-            netplan set --origin-hint ${config} renderer=${renderer}
-            netplan set --origin-hint ${config} ethernets.all-eth-interfaces.dhcp4=true
-            netplan set --origin-hint ${config} ethernets.all-eth-interfaces.dhcp6=true
-            netplan set --origin-hint ${config} ethernets.all-eth-interfaces.match.name=e*
-            show_message <<< "$(sudo netplan get ${type})"
-        ;;
-
-        set_ip)
-            choose_adapter "${type}" "${get_ip}" "true" "${filter}"
-            if [[ "${address}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\/[0-9]+$ ]]; then
-                rm -f /etc/netplan/10-dhcp-all-interfaces.yaml
-                netplan set --origin-hint ${config} renderer=${renderer}
-                netplan set --origin-hint ${config} ethernets.${adapter}.addresses=[$address]
-                netplan set --origin-hint ${config} ${type}.${adapter}.routes='[{"to":"0.0.0.0/0", "via": "'$defaultroute'","metric":200}]'
-                netplan set --origin-hint ${config} ${type}.${adapter}.nameservers.addresses=[$nameservers]
-                show_message <<< "$(sudo netplan get ${type})"
-            else
-                [[ -n "${address}" ]] && show_message <<< "IP address is wrong. Try 1.2.3.4/5"
-            fi
-        ;;
-
-        disable_ipv6)
-            choose_adapter "${type}" "${get_ip}" "false" "${filter}"
-            netplan set --origin-hint ${config} renderer=${renderer}
-            netplan set --origin-hint ${config} ${type}.${adapter}.dhcp6=false
-            show_message <<< "$(sudo netplan get ${type})"
-        ;;
-
-        enable_ipv6)
-            choose_adapter "${type}" "${get_ip}" "true" "${filter}"
-            netplan set --origin-hint ${config} renderer=${renderer}
-            netplan set --origin-hint ${config} ${type}.${adapter}.dhcp6=true
-            show_message <<< "$(sudo netplan get ${type})"
-        ;;
-    *)
-    esac
 }
