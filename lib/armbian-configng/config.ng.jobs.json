@@ -465,12 +465,12 @@
                             {
                                 "id": "N14",
                                 "description": "Display status",
-                                "command": [ "show_message <<< \"$(sudo netplan status)\"" ],
+                                "command": [ "show_message <<< \"$(netplan status --all)\"" ],
                                 "status": "Active",
                                 "doc_link": "",
                                 "src_reference": "",
                                 "author": "Igor Pecovnik",
-                                "condition": ""
+                                "condition": "[ $(netplan get network.renderer) == networkd ]"
                             }
                             ]
                 },
