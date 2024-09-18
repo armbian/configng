@@ -328,149 +328,55 @@
             "description": "Fixed and wireless network settings",
             "sub": [
                 {
-                    "id": "N01.1",
+                    "id": "N01",
                     "description": "Configure network interfaces",
                     "sub": [
                             {
-                                "id": "N01.1.1",
-                                "description": "Wired",
-                                "sub": [
-                                    {
-                                        "id": "N01",
-                                        "description": "Show configuration",
-                                        "command": [ "netplan_wrapper \"show_message\" \"\" \"\" \"ethernets\"" ],
-                                        "status": "Active",
-                                        "doc_link": "",
-                                        "src_reference": "",
-                                        "author": "Igor Pecovnik",
-                                        "condition": "[ -f /etc/netplan/30-*static-interfaces.yaml ] || [ -f /etc/netplan/10-dhcp-all-interfaces.yaml ]"
-                                    },
-                                    {
-                                        "id": "N02",
-                                        "description": "Enable DHCP on all interfaces",
-                                        "command": [ "netplan_wrapper \"dhcp_all_wired_interfaces\" \"false\" \"10-dhcp-all-interfaces\" \"ethernets\" \"networkd\"" ],
-                                        "status": "Active",
-                                        "author": "Igor Pecovnik",
-                                        "condition": "[ ! -f /etc/netplan/10-dhcp-all-interfaces.yaml ]"
-                                    },
-                                    {
-                                        "id": "N03",
-                                        "description": "Set fixed IP address",
-                                        "command": [" netplan_wrapper \"set_ip\" \"true\" \"10-dhcp-all-interfaces\" \"ethernets\" \"networkd\""],
-                                        "status": "Active",
-                                        "doc_link": "",
-                                        "src_reference": "",
-                                        "author": "Igor Pecovnik",
-                                        "condition": ""
-                                    },
-                                    {
-                                        "id": "N04",
-                                        "description": "Disable IPV6",
-                                        "command": [" netplan_wrapper \"disable_ipv6\" \"false\" \"10-dhcp-all-interfaces\" \"ethernets\" \"networkd\""],
-                                        "status": "Pending Review",
-                                        "doc_link": "",
-                                        "src_reference": "",
-                                        "author": "Igor Pecovnik",
-                                        "condition": "[ -f /etc/netplan/30-*static-interfaces.yaml ] || [ -f /etc/netplan/10-dhcp-all-interfaces.yaml ]"
-                                    },
-                                    {
-                                        "id": "N05",
-                                        "description": "Enable IPV6",
-                                        "command": [" netplan_wrapper \"enable_ipv6\" \"false\" \"10-dhcp-all-interfaces\" \"ethernets\" \"networkd\""],
-                                        "status": "Pending Review",
-                                        "doc_link": "",
-                                        "src_reference": "",
-                                        "author": "Igor Pecovnik",
-                                        "condition": "[ -f /etc/netplan/30-*static-interfaces.yaml ] || [ -f /etc/netplan/10-dhcp-all-interfaces.yaml ]"
-                                    },
-                                    {
-                                        "id": "N06",
-                                        "description": "Disable wired networking",                                    
-                                        "command": [ "rm -f /etc/netplan/10-dhcp-all-interfaces.yaml /etc/netplan/30-*static-interfaces.yaml" ],
-                                        "condition": "[ -f /etc/netplan/30-*static-interfaces.yaml ] || [ -f /etc/netplan/10-dhcp-all-interfaces.yaml ]",
-                                        "status": "Active",
-                                        "author": "Igor Pecovnik"
-                                    }
-                                ]
-                            },
-                            {
-                                "id": "N01.1.2",
-                                "description": "Wireless",
-                                "sub": [
-                                    {
-                                        "id": "N07",
-                                        "description": "Show configuration",
-                                        "command": [ "netplan_wrapper \"show_message\" \"\" \"\" \"wifis\"" ],
-                                        "condition": "[ -f /etc/netplan/20-dhcp-wlan-interface.yaml ]",
-                                        "status": "Active",
-                                        "author": "Igor Pecovnik"
-                                    },
-                                    {
-                                        "id": "N08",
-                                        "description": "Disable wireless networking",
-                                        "command": [ "rm -f /etc/netplan/20-dhcp-wlan-interface.yaml" ],
-                                        "condition": "[ -f /etc/netplan/20-dhcp-wlan-interface.yaml ]",
-                                        "status": "Active",
-                                        "author": "Igor Pecovnik"
-                                    },
-                                    {
-                                        "id": "N09",
-                                        "description": "Disable IPV6",
-                                        "command": [" netplan_wrapper \"disable_ipv6\" \"false\" \"20-dhcp-wlan-interface\" \"wifis\" \"networkd\""],
-                                        "condition": "[ -f /etc/netplan/20-dhcp-wlan-interface.yaml ]",
-                                        "status": "Active",
-                                        "author": "Igor Pecovnik"
-                                    },
-                                    {
-                                        "id": "N10",
-                                        "description": "Enable IPV6",
-                                        "command": [" netplan_wrapper \"enable_ipv6\" \"false\" \"20-dhcp-wlan-interface\" \"wifis\" \"networkd\""],
-                                        "condition": "[ -f /etc/netplan/20-dhcp-wlan-interface.yaml ]",
-                                        "status": "Active",
-                                        "author": "Igor Pecovnik"
-                                    },
-                                    {
-                                        "id": "N11",
-                                        "description": "Enable DHCP on wireless network interface",
-                                        "command": [
-                                                    "wifi_connect"
-                                                ],
-                                        "status": "Active",
-                                        "author": "Igor Pecovnik",
-                                        "condition": "[ ! -f /etc/netplan/20-dhcp-wlan-interface.yaml ]"
-                                    }
-                                ]
-                            },
-                            {
-                                "id": "N12",
-                                "description": "Show common configs",
-                                "command": [ "show_message <<< \"$(sudo netplan get all)\"" ],
+                                "id": "N02",
+                                "description": "Add interface",
+                                "command": [ "network_config armbian" ],
                                 "status": "Active",
-                                "doc_link": "",
-                                "src_reference": "",
                                 "author": "Igor Pecovnik",
                                 "condition": ""
                             },
                             {
-                                "id": "N13",
-                                "description": "Apply common configs",
+                                "id": "N03",
+                                "description": "Revert to defaults",
+                                "command": [ "default_network_config" ],
+                                "status": "Active",
+                                "author": "Igor Pecovnik",
+                                "condition": "[[ -f /etc/netplan/armbian.yaml ]] && ! cat /etc/netplan/armbian.yaml | diff -q 1>/dev/null <(netplan get all) - || [[ ! -f /etc/netplan/10-dhcp-all-interfaces.yaml ]] && ! cat /etc/netplan/10-dhcp-all-interfaces.yaml 2>/dev/null | diff -q 1>/dev/null <(netplan get all) -"
+                            },
+                            {
+                                "id": "N04",
+                                "description": "Show draft configuration",
+                                "command": [ "show_message <<< \"$(netplan get all)\"" ],
+                                "status": "Active",
+                                "doc_link": "",
+                                "src_reference": "",
+                                "author": "Igor Pecovnik",
+                                "condition": "[[ -f /etc/netplan/armbian.yaml ]]"
+                            },
+                            {
+                                "id": "N05",
+                                "description": "Apply changes",
                                 "prompt": "This will apply new network configuration\n\nwould you like to continue?",
                                 "command": [ "netplan apply" ],
                                 "status": "Active",
                                 "doc_link": "",
                                 "src_reference": "",
                                 "author": "Igor Pecovnik",
-                                "condition": ""
+                                "condition": "[[ -f /etc/netplan/armbian.yaml ]] && ! cat /etc/netplan/armbian.yaml | diff -q 1>/dev/null <(netplan get all) - || [[ -f /etc/netplan/10-dhcp-all-interfaces.yaml ]]"
                             },
                             {
-                                "id": "N14",
-                                "description": "Display status",
+                                "id": "N06",
+                                "description": "Show active status",
                                 "command": [ "show_message <<< \"$(netplan status --all)\"" ],
                                 "status": "Active",
                                 "doc_link": "",
                                 "src_reference": "",
                                 "author": "Igor Pecovnik",
-                                "condition": "[ $(netplan get network.renderer) == networkd ]"
+                                "condition": "[ -f /etc/netplan/armbian.yaml ] && [ netplan status 2>/dev/null ]"
                             }
                             ]
                 },
