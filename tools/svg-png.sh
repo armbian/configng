@@ -19,7 +19,7 @@ This script converts an SVG file into PNG files
 The PNG files are placed in the appropriate size-specific folders.
 
 Arguments:
-  SVG_FILENAME   The name of the SVG file (without extension) to convert. Default is 'configng'.
+  "$option"   The name of the SVG file (without extension) to convert. Default is 'configng'.
 
 Example:
   $(basename "$0") configng-cpu
@@ -38,7 +38,7 @@ fi
 
 cd "$(dirname "$0")"
 
-svg_in=${1:-"configng-cpu"}
+svg_in=${1:-"configng"}
 
 # Path to the SVG file
 SVG_FILE="/home/tearran/configng/share/icons/hicolor/scalable/apps/$svg_in.svg"
