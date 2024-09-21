@@ -337,21 +337,6 @@
             "id": "Network",
             "description": "Fixed and wireless network settings",
             "sub": [
-                {
-                    "id": "N00",
-                    "description": "Configure network interfaces",
-                    "condition": "",
-                    "sub": [
-                            {
-                                "id": "N99",
-                                "description": "Add interface",
-                                "command": [ "nmtui" ],
-                                "status": "Active",
-                                "author": "Igor Pecovnik",
-                                "condition": ""
-                            }
-                        ]
-                    },
                     {
                         "id": "N01",
                         "description": "Configure network interfaces",
