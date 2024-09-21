@@ -328,16 +328,32 @@
             "description": "Fixed and wireless network settings",
             "sub": [
                 {
-                    "id": "N01",
+                    "id": "N00",
                     "description": "Configure network interfaces",
+                    "condition": "",
                     "sub": [
                             {
-                                "id": "N02",
+                                "id": "N99",
                                 "description": "Add interface",
-                                "command": [ "network_config armbian" ],
+                                "command": [ "nmtui" ],
                                 "status": "Active",
                                 "author": "Igor Pecovnik",
                                 "condition": ""
+                            }
+                        ]
+                    },
+                    {
+                        "id": "N01",
+                        "description": "Configure network interfaces",
+                        "condition": "",
+                        "sub": [
+                                {
+                                    "id": "N02",
+                                    "description": "Add interface",
+                                    "command": [ "network_config armbian" ],
+                                    "status": "Active",
+                                    "author": "Igor Pecovnik",
+                                    "condition": ""
                             },
                             {
                                 "id": "N03",

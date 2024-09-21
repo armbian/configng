@@ -14,12 +14,12 @@ show_help() {
 Usage: $(basename "$0") [SVG_FILENAME]
 
 This script converts an SVG file into PNG files
- sizes: 32x32, 64x64, 128x128, and 256x256 pixels
+ sizes: 16x16, 32x32, 64x64, 128x128, and 256x256 pixels
 
-The PNG files are placed in the appropriate size-specific folders.
+The PNG files are placed in the appropriate size-specific folders to be used with a desktop environment.
 
 Arguments:
-  "$option"   The name of the SVG file (without extension) to convert. Default is 'configng'.
+  "[SVG_FILENAME]"   The name of the SVG file (without extension) to convert. Default is 'configng'.
 
 Example:
   $(basename "$0") configng-cpu
@@ -41,13 +41,18 @@ cd "$(dirname "$0")"
 svg_in=${1:-"configng"}
 
 # Path to the SVG file
-SVG_FILE="/home/tearran/configng/share/icons/hicolor/scalable/apps/$svg_in.svg"
+SVG_FILE="./icons/$svg_in.svg"
+
+cp -r ./applications/ "../share/"
 
 # Output directory
 OUTPUT_DIR="../share/icons/hicolor/"
 
+mkdir -p "../share/icons/hicolor/scalable/"
+
+cp -r ./icons/* "../share/icons/hicolor/scalable/"
 # Sizes
-SIZES=(32 64 128 256)
+SIZES=(16 32 64 128 256)
 
 
 # Check if the SVG file exists
