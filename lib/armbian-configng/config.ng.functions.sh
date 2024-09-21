@@ -387,8 +387,7 @@ function set_colors() {
     elif [ "$DIALOG" = "dialog" ]; then
         set_term_colors "$color_code"
     else
-        echo "Invalid dialog type"
-        return 1
+        return 0
     fi
 }
 
