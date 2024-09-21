@@ -43,7 +43,7 @@ svg_in=${1:-"configng"}
 # Path to the SVG file
 SVG_FILE="./icons/$svg_in.svg"
 
-cp -r ./applications/ "../share/"
+cp -r ./applications/ "../share"
 
 # Output directory
 OUTPUT_DIR="../share/icons/hicolor/"
