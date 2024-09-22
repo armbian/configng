@@ -320,6 +320,16 @@
                     "src_reference": "",
                     "author": "Igor Pecovnik",
                     "condition": "command -v overlayroot-chroot > /dev/null 2>&1 && findmnt -k /media/root-ro | tail -1 | grep -w /media/root-ro > /dev/null 2>&1"
+                },
+                {
+                    "id": "S23",
+                    "description": "Adjust welcome screen (motd)",
+                    "command": [ "adjust_motd" ],
+                    "status": "Active",
+                    "doc_link": "",
+                    "src_reference": "",
+                    "author": "",
+                    "condition": "[ -f /etc/default/armbian-motd ]"
                 }
             ]
         },
