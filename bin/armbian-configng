@@ -124,7 +124,13 @@ case "$1" in
           exit 0
           ;;
      "--gui")
+          if [[ $EUID != 0 ]]; then
+               echo "Error: The --gui option requires root privileges. Please run as root or use sudo."
+               exit 1
+          fi
+          shift
           [[ -x "$(command -v zenity)" ]] && GUI="zenity"
+
           ;;
      "main=help" | "main=Help")
           see_cli_legacy
