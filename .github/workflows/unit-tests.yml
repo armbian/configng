@@ -1,0 +1,157 @@
+name: "Unit tests"
+on:
+  repository_dispatch:
+    types: ["Unit tests"]
+  schedule:
+    - cron: '0 2 * * *'
+  pull_request:
+    types: [opened, reopened, edited, synchronize, review_requested]
+#    paths:
+#      - 'tests/*.conf'
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  PR_NUMBER: ${{ github.event.number }}
+
+concurrency:
+  group: pipeline-pr-${{github.event.pull_request.number}}
+  cancel-in-progress: true
+
+jobs:
+
+  test:
+    name: "Unit tests"
+    runs-on: ubuntu-latest
+    outputs:
+      matrix:  ${{steps.json.outputs.JSON_CONTENT}}
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: 'config'
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v43
+        with:
+          path: config
+          files: |
+              tests/*.conf
+
+      - name: "Make JSON ${{ steps.changed-files.outputs.all_changed_files }}"
+        id: json
+        run: |
+
+          echo 'JSON_CONTENT<<EOF' >> $GITHUB_OUTPUT
+          # define docker images where we will run test install
+          dockerimages=("debian:bookworm" "debian:trixie" "ubuntu:jammy" "ubuntu:noble")
+
+          # read tests cases and loop them
+
+          if [[ -n "${{ steps.changed-files.outputs.all_changed_files }}" ]]; then
+              tests=($(echo ${{ steps.changed-files.outputs.all_changed_files }} | tr " " "\n" | cut -d"." -f1 | cut -d"/" -f2))
+              else
+              tests=($(grep -rw config/tests/*.conf -e "ENABLED=true" | cut -d"/" -f3 | cut -d"." -f1))
+          fi
+
+          for i in "${tests[@]}"; do
+             unset RELEASE
+             source config/tests/${i}.conf
+             if [[ -z "${RELEASE}" ]]; then RELEASE=all; fi
+             # if we speficy releases, we need to loop docker images and use if there is a match
+             if [[ $RELEASE != all || -z $RELEASE ]]; then
+                for j in ${dockerimages[@]}; do
+                    elements=($(echo $RELEASE | tr ':' "\n"))
+                    for SELECTED_RELEASE in "${elements[@]}"; do
+                        if [[ $j == *"${SELECTED_RELEASE}"* ]]; then
+                           echo "{\"package\":\"${i}\",\"image\":\"$j\"}"
+                        fi
+                    done
+                done
+             else
+                for j in ${dockerimages[@]}; do
+                    echo "{\"package\":\"${i}\",\"image\":\"$j\"}"
+                done
+             fi
+
+          done | jq -s >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
+
+  gradle:
+    needs: test
+    strategy:
+      fail-fast: false
+      max-parallel: 32
+      matrix:
+        image: ${{ fromJSON(needs.test.outputs.matrix) }}
+
+    name: "I"
+    runs-on: ubuntu-latest
+    container:
+        image: "${{ matrix.image.image }}"
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: 'config'
+
+      - name: Install
+        run: |
+
+            # source vars
+            . "config/tests/${{ matrix.image.package }}.conf"
+            echo ${TEST_TITLE}
+
+            export DEBIAN_FRONTEND=noninteractive
+            RELEASE=$(echo "${{ matrix.image.image }}" | cut -d":" -f2)
+            apt update
+            apt -y install wget gpg
+
+            # add armbian repository
+            URL=apt.armbian.com
+            wget https://${URL}/armbian.key -O key
+            gpg --dearmor < key | tee /usr/share/keyrings/armbian.gpg > /dev/null
+            chmod go+r /usr/share/keyrings/armbian.gpg
+            echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] http://${URL} $RELEASE main ${RELEASE}-utils ${RELEASE}-desktop" | tee /etc/apt/sources.list.d/armbian.list
+            apt update -y
+            apt upgrade -y
+            apt -y install sudo procps systemd whiptail jq lsb-release iproute2
+
+            # install packages / except howdy as its too large
+            export DEBIAN_FRONTEND=noninteractive
+            cd config
+            eval "$PREINSTALL"
+            sudo bash bin/armbian-configng --cmd "${{ matrix.image.package }}"
+            eval "$CONDITION"
+
+            # stats
+            FILENAME="data-"$(echo ${{ matrix.image.image }} | sed "s/:/-/g")"-${{ matrix.image.package }}.teststats"
+            echo $RELEASE >> ../${FILENAME}
+            bash bin/armbian-configng --cmd | grep "${{ matrix.image.package }}" | xargs >> ../${FILENAME}
+            echo " " >> ../${FILENAME}
+
+      - name: Upload test
+        uses: actions/upload-artifact@v3.2.1-node20
+        with:
+          name: TESTDATA
+          path: data-*.teststats
+
+  stop:
+    name: "Merge test artifacts"
+    if: always()
+    needs: gradle
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: "Download changes"
+        uses: actions/download-artifact@v3-node20
+        with:
+          name: TESTDATA
+
+      - name: Install
+        run: |
+
+          echo "# Succesful tests:" >> $GITHUB_STEP_SUMMARY
+          cat ./*.teststats | sed '$ s/.$//' >> $GITHUB_STEP_SUMMARY
