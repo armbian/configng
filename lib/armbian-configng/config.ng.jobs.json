@@ -323,14 +323,13 @@
                 },
                 {
                     "id": "S23",
-                    "description": "Install alternative kernels",
-                    "prompt": "Switching between kernels might change functionality of your device. \n\nIt might fail to boot!",
-                    "command": [ "switch_kernels" ],
+                    "description": "Adjust welcome screen (motd)",
+                    "command": [ "adjust_motd" ],
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
-                    "author": "Igor Pecovnik",
-                    "condition": ""
+                    "author": "",
+                    "condition": "[ -f /etc/default/armbian-motd ]"
                 }
             ]
         },
