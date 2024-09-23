@@ -212,6 +212,13 @@ function set_runtime_variables(){
 		fi
 	fi
 
+	# Determine which network renderer is in use for NetPlan
+	if systemctl is-active systemd-networkd 1>/dev/null; then
+		renderer=networkd
+	else
+		renderer=NetworkManager
+	fi
+
 	DIALOG_CANCEL=1
 	DIALOG_ESC=255
 
