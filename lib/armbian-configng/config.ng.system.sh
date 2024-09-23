@@ -201,7 +201,6 @@ fi
 reboot
 }
 
-
 module_options+=(
 ["toggle_ssh_lastlog,author"]="tearran"
 ["toggle_ssh_lastlog,ref_link"]=""
