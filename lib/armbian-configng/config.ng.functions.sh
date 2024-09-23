@@ -261,52 +261,95 @@ module_options+=(
 #
 armbian_fw_manipulate() {
 
-	function=$1
+    local function=$1
+    local version=$2
+
+    [[ -n $version ]] && local version="=${version}"
 
 	# fallback to current
 	[[ -z $BRANCH ]] && BRANCH="current"
 
-	ARMBIAN_PACKAGES=(
+	# packages to install
+	local armbian_packages=(
 	    "linux-u-boot-${BOARD}-${BRANCH}"
 	    "linux-image-${BRANCH}-${LINUXFAMILY}"
 	    "linux-dtb-${BRANCH}-${LINUXFAMILY}"
-	    "linux-headers-${BRANCH}-${LINUXFAMILY}"
 	    "armbian-config"
-	    "armbian-zsh"
-	    "armbian-bsp-cli-${BOARD}-${BRANCH}"
+        "armbian-zsh"
 	)
 
-	if [[ "${function}" == reinstall ]]; then
-		debconf-apt-progress -- apt-get update
+	# reinstall headers only if they were previously installed
+	if are_headers_installed; then
+		local armbian_packages+="linux-headers-${BRANCH}-${LINUXFAMILY}"
 	fi
 
-	PACKAGES=""
-	for PACKAGE in "${ARMBIAN_PACKAGES[@]}"
+	local packages=""
+	for pkg in "${armbian_packages[@]}"
 	do
 			if [[ "${function}" == reinstall ]]; then
-				apt search $PACKAGE 2>/dev/null | grep "^$PACKAGE" >/dev/null
-				if [[ $? -eq 0 ]]; then PACKAGES+="$PACKAGE "; fi
+				apt search "$pkg" 2>/dev/null | grep "^$pkg" >/dev/null
+				if [[ $? -eq 0 ]]; then packages+="$pkg${version} "; fi
 			else
-				if check_if_installed $PACKAGE; then
-				PACKAGES+="$PACKAGE "
+				if check_if_installed $pkg; then
+				packages+="$pkg${version} "
 				fi
 			fi
 	done
 
-	case $function in
-		unhold)            apt-mark unhold ${PACKAGES} | show_infobox ;;
-		hold)              apt-mark hold ${PACKAGES} | show_infobox ;;
-		reinstall)
-					debconf-apt-progress -- apt-get -y --download-only install ${PACKAGES}
-					debconf-apt-progress -- apt-get -y purge ${PACKAGES}
-					debconf-apt-progress -- apt-get -y install ${PACKAGES}
-					debconf-apt-progress -- apt-get -y autoremove
-		;;
-		*) return ;;
-	esac
-
+	for pkg in "${packages[@]}"
+	do
+		case $function in
+			unhold)            apt-mark unhold ${pkg} | show_infobox ;;
+			hold)              apt-mark hold ${pkg} | show_infobox ;;
+			reinstall)
+						apt_install_wrapper apt-get -y --download-only --allow-change-held-packages --allow-downgrades install "${pkg}"
+						apt_install_wrapper apt-get -y purge "${pkg}"
+						apt_install_wrapper apt-get -y --allow-change-held-packages --allow-downgrades install "${pkg}"
+						apt_install_wrapper apt-get -y autoremove
+			;;
+			*) return ;;
+		esac
+	done
 }
 
+
+module_options+=(
+["switch_kernels,author"]="Igor"
+["switch_kernels,ref_link"]=""
+["switch_kernels,feature"]=""
+["switch_kernels,desc"]="Switching to alternative kernels"
+["switch_kernels,example"]=""
+["switch_kernels,status"]="Active"
+)
+#
+# @description Switch between alternative kernels
+#
+function switch_kernels () {
+
+	# we only allow switching kerneles that are in the test pool
+	[[ -z "${KERNEL_TEST_TARGET}" ]] && KERNEL_TEST_TARGET="legacy,current,edge"
+	local kernel_test_target="("$(echo $KERNEL_TEST_TARGET | sed "s/,/|/g")")"
+	local current_kernel_version=$(dpkg -l | grep '^ii' | grep linux-image | awk '{print $2"="$3}')
+
+	IFS=$'\n'
+	local LIST=()
+	for line in $(\
+		apt-cache show "linux-image-${kernel_test_target}-${LINUXFAMILY}" | grep -E  "Package:|Version:|version:|family" \
+		| grep -v "Config-Version" | sed -n -e 's/^.*: //p' | sed 's/\.$//g' | xargs -n3 -d'\n' | sed "s/ /=/" \
+		| grep -v ${current_kernel_version}); do
+		LIST+=($(echo $line | awk -F ' ' '{print $1 "      "}') $(echo $line | awk -F ' ' '{print "v"$2}'))
+	done
+	unset IFS
+	local list_length=$((${#LIST[@]}/2));
+	if [ "$list_length" -eq 0 ]; then
+		dialog --backtitle "$BACKTITLE" --title " Warning " --msgbox  "\nNo other kernels available!" 7 32
+	else
+		local target_version=$(whiptail --separate-output --title "Select kernel" --menu "ed" $((${list_length} + 7)) 80 $((${list_length})) "${LIST[@]}" 3>&1 1>&2 2>&3)
+		if [ $? -eq 0 ] && [ -n "${target_version}" ]; then
+			armbian_fw_manipulate "reinstall" "${target_version/*=/}"
+		fi
+	fi
+}
 
 
 module_options+=(
@@ -356,7 +399,7 @@ function connect_bt_interface(){
 				if [[ $(echo "$BT_EXEC" | grep "Connection successful" ) != "" ]]; then
 					show_message <<< "\nYour device is ready to use!"
 				else
-					show_message <<< "\nError connecting. Try again!" 
+					show_message <<< "\nError connecting. Try again!"
 				fi
 		fi
 	fi
@@ -570,18 +613,18 @@ function execute_command() {
 
     # Extract commands
     local commands=$(jq -r --arg id "$id" '
-      .menu[] | 
-      .. | 
-      objects | 
-      select(.id == $id) | 
+      .menu[] |
+      .. |
+      objects |
+      select(.id == $id) |
       .command[]?' "$json_file")
 
     # Check if a prompt exists
     local prompt=$(jq -r --arg id "$id" '
-      .menu[] | 
-      .. | 
-      objects | 
-      select(.id == $id) | 
+      .menu[] |
+      .. |
+      objects |
+      select(.id == $id) |
       .prompt?' "$json_file")
 
     # If a prompt exists, display it and wait for user confirmation
@@ -676,7 +719,7 @@ show_menu(){
 
     # Get the input and convert it into an array of options
     inpu_raw=$(cat)
-    # Remove the lines before -h 
+    # Remove the lines before -h
 	input=$(echo "$inpu_raw" | sed 's/-\([a-zA-Z]\)/\1/' | grep '^  [a-zA-Z] ' | grep -v '\[')
     options=()
     while read -r line; do
@@ -693,7 +736,7 @@ show_menu(){
 	    echo "$choice"
 	else
 	    exit 0
-	fi 
+	fi
 
 	}
 
@@ -777,7 +820,7 @@ function get_user_continue_secure() {
         fi
     else
         echo "Error: Invalid function"
-        
+
         exit 1
     fi
 }

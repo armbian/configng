@@ -38,9 +38,9 @@ function install_de (){
 	# get user who executed this script
 	if [ $SUDO_USER ]; then local user=$SUDO_USER; else local user=`whoami`; fi
 
-	#debconf-apt-progress -- 
+	#debconf-apt-progress --
 	apt-get update
-	#debconf-apt-progress -- 
+	#debconf-apt-progress --
 	apt-get -o Dpkg::Options::="--force-confold" -y --install-recommends install armbian-${DISTROID}-desktop-$1 # armbian-bsp-desktop-${BOARD}-${BRANCH}
 
 	# clean apt cache
@@ -190,14 +190,13 @@ if [[ "$1" == "enable" ]]; then
 	[[ ! -f /etc/overlayroot.conf ]] && cp /etc/overlayroot.conf.dpkg-new /etc/overlayroot.conf
 	sed -i "s/^overlayroot=.*/overlayroot=\"tmpfs\"/" /etc/overlayroot.conf
 	sed -i "s/^overlayroot_cfgdisk=.*/overlayroot_cfgdisk=\"enabled\"/" /etc/overlayroot.conf
-	else	
+	else
 	overlayroot-chroot rm /etc/overlayroot.conf > /dev/null 2>&1
 	debconf-apt-progress -- apt-get -y purge overlayroot cryptsetup cryptsetup-bin
 fi
 # reboot is mandatory
 reboot
 }
-
 
 module_options+=(
 ["toggle_ssh_lastlog,author"]="tearran"
@@ -235,6 +234,9 @@ module_options+=(
 ["adjust_motd,example"]=""
 ["adjust_motd,status"]="Active"
 )
+#
+# @description Toggle message of the day items
+#
 function adjust_motd
 {
 
