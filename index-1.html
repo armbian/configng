@@ -1,90 +1,92 @@
-
-# Armbian Configuration Utility
-Updated: Mon 23 Sep 2024 13:53:35 NZST
-
-Utility for configuring your board, adjusting services, and installing applications. It comes with Armbian by default.
-
-To start the Armbian configuration utility, use the following command:
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>Unknown </title></head><body>
+<h1 id="armbian-configuration-utility">Armbian Configuration Utility</h1>
+<p>Updated: Mon 23 Sep 2024 13:53:35 NZST</p>
+<p>Utility for configuring your board, adjusting services, and installing applications. It comes with Armbian by default.</p>
+<p>To start the Armbian configuration utility, use the following command:
 ~~~
 sudo armbian-config
-~~~
-
-- ## **System** 
-  - **S01** - Enable Armbian kernel/firmware upgrades
-  - **S02** - Disable Armbian kernel upgrades
-  - **S03** - Edit the boot environment
-  - **S04** - Install Linux headers
-  - **S05** - Remove Linux headers
-  - **S06** - Install to internal storage
-  - **S07.1** - Manage SSH login options
-  - **S17** - Change shell system wide to BASH
-  - **S18** - Change shell system wide to ZSH
-  - **S19** - Switch to rolling release
-  - **S20** - Switch to stable release
-  - **S21** - Enable read only filesystem
-  - **S22** - Disable read only filesystem
-
-
-- ## **Network** 
-  - **N01.1** - Configure network interfaces
-  - **N15** - Install Bluetooth support
-  - **N16** - Remove Bluetooth support
-  - **N17** - Bluetooth Discover
-  - **N18** - Toggle system IPv6/IPv4 internet protocol
-
-
-- ## **Localisation** 
-  - **L00** - Change Global timezone (WIP)
-  - **L01** - Change Locales reconfigure the language and character set
-  - **L02** - Change Keyboard layout
-  - **L03** - Change APT mirrors
-
-
-- ## **Software** 
-  - **SW01.1** - Desktop Environments
-  - **SW01.2** - Network tools
-  - **SW01.3** - Development
-  - **SW19** - Update Application Repository
-  - **SW20** - SWystem benchmaking and diagnostics
-  - **SW01.4** - Softy - 3rd party apps
-
-
-- ## **Help** 
-  - **H00** - About This system. (WIP)
-  - **H02** - List of Config function(WIP)
-
-## Install 
-Armbian installation 
+~~~</p>
+<ul>
+<li>
+<h2 id="system"><strong>System</strong></h2>
+</li>
+<li><strong>S01</strong> - Enable Armbian kernel/firmware upgrades</li>
+<li><strong>S02</strong> - Disable Armbian kernel upgrades</li>
+<li><strong>S03</strong> - Edit the boot environment</li>
+<li><strong>S04</strong> - Install Linux headers</li>
+<li><strong>S05</strong> - Remove Linux headers</li>
+<li><strong>S06</strong> - Install to internal storage</li>
+<li><strong>S07.1</strong> - Manage SSH login options</li>
+<li><strong>S17</strong> - Change shell system wide to BASH</li>
+<li><strong>S18</strong> - Change shell system wide to ZSH</li>
+<li><strong>S19</strong> - Switch to rolling release</li>
+<li><strong>S20</strong> - Switch to stable release</li>
+<li><strong>S21</strong> - Enable read only filesystem</li>
+<li>
+<p><strong>S22</strong> - Disable read only filesystem</p>
+</li>
+<li>
+<h2 id="network"><strong>Network</strong></h2>
+</li>
+<li><strong>N01.1</strong> - Configure network interfaces</li>
+<li><strong>N15</strong> - Install Bluetooth support</li>
+<li><strong>N16</strong> - Remove Bluetooth support</li>
+<li><strong>N17</strong> - Bluetooth Discover</li>
+<li>
+<p><strong>N18</strong> - Toggle system IPv6/IPv4 internet protocol</p>
+</li>
+<li>
+<h2 id="localisation"><strong>Localisation</strong></h2>
+</li>
+<li><strong>L00</strong> - Change Global timezone (WIP)</li>
+<li><strong>L01</strong> - Change Locales reconfigure the language and character set</li>
+<li><strong>L02</strong> - Change Keyboard layout</li>
+<li>
+<p><strong>L03</strong> - Change APT mirrors</p>
+</li>
+<li>
+<h2 id="software"><strong>Software</strong></h2>
+</li>
+<li><strong>SW01.1</strong> - Desktop Environments</li>
+<li><strong>SW01.2</strong> - Network tools</li>
+<li><strong>SW01.3</strong> - Development</li>
+<li><strong>SW19</strong> - Update Application Repository</li>
+<li><strong>SW20</strong> - SWystem benchmaking and diagnostics</li>
+<li>
+<p><strong>SW01.4</strong> - Softy - 3rd party apps</p>
+</li>
+<li>
+<h2 id="help"><strong>Help</strong></h2>
+</li>
+<li><strong>H00</strong> - About This system. (WIP)</li>
+<li><strong>H02</strong> - List of Config function(WIP)</li>
+</ul>
+<h2 id="install">Install</h2>
+<p>Armbian installation 
 ~~~
 sudo apt install armbian-config
-~~~
-
-3rd party Debian based distributions
+~~~</p>
+<p>3rd party Debian based distributions
 ~~~
 {
     sudo wget https://apt.armbian.com/armbian.key -O key
-    sudo gpg --dearmor < key | sudo tee /usr/share/keyrings/armbian.gpg > /dev/null
+    sudo gpg --dearmor &lt; key | sudo tee /usr/share/keyrings/armbian.gpg &gt; /dev/null
     sudo chmod go+r /usr/share/keyrings/armbian.gpg
     sudo echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/armbian.gpg] http://apt.armbian.com $(lsb_release -cs) main  $(lsb_release -cs)-utils  $(lsb_release -cs)-desktop" | sudo tee /etc/apt/sources.list.d/armbian.list
     sudo apt update
     sudo apt install armbian-config
 }
-~~~
-
-***
-
-## CLI options
-Command line options.
-
-Use:
+~~~</p>
+<hr />
+<h2 id="cli-options">CLI options</h2>
+<p>Command line options.</p>
+<p>Use:
 ~~~
 armbian-config --help
-~~~
-
-Outputs:
-~~~
-
-  System - System wide and admin settings (x86_64)
+~~~</p>
+<p>Outputs:
+~~~</p>
+<p>System - System wide and admin settings (x86_64)
     --cmd S01 - Enable Armbian kernel/firmware upgrades
     --cmd S02 - Disable Armbian kernel upgrades
     --cmd S03 - Edit the boot environment
@@ -92,117 +94,104 @@ Outputs:
     --cmd S05 - Remove Linux headers
     --cmd S06 - Install to internal storage
     S07.1 - Manage SSH login options
-	--cmd S07 - Disable root login
-	--cmd S08 - Enable root login
-	--cmd S09 - Disable password login
-	--cmd S10 - Enable password login
-	--cmd S11 - Disable Public key authentication login
-	--cmd S12 - Enable Public key authentication login
-	--cmd S13 - Disable OTP authentication
-	--cmd S14 - Enable OTP authentication
-	--cmd S15 - Generate new OTP authentication QR code
-	--cmd S16 - Show OTP authentication QR code
-	--cmd S30 - Disable last login banner
-	--cmd S31 - Enable last login banner
+    --cmd S07 - Disable root login
+    --cmd S08 - Enable root login
+    --cmd S09 - Disable password login
+    --cmd S10 - Enable password login
+    --cmd S11 - Disable Public key authentication login
+    --cmd S12 - Enable Public key authentication login
+    --cmd S13 - Disable OTP authentication
+    --cmd S14 - Enable OTP authentication
+    --cmd S15 - Generate new OTP authentication QR code
+    --cmd S16 - Show OTP authentication QR code
+    --cmd S30 - Disable last login banner
+    --cmd S31 - Enable last login banner
     --cmd S17 - Change shell system wide to BASH
     --cmd S18 - Change shell system wide to ZSH
     --cmd S19 - Switch to rolling release
     --cmd S20 - Switch to stable release
     --cmd S21 - Enable read only filesystem
-    --cmd S22 - Disable read only filesystem
-
-  Network - Fixed and wireless network settings (enp7s0)
+    --cmd S22 - Disable read only filesystem</p>
+<p>Network - Fixed and wireless network settings (enp7s0)
     N01.1 - Configure network interfaces
       N01.1.1 - Wired
-	--cmd N01 - Show configuration
-	--cmd N02 - Enable DHCP on all interfaces
-	--cmd N03 - Set fixed IP address
-	--cmd N04 - Disable IPV6
-	--cmd N05 - Enable IPV6
-	--cmd N06 - Disable wired networking
+    --cmd N01 - Show configuration
+    --cmd N02 - Enable DHCP on all interfaces
+    --cmd N03 - Set fixed IP address
+    --cmd N04 - Disable IPV6
+    --cmd N05 - Enable IPV6
+    --cmd N06 - Disable wired networking
       N01.1.2 - Wireless
-	--cmd N07 - Show configuration
-	--cmd N08 - Disable wireless networking
-	--cmd N09 - Disable IPV6
-	--cmd N10 - Enable IPV6
-	--cmd N11 - Enable DHCP on wireless network interface
-	--cmd N12 - Show common configs
-	--cmd N13 - Apply common configs
-	--cmd N14 - Display status
+    --cmd N07 - Show configuration
+    --cmd N08 - Disable wireless networking
+    --cmd N09 - Disable IPV6
+    --cmd N10 - Enable IPV6
+    --cmd N11 - Enable DHCP on wireless network interface
+    --cmd N12 - Show common configs
+    --cmd N13 - Apply common configs
+    --cmd N14 - Display status
     --cmd N15 - Install Bluetooth support
     --cmd N16 - Remove Bluetooth support
     --cmd N17 - Bluetooth Discover
-    --cmd N18 - Toggle system IPv6/IPv4 internet protocol
-
-  Localisation - Localisation (en_NZ.UTF-8)
+    --cmd N18 - Toggle system IPv6/IPv4 internet protocol</p>
+<p>Localisation - Localisation (en_NZ.UTF-8)
     --cmd L00 - Change Global timezone (WIP)
     --cmd L01 - Change Locales reconfigure the language and character set
     --cmd L02 - Change Keyboard layout
-    --cmd L03 - Change APT mirrors
-
-  Software - Run/Install 3rd party applications (01:31:20)
+    --cmd L03 - Change APT mirrors</p>
+<p>Software - Run/Install 3rd party applications (01:31:20)
     SW01.1 - Desktop Environments
-	--cmd SW02 - Install XFCE desktop
-	--cmd SW03 - Install Gnome desktop
-	--cmd SW04 - Install i3-wm desktop
-	--cmd SW05 - Install Cinnamon desktop
-	--cmd SW06 - Install kde-neon desktop
+    --cmd SW02 - Install XFCE desktop
+    --cmd SW03 - Install Gnome desktop
+    --cmd SW04 - Install i3-wm desktop
+    --cmd SW05 - Install Cinnamon desktop
+    --cmd SW06 - Install kde-neon desktop
     SW01.2 - Network tools
-	--cmd SW08 - Install realtime console network usage monitor (nload)
-	--cmd SW09 - Remove realtime console network usage monitor (nload)
-	--cmd SW10 - Install bandwidth measuring tool (iperf3)
-	--cmd SW11 - Remove bandwidth measuring tool (iperf3)
-	--cmd SW12 - Install IP LAN monitor (iptraf-ng)
-	--cmd SW13 - Remove IP LAN monitor (iptraf-ng)
-	--cmd SW14 - Install hostname broadcast via mDNS (avahi-daemon)
-	--cmd SW15 - Remove hostname broadcast via mDNS (avahi-daemon)
+    --cmd SW08 - Install realtime console network usage monitor (nload)
+    --cmd SW09 - Remove realtime console network usage monitor (nload)
+    --cmd SW10 - Install bandwidth measuring tool (iperf3)
+    --cmd SW11 - Remove bandwidth measuring tool (iperf3)
+    --cmd SW12 - Install IP LAN monitor (iptraf-ng)
+    --cmd SW13 - Remove IP LAN monitor (iptraf-ng)
+    --cmd SW14 - Install hostname broadcast via mDNS (avahi-daemon)
+    --cmd SW15 - Remove hostname broadcast via mDNS (avahi-daemon)
     SW01.3 - Development
-	--cmd SW17 - Install tools for cloning and managing repositories (git)
-	--cmd SW18 - Remove tools for cloning and managing repositories (git)
+    --cmd SW17 - Install tools for cloning and managing repositories (git)
+    --cmd SW18 - Remove tools for cloning and managing repositories (git)
     --cmd SW19 - Update Application Repository
     --cmd SW20 - SWystem benchmaking and diagnostics
     SW01.4 - Softy - 3rd party apps
-	--cmd SW21 - Install Plex Media server
-	--cmd SW22 - Remove Plex Media server
-	--cmd SW23 - Install Emby server
-	--cmd SW24 - Remove Emby server
-	--cmd SW25 - Install Docker Minimal
-	--cmd SW26 - Install Docker Engine
-	--cmd SW27 - Remove Docker
-	--cmd SW28 - Purge all Docker images, containers, and volumes
-
-  Help - About this app
+    --cmd SW21 - Install Plex Media server
+    --cmd SW22 - Remove Plex Media server
+    --cmd SW23 - Install Emby server
+    --cmd SW24 - Remove Emby server
+    --cmd SW25 - Install Docker Minimal
+    --cmd SW26 - Install Docker Engine
+    --cmd SW27 - Remove Docker
+    --cmd SW28 - Purge all Docker images, containers, and volumes</p>
+<p>Help - About this app
     --cmd H00 - About This system. (WIP)
     --cmd H02 - List of Config function(WIP)
-~~~
-
-## Legacy options
-Backward Compatible options.
-
-Use:
+~~~</p>
+<h2 id="legacy-options">Legacy options</h2>
+<p>Backward Compatible options.</p>
+<p>Use:
 ~~~
 armbian-config main=Help
-~~~
-
-Outputs:
+~~~</p>
+<p>Outputs:
 ~~~
 Legacy Options (Backward Compatible)
-Please use 'armbian-config --help' for more information.
-
-Usage:  armbian-configng main=[arguments] selection=[options]
-
-    armbian-configng main=System selection=Headers          -  Install headers:                                        
-    armbian-configng main=System selection=Headers_remove   -  Remove headers:                                 
-~~~
-
-***
-
-## Development
-
-Development is divided into three sections:
-
-Click for more info:
-
+Please use 'armbian-config --help' for more information.</p>
+<p>Usage:  armbian-configng main=[arguments] selection=[options]</p>
+<pre><code>armbian-configng main=System selection=Headers          -  Install headers:                                        
+armbian-configng main=System selection=Headers_remove   -  Remove headers:
+</code></pre>
+<p>~~~</p>
+<hr />
+<h2 id="development">Development</h2>
+<p>Development is divided into three sections:</p>
+<p>Click for more info:</p>
 <details>
 <summary><b>Jobs / JSON Object</b></summary>
 
@@ -530,7 +519,6 @@ show_message <<< see_use
 
 </details>
 
-
 <details>
 <summary><b>Jobs API / Helper Functions</b></summary>
 
@@ -589,7 +577,6 @@ These helper functions facilitate various operations related to job management, 
 
 </details>
 
-
 <details>
 <summary><b>Runtime / Board Statuses</b></summary>
 
@@ -601,9 +588,7 @@ This section outlines the runtime environment to check configurations and status
 
 </details>
 
-
-## Testing and contributing
-
+<h2 id="testing-and-contributing">Testing and contributing</h2>
 <details>
 <summary><b>Get Development</b></summary>
 
@@ -636,4 +621,4 @@ Install and test Development deb:
 ~~~
 
 </details>
-
+</body></html>
