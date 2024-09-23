@@ -261,26 +261,27 @@ module_options+=(
 #
 armbian_fw_manipulate() {
 
-    local function=$1
-    local version=$2
+	local function=$1
+	local version=$2
+	local branch=$3
 
-    [[ -n $version ]] && local version="=${version}"
+	[[ -n $version ]] && local version="=${version}"
 
-	# fallback to current
-	[[ -z $BRANCH ]] && BRANCH="current"
+	# fallback to $BRANCH
+	[[ -z $branch ]] && branch="${BRANCH}"
 
 	# packages to install
 	local armbian_packages=(
-	    "linux-u-boot-${BOARD}-${BRANCH}"
-	    "linux-image-${BRANCH}-${LINUXFAMILY}"
-	    "linux-dtb-${BRANCH}-${LINUXFAMILY}"
+	    "linux-u-boot-${BOARD}-${branch}"
+	    "linux-image-${branch}-${LINUXFAMILY}"
+	    "linux-dtb-${branch}-${LINUXFAMILY}"
 	    "armbian-config"
         "armbian-zsh"
 	)
 
 	# reinstall headers only if they were previously installed
 	if are_headers_installed; then
-		local armbian_packages+="linux-headers-${BRANCH}-${LINUXFAMILY}"
+		local armbian_packages+="linux-headers-${branch}-${LINUXFAMILY}"
 	fi
 
 	local packages=""
@@ -298,14 +299,16 @@ armbian_fw_manipulate() {
 
 	for pkg in "${packages[@]}"
 	do
+		local pkg_uninstall=${pkg/=*/} # removing numbers
 		case $function in
 			unhold)            apt-mark unhold ${pkg} | show_infobox ;;
 			hold)              apt-mark hold ${pkg} | show_infobox ;;
 			reinstall)
 						apt_install_wrapper apt-get -y --download-only --allow-change-held-packages --allow-downgrades install "${pkg}"
-						apt_install_wrapper apt-get -y purge "${pkg}"
+						apt_install_wrapper	apt-get -y purge "${pkg_uninstall/${branch}/*}" # remove all branches
 						apt_install_wrapper apt-get -y --allow-change-held-packages --allow-downgrades install "${pkg}"
 						apt_install_wrapper apt-get -y autoremove
+						apt_install_wrapper apt-get -y clean
 			;;
 			*) return ;;
 		esac
@@ -336,7 +339,7 @@ function switch_kernels () {
 	for line in $(\
 		apt-cache show "linux-image-${kernel_test_target}-${LINUXFAMILY}" | grep -E  "Package:|Version:|version:|family" \
 		| grep -v "Config-Version" | sed -n -e 's/^.*: //p' | sed 's/\.$//g' | xargs -n3 -d'\n' | sed "s/ /=/" \
-		| grep -v ${current_kernel_version}); do
+		| grep -v "${current_kernel_version}"); do
 		LIST+=($(echo $line | awk -F ' ' '{print $1 "      "}') $(echo $line | awk -F ' ' '{print "v"$2}'))
 	done
 	unset IFS
@@ -346,7 +349,8 @@ function switch_kernels () {
 	else
 		local target_version=$(whiptail --separate-output --title "Select kernel" --menu "ed" $((${list_length} + 7)) 80 $((${list_length})) "${LIST[@]}" 3>&1 1>&2 2>&3)
 		if [ $? -eq 0 ] && [ -n "${target_version}" ]; then
-			armbian_fw_manipulate "reinstall" "${target_version/*=/}"
+			local branch=${target_version##*image-}
+			armbian_fw_manipulate "reinstall" "${target_version/*=/}" "${branch%%-*}"
 		fi
 	fi
 }
