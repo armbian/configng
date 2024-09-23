@@ -27,3 +27,15 @@ jobs:
     secrets:
       GPG_PRIVATE_KEY: ${{ secrets.GPG_KEY1 }}
       PASSPHRASE: ${{ secrets.GPG_PASSPHRASE1 }}
+
+  Tests:
+    name: "Execute unit tests"
+    if: ${{ github.repository_owner == 'Armbian' }}
+    needs: Debian
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: "Run unit tests action"
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          event-type: "Unit tests"
