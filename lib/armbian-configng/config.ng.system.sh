@@ -12,15 +12,14 @@
 #
 # @description Use TUI / GUI for apt install if exists
 #
-function apt_install_wrapper
-{
+function apt_install_wrapper(){
 if [ -t 0 ] ; then
 	debconf-apt-progress -- $@
 else
 	# Terminal not defined - proceed without TUI
 	$@
 fi
-
+}
 
 module_options+=(
 ["install_de,author"]="Igor Pecovnik"
@@ -33,7 +32,7 @@ module_options+=(
 #
 # Install desktop
 #
-function install_de (){
+function install_de(){
 
 	# get user who executed this script
 	if [ $SUDO_USER ]; then local user=$SUDO_USER; else local user=`whoami`; fi
@@ -50,6 +49,9 @@ function install_de (){
 	for additionalgroup in sudo netdev audio video dialout plugdev input bluetooth systemd-journal ssh; do
 			usermod -aG ${additionalgroup} ${user} 2>/dev/null
 	done
+
+	# Recreating Synaptic search index
+	update-apt-xapian-index -u
 
 	# set up profile sync daemon on desktop systems
 	which psd >/dev/null 2>&1
@@ -92,7 +94,7 @@ module_options+=(
 #
 # check dpkg status of $1 -- currently only 'not installed at all' case caught
 #
-function update_skel (){
+function update_skel(){
 
 	getent passwd |
 	while IFS=: read -r username x uid gid gecos home shell
@@ -118,7 +120,7 @@ module_options+=(
 #
 # check dpkg status of $1 -- currently only 'not installed at all' case caught
 #
-function qr_code (){
+function qr_code(){
 
 	clear
 	if [[ "$1" == "generate" ]]; then
@@ -145,7 +147,7 @@ module_options+=(
 #
 # @description Set Armbian to stable release
 #
-function set_stable () {
+function set_stable(){
 
 if ! grep -q 'apt.armbian.com' /etc/apt/sources.list.d/armbian.list; then
     sed -i "s/http:\/\/[^ ]*/http:\/\/apt.armbian.com/" /etc/apt/sources.list.d/armbian.list
@@ -164,7 +166,7 @@ module_options+=(
 #
 # @description Set Armbian to rolling release
 #
-function set_rolling () {
+function set_rolling(){
 
 if ! grep -q 'beta.armbian.com' /etc/apt/sources.list.d/armbian.list; then
 	sed -i "s/http:\/\/[^ ]*/http:\/\/beta.armbian.com/" /etc/apt/sources.list.d/armbian.list
@@ -183,7 +185,7 @@ module_options+=(
 #
 # @description set/unset Armbian root filesystem to read only
 #
-function manage_overlayfs () {
+function manage_overlayfs(){
 
 if [[ "$1" == "enable" ]]; then
 	debconf-apt-progress -- apt-get -o Dpkg::Options::="--force-confold" -y install overlayroot cryptsetup cryptsetup-bin
@@ -224,6 +226,7 @@ else
     }' "${SDCARD}/etc/ssh/sshd_config"
     sudo service ssh restart
 fi
+
 }
 
 module_options+=(
@@ -237,8 +240,7 @@ module_options+=(
 #
 # @description Toggle message of the day items
 #
-function adjust_motd
-{
+function adjust_motd(){
 
 	# show motd description
 	motd_desc(){
@@ -265,8 +267,7 @@ function adjust_motd
     }
 
 	# read status
-	function motd_status
-	{
+	function motd_status(){
 	source /etc/default/armbian-motd
 	if [[ $MOTD_DISABLE == *$1* ]] ; then
 		echo "OFF"
