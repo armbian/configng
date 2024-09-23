@@ -21,7 +21,7 @@ jobs:
       homepage: "https://www.armbian.com"
       section: "default"
       priority: "optional"
-      depends: "bash, jq, whiptail"
+      depends: "bash, jq, whiptail, sudo, procps, systemd, lsb-release, iproute2"
       description: "Configng"
 
     secrets:
