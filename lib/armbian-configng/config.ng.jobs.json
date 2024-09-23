@@ -328,55 +328,149 @@
             "description": "Fixed and wireless network settings",
             "sub": [
                 {
-                    "id": "N01",
+                    "id": "N01.1",
                     "description": "Configure network interfaces",
                     "sub": [
                             {
-                                "id": "N02",
-                                "description": "Add interface",
-                                "command": [ "network_config armbian" ],
-                                "status": "Active",
-                                "author": "Igor Pecovnik",
-                                "condition": ""
+                                "id": "N01.1.1",
+                                "description": "Wired",
+                                "sub": [
+                                    {
+                                        "id": "N01",
+                                        "description": "Show configuration",
+                                        "command": [ "netplan_wrapper \"show_message\" \"\" \"\" \"ethernets\"" ],
+                                        "status": "Active",
+                                        "doc_link": "",
+                                        "src_reference": "",
+                                        "author": "Igor Pecovnik",
+                                        "condition": "[ -f /etc/netplan/30-*static-interfaces.yaml ] || [ -f /etc/netplan/10-dhcp-all-interfaces.yaml ]"
+                                    },
+                                    {
+                                        "id": "N02",
+                                        "description": "Enable DHCP on all interfaces",
+                                        "command": [ "netplan_wrapper \"dhcp_all_wired_interfaces\" \"false\" \"10-dhcp-all-interfaces\" \"ethernets\" \"networkd\"" ],
+                                        "status": "Active",
+                                        "author": "Igor Pecovnik",
+                                        "condition": "[ ! -f /etc/netplan/10-dhcp-all-interfaces.yaml ]"
+                                    },
+                                    {
+                                        "id": "N03",
+                                        "description": "Set fixed IP address",
+                                        "command": [" netplan_wrapper \"set_ip\" \"true\" \"10-dhcp-all-interfaces\" \"ethernets\" \"networkd\""],
+                                        "status": "Active",
+                                        "doc_link": "",
+                                        "src_reference": "",
+                                        "author": "Igor Pecovnik",
+                                        "condition": ""
+                                    },
+                                    {
+                                        "id": "N04",
+                                        "description": "Disable IPV6",
+                                        "command": [" netplan_wrapper \"disable_ipv6\" \"false\" \"10-dhcp-all-interfaces\" \"ethernets\" \"networkd\""],
+                                        "status": "Pending Review",
+                                        "doc_link": "",
+                                        "src_reference": "",
+                                        "author": "Igor Pecovnik",
+                                        "condition": "[ -f /etc/netplan/30-*static-interfaces.yaml ] || [ -f /etc/netplan/10-dhcp-all-interfaces.yaml ]"
+                                    },
+                                    {
+                                        "id": "N05",
+                                        "description": "Enable IPV6",
+                                        "command": [" netplan_wrapper \"enable_ipv6\" \"false\" \"10-dhcp-all-interfaces\" \"ethernets\" \"networkd\""],
+                                        "status": "Pending Review",
+                                        "doc_link": "",
+                                        "src_reference": "",
+                                        "author": "Igor Pecovnik",
+                                        "condition": "[ -f /etc/netplan/30-*static-interfaces.yaml ] || [ -f /etc/netplan/10-dhcp-all-interfaces.yaml ]"
+                                    },
+                                    {
+                                        "id": "N06",
+                                        "description": "Disable wired networking",                                    
+                                        "command": [ "rm -f /etc/netplan/10-dhcp-all-interfaces.yaml /etc/netplan/30-*static-interfaces.yaml" ],
+                                        "condition": "[ -f /etc/netplan/30-*static-interfaces.yaml ] || [ -f /etc/netplan/10-dhcp-all-interfaces.yaml ]",
+                                        "status": "Active",
+                                        "author": "Igor Pecovnik"
+                                    }
+                                ]
                             },
                             {
-                                "id": "N03",
-                                "description": "Revert to defaults",
-                                "command": [ "default_network_config" ],
-                                "status": "Active",
-                                "author": "Igor Pecovnik",
-                                "condition": "[[ -f /etc/netplan/armbian.yaml ]] && ! cat /etc/netplan/armbian.yaml | diff -q 1>/dev/null <(netplan get all) - || [[ ! -f /etc/netplan/10-dhcp-all-interfaces.yaml ]] && ! cat /etc/netplan/10-dhcp-all-interfaces.yaml 2>/dev/null | diff -q 1>/dev/null <(netplan get all) -"
+                                "id": "N01.1.2",
+                                "description": "Wireless",
+                                "sub": [
+                                    {
+                                        "id": "N07",
+                                        "description": "Show configuration",
+                                        "command": [ "netplan_wrapper \"show_message\" \"\" \"\" \"wifis\"" ],
+                                        "condition": "[ -f /etc/netplan/20-dhcp-wlan-interface.yaml ]",
+                                        "status": "Active",
+                                        "author": "Igor Pecovnik"
+                                    },
+                                    {
+                                        "id": "N08",
+                                        "description": "Disable wireless networking",
+                                        "command": [ "rm -f /etc/netplan/20-dhcp-wlan-interface.yaml" ],
+                                        "condition": "[ -f /etc/netplan/20-dhcp-wlan-interface.yaml ]",
+                                        "status": "Active",
+                                        "author": "Igor Pecovnik"
+                                    },
+                                    {
+                                        "id": "N09",
+                                        "description": "Disable IPV6",
+                                        "command": [" netplan_wrapper \"disable_ipv6\" \"false\" \"20-dhcp-wlan-interface\" \"wifis\" \"networkd\""],
+                                        "condition": "[ -f /etc/netplan/20-dhcp-wlan-interface.yaml ]",
+                                        "status": "Active",
+                                        "author": "Igor Pecovnik"
+                                    },
+                                    {
+                                        "id": "N10",
+                                        "description": "Enable IPV6",
+                                        "command": [" netplan_wrapper \"enable_ipv6\" \"false\" \"20-dhcp-wlan-interface\" \"wifis\" \"networkd\""],
+                                        "condition": "[ -f /etc/netplan/20-dhcp-wlan-interface.yaml ]",
+                                        "status": "Active",
+                                        "author": "Igor Pecovnik"
+                                    },
+                                    {
+                                        "id": "N11",
+                                        "description": "Enable DHCP on wireless network interface",
+                                        "command": [
+                                                    "wifi_connect"
+                                                ],
+                                        "status": "Active",
+                                        "author": "Igor Pecovnik",
+                                        "condition": "[ ! -f /etc/netplan/20-dhcp-wlan-interface.yaml ]"
+                                    }
+                                ]
                             },
                             {
-                                "id": "N04",
-                                "description": "Show draft configuration",
-                                "command": [ "show_message <<< \"$(netplan get all)\"" ],
+                                "id": "N12",
+                                "description": "Show common configs",
+                                "command": [ "show_message <<< \"$(sudo netplan get all)\"" ],
                                 "status": "Active",
                                 "doc_link": "",
                                 "src_reference": "",
                                 "author": "Igor Pecovnik",
-                                "condition": "[[ -f /etc/netplan/armbian.yaml ]]"
+                                "condition": ""
                             },
                             {
-                                "id": "N05",
-                                "description": "Apply changes",
+                                "id": "N13",
+                                "description": "Apply common configs",
                                 "prompt": "This will apply new network configuration\n\nwould you like to continue?",
                                 "command": [ "netplan apply" ],
                                 "status": "Active",
                                 "doc_link": "",
                                 "src_reference": "",
                                 "author": "Igor Pecovnik",
-                                "condition": "[[ -f /etc/netplan/armbian.yaml ]] && ! cat /etc/netplan/armbian.yaml | diff -q 1>/dev/null <(netplan get all) - || [[ -f /etc/netplan/10-dhcp-all-interfaces.yaml ]]"
+                                "condition": ""
                             },
                             {
-                                "id": "N06",
-                                "description": "Show active status",
+                                "id": "N14",
+                                "description": "Display status",
                                 "command": [ "show_message <<< \"$(netplan status --all)\"" ],
                                 "status": "Active",
                                 "doc_link": "",
                                 "src_reference": "",
                                 "author": "Igor Pecovnik",
-                                "condition": "[ -f /etc/netplan/armbian.yaml ] && [ netplan status 2>/dev/null ]"
+                                "condition": "[ $(netplan get network.renderer) == networkd ]"
                             }
                             ]
                 },
@@ -714,8 +808,120 @@
                     "src_reference": "",
                     "author": "",
                     "condition": "[ -f /usr/bin/armbianmonitor ]"
-        
-                }
+
+                },
+                {
+                "id": "SW01.4",
+                "description": "Softy - 3rd party apps",
+                "sub": [
+                        {
+                            "id": "SW21",
+                            "description": "Install Plex Media server",
+                            "command": [
+                                 "get_user_continue \"This operation will install Plex Media server.\n\nDo you wish to continue?\" process_input",
+                                 "install_plexmediaserver"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "! check_if_installed plexmediaserver"
+                        },
+                        {
+                            "id": "SW22",
+                            "description": "Remove Plex Media server",
+                            "command": [
+                                 "get_user_continue \"This operation will purge Plex Media server.\n\nDo you wish to continue?\" process_input",
+                                 "debconf-apt-progress -- apt-get -y purge plexmediaserver",
+                                 "sed -i '/plexmediaserver.gpg/s/^/#/g' /etc/apt/sources.list.d/plexmediaserver.list"
+                             ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "check_if_installed plexmediaserver"
+                        },
+                        {
+                            "id": "SW23",
+                            "description": "Install Emby server",
+                            "command": [
+                                 "get_user_continue \"This operation will install Emby server.\n\nDo you wish to continue?\" process_input",
+                                 "install_embyserver"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "! check_if_installed emby-server"
+                        },
+                        {
+                            "id": "SW24",
+                            "description": "Remove Emby server",
+                            "command": [
+                                "get_user_continue \"This operation will purge Emby server.\n\nDo you wish to continue?\" process_input",
+                                "debconf-apt-progress -- apt -y purge emby-server"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "check_if_installed emby-server"
+                        },
+                        {
+                            "id": "SW25",
+                            "description": "Install Docker Minimal",
+                            "command": [
+                                 "get_user_continue \"This operation will install Docker.\n\nDo you wish to continue?\" process_input",
+                                 "install_docker"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "! check_if_installed docker-ce"
+                        },
+                        {
+                            "id": "SW26",
+                            "description": "Install Docker Engine",
+                            "command": [
+                                 "get_user_continue \"This operation will install Docker Engine.\n\nDo you wish to continue?\" process_input",
+                                 "install_docker engine"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "! check_if_installed docker-compose-plugin"
+                        },
+                        {
+                            "id": "SW27",
+                            "description": "Remove Docker",
+                            "command": [
+                                "get_user_continue \"This operation will purge Docker.\n\nDo you wish to continue?\" process_input",
+                                "debconf-apt-progress -- apt -y purge docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "check_if_installed docker-ce"
+                        },
+                        {
+                            "id": "SW28",
+                            "description": "Purge all Docker images, containers, and volumes",
+                            "command": [
+                                "get_user_continue \"This operation will purge Docker\nand delete all images, containers, and volumes.\n\nDo you wish to continue?\" process_input",
+                                "rm -rf /var/lib/docker",
+                                "rm -rf /var/lib/containerd"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "! check_if_installed docker-ce && [ -d /var/lib/docker ]"
+                        }
+                    ]
+                } 
             ]
         },
         {
