@@ -1,37 +1,37 @@
 Origin: armbian.github.io/configurator
 Label: armbian.github.io/configurator
 Codename: stable
-Date: Sun, 22 Sep 2024 22:40:45 UTC
+Date: Mon, 23 Sep 2024 14:49:22 UTC
 Architectures: amd64 arm64 armhf
 Components: main
 Description: Armbian development repo
 MD5Sum:
- 9ad2a4bd56e4ba22e483e7885b0147d8 877 main/binary-amd64/Packages
- 158914a77a3c00d861a61936a46d40e3 454 main/binary-amd64/Packages.gz
+ 620c6de9b656c64319323245309efb54 877 main/binary-amd64/Packages
+ ad96904cb0af3565cfa3266046a99234 456 main/binary-amd64/Packages.gz
  3cba46590795e5698b2ebc183db37a10 151 main/binary-amd64/Release
- 9ad2a4bd56e4ba22e483e7885b0147d8 877 main/binary-arm64/Packages
- 158914a77a3c00d861a61936a46d40e3 454 main/binary-arm64/Packages.gz
+ 620c6de9b656c64319323245309efb54 877 main/binary-arm64/Packages
+ ad96904cb0af3565cfa3266046a99234 456 main/binary-arm64/Packages.gz
  01e275814393d2f70c405819a3d2d1d0 151 main/binary-arm64/Release
- 9ad2a4bd56e4ba22e483e7885b0147d8 877 main/binary-armhf/Packages
- 158914a77a3c00d861a61936a46d40e3 454 main/binary-armhf/Packages.gz
+ 620c6de9b656c64319323245309efb54 877 main/binary-armhf/Packages
+ ad96904cb0af3565cfa3266046a99234 456 main/binary-armhf/Packages.gz
  b86ec8492a41a7680aad3bd7e7427b3c 151 main/binary-armhf/Release
 SHA1:
- e028b4ceabfe98e757ecdfd8bb047573f25a4622 877 main/binary-amd64/Packages
- 97751c2440a9a4e5919be41570d655723914ce29 454 main/binary-amd64/Packages.gz
+ fda9b34d5358a595b339172fc488ffb6fc5edf02 877 main/binary-amd64/Packages
+ e384abc6c5063de65130d0d3a8e8e45b2341cb64 456 main/binary-amd64/Packages.gz
  1ded901e2341338050c9366b8d20bebb61d3e122 151 main/binary-amd64/Release
- e028b4ceabfe98e757ecdfd8bb047573f25a4622 877 main/binary-arm64/Packages
- 97751c2440a9a4e5919be41570d655723914ce29 454 main/binary-arm64/Packages.gz
+ fda9b34d5358a595b339172fc488ffb6fc5edf02 877 main/binary-arm64/Packages
+ e384abc6c5063de65130d0d3a8e8e45b2341cb64 456 main/binary-arm64/Packages.gz
  00e63124566a5c233395f4573e749f65dc5ba692 151 main/binary-arm64/Release
- e028b4ceabfe98e757ecdfd8bb047573f25a4622 877 main/binary-armhf/Packages
- 97751c2440a9a4e5919be41570d655723914ce29 454 main/binary-armhf/Packages.gz
+ fda9b34d5358a595b339172fc488ffb6fc5edf02 877 main/binary-armhf/Packages
+ e384abc6c5063de65130d0d3a8e8e45b2341cb64 456 main/binary-armhf/Packages.gz
  0a37339661b193e8692e892c9fd30c735b34c6d6 151 main/binary-armhf/Release
 SHA256:
- f19ee3a6435c9e7819a581d17f722d20759ee32437942829af7bce4f05c86e67 877 main/binary-amd64/Packages
- 0a5693c2615f96a14a7a55ac7110349104b2a471e7ce612fb6f14a44681f61e3 454 main/binary-amd64/Packages.gz
+ f5963a4a8ccf7745ed9c9f11c6e5338e4efa3dcf32dd7e5fef20849507a19e73 877 main/binary-amd64/Packages
+ 408ffd9c46edb2d6d74dc70e5f01ddecfbd2cbd21ad93252e23f6e037e8e9215 456 main/binary-amd64/Packages.gz
  5e44da8a463d501a6d6f9fbde39b67a088dbaf44c5283a4ba15184ddb1ff3585 151 main/binary-amd64/Release
- f19ee3a6435c9e7819a581d17f722d20759ee32437942829af7bce4f05c86e67 877 main/binary-arm64/Packages
- 0a5693c2615f96a14a7a55ac7110349104b2a471e7ce612fb6f14a44681f61e3 454 main/binary-arm64/Packages.gz
+ f5963a4a8ccf7745ed9c9f11c6e5338e4efa3dcf32dd7e5fef20849507a19e73 877 main/binary-arm64/Packages
+ 408ffd9c46edb2d6d74dc70e5f01ddecfbd2cbd21ad93252e23f6e037e8e9215 456 main/binary-arm64/Packages.gz
  734c6107f097277a976f002752c028146dae13162dd63df8b25cf996afbf1108 151 main/binary-arm64/Release
- f19ee3a6435c9e7819a581d17f722d20759ee32437942829af7bce4f05c86e67 877 main/binary-armhf/Packages
- 0a5693c2615f96a14a7a55ac7110349104b2a471e7ce612fb6f14a44681f61e3 454 main/binary-armhf/Packages.gz
+ f5963a4a8ccf7745ed9c9f11c6e5338e4efa3dcf32dd7e5fef20849507a19e73 877 main/binary-armhf/Packages
+ 408ffd9c46edb2d6d74dc70e5f01ddecfbd2cbd21ad93252e23f6e037e8e9215 456 main/binary-armhf/Packages.gz
  101713c5f4e875b0e61ef3d0094939f2025a9423e82e44a8814715cc9d5fc318 151 main/binary-armhf/Release
