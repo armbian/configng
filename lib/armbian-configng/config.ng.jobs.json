@@ -320,6 +320,17 @@
                     "src_reference": "",
                     "author": "Igor Pecovnik",
                     "condition": "command -v overlayroot-chroot > /dev/null 2>&1 && findmnt -k /media/root-ro | tail -1 | grep -w /media/root-ro > /dev/null 2>&1"
+                },
+                {
+                    "id": "S23",
+                    "description": "Install alternative kernels",
+                    "prompt": "Switching between kernels might change functionality of your device. \n\nIt might fail to boot!",
+                    "command": [ "switch_kernels" ],
+                    "status": "Active",
+                    "doc_link": "",
+                    "src_reference": "",
+                    "author": "Igor Pecovnik",
+                    "condition": ""
                 }
             ]
         },
