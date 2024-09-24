@@ -891,6 +891,7 @@
                             "description": "Install Cockpit web-based management tool",
                             "prompt": "This operation will install Cockpit.\ncockpit cockpit-ws cockpit-system cockpit-storaged\nWould you like to continue?",
                             "command": [
+                                "see_current_apt update",
                                 "apt_install_wrapper apt -y install cockpit cockpit-ws cockpit-system cockpit-storaged "
                             ],
                             "status": "Active",
