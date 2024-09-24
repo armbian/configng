@@ -188,7 +188,7 @@ function serve_doc() {
 	Starting server...
 		Server PID: $server_pid
 
-    Press [Enter] to exit"
+	Press [Enter] to exit"
 		)
 
 		$DIALOG --title "Message Box" --msgbox "$input" 0 0
