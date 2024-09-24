@@ -481,15 +481,15 @@ see_cmd_list() {
 			else
 				"\t--cmd \($id) - \($desc)"
 			end
-        end;
+		end;
 
-        # Find the correct menu if $menu is passed, otherwise show all
-        if $menu == "" then
-            .menu | map(recurse_menu(. ; 0)) | join("\n")
-        else
-            .menu | map(select(.id == $menu) | recurse_menu(. ; 0)) | join("\n")
-        end
-    '
+			# Find the correct menu if $menu is passed, otherwise show all
+		if $menu == "" then
+			.menu | map(recurse_menu(. ; 0)) | join("\n")
+		else
+			.menu | map(select(.id == $menu) | recurse_menu(. ; 0)) | join("\n")
+		end
+		'	
 	elif [[ -z "$1" || "$1" == "cmd" ]]; then
 		echo "$json_data" | jq -r --arg menu "$help_menu" '
             def recurse_menu(menu; level):
@@ -537,9 +537,10 @@ Please use 'armbian-config --help' for more information.
 Usage:  $script_name main=[arguments] selection=[options]
 
 EOF
-	cat << EOF
-    $script_name main=System selection=Headers          -  Install headers:                                        
-    $script_name main=System selection=Headers_remove   -  Remove headers:                                 
+
+cat << EOF
+$script_name main=System selection=Headers          -  Install headers:                                        
+$script_name main=System selection=Headers_remove   -  Remove headers:                                 
 
 EOF
 
