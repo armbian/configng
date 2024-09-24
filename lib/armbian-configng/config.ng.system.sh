@@ -213,11 +213,12 @@ function toggle_ssh_lastlog() {
 		sudo service ssh restart
 	else
 		# If PrintLastLog is found, toggle between 'yes' and 'no'
-		sed -i '/^#\?PrintLastLog /{
-        s/PrintLastLog yes/PrintLastLog no/;
-        t;
-        s/PrintLastLog no/PrintLastLog yes/
-    }' "${SDCARD}/etc/ssh/sshd_config"
+		sed -i '/^#\?PrintLastLog /
+{
+	s/PrintLastLog yes/PrintLastLog no/;
+	t;
+	s/PrintLastLog no/PrintLastLog yes/
+}' "${SDCARD}/etc/ssh/sshd_config"
 		sudo service ssh restart
 	fi
 
@@ -280,5 +281,3 @@ function adjust_motd() {
 	INSERT="$(echo "${INLIST[@]}" "${CHOICES[@]}" | tr ' ' '\n' | sort | uniq -u | tr '\n' ' ' | sed 's/ *$//')"
 	# adjust motd config
 	sed -i "s/^MOTD_DISABLE=.*/MOTD_DISABLE=\"$INSERT\"/g" /etc/default/armbian-motd
-
-}
