@@ -96,7 +96,7 @@ Click for more info:
 
 A list of the jobs defined in the Jobs file.
 
- $(see_jq_menu_list)
+	$(see_jq_menu_list)
 
 </details>
 
@@ -137,23 +137,23 @@ sudo apt install git jq whiptail
 Get Development and contribute:
 ~~~
 {
-    git clone https://github.com/armbian/configng
-    cd configng
-    ./armbian-configng --help
+	git clone https://github.com/armbian/configng
+	cd configng
+	./armbian-configng --help
 }
 ~~~
 
 Install and test Development deb:
 ~~~
 {
-    sudo apt install whiptail
-    latest_release=\$(curl -s https://api.github.com/repos/armbian/configng/releases/latest)
-    deb_url=\$(echo "\$latest_release" | jq -r '.assets[] | select(.name | endswith(".deb")) | .browser_download_url')
-    curl -LO "\$deb_url"
-    deb_file=\$(echo "\$deb_url" | awk -F"/" '{print \$NF}')
-    sudo dpkg -i "\$deb_file"
-    sudo dpkg --configure -a
-    sudo apt --fix-broken install
+	sudo apt install whiptail
+	latest_release=\$(curl -s https://api.github.com/repos/armbian/configng/releases/latest)
+	deb_url=\$(echo "\$latest_release" | jq -r '.assets[] | select(.name | endswith(".deb")) | .browser_download_url')
+	curl -LO "\$deb_url"
+	deb_file=\$(echo "\$deb_url" | awk -F"/" '{print \$NF}')
+	sudo dpkg -i "\$deb_file"
+	sudo dpkg --configure -a
+	sudo apt --fix-broken install
 }
 ~~~
 
@@ -185,9 +185,9 @@ function serve_doc() {
 		python3 -m http.server > /tmp/config.log 2>&1 &
 		local server_pid=$!
 		local input=("
- Starting server...
-        Server PID: $server_pid
-        
+	Starting server...
+		Server PID: $server_pid
+
     Press [Enter] to exit"
 		)
 
@@ -436,14 +436,13 @@ module_options+=(
 # This function is used to generate a markdown list from the json object using jq.
 #
 function see_jq_menu_list() {
-
 	jq -r '
-    .menu[] | 
-    .sub[] | 
-    "### " + .id + "\n\n" + 
-    (.description // "No description available") + "\n\nJobs:\n\n~~~\n" + 
-    ((.command // ["No commands available"]) | join("\n")) +  
-    "\n~~~\n"
+	.menu[] |
+	.sub[] |
+	"### " + .id + "\n\n" +
+	(.description // "No description available") + "\n\nJobs:\n\n~~~\n" +
+	((.command // ["No commands available"]) | join("\n")) +
+	"\n~~~\n"
 ' $json_file
 }
 
@@ -464,24 +463,24 @@ see_cmd_list() {
 
 	if [[ -n "$help_menu" && "$help_menu" != "cmd" ]]; then
 		echo "$json_data" | jq -r --arg menu "$help_menu" '
-        def recurse_menu(menu; level):
-        menu | .id as $id | .description as $desc |
-        if has("sub") then
-            if level == 0 then
-            "\n  \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
-            elif level == 1 then
-            "    \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
-            else
-            "      \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
-            end
-        else
-            if level == 0 then
-            "  --cmd \($id) - \($desc)"
-            elif level == 1 then
-            "    --cmd \($id) - \($desc)"
-            else
-            "\t--cmd \($id) - \($desc)"
-            end
+		def recurse_menu(menu; level):
+		menu | .id as $id | .description as $desc |
+		if has("sub") then
+			if level == 0 then
+				"\n  \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
+			elif level == 1 then
+				"    \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
+			else
+				"      \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
+			end
+		else
+			if level == 0 then
+				"  --cmd \($id) - \($desc)"
+			elif level == 1 then
+				"    --cmd \($id) - \($desc)"
+			else
+				"\t--cmd \($id) - \($desc)"
+			end
         end;
 
         # Find the correct menu if $menu is passed, otherwise show all
