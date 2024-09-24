@@ -511,7 +511,7 @@ see_cmd_list() {
                 "\t--cmd \($id) - \($desc)"
                 end
             end;
-            .menu | map(recurse_menu(. ; 0)) | join("\n")
+        .menu | map(recurse_menu(. ; 0)) | join("\n")
         '
 
 	else
