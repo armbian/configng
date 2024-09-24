@@ -330,6 +330,17 @@
                     "src_reference": "",
                     "author": "",
                     "condition": "[ -f /etc/default/armbian-motd ]"
+                },
+                {
+                    "id": "S24",
+                    "description": "Install alternative kernels",
+                    "prompt": "Switching between kernels might change functionality of your device. \n\nIt might fail to boot!",
+                    "command": [ "switch_kernels" ],
+                    "status": "Active",
+                    "doc_link": "",
+                    "src_reference": "",
+                    "author": "Igor Pecovnik",
+                    "condition": ""
                 }
             ]
         },
