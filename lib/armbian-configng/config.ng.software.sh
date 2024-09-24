@@ -15,7 +15,7 @@ function see_monitoring() {
     choice=$(armbianmonitor -h | grep -Ev '^\s*-c\s|^\s*-M\s' | show_menu)
 
      armbianmonitor -$choice
-     
+
   else
     echo "htop is not installed"
   fi
@@ -41,8 +41,8 @@ fi
 # Note: for compatibility with existing source file in some builds format must be gpg not asc
 # and location must be /usr/share/keyrings
 wget -qO- https://downloads.plex.tv/plex-keys/PlexSign.key | gpg --dearmor | sudo tee /usr/share/keyrings/plexmediaserver.gpg > /dev/null 2>&1
-debconf-apt-progress -- apt-get update
-debconf-apt-progress -- apt-get -y install plexmediaserver
+apt_install_wrapper apt-get update
+apt_install_wrapper apt-get -y install plexmediaserver
 whiptail --msgbox "To test that Plex Media Server  has installed successfully\nIn a web browser go to http://localhost:32400/web or \nhttp://127.0.0.1:32400/web on this computer." 9 70
 }
 
@@ -63,7 +63,7 @@ install_embyserver(){
     cd ~/
     wget -O "emby-server.deb" $URL 2>&1 | stdbuf -oL awk '/[.] +[0-9][0-9]?[0-9]?%/ { print substr($0,63,3) }' | \
     whiptail --gauge "Please wait\nDownloading ${URL##*/}" 8 70 0
-    debconf-apt-progress -- apt-get -y install ~/emby-server.deb
+    apt_install_wrapper apt-get -y install ~/emby-server.deb
     unlink emby-server.deb
     whiptail --msgbox "To test that Emby Server  has installed successfully\nIn a web browser go to http://localhost:8096 or \nhttp://127.0.0.1:8096 on this computer." 9 70
 }
@@ -82,33 +82,33 @@ module_options+=(
 #
 install_docker(){
 # Check if repo for distribution exists.
-dist_id=$(cat /etc/*release | grep "ID=ubuntu\|ID=debian" | cut -c 4-)
-URL="https://download.docker.com/linux/$dist_id/dists/$(. /etc/os-release && echo "$VERSION_CODENAME")"
+distro=$(echo $DISTRO | tr '[:upper:]' '[:lower:]')
+URL="https://download.docker.com/linux/$distro/dists/$(. /etc/os-release && echo "$VERSION_CODENAME")"
 if wget --spider "${URL}" 2>/dev/null; then
     # Add Docker's official GPG key:
-    debconf-apt-progress -- apt-get update
-    debconf-apt-progress -- apt-get -y install ca-certificates curl
+    apt_install_wrapper apt-get update
+    apt_install_wrapper apt-get -y install ca-certificates curl
     sudo install -m 0755 -d /etc/apt/keyrings
-    sudo curl -fsSL https://download.docker.com/linux/$dist_id/gpg -o /etc/apt/keyrings/docker.asc
+    sudo curl -fsSL https://download.docker.com/linux/$distro/gpg -o /etc/apt/keyrings/docker.asc
     sudo chmod a+r /etc/apt/keyrings/docker.asc
 
     # Add the repository to Apt sources:
     echo \
-      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/$dist_id \
+      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/$distro \
       $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
       sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-    debconf-apt-progress -- apt-get update
- 
+    apt_install_wrapper apt-get update
+
    # Install docker
     if [ "$1" = "engine" ]; then
-       debconf-apt-progress -- apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+       apt_install_wrapper apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     else
-       debconf-apt-progress -- apt-get -y install docker-ce docker-ce-cli containerd.io
+       apt_install_wrapper apt-get -y install docker-ce docker-ce-cli containerd.io
     fi
     systemctl enable docker.service > /dev/null 2>&1
     systemctl enable containerd.service > /dev/null 2>&1
     whiptail --msgbox "To test that Docker has installed successfully\nrun the following command: docker run hello-world" 9 70
 else
-    whiptail --msgbox "ERROR ! $dist_id $(. /etc/os-release && echo "$VERSION_CODENAME") distribution not found in repository!" 7 70
+    whiptail --msgbox "ERROR ! $distro $(. /etc/os-release && echo "$VERSION_CODENAME") distribution not found in repository!" 7 70
 fi
 }

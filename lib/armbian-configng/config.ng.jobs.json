@@ -733,8 +733,8 @@
                             {
                                 "id": "SW21",
                                 "description": "Install Plex Media server",
-                                "command": [
-                                     "get_user_continue \"This operation will install Plex Media server.\n\nDo you wish to continue?\" process_input",
+                                "prompt": "This operation will install Plex Media server.\nWould you like to continue?",
+                                "command": [                                    
                                      "install_plexmediaserver"
                                 ],
                                 "status": "Active",
@@ -746,9 +746,9 @@
                             {
                                 "id": "SW22",
                                 "description": "Remove Plex Media server",
+                                "prompt": "This operation will purge Plex Media server.\nWould you like to continue?",
                                 "command": [
-                                     "get_user_continue \"This operation will purge Plex Media server.\n\nDo you wish to continue?\" process_input",
-                                     "debconf-apt-progress -- apt-get -y purge plexmediaserver",
+                                     "apt_install_wrapper apt-get -y purge plexmediaserver",
                                      "sed -i '/plexmediaserver.gpg/s/^/#/g' /etc/apt/sources.list.d/plexmediaserver.list"
                                  ],
                                 "status": "Active",
@@ -760,8 +760,8 @@
                             {
                                 "id": "SW23",
                                 "description": "Install Emby server",
+                                "prompt": "This operation will install Emby server.\nWould you like to continue?",
                                 "command": [
-                                     "get_user_continue \"This operation will install Emby server.\n\nDo you wish to continue?\" process_input",
                                      "install_embyserver"
                                 ],
                                 "status": "Active",
@@ -773,9 +773,9 @@
                             {
                                 "id": "SW24",
                                 "description": "Remove Emby server",
+                                "prompt": "This operation will purge Emby server.\nWould you like to continue?",
                                 "command": [
-                                    "get_user_continue \"This operation will purge Emby server.\n\nDo you wish to continue?\" process_input",
-                                    "debconf-apt-progress -- apt -y purge emby-server"
+                                    "apt_install_wrapper apt -y purge emby-server"
                                 ],
                                 "status": "Active",
                                 "doc_link": "",
@@ -786,8 +786,8 @@
                             {
                                 "id": "SW25",
                                 "description": "Install Docker Minimal",
+                                "prompt": "This operation will install Docker Minimal.\nWould you like to continue?",
                                 "command": [
-                                     "get_user_continue \"This operation will install Docker.\n\nDo you wish to continue?\" process_input",
                                      "install_docker"
                                 ],
                                 "status": "Active",
@@ -799,8 +799,8 @@
                             {
                                 "id": "SW26",
                                 "description": "Install Docker Engine",
+                                "prompt": "This operation will install Docker Engine.\nWould you like to continue?",
                                 "command": [
-                                     "get_user_continue \"This operation will install Docker Engine.\n\nDo you wish to continue?\" process_input",
                                      "install_docker engine"
                                 ],
                                 "status": "Active",
@@ -812,9 +812,9 @@
                             {
                                 "id": "SW27",
                                 "description": "Remove Docker",
+                                "prompt": "This operation will purge Docker.\nWould you like to continue?",
                                 "command": [
-                                    "get_user_continue \"This operation will purge Docker.\n\nDo you wish to continue?\" process_input",
-                                    "debconf-apt-progress -- apt -y purge docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras"
+                                    "apt_install_wrapper apt -y purge docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras"
                                 ],
                                 "status": "Active",
                                 "doc_link": "",
@@ -825,8 +825,8 @@
                             {
                                 "id": "SW28",
                                 "description": "Purge all Docker images, containers, and volumes",
+                                "prompt": "This operation will delete all Docker images, containers, and volumes.\nWould you like to continue?",
                                 "command": [
-                                    "get_user_continue \"This operation will purge Docker\nand delete all images, containers, and volumes.\n\nDo you wish to continue?\" process_input",
                                     "rm -rf /var/lib/docker",
                                     "rm -rf /var/lib/containerd"
                                 ],
