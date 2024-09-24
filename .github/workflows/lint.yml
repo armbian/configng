@@ -20,6 +20,16 @@ jobs:
        - name: Checkout repository
          uses: actions/checkout@v3
 
+       - name: Get changed files
+         id: changed-files
+         uses: tj-actions/changed-files@v43
+
+       - name: "Show which files we check"
+         shell: bash {0}
+         run: |
+           echo "# Checked files:" >> $GITHUB_STEP_SUMMARY
+           echo "${{ steps.changed-files.outputs.all_changed_files }}" | sed "s/ /\n/g" >> $GITHUB_STEP_SUMMARY
+
        - name: Environment variables
          run: sudo -E bash -c set
 
@@ -27,9 +37,19 @@ jobs:
          shell: bash {0}
          run: |
 
-           for file in $(find . -name "*.sh" ! -path '*/.git*/*' -exec grep -Iq . {} \; -print); do
-               if grep -qE "^#\!/.*bash" $file; then
-                   shellcheck --severity=error $file || ret=$?
-               fi
-           done
+           if [[ -n "${{ steps.changed-files.outputs.all_changed_files }}" ]]; then
+               FILES="${{ steps.changed-files.outputs.all_changed_files }}"
+               for file in $FILES; do
+                   if grep -qE "^#\!/.*bash" $file; then
+                       shellcheck --severity=error $file || ret=$?
+                   fi
+               done
+           else
+               FILES="$(find . -name "*.sh" ! -path '*/.git*/*' -exec grep -Iq . {} \; -print)"
+               for file in $FILES; do
+                   if grep -qE "^#\!/.*bash" $file; then
+                       shellcheck --severity=error $file || ret=$?
+                   fi
+               done
+           fi
            exit $ret
