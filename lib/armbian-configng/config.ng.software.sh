@@ -82,7 +82,6 @@ module_options+=(
 #
 install_docker() {
 	# Check if repo for distribution exists.
-	DISTROID=bookworm
 	URL="https://download.docker.com/linux/${DISTRO,,}/dists/$DISTROID"
 	if wget --spider "${URL}" 2> /dev/null; then
 		# Add Docker's official GPG key:
@@ -101,7 +100,6 @@ install_docker() {
 			fi
 			systemctl enable docker.service > /dev/null 2>&1
 			systemctl enable containerd.service > /dev/null 2>&1
-			sudo usermod -aG docker $USER > /dev/null 2>&1
 			whiptail --msgbox "To test that Docker has installed successfully\nrun the following command: docker run hello-world" 9 70
 		fi
 	else
