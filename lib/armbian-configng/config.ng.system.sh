@@ -277,7 +277,7 @@ function adjust_motd() {
 
 	INLIST=($(grep THIS_SCRIPT= /etc/update-motd.d/* | cut -d"=" -f2 | sed "s/\"//g"))
 	CHOICES=$(whiptail --separate-output --nocancel --title "Adjust welcome screen" --checklist "" 11 50 5 "${LIST[@]}" 3>&1 1>&2 2>&3)
-	INSERT="$(echo ${INLIST[@]} ${CHOICES[@]} | tr ' ' '\n' | sort | uniq -u | tr '\n' ' ' | sed 's/ *$//')"
+	INSERT="$(echo "${INLIST[@]}" "${CHOICES[@]}" | tr ' ' '\n' | sort | uniq -u | tr '\n' ' ' | sed 's/ *$//')"
 	# adjust motd config
 	sed -i "s/^MOTD_DISABLE=.*/MOTD_DISABLE=\"$INSERT\"/g" /etc/default/armbian-motd
 
