@@ -597,19 +597,19 @@ function execute_command() {
 
 	# Extract commands
 	local commands=$(jq -r --arg id "$id" '
-      .menu[] |
-      .. |
-      objects |
-      select(.id == $id) |
-      .command[]?' "$json_file")
+		.menu[] |
+		.. |
+		objects |
+		select(.id == $id) |
+		.command[]?' "$json_file")
 
 	# Check if a prompt exists
 	local prompt=$(jq -r --arg id "$id" '
-      .menu[] |
-      .. |
-      objects |
-      select(.id == $id) |
-      .prompt?' "$json_file")
+		.menu[] |
+		.. |
+		objects |
+		select(.id == $id) |
+		.prompt?' "$json_file")
 
 	# If a prompt exists, display it and wait for user confirmation
 	if [[ "$prompt" != "null" && $INPUTMODE != "cmd" ]]; then
