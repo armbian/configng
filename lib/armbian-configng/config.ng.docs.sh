@@ -539,9 +539,8 @@ Usage:  $script_name main=[arguments] selection=[options]
 EOF
 
 cat << EOF
-$script_name main=System selection=Headers          -  Install headers:                                        
-$script_name main=System selection=Headers_remove   -  Remove headers:                                 
-
+	$script_name main=System selection=Headers          -  Install headers:
+	$script_name main=System selection=Headers_remove   -  Remove headers:
 EOF
 
 	# TODO Migrate following features
