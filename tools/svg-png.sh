@@ -42,7 +42,7 @@ svg_in=${1:-"configng"}
 
 # Path to the SVG file
 SVG_FILE="./icons/$svg_in.svg"
-
+mkdir -p "../share/applications/"
 cp -r ./applications/ "../share"
 
 # Output directory
