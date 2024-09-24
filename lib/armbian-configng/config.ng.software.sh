@@ -82,33 +82,28 @@ module_options+=(
 #
 install_docker() {
 	# Check if repo for distribution exists.
-	distro=$(echo $DISTRO | tr '[:upper:]' '[:lower:]')
-	URL="https://download.docker.com/linux/$distro/dists/$(. /etc/os-release && echo "$VERSION_CODENAME")"
+	DISTROID=bookworm
+	URL="https://download.docker.com/linux/${DISTRO,,}/dists/$DISTROID"
 	if wget --spider "${URL}" 2> /dev/null; then
 		# Add Docker's official GPG key:
-		apt_install_wrapper apt-get update
-		apt_install_wrapper apt-get -y install ca-certificates curl
-		sudo install -m 0755 -d /etc/apt/keyrings
-		sudo curl -fsSL https://download.docker.com/linux/$distro/gpg -o /etc/apt/keyrings/docker.asc
-		sudo chmod a+r /etc/apt/keyrings/docker.asc
-
-		# Add the repository to Apt sources:
-		echo \
-			"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/$distro \
-      $(. /etc/os-release && echo "$VERSION_CODENAME") stable" |
-			sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-		apt_install_wrapper apt-get update
-
-		# Install docker
-		if [ "$1" = "engine" ]; then
-			apt_install_wrapper apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-		else
-			apt_install_wrapper apt-get -y install docker-ce docker-ce-cli containerd.io
+		wget -qO - https://download.docker.com/linux/${DISTRO,,}/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/docker.gpg > /dev/null
+		if [[ $? -eq 0 ]]; then
+			# Add the repository to Apt sources:
+			cat <<- EOF > "/etc/apt/sources.list.d/docker.list"
+			deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker.gpg] https://download.docker.com/linux/${DISTRO,,} $DISTROID stable
+			EOF
+			apt_install_wrapper apt-get update
+			# Install docker
+			if [ "$1" = "engine" ]; then
+				apt_install_wrapper apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+			else
+				apt_install_wrapper apt-get -y install docker-ce docker-ce-cli containerd.io
+			fi
+			systemctl enable docker.service > /dev/null 2>&1
+			systemctl enable containerd.service > /dev/null 2>&1
+			whiptail --msgbox "To test that Docker has installed successfully\nrun the following command: docker run hello-world" 9 70
 		fi
-		systemctl enable docker.service > /dev/null 2>&1
-		systemctl enable containerd.service > /dev/null 2>&1
-		whiptail --msgbox "To test that Docker has installed successfully\nrun the following command: docker run hello-world" 9 70
 	else
-		whiptail --msgbox "ERROR ! $distro $(. /etc/os-release && echo "$VERSION_CODENAME") distribution not found in repository!" 7 70
+		whiptail --msgbox "ERROR ! ${DISTRO} $DISTROID distribution not found in repository!" 7 70
 	fi
 }
