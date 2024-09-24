@@ -842,8 +842,8 @@ module_options+=(
 	["see_current_apt,author"]="Joey Turner"
 	["see_current_apt,ref_link"]=""
 	["see_current_apt,feature"]="see_current_apt"
-	["see_current_apt,desc"]="Check when apt list was last updated"
-	["see_current_apt,example"]="see_current_apt"
+	["see_current_apt,desc"]="Check when apt list was last updated and suggest updating or update"
+	["see_current_apt,example"]="see_current_apt || see_current_apt update"
 	["see_current_apt,doc_link"]=""
 	["see_current_apt,status"]="Active"
 )
@@ -852,6 +852,7 @@ module_options+=(
 #
 see_current_apt() {
 	# Number of seconds in a day
+	local update_apt="$1"
 	local day=86400
 	local ten_minutes=600
 	# Get the current date as a Unix timestamp
@@ -880,11 +881,12 @@ see_current_apt() {
 
 	# Check if the package list is up-to-date
 	if ((elapsed < ten_minutes)); then
-		echo "The package lists are up-to-date."
+		[[ "$update_apt" != "update" ]] && echo "The package lists are up-to-date."
 		return 0 # The package lists are up-to-date
 	else
-		echo "Update the package lists." # Suggest updating
-		return 1 # The package lists are not up-to-date
+		[[ "$update_apt" != "update" ]] && echo "Update the package lists." # Suggest updating
+		[[ "$update_apt" == "update" ]] && apt_install_wrapper apt-get update
+		return 0 # The package lists are not up-to-date
 	fi
 }
 
