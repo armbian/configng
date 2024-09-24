@@ -82,166 +82,168 @@
                     "id": "S07.1",
                     "description": "Manage SSH login options",
                     "sub": [
-                            {
+                        {
                             "id": "S07",
                             "description": "Disable root login",
                             "command": [
-                                           "sed -i \"s|^#\\?PermitRootLogin.*|PermitRootLogin no|\" /etc/ssh/sshd_config",
-                                           "systemctl restart sshd.service"
-                                       ],
+                                "sed -i \"s|^#\\?PermitRootLogin.*|PermitRootLogin no|\" /etc/ssh/sshd_config",
+                                "systemctl restart sshd.service"
+                            ],
                             "status": "Active",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
                             "condition": "grep -q '^PermitRootLogin yes'  /etc/ssh/sshd_config"
-                            },
-                            {
+                        },
+                        {
                             "id": "S08",
                             "description": "Enable root login",
                             "command": [
-                                           "sed -i \"s/^#\\?PermitRootLogin.*/PermitRootLogin yes/\" /etc/ssh/sshd_config" ,
-                                           "systemctl restart sshd.service"
-                                       ],
+                                "sed -i \"s/^#\\?PermitRootLogin.*/PermitRootLogin yes/\" /etc/ssh/sshd_config",
+                                "systemctl restart sshd.service"
+                            ],
                             "status": "Active",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
                             "condition": "grep -q '^PermitRootLogin no' /etc/ssh/sshd_config"
-                            },
-                            {
+                        },
+                        {
                             "id": "S09",
                             "description": "Disable password login",
                             "command": [
-                                           "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication no/\" /etc/ssh/sshd_config" ,
-                                           "systemctl restart sshd.service"
-                                       ],
+                                "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication no/\" /etc/ssh/sshd_config",
+                                "systemctl restart sshd.service"
+                            ],
                             "status": "Active",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
                             "condition": "grep -q 'PasswordAuthentication yes' /etc/ssh/sshd_config"
-                            },
-                            {
+                        },
+                        {
                             "id": "S10",
                             "description": "Enable password login",
                             "command": [
-                                           "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication yes/\" /etc/ssh/sshd_config" ,
-                                           "systemctl restart sshd.service"
-                                       ],
+                                "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication yes/\" /etc/ssh/sshd_config",
+                                "systemctl restart sshd.service"
+                            ],
                             "status": "Active",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
                             "condition": "grep -q 'PasswordAuthentication no' /etc/ssh/sshd_config"
-                            },
-                            {
+                        },
+                        {
                             "id": "S11",
                             "description": "Disable Public key authentication login",
                             "command": [
-                                           "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication no/\" /etc/ssh/sshd_config" ,
-                                           "systemctl restart sshd.service"
-                                       ],
+                                "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication no/\" /etc/ssh/sshd_config",
+                                "systemctl restart sshd.service"
+                            ],
                             "status": "Active",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
                             "condition": "grep -q 'PubkeyAuthentication yes' /etc/ssh/sshd_config"
-                            },
-                            {
+                        },
+                        {
                             "id": "S12",
                             "description": "Enable Public key authentication login",
                             "command": [
-                                           "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication yes/\" /etc/ssh/sshd_config" ,
-                                           "systemctl restart sshd.service"
-                                       ],
+                                "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication yes/\" /etc/ssh/sshd_config",
+                                "systemctl restart sshd.service"
+                            ],
                             "status": "Active",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
                             "condition": "grep -q 'PubkeyAuthentication no' /etc/ssh/sshd_config"
-                            },
-                            {
+                        },
+                        {
                             "id": "S13",
                             "description": "Disable OTP authentication",
                             "command": [
-                                           "clear",
-                                           "! check_if_installed libpam-google-authenticator && ! check_if_installed qrencode || debconf-apt-progress -- apt-get -y purge libpam-google-authenticator qrencode",
-                                           "sed -i \"s/^#\\?ChallengeResponseAuthentication.*/ChallengeResponseAuthentication no/\" /etc/ssh/sshd_config || sed -i \"0,/KbdInteractiveAuthentication/s//ChallengeResponseAuthentication yes/\" /etc/ssh/sshd_config" ,
-                                           "sed -i '/^auth required pam_google_authenticator.so nullok/ d' /etc/pam.d/sshd",
-                                           "systemctl restart sshd.service"
-                                       ],
+                                "clear",
+                                "! check_if_installed libpam-google-authenticator && ! check_if_installed qrencode || debconf-apt-progress -- apt-get -y purge libpam-google-authenticator qrencode",
+                                "sed -i \"s/^#\\?ChallengeResponseAuthentication.*/ChallengeResponseAuthentication no/\" /etc/ssh/sshd_config || sed -i \"0,/KbdInteractiveAuthentication/s//ChallengeResponseAuthentication yes/\" /etc/ssh/sshd_config",
+                                "sed -i '/^auth required pam_google_authenticator.so nullok/ d' /etc/pam.d/sshd",
+                                "systemctl restart sshd.service"
+                            ],
                             "status": "Active",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
                             "condition": "grep -q 'ChallengeResponseAuthentication yes' /etc/ssh/sshd_config"
-                            },
-                            {
+                        },
+                        {
                             "id": "S14",
                             "description": "Enable OTP authentication",
                             "command": [
-                                           "check_if_installed libpam-google-authenticator || debconf-apt-progress -- apt-get -y install libpam-google-authenticator",
-                                           "check_if_installed qrencode || debconf-apt-progress -- apt-get -y install qrencode",
-                                           "sed -i \"s/^#\\?ChallengeResponseAuthentication.*/ChallengeResponseAuthentication yes/\" /etc/ssh/sshd_config",
-                                           "sed -i $'/KbdInteractiveAuthentication/{iChallengeResponseAuthentication yes\\n:a;n;ba}' /etc/ssh/sshd_config || sed -n -i '/password updating/{p;:a;N;/@include common-password/!ba;s/.*\\n/auth required pam_google_authenticator.so nullok\\nauth required pam_permit.so\\n/};p' /etc/pam.d/sshd",
-                                           "[ ! -f /root/.google_authenticator ] && qr_code generate",
-                                           "systemctl restart sshd.service"
-                                       ],
+                                "check_if_installed libpam-google-authenticator || debconf-apt-progress -- apt-get -y install libpam-google-authenticator",
+                                "check_if_installed qrencode || debconf-apt-progress -- apt-get -y install qrencode",
+                                "sed -i \"s/^#\\?ChallengeResponseAuthentication.*/ChallengeResponseAuthentication yes/\" /etc/ssh/sshd_config",
+                                "sed -i $'/KbdInteractiveAuthentication/{iChallengeResponseAuthentication yes\\n:a;n;ba}' /etc/ssh/sshd_config || sed -n -i '/password updating/{p;:a;N;/@include common-password/!ba;s/.*\\n/auth required pam_google_authenticator.so nullok\\nauth required pam_permit.so\\n/};p' /etc/pam.d/sshd",
+                                "[ ! -f /root/.google_authenticator ] && qr_code generate",
+                                "systemctl restart sshd.service"
+                            ],
                             "status": "Active",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
                             "condition": "! check_if_installed libpam-google-authenticator || ! check_if_installed qrencode || grep -q '^ChallengeResponseAuthentication no' /etc/ssh/sshd_config || ! grep -q 'ChallengeResponseAuthentication' /etc/ssh/sshd_config"
-                            },
-                            {
+                        },
+                        {
                             "id": "S15",
                             "description": "Generate new OTP authentication QR code",
                             "command": [
-                                           "qr_code generate"
-                                       ],
+                                "qr_code generate"
+                            ],
                             "status": "Active",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
                             "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config"
-                            },
-                            {
+                        },
+                        {
                             "id": "S16",
                             "description": "Show OTP authentication QR code",
-                            "command": ["qr_code"],
+                            "command": [
+                                "qr_code"
+                            ],
                             "status": "Active",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "Igor Pecovnik",
                             "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config && [ -f /root/.google_authenticator ]"
-                            },
-                            {
-                                "id": "S30",
-                                "description": "Disable last login banner",
-                                "command": [
-                                               "sed -i \"s/^#\\?PrintLastLog.*/PrintLastLog no/\" /etc/ssh/sshd_config" ,
-                                               "systemctl restart ssh.service "
-                                           ],
-                                "status": "Active",
-                                "doc_link": "",
-                                "src_reference": "",
-                                "author": "",
-                                "condition": "grep -q '^PrintLastLog yes' /etc/ssh/sshd_config"
-                                },
-                                {
-                                "id": "S31",
-                                "description": "Enable last login banner",
-                                "command": [
-                                               "sed -i \"s/^#\\?PrintLastLog.*/PrintLastLog yes/\" /etc/ssh/sshd_config" ,
-                                               "systemctl restart ssh.service "
-                                           ],
-                                "status": "Active",
-                                "doc_link": "",
-                                "src_reference": "",
-                                "author": "",
-                                "condition": "grep -q '^PrintLastLog no' /etc/ssh/sshd_config"
-                                }
-                           ]
+                        },
+                        {
+                            "id": "S30",
+                            "description": "Disable last login banner",
+                            "command": [
+                                "sed -i \"s/^#\\?PrintLastLog.*/PrintLastLog no/\" /etc/ssh/sshd_config",
+                                "systemctl restart ssh.service "
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q '^PrintLastLog yes' /etc/ssh/sshd_config"
+                        },
+                        {
+                            "id": "S31",
+                            "description": "Enable last login banner",
+                            "command": [
+                                "sed -i \"s/^#\\?PrintLastLog.*/PrintLastLog yes/\" /etc/ssh/sshd_config",
+                                "systemctl restart ssh.service "
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q '^PrintLastLog no' /etc/ssh/sshd_config"
+                        }
+                    ]
                 },
                 {
                     "id": "S17",
@@ -281,7 +283,9 @@
                     "id": "S19",
                     "description": "Switch to rolling release",
                     "prompt": "This will switch to rolling releases\n\nwould you like to continue?",
-                    "command": [ "set_rolling" ],
+                    "command": [
+                        "set_rolling"
+                    ],
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L1446",
@@ -292,7 +296,9 @@
                     "id": "S20",
                     "description": "Switch to stable release",
                     "prompt": "This will switch to stable releases\n\nwould you like to continue?",
-                    "command": [ "set_stable" ],
+                    "command": [
+                        "set_stable"
+                    ],
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L1446",
@@ -303,7 +309,9 @@
                     "id": "S21",
                     "description": "Enable read only filesystem",
                     "prompt": "This will enable Armbian read-only filesystem. Reboot is mandatory?\n\nWould you like to continue?",
-                    "command": [ "manage_overlayfs enable" ],
+                    "command": [
+                        "manage_overlayfs enable"
+                    ],
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
@@ -314,7 +322,9 @@
                     "id": "S22",
                     "description": "Disable read only filesystem",
                     "prompt": "This will disable Armbian read-only filesystem. Reboot is mandatory?\n\nWould you like to continue?",
-                    "command": [ "manage_overlayfs disable" ],
+                    "command": [
+                        "manage_overlayfs disable"
+                    ],
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
@@ -324,7 +334,9 @@
                 {
                     "id": "S23",
                     "description": "Adjust welcome screen (motd)",
-                    "command": [ "adjust_motd" ],
+                    "command": [
+                        "adjust_motd"
+                    ],
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
@@ -335,7 +347,9 @@
                     "id": "S24",
                     "description": "Install alternative kernels",
                     "prompt": "Switching between kernels might change functionality of your device. \n\nIt might fail to boot!",
-                    "command": [ "switch_kernels" ],
+                    "command": [
+                        "switch_kernels"
+                    ],
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
@@ -352,54 +366,64 @@
                     "id": "N01",
                     "description": "Configure network interfaces",
                     "sub": [
-                            {
-                                "id": "N02",
-                                "description": "Add interface",
-                                "command": [ "network_config armbian" ],
-                                "status": "Active",
-                                "author": "Igor Pecovnik",
-                                "condition": ""
-                            },
-                            {
-                                "id": "N03",
-                                "description": "Revert to defaults",
-                                "command": [ "default_network_config" ],
-                                "status": "Active",
-                                "author": "Igor Pecovnik",
-                                "condition": "[[ -f /etc/netplan/armbian.yaml ]] && ! cat /etc/netplan/armbian.yaml | diff -q 1>/dev/null <(netplan get all) - || [[ ! -f /etc/netplan/10-dhcp-all-interfaces.yaml ]] && ! cat /etc/netplan/10-dhcp-all-interfaces.yaml 2>/dev/null | diff -q 1>/dev/null <(netplan get all) -"
-                            },
-                            {
-                                "id": "N04",
-                                "description": "Show draft configuration",
-                                "command": [ "show_message <<< \"$(netplan get all)\"" ],
-                                "status": "Active",
-                                "doc_link": "",
-                                "src_reference": "",
-                                "author": "Igor Pecovnik",
-                                "condition": "[[ -f /etc/netplan/armbian.yaml ]]"
-                            },
-                            {
-                                "id": "N05",
-                                "description": "Apply changes",
-                                "prompt": "This will apply new network configuration\n\nwould you like to continue?",
-                                "command": [ "netplan apply" ],
-                                "status": "Active",
-                                "doc_link": "",
-                                "src_reference": "",
-                                "author": "Igor Pecovnik",
-                                "condition": "[[ -f /etc/netplan/armbian.yaml ]] && ! cat /etc/netplan/armbian.yaml | diff -q 1>/dev/null <(netplan get all) - || [[ -f /etc/netplan/10-dhcp-all-interfaces.yaml ]]"
-                            },
-                            {
-                                "id": "N06",
-                                "description": "Show active status",
-                                "command": [ "show_message <<< \"$(netplan status --all)\"" ],
-                                "status": "Active",
-                                "doc_link": "",
-                                "src_reference": "",
-                                "author": "Igor Pecovnik",
-                                "condition": "[ -f /etc/netplan/armbian.yaml ] && [ netplan status 2>/dev/null ]"
-                            }
-                            ]
+                        {
+                            "id": "N02",
+                            "description": "Add interface",
+                            "command": [
+                                "network_config armbian"
+                            ],
+                            "status": "Active",
+                            "author": "Igor Pecovnik",
+                            "condition": ""
+                        },
+                        {
+                            "id": "N03",
+                            "description": "Revert to defaults",
+                            "command": [
+                                "default_network_config"
+                            ],
+                            "status": "Active",
+                            "author": "Igor Pecovnik",
+                            "condition": "[[ -f /etc/netplan/armbian.yaml ]] && ! cat /etc/netplan/armbian.yaml | diff -q 1>/dev/null <(netplan get all) - || [[ ! -f /etc/netplan/10-dhcp-all-interfaces.yaml ]] && ! cat /etc/netplan/10-dhcp-all-interfaces.yaml 2>/dev/null | diff -q 1>/dev/null <(netplan get all) -"
+                        },
+                        {
+                            "id": "N04",
+                            "description": "Show draft configuration",
+                            "command": [
+                                "show_message <<< \"$(netplan get all)\""
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "Igor Pecovnik",
+                            "condition": "[[ -f /etc/netplan/armbian.yaml ]]"
+                        },
+                        {
+                            "id": "N05",
+                            "description": "Apply changes",
+                            "prompt": "This will apply new network configuration\n\nwould you like to continue?",
+                            "command": [
+                                "netplan apply"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "Igor Pecovnik",
+                            "condition": "[[ -f /etc/netplan/armbian.yaml ]] && ! cat /etc/netplan/armbian.yaml | diff -q 1>/dev/null <(netplan get all) - || [[ -f /etc/netplan/10-dhcp-all-interfaces.yaml ]]"
+                        },
+                        {
+                            "id": "N06",
+                            "description": "Show active status",
+                            "command": [
+                                "show_message <<< \"$(netplan status --all)\""
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "Igor Pecovnik",
+                            "condition": "[ -f /etc/netplan/armbian.yaml ] && [ netplan status 2>/dev/null ]"
+                        }
+                    ]
                 },
                 {
                     "id": "N15",
@@ -420,10 +444,10 @@
                     "description": "Remove Bluetooth support",
                     "command": [
                         "see_current_apt ",
-						"debconf-apt-progress -- apt-get -y remove bluetooth bluez bluez-tools",
-						"check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y remove pulseaudio-module-bluetooth blueman",
+                        "debconf-apt-progress -- apt-get -y remove bluetooth bluez bluez-tools",
+                        "check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y remove pulseaudio-module-bluetooth blueman",
                         "debconf-apt-progress -- apt -y -qq autoremove"
-		            ],
+                    ],
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
@@ -434,7 +458,9 @@
                     "id": "N17",
                     "description": "Bluetooth Discover",
                     "prompt": "This will enable bluetooth and discover devices\n\nWould you like to continue?",
-                    "command": [ "connect_bt_interface" ],
+                    "command": [
+                        "connect_bt_interface"
+                    ],
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
@@ -445,7 +471,9 @@
                     "id": "N18",
                     "description": "Toggle system IPv6/IPv4 internet protocol",
                     "prompt": "This will toggle your internet protocol\nWould you like to continue?",
-                    "command": [ "toggle_ipv6 | show_infobox" ],
+                    "command": [
+                        "toggle_ipv6 | show_infobox"
+                    ],
                     "status": "Active",
                     "doc_link": "",
                     "src_reference": "",
@@ -461,7 +489,7 @@
                     "id": "L00",
                     "description": "Change Global timezone (WIP)",
                     "command": [
-						"dpkg-reconfigure tzdata"
+                        "dpkg-reconfigure tzdata"
                     ],
                     "status": "Active",
                     "doc_link": "",
@@ -472,9 +500,9 @@
                     "id": "L01",
                     "description": "Change Locales reconfigure the language and character set",
                     "command": [
-                        	"dpkg-reconfigure locales",
-							"source /etc/default/locale ; sed -i \"s/^LANGUAGE=.*/LANGUAGE=$LANG/\" /etc/default/locale",
-		                    "export LANGUAGE=$LANG"
+                        "dpkg-reconfigure locales",
+                        "source /etc/default/locale ; sed -i \"s/^LANGUAGE=.*/LANGUAGE=$LANG/\" /etc/default/locale",
+                        "export LANGUAGE=$LANG"
                     ],
                     "status": "Active",
                     "doc_link": "",
@@ -485,8 +513,8 @@
                     "id": "L02",
                     "description": "Change Keyboard layout",
                     "command": [
-						"dpkg-reconfigure keyboard-configuration ; setupcon ",
-			    "update-initramfs -u"
+                        "dpkg-reconfigure keyboard-configuration ; setupcon ",
+                        "update-initramfs -u"
                     ],
                     "status": "Active",
                     "doc_link": "",
@@ -511,13 +539,27 @@
             "description": "Run/Install 3rd party applications",
             "sub": [
                 {
-                    "id": "SW01.1",
-                    "description": "Desktop Environments",
+                    "id": "SW19",
+                    "description": "Update Application Repository",
+                    "prompt": "This will update the apt repository\nWould you like to continue?",
+                    "command": [
+                        "debconf-apt-progress -- apt update"
+                    ],
+                    "status": "Active",
+                    "doc_link": "",
+                    "src_reference": "",
+                    "author": ""
+                },
+                {
+                    "id": "Desktops",
+                    "description": "Install Desktop Environments",
                     "sub": [
                         {
                             "id": "SW02",
                             "description": "Install XFCE desktop",
-                            "command": [ "install_de \"xfce\""],
+                            "command": [
+                                "install_de \"xfce\""
+                            ],
                             "status": "Active",
                             "doc_link": "",
                             "src_reference": "",
@@ -527,7 +569,9 @@
                         {
                             "id": "SW03",
                             "description": "Install Gnome desktop",
-                            "command": [ "install_de \"gnome\""],
+                            "command": [
+                                "install_de \"gnome\""
+                            ],
                             "status": "Active",
                             "doc_link": "",
                             "src_reference": "",
@@ -537,7 +581,9 @@
                         {
                             "id": "SW04",
                             "description": "Install i3-wm desktop",
-                            "command": [ "install_de \"i3-wm\""],
+                            "command": [
+                                "install_de \"i3-wm\""
+                            ],
                             "status": "Active",
                             "doc_link": "",
                             "src_reference": "",
@@ -547,7 +593,9 @@
                         {
                             "id": "SW05",
                             "description": "Install Cinnamon desktop",
-                            "command": [ "install_de \"cinnamon\""],
+                            "command": [
+                                "install_de \"cinnamon\""
+                            ],
                             "status": "Active",
                             "doc_link": "",
                             "src_reference": "",
@@ -557,7 +605,9 @@
                         {
                             "id": "SW06",
                             "description": "Install kde-neon desktop",
-                            "command": [ "install_de \"kde-neon\""],
+                            "command": [
+                                "install_de \"kde-neon\""
+                            ],
                             "status": "Active",
                             "doc_link": "",
                             "src_reference": "",
@@ -567,7 +617,7 @@
                     ]
                 },
                 {
-                    "id": "SW01.2",
+                    "id": "Netconfig",
                     "description": "Network tools",
                     "sub": [
                         {
@@ -683,50 +733,40 @@
                     ]
                 },
                 {
-                "id": "SW01.3",
-                "description": "Development",
-                "sub": [
-                    {
-                        "id": "SW17",
-                        "description": "Install tools for cloning and managing repositories (git)",
-                        "command": [
-                            "get_user_continue \"This operation will install git.\n\nDo you wish to continue?\" process_input",
-                            "debconf-apt-progress -- apt-get -y install git"
-                        ],
-                        "status": "Active",
-                        "doc_link": "",
-                        "src_reference": "",
-                        "author": "",
-                        "condition": "! check_if_installed git"
-                     },
-                     {
-                        "id": "SW18",
-                        "description": "Remove tools for cloning and managing repositories (git)",
-                        "command": [
-                            "get_user_continue \"This operation will remove git.\n\nDo you wish to continue?\" process_input",
-                            "debconf-apt-progress -- apt-get -y purge git"
-                        ],
-                        "status": "Active",
-                        "doc_link": "",
-                        "src_reference": "",
-                        "author": "",
-                        "condition": "check_if_installed git"
-                     }
+                    "id": "DevTools",
+                    "description": "Development",
+                    "sub": [
+                        {
+                            "id": "SW17",
+                            "description": "Install tools for cloning and managing repositories (git)",
+                            "command": [
+                                "get_user_continue \"This operation will install git.\n\nDo you wish to continue?\" process_input",
+                                "debconf-apt-progress -- apt-get -y install git"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "! check_if_installed git"
+                        },
+                        {
+                            "id": "SW18",
+                            "description": "Remove tools for cloning and managing repositories (git)",
+                            "command": [
+                                "get_user_continue \"This operation will remove git.\n\nDo you wish to continue?\" process_input",
+                                "debconf-apt-progress -- apt-get -y purge git"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "check_if_installed git"
+                        }
                     ]
                 },
                 {
-                    "id": "SW19",
-                    "description": "Update Application Repository",
-                    "prompt": "This will update the apt repository\nWould you like to continue?",
-                    "command": [ "debconf-apt-progress -- apt update" ],
-                    "status": "Active",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": ""
-                },
-                {
-                    "id": "SW20",
-                    "description": "SWystem benchmaking and diagnostics",
+                    "id": "Benchy",
+                    "description": "System benchmaking and diagnostics",
                     "command": [
                         "see_monitoring"
                     ],
@@ -737,116 +777,179 @@
                     "condition": "[ -f /usr/bin/armbianmonitor ]"
                 },
                 {
-                    "id": "SW01.4",
-                    "description": "Softy - 3rd party apps",
+                    "id": "Containers",
+                    "description": "Containerlization and Virtual Machines",
                     "sub": [
-                            {
-                                "id": "SW21",
-                                "description": "Install Plex Media server",
-                                "prompt": "This operation will install Plex Media server.\nWould you like to continue?",
-                                "command": [
-                                     "install_plexmediaserver"
-                                ],
-                                "status": "Active",
-                                "doc_link": "",
-                                "src_reference": "",
-                                "author": "",
-                                "condition": "! check_if_installed plexmediaserver"
-                            },
-                            {
-                                "id": "SW22",
-                                "description": "Remove Plex Media server",
-                                "prompt": "This operation will purge Plex Media server.\nWould you like to continue?",
-                                "command": [
-                                     "apt_install_wrapper apt-get -y purge plexmediaserver",
-                                     "sed -i '/plexmediaserver.gpg/s/^/#/g' /etc/apt/sources.list.d/plexmediaserver.list"
-                                 ],
-                                "status": "Active",
-                                "doc_link": "",
-                                "src_reference": "",
-                                "author": "",
-                                "condition": "check_if_installed plexmediaserver"
-                            },
-                            {
-                                "id": "SW23",
-                                "description": "Install Emby server",
-                                "prompt": "This operation will install Emby server.\nWould you like to continue?",
-                                "command": [
-                                     "install_embyserver"
-                                ],
-                                "status": "Active",
-                                "doc_link": "",
-                                "src_reference": "",
-                                "author": "",
-                                "condition": "! check_if_installed emby-server"
-                            },
-                            {
-                                "id": "SW24",
-                                "description": "Remove Emby server",
-                                "prompt": "This operation will purge Emby server.\nWould you like to continue?",
-                                "command": [
-                                    "apt_install_wrapper apt -y purge emby-server"
-                                ],
-                                "status": "Active",
-                                "doc_link": "",
-                                "src_reference": "",
-                                "author": "",
-                                "condition": "check_if_installed emby-server"
-                            },
-                            {
-                                "id": "SW25",
-                                "description": "Install Docker Minimal",
-                                "prompt": "This operation will install Docker Minimal.\nWould you like to continue?",
-                                "command": [
-                                     "install_docker"
-                                ],
-                                "status": "Active",
-                                "doc_link": "",
-                                "src_reference": "",
-                                "author": "",
-                                "condition": "! check_if_installed docker-ce"
-                            },
-                            {
-                                "id": "SW26",
-                                "description": "Install Docker Engine",
-                                "prompt": "This operation will install Docker Engine.\nWould you like to continue?",
-                                "command": [
-                                     "install_docker engine"
-                                ],
-                                "status": "Active",
-                                "doc_link": "",
-                                "src_reference": "",
-                                "author": "",
-                                "condition": "! check_if_installed docker-compose-plugin"
-                            },
-                            {
-                                "id": "SW27",
-                                "description": "Remove Docker",
-                                "prompt": "This operation will purge Docker.\nWould you like to continue?",
-                                "command": [
-                                    "apt_install_wrapper apt -y purge docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras"
-                                ],
-                                "status": "Active",
-                                "doc_link": "",
-                                "src_reference": "",
-                                "author": "",
-                                "condition": "check_if_installed docker-ce"
-                            },
-                            {
-                                "id": "SW28",
-                                "description": "Purge all Docker images, containers, and volumes",
-                                "prompt": "This operation will delete all Docker images, containers, and volumes.\nWould you like to continue?",
-                                "command": [
-                                    "rm -rf /var/lib/docker",
-                                    "rm -rf /var/lib/containerd"
-                                ],
-                                "status": "Active",
-                                "doc_link": "",
-                                "src_reference": "",
-                                "author": "",
-                                "condition": "! check_if_installed docker-ce && [ -d /var/lib/docker ]"
-                            }
-                        ]
+                        {
+                            "id": "SW25",
+                            "description": "Install Docker Minimal",
+                            "prompt": "This operation will install Docker Minimal.\nWould you like to continue?",
+                            "command": [
+                                "install_docker"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "! check_if_installed docker-ce"
+                        },
+                        {
+                            "id": "SW26",
+                            "description": "Install Docker Engine",
+                            "prompt": "This operation will install Docker Engine.\nWould you like to continue?",
+                            "command": [
+                                "install_docker engine"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "! check_if_installed docker-compose-plugin"
+                        },
+                        {
+                            "id": "SW27",
+                            "description": "Remove Docker",
+                            "prompt": "This operation will purge Docker.\nWould you like to continue?",
+                            "command": [
+                                "apt_install_wrapper apt -y purge docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "check_if_installed docker-ce"
+                        },
+                        {
+                            "id": "SW28",
+                            "description": "Purge all Docker images, containers, and volumes",
+                            "prompt": "This operation will delete all Docker images, containers, and volumes.\nWould you like to continue?",
+                            "command": [
+                                "rm -rf /var/lib/docker",
+                                "rm -rf /var/lib/containerd"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "! check_if_installed docker-ce && [ -d /var/lib/docker ]"
+                        }
+                    ]
+                },
+                {
+                    "id": "Media",
+                    "description": "Media Servers and Editors",
+                    "sub": [
+                        {
+                            "id": "SW21",
+                            "description": "Install Plex Media server",
+                            "prompt": "This operation will install Plex Media server.\nWould you like to continue?",
+                            "command": [
+                                "install_plexmediaserver"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "! check_if_installed plexmediaserver"
+                        },
+                        {
+                            "id": "SW22",
+                            "description": "Remove Plex Media server",
+                            "prompt": "This operation will purge Plex Media server.\nWould you like to continue?",
+                            "command": [
+                                "apt_install_wrapper apt-get -y purge plexmediaserver",
+                                "sed -i '/plexmediaserver.gpg/s/^/#/g' /etc/apt/sources.list.d/plexmediaserver.list"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "check_if_installed plexmediaserver"
+                        },
+                        {
+                            "id": "SW23",
+                            "description": "Install Emby server",
+                            "prompt": "This operation will install Emby server.\nWould you like to continue?",
+                            "command": [
+                                "install_embyserver"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "! check_if_installed emby-server"
+                        },
+                        {
+                            "id": "SW24",
+                            "description": "Remove Emby server",
+                            "prompt": "This operation will purge Emby server.\nWould you like to continue?",
+                            "command": [
+                                "apt_install_wrapper apt -y purge emby-server"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "check_if_installed emby-server"
+                        }
+                    ]
+                },
+                {
+                    "id": "Management",
+                    "description": "Remote Management tools",
+                    "sub": [
+                        {
+                            "id": "M00",
+                            "description": "Install Cockpit web-based management tool",
+                            "prompt": "This operation will install Cockpit.\ncockpit cockpit-ws cockpit-system cockpit-storaged\nWould you like to continue?",
+                            "command": [
+                                "apt_install_wrapper apt -y install cockpit cockpit-ws cockpit-system cockpit-storaged "
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "! check_if_installed cockpit"
+                        },
+                        {
+                            "id": "M01",
+                            "description": "Purge Cockpit web-based management tool",
+                            "prompt": "This operation will purge Cockpit.\nWould you like to continue?",
+                            "command": [
+                                "apt_install_wrapper apt -y purge cockpit"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "check_if_installed cockpit"
+                        },
+                        {
+                            "id": "M02",
+                            "description": "Start Cockpit Service",
+                            "command": [
+                                "sudo systemctl enable --now cockpit.socket | show_infobox "
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "check_if_installed cockpit && ! systemctl is-enabled cockpit.socket > /dev/null 2>&1"
+                        },
+                        {
+                            "id": "M03",
+                            "description": "Stop Cockpit Service",
+                            "command": [
+                                "systemctl stop cockpit cockpit.socket",
+                                "systemctl disable cockpit.socket | show_infobox "
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "check_if_installed cockpit && systemctl is-enabled cockpit.socket > /dev/null 2>&1"
+                        }
+                    ]
                 }
             ]
         },
