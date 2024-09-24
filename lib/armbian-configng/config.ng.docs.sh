@@ -95,9 +95,9 @@ Click for more info:
 <summary><b>Jobs / JSON Object</b></summary>
 
 A list of the jobs defined in the Jobs file.
-
-	$(see_jq_menu_list)
-
+~~~
+$(see_jq_menu_list)
+~~~
 </details>
 
 
@@ -137,9 +137,9 @@ sudo apt install git jq whiptail
 Get Development and contribute:
 ~~~
 {
-	git clone https://github.com/armbian/configng
-	cd configng
-	./armbian-configng --help
+git clone https://github.com/armbian/configng
+cd configng
+./armbian-configng --help
 }
 ~~~
 
