@@ -213,11 +213,12 @@ function toggle_ssh_lastlog() {
 		sudo service ssh restart
 	else
 		# If PrintLastLog is found, toggle between 'yes' and 'no'
-		sed -i '/^#\?PrintLastLog /{
-			s/PrintLastLog yes/PrintLastLog no/;
-			t;
-			s/PrintLastLog no/PrintLastLog yes/
-			}' "${SDCARD}/etc/ssh/sshd_config"
+		sed -i '/^#\?PrintLastLog /
+{
+	s/PrintLastLog yes/PrintLastLog no/;
+	t;
+	s/PrintLastLog no/PrintLastLog yes/
+}' "${SDCARD}/etc/ssh/sshd_config"
 		sudo service ssh restart
 	fi
 
