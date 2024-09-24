@@ -539,18 +539,6 @@
             "description": "Run/Install 3rd party applications",
             "sub": [
                 {
-                    "id": "SW19",
-                    "description": "Update Application Repository",
-                    "prompt": "This will update the apt repository\nWould you like to continue?",
-                    "command": [
-                        "debconf-apt-progress -- apt update"
-                    ],
-                    "status": "Active",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": ""
-                },
-                {
                     "id": "Desktops",
                     "description": "Install Desktop Environments",
                     "sub": [
