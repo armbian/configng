@@ -483,7 +483,7 @@ see_cmd_list() {
 			end
 		end;
 
-			# Find the correct menu if $menu is passed, otherwise show all
+		# Find the correct menu if $menu is passed, otherwise show all
 		if $menu == "" then
 			.menu | map(recurse_menu(. ; 0)) | join("\n")
 		else
@@ -492,32 +492,33 @@ see_cmd_list() {
 		'	
 	elif [[ -z "$1" || "$1" == "cmd" ]]; then
 		echo "$json_data" | jq -r --arg menu "$help_menu" '
-            def recurse_menu(menu; level):
-            menu | .id as $id | .description as $desc |
-            if has("sub") then
-                if level == 0 then
-                "\n  \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
-                elif level == 1 then
-                "    \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
-                else
-                "      \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
-                end
-            else
-                if level == 0 then
-                "  --cmd \($id) - \($desc)"
-                elif level == 1 then
-                "    --cmd \($id) - \($desc)"
-                else
-                "\t--cmd \($id) - \($desc)"
-                end
-            end;
-        .menu | map(recurse_menu(. ; 0)) | join("\n")
-        '
+		def recurse_menu(menu; level):
+		menu | .id as $id | .description as $desc |
+		if has("sub") then
+			if level == 0 then
+				"\n  \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
+			elif level == 1 then
+				"    \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
+			else
+				"      \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
+			end
+		else
+			if level == 0 then
+				"  --cmd \($id) - \($desc)"
+			elif level == 1 then
+				"    --cmd \($id) - \($desc)"
+			else
+				"\t--cmd \($id) - \($desc)"
+			end
+		end;
+		.menu | map(recurse_menu(. ; 0)) | join("\n")
+		'
 
 	else
 		echo "nope"
 	fi
 }
+
 
 module_options+=(
 	["see_cli_legacy,author"]="Joey Turner"
