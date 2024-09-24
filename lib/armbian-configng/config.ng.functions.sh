@@ -95,7 +95,7 @@ module_options+=(
 function check_if_installed (){
 
         local DPKG_Status="$(dpkg -s "$1" 2>/dev/null | awk -F": " '/^Status/ {print $2}')"
-        if [[ "X${DPKG_Status}" = "X" || "${DPKG_Status}" = *deinstall* ]]; then
+        if [[ "X${DPKG_Status}" = "X" || "${DPKG_Status}" = *deinstall*  || "${DPKG_Status}" = *not-installed* ]]; then
                 return 1
         else
                 return 0
@@ -212,12 +212,12 @@ function set_runtime_variables(){
 		fi
 	fi
 
-    # Determine which network renderer is in use for NetPlan
-    if systemctl is-active systemd-networkd 1>/dev/null; then
-        renderer=networkd
-    else
-        renderer=NetworkManager
-    fi
+	# Determine which network renderer is in use for NetPlan
+	if systemctl is-active systemd-networkd 1>/dev/null; then
+		renderer=networkd
+	else
+		renderer=NetworkManager
+	fi
 
 	DIALOG_CANCEL=1
 	DIALOG_ESC=255

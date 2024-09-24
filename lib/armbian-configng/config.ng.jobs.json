@@ -724,7 +724,118 @@
                     "src_reference": "",
                     "author": "",
                     "condition": "[ -f /usr/bin/armbianmonitor ]"
-
+                },
+                {
+                    "id": "SW01.4",
+                    "description": "Softy - 3rd party apps",
+                    "sub": [
+                            {
+                                "id": "SW21",
+                                "description": "Install Plex Media server",
+                                "prompt": "This operation will install Plex Media server.\nWould you like to continue?",
+                                "command": [
+                                     "install_plexmediaserver"
+                                ],
+                                "status": "Active",
+                                "doc_link": "",
+                                "src_reference": "",
+                                "author": "",
+                                "condition": "! check_if_installed plexmediaserver"
+                            },
+                            {
+                                "id": "SW22",
+                                "description": "Remove Plex Media server",
+                                "prompt": "This operation will purge Plex Media server.\nWould you like to continue?",
+                                "command": [
+                                     "apt_install_wrapper apt-get -y purge plexmediaserver",
+                                     "sed -i '/plexmediaserver.gpg/s/^/#/g' /etc/apt/sources.list.d/plexmediaserver.list"
+                                 ],
+                                "status": "Active",
+                                "doc_link": "",
+                                "src_reference": "",
+                                "author": "",
+                                "condition": "check_if_installed plexmediaserver"
+                            },
+                            {
+                                "id": "SW23",
+                                "description": "Install Emby server",
+                                "prompt": "This operation will install Emby server.\nWould you like to continue?",
+                                "command": [
+                                     "install_embyserver"
+                                ],
+                                "status": "Active",
+                                "doc_link": "",
+                                "src_reference": "",
+                                "author": "",
+                                "condition": "! check_if_installed emby-server"
+                            },
+                            {
+                                "id": "SW24",
+                                "description": "Remove Emby server",
+                                "prompt": "This operation will purge Emby server.\nWould you like to continue?",
+                                "command": [
+                                    "apt_install_wrapper apt -y purge emby-server"
+                                ],
+                                "status": "Active",
+                                "doc_link": "",
+                                "src_reference": "",
+                                "author": "",
+                                "condition": "check_if_installed emby-server"
+                            },
+                            {
+                                "id": "SW25",
+                                "description": "Install Docker Minimal",
+                                "prompt": "This operation will install Docker Minimal.\nWould you like to continue?",
+                                "command": [
+                                     "install_docker"
+                                ],
+                                "status": "Active",
+                                "doc_link": "",
+                                "src_reference": "",
+                                "author": "",
+                                "condition": "! check_if_installed docker-ce"
+                            },
+                            {
+                                "id": "SW26",
+                                "description": "Install Docker Engine",
+                                "prompt": "This operation will install Docker Engine.\nWould you like to continue?",
+                                "command": [
+                                     "install_docker engine"
+                                ],
+                                "status": "Active",
+                                "doc_link": "",
+                                "src_reference": "",
+                                "author": "",
+                                "condition": "! check_if_installed docker-compose-plugin"
+                            },
+                            {
+                                "id": "SW27",
+                                "description": "Remove Docker",
+                                "prompt": "This operation will purge Docker.\nWould you like to continue?",
+                                "command": [
+                                    "apt_install_wrapper apt -y purge docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras"
+                                ],
+                                "status": "Active",
+                                "doc_link": "",
+                                "src_reference": "",
+                                "author": "",
+                                "condition": "check_if_installed docker-ce"
+                            },
+                            {
+                                "id": "SW28",
+                                "description": "Purge all Docker images, containers, and volumes",
+                                "prompt": "This operation will delete all Docker images, containers, and volumes.\nWould you like to continue?",
+                                "command": [
+                                    "rm -rf /var/lib/docker",
+                                    "rm -rf /var/lib/containerd"
+                                ],
+                                "status": "Active",
+                                "doc_link": "",
+                                "src_reference": "",
+                                "author": "",
+                                "condition": "! check_if_installed docker-ce && [ -d /var/lib/docker ]"
+                            }
+                        ]
                 }
             ]
         },
