@@ -3,29 +3,16 @@
 # top-most EditorConfig file
 root = true
 
+# Custom Armbian formatting for bash sources and configuration
 [*]
 charset = utf-8
 end_of_line = lf
+
+[*.{sh,conf}]
 indent_style = tab
-indent_size = 8
 trim_trailing_whitespace = true
 insert_final_newline = true
-
-[*.patch]
-trim_trailing_whitespace = false
-
-[*.md]
-indent_style = space
-indent_size = 4
-insert_final_newline = false
-
-[*.json]
-indent_style = space
-indent_size = 4
-
-# Custom Armbian formatting for bash sources and configuration
-[*.{sh,inc,conf,eos,wip,tvb,csc}]
-indent_size = 4
+indent_size = 8
 shell_variant = bash
 binary_next_line = false
 switch_case_indent = true
@@ -33,11 +20,6 @@ space_redirects = true
 keep_padding = false
 function_next_line = false
 
-[*.{yaml,yml}]
+[*.json]
 indent_style = space
-indent_size = 2
-insert_final_newline = false
-
-[*.py]
 indent_size = 4
-max_line_length = 150
