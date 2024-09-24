@@ -489,7 +489,7 @@ see_cmd_list() {
 		else
 			.menu | map(select(.id == $menu) | recurse_menu(. ; 0)) | join("\n")
 		end
-		'	
+		'
 	elif [[ -z "$1" || "$1" == "cmd" ]]; then
 		echo "$json_data" | jq -r --arg menu "$help_menu" '
 		def recurse_menu(menu; level):
