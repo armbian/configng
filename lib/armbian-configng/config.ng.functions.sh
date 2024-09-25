@@ -597,19 +597,19 @@ function execute_command() {
 
 	# Extract commands
 	local commands=$(jq -r --arg id "$id" '
-      .menu[] |
-      .. |
-      objects |
-      select(.id == $id) |
-      .command[]?' "$json_file")
+		.menu[] |
+		.. |
+		objects |
+		select(.id == $id) |
+		.command[]?' "$json_file")
 
 	# Check if a prompt exists
 	local prompt=$(jq -r --arg id "$id" '
-      .menu[] |
-      .. |
-      objects |
-      select(.id == $id) |
-      .prompt?' "$json_file")
+		.menu[] |
+		.. |
+		objects |
+		select(.id == $id) |
+		.prompt?' "$json_file")
 
 	# If a prompt exists, display it and wait for user confirmation
 	if [[ "$prompt" != "null" && $INPUTMODE != "cmd" ]]; then
@@ -842,8 +842,8 @@ module_options+=(
 	["see_current_apt,author"]="Joey Turner"
 	["see_current_apt,ref_link"]=""
 	["see_current_apt,feature"]="see_current_apt"
-	["see_current_apt,desc"]="Check when apt list was last updated"
-	["see_current_apt,example"]="see_current_apt"
+	["see_current_apt,desc"]="Check when apt list was last updated and suggest updating or update"
+	["see_current_apt,example"]="see_current_apt || see_current_apt update"
 	["see_current_apt,doc_link"]=""
 	["see_current_apt,status"]="Active"
 )
@@ -852,36 +852,44 @@ module_options+=(
 #
 see_current_apt() {
 	# Number of seconds in a day
+	local update_apt="$1"
 	local day=86400
-
+	local ten_minutes=600
 	# Get the current date as a Unix timestamp
 	local now=$(date +%s)
 
 	# Get the timestamp of the most recently updated file in /var/lib/apt/lists/
-	local update=$(stat -c %Y /var/lib/apt/lists/* | sort -n | tail -1)
+	local update=$(stat -c %Y /var/lib/apt/lists/* 2>/dev/null | sort -n | tail -1)
+
+	# Check if the update timestamp was found
+	if [[ -z "$update" ]]; then
+		echo "No package lists found."
+		return 1 # No package lists exist
+	fi
 
 	# Calculate the number of seconds since the last update
 	local elapsed=$((now - update))
 
+	# Check if any apt-related processes are running
 	if ps -C apt-get,apt,dpkg > /dev/null; then
-		echo "A pkg is running."
+		echo "A package manager is currently running."
 		export running_pkg="true"
 		return 1 # The processes are running
 	else
 		export running_pkg="false"
-		#echo "apt, apt-get, or dpkg is not currently running"
 	fi
+
 	# Check if the package list is up-to-date
-	if ((elapsed < day)); then
-		#echo "Checking for apt-daily.service"
-		echo "$(date -u -d @${elapsed} +"%T")"
+	if ((elapsed < ten_minutes)); then
+		[[ "$update_apt" != "update" ]] && echo "The package lists are up-to-date."
 		return 0 # The package lists are up-to-date
 	else
-		#echo "Checking for apt-daily.service"
-		echo "Update the package lists"
-		return 1 # The package lists are not up-to-date
+		[[ "$update_apt" != "update" ]] && echo "Update the package lists." # Suggest updating
+		[[ "$update_apt" == "update" ]] && apt_install_wrapper apt-get update
+		return 0 # The package lists are not up-to-date
 	fi
 }
+
 
 module_options+=(
 	["are_headers_installed,author"]="Gunjan Gupta"

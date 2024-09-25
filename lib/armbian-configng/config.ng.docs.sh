@@ -37,8 +37,8 @@ sudo armbian-config
 
 $(see_full_list)
 
-## Install 
-Armbian installation 
+## Install
+Armbian installation
 ~~~
 sudo apt install armbian-config
 ~~~
@@ -46,12 +46,12 @@ sudo apt install armbian-config
 3rd party Debian based distributions
 ~~~
 {
-    sudo wget https://apt.armbian.com/armbian.key -O key
-    sudo gpg --dearmor < key | sudo tee /usr/share/keyrings/armbian.gpg > /dev/null
-    sudo chmod go+r /usr/share/keyrings/armbian.gpg
-    sudo echo "deb [arch=\$(dpkg --print-architecture) signed-by=/usr/share/keyrings/armbian.gpg] http://apt.armbian.com \$(lsb_release -cs) main  \$(lsb_release -cs)-utils  \$(lsb_release -cs)-desktop" | sudo tee /etc/apt/sources.list.d/armbian.list
-    sudo apt update
-    sudo apt install armbian-config
+	sudo wget https://apt.armbian.com/armbian.key -O key
+	sudo gpg --dearmor < key | sudo tee /usr/share/keyrings/armbian.gpg > /dev/null
+	sudo chmod go+r /usr/share/keyrings/armbian.gpg
+	sudo echo "deb [arch=\$(dpkg --print-architecture) signed-by=/usr/share/keyrings/armbian.gpg] http://apt.armbian.com \$(lsb_release -cs) main  \$(lsb_release -cs)-utils  \$(lsb_release -cs)-desktop" | sudo tee /etc/apt/sources.list.d/armbian.list
+	sudo apt update
+	sudo apt install armbian-config
 }
 ~~~
 
@@ -95,9 +95,9 @@ Click for more info:
 <summary><b>Jobs / JSON Object</b></summary>
 
 A list of the jobs defined in the Jobs file.
-
- $(see_jq_menu_list)
-
+~~~
+$(see_jq_menu_list)
+~~~
 </details>
 
 
@@ -137,23 +137,23 @@ sudo apt install git jq whiptail
 Get Development and contribute:
 ~~~
 {
-    git clone https://github.com/armbian/configng
-    cd configng
-    ./armbian-configng --help
+git clone https://github.com/armbian/configng
+cd configng
+./armbian-configng --help
 }
 ~~~
 
 Install and test Development deb:
 ~~~
 {
-    sudo apt install whiptail
-    latest_release=\$(curl -s https://api.github.com/repos/armbian/configng/releases/latest)
-    deb_url=\$(echo "\$latest_release" | jq -r '.assets[] | select(.name | endswith(".deb")) | .browser_download_url')
-    curl -LO "\$deb_url"
-    deb_file=\$(echo "\$deb_url" | awk -F"/" '{print \$NF}')
-    sudo dpkg -i "\$deb_file"
-    sudo dpkg --configure -a
-    sudo apt --fix-broken install
+	sudo apt install whiptail
+	latest_release=\$(curl -s https://api.github.com/repos/armbian/configng/releases/latest)
+	deb_url=\$(echo "\$latest_release" | jq -r '.assets[] | select(.name | endswith(".deb")) | .browser_download_url')
+	curl -LO "\$deb_url"
+	deb_file=\$(echo "\$deb_url" | awk -F"/" '{print \$NF}')
+	sudo dpkg -i "\$deb_file"
+	sudo dpkg --configure -a
+	sudo apt --fix-broken install
 }
 ~~~
 
@@ -185,10 +185,10 @@ function serve_doc() {
 		python3 -m http.server > /tmp/config.log 2>&1 &
 		local server_pid=$!
 		local input=("
- Starting server...
-        Server PID: $server_pid
-        
-    Press [Enter] to exit"
+	Starting server...
+		Server PID: $server_pid
+
+	Press [Enter] to exit"
 		)
 
 		$DIALOG --title "Message Box" --msgbox "$input" 0 0
@@ -436,14 +436,13 @@ module_options+=(
 # This function is used to generate a markdown list from the json object using jq.
 #
 function see_jq_menu_list() {
-
 	jq -r '
-    .menu[] | 
-    .sub[] | 
-    "### " + .id + "\n\n" + 
-    (.description // "No description available") + "\n\nJobs:\n\n~~~\n" + 
-    ((.command // ["No commands available"]) | join("\n")) +  
-    "\n~~~\n"
+	.menu[] |
+	.sub[] |
+	"### " + .id + "\n\n" +
+	(.description // "No description available") + "\n\nJobs:\n\n~~~\n" +
+	((.command // ["No commands available"]) | join("\n")) +
+	"\n~~~\n"
 ' $json_file
 }
 
@@ -464,61 +463,62 @@ see_cmd_list() {
 
 	if [[ -n "$help_menu" && "$help_menu" != "cmd" ]]; then
 		echo "$json_data" | jq -r --arg menu "$help_menu" '
-        def recurse_menu(menu; level):
-        menu | .id as $id | .description as $desc |
-        if has("sub") then
-            if level == 0 then
-            "\n  \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
-            elif level == 1 then
-            "    \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
-            else
-            "      \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
-            end
-        else
-            if level == 0 then
-            "  --cmd \($id) - \($desc)"
-            elif level == 1 then
-            "    --cmd \($id) - \($desc)"
-            else
-            "\t--cmd \($id) - \($desc)"
-            end
-        end;
+		def recurse_menu(menu; level):
+		menu | .id as $id | .description as $desc |
+		if has("sub") then
+			if level == 0 then
+				"\n  \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
+			elif level == 1 then
+				"    \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
+			else
+				"      \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
+			end
+		else
+			if level == 0 then
+				"  --cmd \($id) - \($desc)"
+			elif level == 1 then
+				"    --cmd \($id) - \($desc)"
+			else
+				"\t--cmd \($id) - \($desc)"
+			end
+		end;
 
-        # Find the correct menu if $menu is passed, otherwise show all
-        if $menu == "" then
-            .menu | map(recurse_menu(. ; 0)) | join("\n")
-        else
-            .menu | map(select(.id == $menu) | recurse_menu(. ; 0)) | join("\n")
-        end
-    '
+		# Find the correct menu if $menu is passed, otherwise show all
+		if $menu == "" then
+			.menu | map(recurse_menu(. ; 0)) | join("\n")
+		else
+			.menu | map(select(.id == $menu) | recurse_menu(. ; 0)) | join("\n")
+		end
+		'
 	elif [[ -z "$1" || "$1" == "cmd" ]]; then
 		echo "$json_data" | jq -r --arg menu "$help_menu" '
-            def recurse_menu(menu; level):
-            menu | .id as $id | .description as $desc |
-            if has("sub") then
-                if level == 0 then
-                "\n  \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
-                elif level == 1 then
-                "    \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
-                else
-                "      \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
-                end
-            else
-                if level == 0 then
-                "  --cmd \($id) - \($desc)"
-                elif level == 1 then
-                "    --cmd \($id) - \($desc)"
-                else
-                "\t--cmd \($id) - \($desc)"
-                end
-            end;
-            .menu | map(recurse_menu(. ; 0)) | join("\n")
-        '
+		def recurse_menu(menu; level):
+		menu | .id as $id | .description as $desc |
+		if has("sub") then
+			if level == 0 then
+				"\n  \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
+			elif level == 1 then
+				"    \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
+			else
+				"      \($id) - \($desc)\n" + (.sub | map(recurse_menu(. ; level + 1)) | join("\n"))
+			end
+		else
+			if level == 0 then
+				"  --cmd \($id) - \($desc)"
+			elif level == 1 then
+				"    --cmd \($id) - \($desc)"
+			else
+				"\t--cmd \($id) - \($desc)"
+			end
+		end;
+		.menu | map(recurse_menu(. ; 0)) | join("\n")
+		'
 
 	else
 		echo "nope"
 	fi
 }
+
 
 module_options+=(
 	["see_cli_legacy,author"]="Joey Turner"
@@ -538,10 +538,10 @@ Please use 'armbian-config --help' for more information.
 Usage:  $script_name main=[arguments] selection=[options]
 
 EOF
-	cat << EOF
-    $script_name main=System selection=Headers          -  Install headers:                                        
-    $script_name main=System selection=Headers_remove   -  Remove headers:                                 
 
+cat << EOF
+	$script_name main=System selection=Headers          -  Install headers:
+	$script_name main=System selection=Headers_remove   -  Remove headers:
 EOF
 
 	# TODO Migrate following features
