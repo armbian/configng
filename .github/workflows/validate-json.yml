@@ -1,0 +1,27 @@
+name: Validate JSON
+
+on:
+  pull_request:
+    types: [opened, reopened, edited, synchronize, review_requested]
+
+concurrency:
+  group: validate-json-${{github.event.pull_request.number}}
+  cancel-in-progress: true
+
+jobs:
+  editorconfig:
+    name: "Validate JSON"
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: 'config'
+
+      - name: Check JSON
+        run: |
+          JSON=$(cat config/lib/armbian-configng/config.ng.jobs.json | jq)
+          EMPTY=$(cat config/lib/armbian-configng/config.ng.jobs.json | jq | nl | grep '"author": ""' | awk '{print $1}' | paste -s -d, -)
+          echo "## Warning: Empty author field in lines:" >> $GITHUB_STEP_SUMMARY
+          echo $EMPTY >> $GITHUB_STEP_SUMMARY
