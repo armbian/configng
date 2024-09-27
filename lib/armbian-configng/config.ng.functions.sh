@@ -518,13 +518,13 @@ module_options+=(
 #
 generate_top_menu() {
 	local json_data=$1
-
+	local backtitle="$ARMBIAN $DISTRO $DISTROID $KERNELID"
 	while true; do
 		local menu_options=()
 
 		parse_menu_items menu_options
 
-		local OPTION=$($DIALOG --title "$TITLE" --backtitle "$BACKTITLE" --menu "Main" 0 80 9 "${menu_options[@]}" \
+		local OPTION=$($DIALOG --title "$TITLE" --backtitle "$backtitle" --menu "Choose an option:" 0 80 9 "${menu_options[@]}" \
 			--ok-button Select --cancel-button Exit 3>&1 1>&2 2>&3)
 		local exitstatus=$?
 
@@ -549,14 +549,19 @@ module_options+=(
 # Function to generate the submenu
 #
 function generate_menu() {
-	local parent_id=$1
+	local parent_id="$1"
+	local top_parent_id="$2"
+	local backtitle="$ARMBIAN $DISTRO $DISTROID $KERNELID"
+	local status="$TITLE"
+
+	[[ "$parent_id" == "System" ]] && status=""
 
 	while true; do
 		# Get the submenu options for the current parent_id
 		local submenu_options=()
 		parse_menu_items submenu_options
 
-		local OPTION=$($DIALOG --title "$TITLE ($parent_id)" --backtitle "$BACKTITLE" --menu "$parent_id" 0 80 9 "${submenu_options[@]}" \
+		local OPTION=$($DIALOG --title "$status" --backtitle "$backtitle" --menu "$top_parent_id $parent_id options:" 0 80 9 "${submenu_options[@]}" \
 			--ok-button Select --cancel-button Back 3>&1 1>&2 2>&3)
 
 		local exitstatus=$?
@@ -570,7 +575,8 @@ function generate_menu() {
 			if [ "$submenu_count" -gt 0 ]; then
 				# If it does, generate a new menu for the submenu
 				[[ -n "$debug" ]] && echo "$OPTION"
-				generate_menu "$OPTION"
+				generate_menu "$OPTION" "$parent_id"
+
 			else
 				# If it doesn't, execute the command
 				[[ -n "$debug" ]] && echo "$OPTION"
