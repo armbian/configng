@@ -11,7 +11,7 @@
                     "command": [
                         "armbian_fw_manipulate unhold"
                     ],
-                    "status": "preview",
+                    "status": "Preview",
                     "doc_link": "",
                     "src_reference": "",
                     "author": "",
@@ -24,7 +24,7 @@
                     "command": [
                         "armbian_fw_manipulate hold"
                     ],
-                    "status": "preview",
+                    "status": "Preview",
                     "doc_link": "",
                     "src_reference": "",
                     "author": "",
@@ -37,7 +37,7 @@
                     "command": [
                         "nano /boot/armbianEnv.txt"
                     ],
-                    "status": "preview",
+                    "status": "Preview",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -48,7 +48,7 @@
                     "command": [
                         "Headers_install"
                     ],
-                    "status": "preview",
+                    "status": "Preview",
                     "doc_link": "https://github.com/armbian/config/wiki#System",
                     "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L160",
                     "author": "https://github.com/Tearran",
@@ -60,7 +60,7 @@
                     "command": [
                         "Headers_remove"
                     ],
-                    "status": "preview",
+                    "status": "Preview",
                     "doc_link": "https://github.com/armbian/config/wiki#System",
                     "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L160",
                     "author": "https://github.com/Tearran",
@@ -72,7 +72,7 @@
                     "command": [
                         "armbian-install"
                     ],
-                    "status": "preview",
+                    "status": "Preview",
                     "doc_link": "https://github.com/armbian/config/wiki#System",
                     "src_reference": "",
                     "author": "https://github.com/igorpecovnik",
@@ -89,7 +89,7 @@
                                 "sed -i \"s|^#\\?PermitRootLogin.*|PermitRootLogin no|\" /etc/ssh/sshd_config",
                                 "systemctl restart sshd.service"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -102,7 +102,7 @@
                                 "sed -i \"s/^#\\?PermitRootLogin.*/PermitRootLogin yes/\" /etc/ssh/sshd_config",
                                 "systemctl restart sshd.service"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -115,7 +115,7 @@
                                 "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication no/\" /etc/ssh/sshd_config",
                                 "systemctl restart sshd.service"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -128,7 +128,7 @@
                                 "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication yes/\" /etc/ssh/sshd_config",
                                 "systemctl restart sshd.service"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -141,7 +141,7 @@
                                 "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication no/\" /etc/ssh/sshd_config",
                                 "systemctl restart sshd.service"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -154,7 +154,7 @@
                                 "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication yes/\" /etc/ssh/sshd_config",
                                 "systemctl restart sshd.service"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -170,7 +170,7 @@
                                 "sed -i '/^auth required pam_google_authenticator.so nullok/ d' /etc/pam.d/sshd",
                                 "systemctl restart sshd.service"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -187,7 +187,7 @@
                                 "[ ! -f /root/.google_authenticator ] && qr_code generate",
                                 "systemctl restart sshd.service"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -199,7 +199,7 @@
                             "command": [
                                 "qr_code generate"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -211,7 +211,7 @@
                             "command": [
                                 "qr_code"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "Igor Pecovnik",
@@ -224,7 +224,7 @@
                                 "sed -i \"s/^#\\?PrintLastLog.*/PrintLastLog no/\" /etc/ssh/sshd_config",
                                 "systemctl restart ssh.service "
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -237,7 +237,7 @@
                                 "sed -i \"s/^#\\?PrintLastLog.*/PrintLastLog yes/\" /etc/ssh/sshd_config",
                                 "systemctl restart ssh.service "
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -256,7 +256,7 @@
                         "update_skel",
                         "awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534 || $3 == 0) print $1}' /etc/passwd | xargs -L1 chsh -s $(grep /bash$ /etc/shells | tail -1)"
                     ],
-                    "status": "preview",
+                    "status": "Preview",
                     "doc_link": "",
                     "src_reference": "",
                     "author": "https://github.com/igorpecovnik",
@@ -273,7 +273,7 @@
                         "update_skel",
                         "awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534 || $3 == 0) print $1}' /etc/passwd | xargs -L1 chsh -s $(grep /zsh$ /etc/shells | tail -1)"
                     ],
-                    "status": "preview",
+                    "status": "Preview",
                     "doc_link": "",
                     "src_reference": "",
                     "author": "https://github.com/igorpecovnik",
@@ -286,7 +286,7 @@
                     "command": [
                         "set_rolling"
                     ],
-                    "status": "preview",
+                    "status": "Preview",
                     "doc_link": "",
                     "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L1446",
                     "author": "Igor Pecovnik",
@@ -299,7 +299,7 @@
                     "command": [
                         "set_stable"
                     ],
-                    "status": "preview",
+                    "status": "Preview",
                     "doc_link": "",
                     "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L1446",
                     "author": "Igor Pecovnik",
@@ -312,7 +312,7 @@
                     "command": [
                         "manage_overlayfs enable"
                     ],
-                    "status": "preview",
+                    "status": "Preview",
                     "doc_link": "",
                     "src_reference": "",
                     "author": "Igor Pecovnik",
@@ -325,7 +325,7 @@
                     "command": [
                         "manage_overlayfs disable"
                     ],
-                    "status": "preview",
+                    "status": "Preview",
                     "doc_link": "",
                     "src_reference": "",
                     "author": "Igor Pecovnik",
@@ -337,7 +337,7 @@
                     "command": [
                         "adjust_motd"
                     ],
-                    "status": "preview",
+                    "status": "Preview",
                     "doc_link": "",
                     "src_reference": "",
                     "author": "",
@@ -350,7 +350,7 @@
                     "command": [
                         "switch_kernels"
                     ],
-                    "status": "preview",
+                    "status": "Preview",
                     "doc_link": "",
                     "src_reference": "",
                     "author": "Igor Pecovnik",
@@ -401,7 +401,7 @@
                             "command": [
                                 "network_config armbian"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "author": "Igor Pecovnik",
                             "condition": ""
                         },
@@ -411,7 +411,7 @@
                             "command": [
                                 "default_network_config"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "author": "Igor Pecovnik",
                             "condition": "[[ -f /etc/netplan/armbian.yaml ]] && ! cat /etc/netplan/armbian.yaml | diff -q 1>/dev/null <(netplan get all) - || [[ ! -f /etc/netplan/10-dhcp-all-interfaces.yaml ]] && ! cat /etc/netplan/10-dhcp-all-interfaces.yaml 2>/dev/null | diff -q 1>/dev/null <(netplan get all) -"
                         },
@@ -421,7 +421,7 @@
                             "command": [
                                 "show_message <<< \"$(netplan get all)\""
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "Igor Pecovnik",
@@ -434,7 +434,7 @@
                             "command": [
                                 "netplan apply"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "Igor Pecovnik",
@@ -446,7 +446,7 @@
                             "command": [
                                 "show_message <<< \"$(netplan status --all)\""
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "Igor Pecovnik",
@@ -462,7 +462,7 @@
                         "debconf-apt-progress -- apt-get -y install bluetooth bluez bluez-tools",
                         "check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y --no-install-recommends install pulseaudio-module-bluetooth blueman"
                     ],
-                    "status": "preview",
+                    "status": "Preview",
                     "doc_link": "",
                     "src_reference": "",
                     "author": "",
@@ -477,7 +477,7 @@
                         "check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y remove pulseaudio-module-bluetooth blueman",
                         "debconf-apt-progress -- apt -y -qq autoremove"
                     ],
-                    "status": "preview",
+                    "status": "Preview",
                     "doc_link": "",
                     "src_reference": "",
                     "author": "",
@@ -490,7 +490,7 @@
                     "command": [
                         "connect_bt_interface"
                     ],
-                    "status": "preview",
+                    "status": "Preview",
                     "doc_link": "",
                     "src_reference": "",
                     "author": "",
@@ -503,7 +503,7 @@
                     "command": [
                         "toggle_ipv6 | show_infobox"
                     ],
-                    "status": "preview",
+                    "status": "Preview",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -520,7 +520,7 @@
                     "command": [
                         "dpkg-reconfigure tzdata"
                     ],
-                    "status": "preview",
+                    "status": "Preview",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -533,7 +533,7 @@
                         "source /etc/default/locale ; sed -i \"s/^LANGUAGE=.*/LANGUAGE=$LANG/\" /etc/default/locale",
                         "export LANGUAGE=$LANG"
                     ],
-                    "status": "preview",
+                    "status": "Preview",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -545,7 +545,7 @@
                         "dpkg-reconfigure keyboard-configuration ; setupcon ",
                         "update-initramfs -u"
                     ],
-                    "status": "preview",
+                    "status": "Preview",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -557,8 +557,7 @@
                     "command": [
                         "get_user_continue \"This is only a frontend test\" process_input"
                     ],
-                    "disabled": true,
-                    "status": "preview",
+                    "status": "disabled",
                     "author": ""
                 }
             ]
@@ -577,7 +576,7 @@
                             "command": [
                                 "install_de \"xfce\""
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -589,7 +588,7 @@
                             "command": [
                                 "install_de \"gnome\""
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -601,7 +600,7 @@
                             "command": [
                                 "install_de \"i3-wm\""
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -613,7 +612,7 @@
                             "command": [
                                 "install_de \"cinnamon\""
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -625,7 +624,7 @@
                             "command": [
                                 "install_de \"kde-neon\""
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -644,7 +643,7 @@
                                 "get_user_continue \"This operation will install nload.\n\nDo you wish to continue?\" process_input",
                                 "debconf-apt-progress -- apt-get -y install nload"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -657,7 +656,7 @@
                                 "get_user_continue \"This operation will purge nload.\n\nDo you wish to continue?\" process_input",
                                 "debconf-apt-progress -- apt-get -y purge nload"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -670,7 +669,7 @@
                                 "get_user_continue \"This operation will install iperf3.\n\nDo you wish to continue?\" process_input",
                                 "debconf-apt-progress -- apt-get -y install iperf3"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -683,7 +682,7 @@
                                 "get_user_continue \"This operation will purge iperf3.\n\nDo you wish to continue?\" process_input",
                                 "debconf-apt-progress -- apt-get -y purge iperf3"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -696,7 +695,7 @@
                                 "get_user_continue \"This operation will install iptraf-ng.\n\nDo you wish to continue?\" process_input",
                                 "debconf-apt-progress -- apt-get -y install iptraf-ng"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -709,7 +708,7 @@
                                 "get_user_continue \"This operation will purge nload.\n\nDo you wish to continue?\" process_input",
                                 "debconf-apt-progress -- apt-get -y purge iptraf-ng"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -726,7 +725,7 @@
                                 "cp /usr/share/doc/avahi-daemon/examples/ssh.service /etc/avahi/services/",
                                 "service avahi-daemon restart"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -741,7 +740,7 @@
                                 "systemctl stop avahi-daemon avahi-daemon.socket",
                                 "debconf-apt-progress -- apt-get -y purge avahi-daemon"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -760,7 +759,7 @@
                                 "get_user_continue \"This operation will install git.\n\nDo you wish to continue?\" process_input",
                                 "debconf-apt-progress -- apt-get -y install git"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -773,7 +772,7 @@
                                 "get_user_continue \"This operation will remove git.\n\nDo you wish to continue?\" process_input",
                                 "debconf-apt-progress -- apt-get -y purge git"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -787,7 +786,7 @@
                     "command": [
                         "see_monitoring"
                     ],
-                    "status": "preview",
+                    "status": "Preview",
                     "doc_link": "",
                     "src_reference": "",
                     "author": "",
@@ -804,7 +803,7 @@
                             "command": [
                                 "install_docker"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -817,7 +816,7 @@
                             "command": [
                                 "install_docker engine"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -830,7 +829,7 @@
                             "command": [
                                 "apt_install_wrapper apt -y purge docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -844,7 +843,7 @@
                                 "rm -rf /var/lib/docker",
                                 "rm -rf /var/lib/containerd"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -863,7 +862,7 @@
                             "command": [
                                 "install_plexmediaserver"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -877,7 +876,7 @@
                                 "apt_install_wrapper apt-get -y purge plexmediaserver",
                                 "sed -i '/plexmediaserver.gpg/s/^/#/g' /etc/apt/sources.list.d/plexmediaserver.list"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -890,7 +889,7 @@
                             "command": [
                                 "install_embyserver"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -903,7 +902,7 @@
                             "command": [
                                 "apt_install_wrapper apt -y purge emby-server"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -923,7 +922,7 @@
                                 "see_current_apt update",
                                 "apt_install_wrapper apt -y install cockpit cockpit-ws cockpit-system cockpit-storaged "
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -936,7 +935,7 @@
                             "command": [
                                 "apt_install_wrapper apt -y purge cockpit"
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -948,7 +947,7 @@
                             "command": [
                                 "sudo systemctl enable --now cockpit.socket | show_infobox "
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -961,7 +960,7 @@
                                 "systemctl stop cockpit cockpit.socket",
                                 "systemctl disable cockpit.socket | show_infobox "
                             ],
-                            "status": "preview",
+                            "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
                             "author": "",
@@ -981,7 +980,7 @@
                     "command": [
                         "show_message <<< \"This app is to help execute procedures to configure your system\n\nSome options may not work on manually modified systems\""
                     ],
-                    "status": "preview",
+                    "status": "Preview",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
@@ -992,7 +991,7 @@
                     "command": [
                         "show_message <<< see_use"
                     ],
-                    "status": "preview",
+                    "status": "disabled",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
