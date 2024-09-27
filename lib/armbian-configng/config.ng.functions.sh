@@ -556,7 +556,7 @@ function generate_menu() {
 		local submenu_options=()
 		parse_menu_items submenu_options
 
-		local OPTION=$($DIALOG --title "$TITLE" --menu "$BACKTITLE" 0 80 9 "${submenu_options[@]}" \
+		local OPTION=$($DIALOG --title "$TITLE ($parent_id)" --menu "$BACKTITLE" 0 80 9 "${submenu_options[@]}" \
 			--ok-button Select --cancel-button Back 3>&1 1>&2 2>&3)
 
 		local exitstatus=$?
