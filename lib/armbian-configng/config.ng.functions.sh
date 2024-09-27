@@ -501,7 +501,7 @@ parse_menu_items() {
 			# If the condition field is empty or null, add the menu item to the menu
 			options+=("$id" "  -  $description ")
 		fi
-	done < <(echo "$json_data" | jq -r '.menu[] | '${parent_id:+".. | objects | select(.id==\"$parent_id\") | .sub[]? |"}' select(.disabled|not) | "\(.id)\n\(.description)\n\(.condition)"' || exit 1)
+	done < <(echo "$json_data" | jq -r '.menu[] | '${parent_id:+".. | objects | select(.id==\"$parent_id\") | .sub[]? |"}' select(.status != "disabled") | "\(.id)\n\(.description)\n\(.condition)"' || exit 1)
 }
 
 module_options+=(
