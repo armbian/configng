@@ -110,14 +110,16 @@ jobs:
             apt -y install wget gpg
 
             # add armbian repository
-            URL=apt.armbian.com
+            URL=beta.armbian.com
             wget https://${URL}/armbian.key -O key
             gpg --dearmor < key | tee /usr/share/keyrings/armbian.gpg > /dev/null
             chmod go+r /usr/share/keyrings/armbian.gpg
             echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] http://${URL} $RELEASE main ${RELEASE}-utils ${RELEASE}-desktop" | tee /etc/apt/sources.list.d/armbian.list
             apt update -y
             apt upgrade -y
-            apt -y install sudo procps systemd whiptail jq lsb-release iproute2
+            apt -y -o Dpkg::Options::="--force-confold" install sudo procps systemd whiptail jq lsb-release iproute2 armbian-bsp-cli-wsl2-x86-current-grub
+            sudo -b unshare --pid --fork --mount-proc /lib/systemd/systemd --system-unit=basic.target
+            cat /etc/armbian-distribution-status
 
             # install packages / except howdy as its too large
             export DEBIAN_FRONTEND=noninteractive
