@@ -228,7 +228,7 @@ function set_runtime_variables() {
 	[[ -z "${ARMBIAN// /}" ]] && ARMBIAN="$DISTRO $DISTROID"
 	DEFAULT_ADAPTER=$(ip -4 route ls | grep default | tail -1 | grep -Po '(?<=dev )(\S+)')
 	LOCALIPADD=$(ip -4 addr show dev $DEFAULT_ADAPTER | awk '/inet/ {print $2}' | cut -d'/' -f1)
-	BACKTITLE="\n    Contribute: https://github.com/armbian/configng\n"
+	BACKTITLE="Contribute: https://github.com/armbian/configng"
 	TITLE="Armbian configuration utility"
 	[[ -z "${DEFAULT_ADAPTER// /}" ]] && DEFAULT_ADAPTER="lo"
 
@@ -524,7 +524,7 @@ generate_top_menu() {
 
 		parse_menu_items menu_options
 
-		local OPTION=$($DIALOG --title "$TITLE" --menu "$BACKTITLE" 0 80 9 "${menu_options[@]}" \
+		local OPTION=$($DIALOG --title "$TITLE" --backtitle "$BACKTITLE" --menu "Main" 0 80 9 "${menu_options[@]}" \
 			--ok-button Select --cancel-button Exit 3>&1 1>&2 2>&3)
 		local exitstatus=$?
 
@@ -556,7 +556,7 @@ function generate_menu() {
 		local submenu_options=()
 		parse_menu_items submenu_options
 
-		local OPTION=$($DIALOG --title "$TITLE ($parent_id)" --menu "$BACKTITLE" 0 80 9 "${submenu_options[@]}" \
+		local OPTION=$($DIALOG --title "$TITLE ($parent_id)" --backtitle "$BACKTITLE" --menu "$parent_id" 0 80 9 "${submenu_options[@]}" \
 			--ok-button Select --cancel-button Back 3>&1 1>&2 2>&3)
 
 		local exitstatus=$?
