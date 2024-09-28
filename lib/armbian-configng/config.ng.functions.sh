@@ -530,8 +530,8 @@ generate_top_menu() {
 
 		if [ $exitstatus = 0 ]; then
 			[ -z "$OPTION" ] && break
-			[[ -n "$debug" ]] && echo "$OPTION"
-			generate_menu "$OPTION"
+			[[ "$OPTION" == "Help" ]] && show_message <<< "This app is to help execute procedures to configure your system\n\nSome options may not work on manually modified systems\""
+			[[ "$OPTION" != "Help" ]] && generate_menu "$OPTION"
 		fi
 	done
 }
