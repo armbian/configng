@@ -15,11 +15,20 @@ script_dir="$(dirname "$0")"
 # Define the lib directory one level up from the script directory
 lib_dir="$script_dir/../lib/armbian-configng"
 doc_dir="$script_dir/../share/doc/armbian-configng"
-json_file="$lib_dir/config.ng.jobs.json"
 
-#
-# Load The Bash procedure Objects
-json_data=$(<"$json_file")
+json_parts_dir="$lib_dir/armbian.config.jobs"
+
+# Initialize an empty JSON array
+merged_data='{"menu": []}'
+
+# Loop through each JSON file in the directory
+for file in "$json_parts_dir"/*.*.json; do
+    # Merge the current JSON file into the main JSON array
+    merged_data=$(jq --argfile part "$file" '.menu += $part' <<< "$merged_data")
+done
+
+# Assign the merged JSON object to the json_data variable
+json_data="$merged_data"
 
 #
 # 'whiptail' is a simple dialog box utility that works well with Bash. It doesn't have all the features of some other dialog box utilities, but it does everything we need for this script.
