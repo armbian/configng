@@ -12,6 +12,7 @@ module_options+=(
 # @description Use TUI / GUI for apt install if exists
 #
 function apt_install_wrapper() {
+
 	if [ -t 0 ]; then
 		DEBIAN_FRONTEND=noninteractive debconf-apt-progress -- "$@"
 	else
@@ -194,6 +195,7 @@ function set_stable() {
 
 	if ! grep -q 'apt.armbian.com' /etc/apt/sources.list.d/armbian.list; then
 		sed -i "s/http:\/\/[^ ]*/http:\/\/apt.armbian.com/" /etc/apt/sources.list.d/armbian.list
+		apt_install_wrapper apt-get update
 		armbian_fw_manipulate "reinstall"
 	fi
 }
@@ -213,6 +215,7 @@ function set_rolling() {
 
 	if ! grep -q 'beta.armbian.com' /etc/apt/sources.list.d/armbian.list; then
 		sed -i "s/http:\/\/[^ ]*/http:\/\/beta.armbian.com/" /etc/apt/sources.list.d/armbian.list
+		apt_install_wrapper apt-get update
 		armbian_fw_manipulate "reinstall"
 	fi
 }
