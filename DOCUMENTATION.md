@@ -1,6 +1,5 @@
 
 # Armbian Configuration Utility
-Updated: Mon Sep 30 12:06:20 UTC 2024
 
 Utility for configuring your board, adjusting services, and installing applications. It comes with Armbian by default.
 
