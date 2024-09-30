@@ -23,7 +23,7 @@ function generate_readme() {
 
 	echo -e "Sorting data\nUpdating documentation" # current_date ;
 
-	cat << EOF > "$script_dir/../README.md"
+	cat << EOF > "$script_dir/../DOCUMENTATION.md"
 
 # Armbian Configuration Utility
 Updated: $current_date
