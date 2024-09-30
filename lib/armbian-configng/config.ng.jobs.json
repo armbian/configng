@@ -355,8 +355,37 @@
                     "src_reference": "",
                     "author": "Igor Pecovnik",
                     "condition": ""
+                },
+                {
+                    "id": "S25",
+                    "description": "Distribution upgrades",
+                    "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade rolling verify || release_upgrade stable verify",
+                    "sub": [
+                        {
+                            "id": "S26",
+                            "description": "Upgrade to latest stable / LTS",
+                            "prompt": "Release upgrade is irriversible operation which upgrades all packages. \n\nResoulted upgrade might break your build beyond repair!",
+                            "command": [
+                                            "release_upgrade stable"
+                                        ],
+                            "status": "Active",
+                            "author": "Igor Pecovnik",
+                            "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade stable verify"
+                        },
+                        {
+                            "id": "S27",
+                            "description": "Upgrade to rolling unstable",
+                            "prompt": "Release upgrade is irriversible operation which upgrades all packages. \n\nResoulted upgrade might break your build beyond repair!",
+                            "command": [
+                                            "release_upgrade rolling"
+                                        ],
+                            "status": "Active",
+                            "author": "Igor Pecovnik",
+                            "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade rolling verify"
+                        }
+                ]
                 }
-            ]
+            ] 
         },
         {
             "id": "Network",

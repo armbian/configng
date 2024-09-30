@@ -106,3 +106,5 @@ install_docker() {
 		whiptail --msgbox "ERROR ! ${DISTRO} $DISTROID distribution not found in repository!" 7 70
 	fi
 }
+
+
