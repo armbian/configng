@@ -1,6 +1,5 @@
 
 # Armbian Configuration Utility
-Updated: Mon Sep 30 12:06:20 UTC 2024
 
 Utility for configuring your board, adjusting services, and installing applications. It comes with Armbian by default.
 
@@ -25,6 +24,7 @@ sudo armbian-config
   - **S22** - Disable read only filesystem
   - **S23** - Adjust welcome screen (motd)
   - **S24** - Install alternative kernels
+  - **S25** - Distribution upgrades
 
 
 - ## **Network** 
@@ -115,6 +115,9 @@ Outputs:
     --cmd S22 - Disable read only filesystem
     --cmd S23 - Adjust welcome screen (motd)
     --cmd S24 - Install alternative kernels
+    S25 - Distribution upgrades
+	--cmd S26 - Upgrade to latest stable / LTS
+	--cmd S27 - Upgrade to rolling unstable
 
   Network - Fixed and wireless network settings (eth0)
     N01 - Configure network interfaces
@@ -367,6 +370,16 @@ Jobs:
 switch_kernels
 ~~~
 
+### S25
+
+Distribution upgrades
+
+Jobs:
+
+~~~
+No commands available
+~~~
+
 ### N01
 
 Configure network interfaces
@@ -614,6 +627,7 @@ These helper functions facilitate various operations related to job management, 
 | Revert network config back to Armbian defaults | default_network_config | Igor Pecovnik 
 | freeze/unhold/reinstall armbian related packages. | armbian_fw_manipulate unhold|freeze|reinstall | Igor Pecovnik 
 | Check the internet connection with fallback DNS | see_ping | Joey Turner 
+| Upgrade to next stable or rolling release | release_upgrade stable verify | Igor Pecovnik 
 | Install docker from a repo using apt | install_docker engine | Kat Schwarz 
 | Set Armbian to stable release | set_stable | Tearran 
 | Secure version of get_user_continue | get_user_continue_secure 'Do you wish to continue?' process_input | Joey Turner 
