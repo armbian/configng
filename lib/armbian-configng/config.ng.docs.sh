@@ -26,7 +26,6 @@ function generate_readme() {
 	cat << EOF > "$script_dir/../DOCUMENTATION.md"
 
 # Armbian Configuration Utility
-Updated: $current_date
 
 Utility for configuring your board, adjusting services, and installing applications. It comes with Armbian by default.
 
