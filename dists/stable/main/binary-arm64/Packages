@@ -1,15 +1,15 @@
 Package: armbian-configng
-Version: 20240930-1822
+Version: 20240930-1824
 Architecture: all
 Maintainer: Igor Pecovnik <igor@armbian.com>
 Depends: bash, jq, whiptail, sudo, procps, systemd, lsb-release, iproute2
 Priority: optional
 Section: default
-Filename: pool/main/a/armbian-configng/armbian-configng_20240930-1822_all.deb
-Size: 107296
-SHA256: 8c63087f6f8a002847a6340e8e5b6070ef0a7af08936e485533db163161fadf7
-SHA1: 9b32f31c4e9b2385fb366fa0f08f2228895452f2
-MD5sum: d78ebafe8930cff10a5452f9d77d9064
+Filename: pool/main/a/armbian-configng/armbian-configng_20240930-1824_all.deb
+Size: 107914
+SHA256: 34de5b48825b6d63fd531b7db47dbe4146b44e1880f78f04ac6e1993db86276d
+SHA1: 38f4fe889d261a344eb347743995c25d08d246a3
+MD5sum: 3d2a5dc315be62eb49bc44bae37bd242
 Description: Configng
 
 Package: configng
