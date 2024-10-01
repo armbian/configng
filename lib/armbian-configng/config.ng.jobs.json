@@ -79,7 +79,7 @@
                     "condition": "[[ -n $(ls /sbin/armbian-install) ]]"
                 },
                 {
-                    "id": "SSH",
+                    "id": "S07.1",
                     "description": "Manage SSH login options",
                     "sub": [
                         {
