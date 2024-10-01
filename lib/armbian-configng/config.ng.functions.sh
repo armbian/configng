@@ -528,14 +528,17 @@ module_options+=(
 # Function to generate the main menu from a JSON object
 #
 generate_top_menu() {
-	local json_data=$1
-	local backtitle="$ARMBIAN $DISTRO $DISTROID $KERNELID"
+	local json_data="$1"
+	local status="$ARMBIAN $KERNELID ($DISTRO $DISTROID)"
+	local backtitle="$BACKTITLE"
+
+
 	while true; do
 		local menu_options=()
 
 		parse_menu_items menu_options
 
-		local OPTION=$($DIALOG --title "$TITLE" --backtitle "$backtitle" --menu "Choose an option:" 0 80 9 "${menu_options[@]}" \
+		local OPTION=$($DIALOG --backtitle "$backtitle" --title "$TITLE" --menu "$status" 0 80 9 "${menu_options[@]}" \
 			--ok-button Select --cancel-button Exit 3>&1 1>&2 2>&3)
 		local exitstatus=$?
 
@@ -548,7 +551,7 @@ generate_top_menu() {
 }
 
 module_options+=(
-	["generate_menu,author"]="Joey Turner"
+	["generate_menu,author"]="Tearran"
 	["generate_menu,ref_link"]=""
 	["generate_menu,feature"]="generate_menu"
 	["generate_menu,desc"]="Generate a submenu from a parent_id"
@@ -562,17 +565,15 @@ module_options+=(
 function generate_menu() {
 	local parent_id="$1"
 	local top_parent_id="$2"
-	local backtitle="$ARMBIAN $DISTRO $DISTROID $KERNELID"
-	local status="$TITLE"
-
-	[[ "$parent_id" == "System" ]] && status=""
+	local backtitle="$BACKTITLE"
+	local status=""
 
 	while true; do
 		# Get the submenu options for the current parent_id
 		local submenu_options=()
 		parse_menu_items submenu_options
 
-		local OPTION=$($DIALOG --title "$status" --backtitle "$backtitle" --menu "$top_parent_id $parent_id options:" 0 80 9 "${submenu_options[@]}" \
+		local OPTION=$($DIALOG --backtitle "$BACKTITLE" --title "$top_parent_id $parent_id" --menu "$status" 0 80 9 "${submenu_options[@]}" \
 			--ok-button Select --cancel-button Back 3>&1 1>&2 2>&3)
 
 		local exitstatus=$?
@@ -587,7 +588,6 @@ function generate_menu() {
 				# If it does, generate a new menu for the submenu
 				[[ -n "$debug" ]] && echo "$OPTION"
 				generate_menu "$OPTION" "$parent_id"
-
 			else
 				# If it doesn't, execute the command
 				[[ -n "$debug" ]] && echo "$OPTION"
@@ -728,7 +728,7 @@ show_menu() {
 	done <<< "$input"
 
 	# Display the menu and get the user's choice
-	[[ $DIALOG != "bash" ]] && choice=$($DIALOG --title "Menu" --menu "Choose an option:" 0 0 9 "${options[@]}" 3>&1 1>&2 2>&3)
+	[[ $DIALOG != "bash" ]] && choice=$($DIALOG --title "$TITLE" --menu "Choose an option:" 0 0 9 "${options[@]}" 3>&1 1>&2 2>&3)
 
 	# Check if the user made a choice
 	if [ $? -eq 0 ]; then
