@@ -1,0 +1,41 @@
+name: "Regenerate documentation"
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+
+  Build:
+    name: Make docs
+    runs-on: ubuntu-latest
+    #if: ${{ github.repository_owner == 'armbian' }}
+    steps:
+
+      - name: Checkout build repo
+        uses: actions/checkout@v4
+      - name: Make docs
+        run: |
+          bin/armbian-configng --doc
+
+      - name: Create Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: '`Automatic` documentation update'
+          signoff: false
+          branch: update-docs
+          delete-branch: true
+          title: '`Automatic` documentation update'
+          body: |
+            Generate documentation.
+
+          labels: |
+            Needs review
+          #assignees: igorpecovnik
+          #reviewers: Must be org collaborator
+          draft: false
+

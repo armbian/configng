@@ -23,10 +23,9 @@ function generate_readme() {
 
 	echo -e "Sorting data\nUpdating documentation" # current_date ;
 
-	cat << EOF > "$script_dir/../README.md"
+	cat << EOF > "$script_dir/../DOCUMENTATION.md"
 
 # Armbian Configuration Utility
-Updated: $current_date
 
 Utility for configuring your board, adjusting services, and installing applications. It comes with Armbian by default.
 
