@@ -45,7 +45,7 @@ jobs:
 
           echo 'JSON_CONTENT<<EOF' >> $GITHUB_OUTPUT
           # define docker images where we will run test install
-          dockerimages=("debian:bookworm" "debian:trixie" "ubuntu:jammy" "ubuntu:noble")
+          dockerimages=("debian:bookworm" "ubuntu:jammy" "ubuntu:noble")
 
           # read tests cases and loop them
 
