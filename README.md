@@ -31,7 +31,7 @@ We expect to deploy this tool in production with the upcoming release. Your help
 Run the following commands in your terminal:
 
 ```bash
-echo “deb [signed-by=/usr/share/keyrings/armbian.gpg] https://armbian.github.io/configng stable main” | sudo tee /etc/apt/sources.list.d/armbian-development.list > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] https://armbian.github.io/configng stable main" | sudo tee /etc/apt/sources.list.d/armbian-development.list > /dev/null
 sudo apt update
 sudo apt install armbian-configng
 ```
