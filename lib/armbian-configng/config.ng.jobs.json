@@ -571,6 +571,16 @@
                     ],
                     "status": "Disabled",
                     "author": ""
+                },
+                {
+                    "id": "L04",
+                    "description": "Change System Hostname",
+                    "command": [
+                        "NEW_HOSTNAME=$(whiptail --title \"Enter new hostnane\" --inputbox \"\" 7 50 3>&1 1>&2 2>&3)",
+                        "[ $? -eq 0 ] && [ -n \"${NEW_HOSTNAME}\" ] && hostnamectl set-hostname \"${NEW_HOSTNAME}\""
+                    ],
+                    "status": "Preview",
+                    "author": ""
                 }
             ]
         },
