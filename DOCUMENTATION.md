@@ -41,6 +41,7 @@ sudo armbian-config
   - **L01** - Change Locales reconfigure the language and character set
   - **L02** - Change Keyboard layout
   - **L03** - Change APT mirrors
+  - **L04** - Change System Hostname
 
 
 - ## **Software** 
@@ -138,6 +139,7 @@ Outputs:
     --cmd L01 - Change Locales reconfigure the language and character set
     --cmd L02 - Change Keyboard layout
     --cmd L03 - Change APT mirrors
+    --cmd L04 - Change System Hostname
 
   Software - Run/Install 3rd party applications (Update the package lists.)
     Desktops - Install Desktop Environments
@@ -488,6 +490,17 @@ Jobs:
 
 ~~~
 get_user_continue "This is only a frontend test" process_input
+~~~
+
+### L04
+
+Change System Hostname
+
+Jobs:
+
+~~~
+NEW_HOSTNAME=$(whiptail --title "Enter new hostnane" --inputbox "" 7 50 3>&1 1>&2 2>&3)
+[ $? -eq 0 ] && [ -n "${NEW_HOSTNAME}" ] && hostnamectl set-hostname "${NEW_HOSTNAME}"
 ~~~
 
 ### Desktops
