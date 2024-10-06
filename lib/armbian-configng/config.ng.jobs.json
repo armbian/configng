@@ -383,7 +383,92 @@
                             "author": "Igor Pecovnik",
                             "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade rolling verify"
                         }
-                ]
+                    ]
+                },
+                {
+                    "id": "S28",
+                    "description": "Set CPU speed and governor",
+                    "sub": [
+                        {
+                            "id": "S1001",
+                            "description": "Disable CPU frequency utilities",
+                            "command": [
+                                "sed -i \"s/ENABLE=.*/ENABLE=false/\" /etc/default/armbian-cpufrequtils",
+                                "#systemctl restart armbian-cpufrequtils"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q '^ENABLE=true' /etc/default/armbian-cpufrequtils 2>/dev/null"
+                        },
+                        {
+                            "id": "S1002",
+                            "description": "Enable CPU frequency utilities",
+                            "command": [
+                                "sed -i \"s/ENABLE=.*/ENABLE=true/\" /etc/default/armbian-cpufrequtils 2>/dev/null",
+                                "#systemctl restart armbian-cpufrequtils"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q '^ENABLE=false' /etc/default/armbian-cpufrequtils 2>/dev/null"
+                        },
+                        {
+                            "id": "S1003",
+                            "description": "Set minimum CPU speed",
+                            "command": [
+                                "set_cpufreq_option MIN_SPEED"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q '^ENABLE=true' /etc/default/armbian-cpufrequtils 2>/dev/null"
+                        },
+                        {
+                            "id": "S1004",
+                            "description": "Set maximum CPU speed",
+                            "command": [
+                                "set_cpufreq_option MAX_SPEED"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q '^ENABLE=true' /etc/default/armbian-cpufrequtils 2>/dev/null"
+                        },
+                        {
+                            "id": "S1005",
+                            "description": "Set CPU scaling governor",
+                            "command": [
+                                "set_cpufreq_option GOVERNOR"
+                            ],
+                            "status": "Active",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "grep -q '^ENABLE=true' /etc/default/armbian-cpufrequtils 2>/dev/null"
+                        },
+                        {
+                            "id": "S1006",
+                            "description": "Show configuration",
+                            "command": [
+                                "show_message <<< \"$(cat /etc/default/armbian-cpufrequtils)\""
+                            ],
+                            "status": "Preview",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "Igor Pecovnik",
+                            "condition": "grep -q '^ENABLE=true' /etc/default/armbian-cpufrequtils 2>/dev/null && [[ -f /etc/default/armbian-cpufrequtils ]]"
+                        }
+                    ],
+                    "status": "Disabled",
+                    "doc_link": "",
+                    "src_reference": "",
+                    "author": "Gunjan Gupta",
+                    "condition": ""
                 }
             ] 
         },

@@ -232,7 +232,6 @@ module_options+=(
 # @description set/unset Armbian root filesystem to read only
 #
 function manage_overlayfs() {
-
 	if [[ "$1" == "enable" ]]; then
 		debconf-apt-progress -- apt-get -o Dpkg::Options::="--force-confold" -y install overlayroot cryptsetup cryptsetup-bin
 		[[ ! -f /etc/overlayroot.conf ]] && cp /etc/overlayroot.conf.dpkg-new /etc/overlayroot.conf
@@ -334,3 +333,44 @@ function adjust_motd() {
 	# adjust motd config
 	sed -i "s/^MOTD_DISABLE=.*/MOTD_DISABLE=\"$INSERT\"/g" /etc/default/armbian-motd
 }
+
+module_options+=(
+["set_cpufreq_option,author"]="Gunjan Gupta"
+["set_cpufreq_option,ref_link"]=""
+["set_cpufreq_option,feature"]="cpufreq"
+["set_cpufreq_option,desc"]="Set cpufreq options like minimum/maximum speed and governor"
+["set_cpufreq_option,example"]="set_cpufreq_option MIN_SPEED|MAX_SPEED|GOVERNOR"
+["set_cpufreq_option,status"]="Active"
+)
+#
+# @description set cpufreq options like minimum/maximum speed and governor
+#
+function set_cpufreq_option () {
+	# Assuming last policy is for the big core
+	local policy=$(ls /sys/devices/system/cpu/cpufreq/ | tail -n 1)
+	local selected_value=""
+
+	case "$1" in
+		MIN_SPEED)
+			generic_select "$(cat /sys/devices/system/cpu/cpufreq/$policy/scaling_available_frequencies 2>/dev/null || cat /sys/devices/system/cpu/cpufreq/$policy/scaling_min_freq 2>/dev/null)" "Select minimum CPU speed"
+			selected_value=$PARAMETER
+			;;
+		MAX_SPEED)
+			local min_speed=$(cat /sys/devices/system/cpu/cpufreq/$policy/cpuinfo_min_freq)
+			generic_select "$(cat /sys/devices/system/cpu/cpufreq/$policy/scaling_available_frequencies 2>/dev/null || cat /sys/devices/system/cpu/cpufreq/$policy/scaling_max_freq 2>/dev/null)" "Select maximum CPU speed" $min_speed
+			selected_value=$PARAMETER
+			;;
+		GOVERNOR)
+			generic_select "$(cat /sys/devices/system/cpu/cpufreq/$policy/scaling_available_governors)" "Select CPU governor"
+			selected_value=$PARAMETER
+			;;
+
+		*)
+			;;
+	esac
+	if [[ -n $selected_value ]]; then
+		sed -i "s/$1=.*/$1=$selected_value/" /etc/default/armbian-cpufrequtils
+		#systemctl restart armbiancpufrequtils
+	fi
+}
+
