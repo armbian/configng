@@ -87,7 +87,7 @@
                             "description": "Disable root login",
                             "command": [
                                 "sed -i \"s|^#\\?PermitRootLogin.*|PermitRootLogin no|\" /etc/ssh/sshd_config",
-                                "systemctl restart sshd.service"
+                                "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
                             ],
                             "status": "Preview",
                             "doc_link": "",
@@ -100,7 +100,7 @@
                             "description": "Enable root login",
                             "command": [
                                 "sed -i \"s/^#\\?PermitRootLogin.*/PermitRootLogin yes/\" /etc/ssh/sshd_config",
-                                "systemctl restart sshd.service"
+                                "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
                             ],
                             "status": "Preview",
                             "doc_link": "",
@@ -113,7 +113,7 @@
                             "description": "Disable password login",
                             "command": [
                                 "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication no/\" /etc/ssh/sshd_config",
-                                "systemctl restart sshd.service"
+                                "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
                             ],
                             "status": "Preview",
                             "doc_link": "",
@@ -126,7 +126,7 @@
                             "description": "Enable password login",
                             "command": [
                                 "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication yes/\" /etc/ssh/sshd_config",
-                                "systemctl restart sshd.service"
+                                "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
                             ],
                             "status": "Preview",
                             "doc_link": "",
@@ -139,7 +139,7 @@
                             "description": "Disable Public key authentication login",
                             "command": [
                                 "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication no/\" /etc/ssh/sshd_config",
-                                "systemctl restart sshd.service"
+                                "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
                             ],
                             "status": "Preview",
                             "doc_link": "",
@@ -152,7 +152,7 @@
                             "description": "Enable Public key authentication login",
                             "command": [
                                 "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication yes/\" /etc/ssh/sshd_config",
-                                "systemctl restart sshd.service"
+                                "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
                             ],
                             "status": "Preview",
                             "doc_link": "",
@@ -168,7 +168,7 @@
                                 "! check_if_installed libpam-google-authenticator && ! check_if_installed qrencode || debconf-apt-progress -- apt-get -y purge libpam-google-authenticator qrencode",
                                 "sed -i \"s/^#\\?ChallengeResponseAuthentication.*/ChallengeResponseAuthentication no/\" /etc/ssh/sshd_config || sed -i \"0,/KbdInteractiveAuthentication/s//ChallengeResponseAuthentication yes/\" /etc/ssh/sshd_config",
                                 "sed -i '/^auth required pam_google_authenticator.so nullok/ d' /etc/pam.d/sshd",
-                                "systemctl restart sshd.service"
+                                "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
                             ],
                             "status": "Preview",
                             "doc_link": "",
@@ -185,7 +185,7 @@
                                 "sed -i \"s/^#\\?ChallengeResponseAuthentication.*/ChallengeResponseAuthentication yes/\" /etc/ssh/sshd_config",
                                 "sed -i $'/KbdInteractiveAuthentication/{iChallengeResponseAuthentication yes\\n:a;n;ba}' /etc/ssh/sshd_config || sed -n -i '/password updating/{p;:a;N;/@include common-password/!ba;s/.*\\n/auth required pam_google_authenticator.so nullok\\nauth required pam_permit.so\\n/};p' /etc/pam.d/sshd",
                                 "[ ! -f /root/.google_authenticator ] && qr_code generate",
-                                "systemctl restart sshd.service"
+                                "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
                             ],
                             "status": "Preview",
                             "doc_link": "",
