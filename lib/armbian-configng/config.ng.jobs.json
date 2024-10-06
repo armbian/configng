@@ -557,7 +557,7 @@
                     "command": [
                         "get_user_continue \"This is only a frontend test\" process_input"
                     ],
-                    "status": "disabled",
+                    "status": "Disabled",
                     "author": ""
                 }
             ]
@@ -991,7 +991,7 @@
                     "command": [
                         "show_message <<< see_use"
                     ],
-                    "status": "disabled",
+                    "status": "Disabled",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
