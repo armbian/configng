@@ -678,28 +678,35 @@ module_options+=(
 # Function to display an infobox with a message
 #
 function show_infobox() {
-	export TERM=ansi
-	local input
-	local BACKTITLE="$BACKTITLE"
-	local -a buffer # Declare buffer as an array
-	if [ -p /dev/stdin ]; then
-		while IFS= read -r line; do
-			buffer+=("$line") # Add the line to the buffer
-			# If the buffer has more than 10 lines, remove the oldest line
-			if ((${#buffer[@]} > 18)); then
-				buffer=("${buffer[@]:1}")
+
+		local input="$1"
+		local -a buffer # Declare buffer as an array
+		if [ -p /dev/stdin ]; then
+			while IFS= read -r line; do
+				buffer+=("$line") # Add the line to the buffer
+				# If the buffer has more than 10 lines, remove the oldest line
+				if ((${#buffer[@]} > 18)); then
+					buffer=("${buffer[@]:1}")
+				fi
+				if [ -t 0 ]; then
+					# Display the lines in the buffer in the infobox
+					$DIALOG --title "$TITLE" --infobox "$(printf "%s\n" "${buffer[@]}")" 16 90
+					else
+					# Terminal not defined - proceed without TUI
+					printf "%s\n" "${buffer[@]}"
+				fi
+				sleep 0.5
+			done
+		else
+
+			if [ -t 0 ]; then
+				TERM=ansi $DIALOG --title "$TITLE" --infobox "$input" 6 80
+			else
+				# Terminal not defined - proceed without TUI
+				echo $input
 			fi
-			# Display the lines in the buffer in the infobox
-
-			TERM=ansi $DIALOG --title "$TITLE" --infobox "$(printf "%s\n" "${buffer[@]}")" 16 90
-			sleep 0.5
-		done
-	else
-
-		input="$1"
-		TERM=ansi $DIALOG --title "$TITLE" --infobox "$input" 6 80
-	fi
-	echo -ne '\033[3J' # clear the screen
+		fi
+		echo -ne '\033[3J' # clear the screen
 }
 
 module_options+=(
