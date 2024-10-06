@@ -25,6 +25,7 @@ sudo armbian-config
   - **S23** - Adjust welcome screen (motd)
   - **S24** - Install alternative kernels
   - **S25** - Distribution upgrades
+  - **S28** - Manage device tree overlays
 
 
 - ## **Network** 
@@ -118,6 +119,7 @@ Outputs:
     S25 - Distribution upgrades
 	--cmd S26 - Upgrade to latest stable / LTS
 	--cmd S27 - Upgrade to rolling unstable
+    --cmd S28 - Manage device tree overlays
 
   Network - Fixed and wireless network settings (eth0)
     N01 - Configure network interfaces
@@ -380,6 +382,16 @@ Jobs:
 No commands available
 ~~~
 
+### S28
+
+Manage device tree overlays
+
+Jobs:
+
+~~~
+manage_dtoverlays
+~~~
+
 ### N01
 
 Configure network interfaces
@@ -597,6 +609,7 @@ These helper functions facilitate various operations related to job management, 
 | Display a message box | show_message <<< 'hello world'  | Joey Turner 
 | Migrated procedures from Armbian config. | connect_bt_interface | Igor Pecovnik 
 | Menu for armbianmonitor features | see_monitoring | Joey Turner 
+| Enable/disable device tree overlays | manage_dtoverlays | Gunjan Gupta 
 | Show or generate QR code for Google OTP | qr_code generate | Igor Pecovnik 
 | Check if kernel headers are installed | are_headers_installed | Gunjan Gupta 
 | Check when apt list was last updated and suggest updating or update | see_current_apt || see_current_apt update | Joey Turner 
@@ -607,7 +620,7 @@ These helper functions facilitate various operations related to job management, 
 | sanitize input cli | sanitize_input |  
 | Check if a domain is reachable via IPv4 and IPv6 | check_ip_version google.com | Joey Turner 
 | Migrated procedures from Armbian config. | set_header_remove | Igor Pecovnik 
-| Generate a submenu from a parent_id | generate_menu 'parent_id' | Joey Turner 
+| Generate a submenu from a parent_id | generate_menu 'parent_id' | Tearran 
 | Generate a markdown list json objects using jq. | see_jq_menu_list | Joey Turner 
 | Generate jobs from JSON file. | generate_jobs_from_json | Joey Turner 
 | Install kernel headers | is_package_manager_running | Joey Turner 
