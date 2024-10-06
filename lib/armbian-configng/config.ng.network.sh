@@ -177,8 +177,8 @@ function network_config() {
 			wifimode=$(whiptail --title "Select wifi mode" --menu "" $((${LIST_LENGTH} + 8)) 60 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
 			if [[ "${wifimode}" == "sta" && $? == 0 ]]; then
 				ip link set ${adapter} up
-				systemctl stop hostapd 1> /dev/null
-				systemctl disable hostapd 1> /dev/null
+				systemctl stop hostapd 2> /dev/null
+				systemctl disable hostapd 2> /dev/null
 				LIST=()
 				LIST=($(iw dev ${adapter} scan 2> /dev/null | grep 'SSID\|^BSS' | cut -d" " -f2 | sed "s/(.*//g" | xargs -n2 -d'\n' | awk '{print $2,$1}'))
 				sleep 2
@@ -189,7 +189,7 @@ function network_config() {
 					if [[ -n $SELECTED_PASSWORD ]]; then
 						# connect to AP
 						netplan set --origin-hint ${yamlfile} renderer=${renderer}
-						netplan set --origin-hint ${yamlfile} wifis.$adapter.access-points."${SELECTED_SSID}".password=${SELECTED_PASSWORD}
+						netplan set --origin-hint ${yamlfile} wifis.$adapter.access-points."${SELECTED_SSID//./\\.}".password=${SELECTED_PASSWORD}
 						netplan set --origin-hint ${yamlfile} wifis.$adapter.dhcp4=true
 						netplan set --origin-hint ${yamlfile} wifis.$adapter.dhcp6=true
 						show_message <<< "$(netplan get all)"
