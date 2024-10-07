@@ -1,32 +1,32 @@
 {
-  "menu": [
-    {
-      "id": "Help",
-      "description": "About this app",
-      "sub": [
+    "menu": [
         {
-          "id": "H00",
-          "description": "About This system. (WIP)",
-          "command": [
-            "show_message <<< \"This app is to help execute procedures to configure your system\n\nSome options may not work on manually modified systems\""
-          ],
-          "status": "Preview",
-          "doc_link": "",
-          "src_reference": "",
-          "author": ""
-        },
-        {
-          "id": "H02",
-          "description": "List of Config function(WIP)",
-          "command": [
-            "show_message <<< see_use"
-          ],
-          "status": "Disabled",
-          "doc_link": "",
-          "src_reference": "",
-          "author": ""
+            "id": "Help",
+            "description": "About this app",
+            "sub": [
+                {
+                    "id": "H00",
+                    "description": "About This system. (WIP)",
+                    "command": [
+                        "show_message <<< \"This app is to help execute procedures to configure your system\n\nSome options may not work on manually modified systems\""
+                    ],
+                    "status": "Preview",
+                    "doc_link": "",
+                    "src_reference": "",
+                    "author": ""
+                },
+                {
+                    "id": "H02",
+                    "description": "List of Config function(WIP)",
+                    "command": [
+                        "show_message <<< see_use"
+                    ],
+                    "status": "Disabled",
+                    "doc_link": "",
+                    "src_reference": "",
+                    "author": ""
+                }
+            ]
         }
-      ]
-    }
-  ]
+    ]
 }

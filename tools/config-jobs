@@ -43,7 +43,7 @@ split_json() {
         filename=$(echo "$menu_id" | tr '[:upper:]' '[:lower:]') # Convert filename to lowercase
 
         # Save backup file with proper indentation
-        echo "{\"menu\": [$item]}" | jq '.' > "$output_dir/config.${filename}.json"
+        echo "{\"menu\": [$item]}" | jq --indent 4 '.' > "$output_dir/config.${filename}.json"
 
         # Extract 'sub' and replace it with 'menu' if it exists
        # jq ".menu[$i] | if has(\"sub\") then .sub | {menu: .} else {menu: [.] } end" "$input_file" > "$output_dir/config.${filename}.json"
@@ -91,7 +91,7 @@ join_json() {
     final_json=$(jq -n --argjson menu "$merged_json" '{"menu": $menu}')
 
     # Write the final JSON structure to a file
-    echo "$final_json" | jq '.' > "$output_file"
+    echo "$final_json" | jq --indent 4 '.' > "$output_file"
 
     echo "JSON files rejoined into '$output_file'."
 }
