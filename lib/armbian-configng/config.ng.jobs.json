@@ -366,8 +366,8 @@
                             "description": "Upgrade to latest stable / LTS",
                             "prompt": "Release upgrade is irriversible operation which upgrades all packages. \n\nResoulted upgrade might break your build beyond repair!",
                             "command": [
-                                            "release_upgrade stable"
-                                        ],
+                                "release_upgrade stable"
+                            ],
                             "status": "Active",
                             "author": "Igor Pecovnik",
                             "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade stable verify"
@@ -377,8 +377,8 @@
                             "description": "Upgrade to rolling unstable",
                             "prompt": "Release upgrade is irriversible operation which upgrades all packages. \n\nResoulted upgrade might break your build beyond repair!",
                             "command": [
-                                            "release_upgrade rolling"
-                                        ],
+                                "release_upgrade rolling"
+                            ],
                             "status": "Active",
                             "author": "Igor Pecovnik",
                             "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade rolling verify"
@@ -397,7 +397,7 @@
                     "author": "Gunjan Gupta",
                     "condition": "[ -n $OVERLAYDIR ] && [ -n $BOOT_SOC ]"
                 }
-            ] 
+            ]
         },
         {
             "id": "Network",
