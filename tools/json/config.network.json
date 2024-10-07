@@ -1,0 +1,127 @@
+{
+  "menu": [
+    {
+      "id": "Network",
+      "description": "Fixed and wireless network settings",
+      "sub": [
+        {
+          "id": "N01",
+          "description": "Configure network interfaces",
+          "sub": [
+            {
+              "id": "N02",
+              "description": "Add interface",
+              "command": [
+                "network_config armbian"
+              ],
+              "status": "Preview",
+              "author": "Igor Pecovnik",
+              "condition": ""
+            },
+            {
+              "id": "N03",
+              "description": "Revert to defaults",
+              "command": [
+                "default_network_config"
+              ],
+              "status": "Preview",
+              "author": "Igor Pecovnik",
+              "condition": "[[ -f /etc/netplan/armbian.yaml ]] && ! cat /etc/netplan/armbian.yaml | diff -q 1>/dev/null <(netplan get all) - || [[ ! -f /etc/netplan/10-dhcp-all-interfaces.yaml ]] && ! cat /etc/netplan/10-dhcp-all-interfaces.yaml 2>/dev/null | diff -q 1>/dev/null <(netplan get all) -"
+            },
+            {
+              "id": "N04",
+              "description": "Show draft configuration",
+              "command": [
+                "show_message <<< \"$(netplan get all)\""
+              ],
+              "status": "Preview",
+              "doc_link": "",
+              "src_reference": "",
+              "author": "Igor Pecovnik",
+              "condition": "[[ -f /etc/netplan/armbian.yaml ]]"
+            },
+            {
+              "id": "N05",
+              "description": "Apply changes",
+              "prompt": "This will apply new network configuration\n\nwould you like to continue?",
+              "command": [
+                "netplan apply"
+              ],
+              "status": "Preview",
+              "doc_link": "",
+              "src_reference": "",
+              "author": "Igor Pecovnik",
+              "condition": "[[ -f /etc/netplan/armbian.yaml ]] && ! cat /etc/netplan/armbian.yaml | diff -q 1>/dev/null <(netplan get all) - || [[ -f /etc/netplan/10-dhcp-all-interfaces.yaml ]]"
+            },
+            {
+              "id": "N06",
+              "description": "Show active status",
+              "command": [
+                "show_message <<< \"$(netplan status --all)\""
+              ],
+              "status": "Preview",
+              "doc_link": "",
+              "src_reference": "",
+              "author": "Igor Pecovnik",
+              "condition": "[ -f /etc/netplan/armbian.yaml ] && [ netplan status 2>/dev/null ]"
+            }
+          ]
+        },
+        {
+          "id": "N15",
+          "description": "Install Bluetooth support",
+          "command": [
+            "see_current_apt ",
+            "debconf-apt-progress -- apt-get -y install bluetooth bluez bluez-tools",
+            "check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y --no-install-recommends install pulseaudio-module-bluetooth blueman"
+          ],
+          "status": "Preview",
+          "doc_link": "",
+          "src_reference": "",
+          "author": "",
+          "condition": "! check_if_installed bluetooth && ! check_if_installed bluez && ! check_if_installed bluez-tools"
+        },
+        {
+          "id": "N16",
+          "description": "Remove Bluetooth support",
+          "command": [
+            "see_current_apt ",
+            "debconf-apt-progress -- apt-get -y remove bluetooth bluez bluez-tools",
+            "check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y remove pulseaudio-module-bluetooth blueman",
+            "debconf-apt-progress -- apt -y -qq autoremove"
+          ],
+          "status": "Preview",
+          "doc_link": "",
+          "src_reference": "",
+          "author": "",
+          "condition": "check_if_installed bluetooth || check_if_installed bluez || check_if_installed bluez-tools"
+        },
+        {
+          "id": "N17",
+          "description": "Bluetooth Discover",
+          "prompt": "This will enable bluetooth and discover devices\n\nWould you like to continue?",
+          "command": [
+            "connect_bt_interface"
+          ],
+          "status": "Preview",
+          "doc_link": "",
+          "src_reference": "",
+          "author": "",
+          "condition": "check_if_installed bluetooth || check_if_installed bluez || check_if_installed bluez-tools"
+        },
+        {
+          "id": "N18",
+          "description": "Toggle system IPv6/IPv4 internet protocol",
+          "prompt": "This will toggle your internet protocol\nWould you like to continue?",
+          "command": [
+            "toggle_ipv6 | show_infobox"
+          ],
+          "status": "Preview",
+          "doc_link": "",
+          "src_reference": "",
+          "author": ""
+        }
+      ]
+    }
+  ]
+}

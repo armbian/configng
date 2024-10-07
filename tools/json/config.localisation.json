@@ -1,0 +1,66 @@
+{
+  "menu": [
+    {
+      "id": "Localisation",
+      "description": "Localisation",
+      "sub": [
+        {
+          "id": "L00",
+          "description": "Change Global timezone (WIP)",
+          "command": [
+            "dpkg-reconfigure tzdata"
+          ],
+          "status": "Preview",
+          "doc_link": "",
+          "src_reference": "",
+          "author": ""
+        },
+        {
+          "id": "L01",
+          "description": "Change Locales reconfigure the language and character set",
+          "command": [
+            "dpkg-reconfigure locales",
+            "source /etc/default/locale ; sed -i \"s/^LANGUAGE=.*/LANGUAGE=$LANG/\" /etc/default/locale",
+            "export LANGUAGE=$LANG"
+          ],
+          "status": "Preview",
+          "doc_link": "",
+          "src_reference": "",
+          "author": ""
+        },
+        {
+          "id": "L02",
+          "description": "Change Keyboard layout",
+          "command": [
+            "dpkg-reconfigure keyboard-configuration ; setupcon ",
+            "update-initramfs -u"
+          ],
+          "status": "Preview",
+          "doc_link": "",
+          "src_reference": "",
+          "author": ""
+        },
+        {
+          "id": "L03",
+          "description": "Change APT mirrors",
+          "prompt": "This will change the APT mirrors\nWould you like to continue?",
+          "command": [
+            "get_user_continue \"This is only a frontend test\" process_input"
+          ],
+          "status": "Disabled",
+          "author": ""
+        },
+        {
+          "id": "L04",
+          "description": "Change System Hostname",
+          "command": [
+            "NEW_HOSTNAME=$(whiptail --title \"Enter new hostnane\" --inputbox \"\" 7 50 3>&1 1>&2 2>&3)",
+            "[ $? -eq 0 ] && [ -n \"${NEW_HOSTNAME}\" ] && hostnamectl set-hostname \"${NEW_HOSTNAME}\""
+          ],
+          "status": "Preview",
+          "author": ""
+        }
+      ]
+    }
+  ]
+}
