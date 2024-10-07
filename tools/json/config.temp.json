@@ -1,0 +1,48 @@
+{
+    "menu": [
+        {
+            "id": "Template",
+            "description": "Description ... ",
+            "sub": [
+                {
+                    "id": "UID01",
+                    "description": "Description ... ",
+                    "prompt": "",
+                    "sub": [
+                        {
+                            "id": "SUB02",
+                            "description": "Description ... ",
+                            "command": [
+                                "show_message <<< \" Message ... \""
+                            ],
+                            "status": "",
+                            "author": "Github Username",
+                            "condition": ""
+                        }
+                    ]
+                },
+                {
+                    "id": "UID03",
+                    "description": "Description ... ",
+                    "command": [
+                        "show_message <<< \" Message ... \""
+                    ],
+                    "status": "",
+                    "author": "Github Username",
+                    "condition": ""
+                },
+                {
+                    "id": "UID04",
+                    "description": "Description  ... ",
+                    "prompt": "Prompt\nContinue?",
+                    "command": [
+                        "show_message <<< \" Message ... \""
+                    ],
+                    "status": "",
+                    "author": "Github Username",
+                    "condition": ""
+                }
+            ]
+        }
+    ]
+}
