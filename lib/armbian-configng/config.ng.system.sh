@@ -390,3 +390,45 @@ function manage_dtoverlays () {
 		esac
 	done
 }
+
+module_options+=(
+["store_netplan_config,author"]="Igor Pecovnik"
+["store_netplan_config,ref_link"]=""
+["store_netplan_config,feature"]="Storing netplan config to tmp"
+["store_netplan_config,desc"]=""
+["store_netplan_config,example"]=""
+["store_netplan_config,status"]="Active"
+)
+#
+# @description Storing Netplan configuration to temp folder
+#
+function store_netplan_config () {
+
+	# store current configs to temporal folder
+	restore_netplan_config_folder=$(mktemp -d /tmp/XXXXXXXXXX)
+	rsync --quiet /etc/netplan/* ${restore_netplan_config_folder}/ 2>/dev/null
+	trap restore_netplan_config 1 2 3 6
+
+}
+
+module_options+=(
+["store_netplan_config,author"]="Igor Pecovnik"
+["store_netplan_config,ref_link"]=""
+["store_netplan_config,feature"]="Storing netplan config to tmp"
+["store_netplan_config,desc"]=""
+["store_netplan_config,example"]=""
+["store_netplan_config,status"]="Active"
+)
+#
+# @description Restoring Netplan configuration from temp folder
+#
+restore_netplan_config() {
+
+	echo "Restoring NetPlan configs" | show_infobox
+	# just in case
+	if [[ -n ${restore_netplan_config_folder} ]]; then
+		rm -f /etc/netplan/*
+		rsync -ar ${restore_netplan_config_folder}/. /etc/netplan
+	fi
+
+}
