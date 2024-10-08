@@ -357,7 +357,7 @@ function manage_dtoverlays () {
 	while true; do
 		local options=()
 		j=0
-		available_overlays=$(ls -1 ${OVERLAYDIR}/*.dtbo | sed "s#^${OVERLAYDIR}/##" | sed 's/.dtbo//g' | grep $BOOT_SOC | tr '\n' ' ')
+		available_overlays=$(ls -1 ${OVERLAY_DIR}/*.dtbo | sed "s#^${OVERLAY_DIR}/##" | sed 's/.dtbo//g' | grep $BOOT_SOC | tr '\n' ' ')
 		for overlay in ${available_overlays}; do
 			local status="OFF"
 			grep '^fdt_overlays' ${overlayconf} | grep -qw ${overlay} && status=ON
