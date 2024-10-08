@@ -164,7 +164,7 @@ function network_config() {
 		fi
 	done
 	LIST_LENGTH=$((${#LIST[@]} / 2))
-	adapter=$(whiptail --title "Select interface" --menu "" $((${LIST_LENGTH} + 8)) 60 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
+	adapter=$($DIALOG --title "Select interface" --menu "" $((${LIST_LENGTH} + 8)) 60 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
 	if [[ -n $adapter && $? == 0 ]]; then
 		#
 		# Wireless networking
@@ -174,7 +174,7 @@ function network_config() {
 			LIST=("sta" "Connect to access point")
 			LIST+=("ap" "Become an access point")
 			LIST_LENGTH=$((${#LIST[@]} / 2))
-			wifimode=$(whiptail --title "Select wifi mode" --menu "" $((${LIST_LENGTH} + 8)) 60 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
+			wifimode=$($DIALOG --title "Select wifi mode" --menu "" $((${LIST_LENGTH} + 8)) 60 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
 			if [[ "${wifimode}" == "sta" && $? == 0 ]]; then
 				ip link set ${adapter} up
 				systemctl stop hostapd 2> /dev/null
@@ -183,9 +183,9 @@ function network_config() {
 				LIST=($(iw dev ${adapter} scan 2> /dev/null | grep 'SSID\|^BSS' | cut -d" " -f2 | sed "s/(.*//g" | xargs -n2 -d'\n' | awk '{print $2,$1}'))
 				sleep 2
 				LIST_LENGTH=$((${#LIST[@]} / 2))
-				SELECTED_SSID=$(whiptail --title "Select SSID" --menu "rf" $((${LIST_LENGTH} + 6)) 50 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
+				SELECTED_SSID=$($DIALOG --title "Select SSID" --menu "rf" $((${LIST_LENGTH} + 6)) 50 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
 				if [[ -n $SELECTED_SSID ]]; then
-					SELECTED_PASSWORD=$(whiptail --title "Enter new password for $SELECTED_SSID" --passwordbox "" 7 50 3>&1 1>&2 2>&3)
+					SELECTED_PASSWORD=$($DIALOG --title "Enter new password for $SELECTED_SSID" --passwordbox "" 7 50 3>&1 1>&2 2>&3)
 					if [[ -n $SELECTED_PASSWORD ]]; then
 						# connect to AP
 						netplan set --origin-hint ${yamlfile} renderer=${renderer}
@@ -199,9 +199,9 @@ function network_config() {
 
 				check_if_installed hostapd && debconf-apt-progress -- apt-get -y --no-install-recommends hostapd
 
-				SELECTED_SSID=$(whiptail --title "Enter SSID for AP" --inputbox "" 7 50 3>&1 1>&2 2>&3)
+				SELECTED_SSID=$($DIALOG --title "Enter SSID for AP" --inputbox "" 7 50 3>&1 1>&2 2>&3)
 				if [[ -n "${SELECTED_SSID}" && $? == 0 ]]; then
-					SELECTED_PASSWORD=$(whiptail --title "Enter new password for $SELECTED_SSID" --passwordbox "" 7 50 3>&1 1>&2 2>&3)
+					SELECTED_PASSWORD=$($DIALOG --title "Enter new password for $SELECTED_SSID" --passwordbox "" 7 50 3>&1 1>&2 2>&3)
 					if [[ -n "${SELECTED_PASSWORD}" && $? == 0 ]]; then
 						# start bridged AP
 						netplan set --origin-hint ${yamlfile} renderer=${renderer}
@@ -242,7 +242,7 @@ function network_config() {
 			#
 			LIST=("dhcp" "Auto IP assigning")
 			LIST+=("static" "Set IP manually")
-			wiredmode=$(whiptail --title "Select IP mode" --menu "" $((${LIST_LENGTH} + 8)) 60 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
+			wiredmode=$($DIALOG --title "Select IP mode" --menu "" $((${LIST_LENGTH} + 8)) 60 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
 			if [[ "${wiredmode}" == "dhcp" && $? == 0 ]]; then
 				netplan set --origin-hint ${yamlfile} renderer=${renderer}
 				netplan set --origin-hint ${yamlfile} ethernets.$adapter.dhcp4=no
@@ -254,13 +254,13 @@ function network_config() {
 			elif [[ "${wiredmode}" == "static" ]]; then
 				address=$(ip -br addr show dev $adapter | awk '{print $3}')
 				[[ -z "${address}" ]] && address="1.2.3.4/5"
-				address=$(whiptail --title "Enter IP for $adapter" --inputbox "\nValid format: $address" 9 40 "$address" 3>&1 1>&2 2>&3)
+				address=$($DIALOG --title "Enter IP for $adapter" --inputbox "\nValid format: $address" 9 40 "$address" 3>&1 1>&2 2>&3)
 				if [[ -n $address && $? == 0 ]]; then
 					defaultroute=$(ip route show default | grep "$adapter" | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]" | head 1 | xargs)
-					defaultroute=$(whiptail --title "Enter IP for default route" --inputbox "\nValid format: $defaultroute" 9 40 "$defaultroute" 3>&1 1>&2 2>&3)
+					defaultroute=$($DIALOG --title "Enter IP for default route" --inputbox "\nValid format: $defaultroute" 9 40 "$defaultroute" 3>&1 1>&2 2>&3)
 					if [[ -n $defaultroute && $? == 0 ]]; then
 						nameservers="9.9.9.9,1.1.1.1"
-						nameservers=$(whiptail --title "Enter DNS server" --inputbox "\nValid format: $nameservers" 9 40 "$nameservers" 3>&1 1>&2 2>&3)
+						nameservers=$($DIALOG --title "Enter DNS server" --inputbox "\nValid format: $nameservers" 9 40 "$nameservers" 3>&1 1>&2 2>&3)
 					fi
 					if [[ -n $nameservers && $? == 0 ]]; then
 						netplan set --origin-hint ${yamlfile} renderer=${renderer}

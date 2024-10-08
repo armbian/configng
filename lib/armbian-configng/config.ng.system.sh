@@ -329,7 +329,7 @@ function adjust_motd() {
 	done
 
 	INLIST=($(grep THIS_SCRIPT= /etc/update-motd.d/* | cut -d"=" -f2 | sed "s/\"//g"))
-	CHOICES=$(whiptail --separate-output --nocancel --title "Adjust welcome screen" --checklist "" 11 50 5 "${LIST[@]}" 3>&1 1>&2 2>&3)
+	CHOICES=$($DIALOG --separate-output --nocancel --title "Adjust welcome screen" --checklist "" 11 50 5 "${LIST[@]}" 3>&1 1>&2 2>&3)
 	INSERT="$(echo "${INLIST[@]}" "${CHOICES[@]}" | tr ' ' '\n' | sort | uniq -u | tr '\n' ' ' | sed 's/ *$//')"
 	# adjust motd config
 	sed -i "s/^MOTD_DISABLE=.*/MOTD_DISABLE=\"$INSERT\"/g" /etc/default/armbian-motd
@@ -363,7 +363,7 @@ function manage_dtoverlays () {
 			grep '^fdt_overlays' ${overlayconf} | grep -qw ${overlay} && status=ON
 			options+=( "$overlay" "" "$status")
 		done
-		selection=$(whiptail --title "Manage devicetree overlays" --cancel-button "Back" \
+		selection=$($DIALOG --title "Manage devicetree overlays" --cancel-button "Back" \
 			--ok-button "Save" --checklist "\nUse <space> to toggle functions and save them.\nExit when you are done.\n " \
 			0 0 0 "${options[@]}" 3>&1 1>&2 2>&3)
 		exit_status=$?
@@ -377,7 +377,7 @@ function manage_dtoverlays () {
 				;;
 			1)
 				if [[ "$changes" == "true" ]]; then
-					whiptail --title " Reboot required " --yes-button "Reboot" \
+					$DIALOG --title " Reboot required " --yes-button "Reboot" \
 						--no-button "Cancel" --yesno "A reboot is required to apply the changes. Shall we reboot now?" 7 34
 					if [[ $? = 0 ]]; then
 						reboot

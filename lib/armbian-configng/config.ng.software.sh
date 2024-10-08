@@ -43,7 +43,7 @@ install_plexmediaserver() {
 	wget -qO- https://downloads.plex.tv/plex-keys/PlexSign.key | gpg --dearmor | sudo tee /usr/share/keyrings/plexmediaserver.gpg > /dev/null 2>&1
 	apt_install_wrapper apt-get update
 	apt_install_wrapper apt-get -y install plexmediaserver
-	whiptail --msgbox "To test that Plex Media Server  has installed successfully\nIn a web browser go to http://localhost:32400/web or \nhttp://127.0.0.1:32400/web on this computer." 9 70
+	$DIALOG --msgbox "To test that Plex Media Server  has installed successfully\nIn a web browser go to http://localhost:32400/web or \nhttp://127.0.0.1:32400/web on this computer." 9 70
 }
 
 module_options+=(
@@ -62,10 +62,10 @@ install_embyserver() {
 		grep "/emby-server-deb.*$(dpkg --print-architecture).deb" | cut -d : -f 2,3 | tr -d '"')
 	cd ~/
 	wget -O "emby-server.deb" $URL 2>&1 | stdbuf -oL awk '/[.] +[0-9][0-9]?[0-9]?%/ { print substr($0,63,3) }' |
-		whiptail --gauge "Please wait\nDownloading ${URL##*/}" 8 70 0
+		$DIALOG --gauge "Please wait\nDownloading ${URL##*/}" 8 70 0
 	apt_install_wrapper apt-get -y install ~/emby-server.deb
 	unlink emby-server.deb
-	whiptail --msgbox "To test that Emby Server  has installed successfully\nIn a web browser go to http://localhost:8096 or \nhttp://127.0.0.1:8096 on this computer." 9 70
+	$DIALOG --msgbox "To test that Emby Server  has installed successfully\nIn a web browser go to http://localhost:8096 or \nhttp://127.0.0.1:8096 on this computer." 9 70
 }
 
 module_options+=(
@@ -100,10 +100,10 @@ install_docker() {
 			fi
 			systemctl enable docker.service > /dev/null 2>&1
 			systemctl enable containerd.service > /dev/null 2>&1
-			whiptail --msgbox "To test that Docker has installed successfully\nrun the following command: docker run hello-world" 9 70
+			$DIALOG --msgbox "To test that Docker has installed successfully\nrun the following command: docker run hello-world" 9 70
 		fi
 	else
-		whiptail --msgbox "ERROR ! ${DISTRO} $DISTROID distribution not found in repository!" 7 70
+		$DIALOG --msgbox "ERROR ! ${DISTRO} $DISTROID distribution not found in repository!" 7 70
 	fi
 }
 
