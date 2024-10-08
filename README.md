@@ -19,6 +19,10 @@ armbian-configng provides configuration scripts for customizing and automating t
 - **Localization Settings**: Configure time zone, language, and other localization preferences.
 - **Software Installation/Uninstallation**: Simplify software management, including installing or removing packages as needed.
 
+## Compatibility
+
+This tool is tailored to works best with [**Armbian Linux**](https://www.armbian.com) but it has also been automatically tested on **Debian Bookworm**, **Ubuntu Jammy** and **Ubuntu Noble**. In theory it should work on all apt based Linux distributions.
+
 ## Key Advantages
 - **Extremely Lightweight**: Minimal dependencies for optimal performance.
 - **Redesigned from Scratch**: A fresh approach to configuration.
@@ -33,7 +37,7 @@ Run the following commands in your terminal:
 ```bash
 echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] https://armbian.github.io/configng stable main" | sudo tee /etc/apt/sources.list.d/armbian-development.list > /dev/null
 sudo apt update
-sudo apt install armbian-configng
+sudo apt -y install armbian-configng
 ```
 
 ## Contributing
