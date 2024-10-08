@@ -114,22 +114,102 @@ module_options+=(
 	["default_network_config,status"]="review"
 )
 #
-# Function to revert network configuration to defaults
+# Function to revert network configuration to Armbian defaults
 #
 function default_network_config() {
 
-	local renderer=networkd
 	local yamlfile=10-dhcp-all-interfaces
 
-	# remove all configs
-	rm -f /etc/netplan/*.yaml
-	netplan set --origin-hint ${yamlfile} renderer=${renderer}
-	netplan set --origin-hint ${yamlfile} ethernets.all-eth-interfaces.dhcp4=true
-	netplan set --origin-hint ${yamlfile} ethernets.all-eth-interfaces.dhcp6=true
-	netplan set --origin-hint ${yamlfile} ethernets.all-eth-interfaces.match.name=e*
-	show_message <<< "$(sudo netplan get ${type})"
+	# store current configs to temporal folder
+	store_netplan_config
+
+	get_user_continue "This action might disconnect you from network.\n\nAre you sure network was configured correctly?" process_input
+	if [[ $? == 0 ]]; then
+		# remove all configs
+		rm -f /etc/netplan/*.yaml
+		# disable hostapd
+		systemctl stop hostapd 2> /dev/null
+		systemctl disable hostapd 2> /dev/null
+		# reset netplan config
+		netplan set --origin-hint ${yamlfile} renderer=${NETWORK_RENDERER}
+		netplan set --origin-hint ${yamlfile} ethernets.all-eth-interfaces.dhcp4=true
+		netplan set --origin-hint ${yamlfile} ethernets.all-eth-interfaces.dhcp6=true
+		netplan set --origin-hint ${yamlfile} ethernets.all-eth-interfaces.match.name=e*
+
+		# exceptions
+		if [[ "${NETWORK_RENDERER}" == "NetworkManager" ]]; then
+			# uninstall packages
+			apt_install_wrapper apt-get -y purge hostapd
+			netplan apply
+			nmcli con down br0
+		else
+			# uninstall packages
+			apt_install_wrapper apt-get -y purge hostapd networkd-dispatcher
+			# drop and delete bridge interface in case its there
+			if [[ -n $(ip link show type bridge) ]]; then
+				ip link set br0 down
+				brctl delbr br0
+				networkctl reconfigure br0
+			fi
+			# remove networkd-dispatcher hook
+			rm -f /etc/networkd-dispatcher/carrier.d/armbian-ap
+			netplan apply
+		fi
+	else
+		restore_netplan_config
+	fi
+}
+
+module_options+=(
+	["default_wireless_network_config,author"]="Igor Pecovnik"
+	["default_wireless_network_config,ref_link"]=""
+	["default_wireless_network_config,feature"]="default_wireless_network_config"
+	["default_wireless_network_config,desc"]="Stop hostapd, clean config"
+	["default_wireless_network_config,example"]="default_wireless_network_config"
+	["default_wireless_network_config,doc_link"]=""
+	["default_wireless_network_config,status"]="review"
+)
+function default_wireless_network_config(){
+
+	# defaul yaml file
+	local yamlfile=${1:-armbian}
+	local adapter=${2:-wlan0}
+
+	# remove wifi from netplan
+	if [[ -f /etc/netplan/${yamlfile}.yaml ]]; then
+		sed -i -e 'H;x;/^\(  *\)\n\1/{s/\n.*//;x;d;}' -e 's/.*//;x;/'$adapter':/{s/^\( *\).*/ \1/;x;d;}' /etc/netplan/${yamlfile}.yaml
+		sed -i -e 'H;x;/^\(  *\)\n\1/{s/\n.*//;x;d;}' -e 's/.*//;x;/- '$adapter'/{s/^\( *\).*/ \1/;x;d;}' /etc/netplan/${yamlfile}.yaml
+		sed -i -e 'H;x;/^\(  *\)\n\1/{s/\n.*//;x;d;}' -e 's/.*//;x;/wifis:/{s/^\( *\).*/ \1/;x;d;}' /etc/netplan/${yamlfile}.yaml
+	fi
+
+	# remove networkd-dispatcher hook
+	rm -f /etc/networkd-dispatcher/carrier.d/armbian-ap
+	# remove network-manager dispatcher hook
+	rm -f /etc/NetworkManager/dispatcher.d/armbian-ap
+
+	# hostapd needs more cleaning
+	if systemctl is-active hostapd 1> /dev/null; then
+		systemctl stop hostapd 2> /dev/null
+		systemctl disable hostapd 2> /dev/null
+	fi
+
+	# apply config
+	netplan apply
+
+	# exceptions
+	if [[ "${NETWORK_RENDERER}" == "NetworkManager" ]]; then
+			# uninstall packages
+			apt_install_wrapper apt-get -y --no-install-recommends purge hostapd
+			systemctl restart NetworkManager
+		else
+			# uninstall packages
+			apt_install_wrapper apt-get -y --no-install-recommends purge hostapd networkd-dispatcher
+			brctl delif br0 $adapter 2> /dev/null
+			networkctl reconfigure br0
+	fi
 
 }
+
 
 module_options+=(
 	["network_config,author"]="Igor Pecovnik"
@@ -148,8 +228,8 @@ function network_config() {
 	# defaul yaml file
 	local yamlfile=${1:-armbian}
 
-	# delete default automatic DHCP on all wired networks setup
-	rm -f /etc/netplan/10-dhcp-all-interfaces.yaml
+	# store current configs to temporal folder
+	store_netplan_config
 
 	LIST=()
 	HIDE_IP_PATTERN="^dummy0|^lo|^docker|^virbr|^br"
@@ -170,41 +250,64 @@ function network_config() {
 		# Wireless networking
 		#
 		if [[ "$adapter" == w* ]]; then
-			# wireless
-			LIST=("sta" "Connect to access point")
-			LIST+=("ap" "Become an access point")
+
+			LIST=()
+			if systemctl is-active --quiet service hostapd; then
+				LIST+=("stop" "Disable access point")
+			else
+				LIST=("sta" "Connect to access point")
+				LIST+=("ap" "Become an access point")
+			fi
 			LIST_LENGTH=$((${#LIST[@]} / 2))
 			wifimode=$($DIALOG --title "Select wifi mode" --menu "" $((${LIST_LENGTH} + 8)) 60 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
-			if [[ "${wifimode}" == "sta" && $? == 0 ]]; then
+			case $wifimode in
+			stop)
+				# disable hostapd and cleanup config
+				default_wireless_network_config "${yamlfile}" "${adapter}"
+			;;
+
+			sta)
 				ip link set ${adapter} up
-				systemctl stop hostapd 2> /dev/null
-				systemctl disable hostapd 2> /dev/null
+				default_wireless_network_config "${yamlfile}" "${adapter}"
 				LIST=()
 				LIST=($(iw dev ${adapter} scan 2> /dev/null | grep 'SSID\|^BSS' | cut -d" " -f2 | sed "s/(.*//g" | xargs -n2 -d'\n' | awk '{print $2,$1}'))
-				sleep 2
+				sleep 1
 				LIST_LENGTH=$((${#LIST[@]} / 2))
-				SELECTED_SSID=$($DIALOG --title "Select SSID" --menu "rf" $((${LIST_LENGTH} + 6)) 50 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
-				if [[ -n $SELECTED_SSID ]]; then
-					SELECTED_PASSWORD=$($DIALOG --title "Enter new password for $SELECTED_SSID" --passwordbox "" 7 50 3>&1 1>&2 2>&3)
-					if [[ -n $SELECTED_PASSWORD ]]; then
-						# connect to AP
-						netplan set --origin-hint ${yamlfile} renderer=${renderer}
-						netplan set --origin-hint ${yamlfile} wifis.$adapter.access-points."${SELECTED_SSID//./\\.}".password=${SELECTED_PASSWORD}
-						netplan set --origin-hint ${yamlfile} wifis.$adapter.dhcp4=true
-						netplan set --origin-hint ${yamlfile} wifis.$adapter.dhcp6=true
-						show_message <<< "$(netplan get all)"
+				if [[ ${#LIST[@]} == 0 ]]; then
+					restore_netplan_config
+				else
+					SELECTED_SSID=$($DIALOG --title "Select SSID" --menu "rf" $((${LIST_LENGTH} + 6)) 50 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
+					if [[ -n $SELECTED_SSID ]]; then
+						SELECTED_PASSWORD=$($DIALOG --title "Enter new password for $SELECTED_SSID" --passwordbox "" 7 50 3>&1 1>&2 2>&3)
+						if [[ -n $SELECTED_PASSWORD ]]; then
+							# connect to AP
+							netplan set --origin-hint ${yamlfile} renderer=${NETWORK_RENDERER}
+							netplan set --origin-hint ${yamlfile} wifis.$adapter.access-points."${SELECTED_SSID//./\\.}".password=${SELECTED_PASSWORD}
+							netplan set --origin-hint ${yamlfile} wifis.$adapter.dhcp4=true
+							netplan set --origin-hint ${yamlfile} wifis.$adapter.dhcp6=true
+							show_message <<< "$(netplan get all)"
+							$DIALOG --title " Changing network settings " --yes-button "Yes" --no-button "Cancel" --yesno \
+							"This action might disconnect you from network.\n\nAre you sure network was configured correctly?" 9 50
+							if [[ $? = 0 ]]; then
+								netplan apply
+							else
+								restore_netplan_config
+							fi
+						fi
 					fi
 				fi
-			elif [[ "${wifimode}" == "ap" ]]; then
+			;;
 
-				check_if_installed hostapd && debconf-apt-progress -- apt-get -y --no-install-recommends hostapd
-
+			ap)
+				ip link set ${adapter} up
+				default_wireless_network_config "${yamlfile}" "${adapter}"
+				! check_if_installed hostapd && apt_install_wrapper apt-get -y --no-install-recommends install hostapd networkd-dispatcher
 				SELECTED_SSID=$($DIALOG --title "Enter SSID for AP" --inputbox "" 7 50 3>&1 1>&2 2>&3)
 				if [[ -n "${SELECTED_SSID}" && $? == 0 ]]; then
 					SELECTED_PASSWORD=$($DIALOG --title "Enter new password for $SELECTED_SSID" --passwordbox "" 7 50 3>&1 1>&2 2>&3)
 					if [[ -n "${SELECTED_PASSWORD}" && $? == 0 ]]; then
 						# start bridged AP
-						netplan set --origin-hint ${yamlfile} renderer=${renderer}
+						netplan set --origin-hint ${yamlfile} renderer=${NETWORK_RENDERER}
 						netplan set --origin-hint ${yamlfile} ethernets.$adapter.dhcp4=no
 						netplan set --origin-hint ${yamlfile} ethernets.$adapter.dhcp6=no
 						netplan set --origin-hint ${yamlfile} bridges.br0.interfaces='['$adapter']'
@@ -224,55 +327,146 @@ function network_config() {
 							wpa_pairwise=TKIP
 							rsn_pairwise=CCMP
 						EOF
-						# Start services
-						systemctl stop hostapd
-						sleep 2
-						systemctl start hostapd
-						# Enable services on boot
-						systemctl enable hostapd
-						show_message <<< "$(netplan get all)"
+						netplan apply
+						# Start hostapd services
+						systemctl unmask hostapd 2>/dev/null
+						systemctl enable hostapd 2>/dev/null
+						systemctl start hostapd 2>/dev/null
+						# Sometimes it fails to add to the bridge
+						brctl addif br0 $adapter 2>/dev/null
+						# Add hooks to hack wrong if type
+						if [[ "${NETWORK_RENDERER}" == "NetworkManager" ]]; then
+							mkdir -p /etc/NetworkManager/dispatcher.d
+							cat <<- EOF > "/etc/NetworkManager/dispatcher.d/armbian-ap"
+							#!/bin/bash
+							# Added by armbian-config
+							interface=\$1
+							status=\$2
+							case "\$status" in
+								up)
+									if [[ "\$interface" == "br0" ]]; then
+										service hostapd restart
+										brctl addif br0 $adapter
+									fi
+								;;
+								down)
+									if [[ "\$interface" == "br0" ]]; then
+										brctl delif br0 $adapter
+									fi
+								;;
+							esac
+							EOF
+							chmod +x /etc/NetworkManager/dispatcher.d/armbian-ap
+						else
+							# workarounding bug in netplan for failing to add wireless adaptor to bridge
+							# this might not be needed on all versions
+							mkdir -p /etc/networkd-dispatcher/carrier.d/
+							cat <<- EOF > "/etc/networkd-dispatcher/carrier.d/armbian-ap"
+							#!/bin/sh
+							brctl addif br0 $adapter
+							netplan apply
+							exit 0
+							EOF
+							chmod +x /etc/networkd-dispatcher/carrier.d/armbian-ap
+						fi
 					fi
 				fi
-			fi
+			;;
+
+			*)
+				echo -n "unknown"
+				exit
+			;;
+			esac
 
 		else
 
 			#
-			# Wireless networking
+			# Wired networking
 			#
+
+			# remove default configuration
+			rm -f /etc/netplan/10-dhcp-all-interfaces.yaml
+
 			LIST=("dhcp" "Auto IP assigning")
 			LIST+=("static" "Set IP manually")
 			wiredmode=$($DIALOG --title "Select IP mode" --menu "" $((${LIST_LENGTH} + 8)) 60 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
 			if [[ "${wiredmode}" == "dhcp" && $? == 0 ]]; then
-				netplan set --origin-hint ${yamlfile} renderer=${renderer}
+				[[ -f /etc/netplan/${yamlfile}.yaml ]] && sed -i -e 'H;x;/^\(  *\)\n\1/{s/\n.*//;x;d;}' -e 's/.*//;x;/bridges/{s/^\( *\).*/ \1/;x;d;}' /etc/netplan/${yamlfile}.yaml
+				netplan set --origin-hint ${yamlfile} renderer=${NETWORK_RENDERER}
 				netplan set --origin-hint ${yamlfile} ethernets.$adapter.dhcp4=no
 				netplan set --origin-hint ${yamlfile} ethernets.$adapter.dhcp6=no
 				netplan set --origin-hint ${yamlfile} bridges.br0.interfaces='['$adapter']'
 				netplan set --origin-hint ${yamlfile} bridges.br0.dhcp4=yes
 				netplan set --origin-hint ${yamlfile} bridges.br0.dhcp6=yes
 				show_message <<< "$(netplan get all)"
+				$DIALOG --title " Changing network settings " --yes-button "Yes" --no-button "Cancel" --yesno \
+				"This action might disconnect you from network.\n\nAre you sure network was configured correctly?" 9 50
+				if [[ $? = 0 ]]; then
+					# apply NetPlan
+					netplan apply
+					[[ "${NETWORK_RENDERER}" == "NetworkManager" ]] && systemctl restart NetworkManager;
+				else
+					restore_netplan_config
+				fi
 			elif [[ "${wiredmode}" == "static" ]]; then
-				address=$(ip -br addr show dev $adapter | awk '{print $3}')
+				local ips=()
+				for f in /sys/class/net/*; do
+					local intf=$(basename $f)
+					# skip unwanted
+					if [[ $intf =~ ^dummy0|^lo|^docker|^virbr ]]; then
+						continue
+					else
+						local tmp=$(ip -4 addr show dev $intf | grep -v "$intf:avahi" | awk '/inet/ {print $2}' | uniq)
+						[[ -n $tmp ]] && ips+=("$tmp")
+					fi
+				done
+				#address=${ips[@]}
+				address=${ips[0]} # use only 1st one
 				[[ -z "${address}" ]] && address="1.2.3.4/5"
+				# clean values from config
+				[[ -f /etc/netplan/${yamlfile}.yaml ]] && sed -i -e 'H;x;/^\(  *\)\n\1/{s/\n.*//;x;d;}' -e 's/.*//;x;/bridges/{s/^\( *\).*/ \1/;x;d;}' /etc/netplan/${yamlfile}.yaml
 				address=$($DIALOG --title "Enter IP for $adapter" --inputbox "\nValid format: $address" 9 40 "$address" 3>&1 1>&2 2>&3)
 				if [[ -n $address && $? == 0 ]]; then
-					defaultroute=$(ip route show default | grep "$adapter" | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]" | head 1 | xargs)
+					defaultroute=$(ip route show default | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]" | head -1 | xargs)
 					defaultroute=$($DIALOG --title "Enter IP for default route" --inputbox "\nValid format: $defaultroute" 9 40 "$defaultroute" 3>&1 1>&2 2>&3)
 					if [[ -n $defaultroute && $? == 0 ]]; then
 						nameservers="9.9.9.9,1.1.1.1"
 						nameservers=$($DIALOG --title "Enter DNS server" --inputbox "\nValid format: $nameservers" 9 40 "$nameservers" 3>&1 1>&2 2>&3)
+					else
+						restore_netplan_config
 					fi
 					if [[ -n $nameservers && $? == 0 ]]; then
-						netplan set --origin-hint ${yamlfile} renderer=${renderer}
+						netplan set --origin-hint ${yamlfile} renderer=${NETWORK_RENDERER}
 						netplan set --origin-hint ${yamlfile} ethernets.$adapter.dhcp4=no
 						netplan set --origin-hint ${yamlfile} ethernets.$adapter.dhcp6=no
 						netplan set --origin-hint ${yamlfile} bridges.br0.interfaces='['$adapter']'
 						netplan set --origin-hint ${yamlfile} bridges.br0.addresses='['$address']'
 						netplan set --origin-hint ${yamlfile} bridges.br0.routes='[{"to":"0.0.0.0/0", "via": "'$defaultroute'","metric":200}]'
 						netplan set --origin-hint ${yamlfile} bridges.br0.nameservers.addresses='['$nameservers']'
+					else
+						restore_netplan_config
 					fi
+					if [[ $? == 0 ]]; then
+						show_message <<< "$(netplan get all)"
+						$DIALOG --title " Changing network settings " --yes-button "Yes" --no-button "Cancel" --yesno \
+						"This action might disconnect you from network.\n\nAre you sure network was configured correctly?" 9 50
+						if [[ $? = 0 ]]; then
+							# apply NetPlan
+							netplan apply
+							[[ "${NETWORK_RENDERER}" == "NetworkManager" ]] && systemctl restart NetworkManager;
+						else
+							restore_netplan_config
+						fi
+					fi
+				else
+					restore_netplan_config
 				fi
+			else
+				restore_netplan_config
 			fi
 		fi
+	else
+		restore_netplan_config
 	fi
 }

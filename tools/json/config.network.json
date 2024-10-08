@@ -10,7 +10,7 @@
                     "sub": [
                         {
                             "id": "N02",
-                            "description": "Add interface",
+                            "description": "Add / change interface",
                             "command": [
                                 "network_config armbian"
                             ],
@@ -20,17 +20,17 @@
                         },
                         {
                             "id": "N03",
-                            "description": "Revert to defaults",
+                            "description": "Revert to Armbian defaults",
                             "command": [
                                 "default_network_config"
                             ],
                             "status": "Preview",
                             "author": "Igor Pecovnik",
-                            "condition": "[[ -f /etc/netplan/armbian.yaml ]] && ! cat /etc/netplan/armbian.yaml | diff -q 1>/dev/null <(netplan get all) - || [[ ! -f /etc/netplan/10-dhcp-all-interfaces.yaml ]] && ! cat /etc/netplan/10-dhcp-all-interfaces.yaml 2>/dev/null | diff -q 1>/dev/null <(netplan get all) -"
+                            "condition": ""
                         },
                         {
                             "id": "N04",
-                            "description": "Show draft configuration",
+                            "description": "Show configuration",
                             "command": [
                                 "show_message <<< \"$(netplan get all)\""
                             ],
@@ -39,19 +39,6 @@
                             "src_reference": "",
                             "author": "Igor Pecovnik",
                             "condition": "[[ -f /etc/netplan/armbian.yaml ]]"
-                        },
-                        {
-                            "id": "N05",
-                            "description": "Apply changes",
-                            "prompt": "This will apply new network configuration\n\nwould you like to continue?",
-                            "command": [
-                                "netplan apply"
-                            ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "Igor Pecovnik",
-                            "condition": "[[ -f /etc/netplan/armbian.yaml ]] && ! cat /etc/netplan/armbian.yaml | diff -q 1>/dev/null <(netplan get all) - || [[ -f /etc/netplan/10-dhcp-all-interfaces.yaml ]]"
                         },
                         {
                             "id": "N06",
