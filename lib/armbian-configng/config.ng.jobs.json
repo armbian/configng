@@ -395,7 +395,7 @@
                     "doc_link": "",
                     "src_reference": "",
                     "author": "Gunjan Gupta",
-                    "condition": "[ -n $OVERLAYDIR ] && [ -n $BOOT_SOC ]"
+                    "condition": "[ -n $OVERLAY_DIR ] && [ -n $BOOT_SOC ]"
                 }
             ]
         },
