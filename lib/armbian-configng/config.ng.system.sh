@@ -14,10 +14,10 @@ module_options+=(
 function apt_install_wrapper() {
 
 	if [ -t 0 ]; then
-		DEBIAN_FRONTEND=noninteractive debconf-apt-progress -- "$@"
+		debconf-apt-progress -- "$@"
 	else
 		# Terminal not defined - proceed without TUI
-		DEBIAN_FRONTEND=noninteractive "$@"
+		"$@"
 	fi
 }
 
