@@ -328,16 +328,14 @@ function switch_kernels() {
 
 	# we only allow switching kerneles that are in the test pool
 	[[ -z "${KERNEL_TEST_TARGET}" ]] && KERNEL_TEST_TARGET="legacy,current,edge"
-	local kernel_test_target="("$(echo $KERNEL_TEST_TARGET | sed "s/,/|/g")")"
-	local current_kernel_version=$(dpkg -l | grep '^ii' | grep linux-image | awk '{print $2"="$3}')
-
+	local kernel_test_target=$(for x in ${KERNEL_TEST_TARGET//,/ }; do echo "linux-image-$x-${LINUXFAMILY}"; done;)
+	local installed_kernel_version=$(dpkg -l | grep '^ii' | grep linux-image | awk '{print $2"="$3}')
+	# just in case current is not installed
+	[[ -n ${installed_kernel_version} ]] && local grep_current_kernel=" | grep -v ${installed_kernel_version}"
+	local search_exec="apt-cache show ${kernel_test_target} | grep -E \"Package:|Version:|version:|family\" | grep -v \"Config-Version\" | sed -n -e 's/^.*: //p' | sed 's/\.$//g' | xargs -n3 -d'\n' | sed \"s/ /=/\" $grep_current_kernel"
 	IFS=$'\n'
 	local LIST=()
-	for line in $(
-		apt-cache show "linux-image-${kernel_test_target}-${LINUXFAMILY}" | grep -E "Package:|Version:|version:|family" |
-			grep -v "Config-Version" | sed -n -e 's/^.*: //p' | sed 's/\.$//g' | xargs -n3 -d'\n' | sed "s/ /=/" |
-			grep -v "${current_kernel_version}"
-	); do
+	for line in $(eval ${search_exec}); do
 		LIST+=($(echo $line | awk -F ' ' '{print $1 "      "}') $(echo $line | awk -F ' ' '{print "v"$2}'))
 	done
 	unset IFS
