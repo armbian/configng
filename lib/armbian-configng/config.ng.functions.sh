@@ -775,7 +775,7 @@ menu_options+=(
 function process_input() {
 	local input="$1"
 	if [ "$input" = "No" ]; then
-		exit 1
+		return 1
 	fi
 }
 
