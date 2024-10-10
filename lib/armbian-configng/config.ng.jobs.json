@@ -562,10 +562,7 @@
                 {
                     "id": "L04",
                     "description": "Change System Hostname",
-                    "command": [
-                        "NEW_HOSTNAME=$($DIALOG --title \"Enter new hostnane\" --inputbox \"\" 7 50 3>&1 1>&2 2>&3)",
-                        "[ $? -eq 0 ] && [ -n \"${NEW_HOSTNAME}\" ] && hostnamectl set-hostname \"${NEW_HOSTNAME}\""
-                    ],
+                    "command": [ "change_system_hostname" ],
                     "status": "Preview",
                     "author": ""
                 }
