@@ -124,10 +124,9 @@ Outputs:
 
   Network - Fixed and wireless network settings (eth0)
     N01 - Configure network interfaces
-	--cmd N02 - Add interface
-	--cmd N03 - Revert to defaults
-	--cmd N04 - Show draft configuration
-	--cmd N05 - Apply changes
+	--cmd N02 - Add / change interface
+	--cmd N03 - Revert to Armbian defaults
+	--cmd N04 - Show configuration
 	--cmd N06 - Show active status
     --cmd N15 - Install Bluetooth support
     --cmd N16 - Remove Bluetooth support
@@ -499,8 +498,7 @@ Change System Hostname
 Jobs:
 
 ~~~
-NEW_HOSTNAME=$(whiptail --title "Enter new hostnane" --inputbox "" 7 50 3>&1 1>&2 2>&3)
-[ $? -eq 0 ] && [ -n "${NEW_HOSTNAME}" ] && hostnamectl set-hostname "${NEW_HOSTNAME}"
+change_system_hostname
 ~~~
 
 ### Desktops
@@ -617,6 +615,7 @@ These helper functions facilitate various operations related to job management, 
 | Migrated procedures from Armbian config. | is_package_manager_running | Igor Pecovnik 
 | Migrated procedures from Armbian config. | check_desktop | Igor Pecovnik 
 | Generate Document files. | generate_readme | Joey Turner 
+|  |  | Igor Pecovnik 
 | Needed by generate_menu |  | Joey Turner 
 | Display a Yes/No dialog box and process continue/exit | get_user_continue 'Do you wish to continue?' process_input | Joey Turner 
 | Display a message box | show_message <<< 'hello world'  | Joey Turner 
@@ -647,6 +646,7 @@ These helper functions facilitate various operations related to job management, 
 | Serve the edit and debug server. | serve_doc | Joey Turner 
 | Update JSON data with system information | update_json_data | Joey Turner 
 | pipeline strings to an infobox  | show_infobox <<< 'hello world' ;  | Joey Turner 
+| Stop hostapd, clean config | default_wireless_network_config | Igor Pecovnik 
 | Parse json to get list of desired menu or submenu items | parse_menu_items 'menu_options_array' | Gunjan Gupta 
 | Show the usage of the functions. | see_use | Joey Turner 
 | Generate a Help message for cli commands. | see_cmd_list [catagory] | Joey Turner 
@@ -655,6 +655,7 @@ These helper functions facilitate various operations related to job management, 
 | Check the internet connection with fallback DNS | see_ping | Joey Turner 
 | Upgrade to next stable or rolling release | release_upgrade stable verify | Igor Pecovnik 
 | Install docker from a repo using apt | install_docker engine | Kat Schwarz 
+| change_system_hostname | change_system_hostname | igorpecovnik 
 | Set Armbian to stable release | set_stable | Tearran 
 | Secure version of get_user_continue | get_user_continue_secure 'Do you wish to continue?' process_input | Joey Turner 
 
