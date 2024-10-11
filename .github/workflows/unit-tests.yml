@@ -6,8 +6,6 @@ on:
     - cron: '0 2 * * *'
   pull_request:
     types: [opened, reopened, edited, synchronize, review_requested]
-#    paths:
-#      - 'tests/*.conf'
 
 env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -47,17 +45,20 @@ jobs:
           # define docker images where we will run test install
           dockerimages=("debian:bookworm" "ubuntu:jammy" "ubuntu:noble")
 
-          # read tests cases and loop them
+          # go to repo folder
+          cd config
 
+          # read tests cases
           if [[ -n "${{ steps.changed-files.outputs.all_changed_files }}" ]]; then
-              tests=($(echo ${{ steps.changed-files.outputs.all_changed_files }} | tr " " "\n" | cut -d"." -f1 | cut -d"/" -f2))
+              tests=($(grep -rw ${{ steps.changed-files.outputs.all_changed_files }} -e "ENABLED=true" | cut -d":" -f1))
               else
-              tests=($(grep -rw config/tests/*.conf -e "ENABLED=true" | cut -d"/" -f3 | cut -d"." -f1))
+              tests=($(grep -rw tests/*.conf -e "ENABLED=true" | cut -d":" -f1))
           fi
 
+          # loop enabled tests
           for i in "${tests[@]}"; do
              unset RELEASE
-             source config/tests/${i}.conf
+             source "${i}"
              if [[ -z "${RELEASE}" ]]; then RELEASE=all; fi
              # if we speficy releases, we need to loop docker images and use if there is a match
              if [[ $RELEASE != all || -z $RELEASE ]]; then
@@ -88,6 +89,7 @@ jobs:
 
     name: "I"
     runs-on: ubuntu-latest
+    timeout-minutes: 7
     container:
         image: "${{ matrix.image.image }}"
     steps:
@@ -101,13 +103,15 @@ jobs:
         run: |
 
             # source vars
-            . "config/tests/${{ matrix.image.package }}.conf"
+            . "config/${{ matrix.image.package }}"
             echo ${TEST_TITLE}
 
-            export DEBIAN_FRONTEND=noninteractive
             RELEASE=$(echo "${{ matrix.image.image }}" | cut -d":" -f2)
+            TEST_ID=$(echo "${{ matrix.image.package }}" | cut -d "/" -f2 | cut -d "." -f1)
+            # update index
             apt update
-            apt -y install wget gpg
+            # install basics
+            DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata keyboard-configuration wget gpg
 
             # add armbian repository
             URL=beta.armbian.com
@@ -125,13 +129,13 @@ jobs:
             export DEBIAN_FRONTEND=noninteractive
             cd config
             eval "$PREINSTALL"
-            sudo bash bin/armbian-configng --cmd "${{ matrix.image.package }}"
+            sudo bash bin/armbian-configng --cmd "$TEST_ID"
             eval "$CONDITION"
 
             # stats
-            FILENAME="data-"$(echo ${{ matrix.image.image }} | sed "s/:/-/g")"-${{ matrix.image.package }}.teststats"
+            FILENAME="data-"$(echo ${{ matrix.image.image }} | sed "s/:/-/g")"-${TEST_ID}.teststats"
             echo $RELEASE >> ../${FILENAME}
-            bash bin/armbian-configng --cmd | grep "${{ matrix.image.package }}" | xargs >> ../${FILENAME}
+            bash bin/armbian-configng --cmd | grep "${TEST_ID}" | xargs >> ../${FILENAME}
             echo " " >> ../${FILENAME}
 
       - name: Upload test

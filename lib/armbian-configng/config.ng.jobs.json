@@ -574,67 +574,249 @@
             "sub": [
                 {
                     "id": "Desktops",
-                    "description": "Install Desktop Environments",
+                    "description": "Desktop Environments",
                     "sub": [
                         {
-                            "id": "SW02",
-                            "description": "Install XFCE desktop",
-                            "command": [
-                                "install_de \"xfce\""
-                            ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
-                            "condition": ""
+                            "id": "DE00",
+                            "description": "XFCE desktop",
+                            "sub": [
+                                {
+                                    "id": "DE01",
+                                    "description": "XFCE desktop Install",
+                                    "command": [
+                                        "manage_desktops 'xfce' 'install'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ ! -f /usr/share/xsessions/xfce.desktop ]"
+                                },
+                                {
+                                    "id": "DE02",
+                                    "description": "Uninstall",
+                                    "command": [
+                                        "manage_desktops 'xfce' 'uninstall'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/xfce.desktop ]"
+                                },
+                                {
+                                    "id": "DE03",
+                                    "description": "Enable autologin",
+                                    "command": [
+                                        "manage_desktops 'xfce' 'auto'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/xfce.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                },
+                                {
+                                    "id": "DE04",
+                                    "description": "Disable autologin",
+                                    "command": [
+                                        "manage_desktops 'xfce' 'manual'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/xfce.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                }
+                            ]
                         },
                         {
-                            "id": "SW03",
-                            "description": "Install Gnome desktop",
-                            "command": [
-                                "install_de \"gnome\""
-                            ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
-                            "condition": ""
+                            "id": "DE10",
+                            "description": "Gnome desktop",
+                            "sub": [
+                                {
+                                    "id": "DE11",
+                                    "description": "Gnome desktop Install",
+                                    "command": [
+                                        "manage_desktops 'gnome' 'install'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ ! -f /usr/share/xsessions/gnome.desktop ]"
+                                },
+                                {
+                                    "id": "DE12",
+                                    "description": "Uninstall",
+                                    "command": [
+                                        "manage_desktops 'gnome' 'uninstall'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ]"
+                                },
+                                {
+                                    "id": "DE13",
+                                    "description": "Enable autologin",
+                                    "command": [
+                                        "manage_desktops 'gnome' 'auto'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && ! cat /etc/gdm3/custom.conf 2>/dev/null | grep AutomaticLoginEnable | grep true >/dev/null"
+                                },
+                                {
+                                    "id": "DE14",
+                                    "description": "Disable autologin",
+                                    "command": [
+                                        "manage_desktops 'gnome' 'manual'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && cat /etc/gdm3/custom.conf 2>/dev/null | grep AutomaticLoginEnable | grep true >/dev/null"
+                                }
+                            ]
                         },
                         {
-                            "id": "SW04",
-                            "description": "Install i3-wm desktop",
-                            "command": [
-                                "install_de \"i3-wm\""
-                            ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
-                            "condition": ""
+                            "id": "DE20",
+                            "description": "i3-wm desktop",
+                            "status": "Disabled",
+                            "sub": [
+                                {
+                                    "id": "DE21",
+                                    "description": "i3 desktop Install",
+                                    "command": [
+                                        "manage_desktops 'i3-wm' 'install'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ ! -f /usr/share/xsessions/i3.desktop ]"
+                                },
+                                {
+                                    "id": "DE22",
+                                    "description": "i3 desktop uninstall",
+                                    "command": [
+                                        "manage_desktops 'i3-wm' 'uninstall'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/i3.desktop ]"
+                                },
+                                {
+                                    "id": "DE23",
+                                    "description": "Enable autologin",
+                                    "command": [
+                                        "manage_desktops 'i3-wm' 'auto'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/i3.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                },
+                                {
+                                    "id": "DE24",
+                                    "description": "Disable autologin",
+                                    "command": [
+                                        "manage_desktops 'i3-wm' 'manual'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/i3.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                }
+                            ]
                         },
                         {
-                            "id": "SW05",
-                            "description": "Install Cinnamon desktop",
-                            "command": [
-                                "install_de \"cinnamon\""
-                            ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
-                            "condition": ""
+                            "id": "DE30",
+                            "description": "Cinnamon desktop",
+                            "sub": [
+                                {
+                                    "id": "DE31",
+                                    "description": "Cinnamon desktop Install",
+                                    "command": [
+                                        "manage_desktops 'cinnamon' 'install'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ ! -f /usr/share/xsessions/cinnamon.desktop ] && [ ! -f /usr/share/xsessions/cinnamon2d.desktop ]"
+                                },
+                                {
+                                    "id": "DE32",
+                                    "description": "Cinnamon desktop uninstall",
+                                    "command": [
+                                        "manage_desktops 'cinnamon' 'uninstall'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] || [ -f /usr/share/xsessions/cinnamon2d.desktop ]"
+                                },
+                                {
+                                    "id": "DE33",
+                                    "description": "Enable autologin",
+                                    "command": [
+                                        "manage_desktops 'cinnamon' 'auto'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                },
+                                {
+                                    "id": "DE34",
+                                    "description": "Disable autologin",
+                                    "command": [
+                                        "manage_desktops 'cinnamon' 'manual'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                }
+                            ]
                         },
                         {
-                            "id": "SW06",
-                            "description": "Install kde-neon desktop",
+                            "id": "DE40",
+                            "description": "Kde-neon desktop",
+                            "status": "Disabled",
+                            "sub": [
+                                {
+                                    "id": "DE41",
+                                    "description": "Kde-neon desktop Install",
+                                    "command": [
+                                        "manage_desktops 'kde-neon' 'install'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ ! -f /usr/share/xsessions/gnome.desktop ]"
+                                },
+                                {
+                                    "id": "DE42",
+                                    "description": "Uninstall",
+                                    "command": [
+                                        "manage_desktops 'kde-neon' 'uninstall'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ]"
+                                },
+                                {
+                                    "id": "DE43",
+                                    "description": "Enable autologin",
+                                    "command": [
+                                        "manage_desktops 'kde-neon' 'auto'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                },
+                                {
+                                    "id": "DE44",
+                                    "description": "Disable autologin",
+                                    "command": [
+                                        "manage_desktops 'kde-neon' 'manual'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "DE99",
+                            "description": "Improve application search speed",
                             "command": [
-                                "install_de \"kde-neon\""
+                                "update-apt-xapian-index -u; sleep 3"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
-                            "condition": ""
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "systemctl is-active --quiet service display-manager"
                         }
                     ]
                 },
