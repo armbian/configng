@@ -1,6 +1,7 @@
 #!/bin/bash
 
 tput init
+clear
 #
 # Language-based variable assignment for script directory path
 # This serves as a Rosetta Stone for developers,
@@ -13,9 +14,10 @@ trap "exit" INT TERM
 script_dir="$(dirname "$0")"
 
 # Define the lib directory one level up from the script directory
-lib_dir="$script_dir/../lib/armbian-configng"
-doc_dir="$script_dir/../share/doc/armbian-configng"
-json_file="$lib_dir/config.ng.jobs.json"
+lib_dir="$script_dir/../lib/armbian-config"
+doc_dir="$script_dir/../share/doc/armbian-config"
+json_file="$lib_dir/config.jobs.json"
+modules_dir="$lib_dir/modules"
 
 #
 # Load The Bash procedure Objects
@@ -31,28 +33,36 @@ json_data=$(<"$json_file")
 declare -A module_options
 
 #
-# Load configng core functions and module options array
+# Load config core functions and module options array
 
-source "$lib_dir/config.ng.functions.sh"
+
+
+source "$lib_dir/config.core.functions.sh"
 set_runtime_variables
-echo "Loaded Runtime variables..." #| show_infobox ;
-#set_newt_colors 2
-echo "Loaded Dialog..." #| show_infobox ;
-source "$lib_dir/config.ng.docs.sh"
-echo "Loaded Docs..." #| show_infobox ;
-source "$lib_dir/config.ng.system.sh"
-echo "Loaded System helpers..." #| show_infobox ;
-source "$lib_dir/config.ng.network.sh"
-echo "Loaded Network helpers..." #| show_infobox ;
-source "$lib_dir/config.ng.software.sh"
-echo "Loaded Software helpers..." #| show_infobox ;
-#
-# Loads the variables from beta armbian-config for runtime handling
+source "$lib_dir/config.core.runtime.sh"
+# Function to source modules
+source_modules() {
+    # Iterate over all config.*.sh files in the lib_dir
+    for file in "$modules_dir/"config.*.sh; do
+        # Check if the file exists and is a regular file
+        if [[ -f "$file" ]]; then
+            echo  "Sourcing: $(basename "$file")"
+            source "$file"
+        else
+            echo "Warning:  $(basename "$file") does not exist or is not a file."
+        fi
+    done
 
-source "$lib_dir/config.ng.runtime.sh"
-echo "Loaded Runtime conditions..." #| show_infobox ;
+	tput reset   # Soft reset, clears screen but keeps scrollback
 
-clear
+}
+
+
+
+# Call the function to source the modules
+source_modules
+# keep the scrollback
+tput reset
 
 case "$1" in
 "--help")
@@ -62,7 +72,7 @@ case "$1" in
 		exit 0
 	fi
 
-	echo "Usage:  armbian-configng --[option]
+	echo "Usage:  armbian-config --[option]
      Options:
      --help [catagory]   Use [catagory] to filter specific menu options.
      --cmd  [option]     Run a command from the menu (simple)
@@ -70,9 +80,9 @@ case "$1" in
      --doc               Generate the README.md file 
 
      Examples:
-     armbian-configng --help [cmd||System||Software||Network||Localisation]
-     armbian-configng --cmd help 
-     armbian-configng --api help
+     armbian-config --help [cmd||System||Software||Network||Localisation]
+     armbian-config --cmd help 
+     armbian-config --api help
 "
 	exit 0
 	;;
