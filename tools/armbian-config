@@ -1,0 +1,174 @@
+#!/bin/bash
+
+tput init
+#
+# Language-based variable assignment for script directory path
+# This serves as a Rosetta Stone for developers,
+# allowing them to use the variable name they are most comfortable with.
+
+# allows CTRL c to exit
+trap "exit" INT TERM
+
+# Get the script directory
+script_dir="$(dirname "$0")"
+
+# Define the lib directory one level up from the script directory
+lib_dir="$script_dir/../lib/armbian-configng"
+doc_dir="$script_dir/../share/doc/armbian-configng"
+json_file="$lib_dir/config.ng.jobs.json"
+
+#
+# Load The Bash procedure Objects
+json_data=$(<"$json_file")
+
+# Check if help or doc otherwise run sudo -E
+[[ $EUID != 0 && "$1" != "--help" && "$1" != "--doc" ]] && exec sudo -E "$0" "$@"
+# 'whiptail' is a simple dialog box utility that works well with Bash. It doesn't have all the features of some other dialog box utilities, but it does everything we need for this script.
+[[ -x "$(command -v whiptail)" ]] && DIALOG="whiptail"
+
+#
+# Prepare the module options array
+declare -A module_options
+
+#
+# Load configng core functions and module options array
+
+source "$lib_dir/config.ng.functions.sh"
+set_runtime_variables
+echo "Loaded Runtime variables..." #| show_infobox ;
+#set_newt_colors 2
+echo "Loaded Dialog..." #| show_infobox ;
+source "$lib_dir/config.ng.docs.sh"
+echo "Loaded Docs..." #| show_infobox ;
+source "$lib_dir/config.ng.system.sh"
+echo "Loaded System helpers..." #| show_infobox ;
+source "$lib_dir/config.ng.network.sh"
+echo "Loaded Network helpers..." #| show_infobox ;
+source "$lib_dir/config.ng.software.sh"
+echo "Loaded Software helpers..." #| show_infobox ;
+#
+# Loads the variables from beta armbian-config for runtime handling
+
+source "$lib_dir/config.ng.runtime.sh"
+echo "Loaded Runtime conditions..." #| show_infobox ;
+
+clear
+
+case "$1" in
+"--help")
+	if [[ -n "$2" ]]; then
+		see_cmd_list "$2"
+		echo ""
+		exit 0
+	fi
+
+	echo "Usage:  armbian-configng --[option]
+     Options:
+     --help [catagory]   Use [catagory] to filter specific menu options.
+     --cmd  [option]     Run a command from the menu (simple)
+     --api  [option]     Run a helper command        (advanced)
+     --doc               Generate the README.md file 
+
+     Examples:
+     armbian-configng --help [cmd||System||Software||Network||Localisation]
+     armbian-configng --cmd help 
+     armbian-configng --api help
+"
+	exit 0
+	;;
+"--doc")
+	if [[ $EUID != 0 ]]; then
+		generate_readme
+		exit 0
+	else
+		echo "Error: You must run this command as a normal user"
+		exit 1
+	fi
+	;;
+"--cmd")
+	INPUTMODE="cmd"
+	if [[ $EUID != 0 ]]; then
+		echo "Error: Requires root privileges. Please run as root or use sudo."
+		exit 1
+	fi
+
+	shift
+	if [[ -z "$1" || "$1" == "help" ]]; then
+		see_cmd_list
+		exit 0
+	fi
+
+	args=$(sanitize_input "$@")
+	execute_command "$args"
+	exit 0
+	;;
+"--api")
+	if [[ $EUID != 0 ]]; then
+		echo "Error: The --api option requires root privileges. Please run as root or use sudo."
+		exit 1
+	fi
+	shift
+	if [[ -z "$1" || "$1" == "help" ]]; then
+		see_use
+		exit 0
+	fi
+	option="$1"
+	shift
+	args=$(sanitize_input "$@")
+	# echo -e "\"$option\" \"$args\""
+	"$option" "$args"
+	exit 0
+	;;
+"main=help" | "main=Help")
+	see_cli_legacy
+	echo ""
+	exit 0
+	;;
+"main="*)
+	declare -A main_map
+	main_map=(
+		# map name to menu category
+		["System"]="S"
+		["Software"]="I"
+		["Network"]="N"
+		["Localisation"]="L"
+	)
+	main_value="${1#main=}"
+	main_value="${main_map[$main_value]}"
+
+	if [ -z "$main_value" ]; then
+		echo "Error: Invalid List $1"
+		exit 1
+	fi
+	declare -A select_map
+	# map name to menu number
+	select_map=(
+		["Headers"]="04"
+		["Headers_install"]="04"
+		["Headers_remove"]="05"
+		["Firmware"]="06"
+		["Nightly"]="07"
+	)
+	select_value="${2#selection=}"
+	select_value="${select_map[$select_value]}"
+	if [ -z "$select_value" ]; then
+		echo "Error: Invalid Option $2"
+		exit 1
+	fi
+	echo "$main_value""$select_value"
+	execute_command "$main_value""$select_value"
+	exit 0
+	;;
+*)
+	# 
+	;;
+esac
+
+#
+# Generate the top menu with the modified Object data
+set_colors 4
+generate_top_menu "$json_data"
+
+#
+# Exit the script with a success status code
+exit 0
