@@ -1,6 +1,8 @@
 
 # Armbian Configuration Utility
 
+<img src="https://raw.githubusercontent.com/armbian/configng/main/share/icons/hicolor/scalable/configng-tux.svg">
+
 Utility for configuring your board, adjusting services, and installing applications. It comes with Armbian by default.
 
 To start the Armbian configuration utility, use the following command:
