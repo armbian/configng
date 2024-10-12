@@ -19,9 +19,24 @@ doc_dir="$script_dir/../share/doc/armbian-config"
 json_file="$lib_dir/config.jobs.json"
 modules_dir="$lib_dir/modules"
 
-#
-# Load The Bash procedure Objects
-json_data=$(<"$json_file")
+	# Load The Bash procedure Objects
+json_data=$(jq '
+    walk(
+        # Process only objects
+        if type == "object" then
+            # Check if the object has a "status" key and if "status" is "Disabled"
+            if has("status") and .status == "Disabled" then
+                empty  # Exclude this object from the output
+            else
+                .  # Otherwise, keep the object as it is
+            end
+        else
+            .  # For non-object elements, leave them unchanged
+        end
+    )
+' "$json_file")
+
+
 
 # Check if help or doc otherwise run sudo -E
 [[ $EUID != 0 && "$1" != "--help" && "$1" != "--doc" ]] && exec sudo -E "$0" "$@"
@@ -129,48 +144,9 @@ case "$1" in
 	"$option" "$args"
 	exit 0
 	;;
-"main=help" | "main=Help")
-	see_cli_legacy
-	echo ""
-	exit 0
-	;;
-"main="*)
-	declare -A main_map
-	main_map=(
-		# map name to menu category
-		["System"]="S"
-		["Software"]="I"
-		["Network"]="N"
-		["Localisation"]="L"
-	)
-	main_value="${1#main=}"
-	main_value="${main_map[$main_value]}"
-
-	if [ -z "$main_value" ]; then
-		echo "Error: Invalid List $1"
-		exit 1
-	fi
-	declare -A select_map
-	# map name to menu number
-	select_map=(
-		["Headers"]="04"
-		["Headers_install"]="04"
-		["Headers_remove"]="05"
-		["Firmware"]="06"
-		["Nightly"]="07"
-	)
-	select_value="${2#selection=}"
-	select_value="${select_map[$select_value]}"
-	if [ -z "$select_value" ]; then
-		echo "Error: Invalid Option $2"
-		exit 1
-	fi
-	echo "$main_value""$select_value"
-	execute_command "$main_value""$select_value"
-	exit 0
-	;;
 *)
 	# 
+
 	;;
 esac
 
