@@ -14,20 +14,33 @@ jobs:
     #if: ${{ github.repository_owner == 'armbian' }}
     steps:
 
-      - name: Checkout build repo
+      - name: Checkout main documentation
         uses: actions/checkout@v4
+        with:
+          repository: 'armbian/documentation'
+          path: 'documentation'
+
+      - name: Checkout Armbian config repository
+        uses: actions/checkout@v4
+        with:
+          repository: 'armbian/configng'
+          path: 'config'
+
       - name: Make docs
         run: |
-          bin/armbian-configng --doc
 
-      - name: Create Pull Request
-        id: cpr
+          cd config
+          bin/armbian-configng --doc
+          cp DOCUMENTATION.md ../documentation/docs/User-Guide_Armbian-Config.md
+
+      - name: Create Pull Request to armbian config
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          path: config
           commit-message: '`Automatic` documentation update'
           signoff: false
-          branch: update-docs
+          branch: auto-update-docs
           delete-branch: true
           title: '`Automatic` documentation update'
           body: |
@@ -39,3 +52,21 @@ jobs:
           #reviewers: Must be org collaborator
           draft: false
 
+      - name: Create Pull Request to documentation
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: documentation
+          commit-message: '`Automatic` documentation update'
+          signoff: false
+          branch: auto-update-docs
+          delete-branch: true
+          title: '`Automatic` documentation update'
+          body: |
+            Generate documentation.
+  
+          labels: |
+            Needs review
+          #assignees: igorpecovnik
+          #reviewers: Must be org collaborator
+          draft: false
