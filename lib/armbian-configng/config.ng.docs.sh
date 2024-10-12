@@ -382,6 +382,9 @@ function see_full_list() {
 			[ -z "$doc_link" ] && doc_link="#$id_link" || doc_link="$doc_link"
 
 			echo -e "  - **$id** - $description"
+			# Add additional bits of documentation if they exists
+			[[ -f docs/$id.md ]] && cat docs/$id.md
+
 			#            echo -e "    - Status: [$status]($doc_link)"
 
 		done
