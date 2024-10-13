@@ -12,17 +12,17 @@ on:
 jobs:
 
   Debian:
-    uses: armbian/scripts/.github/workflows/pack-debian.yml@master
+    uses: armbian/scripts/.github/workflows/pack-debian.yml@main
     with:
       matrix: "all:jammy"
       maintainer: "Igor Pecovnik <igor@armbian.com>"
-      package: "armbian-configng"
+      package: "armbian-config"
       licence: "GPL 2.0"
       homepage: "https://www.armbian.com"
       section: "default"
       priority: "optional"
       depends: "bash, jq, whiptail, sudo, procps, systemd, lsb-release, iproute2"
-      description: "Configng"
+      description: "Armbian config: The Next Generation"
 
     secrets:
       GPG_PRIVATE_KEY: ${{ secrets.GPG_KEY1 }}
