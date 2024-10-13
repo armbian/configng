@@ -37,7 +37,7 @@ Run the following commands in your terminal:
 ```bash
 echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] https://armbian.github.io/configng stable main" | sudo tee /etc/apt/sources.list.d/armbian-development.list > /dev/null
 sudo apt update
-sudo apt -y install armbian-configng
+sudo apt -y install armbian-config
 ```
 
 ## Contributing
