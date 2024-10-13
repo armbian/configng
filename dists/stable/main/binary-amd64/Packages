@@ -13,3 +13,17 @@ SHA1: 648098bc8b7cf9a50668a5071068f03dc8169a01
 MD5sum: 3a9c25cafce6e4903e6c0228e75aef7c
 Description: Armbian config: The Next Generation
 
+Package: armbian-configng
+Version: 20241013-2055
+Architecture: all
+Maintainer: Igor Pecovnik <igor@armbian.com>
+Depends: bash, jq, whiptail, sudo, procps, systemd, lsb-release, iproute2
+Priority: optional
+Section: default
+Filename: pool/main/a/armbian-configng/armbian-configng_20241013-2055_all.deb
+Size: 111138
+SHA256: b2578c738ec2f71710f5fa00ff89d494b3340c82b52a12d9110fb4ff31776cbb
+SHA1: 8d8ae332bc5fa1520e6dcc58b23677e701fc965f
+MD5sum: 955dfb09881b8bceefd3b1d291508cb8
+Description: Configng
+
