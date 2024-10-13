@@ -47,7 +47,7 @@ sudo armbian-config
 
 
 - ## **Software** 
-  - **Desktops** - Install Desktop Environments
+  - **Desktops** - Desktop Environments
   - **Netconfig** - Network tools
   - **DevTools** - Development
   - **Benchy** - System benchmaking and diagnostics
@@ -143,12 +143,33 @@ Outputs:
     --cmd L04 - Change System Hostname
 
   Software - Run/Install 3rd party applications (Update the package lists.)
-    Desktops - Install Desktop Environments
-	--cmd SW02 - Install XFCE desktop
-	--cmd SW03 - Install Gnome desktop
-	--cmd SW04 - Install i3-wm desktop
-	--cmd SW05 - Install Cinnamon desktop
-	--cmd SW06 - Install kde-neon desktop
+    Desktops - Desktop Environments
+      DE00 - XFCE desktop
+	--cmd DE01 - XFCE desktop Install
+	--cmd DE02 - Uninstall
+	--cmd DE03 - Enable autologin
+	--cmd DE04 - Disable autologin
+      DE10 - Gnome desktop
+	--cmd DE11 - Gnome desktop Install
+	--cmd DE12 - Uninstall
+	--cmd DE13 - Enable autologin
+	--cmd DE14 - Disable autologin
+      DE20 - i3-wm desktop
+	--cmd DE21 - i3 desktop Install
+	--cmd DE22 - i3 desktop uninstall
+	--cmd DE23 - Enable autologin
+	--cmd DE24 - Disable autologin
+      DE30 - Cinnamon desktop
+	--cmd DE31 - Cinnamon desktop Install
+	--cmd DE32 - Cinnamon desktop uninstall
+	--cmd DE33 - Enable autologin
+	--cmd DE34 - Disable autologin
+      DE40 - Kde-neon desktop
+	--cmd DE41 - Kde-neon desktop Install
+	--cmd DE42 - Uninstall
+	--cmd DE43 - Enable autologin
+	--cmd DE44 - Disable autologin
+	--cmd DE99 - Improve application search speed
     Netconfig - Network tools
 	--cmd SW08 - Install realtime console network usage monitor (nload)
 	--cmd SW09 - Remove realtime console network usage monitor (nload)
@@ -505,7 +526,7 @@ change_system_hostname
 
 ### Desktops
 
-Install Desktop Environments
+Desktop Environments
 
 Jobs:
 
@@ -641,7 +662,6 @@ These helper functions facilitate various operations related to job management, 
 | Toggle IPv6 on or off | toggle_ipv6 | Joey Turner 
 | Adjust welcome screen (motd) |  | igorpecovnik 
 | Generate JSON-like object file. | generate_json | Joey Turner 
-| Install DE | install_de | Igor Pecovnik 
 | Install wrapper | apt_install_wrapper apt-get -y purge armbian-zsh | igorpecovnik 
 | Netplan wrapper | network_config | Igor Pecovnik 
 | Change the background color of the terminal or dialog box | set_colors 0-7 | Joey Turner 
@@ -651,6 +671,7 @@ These helper functions facilitate various operations related to job management, 
 | Stop hostapd, clean config | default_wireless_network_config | Igor Pecovnik 
 | Parse json to get list of desired menu or submenu items | parse_menu_items 'menu_options_array' | Gunjan Gupta 
 | Show the usage of the functions. | see_use | Joey Turner 
+| Install Desktop environment | manage_desktops xfce install | @igorpecovnik 
 | Generate a Help message for cli commands. | see_cmd_list [catagory] | Joey Turner 
 | Revert network config back to Armbian defaults | default_network_config | Igor Pecovnik 
 | freeze/unhold/reinstall armbian related packages. | armbian_fw_manipulate unhold|freeze|reinstall | Igor Pecovnik 
