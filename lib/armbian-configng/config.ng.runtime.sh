@@ -49,6 +49,24 @@ update_submenu_data() {
 		'(.menu[] | select(.id==$key).sub[] | select(.id == $subkey).description) += " (" + $value + ")"')
 }
 
+
+module_options+=(
+    ["update_sub_submenu_data,author"]="@Tearran"
+    ["update_sub_submenu_data,feature"]="update_sub_submenu_data"
+    ["update_sub_submenu_data,desc"]="Update sub-submenu descriptions based on conditions"
+    ["update_sub_submenu_data,example"]="update_sub_submenu_data \"MenuID\" \"SubID\" \"SubSubID\" \"CMD\""
+    ["update_sub_submenu_data,status"]=""
+
+)
+#
+# Update sub-submenu descriptions based on conditions
+update_sub_submenu_data() {
+    json_data=$(echo "$json_data" | jq --arg key "$1" --arg subkey "$2" --arg subsubkey "$3" --arg value "$4" \
+        '(.menu[] | select(.id == $key).sub[] | 
+        select(.id == $subkey).sub[] | 
+        select(.id == $subsubkey).description) += " (" + $value + ")"')
+}
+
 #
 # Check if network adapter is IPv6 or IPv4
 network_adapter="$DEFAULT_ADAPTER"
@@ -66,3 +84,16 @@ if [ "$network_adapter" = "IPv6" ]; then
 else
 	update_submenu_data "Network" "N08" "IPV4"
 fi
+
+
+#
+# Sub sub menu updates
+
+cockpit_port="$(systemctl cat cockpit.socket | grep ListenStream | awk -F= '{print $2}' | awk '{print $1}')"
+update_sub_submenu_data "Software" "Management" "M03" "https://localhost:$cockpit_port"
+
+emby_media_port="$(lsof -i -P -n | grep TCP | grep LISTEN | grep 'emby' | awk -F: '{print $2}' | awk '{print $1}')"
+update_sub_submenu_data "Software" "Media" "SW24" "https://localhost:$emby_media_port"
+
+plex_media_port="$(lsof -i -P -n | grep TCP | grep LISTEN | grep 'plex' | awk -F: '{print $2}' | awk '{print $1}' | head -n 1)"
+update_sub_submenu_data "Software" "Media" "SW22" "https://localhost:$plex_media_port"
