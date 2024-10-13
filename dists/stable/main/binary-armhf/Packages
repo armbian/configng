@@ -1,0 +1,15 @@
+Package: armbian-config
+Version: 24.8.4.1013.203803
+Architecture: all
+Conflicts: armbian-configng
+Maintainer: Igor Pecovnik <igor@armbian.com>
+Depends: bash, jq, whiptail, sudo, procps, systemd, lsb-release, iproute2
+Priority: optional
+Section: default
+Filename: pool/main/a/armbian-config/armbian-config_24.8.4.1013.203803_all.deb
+Size: 111216
+SHA256: eb57bf030cb920fde85b60592513644ebd5a05f8802931fa06dde6c16066ceb6
+SHA1: 722b88ad001fcbefe3bd73564c3eefbb90fdf969
+MD5sum: c370f30a7e2f866530740240ab0c629f
+Description: Armbian config: The Next Generation
+
