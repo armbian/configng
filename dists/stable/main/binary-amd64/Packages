@@ -1,3 +1,17 @@
+Package: armbian-config
+Version: 20241013-1817
+Architecture: all
+Maintainer: Igor Pecovnik <igor@armbian.com>
+Depends: bash, jq, whiptail, sudo, procps, systemd, lsb-release, iproute2
+Priority: optional
+Section: default
+Filename: pool/main/a/armbian-config/armbian-config_20241013-1817_all.deb
+Size: 111178
+SHA256: ef9d560f1c5a72e0466863bcec2c5bca43b199fe43d97006353b0d66c4b0c3ca
+SHA1: 29527eba10345cd2c6763e77abe7bd233e1fb96a
+MD5sum: a4969bd6e64b227cf35c143d7ee009b3
+Description: Configng
+
 Package: armbian-configng
 Version: 20241013-1742
 Architecture: all
