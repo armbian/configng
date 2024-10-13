@@ -61,8 +61,8 @@ module_options+=(
 # Update sub-submenu descriptions based on conditions
 update_sub_submenu_data() {
 	json_data=$(echo "$json_data" | jq --arg key "$1" --arg subkey "$2" --arg subsubkey "$3" --arg value "$4" \
-		'(.menu[] | select(.id == $key).sub[] | 
-		select(.id == $subkey).sub[] | 
+		'(.menu[] | select(.id == $key).sub[] |
+		select(.id == $subkey).sub[] |
 		select(.id == $subsubkey).description) += " (" + $value + ")"')
 }
 
