@@ -1,5 +1,6 @@
 name: "Unit tests"
 on:
+  workflow_dispatch:
   repository_dispatch:
     types: ["Unit tests"]
   schedule:
@@ -55,7 +56,7 @@ jobs:
               tests=($(grep -rw tests/*.conf -e "ENABLED=true" | cut -d":" -f1))
           fi
 
-          # loop enabled tests
+          # loop enabled test cases
           for i in "${tests[@]}"; do
              unset RELEASE
              source "${i}"
