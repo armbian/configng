@@ -10,7 +10,7 @@
 
 > Note: Some references may still use the old name during the transition period.
 
-armbian-configng provides configuration scripts for customizing and automating tasks within Armbian environments. These scripts help streamline setup processes for various configurations and use cases.
+armbian-config provides configuration scripts for customizing and automating tasks within Armbian environments. These scripts help streamline setup processes for various configurations and use cases.
 
 ## Features
 

@@ -21,7 +21,7 @@ jobs:
         exit $ret 
 
     - name: Generate website 
-      run: ./bin/armbian-configng --dev --web
+      run: ./bin/armbian-config --dev --web
            
     - name: 📂 Sync files
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4

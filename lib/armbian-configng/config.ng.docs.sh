@@ -19,7 +19,7 @@ function generate_readme() {
 	# Get the current date
 	local current_date=$(date)
 	# setup doc folders
-	#mkdir -p "$script_dir/../share/doc/armbian-configng"
+	#mkdir -p "$script_dir/../share/doc/armbian-config"
 
 	echo -e "Sorting data\nUpdating documentation" # current_date ;
 
@@ -140,7 +140,7 @@ Get Development and contribute:
 {
 git clone https://github.com/armbian/configng
 cd configng
-./armbian-configng --help
+./armbian-config --help
 }
 ~~~
 

@@ -63,7 +63,7 @@ case "$1" in
 		exit 0
 	fi
 
-	echo "Usage:  armbian-configng --[option]
+	echo "Usage:  armbian-config --[option]
      Options:
      --help [catagory]   Use [catagory] to filter specific menu options.
      --cmd  [option]     Run a command from the menu (simple)
@@ -71,9 +71,9 @@ case "$1" in
      --doc               Generate the README.md file 
 
      Examples:
-     armbian-configng --help [cmd||System||Software||Network||Localisation]
-     armbian-configng --cmd help 
-     armbian-configng --api help
+     armbian-config --help [cmd||System||Software||Network||Localisation]
+     armbian-config --cmd help 
+     armbian-config --api help
 "
 	exit 0
 	;;
