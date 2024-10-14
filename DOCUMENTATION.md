@@ -11,54 +11,175 @@ sudo armbian-config
 ~~~
 
 - ## **System** 
-  - **S01** - Enable Armbian kernel/firmware upgrades
-  - **S02** - Disable Armbian kernel upgrades
-  - **S03** - Edit the boot environment
-  - **S04** - Install Linux headers
-  - **S05** - Remove Linux headers
-  - **S06** - Install to internal storage
-  - **S07.1** - Manage SSH login options
-  - **S17** - Change shell system wide to BASH
-  - **S18** - Change shell system wide to ZSH
-  - **S19** - Switch to rolling release
-  - **S20** - Switch to stable release
-  - **S21** - Enable read only filesystem
-  - **S22** - Disable read only filesystem
-  - **S23** - Adjust welcome screen (motd)
-  - **S24** - Install alternative kernels
-  - **S25** - Distribution upgrades
-  - **S28** - Manage device tree overlays
+
+  - ### Enable Armbian kernel/firmware upgrades
+
+
+  - ### Disable Armbian kernel upgrades
+
+
+  - ### Edit the boot environment
+
+
+  - ### Install Linux headers
+
+
+  - ### Remove Linux headers
+
+
+  - ### Install to internal storage
+
+
+  - ### Manage SSH login options
+    - ### Disable root login
+    - ### Enable root login
+    - ### Disable password login
+    - ### Enable password login
+    - ### Disable Public key authentication login
+    - ### Enable Public key authentication login
+    - ### Disable OTP authentication
+    - ### Enable OTP authentication
+    - ### Generate new OTP authentication QR code
+    - ### Show OTP authentication QR code
+    - ### Disable last login banner
+    - ### Enable last login banner
+
+
+  - ### Change shell system wide to BASH
+
+
+  - ### Change shell system wide to ZSH
+
+
+  - ### Switch to rolling release
+
+
+  - ### Switch to stable release
+
+
+  - ### Enable read only filesystem
+
+
+  - ### Disable read only filesystem
+
+
+  - ### Adjust welcome screen (motd)
+
+
+  - ### Install alternative kernels
+
+
+  - ### Distribution upgrades
+    - ### Upgrade to latest stable / LTS
+    - ### Upgrade to rolling unstable
+
+
+  - ### Manage device tree overlays
+
+
 
 
 - ## **Network** 
-  - **N01** - Configure network interfaces
-  - **N15** - Install Bluetooth support
-  - **N16** - Remove Bluetooth support
-  - **N17** - Bluetooth Discover
-  - **N18** - Toggle system IPv6/IPv4 internet protocol
+
+  - ### Configure network interfaces
+    - ### Add / change interface
+    - ### Revert to Armbian defaults
+    - ### Show configuration
+    - ### Show active status
+
+
+  - ### Install Bluetooth support
+
+
+  - ### Remove Bluetooth support
+
+
+  - ### Bluetooth Discover
+
+
+  - ### Toggle system IPv6/IPv4 internet protocol
+
+
 
 
 - ## **Localisation** 
-  - **L00** - Change Global timezone (WIP)
-  - **L01** - Change Locales reconfigure the language and character set
-  - **L02** - Change Keyboard layout
-  - **L03** - Change APT mirrors
-  - **L04** - Change System Hostname
+
+  - ### Change Global timezone (WIP)
+
+
+  - ### Change Locales reconfigure the language and character set
+
+
+  - ### Change Keyboard layout
+
+
+  - ### Change APT mirrors
+
+
+  - ### Change System Hostname
+
+
 
 
 - ## **Software** 
-  - **Desktops** - Desktop Environments
-  - **Netconfig** - Network tools
-  - **DevTools** - Development
-  - **Benchy** - System benchmaking and diagnostics
-  - **Containers** - Containerlization and Virtual Machines
-  - **Media** - Media Servers and Editors
-  - **Management** - Remote Management tools
+
+  - ### Desktop Environments
+    - ### XFCE desktop
+    - ### Gnome desktop
+    - ### i3-wm desktop
+    - ### Cinnamon desktop
+    - ### Kde-neon desktop
+    - ### Improve application search speed
+
+
+  - ### Network tools
+    - ### Install realtime console network usage monitor (nload)
+    - ### Remove realtime console network usage monitor (nload)
+    - ### Install bandwidth measuring tool (iperf3)
+    - ### Remove bandwidth measuring tool (iperf3)
+    - ### Install IP LAN monitor (iptraf-ng)
+    - ### Remove IP LAN monitor (iptraf-ng)
+    - ### Install hostname broadcast via mDNS (avahi-daemon)
+    - ### Remove hostname broadcast via mDNS (avahi-daemon)
+
+
+  - ### Development
+    - ### Install tools for cloning and managing repositories (git)
+    - ### Remove tools for cloning and managing repositories (git)
+
+
+  - ### System benchmaking and diagnostics
+
+
+  - ### Containerlization and Virtual Machines
+    - ### Install Docker Minimal
+    - ### Install Docker Engine
+    - ### Remove Docker
+    - ### Purge all Docker images, containers, and volumes
+
+
+  - ### Media Servers and Editors
+    - ### Install Plex Media server
+    - ### Remove Plex Media server
+    - ### Install Emby server
+    - ### Remove Emby server
+
+
+  - ### Remote Management tools
+    - ### Install Cockpit web-based management tool
+    - ### Purge Cockpit web-based management tool
+    - ### Start Cockpit Service
+    - ### Stop Cockpit Service
+
+
 
 
 - ## **Help** 
-  - **H00** - About This system. (WIP)
-  - **H02** - List of Config function(WIP)
+
+  - ### About This system. (WIP)
+
+
+  - ### List of Config function(WIP)
 
 ## Install
 Armbian installation
@@ -91,7 +212,7 @@ armbian-config --help
 Outputs:
 ~~~
 
-  System - System wide and admin settings (x86_64)
+  System - System wide and admin settings (aarch64)
     --cmd S01 - Enable Armbian kernel/firmware upgrades
     --cmd S02 - Disable Armbian kernel upgrades
     --cmd S03 - Edit the boot environment
@@ -124,7 +245,7 @@ Outputs:
 	--cmd S27 - Upgrade to rolling unstable
     --cmd S28 - Manage device tree overlays
 
-  Network - Fixed and wireless network settings (eth0)
+  Network - Fixed and wireless network settings (wlan0)
     N01 - Configure network interfaces
 	--cmd N02 - Add / change interface
 	--cmd N03 - Revert to Armbian defaults
@@ -135,7 +256,7 @@ Outputs:
     --cmd N17 - Bluetooth Discover
     --cmd N18 - Toggle system IPv6/IPv4 internet protocol
 
-  Localisation - Localisation (C.UTF-8)
+  Localisation - Localisation (en_US.UTF-8)
     --cmd L00 - Change Global timezone (WIP)
     --cmd L01 - Change Locales reconfigure the language and character set
     --cmd L02 - Change Keyboard layout
@@ -190,14 +311,14 @@ Outputs:
 	--cmd SW28 - Purge all Docker images, containers, and volumes
     Media - Media Servers and Editors
 	--cmd SW21 - Install Plex Media server
-	--cmd SW22 - Remove Plex Media server
+	--cmd SW22 - Remove Plex Media server (https://localhost:32400)
 	--cmd SW23 - Install Emby server
-	--cmd SW24 - Remove Emby server
+	--cmd SW24 - Remove Emby server (https://localhost:8096)
     Management - Remote Management tools
 	--cmd M00 - Install Cockpit web-based management tool
 	--cmd M01 - Purge Cockpit web-based management tool
 	--cmd M02 - Start Cockpit Service
-	--cmd M03 - Stop Cockpit Service
+	--cmd M03 - Stop Cockpit Service (https://localhost:9090)
 
   Help - About this app
     --cmd H00 - About This system. (WIP)
@@ -669,6 +790,7 @@ These helper functions facilitate various operations related to job management, 
 | Update JSON data with system information | update_json_data | Joey Turner 
 | pipeline strings to an infobox  | show_infobox <<< 'hello world' ;  | Joey Turner 
 | Stop hostapd, clean config | default_wireless_network_config | Igor Pecovnik 
+| Update sub-submenu descriptions based on conditions | update_sub_submenu_data "MenuID" "SubID" "SubSubID" "CMD" | @Tearran 
 | Parse json to get list of desired menu or submenu items | parse_menu_items 'menu_options_array' | Gunjan Gupta 
 | Show the usage of the functions. | see_use | Joey Turner 
 | Install Desktop environment | manage_desktops xfce install | @igorpecovnik 
