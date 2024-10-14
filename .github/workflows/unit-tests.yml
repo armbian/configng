@@ -129,13 +129,13 @@ jobs:
             export DEBIAN_FRONTEND=noninteractive
             cd config
             eval "$PREINSTALL"
-            sudo bash bin/armbian-configng --cmd "$TEST_ID"
+            sudo bash bin/armbian-config --cmd "$TEST_ID"
             eval "$CONDITION"
 
             # stats
             FILENAME="data-"$(echo ${{ matrix.image.image }} | sed "s/:/-/g")"-${TEST_ID}.teststats"
             echo $RELEASE >> ../${FILENAME}
-            bash bin/armbian-configng --cmd | grep "${TEST_ID}" | xargs >> ../${FILENAME}
+            bash bin/armbian-config --cmd | grep "${TEST_ID}" | xargs >> ../${FILENAME}
             echo " " >> ../${FILENAME}
 
       - name: Upload test

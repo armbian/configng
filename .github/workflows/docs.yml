@@ -11,14 +11,14 @@ jobs:
   Build:
     name: Make docs
     runs-on: ubuntu-latest
-    #if: ${{ github.repository_owner == 'armbian' }}
+    if: ${{ github.repository_owner == 'armbian' }}
     steps:
 
       - name: Checkout build repo
         uses: actions/checkout@v4
       - name: Make docs
         run: |
-          bin/armbian-configng --doc
+          bin/armbian-config --doc
 
       - name: Create Pull Request
         id: cpr
