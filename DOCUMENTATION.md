@@ -212,7 +212,7 @@ armbian-config --help
 Outputs:
 ~~~
 
-  System - System wide and admin settings (aarch64)
+  System - System wide and admin settings (x86_64)
     --cmd S01 - Enable Armbian kernel/firmware upgrades
     --cmd S02 - Disable Armbian kernel upgrades
     --cmd S03 - Edit the boot environment
@@ -245,7 +245,7 @@ Outputs:
 	--cmd S27 - Upgrade to rolling unstable
     --cmd S28 - Manage device tree overlays
 
-  Network - Fixed and wireless network settings (wlan0)
+  Network - Fixed and wireless network settings (eth0)
     N01 - Configure network interfaces
 	--cmd N02 - Add / change interface
 	--cmd N03 - Revert to Armbian defaults
@@ -256,7 +256,7 @@ Outputs:
     --cmd N17 - Bluetooth Discover
     --cmd N18 - Toggle system IPv6/IPv4 internet protocol
 
-  Localisation - Localisation (en_US.UTF-8)
+  Localisation - Localisation (C.UTF-8)
     --cmd L00 - Change Global timezone (WIP)
     --cmd L01 - Change Locales reconfigure the language and character set
     --cmd L02 - Change Keyboard layout
@@ -311,14 +311,14 @@ Outputs:
 	--cmd SW28 - Purge all Docker images, containers, and volumes
     Media - Media Servers and Editors
 	--cmd SW21 - Install Plex Media server
-	--cmd SW22 - Remove Plex Media server (https://localhost:32400)
+	--cmd SW22 - Remove Plex Media server (https://localhost:)
 	--cmd SW23 - Install Emby server
-	--cmd SW24 - Remove Emby server (https://localhost:8096)
+	--cmd SW24 - Remove Emby server (https://localhost:)
     Management - Remote Management tools
 	--cmd M00 - Install Cockpit web-based management tool
 	--cmd M01 - Purge Cockpit web-based management tool
 	--cmd M02 - Start Cockpit Service
-	--cmd M03 - Stop Cockpit Service (https://localhost:9090)
+	--cmd M03 - Stop Cockpit Service (https://localhost:)
 
   Help - About this app
     --cmd H00 - About This system. (WIP)
@@ -338,10 +338,10 @@ Outputs:
 Legacy Options (Backward Compatible)
 Please use 'armbian-config --help' for more information.
 
-Usage:  armbian-configng main=[arguments] selection=[options]
+Usage:  armbian-config main=[arguments] selection=[options]
 
-	armbian-configng main=System selection=Headers          -  Install headers:
-	armbian-configng main=System selection=Headers_remove   -  Remove headers:
+	armbian-config main=System selection=Headers          -  Install headers:
+	armbian-config main=System selection=Headers_remove   -  Remove headers:
 ~~~
 
 ***
@@ -835,7 +835,7 @@ Get Development and contribute:
 {
 git clone https://github.com/armbian/configng
 cd configng
-./armbian-configng --help
+./armbian-config --help
 }
 ~~~
 
