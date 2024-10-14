@@ -359,40 +359,40 @@ function see_jobs_from_json_md() {
 
 
 function see_full_list() {
-    # Use jq to parse the JSON into markdown
-     menu_items=$(echo "$json_data" | jq -r '.menu | length')
+	# Use jq to parse the JSON into markdown
+		menu_items=$(echo "$json_data" | jq -r '.menu | length')
 
-    for ((i = 0; i < menu_items; i++)); do
-        cat=$(jq -r ".menu[$i].id" "$json_file")
-        description=$(jq -r ".menu[$i].description" "$json_file")
+	for ((i = 0; i < menu_items; i++)); do
+		cat=$(jq -r ".menu[$i].id" "$json_file")
+		description=$(jq -r ".menu[$i].description" "$json_file")
 
-        echo -e "- ## **$cat** \n"
+		echo -e "- ## **$cat** \n"
 
-        sub_items=$(jq -r ".menu[$i].sub | length" "$json_file")
+		sub_items=$(jq -r ".menu[$i].sub | length" "$json_file")
 
-        for ((j = 0; j < sub_items; j++)); do
-            id=$(jq -r ".menu[$i].sub[$j].id" "$json_file")
-            sub_description=$(jq -r ".menu[$i].sub[$j].description" "$json_file")
+		for ((j = 0; j < sub_items; j++)); do
+			id=$(jq -r ".menu[$i].sub[$j].id" "$json_file")
+			sub_description=$(jq -r ".menu[$i].sub[$j].description" "$json_file")
 
-            echo -e "  - ### $sub_description"
+			echo -e "  - ### $sub_description"
 
-            # Handle nested sub-items
-            nested_sub_items=$(jq -r ".menu[$i].sub[$j].sub | length" "$json_file")
+			# Handle nested sub-items
+			nested_sub_items=$(jq -r ".menu[$i].sub[$j].sub | length" "$json_file")
 
-            # Check if nested sub-items are present
-            if [ "$nested_sub_items" -gt 0 ]; then
-                for ((k = 0; k < nested_sub_items; k++)); do
-                    nested_id=$(jq -r ".menu[$i].sub[$j].sub[$k].id" "$json_file")
-                    nested_description=$(jq -r ".menu[$i].sub[$j].sub[$k].description" "$json_file")
+			# Check if nested sub-items are present
+			if [ "$nested_sub_items" -gt 0 ]; then
+				for ((k = 0; k < nested_sub_items; k++)); do
+					nested_id=$(jq -r ".menu[$i].sub[$j].sub[$k].id" "$json_file")
+					nested_description=$(jq -r ".menu[$i].sub[$j].sub[$k].description" "$json_file")
 
-                    echo -e "    - ### $nested_description"
-                done
-            fi
+					echo -e "    - ### $nested_description"
+				done
+			fi
 
-            echo -e "\n"
-        done
-        echo -e "\n"
-    done
+			echo -e "\n"
+		done
+		echo -e "\n"
+	done
 }
 
 module_options+=(
