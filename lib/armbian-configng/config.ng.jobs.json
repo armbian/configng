@@ -562,7 +562,9 @@
                 {
                     "id": "L04",
                     "description": "Change System Hostname",
-                    "command": [ "change_system_hostname" ],
+                    "command": [
+                        "change_system_hostname"
+                    ],
                     "status": "Preview",
                     "author": ""
                 }
@@ -577,7 +579,7 @@
                     "description": "Desktop Environments",
                     "sub": [
                         {
-                            "id": "DE00",
+                            "id": "XFCE",
                             "description": "XFCE desktop",
                             "sub": [
                                 {
@@ -623,7 +625,7 @@
                             ]
                         },
                         {
-                            "id": "DE10",
+                            "id": "Gnome",
                             "description": "Gnome desktop",
                             "sub": [
                                 {
@@ -716,7 +718,7 @@
                             ]
                         },
                         {
-                            "id": "DE30",
+                            "id": "Cinnamon",
                             "description": "Cinnamon desktop",
                             "sub": [
                                 {

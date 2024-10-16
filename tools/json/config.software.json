@@ -9,7 +9,7 @@
                     "description": "Desktop Environments",
                     "sub": [
                         {
-                            "id": "DE00",
+                            "id": "XFCE",
                             "description": "XFCE desktop",
                             "sub": [
                                 {
@@ -55,7 +55,7 @@
                             ]
                         },
                         {
-                            "id": "DE10",
+                            "id": "Gnome",
                             "description": "Gnome desktop",
                             "sub": [
                                 {
@@ -148,7 +148,7 @@
                             ]
                         },
                         {
-                            "id": "DE30",
+                            "id": "Cinnamon",
                             "description": "Cinnamon desktop",
                             "sub": [
                                 {
