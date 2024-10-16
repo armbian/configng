@@ -164,25 +164,18 @@ markdown_desktops() {
         echo "## Overview"
         markdown_objects_links "Software" "Desktops"
         echo "***"
-        echo "### DE00"
+
         echo "## XFCE"
-
-        markdown_userspace_objects "Software" "Desktops" "DE00"
+        markdown_userspace_objects "Software" "Desktops" "XFCE"
         echo "***"
-        echo "### DE10"
-        echo "## Gnome"
 
-        markdown_userspace_objects "Software" "Desktops" "DE10"
-        echo "***"
-        echo "### DE20"
-        echo "## i3-wm"
+        echo "Gnome"
+        markdown_userspace_objects "Software" "Desktops" "Gnome"
 
-        markdown_userspace_objects "Software" "Desktops" "DE20"
         echo "***"
-        echo "### DE30"
+
         echo "## Cinnamon"
-
-        markdown_userspace_objects "Software" "Desktops" "DE30"
+        markdown_userspace_objects "Software" "Desktops" "Cinnamon"
         echo "***"
 
 
