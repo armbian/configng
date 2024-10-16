@@ -9,16 +9,18 @@
                     "description": "Desktop Environments",
                     "sub": [
                         {
-                            "id": "DE00",
+                            "id": "XFCE",
                             "description": "XFCE desktop",
                             "sub": [
                                 {
                                     "id": "DE01",
+                                    "prompt": "Install XFCE:\nXfce is a lightweight desktop environment for UNIX-like operating systems. It aims to be fast and low on system resources, while still being visually appealing and user friendly.",
                                     "description": "XFCE desktop Install",
                                     "command": [
                                         "manage_desktops 'xfce' 'install'"
                                     ],
                                     "status": "Stable",
+                                    "src_reference": "https://www.xfce.org/about",
                                     "author": "@igorpecovnik",
                                     "condition": "[ ! -f /usr/share/xsessions/xfce.desktop ]"
                                 },
@@ -55,7 +57,7 @@
                             ]
                         },
                         {
-                            "id": "DE10",
+                            "id": "Gnome",
                             "description": "Gnome desktop",
                             "sub": [
                                 {
@@ -148,7 +150,7 @@
                             ]
                         },
                         {
-                            "id": "DE30",
+                            "id": "Cinnamon",
                             "description": "Cinnamon desktop",
                             "sub": [
                                 {
