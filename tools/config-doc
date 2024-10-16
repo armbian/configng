@@ -1,7 +1,6 @@
 #!/bin/bash
 
 
-
 # Get the script directory
 SCRIPT_DIR="$(dirname "$0")"
 
@@ -11,21 +10,7 @@ DOC_DIR="$SCRIPT_DIR/../share/doc/armbian-config"
 JSON_FILE="$LIB_DIR/config.ng.jobs.json"
 
 # Load The Bash procedure Objects
-JSON_DATA=$(jq '
-    walk(
-        # Process only objects
-        if type == "object" then
-            # Check if the object has a "status" key and if "status" is "Disabled"
-            if has("status") and .status == "Disabled" then
-                empty  # Exclude this object from the output
-            else
-                .  # Otherwise, keep the object as it is
-            end
-        else
-            .  # For non-object elements, leave them unchanged
-        end
-    )
-' "$JSON_FILE")
+JSON_DATA=$(<"$JSON_FILE")
 
 markdown_objects_links() {
     local category="$1"
