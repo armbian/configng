@@ -5,7 +5,7 @@
   - [S04](#s04): Install Linux headers
   - [S05](#s05): Remove Linux headers
   - [S06](#s06): Install to internal storage
-  - [S07.1](#s07.1): Manage SSH login options
+  - [SSH](#ssh): Manage SSH login options
     - [S07](#s07): Disable root login
     - [S08](#s08): Enable root login
     - [S09](#s09): Disable password login
@@ -134,7 +134,7 @@ would you like to continue?
 **Status:** Preview
 
 
-## S07.1
+## SSH
 
 **Description:** Manage SSH login options
 
