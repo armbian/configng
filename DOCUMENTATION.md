@@ -176,7 +176,7 @@ sudo armbian-config
 
 - ## **Help** 
 
-  - ### About This system. (WIP)
+  - ### Contribute
 
 
   - ### List of Config function(WIP)
@@ -320,9 +320,9 @@ Outputs:
 	--cmd M02 - Start Cockpit Service
 	--cmd M03 - Stop Cockpit Service (https://localhost:)
 
-  Help - About this app
-    --cmd H00 - About This system. (WIP)
-    --cmd H02 - List of Config function(WIP)
+  Help - About this tool
+    --cmd H02 - Contribute
+    --cmd H03 - List of Config function(WIP)
 ~~~
 
 ## Legacy options
@@ -715,19 +715,17 @@ Jobs:
 No commands available
 ~~~
 
-### H00
+### H02
 
-About This system. (WIP)
+Contribute
 
 Jobs:
 
 ~~~
-show_message <<< "This app is to help execute procedures to configure your system
-
-Some options may not work on manually modified systems"
+show_message <<< $(about_armbian_configng)
 ~~~
 
-### H02
+### H03
 
 List of Config function(WIP)
 
@@ -786,6 +784,7 @@ These helper functions facilitate various operations related to job management, 
 | Install wrapper | apt_install_wrapper apt-get -y purge armbian-zsh | igorpecovnik 
 | Netplan wrapper | network_config | Igor Pecovnik 
 | Change the background color of the terminal or dialog box | set_colors 0-7 | Joey Turner 
+|  |  | Igor Pecovnik 
 | Serve the edit and debug server. | serve_doc | Joey Turner 
 | Update JSON data with system information | update_json_data | Joey Turner 
 | pipeline strings to an infobox  | show_infobox <<< 'hello world' ;  | Joey Turner 
