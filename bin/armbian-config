@@ -161,4 +161,9 @@ generate_top_menu "$json_data"
 
 #
 # Exit the script with a success status code
+
+#
+# Show about this tool on exit
+about_armbian_configng
+
 exit 0
