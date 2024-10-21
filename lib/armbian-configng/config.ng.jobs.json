@@ -1164,21 +1164,21 @@
         },
         {
             "id": "Help",
-            "description": "About this app",
+            "description": "About this tool",
             "sub": [
                 {
-                    "id": "H00",
-                    "description": "About This system. (WIP)",
+                    "id": "H02",
+                    "description": "Contribute",
                     "command": [
-                        "show_message <<< \"This app is to help execute procedures to configure your system\n\nSome options may not work on manually modified systems\""
+                        "show_message <<< $(about_armbian_configng)"
                     ],
-                    "status": "Preview",
+                    "status": "Stable",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
                 },
                 {
-                    "id": "H02",
+                    "id": "H03",
                     "description": "List of Config function(WIP)",
                     "command": [
                         "show_message <<< see_use"
