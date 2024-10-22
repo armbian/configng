@@ -38,8 +38,8 @@ def create_markdown(item, level=1):
     md_content = f"{'#' * level} {item['id']}\n\n"
     md_content += f"**description:** {item.get('description', '')}\n\n"
     
-    if 'prompt' in item and item['prompt']:
-        md_content += f"**prompt:** \n{item['prompt']}\n\n"
+    if 'about' in item and item['about']:
+        md_content += f"**about:** \n{item['about']}\n\n"
     
     if 'command' in item:
         md_content += f"**Command:** \n~~~\n{', '.join(item['command'])}\n~~~\n\n"
@@ -69,8 +69,8 @@ def create_markdown_user(item, level=1):
     #user_content += f"{'#' * level} {item['id']}\n"
     user_content += f"# {item.get('description', '')}\n"
     
-    if 'prompt' in item and item['prompt']:
-        user_content += f"{item['prompt']}\n\n"
+    if 'about' in item and item['about']:
+        user_content += f"{item['about']}\n\n"
     
     if 'command' in item:
         user_content += f"**Command:** \n~~~\n--cmd {item['id']}\n~~~\n\n"

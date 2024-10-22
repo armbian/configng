@@ -618,17 +618,17 @@ function execute_command() {
 		select(.id == $id) |
 		.command[]?' "$json_file")
 
-	# Check if a prompt exists
-	local prompt=$(jq -r --arg id "$id" '
+	# Check if a about exists
+	local about=$(jq -r --arg id "$id" '
 		.menu[] |
 		.. |
 		objects |
 		select(.id == $id) |
-		.prompt?' "$json_file")
+		.about?' "$json_file")
 
-	# If a prompt exists, display it and wait for user confirmation
-	if [[ "$prompt" != "null" && $INPUTMODE != "cmd" ]]; then
-		get_user_continue "$prompt" process_input
+	# If a about exists, display it and wait for user confirmation
+	if [[ "$about" != "null" && $INPUTMODE != "cmd" ]]; then
+		get_user_continue "$about\nWould you like to continue?" process_input
 	fi
 
 	# Execute each command
@@ -753,7 +753,7 @@ function get_user_continue() {
 	local message="$1"
 	local next_action="$2"
 
-	if $($DIALOG --yesno "$message" 10 80 3>&1 1>&2 2>&3); then
+	if $($DIALOG --yesno "$message" 15 80 3>&1 1>&2 2>&3); then
 		$next_action
 	else
 		$next_action "No"
@@ -777,7 +777,7 @@ function process_input() {
 	if [ "$input" = "No" ]; then
 		# user canceled
 		echo "User canceled. exiting"
-		exit 0 
+		exit 0
 	fi
 }
 
