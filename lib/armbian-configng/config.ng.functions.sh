@@ -775,7 +775,9 @@ menu_options+=(
 function process_input() {
 	local input="$1"
 	if [ "$input" = "No" ]; then
-		return 1
+		# user canceled
+		echo "User canceled. exiting"
+		exit 0 
 	fi
 }
 
