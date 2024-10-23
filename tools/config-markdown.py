@@ -134,14 +134,14 @@ def write_user_markdown_files(data):
         if not os.path.exists(item_dir):
             os.makedirs(item_dir)
 
-        anchor_links = generate_anchor_links(item)
-        anchor_links_content = "\n".join(anchor_links) + "\n\n"
+ #       anchor_links = generate_anchor_links(item)
+ #       anchor_links_content = "\n".join(anchor_links) + "\n\n"
 
         file_name_user = f"{item['id']}.user.md"
         file_path_user = os.path.join(item_dir, file_name_user)
         markdown_content_user = create_markdown_user(item)
-        full_content_user = anchor_links_content + markdown_content_user
-
+        #full_content_user = anchor_links_content + markdown_content_user
+        full_content_user = markdown_content_user
         with open(file_path_user, 'w') as f:
             f.write(full_content_user)
 
@@ -150,10 +150,10 @@ def write_user_markdown_files(data):
                 file_name_sub_user = f"{sub_item['id']}.user.md"
                 file_path_sub_user = os.path.join(item_dir, file_name_sub_user)
                 markdown_content_sub_user = create_markdown_user(sub_item)
-                sub_anchor_links = generate_anchor_links(sub_item)
-                sub_anchor_links_content = "\n".join(sub_anchor_links) + "\n\n"
-                full_content_sub_user = sub_anchor_links_content + markdown_content_sub_user
-
+                #sub_anchor_links = generate_anchor_links(sub_item)
+                #sub_anchor_links_content = "\n".join(sub_anchor_links) + "\n\n"
+                #full_content_sub_user = sub_anchor_links_content + markdown_content_sub_user
+                full_content_sub_user = markdown_content_sub_user
                 with open(file_path_sub_user, 'w') as f:
                     f.write(full_content_sub_user)
 
