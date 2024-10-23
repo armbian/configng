@@ -91,87 +91,6 @@ def create_markdown_user(item, level=1):
     
     return user_content
 
-
-####################
-def write_markdown_files(data):
-    """Write Markdown files for both technical and user documentation."""
-    # Create 'docs' directory if it doesn't exist
-    if not os.path.exists('docs'):
-        os.makedirs('docs')
-
-    for item in data['menu']:
-        # Create a directory for the top-level item
-        item_dir = os.path.join('docs', item['id'])
-        if not os.path.exists(item_dir):
-            os.makedirs(item_dir)
-
-        # Generate anchor links for the top-level item
-        anchor_links = generate_anchor_links(item)
-        anchor_links_content = "\n".join(anchor_links) + "\n\n"
-
-        # Technical documentation files
-        file_name_technical = f"{item['id']}.technical.md"
-        file_path_technical = os.path.join(item_dir, file_name_technical)
-
-        # Generate the Markdown content for technical documentation
-        markdown_content_technical = create_markdown_technical(item)
-
-        # Combine anchor links and Markdown content
-        full_content_technical = anchor_links_content + markdown_content_technical
-
-        # Write to the technical Markdown file
-        with open(file_path_technical, 'w') as f:
-            f.write(full_content_technical)
-
-        # User documentation files
-        file_name_user = f"{item['id']}.user.md"
-        file_path_user = os.path.join(item_dir, file_name_user)
-
-        # Generate the Markdown content for user documentation
-        markdown_content_user = create_markdown_user(item)
-
-        # Combine anchor links and Markdown content for users
-        full_content_user = anchor_links_content + markdown_content_user
-
-        # Write to the user Markdown file
-        with open(file_path_user, 'w') as f:
-            f.write(full_content_user)
-
-        # If 'sub' level exists, create separate files for each sub-level
-        if 'sub' in item:
-            for sub_item in item['sub']:
-                # Technical documentation for sub-item
-                file_name_sub_technical = f"{sub_item['id']}.technical.md"
-                file_path_sub_technical = os.path.join(item_dir, file_name_sub_technical)
-
-                # Generate the Markdown content for technical sub-item
-                markdown_content_sub_technical = create_markdown_technical(sub_item)
-
-                # Combine anchor links for the sub-item
-                sub_anchor_links = generate_anchor_links(sub_item)
-                sub_anchor_links_content = "\n".join(sub_anchor_links) + "\n\n"
-                full_content_sub_technical = sub_anchor_links_content + markdown_content_sub_technical
-
-                # Write to the technical Markdown file for the sub-item
-                with open(file_path_sub_technical, 'w') as f:
-                    f.write(full_content_sub_technical)
-
-                # User documentation for sub-item
-                file_name_sub_user = f"{sub_item['id']}.user.md"
-                file_path_sub_user = os.path.join(item_dir, file_name_sub_user)
-
-                # Generate the Markdown content for user sub-item
-                markdown_content_sub_user = create_markdown_user(sub_item)
-
-                # Combine anchor links and Markdown content for user sub-item
-                full_content_sub_user = sub_anchor_links_content + markdown_content_sub_user
-
-                # Write to the user Markdown file for the sub-item
-                with open(file_path_sub_user, 'w') as f:
-                    f.write(full_content_sub_user)
-#######################
-import os
-
 def write_technical_markdown_files(data):
     """Write Markdown files for technical documentation."""
     if not os.path.exists('docs'):
@@ -259,9 +178,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# Main script execution
-#write_markdown_files(data)
-#write_user_markdown_files(data)
-#write_technical_markdown_files(data)
-#print("Markdown files created in 'docs' directory, organized by top-level folders for both technical and user documentation.")
