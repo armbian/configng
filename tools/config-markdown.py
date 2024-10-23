@@ -253,7 +253,7 @@ def main():
         write_technical_markdown_files(data)
         print("Markdown files created in 'docs' directory, organized by top-level folders for both technical and user documentation.")
     else:
-        print("Usage: config-markdown --[-u|-t]\nOptions:\n  -u  Generate user documentation\n  -t  Generate technical documentation")
+        print("Usage: config-markdown [-u|-t]\nOptions:\n  -u  Generate user documentation\n  -t  Generate technical documentation")
     
     
 
