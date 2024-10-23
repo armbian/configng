@@ -219,7 +219,7 @@ Outputs:
     --cmd S04 - Install Linux headers
     --cmd S05 - Remove Linux headers
     --cmd S06 - Install to internal storage
-    S07.1 - Manage SSH login options
+    SSH - Manage SSH login options
 	--cmd S07 - Disable root login
 	--cmd S08 - Enable root login
 	--cmd S09 - Disable password login
@@ -265,12 +265,12 @@ Outputs:
 
   Software - Run/Install 3rd party applications (Update the package lists.)
     Desktops - Desktop Environments
-      DE00 - XFCE desktop
+      XFCE - XFCE desktop
 	--cmd DE01 - XFCE desktop Install
 	--cmd DE02 - Uninstall
 	--cmd DE03 - Enable autologin
 	--cmd DE04 - Disable autologin
-      DE10 - Gnome desktop
+      Gnome - Gnome desktop
 	--cmd DE11 - Gnome desktop Install
 	--cmd DE12 - Uninstall
 	--cmd DE13 - Enable autologin
@@ -280,7 +280,7 @@ Outputs:
 	--cmd DE22 - i3 desktop uninstall
 	--cmd DE23 - Enable autologin
 	--cmd DE24 - Disable autologin
-      DE30 - Cinnamon desktop
+      Cinnamon - Cinnamon desktop
 	--cmd DE31 - Cinnamon desktop Install
 	--cmd DE32 - Cinnamon desktop uninstall
 	--cmd DE33 - Enable autologin
@@ -417,7 +417,7 @@ Jobs:
 armbian-install
 ~~~
 
-### S07.1
+### SSH
 
 Manage SSH login options
 
