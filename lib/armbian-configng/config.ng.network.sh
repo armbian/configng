@@ -390,8 +390,17 @@ function network_config() {
 
 			LIST=("dhcp" "Auto IP assigning")
 			LIST+=("static" "Set IP manually")
+			[[ -f /etc/netplan/armbian.yaml ]] && LIST+=("spoof" "Spoof MAC address")
+			LIST_LENGTH=$((${#LIST[@]} / 2))
 			wiredmode=$($DIALOG --title "Select IP mode" --menu "" $((${LIST_LENGTH} + 8)) 60 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
-			if [[ "${wiredmode}" == "dhcp" && $? == 0 ]]; then
+			if [[ "${wiredmode}" == "spoof" && $? == 0 ]]; then
+				local mac_address=$(ip a s ${adapter} | grep link/ether | awk '{print $2}')
+				mac_address=$($DIALOG --title "Enter MAC for $adapter" --inputbox "\nValid format: $mac_address" 9 40 "$mac_address" 3>&1 1>&2 2>&3)
+				if [[ -n $mac_address && $? == 0 ]]; then
+					netplan set --origin-hint ${yamlfile} ethernets.$adapter.macaddress=''$mac_address''
+					netplan apply
+				fi
+			elif [[ "${wiredmode}" == "dhcp" && $? == 0 ]]; then
 				[[ -f /etc/netplan/${yamlfile}.yaml ]] && sed -i -e 'H;x;/^\(  *\)\n\1/{s/\n.*//;x;d;}' -e 's/.*//;x;/bridges/{s/^\( *\).*/ \1/;x;d;}' /etc/netplan/${yamlfile}.yaml
 				netplan set --origin-hint ${yamlfile} renderer=${NETWORK_RENDERER}
 				netplan set --origin-hint ${yamlfile} ethernets.$adapter.dhcp4=no
