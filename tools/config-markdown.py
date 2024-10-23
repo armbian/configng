@@ -65,10 +65,11 @@ def create_markdown_technical(item, level=1):
 
 def create_markdown_user(item, level=1):
     """Recursively create Markdown content for user documentation from JSON."""
-    user_content = f"<a id=\"{item['id'].lower()}\" style=\"display:none;\"></a>\n"
+    #user_content = f"<a id=\"{item['id'].lower()}\" style=\"display:none;\"></a>\n"
     # if above A link is not working, use below line
     #user_content += f"{'#' * level} {item['id']}\n"
-    user_content += f"# {item.get('description', '')}\n"
+    #user_content = f"# {item.get('description', '')}\n"
+    user_content = f"{'#' * level} {item.get('description', '')}\n"
     
     if 'about' in item and item['about']:
         user_content += f"{item['about']}\n\n"
