@@ -51,9 +51,9 @@ jobs:
 
           # read tests cases
           if [[ -n "${{ steps.changed-files.outputs.all_changed_files }}" ]]; then
-              tests=($(grep -rw ${{ steps.changed-files.outputs.all_changed_files }} -e "ENABLED=true" | cut -d":" -f1))
+              tests=($(grep -rwl ${{ steps.changed-files.outputs.all_changed_files }} -e "ENABLED=true" | cut -d":" -f1))
               else
-              tests=($(grep -rw tests/*.conf -e "ENABLED=true" | cut -d":" -f1))
+              tests=($(grep -rwl tests/*.conf -e "ENABLED=true" | cut -d":" -f1))
           fi
 
           # loop enabled test cases
