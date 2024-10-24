@@ -1,16 +1,16 @@
 Package: armbian-config
-Version: 24.8.4.1023.214848
+Version: 24.8.4.1024.065500
 Architecture: all
 Replaces: armbian-configng
 Maintainer: Igor Pecovnik <igor@armbian.com>
 Depends: bash, jq, whiptail, sudo, procps, systemd, lsb-release, iproute2
 Priority: optional
 Section: default
-Filename: pool/main/a/armbian-config/armbian-config_24.8.4.1023.214848_all.deb
-Size: 111662
-SHA256: a1e8ab92ddbd57d85f65aa608f7ebc69f499a81da17761a5582fa51f4aa6d4d1
-SHA1: fca1825163e140aa77fa315c9d92ba645789b7e8
-MD5sum: 4df8e0663774ba9d3515665329ffb41a
+Filename: pool/main/a/armbian-config/armbian-config_24.8.4.1024.065500_all.deb
+Size: 111656
+SHA256: a151ab9ea589a3fac769d75ec2aacd78c4f1c10c291df00b0fb5783994e2a33c
+SHA1: 59a94354e26459725c643bae514e1eaed5a03822
+MD5sum: 3a145158f70baac68b5e9c03e4a703c1
 Description: Armbian config: The Next Generation
 
 Package: armbian-configng
