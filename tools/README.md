@@ -50,6 +50,13 @@ The script expects the JSON file to be located at:
 - Creates navigation links (table of contents) for all IDs and descriptions.
 - Generates technical documentation that includes commands, prompts, conditions, author information, and status.
 - Creates user-focused documentation with simplified instructions.
+- Includes custom header, footer and section image:
+
+	```
+	- tools/include/markdown/ID-header.md
+	- tools/include/markdown/ID-footer.md
+	- tools/include/images/ID.png
+	```
 
 #### Dependencies
 

@@ -2,7 +2,10 @@
 
 import json
 import os
+import os.path
 import argparse
+
+from pathlib import Path
 
 # Get the absolute path of the script's directory
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -64,18 +67,39 @@ def create_markdown_technical(item, level=1):
     return md_content
 
 def create_markdown_user(item, level=1):
+
     """Recursively create Markdown content for user documentation from JSON."""
     #user_content = f"<a id=\"{item['id'].lower()}\" style=\"display:none;\"></a>\n"
     # if above A link is not working, use below line
     #user_content += f"{'#' * level} {item['id']}\n"
     #user_content = f"# {item.get('description', '')}\n"
+
+    # verify if header or footer exists
+    image_include = Path(os.path.dirname(os.path.abspath(__file__))+'/include/images/'+item['id']+'.png')
+    header_include = Path(os.path.dirname(os.path.abspath(__file__))+'/include/markdown/'+item['id']+'-header.md')
+    footer_include = Path(os.path.dirname(os.path.abspath(__file__))+'/include/markdown/'+item['id']+'-footer.md')
+
     user_content = f"{'#' * level} {item.get('description', '')}\n"
-    
+
+    # include image for section if exists
+    if image_include.is_file():
+        user_content +="\n<!--- section image START from tools/include/images/"+item['id']+".png --->\n"
+        with open(image_include, 'r') as file:
+            user_content += "[!["+ item.get('description', '') + "](images/"+item['id']+".png)](#)\n"
+            user_content +="<!--- section image STOP from tools/include/images/"+item['id']+".png --->\n\n"
+
+    # include markdown header for section if exists
+    if header_include.is_file():
+        user_content +="\n<!--- header START from tools/include/markdown/"+item['id']+"-header.md --->\n"
+        with open(header_include, 'r') as file:
+            user_content += f""+file.read().replace('\n', '')+"\n"
+            user_content +="<!--- header STOP from tools/include/markdown/"+item['id']+"-header.md --->\n\n"
+
     if 'about' in item and item['about']:
         user_content += f"{item['about']}\n\n"
     
     if 'command' in item:
-        user_content += f"**Command:** \n~~~\n--cmd {item['id']}\n~~~\n\n"
+        user_content += f"**Command:** \n~~~\narmbian-config --cmd {item['id']}\n~~~\n\n"
     
     if 'author' in item:
         user_content += f"**Author:** {item['author']}\n\n"
@@ -83,6 +107,13 @@ def create_markdown_user(item, level=1):
     if 'status' in item:
         user_content += f"**Status:** {item['status']}\n\n"
     
+    # include footer for section if exists
+    if footer_include.is_file():
+        user_content +="\n<!--- footer START from tools/include/markdown/"+item['id']+"-footer.md --->\n"
+        with open(footer_include, 'r') as file:
+            user_content += f""+file.read().replace('\n', '')+"\n"
+            user_content +="<!--- footer STOP from tools/include/markdown/"+item['id']+"-header.md --->\n\n"
+
     user_content += '\n\n***\n\n'  # Add extra line for spacing
     
     # Recursively add sub-items if they exist
