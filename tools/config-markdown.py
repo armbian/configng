@@ -75,18 +75,24 @@ def create_markdown_user(item, level=1):
     #user_content = f"# {item.get('description', '')}\n"
 
     # verify if header or footer exists
-    image_include = Path(os.path.dirname(os.path.abspath(__file__))+'/include/images/'+item['id']+'.png')
+    image_png_include = Path(os.path.dirname(os.path.abspath(__file__))+'/include/images/'+item['id']+'.png')
+    image_webp_include = Path(os.path.dirname(os.path.abspath(__file__))+'/include/images/'+item['id']+'.webp')
     header_include = Path(os.path.dirname(os.path.abspath(__file__))+'/include/markdown/'+item['id']+'-header.md')
     footer_include = Path(os.path.dirname(os.path.abspath(__file__))+'/include/markdown/'+item['id']+'-footer.md')
 
     user_content = f"{'#' * level} {item.get('description', '')}\n"
 
-    # include image for section if exists
-    if image_include.is_file():
+    # include png image for section if exists
+    if image_png_include.is_file():
         user_content +="\n<!--- section image START from tools/include/images/"+item['id']+".png --->\n"
-        with open(image_include, 'r') as file:
-            user_content += "[!["+ item.get('description', '') + "](images/"+item['id']+".png)](#)\n"
+        with open(image_png_include, 'r') as file:
+            user_content += "[!["+ item.get('description', '') + "](/images/"+item['id']+".png)](#)\n"
             user_content +="<!--- section image STOP from tools/include/images/"+item['id']+".png --->\n\n"
+    elif image_webp_include.is_file():
+        user_content +="\n<!--- section image START from tools/include/images/"+item['id']+".webp --->\n"
+        with open(image_webp_include, 'r') as file:
+            user_content += "[!["+ item.get('description', '') + "](/images/"+item['id']+".webp)](#)\n"
+            user_content +="<!--- section image STOP from tools/include/images/"+item['id']+".webp --->\n\n"
 
     # include markdown header for section if exists
     if header_include.is_file():
