@@ -26,4 +26,4 @@ find "$SRC_DIR" -type f -name "*.sh" | while read -r file; do
 done
 
 echo "All scripts have been combined and placed into $DEST_DIR"
-bash ./tools/config-jobs.sh -p
+bash ./tools/config-jobs -p
