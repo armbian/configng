@@ -12,13 +12,13 @@ mkdir -p "$DEST_DIR"
 find "$SRC_DIR" -type f -name "*.sh" | while read -r file; do
   # Extract the parent directory name
   parent_dir=$(basename "$(dirname "$file")")
-  
+
   # Define the output file name based on the parent directory
   output_file="$DEST_DIR/config.$parent_dir.sh"
-  
+
   # Append the content of the current file to the output file
   cat "$file" >> "$output_file"
-  
+
   # Add a newline for separation
   echo "" >> "$output_file"
 done
