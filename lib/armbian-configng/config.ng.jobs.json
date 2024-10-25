@@ -7,7 +7,7 @@
                 {
                     "id": "S01",
                     "description": "Enable Armbian kernel/firmware upgrades",
-                    "about": "This will enable Armbian kernel upgrades.",
+                    "prompt": "This will enable Armbian kernel upgrades?\nWould you like to continue?",
                     "command": [
                         "armbian_fw_manipulate unhold"
                     ],
@@ -20,7 +20,7 @@
                 {
                     "id": "S02",
                     "description": "Disable Armbian kernel upgrades",
-                    "about": "Disable Armbian kernel/firmware upgrades",
+                    "prompt": "Disable Armbian kernel/firmware upgrades\nWould you like to continue?",
                     "command": [
                         "armbian_fw_manipulate hold"
                     ],
@@ -33,7 +33,7 @@
                 {
                     "id": "S03",
                     "description": "Edit the boot environment",
-                    "about": "This will open /boot/armbianEnv.txt file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?",
+                    "prompt": "This will open /boot/armbianEnv.txt file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?",
                     "command": [
                         "nano /boot/armbianEnv.txt"
                     ],
@@ -51,7 +51,7 @@
                     "status": "Preview",
                     "doc_link": "https://github.com/armbian/config/wiki#System",
                     "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L160",
-                    "author": "@Tearran",
+                    "author": "https://github.com/Tearran",
                     "condition": "! are_headers_installed"
                 },
                 {
@@ -63,7 +63,7 @@
                     "status": "Preview",
                     "doc_link": "https://github.com/armbian/config/wiki#System",
                     "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L160",
-                    "author": "@Tearran",
+                    "author": "https://github.com/Tearran",
                     "condition": "are_headers_installed"
                 },
                 {
@@ -79,7 +79,7 @@
                     "condition": "[[ -n $(ls /sbin/armbian-install) ]]"
                 },
                 {
-                    "id": "SSH",
+                    "id": "S07.1",
                     "description": "Manage SSH login options",
                     "sub": [
                         {
@@ -282,7 +282,7 @@
                 {
                     "id": "S19",
                     "description": "Switch to rolling release",
-                    "about": "This will switch to rolling releases\n\nwould you like to continue?",
+                    "prompt": "This will switch to rolling releases\n\nwould you like to continue?",
                     "command": [
                         "set_rolling"
                     ],
@@ -295,7 +295,7 @@
                 {
                     "id": "S20",
                     "description": "Switch to stable release",
-                    "about": "This will switch to stable releases\n\nwould you like to continue?",
+                    "prompt": "This will switch to stable releases\n\nwould you like to continue?",
                     "command": [
                         "set_stable"
                     ],
@@ -308,7 +308,7 @@
                 {
                     "id": "S21",
                     "description": "Enable read only filesystem",
-                    "about": "This will enable Armbian read-only filesystem. Reboot is mandatory?\n",
+                    "prompt": "This will enable Armbian read-only filesystem. Reboot is mandatory?\n\nWould you like to continue?",
                     "command": [
                         "manage_overlayfs enable"
                     ],
@@ -321,7 +321,7 @@
                 {
                     "id": "S22",
                     "description": "Disable read only filesystem",
-                    "about": "This will disable Armbian read-only filesystem. Reboot is mandatory?\n",
+                    "prompt": "This will disable Armbian read-only filesystem. Reboot is mandatory?\n\nWould you like to continue?",
                     "command": [
                         "manage_overlayfs disable"
                     ],
@@ -346,7 +346,7 @@
                 {
                     "id": "S24",
                     "description": "Install alternative kernels",
-                    "about": "Switching between kernels might change functionality of your device. \n\nIt might fail to boot!",
+                    "prompt": "Switching between kernels might change functionality of your device. \n\nIt might fail to boot!",
                     "command": [
                         "switch_kernels"
                     ],
@@ -364,7 +364,7 @@
                         {
                             "id": "S26",
                             "description": "Upgrade to latest stable / LTS",
-                            "about": "Release upgrade is irriversible operation which upgrades all packages. \n\nResoulted upgrade might break your build beyond repair!",
+                            "prompt": "Release upgrade is irriversible operation which upgrades all packages. \n\nResoulted upgrade might break your build beyond repair!",
                             "command": [
                                 "release_upgrade stable"
                             ],
@@ -375,7 +375,7 @@
                         {
                             "id": "S27",
                             "description": "Upgrade to rolling unstable",
-                            "about": "Release upgrade is irriversible operation which upgrades all packages. \n\nResoulted upgrade might break your build beyond repair!",
+                            "prompt": "Release upgrade is irriversible operation which upgrades all packages. \n\nResoulted upgrade might break your build beyond repair!",
                             "command": [
                                 "release_upgrade rolling"
                             ],
@@ -485,7 +485,7 @@
                 {
                     "id": "N17",
                     "description": "Bluetooth Discover",
-                    "about": "This will enable bluetooth and discover devices\n",
+                    "prompt": "This will enable bluetooth and discover devices\n\nWould you like to continue?",
                     "command": [
                         "connect_bt_interface"
                     ],
@@ -498,7 +498,7 @@
                 {
                     "id": "N18",
                     "description": "Toggle system IPv6/IPv4 internet protocol",
-                    "about": "This will toggle your internet protocol",
+                    "prompt": "This will toggle your internet protocol\nWould you like to continue?",
                     "command": [
                         "toggle_ipv6 | show_infobox"
                     ],
@@ -552,7 +552,7 @@
                 {
                     "id": "L03",
                     "description": "Change APT mirrors",
-                    "about": "This will change the APT mirrors",
+                    "prompt": "This will change the APT mirrors\nWould you like to continue?",
                     "command": [
                         "get_user_continue \"This is only a frontend test\" process_input"
                     ],
@@ -584,7 +584,7 @@
                             "sub": [
                                 {
                                     "id": "DE01",
-                                    "about": "Install XFCE:\nXfce is a lightweight desktop environment for UNIX-like operating systems. It aims to be fast and low on system resources, while still being visually appealing and user friendly.",
+                                    "prompt": "Install XFCE:\nXfce is a lightweight desktop environment for UNIX-like operating systems. It aims to be fast and low on system resources, while still being visually appealing and user friendly.",
                                     "description": "XFCE desktop Install",
                                     "command": [
                                         "manage_desktops 'xfce' 'install'"
@@ -991,7 +991,7 @@
                         {
                             "id": "SW25",
                             "description": "Install Docker Minimal",
-                            "about": "This operation will install Docker Minimal.",
+                            "prompt": "This operation will install Docker Minimal.\nWould you like to continue?",
                             "command": [
                                 "install_docker"
                             ],
@@ -1004,7 +1004,7 @@
                         {
                             "id": "SW26",
                             "description": "Install Docker Engine",
-                            "about": "This operation will install Docker Engine.",
+                            "prompt": "This operation will install Docker Engine.\nWould you like to continue?",
                             "command": [
                                 "install_docker engine"
                             ],
@@ -1017,7 +1017,7 @@
                         {
                             "id": "SW27",
                             "description": "Remove Docker",
-                            "about": "This operation will purge Docker.",
+                            "prompt": "This operation will purge Docker.\nWould you like to continue?",
                             "command": [
                                 "apt_install_wrapper apt -y purge docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras"
                             ],
@@ -1030,7 +1030,7 @@
                         {
                             "id": "SW28",
                             "description": "Purge all Docker images, containers, and volumes",
-                            "about": "This operation will delete all Docker images, containers, and volumes.",
+                            "prompt": "This operation will delete all Docker images, containers, and volumes.\nWould you like to continue?",
                             "command": [
                                 "rm -rf /var/lib/docker",
                                 "rm -rf /var/lib/containerd"
@@ -1038,8 +1038,34 @@
                             "status": "Preview",
                             "doc_link": "",
                             "src_reference": "",
-                            "author": "",
+                            "author": "@igorpecovnik",
                             "condition": "! check_if_installed docker-ce && [ -d /var/lib/docker ]"
+                        },
+                        {
+                            "id": "SP27",
+                            "description": "Install Portainer",
+                            "prompt": "This operation will install Portainer.\nWould you like to continue?",
+                            "command": [
+                                "module_portainer install"
+                            ],
+                            "status": "Stable",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "",
+                            "condition": "! module_portainer status"
+                        },
+                        {
+                            "id": "SP28",
+                            "description": "Remove Portainer",
+                            "prompt": "This operation will delete Portainer container.\nWould you like to continue?",
+                            "command": [
+                                "module_portainer uninstall"
+                            ],
+                            "status": "Stable",
+                            "doc_link": "",
+                            "src_reference": "",
+                            "author": "@igorpecovnik",
+                            "condition": "module_portainer status"
                         }
                     ]
                 },
@@ -1050,7 +1076,7 @@
                         {
                             "id": "SW21",
                             "description": "Install Plex Media server",
-                            "about": "This operation will install Plex Media server.",
+                            "prompt": "This operation will install Plex Media server.\nWould you like to continue?",
                             "command": [
                                 "install_plexmediaserver"
                             ],
@@ -1063,7 +1089,7 @@
                         {
                             "id": "SW22",
                             "description": "Remove Plex Media server",
-                            "about": "This operation will purge Plex Media server.",
+                            "prompt": "This operation will purge Plex Media server.\nWould you like to continue?",
                             "command": [
                                 "apt_install_wrapper apt-get -y purge plexmediaserver",
                                 "sed -i '/plexmediaserver.gpg/s/^/#/g' /etc/apt/sources.list.d/plexmediaserver.list"
@@ -1077,7 +1103,7 @@
                         {
                             "id": "SW23",
                             "description": "Install Emby server",
-                            "about": "This operation will install Emby server.",
+                            "prompt": "This operation will install Emby server.\nWould you like to continue?",
                             "command": [
                                 "install_embyserver"
                             ],
@@ -1090,7 +1116,7 @@
                         {
                             "id": "SW24",
                             "description": "Remove Emby server",
-                            "about": "This operation will purge Emby server.",
+                            "prompt": "This operation will purge Emby server.\nWould you like to continue?",
                             "command": [
                                 "apt_install_wrapper apt -y purge emby-server"
                             ],
@@ -1109,7 +1135,7 @@
                         {
                             "id": "M00",
                             "description": "Install Cockpit web-based management tool",
-                            "about": "This operation will install Cockpit.\ncockpit cockpit-ws cockpit-system cockpit-storaged",
+                            "prompt": "This operation will install Cockpit.\ncockpit cockpit-ws cockpit-system cockpit-storaged\nWould you like to continue?",
                             "command": [
                                 "see_current_apt update",
                                 "apt_install_wrapper apt -y install cockpit cockpit-ws cockpit-system cockpit-storaged "
@@ -1123,7 +1149,7 @@
                         {
                             "id": "M01",
                             "description": "Purge Cockpit web-based management tool",
-                            "about": "This operation will purge Cockpit.",
+                            "prompt": "This operation will purge Cockpit.\nWould you like to continue?",
                             "command": [
                                 "apt_install_wrapper apt -y purge cockpit"
                             ],
@@ -1164,7 +1190,7 @@
         },
         {
             "id": "Help",
-            "description": "About this tool",
+            "description": "About this app",
             "sub": [
                 {
                     "id": "H02",
