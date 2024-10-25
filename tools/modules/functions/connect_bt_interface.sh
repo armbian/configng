@@ -40,11 +40,20 @@ No nearby Bluetooth devices were found!"
 			show_infobox <<< "
 Connecting to $BT_ADAPTER "
 			BT_EXEC=$(
-				expect -c 'set prompt "#";set address '$BT_ADAPTER';spawn bluetoothctl;expect -re $prompt;send "disconnect $address";
-			sleep 1;send "remove $address";sleep 1;expect -re $prompt;send "scan on";sleep 8;send "scan off";
-			expect "Controller";send "trust $address";sleep 2;send "pair $address";sleep 2;send "connect $address";
+				expect -c 'set prompt "#";set address '$BT_ADAPTER';spawn bluetoothctl;expect -re $prompt;send "disconnect $address
+";
+			sleep 1;send "remove $address
+";sleep 1;expect -re $prompt;send "scan on
+";sleep 8;send "scan off
+";
+			expect "Controller";send "trust $address
+";sleep 2;send "pair $address
+";sleep 2;send "connect $address
+";
 			send_user "
-Should be paired now.";sleep 2;send "quit";expect eof'
+Should be paired now.
+";sleep 2;send "quit
+";expect eof'
 			)
 			echo "$BT_EXEC" > /tmp/bt-connect-debug.log
 			if [[ $(echo "$BT_EXEC" | grep "Connection successful") != "" ]]; then
@@ -58,4 +67,3 @@ Error connecting. Try again!"
 	fi
 
 }
-

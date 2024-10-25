@@ -26,32 +26,31 @@ function manage_dtoverlays () {
 		done
 		selection=$($DIALOG --title "Manage devicetree overlays" --cancel-button "Back" \
 			--ok-button "Save" --checklist "
-Use <space> to toggle functions and save them.
+				Use <space> to toggle functions and save them.
 Exit when you are done.
  " \
 			0 0 0 "${options[@]}" 3>&1 1>&2 2>&3)
-		exit_status=$?
+	exit_status=$?
 		case $exit_status in
-			0)
-				changes="true"
-				newoverlays=$(echo $selection | sed 's/"//g')
-				sed -i "s/^fdt_overlays=.*/fdt_overlays=$newoverlays/" ${overlayconf}
-				if ! grep -q "^fdt_overlays" ${overlayconf}; then echo "fdt_overlays=$newoverlays" >> ${overlayconf}; fi
-				sync
-				;;
-			1)
-				if [[ "$changes" == "true" ]]; then
-					$DIALOG --title " Reboot required " --yes-button "Reboot" \
-						--no-button "Cancel" --yesno "A reboot is required to apply the changes. Shall we reboot now?" 7 34
-					if [[ $? = 0 ]]; then
-						reboot
-					fi
+		0)
+			changes="true"
+			newoverlays=$(echo $selection | sed 's/"//g')
+			sed -i "s/^fdt_overlays=.*/fdt_overlays=$newoverlays/" ${overlayconf}
+			if ! grep -q "^fdt_overlays" ${overlayconf}; then echo "fdt_overlays=$newoverlays" >> ${overlayconf}; fi
+			sync
+		;;
+		1)
+			if [[ "$changes" == "true" ]]; then
+				$DIALOG --title " Reboot required " --yes-button "Reboot" \
+					--no-button "Cancel" --yesno "A reboot is required to apply the changes. Shall we reboot now?" 7 34
+				if [[ $? = 0 ]]; then
+					reboot
 				fi
-				break
-				;;
-			255)
-				;;
+			fi
+			break
+		;;
+		255)
+		;;
 		esac
 	done
 }
-
