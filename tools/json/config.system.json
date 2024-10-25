@@ -7,7 +7,7 @@
                 {
                     "id": "S01",
                     "description": "Enable Armbian kernel/firmware upgrades",
-                    "prompt": "This will enable Armbian kernel upgrades?\nWould you like to continue?",
+                    "about": "This will enable Armbian kernel upgrades.",
                     "command": [
                         "armbian_fw_manipulate unhold"
                     ],
@@ -20,7 +20,7 @@
                 {
                     "id": "S02",
                     "description": "Disable Armbian kernel upgrades",
-                    "prompt": "Disable Armbian kernel/firmware upgrades\nWould you like to continue?",
+                    "about": "Disable Armbian kernel/firmware upgrades",
                     "command": [
                         "armbian_fw_manipulate hold"
                     ],
@@ -33,7 +33,7 @@
                 {
                     "id": "S03",
                     "description": "Edit the boot environment",
-                    "prompt": "This will open /boot/armbianEnv.txt file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?",
+                    "about": "This will open /boot/armbianEnv.txt file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?",
                     "command": [
                         "nano /boot/armbianEnv.txt"
                     ],
@@ -51,7 +51,7 @@
                     "status": "Preview",
                     "doc_link": "https://github.com/armbian/config/wiki#System",
                     "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L160",
-                    "author": "https://github.com/Tearran",
+                    "author": "@Tearran",
                     "condition": "! are_headers_installed"
                 },
                 {
@@ -63,7 +63,7 @@
                     "status": "Preview",
                     "doc_link": "https://github.com/armbian/config/wiki#System",
                     "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L160",
-                    "author": "https://github.com/Tearran",
+                    "author": "@Tearran",
                     "condition": "are_headers_installed"
                 },
                 {
@@ -79,7 +79,7 @@
                     "condition": "[[ -n $(ls /sbin/armbian-install) ]]"
                 },
                 {
-                    "id": "S07.1",
+                    "id": "SSH",
                     "description": "Manage SSH login options",
                     "sub": [
                         {
@@ -282,7 +282,7 @@
                 {
                     "id": "S19",
                     "description": "Switch to rolling release",
-                    "prompt": "This will switch to rolling releases\n\nwould you like to continue?",
+                    "about": "This will switch to rolling releases\n\nwould you like to continue?",
                     "command": [
                         "set_rolling"
                     ],
@@ -295,7 +295,7 @@
                 {
                     "id": "S20",
                     "description": "Switch to stable release",
-                    "prompt": "This will switch to stable releases\n\nwould you like to continue?",
+                    "about": "This will switch to stable releases\n\nwould you like to continue?",
                     "command": [
                         "set_stable"
                     ],
@@ -308,7 +308,7 @@
                 {
                     "id": "S21",
                     "description": "Enable read only filesystem",
-                    "prompt": "This will enable Armbian read-only filesystem. Reboot is mandatory?\n\nWould you like to continue?",
+                    "about": "This will enable Armbian read-only filesystem. Reboot is mandatory?\n",
                     "command": [
                         "manage_overlayfs enable"
                     ],
@@ -321,7 +321,7 @@
                 {
                     "id": "S22",
                     "description": "Disable read only filesystem",
-                    "prompt": "This will disable Armbian read-only filesystem. Reboot is mandatory?\n\nWould you like to continue?",
+                    "about": "This will disable Armbian read-only filesystem. Reboot is mandatory?\n",
                     "command": [
                         "manage_overlayfs disable"
                     ],
@@ -346,7 +346,7 @@
                 {
                     "id": "S24",
                     "description": "Install alternative kernels",
-                    "prompt": "Switching between kernels might change functionality of your device. \n\nIt might fail to boot!",
+                    "about": "Switching between kernels might change functionality of your device. \n\nIt might fail to boot!",
                     "command": [
                         "switch_kernels"
                     ],
@@ -364,7 +364,7 @@
                         {
                             "id": "S26",
                             "description": "Upgrade to latest stable / LTS",
-                            "prompt": "Release upgrade is irriversible operation which upgrades all packages. \n\nResoulted upgrade might break your build beyond repair!",
+                            "about": "Release upgrade is irriversible operation which upgrades all packages. \n\nResoulted upgrade might break your build beyond repair!",
                             "command": [
                                 "release_upgrade stable"
                             ],
@@ -375,7 +375,7 @@
                         {
                             "id": "S27",
                             "description": "Upgrade to rolling unstable",
-                            "prompt": "Release upgrade is irriversible operation which upgrades all packages. \n\nResoulted upgrade might break your build beyond repair!",
+                            "about": "Release upgrade is irriversible operation which upgrades all packages. \n\nResoulted upgrade might break your build beyond repair!",
                             "command": [
                                 "release_upgrade rolling"
                             ],

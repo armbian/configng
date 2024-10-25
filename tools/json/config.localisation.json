@@ -43,7 +43,7 @@
                 {
                     "id": "L03",
                     "description": "Change APT mirrors",
-                    "prompt": "This will change the APT mirrors\nWould you like to continue?",
+                    "about": "This will change the APT mirrors",
                     "command": [
                         "get_user_continue \"This is only a frontend test\" process_input"
                     ],
@@ -53,7 +53,9 @@
                 {
                     "id": "L04",
                     "description": "Change System Hostname",
-                    "command": [ "change_system_hostname" ],
+                    "command": [
+                        "change_system_hostname"
+                    ],
                     "status": "Preview",
                     "author": ""
                 }

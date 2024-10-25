@@ -86,7 +86,7 @@
                 {
                     "id": "N17",
                     "description": "Bluetooth Discover",
-                    "prompt": "This will enable bluetooth and discover devices\n\nWould you like to continue?",
+                    "about": "This will enable bluetooth and discover devices\n",
                     "command": [
                         "connect_bt_interface"
                     ],
@@ -99,7 +99,7 @@
                 {
                     "id": "N18",
                     "description": "Toggle system IPv6/IPv4 internet protocol",
-                    "prompt": "This will toggle your internet protocol\nWould you like to continue?",
+                    "about": "This will toggle your internet protocol",
                     "command": [
                         "toggle_ipv6 | show_infobox"
                     ],
