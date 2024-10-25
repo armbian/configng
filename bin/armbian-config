@@ -33,7 +33,7 @@ declare -A module_options
 
 #
 # Load configng core functions and module options array
-
+source "$script_dir/../lib/armbian-config/config.functions.sh"
 source "$lib_dir/config.ng.functions.sh"
 set_runtime_variables
 echo "Loaded Runtime variables..." #| show_infobox ;
