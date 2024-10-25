@@ -2,9 +2,9 @@
 
 
 SCRIPT_DIR="$(dirname "$0")"
-LIB_DIR="$SCRIPT_DIR/../lib/armbian-configng"
+LIB_DIR="$SCRIPT_DIR/../lib/armbian-config"
 
-DEFAULT_FILE="$LIB_DIR/config.ng.jobs.json"
+DEFAULT_FILE="$LIB_DIR/config.jobs.json"
 DEFAULT_DIR="$SCRIPT_DIR/json"
 
 
