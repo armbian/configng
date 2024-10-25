@@ -1,6 +1,6 @@
 
 module_options+=(
-	["toggle_ipv6,author"]="Joey Turner"
+	["toggle_ipv6,author"]="@Tearran"
 	["toggle_ipv6,ref_link"]=""
 	["toggle_ipv6,feature"]="toggle_ipv6"
 	["toggle_ipv6,desc"]="Toggle IPv6 on or off"

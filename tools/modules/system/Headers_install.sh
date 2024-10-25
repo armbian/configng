@@ -1,5 +1,5 @@
 module_options+=(
-	["Headers_install,author"]="Joey Turner"
+	["Headers_install,author"]="@Tearran"
 	["Headers_install,ref_link"]=""
 	["Headers_install,feature"]="Headers_install"
 	["Headers_install,desc"]="Install kernel headers"

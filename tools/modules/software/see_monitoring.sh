@@ -1,6 +1,6 @@
 
 module_options+=(
-	["see_monitoring,author"]="Joey Turner"
+	["see_monitoring,author"]="@Tearran"
 	["see_monitoring,ref_link"]=""
 	["see_monitoring,feature"]="see_monitoring"
 	["see_monitoring,desc"]="Menu for armbianmonitor features"
