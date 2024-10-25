@@ -5,71 +5,65 @@
             "description": "Fixed and wireless network settings",
             "sub": [
                 {
-                    "id": "N01",
+                    "id": "NE001",
                     "description": "Configure network interfaces",
                     "sub": [
                         {
-                            "id": "N02",
+                            "id": "NE002",
                             "description": "Add / change interface",
                             "command": [
                                 "network_config armbian"
                             ],
-                            "status": "Preview",
-                            "author": "Igor Pecovnik",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": ""
                         },
                         {
-                            "id": "N03",
+                            "id": "NE003",
                             "description": "Revert to Armbian defaults",
                             "command": [
                                 "default_network_config"
                             ],
-                            "status": "Preview",
-                            "author": "Igor Pecovnik",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": ""
                         },
                         {
-                            "id": "N04",
+                            "id": "NE004",
                             "description": "Show configuration",
                             "command": [
                                 "show_message <<< \"$(netplan get all)\""
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "Igor Pecovnik",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "[[ -f /etc/netplan/armbian.yaml ]]"
                         },
                         {
-                            "id": "N06",
+                            "id": "NE005",
                             "description": "Show active status",
                             "command": [
                                 "show_message <<< \"$(netplan status --all)\""
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "Igor Pecovnik",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "[ -f /etc/netplan/armbian.yaml ] && [ netplan status 2>/dev/null ]"
                         }
                     ]
                 },
                 {
-                    "id": "N15",
+                    "id": "NE101",
                     "description": "Install Bluetooth support",
                     "command": [
                         "see_current_apt ",
                         "debconf-apt-progress -- apt-get -y install bluetooth bluez bluez-tools",
                         "check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y --no-install-recommends install pulseaudio-module-bluetooth blueman"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "",
+                    "status": "Disabled",
+                    "author": "@armbian",
                     "condition": "! check_if_installed bluetooth && ! check_if_installed bluez && ! check_if_installed bluez-tools"
                 },
                 {
-                    "id": "N16",
+                    "id": "NE102",
                     "description": "Remove Bluetooth support",
                     "command": [
                         "see_current_apt ",
@@ -77,36 +71,31 @@
                         "check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y remove pulseaudio-module-bluetooth blueman",
                         "debconf-apt-progress -- apt -y -qq autoremove"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "",
+                    "status": "Disabled",
+                    "author": "@armbian",
                     "condition": "check_if_installed bluetooth || check_if_installed bluez || check_if_installed bluez-tools"
                 },
                 {
-                    "id": "N17",
+                    "id": "NE103",
                     "description": "Bluetooth Discover",
                     "about": "This will enable bluetooth and discover devices\n",
                     "command": [
                         "connect_bt_interface"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "",
+                    "status": "Disabled",
+                    "author": "@armbian",
                     "condition": "check_if_installed bluetooth || check_if_installed bluez || check_if_installed bluez-tools"
                 },
                 {
-                    "id": "N18",
+                    "id": "NE104",
                     "description": "Toggle system IPv6/IPv4 internet protocol",
                     "about": "This will toggle your internet protocol",
                     "command": [
                         "toggle_ipv6 | show_infobox"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": ""
+                    "status": "Disabled",
+                    "author": "@armbian",
+                    "condition": ""
                 }
             ]
         }

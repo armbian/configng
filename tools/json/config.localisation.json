@@ -5,59 +5,52 @@
             "description": "Localisation",
             "sub": [
                 {
-                    "id": "L00",
-                    "description": "Change Global timezone (WIP)",
+                    "id": "LO001",
+                    "description": "Change Global timezone",
                     "command": [
                         "dpkg-reconfigure tzdata"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": ""
+                    "status": "Stable",
+                    "author": "@armbian"
                 },
                 {
-                    "id": "L01",
+                    "id": "LO002",
                     "description": "Change Locales reconfigure the language and character set",
                     "command": [
                         "dpkg-reconfigure locales",
                         "source /etc/default/locale ; sed -i \"s/^LANGUAGE=.*/LANGUAGE=$LANG/\" /etc/default/locale",
                         "export LANGUAGE=$LANG"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": ""
+                    "status": "Stable",
+                    "author": "@armbian"
                 },
                 {
-                    "id": "L02",
+                    "id": "LO003",
                     "description": "Change Keyboard layout",
                     "command": [
                         "dpkg-reconfigure keyboard-configuration ; setupcon ",
                         "update-initramfs -u"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": ""
-                },
+                    "status": "Stable",
+                    "author": "@armbian"                },
                 {
-                    "id": "L03",
+                    "id": "LO004",
                     "description": "Change APT mirrors",
                     "about": "This will change the APT mirrors",
                     "command": [
                         "get_user_continue \"This is only a frontend test\" process_input"
                     ],
                     "status": "Disabled",
-                    "author": ""
+                    "author": "@armbian"
                 },
                 {
-                    "id": "L04",
+                    "id": "LO005",
                     "description": "Change System Hostname",
                     "command": [
                         "change_system_hostname"
                     ],
-                    "status": "Preview",
-                    "author": ""
+                    "status": "Stable",
+                    "author": "@armbian"
                 }
             ]
         }

@@ -5,163 +5,140 @@
             "description": "System wide and admin settings",
             "sub": [
                 {
-                    "id": "S01",
-                    "description": "Enable Armbian kernel/firmware upgrades",
-                    "about": "This will enable Armbian kernel upgrades.",
+                    "id": "SY001",
+                    "description": "Enable Armbian firmware upgrades",
+                    "about": "This will enable Armbian kernel upgrades that are currently put on hold.",
                     "command": [
                         "armbian_fw_manipulate unhold"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "",
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
                     "condition": "[[ -n \"$(apt-mark showhold)\" ]]"
                 },
                 {
-                    "id": "S02",
+                    "id": "SY002",
                     "description": "Disable Armbian kernel upgrades",
                     "about": "Disable Armbian kernel/firmware upgrades",
                     "command": [
                         "armbian_fw_manipulate hold"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "",
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
                     "condition": "[[ -z \"$(apt-mark showhold)\" ]]"
                 },
                 {
-                    "id": "S03",
+                    "id": "SY003",
                     "description": "Edit the boot environment",
                     "about": "This will open /boot/armbianEnv.txt file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?",
                     "command": [
                         "nano /boot/armbianEnv.txt"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": ""
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
+                    "condition": "[[ -f /boot/armbianEnv.txt ]]"
                 },
                 {
-                    "id": "S04",
+                    "id": "SY004",
                     "description": "Install Linux headers",
                     "command": [
                         "Headers_install"
                     ],
                     "status": "Preview",
-                    "doc_link": "https://github.com/armbian/config/wiki#System",
-                    "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L160",
                     "author": "@Tearran",
                     "condition": "! are_headers_installed"
                 },
                 {
-                    "id": "S05",
+                    "id": "SY005",
                     "description": "Remove Linux headers",
                     "command": [
                         "Headers_remove"
                     ],
                     "status": "Preview",
-                    "doc_link": "https://github.com/armbian/config/wiki#System",
-                    "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L160",
                     "author": "@Tearran",
                     "condition": "are_headers_installed"
                 },
                 {
-                    "id": "S06",
+                    "id": "SY006",
                     "description": "Install to internal storage",
                     "command": [
                         "armbian-install"
                     ],
                     "status": "Preview",
-                    "doc_link": "https://github.com/armbian/config/wiki#System",
-                    "src_reference": "",
-                    "author": "https://github.com/igorpecovnik",
-                    "condition": "[[ -n $(ls /sbin/armbian-install) ]]"
+                    "author": "@igorpecovnik",
+                    "condition": "[[ -f /sbin/armbian-install ]]"
                 },
                 {
-                    "id": "SSH",
+                    "id": "SY007",
                     "description": "Manage SSH login options",
                     "sub": [
                         {
-                            "id": "S07",
+                            "id": "SY101",
                             "description": "Disable root login",
                             "command": [
                                 "sed -i \"s|^#\\?PermitRootLogin.*|PermitRootLogin no|\" /etc/ssh/sshd_config",
                                 "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "grep -q '^PermitRootLogin yes'  /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "S08",
+                            "id": "SY102",
                             "description": "Enable root login",
                             "command": [
                                 "sed -i \"s/^#\\?PermitRootLogin.*/PermitRootLogin yes/\" /etc/ssh/sshd_config",
                                 "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "grep -q '^PermitRootLogin no' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "S09",
+                            "id": "SY103",
                             "description": "Disable password login",
                             "command": [
                                 "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication no/\" /etc/ssh/sshd_config",
                                 "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "grep -q 'PasswordAuthentication yes' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "S10",
+                            "id": "SY104",
                             "description": "Enable password login",
                             "command": [
                                 "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication yes/\" /etc/ssh/sshd_config",
                                 "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "grep -q 'PasswordAuthentication no' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "S11",
+                            "id": "SY105",
                             "description": "Disable Public key authentication login",
                             "command": [
                                 "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication no/\" /etc/ssh/sshd_config",
                                 "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "grep -q 'PubkeyAuthentication yes' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "S12",
+                            "id": "SY106",
                             "description": "Enable Public key authentication login",
                             "command": [
                                 "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication yes/\" /etc/ssh/sshd_config",
                                 "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "grep -q 'PubkeyAuthentication no' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "S13",
+                            "id": "SY107",
                             "description": "Disable OTP authentication",
                             "command": [
                                 "clear",
@@ -170,14 +147,12 @@
                                 "sed -i '/^auth required pam_google_authenticator.so nullok/ d' /etc/pam.d/sshd",
                                 "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "grep -q 'ChallengeResponseAuthentication yes' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "S14",
+                            "id": "SY108",
                             "description": "Enable OTP authentication",
                             "command": [
                                 "check_if_installed libpam-google-authenticator || debconf-apt-progress -- apt-get -y install libpam-google-authenticator",
@@ -187,67 +162,58 @@
                                 "[ ! -f /root/.google_authenticator ] && qr_code generate",
                                 "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "! check_if_installed libpam-google-authenticator || ! check_if_installed qrencode || grep -q '^ChallengeResponseAuthentication no' /etc/ssh/sshd_config || ! grep -q 'ChallengeResponseAuthentication' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "S15",
+                            "id": "SY109",
                             "description": "Generate new OTP authentication QR code",
                             "command": [
                                 "qr_code generate"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "S16",
+                            "id": "SY110",
                             "description": "Show OTP authentication QR code",
                             "command": [
                                 "qr_code"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "Igor Pecovnik",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config && [ -f /root/.google_authenticator ]"
                         },
                         {
-                            "id": "S30",
+                            "id": "SY111",
                             "description": "Disable last login banner",
                             "command": [
                                 "sed -i \"s/^#\\?PrintLastLog.*/PrintLastLog no/\" /etc/ssh/sshd_config",
                                 "systemctl restart ssh.service "
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "grep -q '^PrintLastLog yes' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "S31",
+                            "id": "SY112",
                             "description": "Enable last login banner",
                             "command": [
                                 "sed -i \"s/^#\\?PrintLastLog.*/PrintLastLog yes/\" /etc/ssh/sshd_config",
                                 "systemctl restart ssh.service "
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "grep -q '^PrintLastLog no' /etc/ssh/sshd_config"
                         }
                     ]
                 },
                 {
-                    "id": "S17",
+                    "id": "SY008",
                     "description": "Change shell system wide to BASH",
+                    "about": "This will switch system wide shell to BASH",
                     "command": [
                         "export BASHLOCATION=$(grep /bash$ /etc/shells | tail -1)",
                         "sed -i \"s|^SHELL=.*|SHELL=${BASHLOCATION}|\" /etc/default/useradd",
@@ -256,15 +222,14 @@
                         "update_skel",
                         "awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534 || $3 == 0) print $1}' /etc/passwd | xargs -L1 chsh -s $(grep /bash$ /etc/shells | tail -1)"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "https://github.com/igorpecovnik",
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
                     "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"zsh\" ]]"
                 },
                 {
-                    "id": "S18",
+                    "id": "SY009",
                     "description": "Change shell system wide to ZSH",
+                    "about": "This will switch system wide shell to ZSH",
                     "command": [
                         "export ZSHLOCATION=$(grep /zsh$ /etc/shells | tail -1)",
                         "sed -i \"s|^SHELL=.*|SHELL=${ZSHLOCATION}|\" /etc/default/useradd",
@@ -273,128 +238,112 @@
                         "update_skel",
                         "awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534 || $3 == 0) print $1}' /etc/passwd | xargs -L1 chsh -s $(grep /zsh$ /etc/shells | tail -1)"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "https://github.com/igorpecovnik",
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
                     "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"bash\" ]]"
                 },
                 {
-                    "id": "S19",
+                    "id": "SY010",
                     "description": "Switch to rolling release",
-                    "about": "This will switch to rolling releases\n\nwould you like to continue?",
+                    "about": "This will switch OS to rolling releases.",
                     "command": [
                         "set_rolling"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L1446",
-                    "author": "Igor Pecovnik",
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
                     "condition": "grep -q 'apt.armbian.com' /etc/apt/sources.list.d/armbian.list && [[ -z \"$(apt-mark showhold)\" ]]"
                 },
                 {
-                    "id": "S20",
+                    "id": "SY011",
                     "description": "Switch to stable release",
-                    "about": "This will switch to stable releases\n\nwould you like to continue?",
+                    "about": "This will switch OS to stable releases",
                     "command": [
                         "set_stable"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L1446",
-                    "author": "Igor Pecovnik",
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
                     "condition": "grep -q 'beta.armbian.com' /etc/apt/sources.list.d/armbian.list && [[ -z \"$(apt-mark showhold)\" ]]"
                 },
                 {
-                    "id": "S21",
+                    "id": "SY012",
                     "description": "Enable read only filesystem",
                     "about": "This will enable Armbian read-only filesystem. Reboot is mandatory?\n",
                     "command": [
                         "manage_overlayfs enable"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "Igor Pecovnik",
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
                     "condition": "modinfo overlay > /dev/null 2>&1 && [[ -z $(findmnt -k /media/root-ro | tail -1) ]] && [[ \"${DISTRO}\"=Ubuntu ]]"
                 },
                 {
-                    "id": "S22",
+                    "id": "SY013",
                     "description": "Disable read only filesystem",
                     "about": "This will disable Armbian read-only filesystem. Reboot is mandatory?\n",
                     "command": [
                         "manage_overlayfs disable"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "Igor Pecovnik",
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
                     "condition": "command -v overlayroot-chroot > /dev/null 2>&1 && findmnt -k /media/root-ro | tail -1 | grep -w /media/root-ro > /dev/null 2>&1"
                 },
                 {
-                    "id": "S23",
+                    "id": "SY014",
                     "description": "Adjust welcome screen (motd)",
                     "command": [
                         "adjust_motd"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "",
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
                     "condition": "[ -f /etc/default/armbian-motd ]"
                 },
                 {
-                    "id": "S24",
+                    "id": "SY015",
                     "description": "Install alternative kernels",
                     "about": "Switching between kernels might change functionality of your device. \n\nIt might fail to boot!",
                     "command": [
                         "switch_kernels"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "Igor Pecovnik",
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
                     "condition": ""
                 },
                 {
-                    "id": "S25",
+                    "id": "SY016",
                     "description": "Distribution upgrades",
                     "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade rolling verify || release_upgrade stable verify",
                     "sub": [
                         {
-                            "id": "S26",
+                            "id": "SY101",
                             "description": "Upgrade to latest stable / LTS",
                             "about": "Release upgrade is irriversible operation which upgrades all packages. \n\nResoulted upgrade might break your build beyond repair!",
                             "command": [
                                 "release_upgrade stable"
                             ],
-                            "status": "Active",
-                            "author": "Igor Pecovnik",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade stable verify"
                         },
                         {
-                            "id": "S27",
+                            "id": "SY102",
                             "description": "Upgrade to rolling unstable",
                             "about": "Release upgrade is irriversible operation which upgrades all packages. \n\nResoulted upgrade might break your build beyond repair!",
                             "command": [
                                 "release_upgrade rolling"
                             ],
                             "status": "Active",
-                            "author": "Igor Pecovnik",
+                            "author": "@igorpecovnik",
                             "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade rolling verify"
                         }
                     ]
                 },
                 {
-                    "id": "S28",
+                    "id": "SY017",
                     "description": "Manage device tree overlays",
                     "command": [
                         "manage_dtoverlays"
                     ],
-                    "status": "Active",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "Gunjan Gupta",
+                    "status": "Stable",
+                    "author": "@viraniac @igorpecovnik",
                     "condition": "[ -n $OVERLAY_DIR ] && [ -n $BOOT_SOC ]"
                 }
             ]
@@ -404,108 +353,50 @@
             "description": "Fixed and wireless network settings",
             "sub": [
                 {
-                    "id": "N01",
+                    "id": "NE001",
                     "description": "Configure network interfaces",
                     "sub": [
                         {
-                            "id": "N02",
+                            "id": "NE002",
                             "description": "Add / change interface",
                             "command": [
                                 "network_config armbian"
                             ],
-                            "status": "Preview",
-                            "author": "Igor Pecovnik",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": ""
                         },
                         {
-                            "id": "N03",
+                            "id": "NE003",
                             "description": "Revert to Armbian defaults",
                             "command": [
                                 "default_network_config"
                             ],
-                            "status": "Preview",
-                            "author": "Igor Pecovnik",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": ""
                         },
                         {
-                            "id": "N04",
+                            "id": "NE004",
                             "description": "Show configuration",
                             "command": [
                                 "show_message <<< \"$(netplan get all)\""
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "Igor Pecovnik",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "[[ -f /etc/netplan/armbian.yaml ]]"
                         },
                         {
-                            "id": "N06",
+                            "id": "NE005",
                             "description": "Show active status",
                             "command": [
                                 "show_message <<< \"$(netplan status --all)\""
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "Igor Pecovnik",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "[ -f /etc/netplan/armbian.yaml ] && [ netplan status 2>/dev/null ]"
                         }
                     ]
-                },
-                {
-                    "id": "N15",
-                    "description": "Install Bluetooth support",
-                    "command": [
-                        "see_current_apt ",
-                        "debconf-apt-progress -- apt-get -y install bluetooth bluez bluez-tools",
-                        "check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y --no-install-recommends install pulseaudio-module-bluetooth blueman"
-                    ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "",
-                    "condition": "! check_if_installed bluetooth && ! check_if_installed bluez && ! check_if_installed bluez-tools"
-                },
-                {
-                    "id": "N16",
-                    "description": "Remove Bluetooth support",
-                    "command": [
-                        "see_current_apt ",
-                        "debconf-apt-progress -- apt-get -y remove bluetooth bluez bluez-tools",
-                        "check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y remove pulseaudio-module-bluetooth blueman",
-                        "debconf-apt-progress -- apt -y -qq autoremove"
-                    ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "",
-                    "condition": "check_if_installed bluetooth || check_if_installed bluez || check_if_installed bluez-tools"
-                },
-                {
-                    "id": "N17",
-                    "description": "Bluetooth Discover",
-                    "about": "This will enable bluetooth and discover devices\n",
-                    "command": [
-                        "connect_bt_interface"
-                    ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "",
-                    "condition": "check_if_installed bluetooth || check_if_installed bluez || check_if_installed bluez-tools"
-                },
-                {
-                    "id": "N18",
-                    "description": "Toggle system IPv6/IPv4 internet protocol",
-                    "about": "This will toggle your internet protocol",
-                    "command": [
-                        "toggle_ipv6 | show_infobox"
-                    ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": ""
                 }
             ]
         },
@@ -514,49 +405,43 @@
             "description": "Localisation",
             "sub": [
                 {
-                    "id": "L00",
-                    "description": "Change Global timezone (WIP)",
+                    "id": "LO001",
+                    "description": "Change Global timezone",
                     "command": [
                         "dpkg-reconfigure tzdata"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": ""
+                    "status": "Stable",
+                    "author": "@armbian"
                 },
                 {
-                    "id": "L01",
+                    "id": "LO002",
                     "description": "Change Locales reconfigure the language and character set",
                     "command": [
                         "dpkg-reconfigure locales",
                         "source /etc/default/locale ; sed -i \"s/^LANGUAGE=.*/LANGUAGE=$LANG/\" /etc/default/locale",
                         "export LANGUAGE=$LANG"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": ""
+                    "status": "Stable",
+                    "author": "@armbian"
                 },
                 {
-                    "id": "L02",
+                    "id": "LO003",
                     "description": "Change Keyboard layout",
                     "command": [
                         "dpkg-reconfigure keyboard-configuration ; setupcon ",
                         "update-initramfs -u"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": ""
+                    "status": "Stable",
+                    "author": "@armbian"
                 },
                 {
-                    "id": "L04",
+                    "id": "LO005",
                     "description": "Change System Hostname",
                     "command": [
                         "change_system_hostname"
                     ],
-                    "status": "Preview",
-                    "author": ""
+                    "status": "Stable",
+                    "author": "@armbian"
                 }
             ]
         },
@@ -573,19 +458,18 @@
                             "description": "XFCE desktop",
                             "sub": [
                                 {
-                                    "id": "DE01",
+                                    "id": "XFCE01",
                                     "about": "Install XFCE:\nXfce is a lightweight desktop environment for UNIX-like operating systems. It aims to be fast and low on system resources, while still being visually appealing and user friendly.",
                                     "description": "XFCE desktop Install",
                                     "command": [
                                         "manage_desktops 'xfce' 'install'"
                                     ],
                                     "status": "Stable",
-                                    "src_reference": "https://www.xfce.org/about",
                                     "author": "@igorpecovnik",
                                     "condition": "[ ! -f /usr/share/xsessions/xfce.desktop ]"
                                 },
                                 {
-                                    "id": "DE02",
+                                    "id": "XFCE02",
                                     "description": "Uninstall",
                                     "command": [
                                         "manage_desktops 'xfce' 'uninstall'"
@@ -595,7 +479,7 @@
                                     "condition": "[ -f /usr/share/xsessions/xfce.desktop ]"
                                 },
                                 {
-                                    "id": "DE03",
+                                    "id": "XFCE03",
                                     "description": "Enable autologin",
                                     "command": [
                                         "manage_desktops 'xfce' 'auto'"
@@ -605,7 +489,7 @@
                                     "condition": "[ -f /usr/share/xsessions/xfce.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
                                 },
                                 {
-                                    "id": "DE04",
+                                    "id": "XFCE04",
                                     "description": "Disable autologin",
                                     "command": [
                                         "manage_desktops 'xfce' 'manual'"
@@ -621,7 +505,7 @@
                             "description": "Gnome desktop",
                             "sub": [
                                 {
-                                    "id": "DE11",
+                                    "id": "GNOME01",
                                     "description": "Gnome desktop Install",
                                     "command": [
                                         "manage_desktops 'gnome' 'install'"
@@ -631,7 +515,7 @@
                                     "condition": "[ ! -f /usr/share/xsessions/gnome.desktop ]"
                                 },
                                 {
-                                    "id": "DE12",
+                                    "id": "GNOME02",
                                     "description": "Uninstall",
                                     "command": [
                                         "manage_desktops 'gnome' 'uninstall'"
@@ -641,7 +525,7 @@
                                     "condition": "[ -f /usr/share/xsessions/gnome.desktop ]"
                                 },
                                 {
-                                    "id": "DE13",
+                                    "id": "GNOME03",
                                     "description": "Enable autologin",
                                     "command": [
                                         "manage_desktops 'gnome' 'auto'"
@@ -651,7 +535,7 @@
                                     "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && ! cat /etc/gdm3/custom.conf 2>/dev/null | grep AutomaticLoginEnable | grep true >/dev/null"
                                 },
                                 {
-                                    "id": "DE14",
+                                    "id": "GNOME04",
                                     "description": "Disable autologin",
                                     "command": [
                                         "manage_desktops 'gnome' 'manual'"
@@ -667,7 +551,7 @@
                             "description": "Cinnamon desktop",
                             "sub": [
                                 {
-                                    "id": "DE31",
+                                    "id": "CINNAMON01",
                                     "description": "Cinnamon desktop Install",
                                     "command": [
                                         "manage_desktops 'cinnamon' 'install'"
@@ -677,7 +561,7 @@
                                     "condition": "[ ! -f /usr/share/xsessions/cinnamon.desktop ] && [ ! -f /usr/share/xsessions/cinnamon2d.desktop ]"
                                 },
                                 {
-                                    "id": "DE32",
+                                    "id": "CINNAMON02",
                                     "description": "Cinnamon desktop uninstall",
                                     "command": [
                                         "manage_desktops 'cinnamon' 'uninstall'"
@@ -687,7 +571,7 @@
                                     "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] || [ -f /usr/share/xsessions/cinnamon2d.desktop ]"
                                 },
                                 {
-                                    "id": "DE33",
+                                    "id": "CINNAMON03",
                                     "description": "Enable autologin",
                                     "command": [
                                         "manage_desktops 'cinnamon' 'auto'"
@@ -697,7 +581,7 @@
                                     "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
                                 },
                                 {
-                                    "id": "DE34",
+                                    "id": "CINNAMON04",
                                     "description": "Disable autologin",
                                     "command": [
                                         "manage_desktops 'cinnamon' 'manual'"
@@ -709,7 +593,7 @@
                             ]
                         },
                         {
-                            "id": "DE99",
+                            "id": "Xapian",
                             "description": "Improve application search speed",
                             "command": [
                                 "update-apt-xapian-index -u; sleep 3"
@@ -725,85 +609,73 @@
                     "description": "Network tools",
                     "sub": [
                         {
-                            "id": "SW08",
+                            "id": "NET001",
                             "description": "Install realtime console network usage monitor (nload)",
                             "command": [
                                 "get_user_continue \"This operation will install nload.\n\nDo you wish to continue?\" process_input",
                                 "debconf-apt-progress -- apt-get -y install nload"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@armbian",
                             "condition": "! check_if_installed nload"
                         },
                         {
-                            "id": "SW09",
+                            "id": "NET002",
                             "description": "Remove realtime console network usage monitor (nload)",
                             "command": [
                                 "get_user_continue \"This operation will purge nload.\n\nDo you wish to continue?\" process_input",
                                 "debconf-apt-progress -- apt-get -y purge nload"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@armbian",
                             "condition": "check_if_installed nload"
                         },
                         {
-                            "id": "SW10",
+                            "id": "NET003",
                             "description": "Install bandwidth measuring tool (iperf3)",
                             "command": [
                                 "get_user_continue \"This operation will install iperf3.\n\nDo you wish to continue?\" process_input",
                                 "debconf-apt-progress -- apt-get -y install iperf3"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@armbian",
                             "condition": "! check_if_installed iperf3"
                         },
                         {
-                            "id": "SW11",
+                            "id": "NET004",
                             "description": "Remove bandwidth measuring tool (iperf3)",
                             "command": [
                                 "get_user_continue \"This operation will purge iperf3.\n\nDo you wish to continue?\" process_input",
                                 "debconf-apt-progress -- apt-get -y purge iperf3"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@armbian",
                             "condition": "check_if_installed iperf3"
                         },
                         {
-                            "id": "SW12",
+                            "id": "NET005",
                             "description": "Install IP LAN monitor (iptraf-ng)",
                             "command": [
                                 "get_user_continue \"This operation will install iptraf-ng.\n\nDo you wish to continue?\" process_input",
                                 "debconf-apt-progress -- apt-get -y install iptraf-ng"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@armbian",
                             "condition": "! check_if_installed iptraf-ng"
                         },
                         {
-                            "id": "SW13",
+                            "id": "NET006",
                             "description": "Remove IP LAN monitor (iptraf-ng)",
                             "command": [
                                 "get_user_continue \"This operation will purge nload.\n\nDo you wish to continue?\" process_input",
                                 "debconf-apt-progress -- apt-get -y purge iptraf-ng"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@armbian",
                             "condition": "check_if_installed iptraf-ng"
                         },
                         {
-                            "id": "SW14",
+                            "id": "NET007",
                             "description": "Install hostname broadcast via mDNS (avahi-daemon)",
                             "command": [
                                 "get_user_continue \"This operation will install avahi-daemon and add configuration files.\nDo you wish to continue?\" process_input",
@@ -813,14 +685,12 @@
                                 "cp /usr/share/doc/avahi-daemon/examples/ssh.service /etc/avahi/services/",
                                 "service avahi-daemon restart"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@armbian",
                             "condition": "! check_if_installed avahi-daemon"
                         },
                         {
-                            "id": "SW15",
+                            "id": "NET008",
                             "description": "Remove hostname broadcast via mDNS (avahi-daemon)",
                             "command": [
                                 "get_user_continue \"This operation will purge avahi-daemon \nDo you wish to continue?\" process_input",
@@ -828,10 +698,8 @@
                                 "systemctl stop avahi-daemon avahi-daemon.socket",
                                 "debconf-apt-progress -- apt-get -y purge avahi-daemon"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@armbian",
                             "condition": "check_if_installed avahi-daemon"
                         }
                     ]
@@ -841,29 +709,25 @@
                     "description": "Development",
                     "sub": [
                         {
-                            "id": "SW17",
+                            "id": "DEV001",
                             "description": "Install tools for cloning and managing repositories (git)",
                             "command": [
                                 "get_user_continue \"This operation will install git.\n\nDo you wish to continue?\" process_input",
                                 "debconf-apt-progress -- apt-get -y install git"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@armbian",
                             "condition": "! check_if_installed git"
                         },
                         {
-                            "id": "SW18",
+                            "id": "DEV001",
                             "description": "Remove tools for cloning and managing repositories (git)",
                             "command": [
                                 "get_user_continue \"This operation will remove git.\n\nDo you wish to continue?\" process_input",
                                 "debconf-apt-progress -- apt-get -y purge git"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@armbian",
                             "condition": "check_if_installed git"
                         }
                     ]
@@ -874,10 +738,8 @@
                     "command": [
                         "see_monitoring"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "",
+                    "status": "Stable",
+                    "author": "@armbian",
                     "condition": "[ -f /usr/bin/armbianmonitor ]"
                 },
                 {
@@ -885,56 +747,48 @@
                     "description": "Containerlization and Virtual Machines",
                     "sub": [
                         {
-                            "id": "SW25",
+                            "id": "CON001",
                             "description": "Install Docker Minimal",
                             "about": "This operation will install Docker Minimal.",
                             "command": [
                                 "install_docker"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@schwar3kat",
                             "condition": "! check_if_installed docker-ce"
                         },
                         {
-                            "id": "SW26",
+                            "id": "CON002",
                             "description": "Install Docker Engine",
                             "about": "This operation will install Docker Engine.",
                             "command": [
                                 "install_docker engine"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@schwar3kat",
                             "condition": "! check_if_installed docker-compose-plugin"
                         },
                         {
-                            "id": "SW27",
+                            "id": "CON003",
                             "description": "Remove Docker",
                             "about": "This operation will purge Docker.",
                             "command": [
                                 "apt_install_wrapper apt -y purge docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@schwar3kat",
                             "condition": "check_if_installed docker-ce"
                         },
                         {
-                            "id": "SW28",
+                            "id": "CON004",
                             "description": "Purge all Docker images, containers, and volumes",
                             "about": "This operation will delete all Docker images, containers, and volumes.",
                             "command": [
                                 "rm -rf /var/lib/docker",
                                 "rm -rf /var/lib/containerd"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@schwar3kat",
                             "condition": "! check_if_installed docker-ce && [ -d /var/lib/docker ]"
                         }
                     ]
@@ -944,56 +798,48 @@
                     "description": "Media Servers and Editors",
                     "sub": [
                         {
-                            "id": "SW21",
+                            "id": "MED001",
                             "description": "Install Plex Media server",
                             "about": "This operation will install Plex Media server.",
                             "command": [
                                 "install_plexmediaserver"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@schwar3kat",
                             "condition": "! check_if_installed plexmediaserver"
                         },
                         {
-                            "id": "SW22",
+                            "id": "MED002",
                             "description": "Remove Plex Media server",
                             "about": "This operation will purge Plex Media server.",
                             "command": [
                                 "apt_install_wrapper apt-get -y purge plexmediaserver",
                                 "sed -i '/plexmediaserver.gpg/s/^/#/g' /etc/apt/sources.list.d/plexmediaserver.list"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@schwar3kat",
                             "condition": "check_if_installed plexmediaserver"
                         },
                         {
-                            "id": "SW23",
+                            "id": "MED003",
                             "description": "Install Emby server",
                             "about": "This operation will install Emby server.",
                             "command": [
                                 "install_embyserver"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@schwar3kat",
                             "condition": "! check_if_installed emby-server"
                         },
                         {
-                            "id": "SW24",
+                            "id": "MED004",
                             "description": "Remove Emby server",
                             "about": "This operation will purge Emby server.",
                             "command": [
                                 "apt_install_wrapper apt -y purge emby-server"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@schwar3kat",
                             "condition": "check_if_installed emby-server"
                         }
                     ]
@@ -1003,55 +849,47 @@
                     "description": "Remote Management tools",
                     "sub": [
                         {
-                            "id": "M00",
+                            "id": "MAN001",
                             "description": "Install Cockpit web-based management tool",
                             "about": "This operation will install Cockpit.\ncockpit cockpit-ws cockpit-system cockpit-storaged",
                             "command": [
                                 "see_current_apt update",
                                 "apt_install_wrapper apt -y install cockpit cockpit-ws cockpit-system cockpit-storaged "
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@schwar3kat",
                             "condition": "! check_if_installed cockpit"
                         },
                         {
-                            "id": "M01",
+                            "id": "MAN002",
                             "description": "Purge Cockpit web-based management tool",
                             "about": "This operation will purge Cockpit.",
                             "command": [
                                 "apt_install_wrapper apt -y purge cockpit"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@schwar3kat",
                             "condition": "check_if_installed cockpit"
                         },
                         {
-                            "id": "M02",
+                            "id": "MAN003",
                             "description": "Start Cockpit Service",
                             "command": [
                                 "sudo systemctl enable --now cockpit.socket | show_infobox "
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@schwar3kat",
                             "condition": "check_if_installed cockpit && ! systemctl is-enabled cockpit.socket > /dev/null 2>&1"
                         },
                         {
-                            "id": "M03",
+                            "id": "MAN004",
                             "description": "Stop Cockpit Service",
                             "command": [
                                 "systemctl stop cockpit cockpit.socket",
                                 "systemctl disable cockpit.socket | show_infobox "
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@schwar3kat",
                             "condition": "check_if_installed cockpit && systemctl is-enabled cockpit.socket > /dev/null 2>&1"
                         }
                     ]
@@ -1063,15 +901,13 @@
             "description": "About this tool",
             "sub": [
                 {
-                    "id": "H02",
+                    "id": "HE001",
                     "description": "Contribute",
                     "command": [
                         "show_message <<< $(about_armbian_configng)"
                     ],
                     "status": "Stable",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": ""
+                    "author": "@armbian"
                 }
             ]
         }
