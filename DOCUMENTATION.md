@@ -12,7 +12,7 @@ sudo armbian-config
 
 - ## **System** 
 
-  - ### Enable Armbian kernel/firmware upgrades
+  - ### Enable Armbian firmware upgrades
 
 
   - ### Disable Armbian kernel upgrades
@@ -88,23 +88,11 @@ sudo armbian-config
     - ### Show active status
 
 
-  - ### Install Bluetooth support
-
-
-  - ### Remove Bluetooth support
-
-
-  - ### Bluetooth Discover
-
-
-  - ### Toggle system IPv6/IPv4 internet protocol
-
-
 
 
 - ## **Localisation** 
 
-  - ### Change Global timezone (WIP)
+  - ### Change Global timezone
 
 
   - ### Change Locales reconfigure the language and character set
@@ -205,104 +193,100 @@ Outputs:
 ~~~
 
   System - System wide and admin settings (x86_64)
-    --cmd S01 - Enable Armbian kernel/firmware upgrades
-    --cmd S02 - Disable Armbian kernel upgrades
-    --cmd S03 - Edit the boot environment
-    --cmd S04 - Install Linux headers
-    --cmd S05 - Remove Linux headers
-    --cmd S06 - Install to internal storage
-    SSH - Manage SSH login options
-	--cmd S07 - Disable root login
-	--cmd S08 - Enable root login
-	--cmd S09 - Disable password login
-	--cmd S10 - Enable password login
-	--cmd S11 - Disable Public key authentication login
-	--cmd S12 - Enable Public key authentication login
-	--cmd S13 - Disable OTP authentication
-	--cmd S14 - Enable OTP authentication
-	--cmd S15 - Generate new OTP authentication QR code
-	--cmd S16 - Show OTP authentication QR code
-	--cmd S30 - Disable last login banner
-	--cmd S31 - Enable last login banner
-    --cmd S17 - Change shell system wide to BASH
-    --cmd S18 - Change shell system wide to ZSH
-    --cmd S19 - Switch to rolling release
-    --cmd S20 - Switch to stable release
-    --cmd S21 - Enable read only filesystem
-    --cmd S22 - Disable read only filesystem
-    --cmd S23 - Adjust welcome screen (motd)
-    --cmd S24 - Install alternative kernels
-    S25 - Distribution upgrades
-	--cmd S26 - Upgrade to latest stable / LTS
-	--cmd S27 - Upgrade to rolling unstable
-    --cmd S28 - Manage device tree overlays
+    --cmd SY001 - Enable Armbian firmware upgrades
+    --cmd SY002 - Disable Armbian kernel upgrades
+    --cmd SY003 - Edit the boot environment
+    --cmd SY004 - Install Linux headers
+    --cmd SY005 - Remove Linux headers
+    --cmd SY006 - Install to internal storage
+    SY007 - Manage SSH login options
+	--cmd SY101 - Disable root login
+	--cmd SY102 - Enable root login
+	--cmd SY103 - Disable password login
+	--cmd SY104 - Enable password login
+	--cmd SY105 - Disable Public key authentication login
+	--cmd SY106 - Enable Public key authentication login
+	--cmd SY107 - Disable OTP authentication
+	--cmd SY108 - Enable OTP authentication
+	--cmd SY109 - Generate new OTP authentication QR code
+	--cmd SY110 - Show OTP authentication QR code
+	--cmd SY111 - Disable last login banner
+	--cmd SY112 - Enable last login banner
+    --cmd SY008 - Change shell system wide to BASH
+    --cmd SY009 - Change shell system wide to ZSH
+    --cmd SY010 - Switch to rolling release
+    --cmd SY011 - Switch to stable release
+    --cmd SY012 - Enable read only filesystem
+    --cmd SY013 - Disable read only filesystem
+    --cmd SY014 - Adjust welcome screen (motd)
+    --cmd SY015 - Install alternative kernels
+    SY016 - Distribution upgrades
+	--cmd SY101 - Upgrade to latest stable / LTS
+	--cmd SY102 - Upgrade to rolling unstable
+    --cmd SY017 - Manage device tree overlays
 
   Network - Fixed and wireless network settings (eth0)
-    N01 - Configure network interfaces
-	--cmd N02 - Add / change interface
-	--cmd N03 - Revert to Armbian defaults
-	--cmd N04 - Show configuration
-	--cmd N06 - Show active status
-    --cmd N15 - Install Bluetooth support
-    --cmd N16 - Remove Bluetooth support
-    --cmd N17 - Bluetooth Discover
-    --cmd N18 - Toggle system IPv6/IPv4 internet protocol
+    NE001 - Configure network interfaces
+	--cmd NE002 - Add / change interface
+	--cmd NE003 - Revert to Armbian defaults
+	--cmd NE004 - Show configuration
+	--cmd NE005 - Show active status
 
   Localisation - Localisation (C.UTF-8)
-    --cmd L00 - Change Global timezone (WIP)
-    --cmd L01 - Change Locales reconfigure the language and character set
-    --cmd L02 - Change Keyboard layout
-    --cmd L04 - Change System Hostname
+    --cmd LO001 - Change Global timezone
+    --cmd LO002 - Change Locales reconfigure the language and character set
+    --cmd LO003 - Change Keyboard layout
+    --cmd LO005 - Change System Hostname
 
   Software - Run/Install 3rd party applications (Update the package lists.)
     Desktops - Desktop Environments
       XFCE - XFCE desktop
-	--cmd DE01 - XFCE desktop Install
-	--cmd DE02 - Uninstall
-	--cmd DE03 - Enable autologin
-	--cmd DE04 - Disable autologin
+	--cmd XFCE01 - XFCE desktop Install
+	--cmd XFCE02 - Uninstall
+	--cmd XFCE03 - Enable autologin
+	--cmd XFCE04 - Disable autologin
       Gnome - Gnome desktop
-	--cmd DE11 - Gnome desktop Install
-	--cmd DE12 - Uninstall
-	--cmd DE13 - Enable autologin
-	--cmd DE14 - Disable autologin
+	--cmd GNOME01 - Gnome desktop Install
+	--cmd GNOME02 - Uninstall
+	--cmd GNOME03 - Enable autologin
+	--cmd GNOME04 - Disable autologin
       Cinnamon - Cinnamon desktop
-	--cmd DE31 - Cinnamon desktop Install
-	--cmd DE32 - Cinnamon desktop uninstall
-	--cmd DE33 - Enable autologin
-	--cmd DE34 - Disable autologin
-	--cmd DE99 - Improve application search speed
+	--cmd CINNAMON01 - Cinnamon desktop Install
+	--cmd CINNAMON02 - Cinnamon desktop uninstall
+	--cmd CINNAMON03 - Enable autologin
+	--cmd CINNAMON04 - Disable autologin
+	--cmd Xapian - Improve application search speed
     Netconfig - Network tools
-	--cmd SW08 - Install realtime console network usage monitor (nload)
-	--cmd SW09 - Remove realtime console network usage monitor (nload)
-	--cmd SW10 - Install bandwidth measuring tool (iperf3)
-	--cmd SW11 - Remove bandwidth measuring tool (iperf3)
-	--cmd SW12 - Install IP LAN monitor (iptraf-ng)
-	--cmd SW13 - Remove IP LAN monitor (iptraf-ng)
-	--cmd SW14 - Install hostname broadcast via mDNS (avahi-daemon)
-	--cmd SW15 - Remove hostname broadcast via mDNS (avahi-daemon)
+	--cmd NET001 - Install realtime console network usage monitor (nload)
+	--cmd NET002 - Remove realtime console network usage monitor (nload)
+	--cmd NET003 - Install bandwidth measuring tool (iperf3)
+	--cmd NET004 - Remove bandwidth measuring tool (iperf3)
+	--cmd NET005 - Install IP LAN monitor (iptraf-ng)
+	--cmd NET006 - Remove IP LAN monitor (iptraf-ng)
+	--cmd NET007 - Install hostname broadcast via mDNS (avahi-daemon)
+	--cmd NET008 - Remove hostname broadcast via mDNS (avahi-daemon)
     DevTools - Development
-	--cmd SW17 - Install tools for cloning and managing repositories (git)
-	--cmd SW18 - Remove tools for cloning and managing repositories (git)
+	--cmd DEV001 - Install tools for cloning and managing repositories (git)
+	--cmd DEV001 - Remove tools for cloning and managing repositories (git)
     --cmd Benchy - System benchmaking and diagnostics
     Containers - Containerlization and Virtual Machines
-	--cmd SW25 - Install Docker Minimal
-	--cmd SW26 - Install Docker Engine
-	--cmd SW27 - Remove Docker
-	--cmd SW28 - Purge all Docker images, containers, and volumes
+	--cmd CON001 - Install Docker Minimal
+	--cmd CON002 - Install Docker Engine
+	--cmd CON003 - Remove Docker
+	--cmd CON004 - Purge all Docker images, containers, and volumes
     Media - Media Servers and Editors
-	--cmd SW21 - Install Plex Media server
-	--cmd SW22 - Remove Plex Media server (https://localhost:)
-	--cmd SW23 - Install Emby server
-	--cmd SW24 - Remove Emby server (https://localhost:)
+	--cmd MED001 - Install Plex Media server
+	--cmd MED002 - Remove Plex Media server
+	--cmd MED003 - Install Emby server
+	--cmd MED004 - Remove Emby server
     Management - Remote Management tools
-	--cmd M00 - Install Cockpit web-based management tool
-	--cmd M01 - Purge Cockpit web-based management tool
-	--cmd M02 - Start Cockpit Service
-	--cmd M03 - Stop Cockpit Service (https://localhost:)
+	--cmd MAN001 - Install Cockpit web-based management tool
+	--cmd MAN002 - Purge Cockpit web-based management tool
+	--cmd MAN003 - Start Cockpit Service
+	--cmd MAN004 - Stop Cockpit Service
 
   Help - About this tool
-    --cmd H02 - Contribute
+    --cmd HE001 - Contribute
 ~~~
 
 ## Legacy options
@@ -337,9 +321,9 @@ Click for more info:
 
 A list of the jobs defined in the Jobs file.
 ~~~
-### S01
+### SY001
 
-Enable Armbian kernel/firmware upgrades
+Enable Armbian firmware upgrades
 
 Jobs:
 
@@ -347,7 +331,7 @@ Jobs:
 armbian_fw_manipulate unhold
 ~~~
 
-### S02
+### SY002
 
 Disable Armbian kernel upgrades
 
@@ -357,7 +341,7 @@ Jobs:
 armbian_fw_manipulate hold
 ~~~
 
-### S03
+### SY003
 
 Edit the boot environment
 
@@ -367,7 +351,7 @@ Jobs:
 nano /boot/armbianEnv.txt
 ~~~
 
-### S04
+### SY004
 
 Install Linux headers
 
@@ -377,7 +361,7 @@ Jobs:
 Headers_install
 ~~~
 
-### S05
+### SY005
 
 Remove Linux headers
 
@@ -387,7 +371,7 @@ Jobs:
 Headers_remove
 ~~~
 
-### S06
+### SY006
 
 Install to internal storage
 
@@ -397,7 +381,7 @@ Jobs:
 armbian-install
 ~~~
 
-### SSH
+### SY007
 
 Manage SSH login options
 
@@ -407,7 +391,7 @@ Jobs:
 No commands available
 ~~~
 
-### S17
+### SY008
 
 Change shell system wide to BASH
 
@@ -422,7 +406,7 @@ update_skel
 awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534 || $3 == 0) print $1}' /etc/passwd | xargs -L1 chsh -s $(grep /bash$ /etc/shells | tail -1)
 ~~~
 
-### S18
+### SY009
 
 Change shell system wide to ZSH
 
@@ -437,7 +421,7 @@ update_skel
 awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534 || $3 == 0) print $1}' /etc/passwd | xargs -L1 chsh -s $(grep /zsh$ /etc/shells | tail -1)
 ~~~
 
-### S19
+### SY010
 
 Switch to rolling release
 
@@ -447,7 +431,7 @@ Jobs:
 set_rolling
 ~~~
 
-### S20
+### SY011
 
 Switch to stable release
 
@@ -457,7 +441,7 @@ Jobs:
 set_stable
 ~~~
 
-### S21
+### SY012
 
 Enable read only filesystem
 
@@ -467,7 +451,7 @@ Jobs:
 manage_overlayfs enable
 ~~~
 
-### S22
+### SY013
 
 Disable read only filesystem
 
@@ -477,7 +461,7 @@ Jobs:
 manage_overlayfs disable
 ~~~
 
-### S23
+### SY014
 
 Adjust welcome screen (motd)
 
@@ -487,7 +471,7 @@ Jobs:
 adjust_motd
 ~~~
 
-### S24
+### SY015
 
 Install alternative kernels
 
@@ -497,7 +481,7 @@ Jobs:
 switch_kernels
 ~~~
 
-### S25
+### SY016
 
 Distribution upgrades
 
@@ -507,7 +491,7 @@ Jobs:
 No commands available
 ~~~
 
-### S28
+### SY017
 
 Manage device tree overlays
 
@@ -517,7 +501,7 @@ Jobs:
 manage_dtoverlays
 ~~~
 
-### N01
+### NE001
 
 Configure network interfaces
 
@@ -527,54 +511,9 @@ Jobs:
 No commands available
 ~~~
 
-### N15
+### LO001
 
-Install Bluetooth support
-
-Jobs:
-
-~~~
-see_current_apt 
-debconf-apt-progress -- apt-get -y install bluetooth bluez bluez-tools
-check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y --no-install-recommends install pulseaudio-module-bluetooth blueman
-~~~
-
-### N16
-
-Remove Bluetooth support
-
-Jobs:
-
-~~~
-see_current_apt 
-debconf-apt-progress -- apt-get -y remove bluetooth bluez bluez-tools
-check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y remove pulseaudio-module-bluetooth blueman
-debconf-apt-progress -- apt -y -qq autoremove
-~~~
-
-### N17
-
-Bluetooth Discover
-
-Jobs:
-
-~~~
-connect_bt_interface
-~~~
-
-### N18
-
-Toggle system IPv6/IPv4 internet protocol
-
-Jobs:
-
-~~~
-toggle_ipv6 | show_infobox
-~~~
-
-### L00
-
-Change Global timezone (WIP)
+Change Global timezone
 
 Jobs:
 
@@ -582,7 +521,7 @@ Jobs:
 dpkg-reconfigure tzdata
 ~~~
 
-### L01
+### LO002
 
 Change Locales reconfigure the language and character set
 
@@ -594,7 +533,7 @@ source /etc/default/locale ; sed -i "s/^LANGUAGE=.*/LANGUAGE=$LANG/" /etc/defaul
 export LANGUAGE=$LANG
 ~~~
 
-### L02
+### LO003
 
 Change Keyboard layout
 
@@ -605,7 +544,7 @@ dpkg-reconfigure keyboard-configuration ; setupcon
 update-initramfs -u
 ~~~
 
-### L04
+### LO005
 
 Change System Hostname
 
@@ -685,7 +624,7 @@ Jobs:
 No commands available
 ~~~
 
-### H02
+### HE001
 
 Contribute
 
