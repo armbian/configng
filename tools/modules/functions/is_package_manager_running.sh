@@ -1,3 +1,4 @@
+
 module_options+=(
 	["is_package_manager_running,author"]="Igor Pecovnik"
 	["is_package_manager_running,ref_link"]=""
@@ -12,10 +13,7 @@ module_options+=(
 function is_package_manager_running() {
 
 	if ps -C apt-get,apt,dpkg > /dev/null; then
-		[[ -z $scripted ]] && echo -e "
-Package manager is running in the background. 
-
-Can't install dependencies. Try again later." | show_infobox
+		[[ -z $scripted ]] && echo -e "\nPackage manager is running in the background.\n\nCan't install dependencies. Try again later." | show_infobox
 		return 0
 	else
 		return 1
