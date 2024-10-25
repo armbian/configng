@@ -5,26 +5,22 @@
             "description": "About this tool",
             "sub": [
                 {
-                    "id": "H02",
+                    "id": "HE001",
                     "description": "Contribute",
                     "command": [
                         "show_message <<< $(about_armbian_configng)"
                     ],
                     "status": "Stable",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": ""
+                    "author": "@armbian"
                 },
                 {
-                    "id": "H03",
+                    "id": "HE002",
                     "description": "List of Config function(WIP)",
                     "command": [
                         "show_message <<< see_use"
                     ],
                     "status": "Disabled",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": ""
+                    "author": "@armbian"
                 }
             ]
         }

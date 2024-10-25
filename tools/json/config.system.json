@@ -5,163 +5,140 @@
             "description": "System wide and admin settings",
             "sub": [
                 {
-                    "id": "S01",
-                    "description": "Enable Armbian kernel/firmware upgrades",
-                    "about": "This will enable Armbian kernel upgrades.",
+                    "id": "SY001",
+                    "description": "Enable Armbian firmware upgrades",
+                    "about": "This will enable Armbian kernel upgrades that are currently put on hold.",
                     "command": [
                         "armbian_fw_manipulate unhold"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "",
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
                     "condition": "[[ -n \"$(apt-mark showhold)\" ]]"
                 },
                 {
-                    "id": "S02",
+                    "id": "SY002",
                     "description": "Disable Armbian kernel upgrades",
                     "about": "Disable Armbian kernel/firmware upgrades",
                     "command": [
                         "armbian_fw_manipulate hold"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "",
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
                     "condition": "[[ -z \"$(apt-mark showhold)\" ]]"
                 },
                 {
-                    "id": "S03",
+                    "id": "SY003",
                     "description": "Edit the boot environment",
                     "about": "This will open /boot/armbianEnv.txt file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?",
                     "command": [
                         "nano /boot/armbianEnv.txt"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": ""
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
+                    "condition": "[[ -f /boot/armbianEnv.txt ]]"
                 },
                 {
-                    "id": "S04",
+                    "id": "SY004",
                     "description": "Install Linux headers",
                     "command": [
                         "Headers_install"
                     ],
                     "status": "Preview",
-                    "doc_link": "https://github.com/armbian/config/wiki#System",
-                    "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L160",
                     "author": "@Tearran",
                     "condition": "! are_headers_installed"
                 },
                 {
-                    "id": "S05",
+                    "id": "SY005",
                     "description": "Remove Linux headers",
                     "command": [
                         "Headers_remove"
                     ],
                     "status": "Preview",
-                    "doc_link": "https://github.com/armbian/config/wiki#System",
-                    "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L160",
                     "author": "@Tearran",
                     "condition": "are_headers_installed"
                 },
                 {
-                    "id": "S06",
+                    "id": "SY006",
                     "description": "Install to internal storage",
                     "command": [
                         "armbian-install"
                     ],
                     "status": "Preview",
-                    "doc_link": "https://github.com/armbian/config/wiki#System",
-                    "src_reference": "",
-                    "author": "https://github.com/igorpecovnik",
-                    "condition": "[[ -n $(ls /sbin/armbian-install) ]]"
+                    "author": "@igorpecovnik",
+                    "condition": "[[ -f /sbin/armbian-install ]]"
                 },
                 {
-                    "id": "SSH",
+                    "id": "SY007",
                     "description": "Manage SSH login options",
                     "sub": [
                         {
-                            "id": "S07",
+                            "id": "SY101",
                             "description": "Disable root login",
                             "command": [
                                 "sed -i \"s|^#\\?PermitRootLogin.*|PermitRootLogin no|\" /etc/ssh/sshd_config",
                                 "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "grep -q '^PermitRootLogin yes'  /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "S08",
+                            "id": "SY102",
                             "description": "Enable root login",
                             "command": [
                                 "sed -i \"s/^#\\?PermitRootLogin.*/PermitRootLogin yes/\" /etc/ssh/sshd_config",
                                 "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "grep -q '^PermitRootLogin no' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "S09",
+                            "id": "SY103",
                             "description": "Disable password login",
                             "command": [
                                 "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication no/\" /etc/ssh/sshd_config",
                                 "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "grep -q 'PasswordAuthentication yes' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "S10",
+                            "id": "SY104",
                             "description": "Enable password login",
                             "command": [
                                 "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication yes/\" /etc/ssh/sshd_config",
                                 "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "grep -q 'PasswordAuthentication no' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "S11",
+                            "id": "SY105",
                             "description": "Disable Public key authentication login",
                             "command": [
                                 "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication no/\" /etc/ssh/sshd_config",
                                 "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "grep -q 'PubkeyAuthentication yes' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "S12",
+                            "id": "SY106",
                             "description": "Enable Public key authentication login",
                             "command": [
                                 "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication yes/\" /etc/ssh/sshd_config",
                                 "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "grep -q 'PubkeyAuthentication no' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "S13",
+                            "id": "SY107",
                             "description": "Disable OTP authentication",
                             "command": [
                                 "clear",
@@ -170,14 +147,12 @@
                                 "sed -i '/^auth required pam_google_authenticator.so nullok/ d' /etc/pam.d/sshd",
                                 "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "grep -q 'ChallengeResponseAuthentication yes' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "S14",
+                            "id": "SY108",
                             "description": "Enable OTP authentication",
                             "command": [
                                 "check_if_installed libpam-google-authenticator || debconf-apt-progress -- apt-get -y install libpam-google-authenticator",
@@ -187,67 +162,58 @@
                                 "[ ! -f /root/.google_authenticator ] && qr_code generate",
                                 "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "! check_if_installed libpam-google-authenticator || ! check_if_installed qrencode || grep -q '^ChallengeResponseAuthentication no' /etc/ssh/sshd_config || ! grep -q 'ChallengeResponseAuthentication' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "S15",
+                            "id": "SY109",
                             "description": "Generate new OTP authentication QR code",
                             "command": [
                                 "qr_code generate"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "S16",
+                            "id": "SY110",
                             "description": "Show OTP authentication QR code",
                             "command": [
                                 "qr_code"
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "Igor Pecovnik",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config && [ -f /root/.google_authenticator ]"
                         },
                         {
-                            "id": "S30",
+                            "id": "SY111",
                             "description": "Disable last login banner",
                             "command": [
                                 "sed -i \"s/^#\\?PrintLastLog.*/PrintLastLog no/\" /etc/ssh/sshd_config",
                                 "systemctl restart ssh.service "
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "grep -q '^PrintLastLog yes' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "S31",
+                            "id": "SY112",
                             "description": "Enable last login banner",
                             "command": [
                                 "sed -i \"s/^#\\?PrintLastLog.*/PrintLastLog yes/\" /etc/ssh/sshd_config",
                                 "systemctl restart ssh.service "
                             ],
-                            "status": "Preview",
-                            "doc_link": "",
-                            "src_reference": "",
-                            "author": "",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "grep -q '^PrintLastLog no' /etc/ssh/sshd_config"
                         }
                     ]
                 },
                 {
-                    "id": "S17",
+                    "id": "SY008",
                     "description": "Change shell system wide to BASH",
+                    "about": "This will switch system wide shell to BASH",
                     "command": [
                         "export BASHLOCATION=$(grep /bash$ /etc/shells | tail -1)",
                         "sed -i \"s|^SHELL=.*|SHELL=${BASHLOCATION}|\" /etc/default/useradd",
@@ -256,15 +222,14 @@
                         "update_skel",
                         "awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534 || $3 == 0) print $1}' /etc/passwd | xargs -L1 chsh -s $(grep /bash$ /etc/shells | tail -1)"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "https://github.com/igorpecovnik",
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
                     "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"zsh\" ]]"
                 },
                 {
-                    "id": "S18",
+                    "id": "SY009",
                     "description": "Change shell system wide to ZSH",
+                    "about": "This will switch system wide shell to ZSH",
                     "command": [
                         "export ZSHLOCATION=$(grep /zsh$ /etc/shells | tail -1)",
                         "sed -i \"s|^SHELL=.*|SHELL=${ZSHLOCATION}|\" /etc/default/useradd",
@@ -273,128 +238,112 @@
                         "update_skel",
                         "awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534 || $3 == 0) print $1}' /etc/passwd | xargs -L1 chsh -s $(grep /zsh$ /etc/shells | tail -1)"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "https://github.com/igorpecovnik",
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
                     "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"bash\" ]]"
                 },
                 {
-                    "id": "S19",
+                    "id": "SY010",
                     "description": "Switch to rolling release",
-                    "about": "This will switch to rolling releases\n\nwould you like to continue?",
+                    "about": "This will switch OS to rolling releases.",
                     "command": [
                         "set_rolling"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L1446",
-                    "author": "Igor Pecovnik",
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
                     "condition": "grep -q 'apt.armbian.com' /etc/apt/sources.list.d/armbian.list && [[ -z \"$(apt-mark showhold)\" ]]"
                 },
                 {
-                    "id": "S20",
+                    "id": "SY011",
                     "description": "Switch to stable release",
-                    "about": "This will switch to stable releases\n\nwould you like to continue?",
+                    "about": "This will switch OS to stable releases",
                     "command": [
                         "set_stable"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "https://github.com/armbian/config/blob/master/debian-config-jobs#L1446",
-                    "author": "Igor Pecovnik",
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
                     "condition": "grep -q 'beta.armbian.com' /etc/apt/sources.list.d/armbian.list && [[ -z \"$(apt-mark showhold)\" ]]"
                 },
                 {
-                    "id": "S21",
+                    "id": "SY012",
                     "description": "Enable read only filesystem",
                     "about": "This will enable Armbian read-only filesystem. Reboot is mandatory?\n",
                     "command": [
                         "manage_overlayfs enable"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "Igor Pecovnik",
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
                     "condition": "modinfo overlay > /dev/null 2>&1 && [[ -z $(findmnt -k /media/root-ro | tail -1) ]] && [[ \"${DISTRO}\"=Ubuntu ]]"
                 },
                 {
-                    "id": "S22",
+                    "id": "SY013",
                     "description": "Disable read only filesystem",
                     "about": "This will disable Armbian read-only filesystem. Reboot is mandatory?\n",
                     "command": [
                         "manage_overlayfs disable"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "Igor Pecovnik",
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
                     "condition": "command -v overlayroot-chroot > /dev/null 2>&1 && findmnt -k /media/root-ro | tail -1 | grep -w /media/root-ro > /dev/null 2>&1"
                 },
                 {
-                    "id": "S23",
+                    "id": "SY014",
                     "description": "Adjust welcome screen (motd)",
                     "command": [
                         "adjust_motd"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "",
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
                     "condition": "[ -f /etc/default/armbian-motd ]"
                 },
                 {
-                    "id": "S24",
+                    "id": "SY015",
                     "description": "Install alternative kernels",
                     "about": "Switching between kernels might change functionality of your device. \n\nIt might fail to boot!",
                     "command": [
                         "switch_kernels"
                     ],
-                    "status": "Preview",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "Igor Pecovnik",
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
                     "condition": ""
                 },
                 {
-                    "id": "S25",
+                    "id": "SY016",
                     "description": "Distribution upgrades",
                     "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade rolling verify || release_upgrade stable verify",
                     "sub": [
                         {
-                            "id": "S26",
+                            "id": "SY101",
                             "description": "Upgrade to latest stable / LTS",
                             "about": "Release upgrade is irriversible operation which upgrades all packages. \n\nResoulted upgrade might break your build beyond repair!",
                             "command": [
                                 "release_upgrade stable"
                             ],
-                            "status": "Active",
-                            "author": "Igor Pecovnik",
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
                             "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade stable verify"
                         },
                         {
-                            "id": "S27",
+                            "id": "SY102",
                             "description": "Upgrade to rolling unstable",
                             "about": "Release upgrade is irriversible operation which upgrades all packages. \n\nResoulted upgrade might break your build beyond repair!",
                             "command": [
                                 "release_upgrade rolling"
                             ],
                             "status": "Active",
-                            "author": "Igor Pecovnik",
+                            "author": "@igorpecovnik",
                             "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade rolling verify"
                         }
                     ]
                 },
                 {
-                    "id": "S28",
+                    "id": "SY017",
                     "description": "Manage device tree overlays",
                     "command": [
                         "manage_dtoverlays"
                     ],
-                    "status": "Active",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": "Gunjan Gupta",
+                    "status": "Stable",
+                    "author": "@viraniac @igorpecovnik",
                     "condition": "[ -n $OVERLAY_DIR ] && [ -n $BOOT_SOC ]"
                 }
             ]
