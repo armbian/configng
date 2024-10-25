@@ -2,7 +2,7 @@
 # Start of config ng interface
 
 module_options+=(
-	["set_colors,author"]="Joey Turner"
+	["set_colors,author"]="@Tearran"
 	["set_colors,ref_link"]=""
 	["set_colors,feature"]="set_colors"
 	["set_colors,desc"]="Change the background color of the terminal or dialog box"
@@ -108,7 +108,7 @@ parse_menu_items() {
 }
 
 module_options+=(
-	["generate_top_menu,author"]="Joey Turner"
+	["generate_top_menu,author"]="@Tearran"
 	["generate_top_menu,ref_link"]=""
 	["generate_top_menu,feature"]="generate_top_menu"
 	["generate_top_menu,desc"]="Build the main menu from a object"
@@ -190,7 +190,7 @@ function generate_menu() {
 }
 
 module_options+=(
-	["execute_command,author"]="Joey Turner"
+	["execute_command,author"]="@Tearran"
 	["execute_command,ref_link"]=""
 	["execute_command,feature"]="execute_command"
 	["execute_command,desc"]="Needed by generate_menu"
@@ -233,7 +233,7 @@ function execute_command() {
 }
 
 module_options+=(
-	["show_message,author"]="Joey Turner"
+	["show_message,author"]="@Tearran"
 	["show_message,ref_link"]=""
 	["show_message,feature"]="show_message"
 	["show_message,desc"]="Display a message box"
@@ -258,7 +258,7 @@ function show_message() {
 }
 
 module_options+=(
-	["show_infobox,author"]="Joey Turner"
+	["show_infobox,author"]="@Tearran"
 	["show_infobox,ref_link"]=""
 	["show_infobox,feature"]="show_infobox"
 	["show_infobox,desc"]="pipeline strings to an infobox "
@@ -295,7 +295,7 @@ function show_infobox() {
 }
 
 module_options+=(
-	["show_menu,author"]="Joey Turner"
+	["show_menu,author"]="@Tearran"
 	["show_menu,ref_link"]=""
 	["show_menu,feature"]="show_menu"
 	["show_menu,desc"]="Display a menu from pipe"
@@ -332,7 +332,7 @@ show_menu() {
 }
 
 module_options+=(
-	["get_user_continue,author"]="Joey Turner"
+	["get_user_continue,author"]="@Tearran"
 	["get_user_continue,ref_link"]=""
 	["get_user_continue,feature"]="get_user_continue"
 	["get_user_continue,desc"]="Display a Yes/No dialog box and process continue/exit"
@@ -355,7 +355,7 @@ function get_user_continue() {
 }
 
 menu_options+=(
-	["get_user_continue,author"]="Joey Turner"
+	["get_user_continue,author"]="@Tearran"
 	["get_user_continue,ref_link"]=""
 	["get_user_continue,feature"]="process_input"
 	["get_user_continue,desc"]="used to process the user's choice paired with get_user_continue"
@@ -376,7 +376,7 @@ function process_input() {
 }
 
 module_options+=(
-	["get_user_continue_secure,author"]="Joey Turner"
+	["get_user_continue_secure,author"]="@Tearran"
 	["get_user_continue_secure,ref_link"]=""
 	["get_user_continue_secure,feature"]="get_user_continue_secure"
 	["get_user_continue_secure,desc"]="Secure version of get_user_continue"
@@ -416,7 +416,7 @@ function get_user_continue_secure() {
 }
 
 module_options+=(
-	["see_current_apt,author"]="Joey Turner"
+	["see_current_apt,author"]="@Tearran"
 	["see_current_apt,ref_link"]=""
 	["see_current_apt,feature"]="see_current_apt"
 	["see_current_apt,desc"]="Check when apt list was last updated and suggest updating or update"

@@ -1,6 +1,6 @@
 
 module_options+=(
-	["see_ping,author"]="Joey Turner"
+	["see_ping,author"]="@Tearran"
 	["see_ping,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#632"
 	["see_ping,feature"]="see_ping"
 	["see_ping,desc"]="Check the internet connection with fallback DNS"

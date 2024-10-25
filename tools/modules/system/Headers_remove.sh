@@ -1,5 +1,5 @@
 module_options+=(
-	["Headers_remove,author"]="Joey Turner"
+	["Headers_remove,author"]="@Tearran"
 	["Headers_remove,ref_link"]="https://github.com/armbian/config/blob/master/debian-config-jobs#L160"
 	["Headers_remove,feature"]="Headers_remove"
 	["Headers_remove,desc"]="Remove Linux headers"
