@@ -1,6 +1,6 @@
 
 module_options+=(
-	["install_plexmediaserver,author"]="Kat Schwarz"
+	["install_plexmediaserver,author"]="@schwar3kat"
 	["install_plexmediaserver,ref_link"]=""
 	["install_plexmediaserver,feature"]="install_plexmediaserver"
 	["install_plexmediaserver,desc"]="Install plexmediaserver from repo using apt"

@@ -1,5 +1,5 @@
 module_options+=(
-	["update_skel,author"]="Kat Schwarz"
+	["update_skel,author"]="@schwar3kat"
 	["update_skel,ref_link"]=""
 	["update_skel,feature"]="install_plexmediaserver"
 	["update_skel,desc"]="Install plexmediaserver from repo using apt"

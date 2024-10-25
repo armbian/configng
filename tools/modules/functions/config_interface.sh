@@ -78,7 +78,7 @@ function reset_colors() {
 }
 
 module_options+=(
-	["parse_menu_items,author"]="Gunjan Gupta"
+	["parse_menu_items,author"]="@viraniac"
 	["parse_menu_items,ref_link"]=""
 	["parse_menu_items,feature"]="parse_menu_items"
 	["parse_menu_items,desc"]="Parse json to get list of desired menu or submenu items"

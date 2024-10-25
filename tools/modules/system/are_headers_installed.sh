@@ -1,5 +1,5 @@
 module_options+=(
-	["are_headers_installed,author"]="Gunjan Gupta"
+	["are_headers_installed,author"]="@viraniac"
 	["are_headers_installed,ref_link"]=""
 	["are_headers_installed,feature"]="are_headers_installed"
 	["are_headers_installed,desc"]="Check if kernel headers are installed"

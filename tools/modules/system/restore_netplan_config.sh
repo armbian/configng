@@ -1,6 +1,6 @@
 
 module_options+=(
-["store_netplan_config,author"]="Igor Pecovnik"
+["store_netplan_config,author"]="@igorpecovnik"
 ["store_netplan_config,ref_link"]=""
 ["store_netplan_config,feature"]="Storing netplan config to tmp"
 ["store_netplan_config,desc"]=""
