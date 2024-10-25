@@ -1,5 +1,5 @@
 module_options+=(
-	["toggle_ssh_lastlog,author"]="tearran"
+	["toggle_ssh_lastlog,author"]="@Tearran"
 	["toggle_ssh_lastlog,ref_link"]=""
 	["toggle_ssh_lastlog,feature"]="toggle_ssh_lastlog"
 	["toggle_ssh_lastlog,desc"]="Toggle SSH lastlog"

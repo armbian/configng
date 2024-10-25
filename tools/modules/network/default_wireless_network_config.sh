@@ -1,6 +1,6 @@
 
 module_options+=(
-	["default_wireless_network_config,author"]="Igor Pecovnik"
+	["default_wireless_network_config,author"]="@igorpecovnik"
 	["default_wireless_network_config,ref_link"]=""
 	["default_wireless_network_config,feature"]="default_wireless_network_config"
 	["default_wireless_network_config,desc"]="Stop hostapd, clean config"

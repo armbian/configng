@@ -1,5 +1,5 @@
 module_options+=(
-	["armbian_fw_manipulate,author"]="Igor Pecovnik"
+	["armbian_fw_manipulate,author"]="@igorpecovnik"
 	["armbian_fw_manipulate,ref_link"]=""
 	["armbian_fw_manipulate,feature"]="armbian_fw_manipulate"
 	["armbian_fw_manipulate,desc"]="freeze/unhold/reinstall armbian related packages."

@@ -1,5 +1,5 @@
 module_options+=(
-	["switch_kernels,author"]="Igor"
+	["switch_kernels,author"]="@igorpecovnik"
 	["switch_kernels,ref_link"]=""
 	["switch_kernels,feature"]=""
 	["switch_kernels,desc"]="Switching to alternative kernels"

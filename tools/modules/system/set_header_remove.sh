@@ -1,7 +1,7 @@
 
 
 module_options+=(
-	["set_header_remove,author"]="Igor Pecovnik"
+	["set_header_remove,author"]="@igorpecovnik"
 	["set_header_remove,ref_link"]=""
 	["set_header_remove,feature"]="set_header_remove"
 	["set_header_remove,desc"]="Migrated procedures from Armbian config."

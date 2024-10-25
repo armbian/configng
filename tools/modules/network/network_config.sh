@@ -1,6 +1,6 @@
 
 module_options+=(
-	["network_config,author"]="Igor Pecovnik"
+	["network_config,author"]="@igorpecovnik"
 	["network_config,ref_link"]=""
 	["network_config,feature"]="network_config"
 	["network_config,desc"]="Netplan wrapper"

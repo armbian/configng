@@ -1,5 +1,6 @@
+
 module_options+=(
-	["apt_install_wrapper,author"]="igorpecovnik"
+	["apt_install_wrapper,author"]="@igorpecovnik"
 	["apt_install_wrapper,ref_link"]=""
 	["apt_install_wrapper,feature"]="Install wrapper"
 	["apt_install_wrapper,desc"]="Install wrapper"

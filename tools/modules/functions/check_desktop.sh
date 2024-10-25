@@ -1,6 +1,6 @@
 
 module_options+=(
-	["check_desktop,author"]="Igor Pecovnik"
+	["check_desktop,author"]="@armbian"
 	["check_desktop,ref_link"]=""
 	["check_desktop,feature"]="check_desktop"
 	["check_desktop,desc"]="Migrated procedures from Armbian config."

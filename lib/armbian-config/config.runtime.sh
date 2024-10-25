@@ -17,7 +17,7 @@ installed_software="$(see_current_apt)"
 held_packages=$(apt-mark showhold)
 
 module_options+=(
-	["update_json_data,author"]="Joey Turner"
+	["update_json_data,author"]="@Tearran"
 	["update_json_data,ref_link"]=""
 	["update_json_data,feature"]="update_json_data"
 	["update_json_data,desc"]="Update JSON data with system information"
@@ -34,7 +34,7 @@ update_json_data() {
 }
 
 module_options+=(
-	["update_submenu_data,author"]="Joey Turner"
+	["update_submenu_data,author"]="@Tearran"
 	["update_submenu_data,ref_link"]=""
 	["update_submenu_data,feature"]="update_submenu_data"
 	["update_submenu_data,desc"]="Update submenu descriptions based on conditions"
