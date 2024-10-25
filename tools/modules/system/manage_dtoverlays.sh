@@ -17,40 +17,36 @@ function manage_dtoverlays () {
 	while true; do
 		local options=()
 		j=0
-		available_overlays=$(ls -1 ${OVERLAY_DIR}/*.dtbo | sed "s#^${OVERLAY_DIR}/##" | sed 's/.dtbo//g' | grep $BOOT_SOC | tr '
-' ' ')
+		available_overlays=$(ls -1 ${OVERLAY_DIR}/*.dtbo | sed "s#^${OVERLAY_DIR}/##" | sed 's/.dtbo//g' | grep $BOOT_SOC | tr '\n' ' ')
 		for overlay in ${available_overlays}; do
 			local status="OFF"
 			grep '^fdt_overlays' ${overlayconf} | grep -qw ${overlay} && status=ON
 			options+=( "$overlay" "" "$status")
 		done
 		selection=$($DIALOG --title "Manage devicetree overlays" --cancel-button "Back" \
-			--ok-button "Save" --checklist "
-				Use <space> to toggle functions and save them.
-Exit when you are done.
- " \
+			--ok-button "Save" --checklist "\nUse <space> to toggle functions and save them.\nExit when you are done.\n " \
 			0 0 0 "${options[@]}" 3>&1 1>&2 2>&3)
-	exit_status=$?
+		exit_status=$?
 		case $exit_status in
-		0)
-			changes="true"
-			newoverlays=$(echo $selection | sed 's/"//g')
-			sed -i "s/^fdt_overlays=.*/fdt_overlays=$newoverlays/" ${overlayconf}
-			if ! grep -q "^fdt_overlays" ${overlayconf}; then echo "fdt_overlays=$newoverlays" >> ${overlayconf}; fi
-			sync
-		;;
-		1)
-			if [[ "$changes" == "true" ]]; then
-				$DIALOG --title " Reboot required " --yes-button "Reboot" \
-					--no-button "Cancel" --yesno "A reboot is required to apply the changes. Shall we reboot now?" 7 34
-				if [[ $? = 0 ]]; then
-					reboot
+			0)
+				changes="true"
+				newoverlays=$(echo $selection | sed 's/"//g')
+				sed -i "s/^fdt_overlays=.*/fdt_overlays=$newoverlays/" ${overlayconf}
+				if ! grep -q "^fdt_overlays" ${overlayconf}; then echo "fdt_overlays=$newoverlays" >> ${overlayconf}; fi
+				sync
+				;;
+			1)
+				if [[ "$changes" == "true" ]]; then
+					$DIALOG --title " Reboot required " --yes-button "Reboot" \
+						--no-button "Cancel" --yesno "A reboot is required to apply the changes. Shall we reboot now?" 7 34
+					if [[ $? = 0 ]]; then
+						reboot
+					fi
 				fi
-			fi
-			break
-		;;
-		255)
-		;;
+				break
+				;;
+			255)
+				;;
 		esac
 	done
 }
