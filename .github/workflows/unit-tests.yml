@@ -129,15 +129,18 @@ jobs:
             # install packages / except howdy as its too large
             export DEBIAN_FRONTEND=noninteractive
             cd config
-            eval $"( "${PREINSTALL}" )"
+            #eval $"( "${PREINSTALL}" )"
+            eval "$PREINSTALL"
             sudo bash bin/armbian-config --cmd "$TEST_ID"
-            eval $"( "${CONDITION}" )"
+            #eval $"( "${CONDITION}" )"
+            eval "$CONDITION"
 
             # stats
             FILENAME="data-"$(echo ${{ matrix.image.image }} | sed "s/:/-/g")"-${TEST_ID}.teststats"
-            echo $RELEASE >> ../${FILENAME}
-            bash bin/armbian-config --cmd | grep "${TEST_ID}" | xargs >> ../${FILENAME}
-            echo " " >> ../${FILENAME}
+            RAWCOMMAND=$(bash bin/armbian-config --cmd | grep "${TEST_ID}" | xargs)
+            COMMAND=$(echo $RAWCOMMAND | cut -d" " -f1,2)
+            DESCRIPTION=$(echo $RAWCOMMAND | cut -d" " -f4-)
+            echo "|${RELEASE}|\`armbian-config ${COMMAND}\`| ${DESCRIPTION} |" > ../${FILENAME}
 
       - name: Upload test
         uses: actions/upload-artifact@v3.2.1-node20
@@ -161,4 +164,6 @@ jobs:
         run: |
 
           echo "# Succesful tests:" >> $GITHUB_STEP_SUMMARY
+          echo "|Release|Command|Description|" >> $GITHUB_STEP_SUMMARY
+          echo "|:---|:---|:---|" >> $GITHUB_STEP_SUMMARY
           cat ./*.teststats | sed '$ s/.$//' >> $GITHUB_STEP_SUMMARY
