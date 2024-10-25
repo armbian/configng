@@ -113,9 +113,6 @@ sudo armbian-config
   - ### Change Keyboard layout
 
 
-  - ### Change APT mirrors
-
-
   - ### Change System Hostname
 
 
@@ -126,9 +123,7 @@ sudo armbian-config
   - ### Desktop Environments
     - ### XFCE desktop
     - ### Gnome desktop
-    - ### i3-wm desktop
     - ### Cinnamon desktop
-    - ### Kde-neon desktop
     - ### Improve application search speed
 
 
@@ -177,9 +172,6 @@ sudo armbian-config
 - ## **Help** 
 
   - ### Contribute
-
-
-  - ### List of Config function(WIP)
 
 ## Install
 Armbian installation
@@ -260,7 +252,6 @@ Outputs:
     --cmd L00 - Change Global timezone (WIP)
     --cmd L01 - Change Locales reconfigure the language and character set
     --cmd L02 - Change Keyboard layout
-    --cmd L03 - Change APT mirrors
     --cmd L04 - Change System Hostname
 
   Software - Run/Install 3rd party applications (Update the package lists.)
@@ -275,21 +266,11 @@ Outputs:
 	--cmd DE12 - Uninstall
 	--cmd DE13 - Enable autologin
 	--cmd DE14 - Disable autologin
-      DE20 - i3-wm desktop
-	--cmd DE21 - i3 desktop Install
-	--cmd DE22 - i3 desktop uninstall
-	--cmd DE23 - Enable autologin
-	--cmd DE24 - Disable autologin
       Cinnamon - Cinnamon desktop
 	--cmd DE31 - Cinnamon desktop Install
 	--cmd DE32 - Cinnamon desktop uninstall
 	--cmd DE33 - Enable autologin
 	--cmd DE34 - Disable autologin
-      DE40 - Kde-neon desktop
-	--cmd DE41 - Kde-neon desktop Install
-	--cmd DE42 - Uninstall
-	--cmd DE43 - Enable autologin
-	--cmd DE44 - Disable autologin
 	--cmd DE99 - Improve application search speed
     Netconfig - Network tools
 	--cmd SW08 - Install realtime console network usage monitor (nload)
@@ -322,7 +303,6 @@ Outputs:
 
   Help - About this tool
     --cmd H02 - Contribute
-    --cmd H03 - List of Config function(WIP)
 ~~~
 
 ## Legacy options
@@ -625,16 +605,6 @@ dpkg-reconfigure keyboard-configuration ; setupcon
 update-initramfs -u
 ~~~
 
-### L03
-
-Change APT mirrors
-
-Jobs:
-
-~~~
-get_user_continue "This is only a frontend test" process_input
-~~~
-
 ### L04
 
 Change System Hostname
@@ -723,16 +693,6 @@ Jobs:
 
 ~~~
 show_message <<< $(about_armbian_configng)
-~~~
-
-### H03
-
-List of Config function(WIP)
-
-Jobs:
-
-~~~
-show_message <<< see_use
 ~~~
 ~~~
 </details>
