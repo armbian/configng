@@ -5,7 +5,7 @@ SCRIPT_DIR="$(dirname "$0")"
 SRC_DIR="$SCRIPT_DIR/modules"
 DEST_DIR="$SCRIPT_DIR/../lib/armbian-config"
 
-[[ -d "$DEST_DIR" ]] && rm -rf "$DEST_DIR"
+[[ -d "$DEST_DIR" ]] && rm -rf "$DEST_DIR" && echo "remove $DEST_DIR"
 
 # Create the destination directory if it doesn't exist
 mkdir -p "$DEST_DIR"
