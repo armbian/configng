@@ -41,6 +41,7 @@ echo "Loaded Runtime variables..." #| show_infobox ;
 echo "Loaded Dialog..." #| show_infobox ;
 source "$lib_dir/config.ng.docs.sh"
 echo "Loaded Docs..." #| show_infobox ;
+source "$script_dir/../lib/armbian-config/config.system.sh"
 source "$lib_dir/config.ng.system.sh"
 echo "Loaded System helpers..." #| show_infobox ;
 source "$lib_dir/config.ng.network.sh"
