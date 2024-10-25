@@ -1,3 +1,4 @@
+
 module_options+=(
 	["qr_code,author"]="Igor Pecovnik"
 	["qr_code,ref_link"]=""
