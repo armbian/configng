@@ -112,7 +112,7 @@ jobs:
             # update index
             apt update
             # install basics
-            DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata keyboard-configuration wget gpg netcat-traditional
+            DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata keyboard-configuration wget gpg netcat-traditional lsof
 
             # add armbian repository
             URL=beta.armbian.com
@@ -129,9 +129,9 @@ jobs:
             # install packages / except howdy as its too large
             export DEBIAN_FRONTEND=noninteractive
             cd config
-            eval "$PREINSTALL"
+            eval $"( "${PREINSTALL}" )"
             sudo bash bin/armbian-config --cmd "$TEST_ID"
-            eval "$CONDITION"
+            eval $"( "${CONDITION}" )"
 
             # stats
             FILENAME="data-"$(echo ${{ matrix.image.image }} | sed "s/:/-/g")"-${TEST_ID}.teststats"
