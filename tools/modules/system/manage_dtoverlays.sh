@@ -1,6 +1,6 @@
 
 module_options+=(
-["manage_dtoverlays,author"]="Gunjan Gupta"
+["manage_dtoverlays,author"]="@viraniac"
 ["manage_dtoverlays,ref_link"]=""
 ["manage_dtoverlays,feature"]="dtoverlays"
 ["manage_dtoverlays,desc"]="Enable/disable device tree overlays"

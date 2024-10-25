@@ -1,6 +1,6 @@
 
 module_options+=(
-["store_netplan_config,author"]="Igor Pecovnik"
+["store_netplan_config,author"]="@igorpecovnik"
 ["store_netplan_config,ref_link"]=""
 ["store_netplan_config,feature"]="Storing netplan config to tmp"
 ["store_netplan_config,desc"]=""
@@ -134,7 +134,7 @@ function update_skel() {
 
 
 module_options+=(
-	["are_headers_installed,author"]="Gunjan Gupta"
+	["are_headers_installed,author"]="@viraniac"
 	["are_headers_installed,ref_link"]=""
 	["are_headers_installed,feature"]="are_headers_installed"
 	["are_headers_installed,desc"]="Check if kernel headers are installed"
@@ -635,7 +635,7 @@ function set_rolling() {
 
 
 module_options+=(
-["manage_dtoverlays,author"]="Gunjan Gupta"
+["manage_dtoverlays,author"]="@viraniac"
 ["manage_dtoverlays,ref_link"]=""
 ["manage_dtoverlays,feature"]="dtoverlays"
 ["manage_dtoverlays,desc"]="Enable/disable device tree overlays"
