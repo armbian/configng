@@ -23,7 +23,7 @@ jobs:
       - name: Join JSON
         run: |
 
-          tools/config-jobs -j lib/armbian-configng/config.ng.jobs.json
+          tools/config-jobs -p lib/armbian-configng/config.ng.jobs.json
 
       - name: Create Pull Request
         id: cpr
