@@ -1,5 +1,5 @@
 module_options+=(
-	["set_runtime_variables,author"]="Igor Pecovnik"
+	["set_runtime_variables,author"]="@igorpecovnik"
 	["set_runtime_variables,ref_link"]=""
 	["set_runtime_variables,feature"]="set_runtime_variables"
 	["set_runtime_variables,desc"]="Run time variables Migrated procedures from Armbian config."

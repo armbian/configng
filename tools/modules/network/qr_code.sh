@@ -1,6 +1,6 @@
 
 module_options+=(
-	["qr_code,author"]="Igor Pecovnik"
+	["qr_code,author"]="@igorpecovnik"
 	["qr_code,ref_link"]=""
 	["qr_code,feature"]="qr_code"
 	["qr_code,desc"]="Show or generate QR code for Google OTP"

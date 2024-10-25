@@ -1,5 +1,5 @@
 module_options+=(
-	["connect_bt_interface,author"]="Igor Pecovnik"
+	["connect_bt_interface,author"]="@armbian"
 	["connect_bt_interface,ref_link"]=""
 	["connect_bt_interface,feature"]="connect_bt_interface"
 	["connect_bt_interface,desc"]="Migrated procedures from Armbian config."

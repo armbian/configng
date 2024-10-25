@@ -1,5 +1,5 @@
 module_options+=(
-	["check_if_installed,author"]="Igor Pecovnik"
+	["check_if_installed,author"]="@armbian"
 	["check_if_installed,ref_link"]=""
 	["check_if_installed,feature"]="check_if_installed"
 	["check_if_installed,desc"]="Migrated procedures from Armbian config."

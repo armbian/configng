@@ -1,6 +1,6 @@
 
 menu_options+=(
-	["get_headers_kernel,author"]="Igor Pecovnik"
+	["get_headers_kernel,author"]="@igorpecovnik"
 	["get_headers_kernel,ref_link"]=""
 	["get_headers_kernel,feature"]="get_headers_install"
 	["get_headers_kernel,desc"]="Migrated procedures from Armbian config."

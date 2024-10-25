@@ -1,5 +1,5 @@
 module_options+=(
-	["set_stable,author"]="Tearran"
+	["set_stable,author"]="@Tearran"
 	["set_stable,ref_link"]="https://github.com/armbian/config/blob/master/debian-config-jobs#L1446"
 	["set_stable,feature"]="set_stable"
 	["set_stable,desc"]="Set Armbian to stable release"

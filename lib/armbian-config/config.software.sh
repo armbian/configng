@@ -67,7 +67,7 @@ run the following command: docker run hello-world" 9 70
 
 
 module_options+=(
-	["see_monitoring,author"]="Joey Turner"
+	["see_monitoring,author"]="@Tearran"
 	["see_monitoring,ref_link"]=""
 	["see_monitoring,feature"]="see_monitoring"
 	["see_monitoring,desc"]="Menu for armbianmonitor features"

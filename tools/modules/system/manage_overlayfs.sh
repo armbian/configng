@@ -1,5 +1,5 @@
 module_options+=(
-	["manage_overlayfs,author"]="igorpecovnik"
+	["manage_overlayfs,author"]="@igorpecovnik"
 	["manage_overlayfs,ref_link"]=""
 	["manage_overlayfs,feature"]="overlayfs"
 	["manage_overlayfs,desc"]="Set Armbian root filesystem to read only"

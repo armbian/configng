@@ -1,6 +1,6 @@
 
 module_options+=(
-	["default_network_config,author"]="Igor Pecovnik"
+	["default_network_config,author"]="@igorpecovnik"
 	["default_network_config,ref_link"]=""
 	["default_network_config,feature"]="default_network_config"
 	["default_network_config,desc"]="Revert network config back to Armbian defaults"
@@ -57,7 +57,7 @@ function default_network_config() {
 
 
 module_options+=(
-	["qr_code,author"]="Igor Pecovnik"
+	["qr_code,author"]="@igorpecovnik"
 	["qr_code,ref_link"]=""
 	["qr_code,feature"]="qr_code"
 	["qr_code,desc"]="Show or generate QR code for Google OTP"
@@ -87,7 +87,7 @@ Scan QR code with your OTP application on mobile phone
 
 
 module_options+=(
-	["network_config,author"]="Igor Pecovnik"
+	["network_config,author"]="@igorpecovnik"
 	["network_config,ref_link"]=""
 	["network_config,feature"]="network_config"
 	["network_config,desc"]="Netplan wrapper"
@@ -357,7 +357,7 @@ function network_config() {
 
 
 module_options+=(
-	["toggle_ipv6,author"]="Joey Turner"
+	["toggle_ipv6,author"]="@Tearran"
 	["toggle_ipv6,ref_link"]=""
 	["toggle_ipv6,feature"]="toggle_ipv6"
 	["toggle_ipv6,desc"]="Toggle IPv6 on or off"
@@ -404,7 +404,7 @@ toggle_ipv6() {
 
 
 module_options+=(
-	["see_ping,author"]="Joey Turner"
+	["see_ping,author"]="@Tearran"
 	["see_ping,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#632"
 	["see_ping,feature"]="see_ping"
 	["see_ping,desc"]="Check the internet connection with fallback DNS"
@@ -439,7 +439,7 @@ function see_ping() {
 
 
 module_options+=(
-	["default_wireless_network_config,author"]="Igor Pecovnik"
+	["default_wireless_network_config,author"]="@igorpecovnik"
 	["default_wireless_network_config,ref_link"]=""
 	["default_wireless_network_config,feature"]="default_wireless_network_config"
 	["default_wireless_network_config,desc"]="Stop hostapd, clean config"
@@ -489,7 +489,7 @@ function default_wireless_network_config(){
 }
 
 module_options+=(
-	["connect_bt_interface,author"]="Igor Pecovnik"
+	["connect_bt_interface,author"]="@armbian"
 	["connect_bt_interface,ref_link"]=""
 	["connect_bt_interface,feature"]="connect_bt_interface"
 	["connect_bt_interface,desc"]="Migrated procedures from Armbian config."
@@ -560,7 +560,7 @@ Error connecting. Try again!"
 
 
 module_options+=(
-	["check_ip_version,author"]="Joey Turner"
+	["check_ip_version,author"]="@Tearran"
 	["check_ip_version,ref_link"]=""
 	["check_ip_version,feature"]="check_ip_version"
 	["check_ip_version,desc"]="Check if a domain is reachable via IPv4 and IPv6"

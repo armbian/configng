@@ -24,7 +24,7 @@ function restore_netplan_config() {
 
 
 module_options+=(
-	["adjust_motd,author"]="igorpecovnik"
+	["adjust_motd,author"]="@igorpecovnik"
 	["adjust_motd,ref_link"]=""
 	["adjust_motd,feature"]="Adjust motd"
 	["adjust_motd,desc"]="Adjust welcome screen (motd)"
@@ -86,8 +86,9 @@ function adjust_motd() {
 	read
 }
 
+
 module_options+=(
-["store_netplan_config,author"]="Igor Pecovnik"
+["store_netplan_config,author"]="@igorpecovnik"
 ["store_netplan_config,ref_link"]=""
 ["store_netplan_config,feature"]="Storing netplan config to tmp"
 ["store_netplan_config,desc"]=""
@@ -107,8 +108,9 @@ function store_netplan_config () {
 }
 
 
+
 module_options+=(
-	["update_skel,author"]="Igor Pecovnik"
+	["update_skel,author"]="@igorpecovnik"
 	["update_skel,ref_link"]=""
 	["update_skel,feature"]="update_skel"
 	["update_skel,desc"]="Update the /etc/skel files in users directories"
@@ -156,7 +158,7 @@ function are_headers_installed() {
 
 
 module_options+=(
-	["manage_overlayfs,author"]="igorpecovnik"
+	["manage_overlayfs,author"]="@igorpecovnik"
 	["manage_overlayfs,ref_link"]=""
 	["manage_overlayfs,feature"]="overlayfs"
 	["manage_overlayfs,desc"]="Set Armbian root filesystem to read only"
@@ -183,7 +185,7 @@ function manage_overlayfs() {
 
 
 module_options+=(
-	["Headers_install,author"]="Joey Turner"
+	["Headers_install,author"]="@Tearran"
 	["Headers_install,ref_link"]=""
 	["Headers_install,feature"]="Headers_install"
 	["Headers_install,desc"]="Install kernel headers"
@@ -209,7 +211,7 @@ function Headers_install() {
 
 
 module_options+=(
-	["set_header_remove,author"]="Igor Pecovnik"
+	["set_header_remove,author"]="@igorpecovnik"
 	["set_header_remove,ref_link"]=""
 	["set_header_remove,feature"]="set_header_remove"
 	["set_header_remove,desc"]="Migrated procedures from Armbian config."
@@ -238,7 +240,7 @@ function set_header_remove() {
 
 
 module_options+=(
-	["set_stable,author"]="Tearran"
+	["set_stable,author"]="@Tearran"
 	["set_stable,ref_link"]="https://github.com/armbian/config/blob/master/debian-config-jobs#L1446"
 	["set_stable,feature"]="set_stable"
 	["set_stable,desc"]="Set Armbian to stable release"
@@ -259,7 +261,7 @@ function set_stable() {
 
 
 module_options+=(
-	["armbian_fw_manipulate,author"]="Igor Pecovnik"
+	["armbian_fw_manipulate,author"]="@igorpecovnik"
 	["armbian_fw_manipulate,ref_link"]=""
 	["armbian_fw_manipulate,feature"]="armbian_fw_manipulate"
 	["armbian_fw_manipulate,desc"]="freeze/unhold/reinstall armbian related packages."
@@ -464,8 +466,9 @@ function manage_desktops() {
 }
 
 
+
 module_options+=(
-	["apt_install_wrapper,author"]="igorpecovnik"
+	["apt_install_wrapper,author"]="@igorpecovnik"
 	["apt_install_wrapper,ref_link"]=""
 	["apt_install_wrapper,feature"]="Install wrapper"
 	["apt_install_wrapper,desc"]="Install wrapper"
@@ -487,7 +490,7 @@ function apt_install_wrapper() {
 
 
 module_options+=(
-	["change_system_hostname,author"]="igorpecovnik"
+	["change_system_hostname,author"]="@igorpecovnik"
 	["change_system_hostname,ref_link"]=""
 	["change_system_hostname,feature"]="Change hostname"
 	["change_system_hostname,desc"]="change_system_hostname"
@@ -505,7 +508,7 @@ function change_system_hostname() {
 
 
 menu_options+=(
-	["get_headers_kernel,author"]="Igor Pecovnik"
+	["get_headers_kernel,author"]="@igorpecovnik"
 	["get_headers_kernel,ref_link"]=""
 	["get_headers_kernel,feature"]="get_headers_install"
 	["get_headers_kernel,desc"]="Migrated procedures from Armbian config."
@@ -529,7 +532,7 @@ function get_headers_install() {
 }
 
 module_options+=(
-	["toggle_ssh_lastlog,author"]="tearran"
+	["toggle_ssh_lastlog,author"]="@Tearran"
 	["toggle_ssh_lastlog,ref_link"]=""
 	["toggle_ssh_lastlog,feature"]="toggle_ssh_lastlog"
 	["toggle_ssh_lastlog,desc"]="Toggle SSH lastlog"
@@ -561,7 +564,7 @@ function toggle_ssh_lastlog() {
 
 
 module_options+=(
-	["release_upgrade,author"]="Igor Pecovnik"
+	["release_upgrade,author"]="@igorpecovnik"
 	["release_upgrade,ref_link"]=""
 	["release_upgrade,feature"]="Upgrade upstream distribution release"
 	["release_upgrade,desc"]="Upgrade to next stable or rolling release"
@@ -610,7 +613,7 @@ release_upgrade(){
 }
 
 module_options+=(
-	["set_rolling,author"]="Tearran"
+	["set_rolling,author"]="@Tearran"
 	["set_rolling,ref_link"]="https://github.com/armbian/config/blob/master/debian-config-jobs#L1446"
 	["set_rolling,feature"]="set_rolling"
 	["set_rolling,desc"]="Set Armbian to rolling release"
@@ -684,7 +687,7 @@ function manage_dtoverlays () {
 }
 
 module_options+=(
-	["Headers_remove,author"]="Joey Turner"
+	["Headers_remove,author"]="@Tearran"
 	["Headers_remove,ref_link"]="https://github.com/armbian/config/blob/master/debian-config-jobs#L160"
 	["Headers_remove,feature"]="Headers_remove"
 	["Headers_remove,desc"]="Remove Linux headers"
@@ -713,7 +716,7 @@ function Headers_remove() {
 
 
 module_options+=(
-["about_armbian_configng,author"]="Igor Pecovnik"
+["about_armbian_configng,author"]="@igorpecovnik"
 ["about_armbian_configng,ref_link"]=""
 ["about_armbian_configng,feature"]="Show info"
 ["about_armbian_configng,desc"]=""
@@ -742,7 +745,7 @@ function about_armbian_configng() {
 }
 
 module_options+=(
-	["switch_kernels,author"]="Igor"
+	["switch_kernels,author"]="@igorpecovnik"
 	["switch_kernels,ref_link"]=""
 	["switch_kernels,feature"]=""
 	["switch_kernels,desc"]="Switching to alternative kernels"

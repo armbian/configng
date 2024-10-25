@@ -1,6 +1,6 @@
 
 module_options+=(
-	["default_network_config,author"]="Igor Pecovnik"
+	["default_network_config,author"]="@igorpecovnik"
 	["default_network_config,ref_link"]=""
 	["default_network_config,feature"]="default_network_config"
 	["default_network_config,desc"]="Revert network config back to Armbian defaults"

@@ -3,7 +3,7 @@
 # This file is part of Armbian configuration utility.
 
 module_options+=(
-	["generate_readme,author"]="Joey Turner"
+	["generate_readme,author"]="@Tearran"
 	["generate_readme,ref_link"]="#L17"
 	["generate_readme,feature"]="generate_readme"
 	["generate_readme,desc"]="Generate Document files."
@@ -165,7 +165,7 @@ EOF
 }
 
 module_options+=(
-	["serve_doc,author"]="Joey Turner"
+	["serve_doc,author"]="@Tearran"
 	["serve_doc,ref_link"]=""
 	["serve_doc,feature"]="serve_doc"
 	["serve_doc,desc"]="Serve the edit and debug server."
@@ -203,7 +203,7 @@ function serve_doc() {
 }
 
 module_options+=(
-	["see_use,author"]="Joey Turner"
+	["see_use,author"]="@Tearran"
 	["see_use,ref_link"]=""
 	["see_use,feature"]="see_use"
 	["see_use,desc"]="Show the usage of the functions."
@@ -231,7 +231,7 @@ function see_use() {
 }
 
 module_options+=(
-	["generate_json_options,author"]="Joey Turner"
+	["generate_json_options,author"]="@Tearran"
 	["generate_json_options,ref_link"]=""
 	["generate_json_options,feature"]="generate_json"
 	["generate_json_options,desc"]="Generate JSON-like object file."
@@ -284,7 +284,7 @@ function generate_json_options() {
 }
 
 module_options+=(
-	["generate_svg,author"]="Joey Turner"
+	["generate_svg,author"]="@Tearran"
 	["generate_svg,ref_link"]=""
 	["generate_svg,feature"]="generate_svg"
 	["generate_svg,desc"]="Generate 'Armbian CPU logo' SVG for document file."
@@ -309,7 +309,7 @@ EOF
 }
 
 module_options+=(
-	["generate_jobs_from_json,author"]="Joey Turner"
+	["generate_jobs_from_json,author"]="@Tearran"
 	["generate_jobs_from_json,ref_link"]=""
 	["generate_jobs_from_json,feature"]="generate_jobs_from_json"
 	["generate_jobs_from_json,desc"]="Generate jobs from JSON file."
@@ -396,7 +396,7 @@ function see_full_list() {
 }
 
 module_options+=(
-	["see_function_table_md,author"]="Joey Turner"
+	["see_function_table_md,author"]="@Tearran"
 	["see_function_table_md,ref_link"]=""
 	["see_function_table_md,feature"]="see_function_table_md"
 	["see_function_table_md,desc"]="Generate this markdown table of all module_options"
@@ -430,7 +430,7 @@ function see_function_table_md() {
 }
 
 module_options+=(
-	["see_jq_menu_list,author"]="Joey Turner"
+	["see_jq_menu_list,author"]="@Tearran"
 	["see_jq_menu_list,ref_link"]=""
 	["see_jq_menu_list,feature"]="see_jq_menu_list"
 	["see_jq_menu_list,desc"]="Generate a markdown list json objects using jq."
@@ -453,7 +453,7 @@ function see_jq_menu_list() {
 }
 
 module_options+=(
-	["see_cmd_list,author"]="Joey Turner"
+	["see_cmd_list,author"]="@Tearran"
 	["see_cmd_list,ref_link"]=""
 	["see_cmd_list,feature"]="see_cmd_list"
 	["see_cmd_list,desc"]="Generate a Help message for cli commands."
@@ -527,7 +527,7 @@ see_cmd_list() {
 
 
 module_options+=(
-	["see_cli_legacy,author"]="Joey Turner"
+	["see_cli_legacy,author"]="@Tearran"
 	["see_cli_legacy,ref_link"]=""
 	["see_cli_legacy,feature"]="see_cli_legacy"
 	["see_cli_legacy,desc"]="Generate a Help message legacy cli commands."

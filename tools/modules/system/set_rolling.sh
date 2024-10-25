@@ -1,5 +1,5 @@
 module_options+=(
-	["set_rolling,author"]="Tearran"
+	["set_rolling,author"]="@Tearran"
 	["set_rolling,ref_link"]="https://github.com/armbian/config/blob/master/debian-config-jobs#L1446"
 	["set_rolling,feature"]="set_rolling"
 	["set_rolling,desc"]="Set Armbian to rolling release"

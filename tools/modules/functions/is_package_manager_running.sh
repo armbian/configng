@@ -1,6 +1,6 @@
 
 module_options+=(
-	["is_package_manager_running,author"]="Igor Pecovnik"
+	["is_package_manager_running,author"]="@armbian"
 	["is_package_manager_running,ref_link"]=""
 	["is_package_manager_running,feature"]="is_package_manager_running"
 	["is_package_manager_running,desc"]="Migrated procedures from Armbian config."
