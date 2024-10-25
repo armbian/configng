@@ -52,7 +52,8 @@ source "$script_dir/../lib/armbian-config/config.network.sh"
 #source "$lib_dir/config.ng.network.sh"
 echo "Loaded Network helpers..." #| show_infobox ;
 
-source "$lib_dir/config.ng.software.sh"
+source "$script_dir/../lib/armbian-config/config.software.sh"
+#source "$lib_dir/config.ng.software.sh"
 echo "Loaded Software helpers..." #| show_infobox ;
 #
 # Loads the variables from beta armbian-config for runtime handling
@@ -62,7 +63,7 @@ source "$script_dir/../lib/armbian-config/config.runtime.sh"
 
 echo "Loaded Runtime conditions..." #| show_infobox ;
 
-clear
+#clear
 
 case "$1" in
 "--help")
