@@ -1,2 +1,4 @@
 # docs output
 /docs/
+# Ignore the todo directory
+/tools/modules/todo/
