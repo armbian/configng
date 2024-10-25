@@ -55,7 +55,9 @@ echo "Loaded Software helpers..." #| show_infobox ;
 #
 # Loads the variables from beta armbian-config for runtime handling
 
-source "$lib_dir/config.ng.runtime.sh"
+source "$script_dir/../lib/armbian-config/config.ng.runtime.sh"
+#source "$lib_dir/config.ng.runtime.sh"
+
 echo "Loaded Runtime conditions..." #| show_infobox ;
 
 clear
