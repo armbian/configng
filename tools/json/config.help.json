@@ -2,7 +2,7 @@
     "menu": [
         {
             "id": "Help",
-            "description": "About this app",
+            "description": "About this tool",
             "sub": [
                 {
                     "id": "H02",
