@@ -40,14 +40,16 @@ set_runtime_variables
 echo "Loaded Runtime variables..." #| show_infobox ;
 echo "Loaded Dialog..." #| show_infobox ;
 
-source "$lib_dir/config.ng.docs.sh"
+source "$script_dir/../lib/armbian-config/config.docs.sh"
+#source "$lib_dir/config.ng.docs.sh"
 echo "Loaded Docs..." #| show_infobox ;
 
 source "$script_dir/../lib/armbian-config/config.system.sh"
 #source "$lib_dir/config.ng.system.sh"
 echo "Loaded System helpers..." #| show_infobox ;
 
-source "$lib_dir/config.ng.network.sh"
+source "$script_dir/../lib/armbian-config/config.network.sh"
+#source "$lib_dir/config.ng.network.sh"
 echo "Loaded Network helpers..." #| show_infobox ;
 
 source "$lib_dir/config.ng.software.sh"
@@ -55,7 +57,7 @@ echo "Loaded Software helpers..." #| show_infobox ;
 #
 # Loads the variables from beta armbian-config for runtime handling
 
-source "$script_dir/../lib/armbian-config/config.ng.runtime.sh"
+source "$script_dir/../lib/armbian-config/config.runtime.sh"
 #source "$lib_dir/config.ng.runtime.sh"
 
 echo "Loaded Runtime conditions..." #| show_infobox ;

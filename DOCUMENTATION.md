@@ -192,7 +192,7 @@ armbian-config --help
 Outputs:
 ~~~
 
-  System - System wide and admin settings (x86_64)
+  System - System wide and admin settings (aarch64)
     --cmd SY001 - Enable Armbian firmware upgrades
     --cmd SY002 - Disable Armbian kernel upgrades
     --cmd SY003 - Edit the boot environment
@@ -225,14 +225,14 @@ Outputs:
 	--cmd SY102 - Upgrade to rolling unstable
     --cmd SY017 - Manage device tree overlays
 
-  Network - Fixed and wireless network settings (eth0)
+  Network - Fixed and wireless network settings (wlan0)
     NE001 - Configure network interfaces
 	--cmd NE002 - Add / change interface
 	--cmd NE003 - Revert to Armbian defaults
 	--cmd NE004 - Show configuration
 	--cmd NE005 - Show active status
 
-  Localisation - Localisation (C.UTF-8)
+  Localisation - Localisation (en_US.UTF-8)
     --cmd LO001 - Change Global timezone
     --cmd LO002 - Change Locales reconfigure the language and character set
     --cmd LO003 - Change Keyboard layout
@@ -660,10 +660,8 @@ These helper functions facilitate various operations related to job management, 
 | Needed by generate_menu |  | Joey Turner 
 | Display a Yes/No dialog box and process continue/exit | get_user_continue 'Do you wish to continue?' process_input | Joey Turner 
 | Display a message box | show_message <<< 'hello world'  | Joey Turner 
-| Migrated procedures from Armbian config. | connect_bt_interface | Igor Pecovnik 
 | Menu for armbianmonitor features | see_monitoring | Joey Turner 
 | Enable/disable device tree overlays | manage_dtoverlays | Gunjan Gupta 
-| Show or generate QR code for Google OTP | qr_code generate | Igor Pecovnik 
 | Check if kernel headers are installed | are_headers_installed | Gunjan Gupta 
 | Check when apt list was last updated and suggest updating or update | see_current_apt || see_current_apt update | Joey Turner 
 | Migrated procedures from Armbian config. | check_if_installed nano | Igor Pecovnik 
