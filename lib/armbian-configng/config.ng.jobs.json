@@ -550,16 +550,6 @@
                     "author": ""
                 },
                 {
-                    "id": "L03",
-                    "description": "Change APT mirrors",
-                    "about": "This will change the APT mirrors",
-                    "command": [
-                        "get_user_continue \"This is only a frontend test\" process_input"
-                    ],
-                    "status": "Disabled",
-                    "author": ""
-                },
-                {
                     "id": "L04",
                     "description": "Change System Hostname",
                     "command": [
@@ -673,53 +663,6 @@
                             ]
                         },
                         {
-                            "id": "DE20",
-                            "description": "i3-wm desktop",
-                            "status": "Disabled",
-                            "sub": [
-                                {
-                                    "id": "DE21",
-                                    "description": "i3 desktop Install",
-                                    "command": [
-                                        "manage_desktops 'i3-wm' 'install'"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "[ ! -f /usr/share/xsessions/i3.desktop ]"
-                                },
-                                {
-                                    "id": "DE22",
-                                    "description": "i3 desktop uninstall",
-                                    "command": [
-                                        "manage_desktops 'i3-wm' 'uninstall'"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/i3.desktop ]"
-                                },
-                                {
-                                    "id": "DE23",
-                                    "description": "Enable autologin",
-                                    "command": [
-                                        "manage_desktops 'i3-wm' 'auto'"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/i3.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
-                                },
-                                {
-                                    "id": "DE24",
-                                    "description": "Disable autologin",
-                                    "command": [
-                                        "manage_desktops 'i3-wm' 'manual'"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/i3.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
-                                }
-                            ]
-                        },
-                        {
                             "id": "Cinnamon",
                             "description": "Cinnamon desktop",
                             "sub": [
@@ -762,53 +705,6 @@
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
                                     "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
-                                }
-                            ]
-                        },
-                        {
-                            "id": "DE40",
-                            "description": "Kde-neon desktop",
-                            "status": "Disabled",
-                            "sub": [
-                                {
-                                    "id": "DE41",
-                                    "description": "Kde-neon desktop Install",
-                                    "command": [
-                                        "manage_desktops 'kde-neon' 'install'"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "[ ! -f /usr/share/xsessions/gnome.desktop ]"
-                                },
-                                {
-                                    "id": "DE42",
-                                    "description": "Uninstall",
-                                    "command": [
-                                        "manage_desktops 'kde-neon' 'uninstall'"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ]"
-                                },
-                                {
-                                    "id": "DE43",
-                                    "description": "Enable autologin",
-                                    "command": [
-                                        "manage_desktops 'kde-neon' 'auto'"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
-                                },
-                                {
-                                    "id": "DE44",
-                                    "description": "Disable autologin",
-                                    "command": [
-                                        "manage_desktops 'kde-neon' 'manual'"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
                                 }
                             ]
                         },
@@ -1173,17 +1069,6 @@
                         "show_message <<< $(about_armbian_configng)"
                     ],
                     "status": "Stable",
-                    "doc_link": "",
-                    "src_reference": "",
-                    "author": ""
-                },
-                {
-                    "id": "H03",
-                    "description": "List of Config function(WIP)",
-                    "command": [
-                        "show_message <<< see_use"
-                    ],
-                    "status": "Disabled",
                     "doc_link": "",
                     "src_reference": "",
                     "author": ""
