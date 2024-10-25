@@ -1,108 +1,3 @@
-#!/bin/bash
-
-module_options+=(
-	["check_ip_version,author"]="Joey Turner"
-	["check_ip_version,ref_link"]=""
-	["check_ip_version,feature"]="check_ip_version"
-	["check_ip_version,desc"]="Check if a domain is reachable via IPv4 and IPv6"
-	["check_ip_version,example"]="check_ip_version google.com"
-	["check_ip_version,status"]="review"
-	["check_ip_version,doc_link"]=""
-)
-#
-#
-#
-check_ip_version() {
-	domain=${1:-armbian.com}
-
-	if ping -c 1 $domain > /dev/null 2>&1; then
-		echo "IPv4"
-	elif ping6 -c 1 $domain > /dev/null 2>&1; then
-		echo "IPv6"
-	else
-		echo "Unreachable"
-	fi
-}
-
-module_options+=(
-	["toggle_ipv6,author"]="Joey Turner"
-	["toggle_ipv6,ref_link"]=""
-	["toggle_ipv6,feature"]="toggle_ipv6"
-	["toggle_ipv6,desc"]="Toggle IPv6 on or off"
-	["toggle_ipv6,example"]="toggle_ipv6"
-	["toggle_ipv6,status"]="review"
-	["toggle_ipv6,doc_link"]=""
-)
-#
-# Function to toggle IPv6 on or off
-#
-toggle_ipv6() {
-	# Check if IPv6 is currently enabled
-	if sysctl net.ipv6.conf.all.disable_ipv6 | grep -q 0; then
-		# If IPv6 is enabled, disable it
-		echo "Disabling IPv6..."
-		sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1
-		sudo sysctl -w net.ipv6.conf.default.disable_ipv6=1
-		sudo sysctl -w net.ipv6.conf.lo.disable_ipv6=1
-		echo "IPv6 is now disabled."
-		# Confirm that IPv6 is disabled
-		if sysctl net.ipv6.conf.all.disable_ipv6 | grep -q 1; then
-			check_ip_version google.com
-		else
-			check_ip_version google.com
-		fi
-	else
-		# If IPv6 is disabled, enable it
-		echo "Enabling IPv6..."
-		sudo sysctl -w net.ipv6.conf.all.disable_ipv6=0
-		sudo sysctl -w net.ipv6.conf.default.disable_ipv6=0
-		sudo sysctl -w net.ipv6.conf.lo.disable_ipv6=0
-		echo "IPv6 is now enabled."
-		# Confirm that IPv6 is enabled
-		if sysctl net.ipv6.conf.all.disable_ipv6 | grep -q 0; then
-			check_ip_version google.com
-		else
-			check_ip_version google.com
-		fi
-	fi
-
-	# Now call the function with a domain name
-
-}
-
-module_options+=(
-	["see_ping,author"]="Joey Turner"
-	["see_ping,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#632"
-	["see_ping,feature"]="see_ping"
-	["see_ping,desc"]="Check the internet connection with fallback DNS"
-	["see_ping,example"]="see_ping"
-	["see_ping,doc_link"]=""
-	["see_ping,status"]="review"
-)
-#
-# Function to check the internet connection
-#
-function see_ping() {
-	# List of servers to ping
-	servers=("1.1.1.1" "8.8.8.8")
-
-	# Check for internet connection
-	for server in "${servers[@]}"; do
-		if ping -q -c 1 -W 1 $server > /dev/null; then
-			echo "Internet connection: Present"
-			break
-		else
-			echo "Internet connection: Failed"
-			sleep 1
-		fi
-	done
-
-	if [[ $? -ne 0 ]]; then
-		read -n -r 1 -s -p "Warning: Configuration cannot work properly without a working internet connection. \
-		Press CTRL C to stop or any key to ignore and continue."
-	fi
-
-}
 
 module_options+=(
 	["default_network_config,author"]="Igor Pecovnik"
@@ -160,55 +55,35 @@ function default_network_config() {
 	fi
 }
 
+
 module_options+=(
-	["default_wireless_network_config,author"]="Igor Pecovnik"
-	["default_wireless_network_config,ref_link"]=""
-	["default_wireless_network_config,feature"]="default_wireless_network_config"
-	["default_wireless_network_config,desc"]="Stop hostapd, clean config"
-	["default_wireless_network_config,example"]="default_wireless_network_config"
-	["default_wireless_network_config,doc_link"]=""
-	["default_wireless_network_config,status"]="review"
+	["qr_code,author"]="Igor Pecovnik"
+	["qr_code,ref_link"]=""
+	["qr_code,feature"]="qr_code"
+	["qr_code,desc"]="Show or generate QR code for Google OTP"
+	["qr_code,example"]="qr_code generate"
+	["qr_code,status"]="Active"
 )
-function default_wireless_network_config(){
+#
+# check dpkg status of $1 -- currently only 'not installed at all' case caught
+#
+function qr_code() {
 
-	# defaul yaml file
-	local yamlfile=${1:-armbian}
-	local adapter=${2:-wlan0}
-
-	# remove wifi from netplan
-	if [[ -f /etc/netplan/${yamlfile}.yaml ]]; then
-		sed -i -e 'H;x;/^\(  *\)\n\1/{s/\n.*//;x;d;}' -e 's/.*//;x;/'$adapter':/{s/^\( *\).*/ \1/;x;d;}' /etc/netplan/${yamlfile}.yaml
-		sed -i -e 'H;x;/^\(  *\)\n\1/{s/\n.*//;x;d;}' -e 's/.*//;x;/- '$adapter'/{s/^\( *\).*/ \1/;x;d;}' /etc/netplan/${yamlfile}.yaml
-		sed -i -e 'H;x;/^\(  *\)\n\1/{s/\n.*//;x;d;}' -e 's/.*//;x;/wifis:/{s/^\( *\).*/ \1/;x;d;}' /etc/netplan/${yamlfile}.yaml
+	clear
+	if [[ "$1" == "generate" ]]; then
+		google-authenticator -t -d -f -r 3 -R 30 -W -q
+		cp /root/.google_authenticator /etc/skel
+		update_skel
 	fi
-
-	# remove networkd-dispatcher hook
-	rm -f /etc/networkd-dispatcher/carrier.d/armbian-ap
-	# remove network-manager dispatcher hook
-	rm -f /etc/NetworkManager/dispatcher.d/armbian-ap
-
-	# hostapd needs more cleaning
-	if systemctl is-active hostapd 1> /dev/null; then
-		systemctl stop hostapd 2> /dev/null
-		systemctl disable hostapd 2> /dev/null
-	fi
-
-	# apply config
-	netplan apply
-
-	# exceptions
-	if [[ "${NETWORK_RENDERER}" == "NetworkManager" ]]; then
-			# uninstall packages
-			apt_install_wrapper apt-get -y --no-install-recommends purge hostapd
-			systemctl restart NetworkManager
-		else
-			# uninstall packages
-			apt_install_wrapper apt-get -y --no-install-recommends purge hostapd networkd-dispatcher
-			brctl delif br0 $adapter 2> /dev/null
-			networkctl reconfigure br0
-	fi
+	export TOP_SECRET=$(head -1 /root/.google_authenticator)
+	qrencode -m 2 -d 9 -8 -t ANSI256 "otpauth://totp/test?secret=$TOP_SECRET"
+	echo -e '
+Scan QR code with your OTP application on mobile phone
+'
+	read -n 1 -s -r -p "Press any key to continue"
 
 }
+
 
 
 module_options+=(
@@ -479,3 +354,232 @@ function network_config() {
 		restore_netplan_config
 	fi
 }
+
+
+module_options+=(
+	["toggle_ipv6,author"]="Joey Turner"
+	["toggle_ipv6,ref_link"]=""
+	["toggle_ipv6,feature"]="toggle_ipv6"
+	["toggle_ipv6,desc"]="Toggle IPv6 on or off"
+	["toggle_ipv6,example"]="toggle_ipv6"
+	["toggle_ipv6,status"]="review"
+	["toggle_ipv6,doc_link"]=""
+)
+#
+# Function to toggle IPv6 on or off
+#
+toggle_ipv6() {
+	# Check if IPv6 is currently enabled
+	if sysctl net.ipv6.conf.all.disable_ipv6 | grep -q 0; then
+		# If IPv6 is enabled, disable it
+		echo "Disabling IPv6..."
+		sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1
+		sudo sysctl -w net.ipv6.conf.default.disable_ipv6=1
+		sudo sysctl -w net.ipv6.conf.lo.disable_ipv6=1
+		echo "IPv6 is now disabled."
+		# Confirm that IPv6 is disabled
+		if sysctl net.ipv6.conf.all.disable_ipv6 | grep -q 1; then
+			check_ip_version google.com
+		else
+			check_ip_version google.com
+		fi
+	else
+		# If IPv6 is disabled, enable it
+		echo "Enabling IPv6..."
+		sudo sysctl -w net.ipv6.conf.all.disable_ipv6=0
+		sudo sysctl -w net.ipv6.conf.default.disable_ipv6=0
+		sudo sysctl -w net.ipv6.conf.lo.disable_ipv6=0
+		echo "IPv6 is now enabled."
+		# Confirm that IPv6 is enabled
+		if sysctl net.ipv6.conf.all.disable_ipv6 | grep -q 0; then
+			check_ip_version google.com
+		else
+			check_ip_version google.com
+		fi
+	fi
+
+	# Now call the function with a domain name
+
+}
+
+
+module_options+=(
+	["see_ping,author"]="Joey Turner"
+	["see_ping,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#632"
+	["see_ping,feature"]="see_ping"
+	["see_ping,desc"]="Check the internet connection with fallback DNS"
+	["see_ping,example"]="see_ping"
+	["see_ping,doc_link"]=""
+	["see_ping,status"]="review"
+)
+#
+# Function to check the internet connection
+#
+function see_ping() {
+	# List of servers to ping
+	servers=("1.1.1.1" "8.8.8.8")
+
+	# Check for internet connection
+	for server in "${servers[@]}"; do
+		if ping -q -c 1 -W 1 $server > /dev/null; then
+			echo "Internet connection: Present"
+			break
+		else
+			echo "Internet connection: Failed"
+			sleep 1
+		fi
+	done
+
+	if [[ $? -ne 0 ]]; then
+		read -n -r 1 -s -p "Warning: Configuration cannot work properly without a working internet connection. \
+		Press CTRL C to stop or any key to ignore and continue."
+	fi
+
+}
+
+
+module_options+=(
+	["default_wireless_network_config,author"]="Igor Pecovnik"
+	["default_wireless_network_config,ref_link"]=""
+	["default_wireless_network_config,feature"]="default_wireless_network_config"
+	["default_wireless_network_config,desc"]="Stop hostapd, clean config"
+	["default_wireless_network_config,example"]="default_wireless_network_config"
+	["default_wireless_network_config,doc_link"]=""
+	["default_wireless_network_config,status"]="review"
+)
+function default_wireless_network_config(){
+
+	# defaul yaml file
+	local yamlfile=${1:-armbian}
+	local adapter=${2:-wlan0}
+
+	# remove wifi from netplan
+	if [[ -f /etc/netplan/${yamlfile}.yaml ]]; then
+		sed -i -e 'H;x;/^\(  *\)\n\1/{s/\n.*//;x;d;}' -e 's/.*//;x;/'$adapter':/{s/^\( *\).*/ \1/;x;d;}' /etc/netplan/${yamlfile}.yaml
+		sed -i -e 'H;x;/^\(  *\)\n\1/{s/\n.*//;x;d;}' -e 's/.*//;x;/- '$adapter'/{s/^\( *\).*/ \1/;x;d;}' /etc/netplan/${yamlfile}.yaml
+		sed -i -e 'H;x;/^\(  *\)\n\1/{s/\n.*//;x;d;}' -e 's/.*//;x;/wifis:/{s/^\( *\).*/ \1/;x;d;}' /etc/netplan/${yamlfile}.yaml
+	fi
+
+	# remove networkd-dispatcher hook
+	rm -f /etc/networkd-dispatcher/carrier.d/armbian-ap
+	# remove network-manager dispatcher hook
+	rm -f /etc/NetworkManager/dispatcher.d/armbian-ap
+
+	# hostapd needs more cleaning
+	if systemctl is-active hostapd 1> /dev/null; then
+		systemctl stop hostapd 2> /dev/null
+		systemctl disable hostapd 2> /dev/null
+	fi
+
+	# apply config
+	netplan apply
+
+	# exceptions
+	if [[ "${NETWORK_RENDERER}" == "NetworkManager" ]]; then
+			# uninstall packages
+			apt_install_wrapper apt-get -y --no-install-recommends purge hostapd
+			systemctl restart NetworkManager
+		else
+			# uninstall packages
+			apt_install_wrapper apt-get -y --no-install-recommends purge hostapd networkd-dispatcher
+			brctl delif br0 $adapter 2> /dev/null
+			networkctl reconfigure br0
+	fi
+
+}
+
+module_options+=(
+	["connect_bt_interface,author"]="Igor Pecovnik"
+	["connect_bt_interface,ref_link"]=""
+	["connect_bt_interface,feature"]="connect_bt_interface"
+	["connect_bt_interface,desc"]="Migrated procedures from Armbian config."
+	["connect_bt_interface,example"]="connect_bt_interface"
+	["connect_bt_interface,status"]="Active"
+)
+#
+# connect to bluetooth device
+#
+function connect_bt_interface() {
+
+	IFS=$'
+'
+	GLOBIGNORE='*'
+	show_infobox <<< "
+Discovering Bluetooth devices ... "
+	BT_INTERFACES=($(hcitool scan | sed '1d'))
+
+	local LIST=()
+	for i in "${BT_INTERFACES[@]}"; do
+		local a=$(echo ${i[0]//[[:blank:]]/} | sed -e 's/^\(.\{17\}\).*/\1/')
+		local b=${i[0]//$a/}
+		local b=$(echo $b | sed -e 's/^[ 	]*//')
+		LIST+=("$a" "$b")
+	done
+
+	LIST_LENGTH=$((${#LIST[@]} / 2))
+	if [ "$LIST_LENGTH" -eq 0 ]; then
+		BT_ADAPTER=${WLAN_INTERFACES[0]}
+		show_message <<< "
+No nearby Bluetooth devices were found!"
+	else
+		exec 3>&1
+		BT_ADAPTER=$(whiptail --title "Select interface" \
+			--clear --menu "" $((6 + ${LIST_LENGTH})) 50 $LIST_LENGTH "${LIST[@]}" 2>&1 1>&3)
+		exec 3>&-
+		if [[ $BT_ADAPTER != "" ]]; then
+			show_infobox <<< "
+Connecting to $BT_ADAPTER "
+			BT_EXEC=$(
+				expect -c 'set prompt "#";set address '$BT_ADAPTER';spawn bluetoothctl;expect -re $prompt;send "disconnect $address
+";
+			sleep 1;send "remove $address
+";sleep 1;expect -re $prompt;send "scan on
+";sleep 8;send "scan off
+";
+			expect "Controller";send "trust $address
+";sleep 2;send "pair $address
+";sleep 2;send "connect $address
+";
+			send_user "
+Should be paired now.
+";sleep 2;send "quit
+";expect eof'
+			)
+			echo "$BT_EXEC" > /tmp/bt-connect-debug.log
+			if [[ $(echo "$BT_EXEC" | grep "Connection successful") != "" ]]; then
+				show_message <<< "
+Your device is ready to use!"
+			else
+				show_message <<< "
+Error connecting. Try again!"
+			fi
+		fi
+	fi
+
+}
+
+
+module_options+=(
+	["check_ip_version,author"]="Joey Turner"
+	["check_ip_version,ref_link"]=""
+	["check_ip_version,feature"]="check_ip_version"
+	["check_ip_version,desc"]="Check if a domain is reachable via IPv4 and IPv6"
+	["check_ip_version,example"]="check_ip_version google.com"
+	["check_ip_version,status"]="review"
+	["check_ip_version,doc_link"]=""
+)
+#
+#
+#
+check_ip_version() {
+	domain=${1:-armbian.com}
+
+	if ping -c 1 $domain > /dev/null 2>&1; then
+		echo "IPv4"
+	elif ping6 -c 1 $domain > /dev/null 2>&1; then
+		echo "IPv6"
+	else
+		echo "Unreachable"
+	fi
+}
+
