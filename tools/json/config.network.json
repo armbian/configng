@@ -58,7 +58,7 @@
                         "debconf-apt-progress -- apt-get -y install bluetooth bluez bluez-tools",
                         "check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y --no-install-recommends install pulseaudio-module-bluetooth blueman"
                     ],
-                    "status": "",
+                    "status": "Disabled",
                     "author": "@armbian",
                     "condition": "! check_if_installed bluetooth && ! check_if_installed bluez && ! check_if_installed bluez-tools"
                 },
@@ -71,7 +71,7 @@
                         "check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y remove pulseaudio-module-bluetooth blueman",
                         "debconf-apt-progress -- apt -y -qq autoremove"
                     ],
-                    "status": "",
+                    "status": "Disabled",
                     "author": "@armbian",
                     "condition": "check_if_installed bluetooth || check_if_installed bluez || check_if_installed bluez-tools"
                 },

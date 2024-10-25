@@ -13,9 +13,9 @@ trap "exit" INT TERM
 script_dir="$(dirname "$0")"
 
 # Define the lib directory one level up from the script directory
-lib_dir="$script_dir/../lib/armbian-configng"
-doc_dir="$script_dir/../share/doc/armbian-configng"
-json_file="$lib_dir/config.ng.jobs.json"
+lib_dir="$script_dir/../lib/armbian-config"
+doc_dir="$script_dir/../share/doc/armbian-config"
+json_file="$lib_dir/config.jobs.json"
 
 #
 # Load The Bash procedure Objects
@@ -63,7 +63,7 @@ source "$script_dir/../lib/armbian-config/config.runtime.sh"
 
 echo "Loaded Runtime conditions..." #| show_infobox ;
 
-#clear
+clear
 
 case "$1" in
 "--help")
