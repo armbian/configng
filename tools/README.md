@@ -3,51 +3,39 @@
 
 This folder contains scripts for managing files for the armbian-config project.
 
-- [config-jobs](#config-jobs) - Split and rejoin project JSON files
-- [config-markdown.py](#config-dynamic-doc) - Generate documentation for armbian-config based on an external JSON configuration
+- [config-markdown.py](#config-markdown.py) - Generate documentation for armbian-config based on an external JSON configuration
 
 ## Overview
 
 
-### config-jobs
-
-The `config-jobs` script allows you to split a large JSON file into smaller parts or rejoin multiple JSON files into a single file.
-
-#### Dependencies
-
-- [GNU bash](https://www.gnu.org/software/bash/) is required to run the script.
-- [jq](https://stedolan.github.io/jq/) is used for JSON processing.
-
-#### Example Usage
-
-To split a JSON file:
-```
-./config-jobs -s input.json
-```
-
-To join multiple JSON files into a single file:
-```
-./config-jobs -j output.json
-```
-
----
-
-### config-dynamic-doc
+### config-markdown.py
 
 The `config-dynamic-doc` script generates both technical and user-focused Markdown documentation from an external JSON configuration. The generated documentation files are saved in the `docs` directory, with separate Markdown files for each item in the JSON configuration.
 
 #### Usage
-```
-python3 config-dynamic-doc.py
-```
 
-The script expects the JSON file to be located at:
+The script expects the JSON file to be located at `../lib/armbian-config/config.jobs.json`
 ```
-../lib/armbian-configng/config.ng.jobs.json
+python3 config-markdown.py -h
 ```
+```
+Error: The configuration file 'config.jobs.json' was not found.
+Please run 'config_assemble.sh` `-p` or `-t' first.
+```
+or
+```
+python3 config-markdown.py -h
+```
+```
+Usage: config-markdown [-u|-t]
+Options:
+  -u  Generate user documentation
+  -t  Generate technical documentation
+  ```
+
 
 #### What It Does
-- Creates navigation links (table of contents) for all IDs and descriptions.
+- ~~Creates navigation links (table of contents) for all IDs and descriptions.~~
 - Generates technical documentation that includes commands, prompts, conditions, author information, and status.
 - Creates user-focused documentation with simplified instructions.
 - Includes custom header, footer and section image:
@@ -60,13 +48,8 @@ The script expects the JSON file to be located at:
 
 #### Dependencies
 
-- [Python 3](https://www.python.org/) with the standard libraries `json` and `os`.
+- [Python 3](https://www.python.org/) with the standard libraries `json`, `sys`, `argparse`, and `os`.
 
 #### Example Usage
-
-To generate Markdown documentation:
-```
-python3 config-dynamic-doc.py
-```
 
 Markdown files will be created in the `docs` directory.
