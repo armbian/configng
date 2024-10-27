@@ -18,8 +18,8 @@ echo "Usage: $0 [OPTIONS]"
 echo "Options:"
 echo "  -h Display this help message"
 echo "  -s <input_file>   Split JSON file into smaller parts"
-echo "  -p Join multiple JSON files into one for production"
-echo "  -t Join multiple JSON files into one for testing"
+echo "  -p Assembe module and jobs for production"
+echo "  -t Assembe module and jobs  for testing"
 
 }
 
@@ -215,10 +215,12 @@ case "$1" in
 			merge_modules
 			echo "Processing JSON files, please wait..."
 			join_json_production "$2"
+			./tools/config-markdown.py -u
 		else
 			merge_modules
 			echo "Processing JSON files, please wait..."
 			join_json_production "$DEFAULT_FILE"
+			./tools/config-markdown.py -u
 		fi
 
 
@@ -232,5 +234,6 @@ case "$1" in
 		exit 1
 	;;
 esac
+
 
 exit 0
