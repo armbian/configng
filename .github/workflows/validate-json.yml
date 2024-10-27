@@ -21,7 +21,7 @@ jobs:
 
       - name: Check JSON
         run: |
-          JSON=$(cat config/lib/armbian-configng/config.ng.jobs.json | jq)
-          EMPTY=$(cat config/lib/armbian-configng/config.ng.jobs.json | jq | nl | grep '"author": ""' | awk '{print $1}' | paste -s -d, -)
+          JSON=$(cat config/lib/armbian-config/config.jobs.json | jq)
+          EMPTY=$(cat config/lib/armbian-config/config.jobs.json | jq | nl | grep '"author": ""' | awk '{print $1}' | paste -s -d, -)
           echo "## Warning: Empty author field in lines:" >> $GITHUB_STEP_SUMMARY
           echo $EMPTY >> $GITHUB_STEP_SUMMARY
