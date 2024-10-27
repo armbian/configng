@@ -129,6 +129,7 @@ jobs:
             # install packages / except howdy as its too large
             export DEBIAN_FRONTEND=noninteractive
             cd config
+            bash tools/config-assemble.sh -p
             #eval $"( "${PREINSTALL}" )"
             eval "$PREINSTALL"
             sudo bash bin/armbian-config --cmd "$TEST_ID"
