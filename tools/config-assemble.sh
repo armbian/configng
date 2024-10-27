@@ -154,18 +154,18 @@ function join_json_production() {
 		"Help"
 	)
 
-	# Function to recursively filter out disabled items
-	filter_disabled() {
-	jq 'walk(
-		if type == "object" and has("status") and .status == "Disabled" then
-		empty
-		else
-		.
-		end
-	)'
-    }
+		# Function to recursively filter out disabled items
+		filter_disabled() {
+		jq 'walk(
+			if type == "object" and has("status") and .status == "Disabled" then
+			empty
+			else
+			.
+			end
+		)'
+		}
 
-    # Loop through ordered IDs to extract menu items in the correct order
+	# Loop through ordered IDs to extract menu items in the correct order
 	for id in "${ordered_ids[@]}"; do
 		for file in "$input_dir"/*.json; do
 			if [[ -f "$file" ]]; then
@@ -178,13 +178,13 @@ function join_json_production() {
 		done
 	done
 
-    # Construct the final JSON structure
-    final_json=$(jq -n --argjson menu "$merged_json" '{"menu": $menu}')
+	# Construct the final JSON structure
+	final_json=$(jq -n --argjson menu "$merged_json" '{"menu": $menu}')
 
-    # Write the final JSON structure to a file
-    echo "$final_json" | jq --indent 4 '.' > "$output_file"
+	# Write the final JSON structure to a file
+	echo "$final_json" | jq --indent 4 '.' > "$output_file"
 
-    echo "JSON files rejoined into '$output_file'."
+	echo "JSON files rejoined into '$output_file'."
 }
 
 
