@@ -3,4 +3,4 @@
 # Ignore the todo directory
 
 # lib output
-#/lib/
+/lib/
