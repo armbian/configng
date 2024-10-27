@@ -2,27 +2,45 @@
 
 
 This folder contains scripts for managing files for the armbian-config project.
-
-- [config-markdown.py](#config-markdown.py) - Generate documentation for armbian-config based on an external JSON configuration
-
+- [config-assemble.sh](#config-assemble.sh)
+- [config-markdown.py](#config-markdown.py)
 ## Overview
 
+### **config-assemble.sh**
 
-### config-markdown.py
+The `config-assemble.sh` script is used to manage and assemble module files for the armbian-config project. This script includes functionality assemble modules and jobs for production or testing.
+
+#### Usage
+
+To run the script, use the following command:
+
+```sh
+./tools/config-assemble.sh -h
+```
+
+```sh
+Options:
+  -h Display this help message
+  -s <input_file>   Split JSON file into smaller parts
+  -p Assembe module and jobs for production
+  -t Assembe module and jobs  for testing
+```
+
+### **config-markdown.py**
 
 The `config-dynamic-doc` script generates both technical and user-focused Markdown documentation from an external JSON configuration. The generated documentation files are saved in the `docs` directory, with separate Markdown files for each item in the JSON configuration.
 
 #### Usage
-
-The script expects the JSON file to be located at `../lib/armbian-config/config.jobs.json`
 ```
 python3 config-markdown.py -h
 ```
+The script expects the JSON file to be located at `../lib/armbian-config/config.jobs.json`
+
 ```
 Error: The configuration file 'config.jobs.json' was not found.
 Please run 'config_assemble.sh` `-p` or `-t' first.
 ```
-or
+
 ```
 python3 config-markdown.py -h
 ```
