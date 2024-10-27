@@ -190,47 +190,47 @@ function join_json_production() {
 
 # Main script logic with case statement
 case "$1" in
-    -s)
-        if [[ -z "$2" ]]; then
-		echo "Error: Missing arguments for -s option."
+	-s)
+		if [[ -z "$2" ]]; then
+			echo "Error: Missing arguments for -s option."
+			print_help
+			exit 1
+		fi
+		split_json "$2"
+	;;
+	-t)
+		if [[ -n "$2" ]]; then
+			merge_modules
+			echo "Processing JSON files, please wait..."
+			join_json_testing "$2"
+		else
+			merge_modules
+			echo "Processing JSON files, please wait..."
+			join_json_testing "$DEFAULT_FILE"
+		fi
+
+	;;
+	-p)
+		if [[ -n "$2" ]]; then
+			merge_modules
+			echo "Processing JSON files, please wait..."
+			join_json_production "$2"
+		else
+			merge_modules
+			echo "Processing JSON files, please wait..."
+			join_json_production "$DEFAULT_FILE"
+		fi
+
+
+	;;
+	-h)
+		print_help
+	;;
+	*)
+		echo "Error: Invalid option."
 		print_help
 		exit 1
-        fi
-        split_json "$2"
-        ;;
-    -t)
-        if [[ -n "$2" ]]; then
-		merge_modules
-		echo "Processing JSON files, please wait..."
-		join_json_testing "$2"
-        else
-		merge_modules
-		echo "Processing JSON files, please wait..."
-		join_json_testing "$DEFAULT_FILE"
-        fi
-
-        ;;
-    -p)
-        if [[ -n "$2" ]]; then
-		merge_modules
-		echo "Processing JSON files, please wait..."
-		join_json_production "$2"
-        else
-		merge_modules
-		echo "Processing JSON files, please wait..."
-		join_json_production "$DEFAULT_FILE"
-        fi
-
-
-        ;;
-    -h)
-        print_help
-        ;;
-    *)
-        echo "Error: Invalid option."
-        print_help
-        exit 1
-        ;;
+	;;
 esac
 
 exit 0
