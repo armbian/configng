@@ -11,7 +11,7 @@ from pathlib import Path
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Construct the path to the external JSON file (e.g., 'config.ng.jobs.json')
-json_path = os.path.join(script_dir, '..', 'lib', 'armbian-configng', 'config.ng.jobs.json')
+json_path = os.path.join(script_dir, '..', 'lib', 'armbian-config', 'config.jobs.json')
 
 # Load the JSON data from the external file
 with open(json_path, 'r') as json_file:
