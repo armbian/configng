@@ -11,7 +11,8 @@ DEFAULT_DIR="$SCRIPT_DIR/json"
 # Define the module source and destination directories
 SRC_DIR="$SCRIPT_DIR/modules"
 DEST_DIR="$SCRIPT_DIR/../lib/armbian-config"
-
+# change to the script directory
+cd "$SCRIPT_DIR"/..
 # Function to display the help message
 print_help() {
 echo "Usage: $0 [OPTIONS]"
@@ -199,15 +200,16 @@ case "$1" in
 	;;
 	-t)
 		if [[ -n "$2" ]]; then
+			cd "$SCRIPT_DIR"/..
 			merge_modules
 			echo "Processing JSON files, please wait..."
 			join_json_testing "$2"
-			./tools/config-markdown.py -t
+			"$SCRIPT_DIR"/config-markdown.py -t
 		else
 			merge_modules
 			echo "Processing JSON files, please wait..."
 			join_json_testing "$DEFAULT_FILE"
-			./tools/config-markdown.py -t
+			"$SCRIPT_DIR"/config-markdown.py -t
 		fi
 
 	;;
@@ -216,12 +218,12 @@ case "$1" in
 			merge_modules
 			echo "Processing JSON files, please wait..."
 			join_json_production "$2"
-			./tools/config-markdown.py -u
+			"$SCRIPT_DIR"/config-markdown.py -u
 		else
 			merge_modules
 			echo "Processing JSON files, please wait..."
 			join_json_production "$DEFAULT_FILE"
-			./tools/config-markdown.py -u
+			"$SCRIPT_DIR"/config-markdown.py -u
 		fi
 
 
