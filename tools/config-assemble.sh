@@ -203,10 +203,12 @@ case "$1" in
 			merge_modules
 			echo "Processing JSON files, please wait..."
 			join_json_testing "$2"
+			./tools/config-markdown.py -t
 		else
 			merge_modules
 			echo "Processing JSON files, please wait..."
 			join_json_testing "$DEFAULT_FILE"
+			./tools/config-markdown.py -t
 		fi
 
 	;;
