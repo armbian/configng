@@ -17,7 +17,6 @@ print_help() {
 echo "Usage: $0 [OPTIONS]"
 echo "Options:"
 echo "  -h Display this help message"
-echo "  -s <input_file>   Split JSON file into smaller parts"
 echo "  -p Assembe module and jobs for production"
 echo "  -t Assembe module and jobs  for testing"
 
