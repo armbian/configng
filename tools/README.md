@@ -21,7 +21,6 @@ To run the script, use the following command:
 ```sh
 Options:
   -h Display this help message
-  -s <input_file>   Split JSON file into smaller parts
   -p Assembe module and jobs for production
   -t Assembe module and jobs  for testing
 ```
