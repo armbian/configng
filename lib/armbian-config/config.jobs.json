@@ -397,6 +397,53 @@
                             "condition": "[ -f /etc/netplan/armbian.yaml ] && [ netplan status 2>/dev/null ]"
                         }
                     ]
+                },
+                {
+                    "id": "NE101",
+                    "description": "Install Bluetooth support",
+                    "command": [
+                        "see_current_apt ",
+                        "debconf-apt-progress -- apt-get -y install bluetooth bluez bluez-tools",
+                        "check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y --no-install-recommends install pulseaudio-module-bluetooth blueman"
+                    ],
+                    "status": "Disabled",
+                    "author": "@armbian",
+                    "condition": "! check_if_installed bluetooth && ! check_if_installed bluez && ! check_if_installed bluez-tools"
+                },
+                {
+                    "id": "NE102",
+                    "description": "Remove Bluetooth support",
+                    "command": [
+                        "see_current_apt ",
+                        "debconf-apt-progress -- apt-get -y remove bluetooth bluez bluez-tools",
+                        "check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y remove pulseaudio-module-bluetooth blueman",
+                        "debconf-apt-progress -- apt -y -qq autoremove"
+                    ],
+                    "status": "Disabled",
+                    "author": "@armbian",
+                    "condition": "check_if_installed bluetooth || check_if_installed bluez || check_if_installed bluez-tools"
+                },
+                {
+                    "id": "NE103",
+                    "description": "Bluetooth Discover",
+                    "about": "This will enable bluetooth and discover devices\n",
+                    "command": [
+                        "connect_bt_interface"
+                    ],
+                    "status": "Disabled",
+                    "author": "@armbian",
+                    "condition": "check_if_installed bluetooth || check_if_installed bluez || check_if_installed bluez-tools"
+                },
+                {
+                    "id": "NE104",
+                    "description": "Toggle system IPv6/IPv4 internet protocol",
+                    "about": "This will toggle your internet protocol",
+                    "command": [
+                        "toggle_ipv6 | show_infobox"
+                    ],
+                    "status": "Disabled",
+                    "author": "@armbian",
+                    "condition": ""
                 }
             ]
         },
@@ -432,6 +479,16 @@
                         "update-initramfs -u"
                     ],
                     "status": "Stable",
+                    "author": "@armbian"
+                },
+                {
+                    "id": "LO004",
+                    "description": "Change APT mirrors",
+                    "about": "This will change the APT mirrors",
+                    "command": [
+                        "get_user_continue \"This is only a frontend test\" process_input"
+                    ],
+                    "status": "Disabled",
                     "author": "@armbian"
                 },
                 {
@@ -547,6 +604,53 @@
                             ]
                         },
                         {
+                            "id": "I3WM",
+                            "description": "i3-wm desktop",
+                            "status": "Disabled",
+                            "sub": [
+                                {
+                                    "id": "I3WM01",
+                                    "description": "i3 desktop Install",
+                                    "command": [
+                                        "manage_desktops 'i3-wm' 'install'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ ! -f /usr/share/xsessions/i3.desktop ]"
+                                },
+                                {
+                                    "id": "I3WM02",
+                                    "description": "i3 desktop uninstall",
+                                    "command": [
+                                        "manage_desktops 'i3-wm' 'uninstall'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/i3.desktop ]"
+                                },
+                                {
+                                    "id": "I3WM03",
+                                    "description": "Enable autologin",
+                                    "command": [
+                                        "manage_desktops 'i3-wm' 'auto'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/i3.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                },
+                                {
+                                    "id": "I3WM04",
+                                    "description": "Disable autologin",
+                                    "command": [
+                                        "manage_desktops 'i3-wm' 'manual'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/i3.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                }
+                            ]
+                        },
+                        {
                             "id": "Cinnamon",
                             "description": "Cinnamon desktop",
                             "sub": [
@@ -589,6 +693,53 @@
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
                                     "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "KDEN",
+                            "description": "Kde-neon desktop",
+                            "status": "Disabled",
+                            "sub": [
+                                {
+                                    "id": "KDENEON01",
+                                    "description": "Kde-neon desktop Install",
+                                    "command": [
+                                        "manage_desktops 'kde-neon' 'install'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ ! -f /usr/share/xsessions/gnome.desktop ]"
+                                },
+                                {
+                                    "id": "KDENEON02",
+                                    "description": "Uninstall",
+                                    "command": [
+                                        "manage_desktops 'kde-neon' 'uninstall'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ]"
+                                },
+                                {
+                                    "id": "KDENEON03",
+                                    "description": "Enable autologin",
+                                    "command": [
+                                        "manage_desktops 'kde-neon' 'auto'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                },
+                                {
+                                    "id": "KDENEON04",
+                                    "description": "Disable autologin",
+                                    "command": [
+                                        "manage_desktops 'kde-neon' 'manual'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
                                 }
                             ]
                         },
@@ -907,6 +1058,15 @@
                         "show_message <<< $(about_armbian_configng)"
                     ],
                     "status": "Stable",
+                    "author": "@armbian"
+                },
+                {
+                    "id": "HE002",
+                    "description": "List of Config function(WIP)",
+                    "command": [
+                        "show_message <<< see_use"
+                    ],
+                    "status": "Disabled",
                     "author": "@armbian"
                 }
             ]
