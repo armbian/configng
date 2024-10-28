@@ -18,6 +18,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Make docs
         run: |
+        
+          tools/config-assemble.sh -p
           bin/armbian-config --doc
 
       - name: Join JSON
