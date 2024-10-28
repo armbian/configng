@@ -139,6 +139,8 @@ sudo armbian-config
     - ### Install Docker Engine
     - ### Remove Docker
     - ### Purge all Docker images, containers, and volumes
+    - ### Install Portainer
+    - ### Remove Portainer
 
 
   - ### Media Servers and Editors
@@ -192,7 +194,7 @@ armbian-config --help
 Outputs:
 ~~~
 
-  System - System wide and admin settings (aarch64)
+  System - System wide and admin settings (x86_64)
     --cmd SY001 - Enable Armbian firmware upgrades
     --cmd SY002 - Disable Armbian kernel upgrades
     --cmd SY003 - Edit the boot environment
@@ -225,14 +227,14 @@ Outputs:
 	--cmd SY102 - Upgrade to rolling unstable
     --cmd SY017 - Manage device tree overlays
 
-  Network - Fixed and wireless network settings (wlan0)
+  Network - Fixed and wireless network settings (eth0)
     NE001 - Configure network interfaces
 	--cmd NE002 - Add / change interface
 	--cmd NE003 - Revert to Armbian defaults
 	--cmd NE004 - Show configuration
 	--cmd NE005 - Show active status
 
-  Localisation - Localisation (en_US.UTF-8)
+  Localisation - Localisation (C.UTF-8)
     --cmd LO001 - Change Global timezone
     --cmd LO002 - Change Locales reconfigure the language and character set
     --cmd LO003 - Change Keyboard layout
@@ -274,6 +276,8 @@ Outputs:
 	--cmd CON002 - Install Docker Engine
 	--cmd CON003 - Remove Docker
 	--cmd CON004 - Purge all Docker images, containers, and volumes
+	--cmd CON004 - Install Portainer
+	--cmd CON005 - Remove Portainer
     Media - Media Servers and Editors
 	--cmd MED001 - Install Plex Media server
 	--cmd MED002 - Remove Plex Media server
@@ -699,7 +703,7 @@ These helper functions facilitate various operations related to job management, 
 | freeze, unhold, reinstall armbian related packages. | armbian_fw_manipulate unhold/freeze/reinstall | @igorpecovnik 
 | Check the internet connection with fallback DNS | see_ping | @Tearran 
 | Upgrade to next stable or rolling release | release_upgrade stable verify | @igorpecovnik 
-| Update the /etc/skel files in users directories | update_skel | @igorpecovnik 
+| Install/uninstall/check status of portainer container | module_portainer install|uninstall|status | @armbian 
 | change_system_hostname | change_system_hostname | @igorpecovnik 
 | Set Armbian to stable release | set_stable | @Tearran 
 | Secure version of get_user_continue | get_user_continue_secure 'Do you wish to continue?' process_input | @Tearran 
