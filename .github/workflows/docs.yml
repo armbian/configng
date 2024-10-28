@@ -16,16 +16,14 @@ jobs:
 
       - name: Checkout build repo
         uses: actions/checkout@v4
+
+      - name: Assemble module and jobs for production
+        run: |
+          tools/config-assemble.sh -p
+        
       - name: Make docs
         run: |
-        
-          tools/config-assemble.sh -p
           bin/armbian-config --doc
-
-      - name: Join JSON
-        run: |
-
-          tools/config-jobs -p lib/armbian-configng/config.ng.jobs.json
 
       - name: Create Pull Request
         id: cpr
