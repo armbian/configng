@@ -79,8 +79,8 @@ case "$1" in
 	exit 0
 	;;
 "--doc")
-generate_readme
-exit 0
+	generate_readme
+	exit 0
 	;;
 "--cmd")
 	INPUTMODE="cmd"
