@@ -680,7 +680,30 @@ These helper functions facilitate various operations related to job management, 
 | Generate jobs from JSON file. | generate_jobs_from_json | @Tearran 
 | Install kernel headers | is_package_manager_running | @Tearran 
 | Toggle IPv6 on or off | toggle_ipv6 | @Tearran 
-| Adjust welcome screen (motd) | adjust_motd clear\header\sysinfo	ips
+| Adjust welcome screen (motd) | adjust_motd clear, header, sysinfo, tips, commands | @igorpecovnik 
+| Generate JSON-like object file. | generate_json | @Tearran 
+| Install wrapper | apt_install_wrapper apt-get -y purge armbian-zsh | @igorpecovnik 
+| Netplan wrapper | network_config | @igorpecovnik 
+| Change the background color of the terminal or dialog box | set_colors 0-7 | @Tearran 
+| Show general information about this tool | about_armbian_configng | @igorpecovnik 
+| Serve the edit and debug server. | serve_doc | @Tearran 
+| Update JSON data with system information | update_json_data | @Tearran 
+| pipeline strings to an infobox  | show_infobox <<< 'hello world' ;  | @Tearran 
+| Stop hostapd, clean config | default_wireless_network_config | @igorpecovnik 
+| Update sub-submenu descriptions based on conditions | update_sub_submenu_data "MenuID" "SubID" "SubSubID" "CMD" | @Tearran 
+| Parse json to get list of desired menu or submenu items | parse_menu_items 'menu_options_array' | @viraniac 
+| Show the usage of the functions. | see_use | @Tearran 
+| Install Desktop environment | manage_desktops xfce install | @igorpecovnik 
+| Generate a Help message for cli commands. | see_cmd_list [catagory] | @Tearran 
+| Revert network config back to Armbian defaults | default_network_config | @igorpecovnik 
+| freeze, unhold, reinstall armbian related packages. | armbian_fw_manipulate unhold/freeze/reinstall | @igorpecovnik 
+| Check the internet connection with fallback DNS | see_ping | @Tearran 
+| Upgrade to next stable or rolling release | release_upgrade stable verify | @igorpecovnik 
+| Update the /etc/skel files in users directories | update_skel | @igorpecovnik 
+| change_system_hostname | change_system_hostname | @igorpecovnik 
+| Set Armbian to stable release | set_stable | @Tearran 
+| Secure version of get_user_continue | get_user_continue_secure 'Do you wish to continue?' process_input | @Tearran 
+| Install plexmediaserver from repo using apt | install_plexmediaserver | @schwar3kat 
 
 
 </details>
