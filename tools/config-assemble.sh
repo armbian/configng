@@ -18,8 +18,8 @@ print_help() {
 echo "Usage: $0 [OPTIONS]"
 echo "Options:"
 echo "  -h Display this help message"
-echo "  -p Assembe module and jobs for production"
-echo "  -t Assembe module and jobs  for testing"
+echo "  -p Assemble module and jobs for production"
+echo "  -t Assemble module and jobs  for testing"
 
 }
 
