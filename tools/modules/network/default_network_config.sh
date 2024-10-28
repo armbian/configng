@@ -5,7 +5,6 @@ module_options+=(
 	["default_network_config,feature"]="default_network_config"
 	["default_network_config,desc"]="Revert network config back to Armbian defaults"
 	["default_network_config,example"]="default_network_config"
-	["default_network_config,doc_link"]=""
 	["default_network_config,status"]="review"
 )
 #

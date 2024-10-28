@@ -1,10 +1,10 @@
 module_options+=(
-	["update_skel,author"]="@schwar3kat"
-	["update_skel,ref_link"]=""
-	["update_skel,feature"]="install_plexmediaserver"
-	["update_skel,desc"]="Install plexmediaserver from repo using apt"
-	["update_skel,example"]="install_plexmediaserver"
-	["update_skel,status"]="Active"
+	["install_plexmediaserver,author"]="@schwar3kat"
+	["install_plexmediaserver,ref_link"]=""
+	["install_plexmediaserver,feature"]="install_plexmediaserver"
+	["install_plexmediaserver,desc"]="Install plexmediaserver from repo using apt"
+	["install_plexmediaserver,example"]="install_plexmediaserver"
+	["install_plexmediaserver,status"]="Active"
 )
 #
 # Install plexmediaserver using apt

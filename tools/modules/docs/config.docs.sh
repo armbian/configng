@@ -4,12 +4,11 @@
 
 module_options+=(
 	["generate_readme,author"]="@Tearran"
-	["generate_readme,ref_link"]="#L17"
+	["generate_readme,ref_link"]=""
 	["generate_readme,feature"]="generate_readme"
 	["generate_readme,desc"]="Generate Document files."
 	["generate_readme,example"]="generate_readme"
 	["generate_readme,status"]="review"
-	["generate_readme,doc_link"]=""
 )
 #
 # Function to generate the README.md file

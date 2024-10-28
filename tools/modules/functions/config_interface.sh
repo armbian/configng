@@ -113,7 +113,6 @@ module_options+=(
 	["generate_top_menu,feature"]="generate_top_menu"
 	["generate_top_menu,desc"]="Build the main menu from a object"
 	["generate_top_menu,example"]="generate_top_menu 'json_data'"
-	["generate_top_menu,doc_link"]=""
 	["generate_top_menu,status"]="Active"
 )
 #
@@ -143,12 +142,11 @@ generate_top_menu() {
 }
 
 module_options+=(
-	["generate_menu,author"]="Tearran"
+	["generate_menu,author"]="@Tearran"
 	["generate_menu,ref_link"]=""
 	["generate_menu,feature"]="generate_menu"
 	["generate_menu,desc"]="Generate a submenu from a parent_id"
 	["generate_menu,example"]="generate_menu 'parent_id'"
-	["generate_menu,doc_link"]=""
 	["generate_menu,status"]="Active"
 )
 #
@@ -194,7 +192,7 @@ module_options+=(
 	["execute_command,ref_link"]=""
 	["execute_command,feature"]="execute_command"
 	["execute_command,desc"]="Needed by generate_menu"
-	["execute_command,example"]=""
+	["execute_command,example"]="execute_command 'id'"
 	["execute_command,doc_link"]=""
 	["execute_command,status"]="Active"
 )
@@ -420,7 +418,7 @@ module_options+=(
 	["see_current_apt,ref_link"]=""
 	["see_current_apt,feature"]="see_current_apt"
 	["see_current_apt,desc"]="Check when apt list was last updated and suggest updating or update"
-	["see_current_apt,example"]="see_current_apt || see_current_apt update"
+	["see_current_apt,example"]="see_current_apt or see_current_apt update"
 	["see_current_apt,doc_link"]=""
 	["see_current_apt,status"]="Active"
 )
@@ -469,13 +467,12 @@ see_current_apt() {
 
 
 module_options+=(
-	["sanitize_input,author"]=""
+	["sanitize_input,author"]="@Tearran"
 	["sanitize_input,ref_link"]=""
 	["sanitize_input,feature"]="sanitize_input"
 	["sanitize_input,desc"]="sanitize input cli"
 	["sanitize_input,example"]="sanitize_input"
-	["sanitize_input,status"]="Pending Review"
-	["sanitize_input,doc_link"]=""
+	["sanitize_input,status"]="Review"
 )
 #
 # sanitize input cli
