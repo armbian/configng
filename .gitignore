@@ -1,6 +1,6 @@
 # docs output
-/docs/
+#/docs/
 # Ignore the todo directory
 
 # lib output
-/lib/
+#/lib/
