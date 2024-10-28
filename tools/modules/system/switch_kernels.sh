@@ -1,9 +1,9 @@
 module_options+=(
 	["switch_kernels,author"]="@igorpecovnik"
 	["switch_kernels,ref_link"]=""
-	["switch_kernels,feature"]=""
+	["switch_kernels,feature"]="switch_kernels"
 	["switch_kernels,desc"]="Switching to alternative kernels"
-	["switch_kernels,example"]=""
+	["switch_kernels,example"]="switch_kernels"
 	["switch_kernels,status"]="Active"
 )
 #

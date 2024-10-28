@@ -3,7 +3,7 @@ module_options+=(
 	["manage_overlayfs,ref_link"]=""
 	["manage_overlayfs,feature"]="overlayfs"
 	["manage_overlayfs,desc"]="Set Armbian root filesystem to read only"
-	["manage_overlayfs,example"]="manage_overlayfs enable|disable"
+	["manage_overlayfs,example"]="manage_overlayfs enable/disable"
 	["manage_overlayfs,status"]="Active"
 )
 #

@@ -1,11 +1,11 @@
 
 module_options+=(
-	["update_skel,author"]="@schwar3kat"
-	["update_skel,ref_link"]=""
-	["update_skel,feature"]="install_docker"
-	["update_skel,desc"]="Install docker from a repo using apt"
-	["update_skel,example"]="install_docker engine"
-	["update_skel,status"]="Active"
+	["install_docker,author"]="@schwar3kat"
+	["install_docker,ref_link"]=""
+	["install_docker,feature"]="install_docker"
+	["install_docker,desc"]="Install docker from a repo using apt"
+	["install_docker,example"]="install_docker engine"
+	["install_docker,status"]="Active"
 )
 #
 # Install Docker from repo using apt
