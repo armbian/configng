@@ -1,11 +1,12 @@
 
 module_options+=(
-	["adjust_motd,author"]="@igorpecovnik"
-	["adjust_motd,ref_link"]="adjust_motd"
-	["adjust_motd,feature"]="Adjust motd"
-	["adjust_motd,desc"]="Adjust welcome screen (motd)"
-	["adjust_motd,example"]="adjust_motd clear\header\sysinfo\tips\commands"
-	["adjust_motd,status"]="Active"
+
+["adjust_motd,author"]="@igorpecovnik"
+["adjust_motd,ref_link"]=""
+["adjust_motd,feature"]="about_armbian_configng"
+["adjust_motd,desc"]="Adjust welcome screen (motd)"
+["adjust_motd,example"]="adjust_motd clear, header, sysinfo, tips, commands"
+["adjust_motd,status"]="Active"
 )
 #
 # @description Toggle message of the day items
