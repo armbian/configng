@@ -441,7 +441,7 @@
                             "condition": "! check_if_installed docker-ce && [ -d /var/lib/docker ]"
                         },
                         {
-                            "id": "CON004",
+                            "id": "CON005",
                             "description": "Install Portainer",
                             "prompt": "This operation will install Portainer.\nWould you like to continue?",
                             "command": ["module_portainer install"],
@@ -450,7 +450,7 @@
                             "condition": "! module_portainer status"
                         },
                         {
-                            "id": "CON005",
+                            "id": "CON006",
                             "description": "Remove Portainer",
                             "prompt": "This operation will delete Portainer container.\nWould you like to continue?",
                             "command": ["module_portainer uninstall"],
