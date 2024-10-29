@@ -276,8 +276,8 @@ Outputs:
 	--cmd CON002 - Install Docker Engine
 	--cmd CON003 - Remove Docker
 	--cmd CON004 - Purge all Docker images, containers, and volumes
-	--cmd CON004 - Install Portainer
-	--cmd CON005 - Remove Portainer
+	--cmd CON005 - Install Portainer
+	--cmd CON006 - Remove Portainer
     Media - Media Servers and Editors
 	--cmd MED001 - Install Plex Media server
 	--cmd MED002 - Remove Plex Media server
