@@ -21,6 +21,7 @@ jobs:
       homepage: "https://www.armbian.com"
       section: "default"
       priority: "optional"
+      compile: "tools/config-assemble.sh -p"
       depends: "bash, jq, whiptail, sudo, procps, systemd, lsb-release, iproute2"
       description: "Armbian config: The Next Generation"
 
