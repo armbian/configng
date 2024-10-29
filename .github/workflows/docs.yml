@@ -40,7 +40,7 @@ jobs:
             Generate:
 
             - [DOCUMENTATION.md](${{ github.event.repository.html_url }}/blob/main/DOCUMENTATION.md)
-            - Join [JSON parts](${{ github.event.repository.html_url }}/tree/main/tools/json/) to [common runtime JSON file](${{ github.event.repository.html_url }}/blob/main/lib/armbian-configng/config.ng.jobs.json)
+            - Join [JSON parts](${{ github.event.repository.html_url }}/tree/main/tools/json/) to [common runtime JSON file](${{ github.event.repository.html_url }}/blob/main/lib/armbian-config/config.jobs.json)
 
           labels: |
             Needs review
