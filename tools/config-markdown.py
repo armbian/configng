@@ -104,7 +104,7 @@ def create_markdown_user(item, level=1):
     if header_include.is_file():
         user_content +="\n<!--- header START from tools/include/markdown/"+item['id']+"-header.md --->\n"
         with open(header_include, 'r') as file:
-            user_content += f""+file.read().replace('\n', '')+"\n"
+            user_content += f""+file.read()+"\n"
             user_content +="<!--- header STOP from tools/include/markdown/"+item['id']+"-header.md --->\n\n"
 
     if 'about' in item and item['about']:
@@ -123,8 +123,8 @@ def create_markdown_user(item, level=1):
     if footer_include.is_file():
         user_content +="\n<!--- footer START from tools/include/markdown/"+item['id']+"-footer.md --->\n"
         with open(footer_include, 'r') as file:
-            user_content += f""+file.read().replace('\n', '')+"\n"
-            user_content +="<!--- footer STOP from tools/include/markdown/"+item['id']+"-header.md --->\n\n"
+            user_content += f""+file.read()+"\n"
+            user_content +="<!--- footer STOP from tools/include/markdown/"+item['id']+"-footer.md --->\n\n"
 
     user_content += '\n\n***\n\n'  # Add extra line for spacing
     
