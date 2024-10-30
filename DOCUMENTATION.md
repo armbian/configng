@@ -670,6 +670,7 @@ These helper functions facilitate various operations related to job management, 
 | Show or generate QR code for Google OTP | qr_code generate | @igorpecovnik 
 | Check if kernel headers are installed | are_headers_installed | @viraniac 
 | Check when apt list was last updated and suggest updating or update | see_current_apt or see_current_apt update | @Tearran 
+| Install/uninstall/check status of portainer container | module_portainer install|uninstall|status | @armbian 
 | Migrated procedures from Armbian config. | check_if_installed nano | @armbian 
 | Generate 'Armbian CPU logo' SVG for document file. | generate_svg | @Tearran 
 | Remove Linux headers | Headers_remove | @Tearran 
@@ -703,7 +704,7 @@ These helper functions facilitate various operations related to job management, 
 | freeze, unhold, reinstall armbian related packages. | armbian_fw_manipulate unhold/freeze/reinstall | @igorpecovnik 
 | Check the internet connection with fallback DNS | see_ping | @Tearran 
 | Upgrade to next stable or rolling release | release_upgrade stable verify | @igorpecovnik 
-| Install/uninstall/check status of portainer container | module_portainer install|uninstall|status | @armbian 
+| Update the /etc/skel files in users directories | update_skel | @igorpecovnik 
 | change_system_hostname | change_system_hostname | @igorpecovnik 
 | Set Armbian to stable release | set_stable | @Tearran 
 | Secure version of get_user_continue | get_user_continue_secure 'Do you wish to continue?' process_input | @Tearran 
