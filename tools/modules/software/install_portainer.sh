@@ -1,10 +1,10 @@
 module_options+=(
-	["update_skel,author"]="@armbian"
-	["update_skel,ref_link"]=""
-	["update_skel,feature"]="module_portainer"
-	["update_skel,desc"]="Install/uninstall/check status of portainer container"
-	["update_skel,example"]="module_portainer install|uninstall|status"
-	["update_skel,status"]="Active"
+	["module_portainer,author"]="@armbian"
+	["module_portainer,ref_link"]=""
+	["module_portainer,feature"]="module_portainer"
+	["module_portainer,desc"]="Install/uninstall/check status of portainer container"
+	["module_portainer,example"]="module_portainer install|uninstall|status"
+	["module_portainer,status"]="Active"
 )
 #
 # Install portainer container
