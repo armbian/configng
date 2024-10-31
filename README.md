@@ -31,7 +31,17 @@ This tool is tailored to works best with [**Armbian Linux**](https://www.armbian
 ## Getting Started
 We expect to deploy this tool in production with the upcoming release. Your help with testing and completion is invaluable!
 
-### Add / Install from Development Repository
+### Clone and run
+Run the following commands in your terminal:
+
+```bash
+git clone https://github.com/armbian/configng
+cd configng
+tools/config-assemble.sh -p # Use -t for testing
+sudo bin/armbian-config
+```
+
+### Install from Development Repository
 Run the following commands in your terminal:
 
 ```bash
@@ -42,7 +52,7 @@ sudo apt -y install armbian-config
 
 ## Contributing
 
-Contributions are welcome! Please refer to [CONTRIBUTING.md](https://github.com/armbian/build/blob/main/CONTRIBUTING.md) for guidelines.
+Contributions are welcome! Please refer to [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## Support Us
 
