@@ -27,16 +27,16 @@ openhab() {
 			# Optional preinstall top 10 tools
 			apt_install_wrapper apt-get -y install zulu17-jdk
 			apt_install_wrapper apt-get -y install openhab openhab-addons
-			systemctl daemon-reload
-			systemctl enable openhab.service
-			systemctl start openhab.service
+			systemctl daemon-reload 2> /dev/null
+			systemctl enable openhab.service 2> /dev/null
+			systemctl start openhab.service 2> /dev/null
 
 			;;
 
 		uninstall)
 
 			apt_install_wrapper apt-get -y remove zulu17-jdk openhab openhab-addons
-			systemctl disable openhab.service
+			systemctl disable openhab.service 2> /dev/null
 			rm -f /usr/share/keyrings/openhab.gpg /usr/share/keyrings/azul.gpg
 			rm -f /etc/apt/sources.list.d/zulu.list /etc/apt/sources.list.d/openhab.list
 

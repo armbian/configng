@@ -7,11 +7,12 @@
                 {
                     "id": "Desktops",
                     "description": "Desktop Environments",
-                    "status": "Disabled",
+                    "status": "Stable",
                     "sub": [
                         {
                             "id": "XFCE",
                             "description": "XFCE desktop",
+                            "status": "Disabled",
                             "sub": [
                                 {
                                     "id": "XFCE01",
@@ -59,6 +60,7 @@
                         {
                             "id": "Gnome",
                             "description": "Gnome desktop",
+                            "status": "Disabled",
                             "sub": [
                                 {
                                     "id": "GNOME01",
@@ -152,6 +154,7 @@
                         {
                             "id": "Cinnamon",
                             "description": "Cinnamon desktop",
+                            "status": "Disabled",
                             "sub": [
                                 {
                                     "id": "CINNAMON01",
