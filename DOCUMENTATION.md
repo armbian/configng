@@ -108,6 +108,10 @@ sudo armbian-config
 
 - ## **Software** 
 
+  - ### Desktop Environments
+    - ### Improve application search speed
+
+
   - ### Network tools
     - ### Install realtime console network usage monitor (nload)
     - ### Remove realtime console network usage monitor (nload)
@@ -239,6 +243,8 @@ Outputs:
     --cmd LO005 - Change System Hostname
 
   Software - Run/Install 3rd party applications (Update the package lists.)
+    Desktops - Desktop Environments
+	--cmd Xapian - Improve application search speed
     Netconfig - Network tools
 	--cmd NET001 - Install realtime console network usage monitor (nload)
 	--cmd NET002 - Remove realtime console network usage monitor (nload)
@@ -530,6 +536,16 @@ Jobs:
 
 ~~~
 change_system_hostname
+~~~
+
+### Desktops
+
+Desktop Environments
+
+Jobs:
+
+~~~
+No commands available
 ~~~
 
 ### Netconfig
