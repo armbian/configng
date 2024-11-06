@@ -108,13 +108,6 @@ sudo armbian-config
 
 - ## **Software** 
 
-  - ### Desktop Environments
-    - ### XFCE desktop
-    - ### Gnome desktop
-    - ### Cinnamon desktop
-    - ### Improve application search speed
-
-
   - ### Network tools
     - ### Install realtime console network usage monitor (nload)
     - ### Remove realtime console network usage monitor (nload)
@@ -129,6 +122,11 @@ sudo armbian-config
   - ### Development
     - ### Install tools for cloning and managing repositories (git)
     - ### Remove tools for cloning and managing repositories (git)
+
+
+  - ### Home Automation
+    - ### Install openHAB
+    - ### Remove openHAB
 
 
   - ### System benchmaking and diagnostics
@@ -241,23 +239,6 @@ Outputs:
     --cmd LO005 - Change System Hostname
 
   Software - Run/Install 3rd party applications (Update the package lists.)
-    Desktops - Desktop Environments
-      XFCE - XFCE desktop
-	--cmd XFCE01 - XFCE desktop Install
-	--cmd XFCE02 - Uninstall
-	--cmd XFCE03 - Enable autologin
-	--cmd XFCE04 - Disable autologin
-      Gnome - Gnome desktop
-	--cmd GNOME01 - Gnome desktop Install
-	--cmd GNOME02 - Uninstall
-	--cmd GNOME03 - Enable autologin
-	--cmd GNOME04 - Disable autologin
-      Cinnamon - Cinnamon desktop
-	--cmd CINNAMON01 - Cinnamon desktop Install
-	--cmd CINNAMON02 - Cinnamon desktop uninstall
-	--cmd CINNAMON03 - Enable autologin
-	--cmd CINNAMON04 - Disable autologin
-	--cmd Xapian - Improve application search speed
     Netconfig - Network tools
 	--cmd NET001 - Install realtime console network usage monitor (nload)
 	--cmd NET002 - Remove realtime console network usage monitor (nload)
@@ -270,6 +251,9 @@ Outputs:
     DevTools - Development
 	--cmd DEV001 - Install tools for cloning and managing repositories (git)
 	--cmd DEV001 - Remove tools for cloning and managing repositories (git)
+    HomeAutomation - Home Automation
+	--cmd HA001 - Install openHAB
+	--cmd HA002 - Remove openHAB
     --cmd Benchy - System benchmaking and diagnostics
     Containers - Containerlization and Virtual Machines
 	--cmd CON001 - Install Docker Minimal
@@ -402,12 +386,7 @@ Change shell system wide to BASH
 Jobs:
 
 ~~~
-export BASHLOCATION=$(grep /bash$ /etc/shells | tail -1)
-sed -i "s|^SHELL=.*|SHELL=${BASHLOCATION}|" /etc/default/useradd
-sed -i "s|^DSHELL=.*|DSHELL=${BASHLOCATION}|" /etc/adduser.conf
-apt_install_wrapper apt-get -y purge armbian-zsh zsh-common zsh tmux
-update_skel
-awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534 || $3 == 0) print $1}' /etc/passwd | xargs -L1 chsh -s $(grep /bash$ /etc/shells | tail -1)
+manage_zsh disable
 ~~~
 
 ### SY009
@@ -417,12 +396,7 @@ Change shell system wide to ZSH
 Jobs:
 
 ~~~
-export ZSHLOCATION=$(grep /zsh$ /etc/shells | tail -1)
-sed -i "s|^SHELL=.*|SHELL=${ZSHLOCATION}|" /etc/default/useradd
-sed -i "s|^DSHELL=.*|DSHELL=${ZSHLOCATION}|" /etc/adduser.conf
-apt_install_wrapper apt-get -y install armbian-zsh zsh-common zsh tmux
-update_skel
-awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534 || $3 == 0) print $1}' /etc/passwd | xargs -L1 chsh -s $(grep /zsh$ /etc/shells | tail -1)
+manage_zsh enable
 ~~~
 
 ### SY010
@@ -558,16 +532,6 @@ Jobs:
 change_system_hostname
 ~~~
 
-### Desktops
-
-Desktop Environments
-
-Jobs:
-
-~~~
-No commands available
-~~~
-
 ### Netconfig
 
 Network tools
@@ -581,6 +545,16 @@ No commands available
 ### DevTools
 
 Development
+
+Jobs:
+
+~~~
+No commands available
+~~~
+
+### HomeAutomation
+
+Home Automation
 
 Jobs:
 
@@ -699,11 +673,13 @@ These helper functions facilitate various operations related to job management, 
 | Parse json to get list of desired menu or submenu items | parse_menu_items 'menu_options_array' | @viraniac 
 | Show the usage of the functions. | see_use | @Tearran 
 | Install Desktop environment | manage_desktops xfce install | @igorpecovnik 
+| Set system shell to BASH | manage_zsh enable|disable | @igorpecovnik 
 | Generate a Help message for cli commands. | see_cmd_list [catagory] | @Tearran 
 | Revert network config back to Armbian defaults | default_network_config | @igorpecovnik 
 | freeze, unhold, reinstall armbian related packages. | armbian_fw_manipulate unhold/freeze/reinstall | @igorpecovnik 
 | Check the internet connection with fallback DNS | see_ping | @Tearran 
 | Upgrade to next stable or rolling release | release_upgrade stable verify | @igorpecovnik 
+| Install openhab from a repo using apt | install_openhab | @igorpecovnik 
 | Update the /etc/skel files in users directories | update_skel | @igorpecovnik 
 | change_system_hostname | change_system_hostname | @igorpecovnik 
 | Set Armbian to stable release | set_stable | @Tearran 
