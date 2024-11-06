@@ -382,6 +382,32 @@
                     ]
                 },
                 {
+                    "id": "HomeAutomation",
+                    "description": "Home Automation",
+                    "sub": [
+                        {
+                            "id": "HA001",
+                            "description": "Install openHAB",
+                            "command": [ 
+                                "openhab install" 
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! check_if_installed openhab"
+                        },
+                        {
+                            "id": "HA002",
+                            "description": "Remove openHAB",
+                            "command": [ 
+                                "openhab uninstall" 
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "check_if_installed openhab"
+                        }
+                    ]
+                },
+                {
                     "id": "Benchy",
                     "description": "System benchmaking and diagnostics",
                     "command": [
