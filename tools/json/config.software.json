@@ -358,6 +358,36 @@
                     ]
                 },
                 {
+                    "id": "DNS",
+                    "description": "DNS blockers",
+                    "sub": [
+                        {
+                            "id": "DNS001",
+                            "description": "Install Pi-hole DNS ad blocker",
+                            "command": [ "pi_hole install" ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! pi_hole status"
+                        },
+                        {
+                            "id": "DNS002",
+                            "description": "Set Pi-hole web admin password",
+                            "command": [ "pi_hole password" ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "pi_hole status"
+                        },
+                        {
+                            "id": "DNS003",
+                            "description": "Remove Pi-hole DNS ad blocker",
+                            "command": [ "pi_hole uninstall" ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "pi_hole status"
+                        }
+                    ]
+                },
+                {
                     "id": "DevTools",
                     "description": "Development",
                     "sub": [
