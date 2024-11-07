@@ -118,6 +118,12 @@ sudo armbian-config
     - ### Remove hostname broadcast via mDNS (avahi-daemon)
 
 
+  - ### DNS blockers
+    - ### Install Pi-hole DNS ad blocker
+    - ### Set Pi-hole web admin password
+    - ### Remove Pi-hole DNS ad blocker
+
+
   - ### Development
     - ### Install tools for cloning and managing repositories (git)
     - ### Remove tools for cloning and managing repositories (git)
@@ -251,6 +257,10 @@ Outputs:
 	--cmd NET006 - Remove IP LAN monitor (iptraf-ng)
 	--cmd NET007 - Install hostname broadcast via mDNS (avahi-daemon)
 	--cmd NET008 - Remove hostname broadcast via mDNS (avahi-daemon)
+    DNS - DNS blockers
+	--cmd DNS001 - Install Pi-hole DNS ad blocker
+	--cmd DNS002 - Set Pi-hole web admin password
+	--cmd DNS003 - Remove Pi-hole DNS ad blocker
     DevTools - Development
 	--cmd DEV001 - Install tools for cloning and managing repositories (git)
 	--cmd DEV001 - Remove tools for cloning and managing repositories (git)
@@ -548,6 +558,16 @@ Jobs:
 No commands available
 ~~~
 
+### DNS
+
+DNS blockers
+
+Jobs:
+
+~~~
+No commands available
+~~~
+
 ### DevTools
 
 Development
@@ -658,6 +678,7 @@ These helper functions facilitate various operations related to job management, 
 | Menu for armbianmonitor features | see_monitoring | @Tearran 
 | Enable/disable device tree overlays | manage_dtoverlays | @viraniac 
 | Show or generate QR code for Google OTP | qr_code generate | @igorpecovnik 
+| Install/uninstall/check status of pi-hole container | pi_hole install|uninstall|status|password | @armbian 
 | Check if kernel headers are installed | are_headers_installed | @viraniac 
 | Check when apt list was last updated and suggest updating or update | see_current_apt or see_current_apt update | @Tearran 
 | Install/uninstall/check status of portainer container | module_portainer install|uninstall|status | @armbian 
