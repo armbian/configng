@@ -542,6 +542,29 @@
                     ]
                 },
                 {
+                    "id": "Monitoring",
+                    "description": "Monitoring",
+                    "sub": [
+                        {
+                            "id": "MON001",
+                            "description": "Install Uptime Kuma",
+                            "about": "Uptime Kuma is an easy-to-use self-hosted monitoring tool.",
+                            "command": [ "module_uptimekuma install" ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_uptimekuma status"
+                        },
+                        {
+                            "id": "MON002",
+                            "description": "Uninstall Uptime Kuma",
+                            "command": [ "module_uptimekuma uninstall" ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_uptimekuma status"
+                        }
+                    ]
+                },
+                {
                     "id": "Management",
                     "description": "Remote Management tools",
                     "sub": [
