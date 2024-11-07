@@ -296,6 +296,7 @@
                 {
                     "id": "SY016",
                     "description": "Distribution upgrades",
+                    "status": "Disabled",
                     "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade rolling verify || release_upgrade stable verify",
                     "sub": [
                         {
