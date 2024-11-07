@@ -69,11 +69,6 @@ sudo armbian-config
   - ### Install alternative kernels
 
 
-  - ### Distribution upgrades
-    - ### Upgrade to latest stable / LTS
-    - ### Upgrade to rolling unstable
-
-
   - ### Manage device tree overlays
 
 
@@ -152,6 +147,11 @@ sudo armbian-config
     - ### Remove Emby server
 
 
+  - ### Monitoring
+    - ### Install Uptime Kuma
+    - ### Uninstall Uptime Kuma
+
+
   - ### Remote Management tools
     - ### Install Cockpit web-based management tool
     - ### Purge Cockpit web-based management tool
@@ -224,9 +224,6 @@ Outputs:
     --cmd SY013 - Disable read only filesystem
     --cmd SY014 - Adjust welcome screen (motd)
     --cmd SY015 - Install alternative kernels
-    SY016 - Distribution upgrades
-	--cmd SY101 - Upgrade to latest stable / LTS
-	--cmd SY102 - Upgrade to rolling unstable
     --cmd SY017 - Manage device tree overlays
 
   Network - Fixed and wireless network settings (eth0)
@@ -273,6 +270,9 @@ Outputs:
 	--cmd MED002 - Remove Plex Media server
 	--cmd MED003 - Install Emby server
 	--cmd MED004 - Remove Emby server
+    Monitoring - Monitoring
+	--cmd MON001 - Install Uptime Kuma
+	--cmd MON002 - Uninstall Uptime Kuma
     Management - Remote Management tools
 	--cmd MAN001 - Install Cockpit web-based management tool
 	--cmd MAN002 - Purge Cockpit web-based management tool
@@ -465,16 +465,6 @@ Jobs:
 switch_kernels
 ~~~
 
-### SY016
-
-Distribution upgrades
-
-Jobs:
-
-~~~
-No commands available
-~~~
-
 ### SY017
 
 Manage device tree overlays
@@ -608,6 +598,16 @@ Jobs:
 No commands available
 ~~~
 
+### Monitoring
+
+Monitoring
+
+Jobs:
+
+~~~
+No commands available
+~~~
+
 ### Management
 
 Remote Management tools
@@ -684,6 +684,7 @@ These helper functions facilitate various operations related to job management, 
 | Serve the edit and debug server. | serve_doc | @Tearran 
 | Update JSON data with system information | update_json_data | @Tearran 
 | pipeline strings to an infobox  | show_infobox <<< 'hello world' ;  | @Tearran 
+| Install/uninstall/check status of uptime kuma container | module_uptimekuma install|uninstall|status | @armbian 
 | Stop hostapd, clean config | default_wireless_network_config | @igorpecovnik 
 | Update sub-submenu descriptions based on conditions | update_sub_submenu_data "MenuID" "SubID" "SubSubID" "CMD" | @Tearran 
 | Parse json to get list of desired menu or submenu items | parse_menu_items 'menu_options_array' | @viraniac 
