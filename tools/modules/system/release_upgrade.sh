@@ -42,8 +42,8 @@ release_upgrade(){
 		[[ "${upgrade}" == "testing" ]] && upgrade="sid" # our repo and everything is tied to sid
 		[[ -f /etc/apt/sources.list.d/armbian.list ]] && sed -i "s/$distroid/$upgrade/g" /etc/apt/sources.list.d/armbian.list
 		apt_install_wrapper apt-get -y update
-		apt_install_wrapper apt-get -y -o Dpkg::Options::="--force-confold" upgrade --without-new-pkgs
-		apt_install_wrapper apt-get -y -o Dpkg::Options::="--force-confold" full-upgrade
+		apt_install_wrapper DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get -y -o Dpkg::Options::="--force-confold" upgrade --without-new-pkgs
+		apt_install_wrapper DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get -y -o Dpkg::Options::="--force-confold" full-upgrade
 		apt_install_wrapper apt-get -y --purge autoremove
 	fi
 }
