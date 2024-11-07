@@ -444,6 +444,26 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "check_if_installed openhab"
+                        },
+                        {
+                            "id": "HA003",
+                            "description": "Install Home Assistant",
+                            "command": [
+                                "module_haos install"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "! check_if_installed homeassistant-supervised && grep -q bookworm /etc/os-release"
+                        },
+                        {
+                            "id": "HA004",
+                            "description": "Remove Home Assistant",
+                            "command": [
+                                "module_haos uninstall"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "check_if_installed homeassistant-supervised"
                         }
                     ]
                 },
