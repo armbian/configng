@@ -28,11 +28,11 @@ function module_webmin() {
 		else
 
 		if [[ "$(systemctl is-active webmin 2>/dev/null)" == "active" ]]; then
-			echo -e "\tstop\t\t- Stop the $title service."
+			echo -e "\tstop\t- Stop the $title service."
 			echo -e "\tdisable\t- Disable $title from starting on boot."
 		else
 			echo -e "\tenable\t- Enable $title to start on boot."
-			echo -e "\tstart\t\t- Start the $title service."
+			echo -e "\tstart\t- Start the $title service."
 		fi
 			echo -e "\tstatus\t- Show the status of the $title service."
 			echo -e "\tremove\t- Remove $title."
@@ -104,7 +104,8 @@ function module_webmin() {
 		fi
 		;;
         *)
-            ${module_options["module_webmin,feature"]} ${commands[0]}
+            echo "Invalid command.try: '${module_options["module_webmin,example"]}'"
+
             ;;
     esac
 }
