@@ -1,5 +1,13 @@
 
-
+module_options+=(
+	["set_interface,author"]="Tearran"
+	["set_interface,feature"]="set_interface"
+	["set_interface,desc"]="Check for (Whiptail, DIALOG, READ) tools and set the user interface."
+	["set_interface,example"]=""
+	["set_interface,status"]="review"
+)
+#
+# Check for (Whiptail, DIALOG, READ) tools and set the user interface
 set_interface() {
 	# Set dialog tool hierarchy based on environment
 	if [[ -x "$(command -v whiptail)" ]]; then
@@ -11,8 +19,19 @@ set_interface() {
 	fi
 }
 
-# Uses Avalible (Whiptail, DIALOG, READ, Zenity(untested)) for the interface
+
+
+module_options+=(
+	["see_menu,author"]="Tearran"
+	["see_menu,feature"]="see_menu"
+	["see_menu,desc"]="Uses Avalible (Whiptail, DIALOG, READ) for the menu interface"
+	["see_menu,example"]="<function_name>"
+	["see_menu,status"]="review"
+)
+#
+# Uses Avalible (Whiptail, DIALOG, READ) for the menu interface
 function see_menu() {
+	# Check if the function name was provided
 	local function_name="$1"
 
 	# Get the help message from the specified function
