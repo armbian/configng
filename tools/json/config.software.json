@@ -364,7 +364,9 @@
                         {
                             "id": "DNS001",
                             "description": "Install Pi-hole DNS ad blocker",
-                            "command": [ "pi_hole install" ],
+                            "command": [
+                                "pi_hole install"
+                            ],
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! pi_hole status"
@@ -372,7 +374,9 @@
                         {
                             "id": "DNS002",
                             "description": "Set Pi-hole web admin password",
-                            "command": [ "pi_hole password" ],
+                            "command": [
+                                "pi_hole password"
+                            ],
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "pi_hole status"
@@ -380,7 +384,9 @@
                         {
                             "id": "DNS003",
                             "description": "Remove Pi-hole DNS ad blocker",
-                            "command": [ "pi_hole uninstall" ],
+                            "command": [
+                                "pi_hole uninstall"
+                            ],
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "pi_hole status"
@@ -422,8 +428,8 @@
                         {
                             "id": "HA001",
                             "description": "Install openHAB",
-                            "command": [ 
-                                "openhab install" 
+                            "command": [
+                                "openhab install"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
@@ -432,8 +438,8 @@
                         {
                             "id": "HA002",
                             "description": "Remove openHAB",
-                            "command": [ 
-                                "openhab uninstall" 
+                            "command": [
+                                "openhab uninstall"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
@@ -504,7 +510,9 @@
                             "id": "CON005",
                             "description": "Install Portainer",
                             "prompt": "This operation will install Portainer.\nWould you like to continue?",
-                            "command": ["module_portainer install"],
+                            "command": [
+                                "module_portainer install"
+                            ],
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_portainer status"
@@ -513,7 +521,9 @@
                             "id": "CON006",
                             "description": "Remove Portainer",
                             "prompt": "This operation will delete Portainer container.\nWould you like to continue?",
-                            "command": ["module_portainer uninstall"],
+                            "command": [
+                                "module_portainer uninstall"
+                            ],
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "module_portainer status"
@@ -579,7 +589,9 @@
                             "id": "MON001",
                             "description": "Install Uptime Kuma",
                             "about": "Uptime Kuma is an easy-to-use self-hosted monitoring tool.",
-                            "command": [ "module_uptimekuma install" ],
+                            "command": [
+                                "module_uptimekuma install"
+                            ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "! module_uptimekuma status"
@@ -587,7 +599,9 @@
                         {
                             "id": "MON002",
                             "description": "Uninstall Uptime Kuma",
-                            "command": [ "module_uptimekuma uninstall" ],
+                            "command": [
+                                "module_uptimekuma uninstall"
+                            ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "module_uptimekuma status"
@@ -641,6 +655,16 @@
                             "status": "Stable",
                             "author": "@schwar3kat",
                             "condition": "check_if_installed cockpit && systemctl is-enabled cockpit.socket > /dev/null 2>&1"
+                        },
+                        {
+                            "id": "MAN005",
+                            "description": "Webmin web-based management tool",
+                            "command": [
+                                "see_menu module_webmin"
+                            ],
+                            "status": "Stable",
+                            "author": "@Tearran",
+                            "condition": ""
                         }
                     ]
                 }
