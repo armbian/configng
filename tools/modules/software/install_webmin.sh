@@ -1,6 +1,5 @@
 
 
-declare -A module_options
 module_options+=(
 	["module_webmin,author"]="@Tearran"
 	["module_webmin,feature"]="module_webmin"
