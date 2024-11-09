@@ -3,7 +3,7 @@ module_options+=(
 	["module_uptimekuma,ref_link"]=""
 	["module_uptimekuma,feature"]="module_uptimekuma"
 	["module_uptimekuma,desc"]="Install/uninstall/check status of uptime kuma container"
-	["module_uptimekuma,example"]="module_uptimekuma install|uninstall|status"
+	["module_uptimekuma,example"]="install uninstall status"
 	["module_uptimekuma,status"]="Active"
 )
 #

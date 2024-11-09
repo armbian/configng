@@ -4,7 +4,7 @@ module_options+=(
 	["openhab,ref_link"]=""
 	["openhab,feature"]="install_openhab"
 	["openhab,desc"]="Install openhab from a repo using apt"
-	["openhab,example"]="install_openhab"
+	["openhab,example"]="install uinstall"
 	["openhab,status"]="Active"
 )
 #
