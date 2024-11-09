@@ -1,4 +1,4 @@
-declare -A module_options
+
 module_options+=(
 	["module_portainer,author"]="@armbian"
 	["module_portainer,ref_link"]=""
