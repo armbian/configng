@@ -1,9 +1,10 @@
+
 module_options+=(
 	["pi_hole,author"]="@armbian"
 	["pi_hole,ref_link"]=""
 	["pi_hole,feature"]="pi_hole"
 	["pi_hole,desc"]="Install/uninstall/check status of pi-hole container"
-	["pi_hole,example"]="pi_hole install|uninstall|status|password"
+	["pi_hole,example"]="help install uninstall status password"
 	["pi_hole,status"]="Active"
 )
 #
@@ -15,12 +16,27 @@ function pi_hole () {
 		local container=$(docker container ls -a | mawk '/pihole?( |$)/{print $1}')
 		local image=$(docker image ls -a | mawk '/pihole?( |$)/{print $3}')
 	fi
+	local commands
+	IFS=' ' read -r -a commands <<< "${module_options["pi_hole,example"]}"
 
 	PIHOLE_BASE=/opt/pihole-storage
 	PIHOLE_BASE="${PIHOLE_BASE:-$(pwd)}"
 	[[ -d "$PIHOLE_BASE" ]] || mkdir -p "$PIHOLE_BASE" || { echo "Couldn't create storage directory: $PIHOLE_BASE"; exit 1; }
 
 	case "$1" in
+		"${commands[0]}")
+			## help/menu options for the module
+			echo -e "\nUsage: ${module_options["pi_hole,feature"]} <command>"
+			echo -e "Commands: ${module_options["pi_hole,example"]}"
+			echo "Available commands:"
+			if [[ "${container}" ]] || [[ "${image}" ]]; then
+				echo -e "\tstatus\t- Show the status of the $title service."
+				echo -e "\tremove\t- Remove $title."
+			else
+				echo -e "  install\t- Install $title."
+			fi
+			echo
+		;;
 		install)
 
 			check_if_installed docker-ce || install_docker
@@ -81,3 +97,5 @@ function pi_hole () {
 		;;
 	esac
 }
+
+#pi_hole help
