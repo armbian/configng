@@ -13,13 +13,27 @@ SRC_DIR="$SCRIPT_DIR/modules"
 DEST_DIR="$SCRIPT_DIR/../lib/armbian-config"
 # change to the script directory
 cd "$SCRIPT_DIR"/..
+
+
+declare -A module_options
+declare -A base_module_options
+declare -A software_module_options
+
 # Function to display the help message
+for file in "$SRC_DIR"/*/module_*.sh; do
+  [ -e "$file" ] && source "$file"
+done
+
+merge_software_info
+merge_base_info
+
+
 print_help() {
-echo "Usage: $0 [OPTIONS]"
-echo "Options:"
-echo "  -h Display this help message"
-echo "  -p Assemble module and jobs for production"
-echo "  -t Assemble module and jobs  for testing"
+	echo "Usage: $0 [OPTIONS]"
+	echo "Options:"
+	echo "  -h Display this help message"
+	echo "  -p Assemble module and jobs for production"
+	echo "  -t Assemble module and jobs  for testing"
 
 }
 
@@ -46,6 +60,7 @@ function merge_modules(){
 	done
 
 	echo "All scripts have been combined and placed into $DEST_DIR"
+
 
 }
 
@@ -133,6 +148,7 @@ function join_json_testing() {
 
 # Function to join JSON files into a single file with enforced ordering
 function join_json_production() {
+
 	input_dir="$DEFAULT_DIR"
 	output_file="$1"
 
@@ -187,6 +203,21 @@ function join_json_production() {
 	echo "JSON files rejoined into '$output_file'."
 }
 
+function source_module_options() {
+
+	declare -A module_options
+	declare -A base_module_options
+	declare -A software_module_options
+
+	for file in "$SRC_DIR"/*/module_*.sh; do
+		[ -e "$file" ] && source "$file"
+	done
+
+	merge_software_info
+	merge_base_info
+	set_software_json > "$DEFAULT_DIR/config.software.json"
+
+}
 
 # Main script logic with case statement
 case "$1" in
@@ -221,9 +252,11 @@ case "$1" in
 			"$SCRIPT_DIR"/config-markdown.py -u
 		else
 			merge_modules
+			source_module_options
 			echo "Processing JSON files, please wait..."
 			join_json_production "$DEFAULT_FILE"
 			"$SCRIPT_DIR"/config-markdown.py -u
+			$SCRIPT_DIR/../bin/armbian-config
 		fi
 
 

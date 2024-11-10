@@ -1,11 +1,12 @@
 
-module_options+=(
+software_module_options+=(
 	["pi_hole,author"]="@armbian"
 	["pi_hole,ref_link"]=""
 	["pi_hole,feature"]="pi_hole"
 	["pi_hole,desc"]="Install/uninstall/check status of pi-hole container"
 	["pi_hole,example"]="help install uninstall status password"
 	["pi_hole,status"]="Active"
+	["pi_hole,parent_id"]="Manage"
 )
 #
 # Install Pi-Hole DNS blocking
@@ -24,7 +25,7 @@ function pi_hole () {
 	[[ -d "$PIHOLE_BASE" ]] || mkdir -p "$PIHOLE_BASE" || { echo "Couldn't create storage directory: $PIHOLE_BASE"; exit 1; }
 
 	case "$1" in
-		"${commands[0]}")
+		help)
 			## help/menu options for the module
 			echo -e "\nUsage: ${module_options["pi_hole,feature"]} <command>"
 			echo -e "Commands: ${module_options["pi_hole,example"]}"

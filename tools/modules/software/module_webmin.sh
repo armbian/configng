@@ -1,16 +1,18 @@
 
 
-module_options+=(
+software_module_options+=(
 	["module_webmin,author"]="@Tearran"
+	["module_webmin,ref_link"]=""
 	["module_webmin,feature"]="module_webmin"
-	["module_webmin,example"]="help install remove start stop enable disable status check"
+	["module_webmin,example"]="help install remove start stop enable disable check status"
 	["module_webmin,desc"]="Webmin setup and service setting."
 	["module_webmin,status"]="review"
+	["module_webmin,parent_id"]="Manage"
 )
 
 function module_webmin() {
-	local title="webmin"
-	local condition=$(which "$title" 2>/dev/null)
+	local title="Webmin Control Panel"
+	local condition=$(which "webmin" 2>/dev/null)
 
 	# Convert the example string to an array
 	local commands
