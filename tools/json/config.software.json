@@ -1,83 +1,674 @@
 {
-  "menu": [
-    {
-      "id": "Software",
-      "description": "Description ...",
-      "sub": [
+    "menu": [
         {
-          "id": "Monitoring",
-          "description": "Parent menu for Monitoring",
-          "sub": [
-            {
-              "id": "MON00",
-              "description": "Install/uninstall/check status of uptime kuma container",
-              "command": [
-                "see_menu module_uptimekuma"
-              ],
-              "status": "Active",
-              "author": "@armbian",
-              "src_reference": "",
-              "condition": ""
-            }
-          ]
-        },
-        {
-          "id": "Container",
-          "description": "Parent menu for Container",
-          "sub": [
-            {
-              "id": "CON00",
-              "description": "Install/uninstall/check status of portainer container",
-              "command": [
-                "see_menu module_portainer"
-              ],
-              "status": "Active",
-              "author": "@armbian",
-              "src_reference": "",
-              "condition": ""
-            }
-          ]
-        },
-        {
-          "id": "Manage",
-          "description": "Parent menu for Manage",
-          "sub": [
-            {
-              "id": "MAN00",
-              "description": "Webmin setup and service setting.",
-              "command": [
-                "see_menu module_webmin"
-              ],
-              "status": "review",
-              "author": "@Tearran",
-              "src_reference": "",
-              "condition": ""
-            },
-            {
-              "id": "MAN01",
-              "description": "Install/uninstall/check status of pi-hole container",
-              "command": [
-                "see_menu pi_hole"
-              ],
-              "status": "Active",
-              "author": "@armbian",
-              "src_reference": "",
-              "condition": ""
-            },
-            {
-              "id": "MAN02",
-              "description": "Manage Cockpit service",
-              "command": [
-                "see_menu set_cockpit"
-              ],
-              "status": "Review",
-              "author": "Tearran",
-              "src_reference": "",
-              "condition": ""
-            }
-          ]
+            "id": "Software",
+            "description": "Run/Install 3rd party applications",
+            "sub": [
+                {
+                    "id": "Desktops",
+                    "description": "Desktop Environments",
+                    "status": "Stable",
+                    "sub": [
+                        {
+                            "id": "XFCE",
+                            "description": "XFCE desktop",
+                            "status": "Disabled",
+                            "sub": [
+                                {
+                                    "id": "XFCE01",
+                                    "about": "Install XFCE:\nXfce is a lightweight desktop environment for UNIX-like operating systems. It aims to be fast and low on system resources, while still being visually appealing and user friendly.",
+                                    "description": "XFCE desktop Install",
+                                    "command": [
+                                        "manage_desktops 'xfce' 'install'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ ! -f /usr/share/xsessions/xfce.desktop ]"
+                                },
+                                {
+                                    "id": "XFCE02",
+                                    "description": "Uninstall",
+                                    "command": [
+                                        "manage_desktops 'xfce' 'uninstall'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/xfce.desktop ]"
+                                },
+                                {
+                                    "id": "XFCE03",
+                                    "description": "Enable autologin",
+                                    "command": [
+                                        "manage_desktops 'xfce' 'auto'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/xfce.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                },
+                                {
+                                    "id": "XFCE04",
+                                    "description": "Disable autologin",
+                                    "command": [
+                                        "manage_desktops 'xfce' 'manual'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/xfce.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "Gnome",
+                            "description": "Gnome desktop",
+                            "status": "Disabled",
+                            "sub": [
+                                {
+                                    "id": "GNOME01",
+                                    "description": "Gnome desktop Install",
+                                    "command": [
+                                        "manage_desktops 'gnome' 'install'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ ! -f /usr/share/xsessions/gnome.desktop ]"
+                                },
+                                {
+                                    "id": "GNOME02",
+                                    "description": "Uninstall",
+                                    "command": [
+                                        "manage_desktops 'gnome' 'uninstall'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ]"
+                                },
+                                {
+                                    "id": "GNOME03",
+                                    "description": "Enable autologin",
+                                    "command": [
+                                        "manage_desktops 'gnome' 'auto'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && ! cat /etc/gdm3/custom.conf 2>/dev/null | grep AutomaticLoginEnable | grep true >/dev/null"
+                                },
+                                {
+                                    "id": "GNOME04",
+                                    "description": "Disable autologin",
+                                    "command": [
+                                        "manage_desktops 'gnome' 'manual'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && cat /etc/gdm3/custom.conf 2>/dev/null | grep AutomaticLoginEnable | grep true >/dev/null"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "I3WM",
+                            "description": "i3-wm desktop",
+                            "status": "Disabled",
+                            "sub": [
+                                {
+                                    "id": "I3WM01",
+                                    "description": "i3 desktop Install",
+                                    "command": [
+                                        "manage_desktops 'i3-wm' 'install'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ ! -f /usr/share/xsessions/i3.desktop ]"
+                                },
+                                {
+                                    "id": "I3WM02",
+                                    "description": "i3 desktop uninstall",
+                                    "command": [
+                                        "manage_desktops 'i3-wm' 'uninstall'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/i3.desktop ]"
+                                },
+                                {
+                                    "id": "I3WM03",
+                                    "description": "Enable autologin",
+                                    "command": [
+                                        "manage_desktops 'i3-wm' 'auto'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/i3.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                },
+                                {
+                                    "id": "I3WM04",
+                                    "description": "Disable autologin",
+                                    "command": [
+                                        "manage_desktops 'i3-wm' 'manual'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/i3.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "Cinnamon",
+                            "description": "Cinnamon desktop",
+                            "status": "Disabled",
+                            "sub": [
+                                {
+                                    "id": "CINNAMON01",
+                                    "description": "Cinnamon desktop Install",
+                                    "command": [
+                                        "manage_desktops 'cinnamon' 'install'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ ! -f /usr/share/xsessions/cinnamon.desktop ] && [ ! -f /usr/share/xsessions/cinnamon2d.desktop ]"
+                                },
+                                {
+                                    "id": "CINNAMON02",
+                                    "description": "Cinnamon desktop uninstall",
+                                    "command": [
+                                        "manage_desktops 'cinnamon' 'uninstall'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] || [ -f /usr/share/xsessions/cinnamon2d.desktop ]"
+                                },
+                                {
+                                    "id": "CINNAMON03",
+                                    "description": "Enable autologin",
+                                    "command": [
+                                        "manage_desktops 'cinnamon' 'auto'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                },
+                                {
+                                    "id": "CINNAMON04",
+                                    "description": "Disable autologin",
+                                    "command": [
+                                        "manage_desktops 'cinnamon' 'manual'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "KDEN",
+                            "description": "Kde-neon desktop",
+                            "status": "Disabled",
+                            "sub": [
+                                {
+                                    "id": "KDENEON01",
+                                    "description": "Kde-neon desktop Install",
+                                    "command": [
+                                        "manage_desktops 'kde-neon' 'install'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ ! -f /usr/share/xsessions/gnome.desktop ]"
+                                },
+                                {
+                                    "id": "KDENEON02",
+                                    "description": "Uninstall",
+                                    "command": [
+                                        "manage_desktops 'kde-neon' 'uninstall'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ]"
+                                },
+                                {
+                                    "id": "KDENEON03",
+                                    "description": "Enable autologin",
+                                    "command": [
+                                        "manage_desktops 'kde-neon' 'auto'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                },
+                                {
+                                    "id": "KDENEON04",
+                                    "description": "Disable autologin",
+                                    "command": [
+                                        "manage_desktops 'kde-neon' 'manual'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "Xapian",
+                            "description": "Improve application search speed",
+                            "command": [
+                                "update-apt-xapian-index -u; sleep 3"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "systemctl is-active --quiet service display-manager"
+                        }
+                    ]
+                },
+                {
+                    "id": "Netconfig",
+                    "description": "Network tools",
+                    "sub": [
+                        {
+                            "id": "NET001",
+                            "description": "Install realtime console network usage monitor (nload)",
+                            "command": [
+                                "get_user_continue \"This operation will install nload.\n\nDo you wish to continue?\" process_input",
+                                "debconf-apt-progress -- apt-get -y install nload"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! check_if_installed nload"
+                        },
+                        {
+                            "id": "NET002",
+                            "description": "Remove realtime console network usage monitor (nload)",
+                            "command": [
+                                "get_user_continue \"This operation will purge nload.\n\nDo you wish to continue?\" process_input",
+                                "debconf-apt-progress -- apt-get -y purge nload"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "check_if_installed nload"
+                        },
+                        {
+                            "id": "NET003",
+                            "description": "Install bandwidth measuring tool (iperf3)",
+                            "command": [
+                                "get_user_continue \"This operation will install iperf3.\n\nDo you wish to continue?\" process_input",
+                                "debconf-apt-progress -- apt-get -y install iperf3"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! check_if_installed iperf3"
+                        },
+                        {
+                            "id": "NET004",
+                            "description": "Remove bandwidth measuring tool (iperf3)",
+                            "command": [
+                                "get_user_continue \"This operation will purge iperf3.\n\nDo you wish to continue?\" process_input",
+                                "debconf-apt-progress -- apt-get -y purge iperf3"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "check_if_installed iperf3"
+                        },
+                        {
+                            "id": "NET005",
+                            "description": "Install IP LAN monitor (iptraf-ng)",
+                            "command": [
+                                "get_user_continue \"This operation will install iptraf-ng.\n\nDo you wish to continue?\" process_input",
+                                "debconf-apt-progress -- apt-get -y install iptraf-ng"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! check_if_installed iptraf-ng"
+                        },
+                        {
+                            "id": "NET006",
+                            "description": "Remove IP LAN monitor (iptraf-ng)",
+                            "command": [
+                                "get_user_continue \"This operation will purge nload.\n\nDo you wish to continue?\" process_input",
+                                "debconf-apt-progress -- apt-get -y purge iptraf-ng"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "check_if_installed iptraf-ng"
+                        },
+                        {
+                            "id": "NET007",
+                            "description": "Install hostname broadcast via mDNS (avahi-daemon)",
+                            "command": [
+                                "get_user_continue \"This operation will install avahi-daemon and add configuration files.\nDo you wish to continue?\" process_input",
+                                "check_if_installed avahi-daemon",
+                                "debconf-apt-progress -- apt-get -y install avahi-daemon libnss-mdns",
+                                "cp /usr/share/doc/avahi-daemon/examples/sftp-ssh.service /etc/avahi/services/",
+                                "cp /usr/share/doc/avahi-daemon/examples/ssh.service /etc/avahi/services/",
+                                "service avahi-daemon restart"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! check_if_installed avahi-daemon"
+                        },
+                        {
+                            "id": "NET008",
+                            "description": "Remove hostname broadcast via mDNS (avahi-daemon)",
+                            "command": [
+                                "get_user_continue \"This operation will purge avahi-daemon \nDo you wish to continue?\" process_input",
+                                "check_if_installed avahi-daemon",
+                                "systemctl stop avahi-daemon avahi-daemon.socket",
+                                "debconf-apt-progress -- apt-get -y purge avahi-daemon"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "check_if_installed avahi-daemon"
+                        }
+                    ]
+                },
+                {
+                    "id": "DNS",
+                    "description": "DNS blockers",
+                    "sub": [
+                        {
+                            "id": "DNS001",
+                            "description": "Install Pi-hole DNS ad blocker",
+                            "command": [
+                                "pi_hole install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! pi_hole status"
+                        },
+                        {
+                            "id": "DNS002",
+                            "description": "Set Pi-hole web admin password",
+                            "command": [
+                                "pi_hole password"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "pi_hole status"
+                        },
+                        {
+                            "id": "DNS003",
+                            "description": "Remove Pi-hole DNS ad blocker",
+                            "command": [
+                                "pi_hole uninstall"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "pi_hole status"
+                        }
+                    ]
+                },
+                {
+                    "id": "DevTools",
+                    "description": "Development",
+                    "sub": [
+                        {
+                            "id": "DEV001",
+                            "description": "Install tools for cloning and managing repositories (git)",
+                            "command": [
+                                "get_user_continue \"This operation will install git.\n\nDo you wish to continue?\" process_input",
+                                "debconf-apt-progress -- apt-get -y install git"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! check_if_installed git"
+                        },
+                        {
+                            "id": "DEV001",
+                            "description": "Remove tools for cloning and managing repositories (git)",
+                            "command": [
+                                "get_user_continue \"This operation will remove git.\n\nDo you wish to continue?\" process_input",
+                                "debconf-apt-progress -- apt-get -y purge git"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "check_if_installed git"
+                        }
+                    ]
+                },
+                {
+                    "id": "HomeAutomation",
+                    "description": "Home Automation",
+                    "sub": [
+                        {
+                            "id": "HA001",
+                            "description": "Install openHAB",
+                            "command": [
+                                "openhab install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! check_if_installed openhab"
+                        },
+                        {
+                            "id": "HA002",
+                            "description": "Remove openHAB",
+                            "command": [
+                                "openhab uninstall"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "check_if_installed openhab"
+                        }
+                    ]
+                },
+                {
+                    "id": "Benchy",
+                    "description": "System benchmaking and diagnostics",
+                    "command": [
+                        "see_monitoring"
+                    ],
+                    "status": "Stable",
+                    "author": "@armbian",
+                    "condition": "[ -f /usr/bin/armbianmonitor ]"
+                },
+                {
+                    "id": "Containers",
+                    "description": "Containerlization and Virtual Machines",
+                    "sub": [
+                        {
+                            "id": "CON001",
+                            "description": "Install Docker Minimal",
+                            "about": "This operation will install Docker Minimal.",
+                            "command": [
+                                "install_docker"
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "! check_if_installed docker-ce"
+                        },
+                        {
+                            "id": "CON002",
+                            "description": "Install Docker Engine",
+                            "about": "This operation will install Docker Engine.",
+                            "command": [
+                                "install_docker engine"
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "! check_if_installed docker-compose-plugin"
+                        },
+                        {
+                            "id": "CON003",
+                            "description": "Remove Docker",
+                            "about": "This operation will purge Docker.",
+                            "command": [
+                                "apt_install_wrapper apt -y purge docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras"
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "check_if_installed docker-ce"
+                        },
+                        {
+                            "id": "CON004",
+                            "description": "Purge all Docker images, containers, and volumes",
+                            "about": "This operation will delete all Docker images, containers, and volumes.",
+                            "command": [
+                                "rm -rf /var/lib/docker",
+                                "rm -rf /var/lib/containerd"
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "! check_if_installed docker-ce && [ -d /var/lib/docker ]"
+                        },
+                        {
+                            "id": "CON005",
+                            "description": "Install Portainer",
+                            "prompt": "This operation will install Portainer.\nWould you like to continue?",
+                            "command": [
+                                "module_portainer install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_portainer status"
+                        },
+                        {
+                            "id": "CON006",
+                            "description": "Remove Portainer",
+                            "prompt": "This operation will delete Portainer container.\nWould you like to continue?",
+                            "command": [
+                                "module_portainer uninstall"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_portainer status"
+                        }
+                    ]
+                },
+                {
+                    "id": "Media",
+                    "description": "Media Servers and Editors",
+                    "sub": [
+                        {
+                            "id": "MED001",
+                            "description": "Install Plex Media server",
+                            "about": "This operation will install Plex Media server.",
+                            "command": [
+                                "install_plexmediaserver"
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "! check_if_installed plexmediaserver"
+                        },
+                        {
+                            "id": "MED002",
+                            "description": "Remove Plex Media server",
+                            "about": "This operation will purge Plex Media server.",
+                            "command": [
+                                "apt_install_wrapper apt-get -y purge plexmediaserver",
+                                "sed -i '/plexmediaserver.gpg/s/^/#/g' /etc/apt/sources.list.d/plexmediaserver.list"
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "check_if_installed plexmediaserver"
+                        },
+                        {
+                            "id": "MED003",
+                            "description": "Install Emby server",
+                            "about": "This operation will install Emby server.",
+                            "command": [
+                                "install_embyserver"
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "! check_if_installed emby-server"
+                        },
+                        {
+                            "id": "MED004",
+                            "description": "Remove Emby server",
+                            "about": "This operation will purge Emby server.",
+                            "command": [
+                                "apt_install_wrapper apt -y purge emby-server"
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "check_if_installed emby-server"
+                        }
+                    ]
+                },
+                {
+                    "id": "Monitoring",
+                    "description": "Monitoring",
+                    "sub": [
+                        {
+                            "id": "MON001",
+                            "description": "Install Uptime Kuma",
+                            "about": "Uptime Kuma is an easy-to-use self-hosted monitoring tool.",
+                            "command": [
+                                "module_uptimekuma install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_uptimekuma status"
+                        },
+                        {
+                            "id": "MON002",
+                            "description": "Uninstall Uptime Kuma",
+                            "command": [
+                                "module_uptimekuma uninstall"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_uptimekuma status"
+                        }
+                    ]
+                },
+                {
+                    "id": "Management",
+                    "description": "Remote Management tools",
+                    "sub": [
+                        {
+                            "id": "MAN001",
+                            "description": "Install Cockpit web-based management tool",
+                            "about": "This operation will install Cockpit.\ncockpit cockpit-ws cockpit-system cockpit-storaged",
+                            "command": [
+                                "see_current_apt update",
+                                "apt_install_wrapper apt -y install cockpit cockpit-ws cockpit-system cockpit-storaged "
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "! check_if_installed cockpit"
+                        },
+                        {
+                            "id": "MAN002",
+                            "description": "Purge Cockpit web-based management tool",
+                            "about": "This operation will purge Cockpit.",
+                            "command": [
+                                "apt_install_wrapper apt -y purge cockpit"
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "check_if_installed cockpit"
+                        },
+                        {
+                            "id": "MAN003",
+                            "description": "Start Cockpit Service",
+                            "command": [
+                                "sudo systemctl enable --now cockpit.socket | show_infobox "
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "check_if_installed cockpit && ! systemctl is-enabled cockpit.socket > /dev/null 2>&1"
+                        },
+                        {
+                            "id": "MAN004",
+                            "description": "Stop Cockpit Service",
+                            "command": [
+                                "systemctl stop cockpit cockpit.socket",
+                                "systemctl disable cockpit.socket | show_infobox "
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "check_if_installed cockpit && systemctl is-enabled cockpit.socket > /dev/null 2>&1"
+                        },
+                        {
+                            "id": "MAN005",
+                            "description": "Webmin web-based management tool",
+                            "command": [
+                                "see_menu module_webmin"
+                            ],
+                            "status": "Stable",
+                            "author": "@Tearran",
+                            "condition": ""
+                        }
+                    ]
+                }
+            ]
         }
-      ]
-    }
-  ]
+    ]
 }
