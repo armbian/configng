@@ -215,60 +215,72 @@ function source_module_options() {
 
 	merge_software_info
 	merge_base_info
-	set_software_json > "$DEFAULT_DIR/config.software.json"
 
 }
 
 # Main script logic with case statement
 case "$1" in
-	-s)
-		if [[ -z "$2" ]]; then
-			echo "Error: Missing arguments for -s option."
-			print_help
-			exit 1
-		fi
-		split_json "$2"
-	;;
-	-t)
-		if [[ -n "$2" ]]; then
-			cd "$SCRIPT_DIR"/..
-			merge_modules
-			echo "Processing JSON files, please wait..."
-			join_json_testing "$2"
-			"$SCRIPT_DIR"/config-markdown.py -t
-		else
-			merge_modules
-			echo "Processing JSON files, please wait..."
-			join_json_testing "$DEFAULT_FILE"
-			"$SCRIPT_DIR"/config-markdown.py -t
-		fi
-
-	;;
-	-p)
-		if [[ -n "$2" ]]; then
-			merge_modules
-			echo "Processing JSON files, please wait..."
-			join_json_production "$2"
-			"$SCRIPT_DIR"/config-markdown.py -u
-		else
-			merge_modules
-			source_module_options
-			echo "Processing JSON files, please wait..."
-			join_json_production "$DEFAULT_FILE"
-			"$SCRIPT_DIR"/config-markdown.py -u
-			$SCRIPT_DIR/../bin/armbian-config
-		fi
-
-
-	;;
-	-h)
-		print_help
-	;;
-	*)
-		echo "Error: Invalid option."
-		print_help
-		exit 1
-	;;
+    -n|--noint)
+        shift
+        if [[ -z "$1" || "$1" == "help" ]]; then
+            see_base_list
+            see_software_list
+            exit 0
+        fi
+        option="$1"
+        shift
+        # args=$(sanitize_input "$@")
+	args=$("$@")
+        # echo -e "\"$option\" \"$args\""
+        "$option" "$args"
+        exit 0
+        ;;
+    -s|--split)
+        if [[ -z "$2" ]]; then
+            echo "Error: Missing arguments for -s option."
+            print_help
+            exit 1
+        fi
+        split_json "$2"
+        ;;
+    -t|--test)
+        if [[ -n "$2" ]]; then
+            cd "$SCRIPT_DIR"/..
+            # Merge all modules into a single file
+            merge_modules
+            # Source the module for module_info
+            source_module_options
+            # Output the software JSON file
+            set_software_json > "$DEFAULT_DIR/config.software.json"
+            echo "Processing JSON files, please wait..."
+            join_json_production "$DEFAULT_FILE"
+            # Generate the markdown user file
+            "$SCRIPT_DIR"/config-markdown.py -u
+            # start armbian-config to manually test modules
+            $SCRIPT_DIR/../bin/armbian-config
+        fi
+        ;;
+    -p|--production)
+        if [[ -n "$2" ]]; then
+            merge_modules
+            echo "Processing JSON files, please wait..."
+            join_json_production "$2"
+            "$SCRIPT_DIR"/config-markdown.py -u
+        else
+            merge_modules
+            echo "Processing JSON files, please wait..."
+            join_json_production "$DEFAULT_FILE"
+            "$SCRIPT_DIR"/config-markdown.py -u
+        fi
+        ;;
+    -h|--help)
+        print_help
+        ;;
+    *)
+        echo "Error: Invalid option."
+        print_help
+        exit 1
+        ;;
 esac
 
 
