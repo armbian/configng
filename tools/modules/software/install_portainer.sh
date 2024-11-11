@@ -31,7 +31,7 @@ module_portainer() {
 				echo -e "\tremove\t- Remove $title."
 				echo -e "\tstart\t- Start the $title container."
 				echo -e "\tstop\t- Stop the $title container."
-				echo -e "\treset\t- Reset the defalt state: $title container."
+				echo -e "\treset\t- Reset the default state: $title container."
 			else
 				echo -e "  install\t- Install $title."
 			fi
