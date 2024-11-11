@@ -244,7 +244,6 @@ case "$1" in
         split_json "$2"
         ;;
     -t|--test)
-        if [[ -n "$2" ]]; then
             cd "$SCRIPT_DIR"/..
             # Merge all modules into a single file
             merge_modules
@@ -258,7 +257,6 @@ case "$1" in
             "$SCRIPT_DIR"/config-markdown.py -u
             # start armbian-config to manually test modules
             $SCRIPT_DIR/../bin/armbian-config
-        fi
         ;;
     -p|--production)
         if [[ -n "$2" ]]; then
