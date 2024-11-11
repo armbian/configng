@@ -37,7 +37,7 @@
 - name: "Good first issue"
   color: "ffb3ff"
   description: "Feel free to contribute :) "
-- name: "Not framework bug"
+- name: "Not armbian-config bug"
   color: "CD456C"
   description: "Bug in 3rd party component"
 - name: "Python"
