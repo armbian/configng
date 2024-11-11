@@ -717,7 +717,7 @@ These helper functions facilitate various operations related to job management, 
 | Show the usage of the functions. | see_use | @Tearran 
 | Install Desktop environment | manage_desktops xfce install | @igorpecovnik 
 | Set system shell to BASH | manage_zsh enable|disable | @igorpecovnik 
-| Generate a Help message for cli commands. | see_cmd_list [catagory] | @Tearran 
+| Generate a Help message for cli commands. | see_cmd_list [category] | @Tearran 
 | Revert network config back to Armbian defaults | default_network_config | @igorpecovnik 
 | freeze, unhold, reinstall armbian related packages. | armbian_fw_manipulate unhold/freeze/reinstall | @igorpecovnik 
 | Check the internet connection with fallback DNS | see_ping | @Tearran 
