@@ -66,7 +66,7 @@ case "$1" in
 
 	echo "Usage:  armbian-config --[option]
      Options:
-     --help [catagory]   Use [catagory] to filter specific menu options.
+     --help [category]   Use [category] to filter specific menu options.
      --cmd  [option]     Run a command from the menu (simple)
      --api  [option]     Run a helper command        (advanced)
      --doc               Generate the README.md file 
