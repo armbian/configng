@@ -87,18 +87,21 @@ function network_config() {
 			;;
 
 			ap)
+				if [[ -f /etc/netplan/armbian.yaml && "$(netplan get bridges)" != "null" ]]; then
 				ip link set ${adapter} up
 				default_wireless_network_config "${yamlfile}" "${adapter}"
-				! check_if_installed hostapd && apt_install_wrapper apt-get -y --no-install-recommends install hostapd networkd-dispatcher
-				SELECTED_SSID=$($DIALOG --title "Enter SSID for AP" --inputbox "" 7 50 3>&1 1>&2 2>&3)
+				apt_install_wrapper apt-get -y --no-install-recommends install hostapd networkd-dispatcher bridge-utils
+				SELECTED_SSID=$($DIALOG --title "Enter SSID for AP" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
 				if [[ -n "${SELECTED_SSID}" && $? == 0 ]]; then
-					SELECTED_PASSWORD=$($DIALOG --title "Enter new password for $SELECTED_SSID" --passwordbox "" 7 50 3>&1 1>&2 2>&3)
+					SELECTED_PASSWORD=$($DIALOG --title "Enter new password for $SELECTED_SSID" --passwordbox "\nDefault password: 12345678\n" 9 50 "12345678" 3>&1 1>&2 2>&3)
 					if [[ -n "${SELECTED_PASSWORD}" && $? == 0 ]]; then
 						# start bridged AP
 						netplan set --origin-hint ${yamlfile} renderer=${NETWORK_RENDERER}
 						netplan set --origin-hint ${yamlfile} ethernets.$adapter.dhcp4=no
 						netplan set --origin-hint ${yamlfile} ethernets.$adapter.dhcp6=no
 						netplan set --origin-hint ${yamlfile} bridges.br0.interfaces='['$adapter']'
+						netplan set --origin-hint ${yamlfile} bridges.br0.dhcp4=yes
+						netplan set --origin-hint ${yamlfile} bridges.br0.dhcp6=yes
 						cat <<- EOF > "/etc/hostapd/hostapd.conf"
 							interface=$adapter
 							driver=nl80211
@@ -159,6 +162,9 @@ function network_config() {
 						fi
 					fi
 				fi
+				else
+				show_message <<< "AP (access point) mode is available after you set wired network to static or DHCP mode"
+			fi
 			;;
 
 			*)
@@ -181,14 +187,15 @@ function network_config() {
 			[[ -f /etc/netplan/armbian.yaml ]] && LIST+=("spoof" "Spoof MAC address")
 			LIST_LENGTH=$((${#LIST[@]} / 2))
 			wiredmode=$($DIALOG --title "Select IP mode" --menu "" $((${LIST_LENGTH} + 8)) 60 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
-			if [[ "${wiredmode}" == "spoof" && $? == 0 ]]; then
+			wired_exit=$?
+			if [[ "${wiredmode}" == "spoof" && $wired_exit == 0 ]]; then
 				local mac_address=$(ip a s ${adapter} | grep link/ether | awk '{print $2}')
 				mac_address=$($DIALOG --title "Enter MAC for $adapter" --inputbox "\nValid format: $mac_address" 9 40 "$mac_address" 3>&1 1>&2 2>&3)
 				if [[ -n $mac_address && $? == 0 ]]; then
 					netplan set --origin-hint ${yamlfile} ethernets.$adapter.macaddress=''$mac_address''
 					netplan apply
 				fi
-			elif [[ "${wiredmode}" == "dhcp" && $? == 0 ]]; then
+			elif [[ "${wiredmode}" == "dhcp" && $wired_exit == 0 ]]; then
 				[[ -f /etc/netplan/${yamlfile}.yaml ]] && sed -i -e 'H;x;/^\(  *\)\n\1/{s/\n.*//;x;d;}' -e 's/.*//;x;/bridges/{s/^\( *\).*/ \1/;x;d;}' /etc/netplan/${yamlfile}.yaml
 				netplan set --origin-hint ${yamlfile} renderer=${NETWORK_RENDERER}
 				netplan set --origin-hint ${yamlfile} ethernets.$adapter.dhcp4=no

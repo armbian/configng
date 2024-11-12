@@ -41,9 +41,9 @@ function default_network_config() {
 			apt_install_wrapper apt-get -y purge hostapd networkd-dispatcher
 			# drop and delete bridge interface in case its there
 			if [[ -n $(ip link show type bridge) ]]; then
-				ip link set br0 down
-				brctl delbr br0
-				networkctl reconfigure br0
+				ip link set br0 down >/dev/null 2>&1
+				brctl delbr br0 >/dev/null 2>&1
+				networkctl reconfigure br0 >/dev/null 2>&1
 			fi
 			# remove networkd-dispatcher hook
 			rm -f /etc/networkd-dispatcher/carrier.d/armbian-ap
