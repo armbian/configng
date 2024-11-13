@@ -264,7 +264,7 @@ Outputs:
 	--cmd DNS003 - Remove Pi-hole DNS ad blocker
     DevTools - Development
 	--cmd DEV001 - Install tools for cloning and managing repositories (git)
-	--cmd DEV001 - Remove tools for cloning and managing repositories (git)
+	--cmd DEV002 - Remove tools for cloning and managing repositories (git)
     HomeAutomation - Home Automation
 	--cmd HA001 - Install openHAB
 	--cmd HA002 - Remove openHAB
