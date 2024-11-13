@@ -409,7 +409,7 @@
                             "condition": "! check_if_installed git"
                         },
                         {
-                            "id": "DEV001",
+                            "id": "DEV002",
                             "description": "Remove tools for cloning and managing repositories (git)",
                             "command": [
                                 "get_user_continue \"This operation will remove git.\n\nDo you wish to continue?\" process_input",
