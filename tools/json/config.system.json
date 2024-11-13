@@ -331,7 +331,7 @@
                     ],
                     "status": "Stable",
                     "author": "@viraniac @igorpecovnik",
-                    "condition": "[ -n $OVERLAY_DIR ] && [ -n $BOOT_SOC ]"
+                    "condition": "[ -d /boot/dtb/ ]"
                 }
             ]
         }
