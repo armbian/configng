@@ -52,7 +52,7 @@ sudo apt -y install armbian-config
 
 ## Contributing
 
-Contributions are welcome! Please refer to [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions are welcome! Please refer to general [CONTRIBUTING.md](CONTRIBUTING.md) and guidelines for [adding a new feature](https://docs.armbian.com/User-Guide_Armbian-Software/#adding-example).
 
 ## Support Us
 
