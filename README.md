@@ -45,14 +45,14 @@ sudo bin/armbian-config
 Run the following commands in your terminal:
 
 ```bash
-echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] https://armbian.github.io/configng stable main" | sudo tee /etc/apt/sources.list.d/armbian-development.list > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] https://github.armbian.com/configng stable main" | sudo tee /etc/apt/sources.list.d/armbian-development.list > /dev/null
 sudo apt update
 sudo apt -y install armbian-config
 ```
 
 ## Contributing
 
-Contributions are welcome! Please refer to [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions are welcome! Please refer to general [CONTRIBUTING.md](CONTRIBUTING.md) and guidelines for [adding a new feature](https://docs.armbian.com/User-Guide_Armbian-Software/#adding-example).
 
 ## Support Us
 
