@@ -42,6 +42,3 @@ function module_template() {
 
 # uncomment to test the module
 module_template "$1"
-
-
-
