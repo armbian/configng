@@ -7,7 +7,7 @@
                 {
                     "id": "Desktops",
                     "description": "Desktop Environments",
-                    "status": "Stable",
+                    "status": "Disabled",
                     "sub": [
                         {
                             "id": "XFCE",
