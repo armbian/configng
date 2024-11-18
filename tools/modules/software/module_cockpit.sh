@@ -1,13 +1,13 @@
 #!/bin/bash
 
 module_options+=(
-    ["module_cockpit,author"]="@cockpit-project"
-    ["module_cockpit,maintainer"]="@Tearran"
-    ["module_cockpit,feature"]="module_cockpit"
-    ["module_cockpit,example"]="help install remove start stop enable disable port status"
-    ["module_cockpit,desc"]="Cockpit setup and service setting."
-    ["module_cockpit,ports"]="9090 9091"
-    ["module_cockpit,status"]="review"
+	["module_cockpit,author"]="@cockpit-project"
+	["module_cockpit,maintainer"]="@Tearran"
+	["module_cockpit,feature"]="module_cockpit"
+	["module_cockpit,example"]="help install remove start stop enable disable port status"
+	["module_cockpit,desc"]="Cockpit setup and service setting."
+	["module_cockpit,ports"]="9090 9091"
+	["module_cockpit,status"]="review"
 )
 
 function module_cockpit() {
