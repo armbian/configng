@@ -5,6 +5,7 @@ module_options+=(
 	["module_webmin,feature"]="module_webmin"
 	["module_webmin,example"]="help install remove start stop enable disable status check"
 	["module_webmin,desc"]="Webmin setup and service setting."
+	["module_webmin,ports"]="10000"
 	["module_webmin,status"]="review"
 )
 
