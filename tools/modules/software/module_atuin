@@ -1,0 +1,81 @@
+#!/bin/bash
+
+#declare -A module_options
+
+module_options+=(
+	["module_atuin,author"]="@atuinsh"
+	["module_atuin,maintainer"]="@armbian @Tearran"
+	["module_atuin,testers"]="@Tearran"
+	["module_atuin,feature"]="module_atuin"
+	["module_atuin,example"]="help install remove logout status"
+	["module_atuin,desc"]="Module to install logout and uninstall Atuin."
+	["module_atuin,port"]=""
+	["module_atuin,status"]="review"
+)
+
+function module_atuin() {
+	local title="atuin"
+	local condition
+	condition=$(command -v atuin)
+
+	# Convert the example string to an array
+	local commands
+	IFS=' ' read -r -a commands <<< "${module_options["module_atuin,example"]}"
+
+	case "$1" in
+	"${commands[0]}") # Help Command
+		echo -e "\nUsage: ${module_options["module_atuin,feature"]} <command>"
+		echo -e "Commands: ${module_options["module_atuin,example"]}\n"
+		echo "Available commands:"
+		if [[ -n "$condition" ]]; then
+			echo -e "  remove\t- Uninstall $title"
+			echo -e "  logout\t- Log out from $title"
+		else
+			echo -e "  install\t- Install $title"
+		fi
+		echo -e "  status\t- Check installation status of $title."
+		;;
+	"${commands[1]}") # Install Command
+		echo "Installing $title..."
+		# Installation logic for Atuin
+		# Uncomment the next line for actual installation
+		curl -sSL https://raw.githubusercontent.com/atuinsh/atuin/main/install.sh | sh
+		echo "Warning: Please exit and restart your shell to reload the changes."
+		;;
+	"${commands[2]}") # Remove Command
+		if [[ -n "$condition" ]]; then
+			echo "Removing $title..."
+			atuin logout
+			sudo rm -f "$(command -v atuin)"
+			rm -rf ~/.config/atuin ~/.local/share/atuin ~/.atuin
+			sed -i '/atuin init/d' ~/.bashrc ~/.zshrc ~/.fishrc ~/.bash_profile ~/.zprofile ~/.profile 2>/dev/null
+			echo "Atuin uninstallation complete. Please restart your shell."
+			else
+			echo "Atuin is not installed."
+		fi
+		;;
+	"${commands[3]}") # Logout Command
+		if [[ -n "$condition" ]]; then
+			echo "Logging out of $title..."
+			atuin logout
+			echo "Logout complete."
+			else
+			echo "$title is not installed. Cannot log out."
+		fi
+		;;
+	"${commands[-1]}") # Status Command
+		echo "Status of $title installation:"
+		if [[ -z "$condition" ]]; then
+			echo "$title is not installed."
+		else
+			echo "$title is installed."
+		fi
+		;;
+	*) # Unknown Command
+		echo -e "Unknown command: $1\n"
+		echo -e "Available commands: ${module_options["module_atuin,example"]}"
+		;;
+	esac
+}
+
+#module_atuin "$@"
