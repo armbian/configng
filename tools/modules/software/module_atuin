@@ -7,7 +7,7 @@ module_options+=(
 	["module_atuin,maintainer"]="@armbian @Tearran"
 	["module_atuin,testers"]="@Tearran"
 	["module_atuin,feature"]="module_atuin"
-	["module_atuin,example"]="help install remove logout status"
+	["module_atuin,example"]="help install remove reset logout status"
 	["module_atuin,desc"]="Module to install logout and uninstall Atuin."
 	["module_atuin,remote"]="https://services.armbian.de/atuin"
 	["module_atuin,port"]=""
@@ -29,8 +29,9 @@ function module_atuin() {
 		echo -e "Commands: ${module_options["module_atuin,example"]}\n"
 		echo "Available commands:"
 		if [[ -n "$condition" ]]; then
-			echo -e "  remove\t- Uninstall $title"
+			echo -e "  reset \t- reset config to atuin default"
 			echo -e "  logout\t- Log out from $title"
+			echo -e "  remove\t- Uninstall $title"
 		else
 			echo -e "  install\t- Install $title"
 		fi
@@ -41,7 +42,7 @@ function module_atuin() {
 		# Installation logic for Atuin
 		# Uncomment the next line for actual installation
 		curl -sSL https://raw.githubusercontent.com/atuinsh/atuin/main/install.sh | sh
-		[[ -f ~/.config/atuin/config.toml ]] && set_atuin_config > ~/.config/atuin/config.toml
+		[[ -f ~/.config/atuin/config.toml ]] && generate_atuin_config
 		echo "Warning: Please exit and restart your shell to reload the changes."
 		;;
 	"${commands[2]}") # Remove Command
@@ -56,7 +57,13 @@ function module_atuin() {
 			echo "Atuin is not installed."
 		fi
 		;;
-	"${commands[3]}") # Logout Command
+		"${commands[3]}") # Logout Command
+		if [[ -n "$condition" ]]; then
+			echo "config reset $title..."
+			atuin 
+		fi
+		;;
+	"${commands[4]}") # Logout Command
 		if [[ -n "$condition" ]]; then
 			echo "Logging out of $title..."
 			atuin logout
@@ -80,13 +87,40 @@ function module_atuin() {
 	esac
 }
 
+function generate_atuin_config() {
+    local output_file="$HOME/.config/atuin/config.toml"
+    
+    # Ensure the target directory exists
+    mkdir -p "$(dirname "$output_file")"
 
-function set_atuin_config() {
-	cat << EOF
-## address of the sync server
-sync_address = "${module_options["module_atuin,remote"]}"
+    # Configuration template as a here-document
+    cat <<'EOF' > "$output_file"
+sync_address = "https://services.armbian.de/atuin" 
+db_path = "~/.local/share/atuin/history.db"
+key_path = "~/.local/share/atuin/key"
+session_path = "~/.local/share/atuin/session"
+auto_sync = false
+# update_check = true
+# sync_frequency = "10m"
+
+[sync]
+records = true
+
+[daemon]
+# enabled = false
+# sync_frequency = 300
+# socket_path = "~/.local/share/atuin/atuin.sock"
+# systemd_socket = false
+
 EOF
+
+    echo "Configuration file created at $output_file"
 }
 
 
-module_atuin "$@"
+# Uncomment one for testing
+# set_atuin_config
+# generate_atuin_config
+module_atuin "$1"
+#"$@"
+
