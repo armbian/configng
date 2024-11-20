@@ -78,7 +78,7 @@ function module_atuin() {
 	esac
 }
 
-#module_atuin "$@"
+module_atuin "$@"
 
 module_options+=(
 	["module_atuin_docker,author"]="@armbian"
@@ -152,4 +152,4 @@ module_atuin_docker() {
 }
 
 # Uncomment to test the function
- module_atuin_docker "$@"
+# module_atuin_docker "$@"
