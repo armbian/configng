@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#declare -A module_options
+declare -A module_options
 
 module_options+=(
 	["module_atuin,author"]="@atuinsh"
@@ -79,3 +79,77 @@ function module_atuin() {
 }
 
 #module_atuin "$@"
+
+module_options+=(
+	["module_atuin_docker,author"]="@armbian"
+	["module_atuin_docker,ref_link"]="https://github.com/atuinsh/atuin"
+	["module_atuin_docker,feature"]="module_atuin_docker"
+	["module_atuin_docker,desc"]="Install/uninstall/check status of Atuin Docker container"
+	["module_atuin_docker,example"]="help install remove status"
+	["module_atuin_docker,status"]="Active"
+)
+
+module_atuin_docker() {
+	local title="Atuin (Docker)"
+	local image="ghcr.io/atuinsh/atuin:c5c5e9d@sha256:74c90013ec60a25b071b068c430ffaebd3b19cf96dc4ececc859bc266cba8b71"
+	local container="atuin_docker"
+
+	# Check Docker installation and container/image presence
+	if command -v docker &>/dev/null; then
+		local container_exists=$(docker container ls -a --format '{{.Names}}' | grep -x "$container")
+		local image_exists=$(docker image ls --format '{{.Repository}}:{{.Tag}}' | grep -F "${image%%@*}")
+	fi
+
+	# Convert the example string to an array
+	local commands
+	IFS=' ' read -r -a commands <<< "${module_options["module_atuin_docker,example"]}"
+
+	case "$1" in
+		"${commands[0]}") # Help Command
+			echo -e "\nUsage: ${module_options["module_atuin_docker,feature"]} <command>"
+			echo -e "Commands: ${module_options["module_atuin_docker,example"]}"
+			echo "Available commands:"
+			if [[ "${container_exists}" ]] || [[ "${image_exists}" ]]; then
+				echo -e "  status\t- Show the status of the $title container."
+				echo -e "  uninstall\t- Remove $title."
+			else
+				echo -e "  install\t- Install $title."
+			fi
+			echo
+			;;
+		install) # Install Command
+			if ! command -v docker &>/dev/null; then
+				echo "Docker is not installed. Installing Docker..."
+				# Uncomment the next line to implement Docker installation
+				# install_docker
+			fi
+			echo "Pulling Atuin Docker image..."
+			docker pull "$image"
+			echo "Running Atuin Docker container..."
+			docker run --rm --name "$container" "$image"
+			echo "$title installation and container setup complete."
+			;;
+		remove) # Uninstall Command
+			echo "Removing Atuin Docker container and image..."
+			[[ "${container_exists}" ]] && docker container rm -f "$container"
+			[[ "${image_exists}" ]] && docker image rm "$image"
+			echo "$title uninstallation complete."
+			;;
+		"${commands[-1]}") # Status Command
+			if [[ "${container_exists}" ]] || [[ "${image_exists}" ]]; then
+				echo "$title is installed and/or running."
+				[[ "${container_exists}" ]] && echo "Container: $container is running."
+				[[ "${image_exists}" ]] && echo "Image: $image is available."
+			else
+				echo "$title is not installed or running."
+			fi
+			;;
+		*) # Unknown Command
+			echo -e "Unknown command: $1\n"
+			echo -e "Available commands: ${module_options["module_atuin_docker,example"]}"
+			;;
+	esac
+}
+
+# Uncomment to test the function
+ module_atuin_docker "$@"
