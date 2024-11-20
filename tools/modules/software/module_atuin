@@ -40,7 +40,7 @@ function module_atuin() {
 		echo "Installing $title..."
 		# Installation logic for Atuin
 		# Uncomment the next line for actual installation
-		#curl -sSL https://raw.githubusercontent.com/atuinsh/atuin/main/install.sh | sh
+		curl -sSL https://raw.githubusercontent.com/atuinsh/atuin/main/install.sh | sh
 		[[ -f ~/.config/atuin/config.toml ]] && set_atuin_config > ~/.config/atuin/config.toml
 		echo "Warning: Please exit and restart your shell to reload the changes."
 		;;
