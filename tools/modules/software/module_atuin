@@ -2,6 +2,8 @@
 
 declare -A module_options
 
+
+
 module_options+=(
 	["module_atuin,author"]="@atuinsh"
 	["module_atuin,maintainer"]="@armbian @Tearran"
@@ -15,6 +17,15 @@ module_options+=(
 )
 
 function module_atuin() {
+
+	if [ "$EUID" -eq 0 ]; then
+		USER_HOME=$(eval echo ~${SUDO_USER})
+		HOME=$USER_HOME
+	else
+		USER_HOME=$HOME
+	fi
+	# Determine the appropriate home directory
+
 	local title="atuin"
 	local condition
 	condition=$(command -v atuin)
@@ -42,7 +53,7 @@ function module_atuin() {
 		# Installation logic for Atuin
 		# Uncomment the next line for actual installation
 		curl -sSL https://raw.githubusercontent.com/atuinsh/atuin/main/install.sh | sh
-		[[ -f ~/.config/atuin/config.toml ]] && generate_atuin_config
+		generate_atuin_config
 		echo "Warning: Please exit and restart your shell to reload the changes."
 		;;
 	"${commands[2]}") # Remove Command
@@ -57,10 +68,10 @@ function module_atuin() {
 			echo "Atuin is not installed."
 		fi
 		;;
-		"${commands[3]}") # Logout Command
+		"${commands[3]}") # setup defaults
 		if [[ -n "$condition" ]]; then
-			echo "config reset $title..."
-			atuin 
+			echo "config reset $title to armbian defaults"
+			generate_atuin_config
 		fi
 		;;
 	"${commands[4]}") # Logout Command
@@ -88,7 +99,11 @@ function module_atuin() {
 }
 
 function generate_atuin_config() {
-    local output_file="$HOME/.config/atuin/config.toml"
+
+	# Use USER_HOME for file operations
+	echo "Creating files in $USER_HOME"
+	sleep 1
+    local output_file="$USER_HOME/.config/atuin/config.toml"
     
     # Ensure the target directory exists
     mkdir -p "$(dirname "$output_file")"
