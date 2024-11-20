@@ -60,7 +60,7 @@ function module_atuin() {
 		if [[ -n "$condition" ]]; then
 			echo "Removing $title..."
 			atuin logout
-			sudo rm -f "$(command -v atuin)"
+			rm -f "$(command -v atuin)"
 			rm -rf ~/.config/atuin ~/.local/share/atuin ~/.atuin
 			sed -i '/atuin init/d' ~/.bashrc ~/.zshrc ~/.fishrc ~/.bash_profile ~/.zprofile ~/.profile 2>/dev/null
 			echo "Atuin uninstallation complete. Please restart your shell."
