@@ -75,61 +75,61 @@ function module_atuin() {
 }
 
 set_atuin() {
-    # Ensure correct user environment if running as root
-    local user_name user_home
-    if [[ $EUID -eq 0 ]]; then
-        # Check if SUDO_USER is set
-        if [ -z "$SUDO_USER" ]; then
-            echo "Error: Unknown user. SUDO_USER is not set." >&2
-            exit 1
-        fi
-        user_name=$SUDO_USER
-        user_home=$(eval echo ~"$user_name")
-    else
-        user_name=$USER
-        user_home=$HOME
-    fi
+	# Ensure correct user environment if running as root
+	local user_name user_home
+	if [[ $EUID -eq 0 ]]; then
+		# Check if SUDO_USER is set
+		if [ -z "$SUDO_USER" ]; then
+		echo "Error: Unknown user. SUDO_USER is not set." >&2
+		exit 1
+		fi
+		user_name=$SUDO_USER
+		user_home=$(eval echo ~"$user_name")
+	else
+		user_name=$USER
+		user_home=$HOME
+	fi
 
-    # Define variables
-    atuin_url="https://github.com/atuinsh/atuin/releases/download/v18.4.0-beta.3/atuin-x86_64-unknown-linux-gnu.tar.gz"
-    atuin_dir="$user_home/.atuin/bin"
-    atuin_binary="atuin"
-    bash_preexec_file="$user_home/.bash-preexec.sh"
-    atuin_bashrc_file="$user_home/.bashrc"
+	# Define variables
+	atuin_url="https://github.com/atuinsh/atuin/releases/download/v18.4.0-beta.3/atuin-x86_64-unknown-linux-gnu.tar.gz"
+	atuin_dir="$user_home/.atuin/bin"
+	atuin_binary="atuin"
+	bash_preexec_file="$user_home/.bash-preexec.sh"
+	atuin_bashrc_file="$user_home/.bashrc"
 
-    # Create target directory as the user (not as root)
-    mkdir -p "$atuin_dir"
-    # Ensure correct ownership (user should own these files)
-    chown "$user_name:$user_name" "$atuin_dir"
+	# Create target directory as the user (not as root)
+	mkdir -p "$atuin_dir"
+	# Ensure correct ownership (user should own these files)
+	chown "$user_name:$user_name" "$atuin_dir"
 
-    # Download and install as the correct user
-    if [[ ! -f "$user_home/atuin.tar.gz" ]]; then
-        echo "Downloading Atuin installer..."
-        wget -q --show-progress "$atuin_url" -O "$user_home/atuin.tar.gz" || { echo "Error: Failed to download the file." >&2; exit 1; }
-    else
-        echo "File already exists. Skipping download."
-    fi
+	# Download and install as the correct user
+	if [[ ! -f "$user_home/atuin.tar.gz" ]]; then
+		echo "Downloading Atuin installer..."
+		wget -q --show-progress "$atuin_url" -O "$user_home/atuin.tar.gz" || { echo "Error: Failed to download the file." >&2; exit 1; }
+	else
+		echo "File already exists. Skipping download."
+	fi
 
-    # Extract the tar.gz file as the user
-    echo "Extracting Atuin binary..."
-    tar -xvzf "$user_home/atuin.tar.gz" -C "$user_home"
+	# Extract the tar.gz file as the user
+	echo "Extracting Atuin binary..."
+	tar -xvzf "$user_home/atuin.tar.gz" -C "$user_home"
 
-    # Move the binary to the desired location as the user
-    echo "Moving Atuin binary to $atuin_dir..."
-    mv "$user_home/atuin-aarch64-unknown-linux-gnu/$atuin_binary" "$atuin_dir/$atuin_binary"
+	# Move the binary to the desired location as the user
+	echo "Moving Atuin binary to $atuin_dir..."
+	mv "$user_home/atuin-aarch64-unknown-linux-gnu/$atuin_binary" "$atuin_dir/$atuin_binary"
 
-    # Clean up the extracted folder (leave the tar file for testing)
-    echo "Cleaning up extracted folder..."
-    rm -rf "$user_home/atuin-aarch64-unknown-linux-gnu"
+	# Clean up the extracted folder (leave the tar file for testing)
+	echo "Cleaning up extracted folder..."
+	rm -rf "$user_home/atuin-aarch64-unknown-linux-gnu"
 
-    # Change ownership of the Atuin binary to the user
-    chown "$user_name:$user_name" "$atuin_dir/$atuin_binary"
+	# Change ownership of the Atuin binary to the user
+	chown "$user_name:$user_name" "$atuin_dir/$atuin_binary"
 
-    generate_atuin_config
+	generate_atuin_config
 
-    # Create env file for shell (sh compatible) as the user
-    echo "Creating env file to set PATH..."
-    cat <<EOL > "$atuin_dir/env"
+	# Create env file for shell (sh compatible) as the user
+	echo "Creating env file to set PATH..."
+	cat <<EOL > "$atuin_dir/env"
 #!/bin/sh
 # Add binaries to PATH if they aren't added yet
 # Affix colons on either side of \$PATH to simplify matching
@@ -142,73 +142,73 @@ case ":${PATH}:" in
         ;;
 esac
 EOL
-    echo "Env file created at $atuin_dir/env"
+	echo "Env file created at $atuin_dir/env"
 
-    # Ensure the user can update their .bashrc file
-    echo "Updating .bashrc..."
-    if ! grep -q ". \$HOME/.atuin/bin/env" "$atuin_bashrc_file"; then
-        echo ". \$HOME/.atuin/bin/env" >> "$atuin_bashrc_file"
-        echo "Added . $HOME/.atuin/bin/env to .bashrc"
-    fi
+	# Ensure the user can update their .bashrc file
+	echo "Updating .bashrc..."
+	if ! grep -q ". \$HOME/.atuin/bin/env" "$atuin_bashrc_file"; then
+		echo ". \$HOME/.atuin/bin/env" >> "$atuin_bashrc_file"
+		echo "Added . $HOME/.atuin/bin/env to .bashrc"
+	fi
 
-    # Ensure the user can update .bash-preexec.sh
-    if [[ ! -f "$bash_preexec_file" ]]; then
-        echo "~/.bash-preexec.sh not found. Downloading..."
-        wget -q https://raw.githubusercontent.com/rcaloras/bash-preexec/master/bash-preexec.sh -O "$bash_preexec_file" || { echo "Error: Failed to download .bash-preexec.sh" >&2; exit 1; }
-    fi
-    if ! grep -q '[[ -f "$user_home"/.bash-preexec.sh ]] && source ~/.bash-preexec.sh' "$atuin_bashrc_file"; then
-        echo '[[ -f "$user_home"/.bash-preexec.sh ]] && source ~/.bash-preexec.sh' >> "$atuin_bashrc_file"
-    fi
+	# Ensure the user can update .bash-preexec.sh
+	if [[ ! -f "$bash_preexec_file" ]]; then
+		echo "~/.bash-preexec.sh not found. Downloading..."
+		wget -q https://raw.githubusercontent.com/rcaloras/bash-preexec/master/bash-preexec.sh -O "$bash_preexec_file" || { echo "Error: Failed to download .bash-preexec.sh" >&2; exit 1; }
+	fi
+	if ! grep -q '[[ -f "$user_home"/.bash-preexec.sh ]] && source ~/.bash-preexec.sh' "$atuin_bashrc_file"; then
+		echo '[[ -f "$user_home"/.bash-preexec.sh ]] && source ~/.bash-preexec.sh' >> "$atuin_bashrc_file"
+	fi
 
-    # Ensure eval "$(atuin init bash)" is in .bashrc
-    if ! grep -q 'eval "$(atuin init bash)"' "$atuin_bashrc_file"; then
-        echo 'eval "$(atuin init bash)"' >> "$atuin_bashrc_file"
-    fi
+	# Ensure eval "$(atuin init bash)" is in .bashrc
+	if ! grep -q 'eval "$(atuin init bash)"' "$atuin_bashrc_file"; then
+		echo 'eval "$(atuin init bash)"' >> "$atuin_bashrc_file"
+	fi
 
-    # Make sure all directories and files are owned by the user
-    chown -R "$user_name:$user_name" "$user_home/.atuin"
+	# Make sure all directories and files are owned by the user
+	chown -R "$user_name:$user_name" "$user_home/.atuin"
 
-    echo "Atuin installation complete!"
+	echo "Atuin installation complete!"
 }
 
 
 remove_atuin() {
-    # Ensure correct user environment if running as root
-    local user_name user_home
-    if [[ $EUID -eq 0 ]]; then
-        # Check if SUDO_USER is set
-        if [ -z "$SUDO_USER" ]; then
-            echo "Error: Unknown user. SUDO_USER is not set." >&2
-            exit 1
-        fi
-        user_name=$SUDO_USER
-        user_home=$(eval echo ~"$user_name")
-    else
-        user_name=$USER
-        user_home=$HOME
-    fi
+	# Ensure correct user environment if running as root
+	local user_name user_home
+	if [[ $EUID -eq 0 ]]; then
+		# Check if SUDO_USER is set
+		if [ -z "$SUDO_USER" ]; then
+		echo "Error: Unknown user. SUDO_USER is not set." >&2
+		exit 1
+		fi
+		user_name=$SUDO_USER
+		user_home=$(eval echo ~"$user_name")
+	else
+		user_name=$USER
+		user_home=$HOME
+	fi
 
-    # Check if Atuin is installed and proceed with removal
-        echo "Removing Atuin..."
+	# Check if Atuin is installed and proceed with removal
+	echo "Removing Atuin..."
 
-        # Define file paths to remove
-        atuin_bin_path="$user_home/.atuin/bin/atuin"
-        atuin_config_dir="$user_home/.config/atuin"
-        atuin_local_share_dir="$user_home/.local/share/atuin"
-        atuin_home_dir="$user_home/.atuin"
-        bash_preexec_file="$user_home/.bash-preexec.sh"
-        atuin_bashrc_file="$user_home/.bashrc"
+	# Define file paths to remove
+	atuin_bin_path="$user_home/.atuin/bin/atuin"
+	atuin_config_dir="$user_home/.config/atuin"
+	atuin_local_share_dir="$user_home/.local/share/atuin"
+	atuin_home_dir="$user_home/.atuin"
+	bash_preexec_file="$user_home/.bash-preexec.sh"
+	atuin_bashrc_file="$user_home/.bashrc"
 
-        # Remove Atuin binary and related directories
-        rm -f "$atuin_bin_path"
-        rm -rf "$atuin_config_dir" "$atuin_local_share_dir" "$atuin_home_dir"
+	# Remove Atuin binary and related directories
+	rm -f "$atuin_bin_path"
+	rm -rf "$atuin_config_dir" "$atuin_local_share_dir" "$atuin_home_dir"
 
-        # Remove lines related to Atuin from .bashrc
-        echo "Removing Atuin references from .bashrc..."
-        sed -i '/\[\[ -f ~\/.bash-preexec.sh \]\] && source ~\/.bash-preexec.sh/d' "$atuin_bashrc_file"
-        sed -i '/eval "\$(atuin init bash)"/d' "$atuin_bashrc_file"
+	# Remove lines related to Atuin from .bashrc
+	echo "Removing Atuin references from .bashrc..."
+	sed -i '/\[\[ -f ~\/.bash-preexec.sh \]\] && source ~\/.bash-preexec.sh/d' "$atuin_bashrc_file"
+	sed -i '/eval "\$(atuin init bash)"/d' "$atuin_bashrc_file"
 
-        echo "Atuin uninstallation complete. Please restart your shell."
+	echo "Atuin uninstallation complete. Please restart your shell."
 
 }
 
