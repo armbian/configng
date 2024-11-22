@@ -67,8 +67,8 @@ function module_atuin() {
 		fi
 		;;
 		*) # Unknown Command
-		echo -e "Unknown command: $1\n"
-		echo -e "Available commands: ${module_options["module_atuin,example"]}"
+			echo -e "Unknown command: $1\n"
+			echo -e "Available commands: ${module_options["module_atuin,example"]}"
 		;;
 	esac
 }
@@ -143,11 +143,10 @@ esac
 EOL
 	echo "Env file created at $atuin_dir/env"
 
-	# Ensure the user can update their .bashrc file
 	echo "Updating .bashrc..."
-	if ! grep -q ". \$HOME/.atuin/bin/env" "$atuin_bashrc_file"; then
-		echo ". \$HOME/.atuin/bin/env" >> "$atuin_bashrc_file"
-		echo "Added . $HOME/.atuin/bin/env to .bashrc"
+	if ! grep -q ". ~/.atuin/bin/env" "$atuin_bashrc_file"; then
+		echo ". ~/.atuin/bin/env" >> "$atuin_bashrc_file"
+		echo "Added . ~/.atuin/bin/env to .bashrc"
 	fi
 
 	# Ensure the user can update .bash-preexec.sh
@@ -155,8 +154,8 @@ EOL
 		echo "~/.bash-preexec.sh not found. Downloading..."
 		wget -q https://raw.githubusercontent.com/rcaloras/bash-preexec/master/bash-preexec.sh -O "$bash_preexec_file" || { echo "Error: Failed to download .bash-preexec.sh" >&2; exit 1; }
 	fi
-	if ! grep -q '[[ -f "$user_home"/.bash-preexec.sh ]] && source ~/.bash-preexec.sh' "$atuin_bashrc_file"; then
-		echo '[[ -f "$user_home"/.bash-preexec.sh ]] && source ~/.bash-preexec.sh' >> "$atuin_bashrc_file"
+	if ! grep -q '[[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh' "$atuin_bashrc_file"; then
+		echo '[[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh' >> "$atuin_bashrc_file"
 	fi
 
 	# Ensure eval "$(atuin init bash)" is in .bashrc
