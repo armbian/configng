@@ -137,8 +137,8 @@ EOL
 
 	echo "Updating .bashrc..."
 	if ! grep -q ". ~/.atuin/bin/env" "$atuin_bashrc_file"; then
-		echo ". ~/.atuin/bin/env" >> "$atuin_bashrc_file"
-		echo "Added . ~/.atuin/bin/env to .bashrc"
+		echo -e ". ~/.atuin/bin/env" >> "$atuin_bashrc_file"
+		#echo "Added . ~/.atuin/bin/env to .bashrc"
 	fi
 
 	# Ensure the user can update .bash-preexec.sh
@@ -147,12 +147,13 @@ EOL
 		wget -q https://raw.githubusercontent.com/rcaloras/bash-preexec/master/bash-preexec.sh -O "$bash_preexec_file" || { echo "Error: Failed to download .bash-preexec.sh" >&2; exit 1; }
 	fi
 	if ! grep -q '[[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh' "$atuin_bashrc_file"; then
-		echo '[[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh' >> "$atuin_bashrc_file"
+		echo ' ' >> "$atuin_bashrc_file"
+		echo -e '[[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh' >> "$atuin_bashrc_file"
 	fi
 
 	# Ensure eval "$(atuin init bash)" is in .bashrc
 	if ! grep -q 'eval "$(atuin init bash)"' "$atuin_bashrc_file"; then
-		echo 'eval "$(atuin init bash)"' >> "$atuin_bashrc_file"
+		echo -e '\neval "$(atuin init bash)"' >> "$atuin_bashrc_file"
 	fi
 
 	# Make sure all directories and files are owned by the user
@@ -195,6 +196,7 @@ remove_atuin() {
 
 	# Remove lines related to Atuin from .bashrc
 	echo "Removing Atuin references from .bashrc..."
+	sed -i '/\. ~\/\.atuin\/bin\/env/d' "$atuin_bashrc_file"
 	sed -i '/\[\[ -f ~\/.bash-preexec.sh \]\] && source ~\/.bash-preexec.sh/d' "$atuin_bashrc_file"
 	sed -i '/eval "\$(atuin init bash)"/d' "$atuin_bashrc_file"
 
