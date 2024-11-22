@@ -1,4 +1,3 @@
-#!/bin/bash
 
 #declare -A module_options
 
