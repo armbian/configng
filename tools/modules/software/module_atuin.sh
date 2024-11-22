@@ -33,38 +33,32 @@ function module_atuin() {
 	IFS=' ' read -r -a commands <<< "${module_options["module_atuin,example"]}"
 
 	case "$1" in
-		help) # Help Command
-		echo -e "\nUsage: ${module_options["module_atuin,feature"]} <command>"
-		echo -e "Commands: ${module_options["module_atuin,example"]}\n"
-		echo "Available commands:"
-		if [[ -n "$condition" ]]; then
+		help)
+			# Help Command
+			echo -e "\nUsage: ${module_options["module_atuin,feature"]} <command>"
+			echo -e "Commands: ${module_options["module_atuin,example"]}\n"
+			echo "Available commands:"
 			echo -e "  reset \t- reset config to atuin default"
 			echo -e "  logout\t- Log out from $title"
 			echo -e "  remove\t- Uninstall $title"
-		else
-			echo -e "  install\t- Install $title"
-		fi
-		echo -e "  status\t- Check installation status of $title."
 		;;
-		install) # Install Command
-		echo "Installing $title..."
-		# Installation logic for Atuin
-		# Uncomment the next line for actual installation
-		set_atuin
-		generate_atuin_config
-		echo "Warning: Please exit and restart your shell to reload the changes."
+		install)
+			# Install Command
+			echo "Installing $title..."
+			# Installation logic for Atuin
+			# Uncomment the next line for actual installation
+			set_atuin
+			generate_atuin_config
+			echo "Warning: Please exit and restart your shell to reload the changes."
 		;;
-		remove) # Remove Command
+		remove)
+			# Remove Command
 			echo "Under constrution Removing $title..."
 			remove_atuin
-
-
 		;;
-		"${commands[3]}") # setup defaults
-		if [[ -n "$condition" ]]; then
+		reset)
 			echo "config reset $title to armbian defaults"
 			generate_atuin_config
-		fi
 		;;
 		*) # Unknown Command
 			echo -e "Unknown command: $1\n"
@@ -74,7 +68,12 @@ function module_atuin() {
 }
 
 function set_atuin() {
-	# Ensure correct user environment if running as root
+	# Define variables
+	atuin_url="https://github.com/atuinsh/atuin/releases/download/v18.4.0-beta.3/atuin-x86_64-unknown-linux-gnu.tar.gz"
+	atuin_dir="$user_home/.atuin/bin"
+	atuin_binary="atuin"
+	bash_preexec_file="$user_home/.bash-preexec.sh"
+	atuin_bashrc_file="$user_home/.bashrc"
 	local user_name user_home
 	if [[ $EUID -eq 0 ]]; then
 		# Check if SUDO_USER is set
@@ -88,13 +87,6 @@ function set_atuin() {
 		user_name=$USER
 		user_home=$HOME
 	fi
-
-	# Define variables
-	atuin_url="https://github.com/atuinsh/atuin/releases/download/v18.4.0-beta.3/atuin-x86_64-unknown-linux-gnu.tar.gz"
-	atuin_dir="$user_home/.atuin/bin"
-	atuin_binary="atuin"
-	bash_preexec_file="$user_home/.bash-preexec.sh"
-	atuin_bashrc_file="$user_home/.bashrc"
 
 	# Create target directory as the user (not as root)
 	mkdir -p "$atuin_dir"
@@ -209,7 +201,6 @@ remove_atuin() {
 	echo "Atuin uninstallation complete. Please restart your shell."
 
 }
-
 
 
 function generate_atuin_config() {
