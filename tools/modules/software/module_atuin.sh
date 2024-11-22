@@ -38,9 +38,9 @@ function module_atuin() {
 			echo -e "\nUsage: ${module_options["module_atuin,feature"]} <command>"
 			echo -e "Commands: ${module_options["module_atuin,example"]}\n"
 			echo "Available commands:"
-			echo -e "  reset \t- reset config to atuin default"
-			echo -e "  logout\t- Log out from $title"
-			echo -e "  remove\t- Uninstall $title"
+			echo -e "  install\t- setup $title in $user_home "
+			echo -e "  reset \t-  reset config to atuin default"
+			echo -e "  remove\t-  Uninstall $title"
 		;;
 		install)
 			# Install Command
