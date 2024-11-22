@@ -73,7 +73,7 @@ function module_atuin() {
 	esac
 }
 
-set_atuin() {
+function set_atuin() {
 	# Ensure correct user environment if running as root
 	local user_name user_home
 	if [[ $EUID -eq 0 ]]; then
@@ -133,12 +133,12 @@ set_atuin() {
 # Add binaries to PATH if they aren't added yet
 # Affix colons on either side of \$PATH to simplify matching
 case ":${PATH}:" in
-    *:"\$HOME/.atuin/bin":*)
-        ;;
-    *)
-        # Prepending path in case a system-installed binary needs to be overridden
-        export PATH="\$HOME/.atuin/bin:\$PATH"
-        ;;
+	*:"\$HOME/.atuin/bin":*)
+	;;
+	*)
+		# Prepending path in case a system-installed binary needs to be overridden
+		export PATH="\$HOME/.atuin/bin:\$PATH"
+	;;
 esac
 EOL
 	echo "Env file created at $atuin_dir/env"
