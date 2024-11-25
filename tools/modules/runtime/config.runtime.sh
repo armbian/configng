@@ -96,3 +96,6 @@ update_sub_submenu_data "Software" "Media" "SW24" "https://localhost:$emby_media
 
 plex_media_port="$(lsof -i -P -n | grep TCP | grep LISTEN | grep 'plex' | awk -F: '{print $2}' | awk '{print $1}' | head -n 1)"
 update_sub_submenu_data "Software" "Media" "SW22" "https://localhost:$plex_media_port"
+
+
+update_sub_submenu_data "Software" "Containers" "CON006" "$LOCALIPADD:${module_options["module_portainer,port"]}"

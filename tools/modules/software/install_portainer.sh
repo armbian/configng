@@ -6,6 +6,7 @@ module_options+=(
 	["module_portainer,desc"]="Install/uninstall/check status of portainer container"
 	["module_portainer,example"]="help install uninstall status"
 	["module_portainer,status"]="Active"
+	["module_portainer,port"]="9002"
 )
 #
 # Install portainer container
