@@ -98,3 +98,5 @@ plex_media_port="$(lsof -i -P -n | grep TCP | grep LISTEN | grep 'plex' | awk -F
 update_sub_submenu_data "Software" "Media" "SW22" "https://localhost:$plex_media_port"
 
 update_sub_submenu_data "Software" "HomeAutomation" "HA004" "http://$LOCALIPADD:${module_options["module_haos,port"]}"
+update_sub_submenu_data "Software" "Cloud" "CL002" "http://$LOCALIPADD:${module_options["module_nextcloud,port"]}"
+update_sub_submenu_data "Software" "Cloud" "CL004" "http://$LOCALIPADD:${module_options["module_resiliosync,port"]}"

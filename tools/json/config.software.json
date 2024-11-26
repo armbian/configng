@@ -468,6 +468,55 @@
                     ]
                 },
                 {
+                    "id": "Cloud",
+                    "description": "Cloud and backup",
+                    "sub": [
+                        {
+                            "id": "CL001",
+                            "description": "Install Nextcloud",
+                            "command": [
+                                "module_nextcloud install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_nextcloud status"
+                        },
+                        {
+                            "id": "CL002",
+                            "description": "Remove Nextcloud",
+                            "command": [
+                                "module_nextcloud remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_nextcloud status"
+                        },
+                        {
+                            "id": "CL003",
+                            "description": "Install Resilio Sync",
+                            "command": [
+                                "module_resiliosync install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_resiliosync status"
+                        },
+                        {
+                            "id": "CL004",
+                            "description": "Remove Resilio Sync",
+                            "command": [
+                                "module_resiliosync remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_resiliosync status"
+                        }
+                    ]
+                },
+
+
+
+                {
                     "id": "Benchy",
                     "description": "System benchmaking and diagnostics",
                     "command": [
