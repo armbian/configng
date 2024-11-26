@@ -54,6 +54,7 @@ function set_runtime_variables() {
 	DISTROID=$(lsb_release -sc)
 	KERNELID=$(uname -r)
 	[[ -z "${ARMBIAN// /}" ]] && ARMBIAN="$DISTRO $DISTROID"
+	SOFTWARE_FOLDER="/armbian" # where we should keep 3rd party software
 	DEFAULT_ADAPTER=$(ip -4 route ls | grep default | tail -1 | grep -Po '(?<=dev )(\S+)')
 	LOCALIPADD=$(ip -4 addr show dev $DEFAULT_ADAPTER | awk '/inet/ {print $2}' | cut -d'/' -f1)
 	BACKTITLE="Contribute: https://github.com/armbian/configng"

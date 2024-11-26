@@ -99,3 +99,17 @@ update_sub_submenu_data "Software" "Media" "SW22" "https://localhost:$plex_media
 
 update_sub_submenu_data "Software" "Containers" "CON006" "http://$LOCALIPADD:${module_options["module_portainer,port"]}"
 update_sub_submenu_data "Software" "HomeAutomation" "HA004" "http://$LOCALIPADD:${module_options["module_haos,port"]}"
+
+
+update_sub_submenu_data "Software" "Downloaders" "DOW002" "http://$LOCALIPADD:${module_options["module_qbittorrent,port"]}"
+update_sub_submenu_data "Software" "Downloaders" "DOW004" "http://$LOCALIPADD:${module_options["module_deluge,port"]}"
+update_sub_submenu_data "Software" "Downloaders" "DOW006" "http://$LOCALIPADD:${module_options["module_transmission,port"]}"
+update_sub_submenu_data "Software" "Downloaders" "DOW012" "http://$LOCALIPADD:${module_options["module_sabnzbd,port"]}"
+update_sub_submenu_data "Software" "Downloaders" "DOW014" "http://$LOCALIPADD:${module_options["module_medusa,port"]}"
+update_sub_submenu_data "Software" "Downloaders" "DOW016" "http://$LOCALIPADD:${module_options["module_sonarr,port"]}"
+update_sub_submenu_data "Software" "Downloaders" "DOW018" "http://$LOCALIPADD:${module_options["module_radarr,port"]}"
+update_sub_submenu_data "Software" "Downloaders" "DOW020" "http://$LOCALIPADD:${module_options["module_bazarr,port"]}"
+update_sub_submenu_data "Software" "Downloaders" "DOW022" "http://$LOCALIPADD:${module_options["module_lidarr,port"]}"
+update_sub_submenu_data "Software" "Downloaders" "DOW024" "http://$LOCALIPADD:${module_options["module_readarr,port"]}"
+update_sub_submenu_data "Software" "Downloaders" "DOW026" "http://$LOCALIPADD:${module_options["module_prowlarr,port"]}"
+

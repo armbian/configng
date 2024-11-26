@@ -358,6 +358,232 @@
                     ]
                 },
                 {
+                    "id": "Downloaders",
+                    "description": "Download tools",
+                    "sub": [
+                        {
+                            "id": "DOW001",
+                            "description": "Install qBittorrent",
+                            "command": [
+                                "module_qbittorrent install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_qbittorrent status"
+                        },
+                        {
+                            "id": "DOW002",
+                            "description": "Remove qBittorrent",
+                            "command": [
+                                "module_qbittorrent remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_qbittorrent status"
+                        },
+                        {
+                            "id": "DOW003",
+                            "description": "Install Deluge",
+                            "command": [
+                                "module_deluge install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_deluge status"
+                        },
+                        {
+                            "id": "DOW004",
+                            "description": "Remove Deluge",
+                            "command": [
+                                "module_deluge remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_deluge status"
+                        },
+                        {
+                            "id": "DOW005",
+                            "description": "Install Transmission",
+                            "command": [
+                                "module_transmission install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_transmission status"
+                        },
+                        {
+                            "id": "DOW006",
+                            "description": "Remove Transmission",
+                            "command": [
+                                "module_transmission remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_transmission status"
+                        },
+                        {
+                            "id": "DOW011",
+                            "description": "Install SABnzbd",
+                            "command": [
+                                "module_sabnzbd install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_sabnzbd status"
+                        },
+                        {
+                            "id": "DOW012",
+                            "description": "Remove SABnzbd",
+                            "command": [
+                                "module_sabnzbd remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_sabnzbd status"
+                        },
+                        {
+                            "id": "DOW013",
+                            "description": "Install Medusa",
+                            "command": [
+                                "module_medusa install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_medusa status"
+                        },
+                        {
+                            "id": "DOW014",
+                            "description": "Remove Medusa",
+                            "command": [
+                                "module_medusa remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_medusa status"
+                        },
+                        {
+                            "id": "DOW015",
+                            "description": "Install Sonarr",
+                            "command": [
+                                "module_sonarr install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_sonarr status"
+                        },
+                        {
+                            "id": "DOW016",
+                            "description": "Remove Sonarr",
+                            "command": [
+                                "module_sonarr remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_sonarr status"
+                        },
+                        {
+                            "id": "DOW017",
+                            "description": "Install Radarr",
+                            "command": [
+                                "module_radarr install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_radarr status"
+                        },
+                        {
+                            "id": "DOW018",
+                            "description": "Remove Radarr",
+                            "command": [
+                                "module_radarr remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_radarr status"
+                        },
+                        {
+                            "id": "DOW019",
+                            "description": "Install Bazarr",
+                            "command": [
+                                "module_bazarr install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_bazarr status"
+                        },
+                        {
+                            "id": "DOW020",
+                            "description": "Remove Bazarr",
+                            "command": [
+                                "module_bazarr remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_bazarr status"
+                        },
+                        {
+                            "id": "DOW021",
+                            "description": "Install Lidarr",
+                            "command": [
+                                "module_lidarr install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_lidarr status"
+                        },
+                        {
+                            "id": "DOW022",
+                            "description": "Remove Lidarr",
+                            "command": [
+                                "module_lidarr remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_lidarr status"
+                        },
+                        {
+                            "id": "DOW023",
+                            "description": "Install Readarr",
+                            "command": [
+                                "module_readarr install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_readarr status"
+                        },
+                        {
+                            "id": "DOW024",
+                            "description": "Remove Readarr",
+                            "command": [
+                                "module_readarr remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_readarr status"
+                        },
+                        {
+                            "id": "DOW025",
+                            "description": "Install Prowlarr",
+                            "command": [
+                                "module_prowlarr install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_prowlarr status"
+                        },
+                        {
+                            "id": "DOW026",
+                            "description": "Remove Prowlarr",
+                            "command": [
+                                "module_prowlarr remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_prowlarr status"
+                        }
+                    ]
+                },
+                {
                     "id": "DNS",
                     "description": "DNS blockers",
                     "sub": [
