@@ -128,6 +128,8 @@ sudo armbian-config
   - ### Home Automation
     - ### Install openHAB
     - ### Remove openHAB
+    - ### Install Home Assistant
+    - ### Remove Home Assistant
 
 
   - ### System benchmaking and diagnostics
@@ -262,6 +264,8 @@ Outputs:
     HomeAutomation - Home Automation
 	--cmd HA001 - Install openHAB
 	--cmd HA002 - Remove openHAB
+	--cmd HA003 - Install Home Assistant
+	--cmd HA004 - Remove Home Assistant (http://10.1.0.79:8123)
     --cmd Benchy - System benchmaking and diagnostics
     Containers - Containerlization and Virtual Machines
 	--cmd CON001 - Install Docker Minimal
@@ -652,6 +656,7 @@ These helper functions facilitate various operations related to job management, 
 | Generate this markdown table of all module_options | see_function_table_md | @Tearran 
 | Switching to alternative kernels | switch_kernels | @igorpecovnik 
 | Webmin setup and service setting. | help install remove start stop enable disable status check | @Tearran 
+| Hos container install and configure | help install uninstall | @igorpecovnik 
 | Set Armbian root filesystem to read only | manage_overlayfs enable/disable | @igorpecovnik 
 | Display a menu from pipe | show_menu <<< armbianmonitor -h  ;  | @Tearran 
 | Build the main menu from a object | generate_top_menu 'json_data' | @Tearran 
