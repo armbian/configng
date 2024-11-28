@@ -114,6 +114,31 @@ sudo armbian-config
     - ### Remove hostname broadcast via mDNS (avahi-daemon)
 
 
+  - ### Download tools
+    - ### Install qBittorrent
+    - ### Remove qBittorrent
+    - ### Install Deluge
+    - ### Remove Deluge
+    - ### Install Transmission
+    - ### Remove Transmission
+    - ### Install SABnzbd
+    - ### Remove SABnzbd
+    - ### Install Medusa
+    - ### Remove Medusa
+    - ### Install Sonarr
+    - ### Remove Sonarr
+    - ### Install Radarr
+    - ### Remove Radarr
+    - ### Install Bazarr
+    - ### Remove Bazarr
+    - ### Install Lidarr
+    - ### Remove Lidarr
+    - ### Install Readarr
+    - ### Remove Readarr
+    - ### Install Prowlarr
+    - ### Remove Prowlarr
+
+
   - ### DNS blockers
     - ### Install Pi-hole DNS ad blocker
     - ### Set Pi-hole web admin password
@@ -254,6 +279,29 @@ Outputs:
 	--cmd NET006 - Remove IP LAN monitor (iptraf-ng)
 	--cmd NET007 - Install hostname broadcast via mDNS (avahi-daemon)
 	--cmd NET008 - Remove hostname broadcast via mDNS (avahi-daemon)
+    Downloaders - Download tools
+	--cmd DOW001 - Install qBittorrent
+	--cmd DOW002 - Remove qBittorrent (http://10.1.0.139:8090 6881)
+	--cmd DOW003 - Install Deluge
+	--cmd DOW004 - Remove Deluge (http://10.1.0.139:8112 6181 58846)
+	--cmd DOW005 - Install Transmission
+	--cmd DOW006 - Remove Transmission (http://10.1.0.139:9091)
+	--cmd DOW011 - Install SABnzbd
+	--cmd DOW012 - Remove SABnzbd (http://10.1.0.139:8080)
+	--cmd DOW013 - Install Medusa
+	--cmd DOW014 - Remove Medusa (http://10.1.0.139:8081)
+	--cmd DOW015 - Install Sonarr
+	--cmd DOW016 - Remove Sonarr (http://10.1.0.139:8989)
+	--cmd DOW017 - Install Radarr
+	--cmd DOW018 - Remove Radarr (http://10.1.0.139:7878)
+	--cmd DOW019 - Install Bazarr
+	--cmd DOW020 - Remove Bazarr (http://10.1.0.139:6767)
+	--cmd DOW021 - Install Lidarr
+	--cmd DOW022 - Remove Lidarr (http://10.1.0.139:8686)
+	--cmd DOW023 - Install Readarr
+	--cmd DOW024 - Remove Readarr (http://10.1.0.139:8787)
+	--cmd DOW025 - Install Prowlarr
+	--cmd DOW026 - Remove Prowlarr (http://10.1.0.139:9696)
     DNS - DNS blockers
 	--cmd DNS001 - Install Pi-hole DNS ad blocker
 	--cmd DNS002 - Set Pi-hole web admin password
@@ -265,7 +313,7 @@ Outputs:
 	--cmd HA001 - Install openHAB
 	--cmd HA002 - Remove openHAB
 	--cmd HA003 - Install Home Assistant
-	--cmd HA004 - Remove Home Assistant (http://10.1.0.79:8123)
+	--cmd HA004 - Remove Home Assistant (http://10.1.0.139:8123)
     --cmd Benchy - System benchmaking and diagnostics
     Containers - Containerlization and Virtual Machines
 	--cmd CON001 - Install Docker Minimal
@@ -273,7 +321,7 @@ Outputs:
 	--cmd CON003 - Remove Docker
 	--cmd CON004 - Purge all Docker images, containers, and volumes
 	--cmd CON005 - Install Portainer
-	--cmd CON006 - Remove Portainer
+	--cmd CON006 - Remove Portainer (http://10.1.0.139:9000)
     Media - Media Servers and Editors
 	--cmd MED001 - Install Plex Media server
 	--cmd MED002 - Remove Plex Media server
@@ -548,6 +596,16 @@ Jobs:
 No commands available
 ~~~
 
+### Downloaders
+
+Download tools
+
+Jobs:
+
+~~~
+No commands available
+~~~
+
 ### DNS
 
 DNS blockers
@@ -660,8 +718,10 @@ These helper functions facilitate various operations related to job management, 
 | Set Armbian root filesystem to read only | manage_overlayfs enable/disable | @igorpecovnik 
 | Display a menu from pipe | show_menu <<< armbianmonitor -h  ;  | @Tearran 
 | Build the main menu from a object | generate_top_menu 'json_data' | @Tearran 
+| Install bazarr container | install remove status help | @igorpecovnik 
 | Migrated procedures from Armbian config. | is_package_manager_running | @armbian 
 | Migrated procedures from Armbian config. | check_desktop | @armbian 
+| Install sonarr container | install remove status help | @armbian 
 | Generate Document files. | generate_readme | @Tearran 
 | Storing netplan config to tmp | store_netplan_config | @igorpecovnik 
 | Needed by generate_menu | execute_command 'id' | @Tearran 
@@ -680,25 +740,32 @@ These helper functions facilitate various operations related to job management, 
 | Remove Linux headers | Headers_remove | @Tearran 
 | Update submenu descriptions based on conditions | update_submenu_data | @Tearran 
 | sanitize input cli | sanitize_input | @Tearran 
+| Install lidarr container | install remove status help | @armbian 
 | Check if a domain is reachable via IPv4 and IPv6 | check_ip_version google.com | @Tearran 
 | Install embyserver from repo using apt | install_embyserver | @schwar3kat 
+| Install deluge container | install remove status help | @armbian 
 | Migrated procedures from Armbian config. | set_header_remove | @igorpecovnik 
 | Generate a submenu from a parent_id | generate_menu 'parent_id' | @Tearran 
 | Install docker from a repo using apt | install_docker engine | @schwar3kat 
 | Generate a markdown list json objects using jq. | see_jq_menu_list | @Tearran 
 | Generate jobs from JSON file. | generate_jobs_from_json | @Tearran 
 | Install kernel headers | is_package_manager_running | @Tearran 
+| Install radarr container | install remove status help | @armbian 
 | Toggle IPv6 on or off | toggle_ipv6 | @Tearran 
 | Adjust welcome screen (motd) | adjust_motd clear, header, sysinfo, tips, commands | @igorpecovnik 
+| Install qbittorrent container | install remove status help | @armbian 
 | Generate JSON-like object file. | generate_json | @Tearran 
+| Install transmission container | install remove status help | @armbian 
 | Install wrapper | apt_install_wrapper apt-get -y purge armbian-zsh | @igorpecovnik 
 | Uses Avalible (Whiptail, DIALOG, READ) for the menu interface | <function_name> | Tearran 
 | Netplan wrapper | network_config | @igorpecovnik 
+| Install medusa container | install remove status help | @armbian 
 | Change the background color of the terminal or dialog box | set_colors 0-7 | @Tearran 
 | Show general information about this tool | about_armbian_configng | @igorpecovnik 
 | Serve the edit and debug server. | serve_doc | @Tearran 
 | Update JSON data with system information | update_json_data | @Tearran 
 | pipeline strings to an infobox  | show_infobox <<< 'hello world' ;  | @Tearran 
+| Install readarr container | install remove status help | @armbian 
 | Install/uninstall/check status of uptime kuma container | install uninstall status | @armbian 
 | Stop hostapd, clean config | default_wireless_network_config | @igorpecovnik 
 | Update sub-submenu descriptions based on conditions | update_sub_submenu_data "MenuID" "SubID" "SubSubID" "CMD" | @Tearran 
@@ -706,8 +773,10 @@ These helper functions facilitate various operations related to job management, 
 | Show the usage of the functions. | see_use | @Tearran 
 | Install Desktop environment | manage_desktops xfce install | @igorpecovnik 
 | Set system shell to BASH | manage_zsh enable|disable | @igorpecovnik 
+| Install sabnzbd container | install remove status help | @armbian 
 | Generate a Help message for cli commands. | see_cmd_list [category] | @Tearran 
 | Revert network config back to Armbian defaults | default_network_config | @igorpecovnik 
+| Install prowlarr container | install remove status help | @armbian 
 | freeze, unhold, reinstall armbian related packages. | armbian_fw_manipulate unhold/freeze/reinstall | @igorpecovnik 
 | Check the internet connection with fallback DNS | see_ping | @Tearran 
 | Upgrade to next stable or rolling release | release_upgrade stable verify | @igorpecovnik 
