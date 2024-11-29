@@ -281,27 +281,27 @@ Outputs:
 	--cmd NET008 - Remove hostname broadcast via mDNS (avahi-daemon)
     Downloaders - Download tools
 	--cmd DOW001 - Install qBittorrent
-	--cmd DOW002 - Remove qBittorrent (http://10.1.0.139:8090 6881)
+	--cmd DOW002 - Remove qBittorrent (http://10.1.0.7:8090 6881)
 	--cmd DOW003 - Install Deluge
-	--cmd DOW004 - Remove Deluge (http://10.1.0.139:8112 6181 58846)
+	--cmd DOW004 - Remove Deluge (http://10.1.0.7:8112 6181 58846)
 	--cmd DOW005 - Install Transmission
-	--cmd DOW006 - Remove Transmission (http://10.1.0.139:9091)
+	--cmd DOW006 - Remove Transmission (http://10.1.0.7:9091)
 	--cmd DOW011 - Install SABnzbd
-	--cmd DOW012 - Remove SABnzbd (http://10.1.0.139:8080)
+	--cmd DOW012 - Remove SABnzbd (http://10.1.0.7:8080)
 	--cmd DOW013 - Install Medusa
-	--cmd DOW014 - Remove Medusa (http://10.1.0.139:8081)
+	--cmd DOW014 - Remove Medusa (http://10.1.0.7:8081)
 	--cmd DOW015 - Install Sonarr
-	--cmd DOW016 - Remove Sonarr (http://10.1.0.139:8989)
+	--cmd DOW016 - Remove Sonarr (http://10.1.0.7:8989)
 	--cmd DOW017 - Install Radarr
-	--cmd DOW018 - Remove Radarr (http://10.1.0.139:7878)
+	--cmd DOW018 - Remove Radarr (http://10.1.0.7:7878)
 	--cmd DOW019 - Install Bazarr
-	--cmd DOW020 - Remove Bazarr (http://10.1.0.139:6767)
+	--cmd DOW020 - Remove Bazarr (http://10.1.0.7:6767)
 	--cmd DOW021 - Install Lidarr
-	--cmd DOW022 - Remove Lidarr (http://10.1.0.139:8686)
+	--cmd DOW022 - Remove Lidarr (http://10.1.0.7:8686)
 	--cmd DOW023 - Install Readarr
-	--cmd DOW024 - Remove Readarr (http://10.1.0.139:8787)
+	--cmd DOW024 - Remove Readarr (http://10.1.0.7:8787)
 	--cmd DOW025 - Install Prowlarr
-	--cmd DOW026 - Remove Prowlarr (http://10.1.0.139:9696)
+	--cmd DOW026 - Remove Prowlarr (http://10.1.0.7:9696)
     DNS - DNS blockers
 	--cmd DNS001 - Install Pi-hole DNS ad blocker
 	--cmd DNS002 - Set Pi-hole web admin password
@@ -313,7 +313,7 @@ Outputs:
 	--cmd HA001 - Install openHAB
 	--cmd HA002 - Remove openHAB
 	--cmd HA003 - Install Home Assistant
-	--cmd HA004 - Remove Home Assistant (http://10.1.0.139:8123)
+	--cmd HA004 - Remove Home Assistant (http://10.1.0.7:8123)
     --cmd Benchy - System benchmaking and diagnostics
     Containers - Containerlization and Virtual Machines
 	--cmd CON001 - Install Docker Minimal
@@ -321,7 +321,7 @@ Outputs:
 	--cmd CON003 - Remove Docker
 	--cmd CON004 - Purge all Docker images, containers, and volumes
 	--cmd CON005 - Install Portainer
-	--cmd CON006 - Remove Portainer (http://10.1.0.139:9000)
+	--cmd CON006 - Remove Portainer (http://10.1.0.7:9000)
     Media - Media Servers and Editors
 	--cmd MED001 - Install Plex Media server
 	--cmd MED002 - Remove Plex Media server
@@ -410,7 +410,7 @@ Install Linux headers
 Jobs:
 
 ~~~
-Headers_install
+module_headers install
 ~~~
 
 ### SY005
@@ -420,7 +420,7 @@ Remove Linux headers
 Jobs:
 
 ~~~
-Headers_remove
+module_headers remove
 ~~~
 
 ### SY006
@@ -719,6 +719,7 @@ These helper functions facilitate various operations related to job management, 
 | Display a menu from pipe | show_menu <<< armbianmonitor -h  ;  | @Tearran 
 | Build the main menu from a object | generate_top_menu 'json_data' | @Tearran 
 | Install bazarr container | install remove status help | @igorpecovnik 
+| Install headers container | install remove status help | @armbian 
 | Migrated procedures from Armbian config. | is_package_manager_running | @armbian 
 | Migrated procedures from Armbian config. | check_desktop | @armbian 
 | Install sonarr container | install remove status help | @armbian 
@@ -732,24 +733,20 @@ These helper functions facilitate various operations related to job management, 
 | Enable/disable device tree overlays | manage_dtoverlays | @viraniac 
 | Show or generate QR code for Google OTP | qr_code generate | @igorpecovnik 
 | Install/uninstall/check status of pi-hole container | help install uninstall status password | @armbian 
-| Check if kernel headers are installed | are_headers_installed | @viraniac 
 | Check when apt list was last updated and suggest updating or update | see_current_apt or see_current_apt update | @Tearran 
 | Install/uninstall/check status of portainer container | help install uninstall status | @armbian 
 | Migrated procedures from Armbian config. | check_if_installed nano | @armbian 
 | Generate 'Armbian CPU logo' SVG for document file. | generate_svg | @Tearran 
-| Remove Linux headers | Headers_remove | @Tearran 
 | Update submenu descriptions based on conditions | update_submenu_data | @Tearran 
 | sanitize input cli | sanitize_input | @Tearran 
 | Install lidarr container | install remove status help | @armbian 
 | Check if a domain is reachable via IPv4 and IPv6 | check_ip_version google.com | @Tearran 
 | Install embyserver from repo using apt | install_embyserver | @schwar3kat 
 | Install deluge container | install remove status help | @armbian 
-| Migrated procedures from Armbian config. | set_header_remove | @igorpecovnik 
 | Generate a submenu from a parent_id | generate_menu 'parent_id' | @Tearran 
 | Install docker from a repo using apt | install_docker engine | @schwar3kat 
 | Generate a markdown list json objects using jq. | see_jq_menu_list | @Tearran 
 | Generate jobs from JSON file. | generate_jobs_from_json | @Tearran 
-| Install kernel headers | is_package_manager_running | @Tearran 
 | Install radarr container | install remove status help | @armbian 
 | Toggle IPv6 on or off | toggle_ipv6 | @Tearran 
 | Adjust welcome screen (motd) | adjust_motd clear, header, sysinfo, tips, commands | @igorpecovnik 
