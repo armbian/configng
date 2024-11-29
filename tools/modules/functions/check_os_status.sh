@@ -1,10 +1,10 @@
 
 module_options+=(
-    ["check_os_status,author"]="@Tearran"
-    ["check_os_status,feature"]="check_os_status"
-    ["check_os_status,example"]="help"
-    ["check_os_status,desc"]="Check if the current OS is supported based on /etc/armbian-distribution-status"
-    ["check_os_status,status"]="Active"
+	["check_os_status,author"]="@Tearran"
+	["check_os_status,feature"]="check_os_status"
+	["check_os_status,example"]="help"
+	["check_os_status,desc"]="Check if the current OS is supported based on /etc/armbian-distribution-status"
+	["check_os_status,status"]="Active"
 )
 
 function check_os_status() {
@@ -13,7 +13,7 @@ function check_os_status() {
 			echo "Usage: check_os_status"
 			echo "This function checks if the current OS is supported based on /etc/armbian-distribution-status."
 			echo "It retrieves the current OS distribution and checks if it is listed as supported in the specified file."
-			;;
+		;;
 		*)
 			FILE="/etc/armbian-distribution-status"
 
@@ -42,7 +42,6 @@ function check_os_status() {
 			Would you like to continue?
 			" process_input
 			fi
-
 		;;
     	esac
 }
