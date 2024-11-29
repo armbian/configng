@@ -13,6 +13,8 @@ function switch_kernels() {
 
 	# we only allow switching kerneles that are in the test pool
 	[[ -z "${KERNEL_TEST_TARGET}" ]] && KERNEL_TEST_TARGET="legacy,current,edge"
+	dialog --title "Warning!" --yesno "\nInclude untested kernels on the list?" 7 60
+	[[ $? -eq 0 ]] && KERNEL_TEST_TARGET="legacy,vendor,current,edge"
 	local kernel_test_target=$(for x in ${KERNEL_TEST_TARGET//,/ }; do echo "linux-image-$x-${LINUXFAMILY}"; done;)
 	local installed_kernel_version=$(dpkg -l | grep '^ii' | grep linux-image | awk '{print $2"="$3}')
 	# just in case current is not installed

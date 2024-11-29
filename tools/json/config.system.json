@@ -41,21 +41,21 @@
                     "id": "SY004",
                     "description": "Install Linux headers",
                     "command": [
-                        "Headers_install"
+                        "module_headers install"
                     ],
-                    "status": "Preview",
-                    "author": "@Tearran",
-                    "condition": "! are_headers_installed"
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
+                    "condition": "! module_headers status"
                 },
                 {
                     "id": "SY005",
                     "description": "Remove Linux headers",
                     "command": [
-                        "Headers_remove"
+                        "module_headers remove"
                     ],
-                    "status": "Preview",
-                    "author": "@Tearran",
-                    "condition": "are_headers_installed"
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
+                    "condition": "module_headers status"
                 },
                 {
                     "id": "SY006",
@@ -65,7 +65,7 @@
                     ],
                     "status": "Preview",
                     "author": "@igorpecovnik",
-                    "condition": "[[ -f /sbin/armbian-install ]]"
+                    "condition": "[[ -f /sbin/armbian-install || -f /usr/bin/armbian-install ]]"
                 },
                 {
                     "id": "SY007",
