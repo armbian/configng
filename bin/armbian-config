@@ -107,6 +107,19 @@ case "$1" in
 	"$option" "$args"
 	exit 0
 	;;
+"--noint")
+	shift
+	if [[ -z "$1" || "$1" == "help" ]]; then
+		see_use
+		exit 0
+	fi
+	option="$1"
+	shift
+	args=$(sanitize_input "$@")
+	# echo -e "\"$option\" \"$args\""
+	"$option" "$args"
+	exit 0
+	;;
 "main=help" | "main=Help")
 	see_cli_legacy
 	echo ""
