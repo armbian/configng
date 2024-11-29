@@ -332,6 +332,26 @@
                     "status": "Stable",
                     "author": "@viraniac @igorpecovnik",
                     "condition": "[ -d /boot/dtb/ ]"
+                },
+                {
+                    "id": "SY018",
+                    "description": "ZFS filesystem - enable support",
+                    "command": [
+                        "module_zfs install"
+                    ],
+                    "status": "Stable",
+                    "author": "@armbian",
+                    "condition": "! module_zfs status && linux-version compare ${KERNELID} le $(module_zfs kernel_max)"
+                },
+                {
+                    "id": "SY019",
+                    "description": "ZFS filesystem - remove support",
+                    "command": [
+                        "module_zfs remove"
+                    ],
+                    "status": "Stable",
+                    "author": "@armbian",
+                    "condition": "module_zfs status"
                 }
             ]
         }
