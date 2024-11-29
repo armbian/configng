@@ -68,12 +68,14 @@ case "$1" in
      Options:
      --help [category]   Use [category] to filter specific menu options.
      --cmd  [option]     Run a command from the menu (simple)
-     --api  [option]     Run a helper command        (advanced)
+	 --noint [option]	 Run a module non iteractive (advanced)
+     --api  [option]     generate and Pipe             (advanced)
      --doc               Generate the README.md file 
 
      Examples:
      armbian-config --help [cmd||System||Software||Network||Localisation]
      armbian-config --cmd help 
+	 armbian-config --noint help
      armbian-config --api help
 "
 	exit 0
