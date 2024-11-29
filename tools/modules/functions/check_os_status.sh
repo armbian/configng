@@ -31,9 +31,16 @@ function check_os_status() {
 			echo "The current OS ($CURRENT_OS) is supported."
 
 			else
-			BACKTITLE="Error: The current OS ($CURRENT_OS) is not supported or not listed"
+			BACKTITLE="Warning: The current OS ($CURRENT_OS) is not supported or not listed"
 			set_colors 1
-			get_user_continue "Error: The current OS ($CURRENT_OS) is not supported or not listed" process_input
+			get_user_continue "Warning:
+			The current OS ($CURRENT_OS) is not a supported distribution:
+			while the tool might still work well,
+			please be aware that issues may not be addressed by the maintainers.
+			You are welcome to contribute fixes for any problems you encounter.
+
+			Would you like to continue?
+			" process_input
 			#exit 1
 			fi
 
