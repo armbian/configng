@@ -41,7 +41,6 @@ function check_os_status() {
 
 			Would you like to continue?
 			" process_input
-			#exit 1
 			fi
 
 		;;
