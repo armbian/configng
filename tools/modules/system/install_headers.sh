@@ -16,6 +16,15 @@ function module_headers () {
 
 	if [[ -f /etc/armbian-release ]]; then
 		source /etc/armbian-release
+		# branch information is stored in armbian-release at boot time. When we change kernel branches, we need to re-read this and add it
+		if [[ -z "${BRANCH}" ]]; then
+			BRANCH=$(dpkg -l | grep -E "linux-image" | grep -E "current|vendor|legacy|edge" | awk '{print $2}' | cut -d"-" -f3 | head -1)
+			if grep -q BRANCH /etc/armbian-release; then
+				[[ -n ${BRANCH} ]] && sed -i "s/BRANCH=.*/BRANCH=$BRANCH/g" /etc/armbian-release
+				else
+				[[ -n ${BRANCH} ]] && echo "BRANCH=$BRANCH" >> /etc/armbian-release
+			fi
+		fi
 		local install_pkg="linux-headers-${BRANCH}-${LINUXFAMILY}"
 	else
 		local install_pkg="linux-headers-$(uname -r | sed 's/'-$(dpkg --print-architecture)'//')"
