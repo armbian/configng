@@ -17,15 +17,14 @@ function check_distro_status() {
 		*)
 
 			# Ensure OS detection succeeded
-			if [[ -z "$DISTROID" ]]; then
-			echo "Error: Unable to detect the current OS distribution."
-			exit 1
+			if [[ -z "$DISTROID" && -z "$ARMBIAN" ]]; then
+				echo "Error: Unable to detect the current OS distribution."
+				exit 1
 			fi
 
 			# Check if the OS is listed as supported in the DISTRO_STATUS
-			if grep -qE "^${DISTROID}=.*supported" "$DISTRO_STATUS"; then
-			echo "The current OS ($DISTROID) is supported."
-
+			if grep -qE "^${DISTROID}=.*supported" "$DISTRO_STATUS" && [[ -n "ARMBIAN" ]]; then
+				echo "The current $ARMBIAN ($DISTROID) is supported."
 			else
 			BACKTITLE="Warning: The current OS ($DISTROID) is not supported or not listed"
 			set_colors 1
