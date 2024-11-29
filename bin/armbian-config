@@ -37,7 +37,7 @@ declare -A module_options
 
 source "$lib_dir/config.functions.sh"
 set_runtime_variables
-check_os_status
+check_distro_status
 echo "Loaded Runtime variables..." #| show_infobox ;
 #set_newt_colors 2
 echo "Loaded Dialog..." #| show_infobox ;
