@@ -43,5 +43,5 @@ function check_os_status() {
 			" process_input
 			fi
 		;;
-    	esac
+	esac
 }
