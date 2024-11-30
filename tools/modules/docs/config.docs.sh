@@ -232,9 +232,9 @@ function see_use() {
 module_options+=(
 	["generate_json_options,author"]="@Tearran"
 	["generate_json_options,ref_link"]=""
-	["generate_json_options,feature"]="generate_json"
+	["generate_json_options,feature"]="generate_json_options"
 	["generate_json_options,desc"]="Generate JSON-like object file."
-	["generate_json_options,example"]="generate_json"
+	["generate_json_options,example"]=""
 	["generate_json_options,status"]="review"
 	["generate_json_options,doc_link"]=""
 )
@@ -242,7 +242,11 @@ module_options+=(
 # Function to generate a JSON-like object file
 #
 function generate_json_options() {
-	echo -e "{\n\"configng-helpers\" : ["
+	{
+	echo -e "{\n\"menu\" : ["
+	echo -e "{\n\"id\" : \"Modules\","
+	echo -e "\"description\": \"Modules development and testing\","
+	echo -e "\"sub\": ["
 	features=()
 	for key in "${!module_options[@]}"; do
 		if [[ $key == *",feature" ]]; then
@@ -251,6 +255,8 @@ function generate_json_options() {
 	done
 
 	for index in "${!features[@]}"; do
+		i=$((i + 1)) # Increment counter
+		id=$(printf "%03d" "$i")
 		feature=${features[$index]}
 		desc_key="${feature},desc"
 		example_key="${feature},example"
@@ -265,13 +271,14 @@ function generate_json_options() {
 		desc="${module_options[$desc_key]}"
 		example="${module_options[$example_key]}"
 		echo "  {"
-		echo "    \"id\": \"$feature\","
-		echo "    \"Author\": \"$author\","
-		echo "    \"src_reference\": \"$ref_link\","
+		echo "    \"id\": \"MOD$id\","
 		echo "    \"description\": \"$desc\","
-		echo "    \"command\": [ \"$example\" ]",
+		echo "    \"about\": \"$desc\","
+		echo "    \"command\": [ \"$feature\" ]",
 		echo "    \"status\": \"$status\","
-		echo "    \"doc_link\": \"$doc_link\""
+		echo "    \"author\": \"$author\","
+
+		echo "    \"condition\": \"\""
 		if [ $index -ne $((${#features[@]} - 1)) ]; then
 			echo "  },"
 		else
@@ -280,6 +287,9 @@ function generate_json_options() {
 	done
 	echo "]"
 	echo "}"
+	echo "]"
+	echo "}"
+	} | jq .
 }
 
 module_options+=(
