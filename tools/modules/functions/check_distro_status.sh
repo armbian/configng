@@ -30,10 +30,13 @@ function check_distro_status() {
 			BACKTITLE="Warning: The current OS ($DISTROID) is not supported or not listed"
 			set_colors 1
 			get_user_continue "Warning:
-			The current OS ($DISTROID) is not a supported distribution:
-			while the tool might still work well,
-			please be aware that issues may not be addressed by the maintainers.
-			You are welcome to contribute fixes for any problems you encounter.
+
+			The current OS ($DISTROID) is not a officially supported distribution!
+
+			The tool might still work well, but be aware that issues may
+			not be accepted and addressed by the maintainers. However, you are
+			welcome to contribute fixes for any problems you encounter.
+
 
 			Would you like to continue?
 			" process_input
