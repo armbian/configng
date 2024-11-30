@@ -580,7 +580,27 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "module_prowlarr status"
-                        }
+                        },
+                        {
+                            "id": "DOW027",
+                            "description": "Install Jellyseerr",
+                            "command": [
+                                "module_jellyseerr install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_jellyseerr status"
+                        },
+                        {
+                            "id": "DOW028",
+                            "description": "Remove Jellyseerr",
+                            "command": [
+                                "module_jellyseerr remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_jellyseerr status"
+                        }                        
                     ]
                 },
                 {
