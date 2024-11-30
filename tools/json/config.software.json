@@ -580,6 +580,36 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "module_prowlarr status"
+                        },
+                        {
+                            "id": "DOW040",
+                            "description": "Jellyseerr install",
+                            "command": [
+                                "module_jellyseerr install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_jellyseerr status"
+                        },
+                        {
+                            "id": "DOW041",
+                            "description": "Jellyseerr remove ",
+                            "command": [
+                                "module_jellyseerr remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_jellyseerr status"
+                        },
+                        {
+                            "id": "DOW042",
+                            "description": "Jellyseerr purge data folder",
+                            "command": [
+                                "module_jellyseerr purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_jellyseerr status && [[ -d \"${SOFTWARE_FOLDER}/jellyseerr\" ]]"
                         }
                     ]
                 },
