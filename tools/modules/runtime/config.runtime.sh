@@ -87,20 +87,9 @@ fi
 
 #
 # Sub sub menu updates
-
-cockpit_port="$(systemctl cat cockpit.socket | grep ListenStream | awk -F= '{print $2}' | awk '{print $1}')"
-update_sub_submenu_data "Software" "Management" "M03" "https://localhost:$cockpit_port"
-
-emby_media_port="$(lsof -i -P -n | grep TCP | grep LISTEN | grep 'emby' | awk -F: '{print $2}' | awk '{print $1}')"
-update_sub_submenu_data "Software" "Media" "SW24" "https://localhost:$emby_media_port"
-
-plex_media_port="$(lsof -i -P -n | grep TCP | grep LISTEN | grep 'plex' | awk -F: '{print $2}' | awk '{print $1}' | head -n 1)"
-update_sub_submenu_data "Software" "Media" "SW22" "https://localhost:$plex_media_port"
-
 update_sub_submenu_data "Software" "Containers" "CON006" "http://$LOCALIPADD:${module_options["module_portainer,port"]}"
 update_sub_submenu_data "Software" "HomeAutomation" "HA004" "http://$LOCALIPADD:${module_options["module_haos,port"]}"
-
-
+update_sub_submenu_data "Software" "Monitoring" "MON004" "http://$LOCALIPADD:${module_options["module_netdata,port"]}"
 update_sub_submenu_data "Software" "Downloaders" "DOW002" "http://$LOCALIPADD:${module_options["module_qbittorrent,port"]}"
 update_sub_submenu_data "Software" "Downloaders" "DOW004" "http://$LOCALIPADD:${module_options["module_deluge,port"]}"
 update_sub_submenu_data "Software" "Downloaders" "DOW006" "http://$LOCALIPADD:${module_options["module_transmission,port"]}"
