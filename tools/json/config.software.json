@@ -834,7 +834,6 @@
                         {
                             "id": "MON001",
                             "description": "Install Uptime Kuma",
-                            "about": "Uptime Kuma is an easy-to-use self-hosted monitoring tool.",
                             "command": [
                                 "module_uptimekuma install"
                             ],
@@ -846,12 +845,43 @@
                             "id": "MON002",
                             "description": "Uninstall Uptime Kuma",
                             "command": [
-                                "module_uptimekuma uninstall"
+                                "module_uptimekuma remove"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "module_uptimekuma status"
+                        },
+                        {
+                            "id": "MON005",
+                            "description": "Netdata Install",
+                            "command": [
+                                "module_netdata install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_netdata status"
+                        },
+                        {
+                            "id": "MON006",
+                            "description": "Netdata remove",
+                            "command": [
+                                "module_netdata remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_netdata status"
+                        },
+                        {
+                            "id": "MON007",
+                            "description": "Netdata purge data folder",
+                            "command": [
+                                "module_netdata purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_netdata status && [[ -d \"${SOFTWARE_FOLDER}/netdata\" ]]"
                         }
+
                     ]
                 },
                 {
