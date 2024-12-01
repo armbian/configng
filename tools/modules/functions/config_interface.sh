@@ -107,6 +107,8 @@ parse_menu_items() {
 	done < <(echo "$json_data" | jq -r '.menu[] | '${parent_id:+".. | objects | select(.id==\"$parent_id\") | .sub[]? |"}' select(.status != "Disabled") | "\(.id)\n\(.description)\n\(.condition)"' || exit 1)
 }
 
+
+
 module_options+=(
 	["generate_top_menu,author"]="@Tearran"
 	["generate_top_menu,ref_link"]=""
@@ -172,7 +174,9 @@ function generate_menu() {
 			[ -z "$OPTION" ] && break
 
 			# Check if the selected option has a submenu
-			local submenu_count=$(jq -r --arg id "$OPTION" '.menu[] | .. | objects | select(.id==$id) | .sub? | length' "$json_file")
+			#local submenu_count=$(jq -r --arg id "$OPTION" '.menu[] | .. | objects | select(.id==$id) | .sub? | length' "$json_file")
+			local submenu_count=$(echo "$json_data" | jq -r --arg id "$OPTION" '.menu[] | .. | objects | select(.id==$id) | .sub? | length')
+
 			submenu_count=${submenu_count:-0} # If submenu_count is null or empty, set it to 0
 			if [ "$submenu_count" -gt 0 ]; then
 				# If it does, generate a new menu for the submenu
