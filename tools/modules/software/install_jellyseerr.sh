@@ -34,7 +34,7 @@ function module_jellyseerr () {
 			-e TZ="$(cat /etc/timezone)" \
 			-e PORT=5055 `#optional` \
 			-p 5055:5055 \
-			-v "${jellyseerr_BASE}/config:/app/config" \
+			-v "${JELLYSEERR_BASE}/config:/app/config" \
 			--restart unless-stopped \
 			fallenbagel/jellyseerr
 			for i in $(seq 1 20); do
