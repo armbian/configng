@@ -4,7 +4,7 @@ module_options+=(
 ["manage_odroid_board,feature"]="Odroid board"
 ["manage_odroid_board,desc"]="Select optimised Odroid board configuration"
 ["manage_odroid_board,example"]="manage_odroid_board"
-["manage_odroid_board,status"]="Preview"
+["manage_odroid_board,status"]="review"
 )
 #
 # @description Select optimised board configuration
@@ -28,7 +28,7 @@ function manage_odroid_board() {
         list+=("${board_id[${board_num}]}" "${board_list[${board_num}]}" "${state}")
     done
 
-    target_board=$($DIALOG --notags --title "Select optimised board configuration" --radiolist "" 10 43 4 "${list[@]}" 3>&1 1>&2 2>&3)
+    target_board=$($DIALOG --notags --title "Select optimised board configuration" --radiolist "" 10 42 4 "${list[@]}" 3>&1 1>&2 2>&3)
     if [[ $? == 0 ]]; then
         sed -i "s/^board_name=.*/board_name=${target_board}/" ${env_file} 2> /dev/null && \
             grep -q "^board_name=${target_board}" ${env_file} 2>/dev/null || \
