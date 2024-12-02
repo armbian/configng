@@ -882,6 +882,36 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "module_uptimekuma status"
+                        },
+                        {
+                            "id": "MON005",
+                            "description": "Netdata Install",
+                            "command": [
+                                "module_netdata install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_netdata status"
+                        },
+                        {
+                            "id": "MON006",
+                            "description": "Netdata remove",
+                            "command": [
+                                "module_netdata remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_netdata status"
+                        },
+                        {
+                            "id": "MON007",
+                            "description": "Netdata purge data folder",
+                            "command": [
+                                "module_netdata purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_netdata status && [[ -d \"${SOFTWARE_FOLDER}/netdata\" ]]"
                         }
                     ]
                 },
