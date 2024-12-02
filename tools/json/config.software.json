@@ -914,8 +914,7 @@
                     "sub": [
                         {
                             "id": "MON001",
-                            "description": "Install Uptime Kuma",
-                            "about": "Uptime Kuma is an easy-to-use self-hosted monitoring tool.",
+                            "description": "Uptime Kuma install ",
                             "command": [
                                 "module_uptimekuma install"
                             ],
@@ -925,13 +924,23 @@
                         },
                         {
                             "id": "MON002",
-                            "description": "Uninstall Uptime Kuma",
+                            "description": "Uptime Kuma remove",
                             "command": [
-                                "module_uptimekuma uninstall"
+                                "module_uptimekuma remove"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "module_uptimekuma status"
+                        },
+                        {
+                            "id": "MON003",
+                            "description": "Uptime Kuma purge data folder",
+                            "command": [
+                                "module_uptimekuma purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_uptimekuma status && [[ -d \"${SOFTWARE_FOLDER}/uptimekuma\" ]]"
                         },
                         {
                             "id": "MON005",
@@ -963,6 +972,7 @@
                             "author": "@igorpecovnik",
                             "condition": "! module_netdata status && [[ -d \"${SOFTWARE_FOLDER}/netdata\" ]]"
                         }
+
                     ]
                 },
                 {
