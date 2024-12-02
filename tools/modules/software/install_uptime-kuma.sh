@@ -2,7 +2,7 @@ module_options+=(
 	["module_uptimekuma,author"]="@armbian"
 	["module_uptimekuma,feature"]="module_uptimekuma"
 	["module_uptimekuma,desc"]="Install uptimekuma container"
-	["module_uptimekuma,example"]="install remove status help"
+	["module_uptimekuma,example"]="install remove purge status help"
 	["module_uptimekuma,port"]="3001"
 	["module_uptimekuma,status"]="Active"
 	["module_uptimekuma,arch"]="x86-64,arm64"
@@ -31,7 +31,7 @@ function module_uptimekuma () {
 			docker run -d --name uptime-kuma \
 			--restart=always \
 			-p 3001:3001 \
-			-v uptime-kuma:/app/data \
+			-v "${UPTIMEKUMA_BASE}:/app/data" \
 			louislam/uptime-kuma:1
 			for i in $(seq 1 20); do
 				if docker inspect -f '{{ index .Config.Labels "build_version" }}' uptime-kuma >/dev/null 2>&1 ; then
@@ -48,26 +48,29 @@ function module_uptimekuma () {
 		"${commands[1]}")
 			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
 			[[ "${image}" ]] && docker image rm "$image" >/dev/null
-			[[ -n "${UPTIMEKUMA_BASE}" && "${UPTIMEKUMA_BASE}" != "/" ]] && rm -rf "${uptimekuma_BASE}"
 		;;
 		"${commands[2]}")
+			[[ -n "${UPTIMEKUMA_BASE}" && "${UPTIMEKUMA_BASE}" != "/" ]] && rm -rf "${UPTIMEKUMA_BASE}"
+		;;
+		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then
 				return 0
 			else
 				return 1
 			fi
 		;;
-		"${commands[3]}")
+		"${commands[4]}")
 			echo -e "\nUsage: ${module_options["module_uptimekuma,feature"]} <command>"
 			echo -e "Commands:  ${module_options["module_uptimekuma,example"]}"
 			echo "Available commands:"
 			echo -e "\tinstall\t- Install $title."
-			echo -e "\tstatus\t- Installation status $title."
 			echo -e "\tremove\t- Remove $title."
+			echo -e "\tpurge\t- Purge $title data folder."
+			echo -e "\tstatus\t- Installation status $title."
 			echo
 		;;
 		*)
-		${module_options["module_uptimekuma,feature"]} ${commands[3]}
+		${module_options["module_uptimekuma,feature"]} ${commands[4]}
 		;;
 	esac
 }
