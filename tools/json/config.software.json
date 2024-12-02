@@ -773,6 +773,26 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "module_portainer status"
+                        },
+                        {
+                            "id": "CON007",
+                            "description": "Watchtower install",
+                            "command": [
+                                "module_watchtower install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_watchtower status"
+                        },
+                        {
+                            "id": "CON008",
+                            "description": "Watchtower remove",
+                            "command": [
+                                "module_watchtower remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_watchtower status"
                         }
                     ]
                 },
