@@ -6,6 +6,7 @@ module_options+=(
 	["module_portainer,desc"]="Install/uninstall/check status of portainer container"
 	["module_portainer,example"]="help install uninstall status"
 	["module_portainer,status"]="Active"
+	["module_portainer,port"]="9000"
 )
 #
 # Install portainer container
@@ -37,7 +38,11 @@ module_portainer() {
 		install)
 			check_if_installed docker-ce || install_docker
 			docker volume ls -q | grep -xq 'portainer_data' || docker volume create portainer_data
-			docker run -d -p '9002:9000' --name=portainer --restart=always \
+			docker run -d \
+			-p '9000:9000' \
+			-p '8000:8000' \
+			-p '9443:9443' \
+			--name=portainer --restart=always \
 			-v '/run/docker.sock:/var/run/docker.sock' \
 			-v '/etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro' \
 			-v 'portainer_data:/data' 'portainer/portainer-ce'

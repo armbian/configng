@@ -58,8 +58,11 @@ function network_config() {
 				ip link set ${adapter} up
 				default_wireless_network_config "${yamlfile}" "${adapter}"
 				LIST=()
-				LIST=($(iw dev ${adapter} scan 2> /dev/null | grep 'SSID\|^BSS' | cut -d" " -f2 | sed "s/(.*//g" | xargs -n2 -d'\n' | awk '{print $2,$1}'))
-				sleep 1
+				for i in {1..3}; do
+					LIST=($(iw dev ${adapter} scan 2> /dev/null | grep 'SSID\|^BSS' | cut -d" " -f2 | sed "s/(.*//g" | xargs -n2 -d'\n' | awk '{print $2,$1}'))
+					sleep 3
+					[[ "${#LIST[@]}" -gt 0 ]]; break
+				done
 				LIST_LENGTH=$((${#LIST[@]} / 2))
 				if [[ ${#LIST[@]} == 0 ]]; then
 					restore_netplan_config

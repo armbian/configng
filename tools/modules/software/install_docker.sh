@@ -31,8 +31,6 @@ install_docker() {
 			fi
 			systemctl enable docker.service > /dev/null 2>&1
 			systemctl enable containerd.service > /dev/null 2>&1
-			$DIALOG --msgbox "To test that Docker has installed successfully
-run the following command: docker run hello-world" 9 70
 		fi
 	else
 		$DIALOG --msgbox "ERROR ! ${DISTRO} $DISTROID distribution not found in repository!" 7 70

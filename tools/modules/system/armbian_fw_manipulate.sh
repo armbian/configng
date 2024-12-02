@@ -31,8 +31,8 @@ armbian_fw_manipulate() {
 	)
 
 	# reinstall headers only if they were previously installed
-	if are_headers_installed; then
-		local armbian_packages+="linux-headers-${branch}-${LINUXFAMILY}"
+	if dpkg -l | grep -E "linux-headers" >/dev/null; then
+		local armbian_packages+=("linux-headers-${branch}-${LINUXFAMILY}")
 	fi
 
 	local packages=""
@@ -72,5 +72,13 @@ armbian_fw_manipulate() {
 			*) return ;;
 		esac
 	done
+
+	# update branch information
+	BRANCH=$(dpkg -l | grep -E "linux-image" | grep -E "current|legacy|edge" | awk '{print $2}' | cut -d"-" -f3 | head -1)
+	if grep -q BRANCH /etc/armbian-release; then
+		[[ -n ${BRANCH} ]] && sed -i "s/BRANCH=.*/BRANCH=$BRANCH/g" /etc/armbian-release
+	else
+		[[ -n ${BRANCH} ]] && echo "BRANCH=$BRANCH" >> /etc/armbian-release
+	fi
 }
 
