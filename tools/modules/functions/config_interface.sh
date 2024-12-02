@@ -207,20 +207,20 @@ function execute_command() {
 	local id=$1
 
 	# Extract commands
-	local commands=$(jq -r --arg id "$id" '
+	local commands=$(echo "$json_data" | jq -r --arg id "$id" '
 		.menu[] |
 		.. |
 		objects |
 		select(.id == $id) |
-		.command[]?' "$json_file")
+		.command[]?')
 
 	# Check if a about exists
-	local about=$(jq -r --arg id "$id" '
+	local about=$(echo "$json_data" | jq -r --arg id "$id" '
 		.menu[] |
 		.. |
 		objects |
 		select(.id == $id) |
-		.about?' "$json_file")
+		.about?')
 
 	# If a about exists, display it and wait for user confirmation
 	if [[ "$about" != "null" && $INPUTMODE != "cmd" ]]; then

@@ -241,90 +241,8 @@ module_options+=(
 #
 # Function to generate a JSON-like object file
 #
-function generate_json_options_old() {
-	{
-	echo -e "{\n\"menu\" : ["
-	echo -e "{\n\"id\" : \"Modules\","
-	echo -e "\"description\": \"Modules development and testing\","
-	echo -e "\"sub\": ["
-	features=()
-	for key in "${!module_options[@]}"; do
-		if [[ $key == *",feature" ]]; then
-			features+=("${module_options[$key]}")
-		fi
-	done
-
-	for index in "${!features[@]}"; do
-		i=$((i + 1)) # Increment counter
-		feature=${features[$index]}
-		feature_prefix=$(echo "${feature:0:3}" | tr '[:lower:]' '[:upper:]') # Extract first 3 letters and convert to uppercase
-		id=$(printf "%s%03d" "$feature_prefix" "$i") # Combine prefix with padded number
-
-		# Get keys pairs
-		desc_key="${feature},desc"
-		example_key="${feature},example"
-		author_key="${feature},author"
-		ref_key="${feature},ref_link"
-		status_key="${feature},status"
-		doc_key="${feature},doc_link"
-		# Get array info
-		author="${module_options[$author_key]}"
-		ref_link="${module_options[$ref_key]}"
-		status="${module_options[$status_key]}"
-		doc_link="${module_options[$doc_key]}"
-		desc="${module_options[$desc_key]}"
-		example="${module_options[$example_key]}"
-
-		echo "  {"
-		# uncomment to number id
-		echo "    \"id\": \"$id\","
-		echo "    \"description\": \"($feature) $desc\","
-
-		case "$feature_prefix" in
-		"MOD")
-			echo "    \"command\": [ \"see_menu $feature\" ],"
-			echo "    \"status\": \"$status\","
-			echo "    \"condition\": \"[ -n see_ping ]\","
-			;;
-		"GEN"|"SEE"|"SET"|"GET")
-			echo "    \"about\": \"$desc\","
-			echo "    \"command\": [ \"$feature\" ],"
-			echo "    \"status\": \"$status\","
-			echo "    \"condition\": \"[ -n see_ping ]\","
-			;;
-		*)
-			echo "    \"command\": [ \"$feature\" ],"
-			echo "    \"status\": \"Disabled\","
-			;;
-		esac
-
-		echo "    \"author\": \"$author\","
-		echo "    \"append_info\": \"review\","
-		echo "    \"arch\":\"review\","
-		echo "    \"ports\":\"review\""
-
-
-		if [ $index -ne $((${#features[@]} - 1)) ]; then
-			echo "  },"
-		else
-			echo "  }"
-		fi
-	done
-	echo "]"
-	echo "}"
-	echo "]"
-	echo "}"
-	} | jq .
-}
-
 function generate_json_options() {
-    local group="${1:-}" # Accept optional group parameter
-
-    {
-        echo -e "{\n\"menu\" : ["
-        echo -e "{\n\"id\" : \"Modules\","
-        echo -e "\"description\": \"Modules development and testing\","
-        echo -e "\"sub\": ["
+	local i=0
 
         features=()
         for key in "${!module_options[@]}"; do
@@ -333,14 +251,14 @@ function generate_json_options() {
             fi
         done
 
-        i=0
+	{
+        echo -e "{\n\"menu\" : ["
+        echo -e "{\n\"id\" : \"Modules\","
+        echo -e "\"description\": \"Modules development and testing\","
+        echo -e "\"sub\": ["
+
         for feature in "${features[@]}"; do
             feature_prefix=$(echo "${feature:0:3}" | tr '[:lower:]' '[:upper:]') # Extract first 3 letters and convert to uppercase
-
-            # Skip processing if the current prefix doesn't match the specified group (if provided)
-            if [[ -n $group && $feature_prefix != "$group" ]]; then
-                continue
-            fi
 
             i=$((i + 1))
             id=$(printf "%s%03d" "$feature_prefix" "$i") # Combine prefix with padded number
@@ -362,7 +280,7 @@ function generate_json_options() {
 
             echo "  {"
             echo "    \"id\": \"$id\","
-            echo "    \"description\": \"($feature) $desc\","
+            echo "    \"description\": \"$desc ($feature) \","
 
             case "$feature_prefix" in
             "MOD")
@@ -370,22 +288,17 @@ function generate_json_options() {
                 echo "    \"status\": \"$status\","
                 echo "    \"condition\": \"[ -n see_ping ]\","
                 ;;
-            "GEN"|"SEE"|"SET"|"GET")
-                echo "    \"about\": \"$desc\","
-                echo "    \"command\": [ \"$feature\" ],"
-                echo "    \"status\": \"$status\","
-                echo "    \"condition\": \"[ -n see_ping ]\","
-                ;;
             *)
                 echo "    \"command\": [ \"$feature\" ],"
                 echo "    \"status\": \"Disabled\","
+		echo "    \"condition\": \"[ -n see_ping ]\","
                 ;;
             esac
 
             echo "    \"author\": \"$author\","
             echo "    \"append_info\": \"review\","
-            echo "    \"arch\":\"review\","
-            echo "    \"ports\":\"review\""
+            echo "    \"arch\": \"review\","
+            echo "    \"ports\": \"review\""
 
             if [ $i -ne ${#features[@]} ]; then
                 echo "  },"
@@ -401,8 +314,15 @@ function generate_json_options() {
 }
 
 test_object() {
+# Test Function
+
+	#generate_json_options > tools/json/config.temp.json
+	#json_file="$tools_dir/json/config.temp.json"
+
+	#json_data=$(<$json_file)
 	json_data=$(generate_json_options)
-	generate_top_menu "$json_data"
+	generate_menu "Modules" "$json_data"
+	#generate_top_menu "$json_data"
 }
 
 module_options+=(
