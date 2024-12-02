@@ -331,7 +331,7 @@
                     ],
                     "status": "Stable",
                     "author": "@viraniac @igorpecovnik",
-                    "condition": "[ -d /boot/dtb/ ]"
+                    "condition": "[ -d /boot/dtb/ ] && [ -f /boot/armbianEnv.txt ]"
                 }
             ]
         }
