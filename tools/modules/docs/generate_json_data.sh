@@ -11,7 +11,7 @@ module_options+=(
 #
 # Function to generate a JSON-like object file
 #
-function generate_json_options() {
+function generate_json_data() {
 	local i=0
 
 	features=()
@@ -83,14 +83,16 @@ function generate_json_options() {
 	} | jq .
 }
 
-test_object() {
+test_json_data() {
 # Test Function
 
 	#generate_json_options > tools/json/config.temp.json
 	#json_file="$tools_dir/json/config.temp.json"
-
 	#json_data=$(<$json_file)
-	json_data=$(generate_json_options)
-	generate_menu "Modules" "$json_data"
 	#generate_top_menu "$json_data"
+
+	json_data=$(generate_json_data)
+	generate_menu "Modules" "$json_data"
+
+
 }
