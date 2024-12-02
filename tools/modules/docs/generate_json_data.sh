@@ -14,73 +14,73 @@ module_options+=(
 function generate_json_options() {
 	local i=0
 
-        features=()
-        for key in "${!module_options[@]}"; do
-            if [[ $key == *",feature" ]]; then
-                features+=("${module_options[$key]}")
-            fi
-        done
+	features=()
+	for key in "${!module_options[@]}"; do
+		if [[ $key == *",feature" ]]; then
+		features+=("${module_options[$key]}")
+		fi
+	done
 
 	{
-        echo -e "{\n\"menu\" : ["
-        echo -e "{\n\"id\" : \"Modules\","
-        echo -e "\"description\": \"Modules development and testing\","
-        echo -e "\"sub\": ["
+		echo -e "{\n\"menu\" : ["
+		echo -e "{\n\"id\" : \"Modules\","
+		echo -e "\"description\": \"Modules development and testing\","
+		echo -e "\"sub\": ["
 
-        for feature in "${features[@]}"; do
-            feature_prefix=$(echo "${feature:0:3}" | tr '[:lower:]' '[:upper:]') # Extract first 3 letters and convert to uppercase
+		for feature in "${features[@]}"; do
+		feature_prefix=$(echo "${feature:0:3}" | tr '[:lower:]' '[:upper:]') # Extract first 3 letters and convert to uppercase
 
-            i=$((i + 1))
-            id=$(printf "%s%03d" "$feature_prefix" "$i") # Combine prefix with padded number
+		i=$((i + 1))
+		id=$(printf "%s%03d" "$feature_prefix" "$i") # Combine prefix with padded number
 
-            # Get keys pairs
-            desc_key="${feature},desc"
-            example_key="${feature},example"
-            author_key="${feature},author"
-            ref_key="${feature},ref_link"
-            status_key="${feature},status"
-            doc_key="${feature},doc_link"
-            # Get array info
-            author="${module_options[$author_key]}"
-            ref_link="${module_options[$ref_key]}"
-            status="${module_options[$status_key]}"
-            doc_link="${module_options[$doc_key]}"
-            desc="${module_options[$desc_key]}"
-            example="${module_options[$example_key]}"
+		# Get keys pairs
+		desc_key="${feature},desc"
+		example_key="${feature},example"
+		author_key="${feature},author"
+		ref_key="${feature},ref_link"
+		status_key="${feature},status"
+		doc_key="${feature},doc_link"
+		# Get array info
+		author="${module_options[$author_key]}"
+		ref_link="${module_options[$ref_key]}"
+		status="${module_options[$status_key]}"
+		doc_link="${module_options[$doc_key]}"
+		desc="${module_options[$desc_key]}"
+		example="${module_options[$example_key]}"
 
-            echo "  {"
-            echo "    \"id\": \"$id\","
-            echo "    \"description\": \"$desc ($feature) \","
+		echo "  {"
+		echo "    \"id\": \"$id\","
+		echo "    \"description\": \"$desc ($feature) \","
 
-            case "$feature_prefix" in
-            "MOD")
-                echo "    \"command\": [ \"see_menu $feature\" ],"
-                echo "    \"status\": \"$status\","
-                echo "    \"condition\": \"[ -n see_ping ]\","
-                ;;
-            *)
-                echo "    \"command\": [ \"$feature\" ],"
-                echo "    \"status\": \"Disabled\","
-		echo "    \"condition\": \"[ -n see_ping ]\","
-                ;;
-            esac
+		case "$feature_prefix" in
+		"MOD")
+			echo "    \"command\": [ \"see_menu $feature\" ],"
+			echo "    \"status\": \"$status\","
+			echo "    \"condition\": \"[ -n see_ping ]\","
+			;;
+		*)
+			echo "    \"command\": [ \"$feature\" ],"
+			echo "    \"status\": \"Disabled\","
+			echo "    \"condition\": \"[ -n see_ping ]\","
+			;;
+		esac
 
-            echo "    \"author\": \"$author\","
-            echo "    \"append_info\": \"review\","
-            echo "    \"arch\": \"review\","
-            echo "    \"ports\": \"review\""
+		echo "    \"author\": \"$author\","
+		echo "    \"append_info\": \"review\","
+		echo "    \"arch\": \"review\","
+		echo "    \"ports\": \"review\""
 
-            if [ $i -ne ${#features[@]} ]; then
-                echo "  },"
-            else
-                echo "  }"
-            fi
-        done
-        echo "]"
-        echo "}"
-        echo "]"
-        echo "}"
-    } | jq .
+		if [ $i -ne ${#features[@]} ]; then
+			echo "  },"
+		else
+			echo "  }"
+		fi
+		done
+		echo "]"
+		echo "}"
+		echo "]"
+		echo "}"
+	} | jq .
 }
 
 test_object() {
