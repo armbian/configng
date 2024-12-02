@@ -1187,6 +1187,26 @@
                             "status": "Stable",
                             "author": "@Tearran",
                             "condition": ""
+                        },
+                        {
+                            "id": "MAN009",
+                            "description": "Install Homepage",
+                            "command": [
+                                "module_homepage install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_homepage status"
+                        },
+                        {
+                            "id": "MAN010",
+                            "description": "Remove Homepage",
+                            "command": [
+                                "module_homepage remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_homepage status"
                         }
                     ]
                 }
