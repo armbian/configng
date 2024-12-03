@@ -614,6 +614,72 @@
                     ]
                 },
                 {
+                    "id": "Database",
+                    "description": "Database",
+                    "sub": [
+                        {
+                            "id": "DAT001",
+                            "description": "Mariadb install",
+                            "command": [
+                                "module_mariadb install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_mariadb status"
+                        },
+                        {
+                            "id": "DAT002",
+                            "description": "Mariadb remove",
+                            "command": [
+                                "module_mariadb remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_mariadb status"
+                        },
+                        {
+                            "id": "DAT003",
+                            "description": "Mariadb purge",
+                            "command": [
+                                "module_mariadb purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_mariadb status && [[ -d \"${SOFTWARE_FOLDER}/mariadb\" ]]"
+                        },
+                        {
+                            "id": "DAT005",
+                            "description": "phpMyAdmin install",
+                            "command": [
+                                "module_phpmyadmin install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_phpmyadmin status"
+                        },
+                        {
+                            "id": "DAT006",
+                            "description": "phpMyAdmin remove",
+                            "command": [
+                                "module_phpmyadmin remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_phpmyadmin status"
+                        },
+                        {
+                            "id": "DAT007",
+                            "description": "phpMyAdmin purge",
+                            "command": [
+                                "module_phpmyadmin purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_phpmyadmin status && [[ -d \"${SOFTWARE_FOLDER}/phpmyadmin\" ]]"
+                        }
+                    ]
+                },
+                {
                     "id": "DNS",
                     "description": "DNS blockers",
                     "sub": [
