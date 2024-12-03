@@ -33,10 +33,10 @@ function module_select_xuodroid() {
         sed -i "s/^board_name=.*/board_name=${target_board}/" ${env_file} 2> /dev/null && \
             grep -q "^board_name=${target_board}" ${env_file} 2>/dev/null || \
             echo "board_name=${target_board}" >> ${env_file}
-		sed -i "s/^BOARD_NAME.*/BOARD_NAME=\"Odroid ${target_board^^}\"/" /etc/armbian-release
+        sed -i "s/^BOARD_NAME.*/BOARD_NAME=\"Odroid ${target_board^^}\"/" /etc/armbian-release
         
         $DIALOG --title " Reboot required " --yes-button "Reboot" \
-			--no-button "Cancel" --yesno "A reboot is required to apply the changes. Shall we reboot now?" 7 34
-		[[ $? == 0 ]] && reboot
+            --no-button "Cancel" --yesno "A reboot is required to apply the changes. Shall we reboot now?" 7 34
+        [[ $? == 0 ]] && reboot
     fi
 }
