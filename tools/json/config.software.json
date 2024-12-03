@@ -970,8 +970,67 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "! module_stirling status && [[ -d \"${SOFTWARE_FOLDER}/stirling\" ]]"
+                        },
+                        {
+                            "id": "MED015",
+                            "description": "Syncthing Install",
+                            "command": [
+                                "module_syncthing install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_syncthing status"
+                        },
+                        {
+                            "id": "MED016",
+                            "description": "Syncthing Remove",
+                            "command": [
+                                "module_syncthing remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_syncthing status"
+                        },
+                        {
+                            "id": "MED017",
+                            "description": "Syncthing Purge data folder",
+                            "command": [
+                                "module_syncthing purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_syncthing status && [[ -d \"${SOFTWARE_FOLDER}/syncthing\" ]]"
+                        },
+                        {
+                            "id": "MED020",
+                            "description": "Nextcloud Install",
+                            "command": [
+                                "module_nextcloud install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_nextcloud status"
+                        },
+                        {
+                            "id": "MED021",
+                            "description": "Nextcloud Remove",
+                            "command": [
+                                "module_nextcloud remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_nextcloud status"
+                        },
+                        {
+                            "id": "MED022",
+                            "description": "Nextcloud Purge data folder",
+                            "command": [
+                                "module_nextcloud purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_nextcloud status && [[ -d \"${SOFTWARE_FOLDER}/nextcloud\" ]]"
                         }
-
                     ]
                 },
                 {
