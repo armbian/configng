@@ -580,6 +580,36 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "module_prowlarr status"
+                        },
+                        {
+                            "id": "DOW040",
+                            "description": "Jellyseerr install",
+                            "command": [
+                                "module_jellyseerr install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_jellyseerr status"
+                        },
+                        {
+                            "id": "DOW041",
+                            "description": "Jellyseerr remove ",
+                            "command": [
+                                "module_jellyseerr remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_jellyseerr status"
+                        },
+                        {
+                            "id": "DOW042",
+                            "description": "Jellyseerr purge data folder",
+                            "command": [
+                                "module_jellyseerr purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_jellyseerr status && [[ -d \"${SOFTWARE_FOLDER}/jellyseerr\" ]]"
                         }
                     ]
                 },
@@ -773,6 +803,26 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "module_portainer status"
+                        },
+                        {
+                            "id": "CON007",
+                            "description": "Watchtower install",
+                            "command": [
+                                "module_watchtower install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_watchtower status"
+                        },
+                        {
+                            "id": "CON008",
+                            "description": "Watchtower remove",
+                            "command": [
+                                "module_watchtower remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_watchtower status"
                         }
                     ]
                 },
@@ -824,7 +874,38 @@
                             "status": "Stable",
                             "author": "@schwar3kat",
                             "condition": "check_if_installed emby-server"
+                        },
+                        {
+                            "id": "MED010",
+                            "description": "Stirling-PDF Install",
+                            "command": [
+                                "module_stirling install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_stirling status"
+                        },
+                        {
+                            "id": "MED011",
+                            "description": "Stirling-PDF Remove",
+                            "command": [
+                                "module_stirling remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_stirling status"
+                        },
+                        {
+                            "id": "MED012",
+                            "description": "Stirling-PDF Purge data folder",
+                            "command": [
+                                "module_stirling purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_stirling status && [[ -d \"${SOFTWARE_FOLDER}/stirling\" ]]"
                         }
+
                     ]
                 },
                 {
@@ -833,8 +914,7 @@
                     "sub": [
                         {
                             "id": "MON001",
-                            "description": "Install Uptime Kuma",
-                            "about": "Uptime Kuma is an easy-to-use self-hosted monitoring tool.",
+                            "description": "Uptime Kuma install ",
                             "command": [
                                 "module_uptimekuma install"
                             ],
@@ -844,14 +924,55 @@
                         },
                         {
                             "id": "MON002",
-                            "description": "Uninstall Uptime Kuma",
+                            "description": "Uptime Kuma remove",
                             "command": [
-                                "module_uptimekuma uninstall"
+                                "module_uptimekuma remove"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "module_uptimekuma status"
+                        },
+                        {
+                            "id": "MON003",
+                            "description": "Uptime Kuma purge data folder",
+                            "command": [
+                                "module_uptimekuma purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_uptimekuma status && [[ -d \"${SOFTWARE_FOLDER}/uptimekuma\" ]]"
+                        },
+                        {
+                            "id": "MON005",
+                            "description": "Netdata Install",
+                            "command": [
+                                "module_netdata install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_netdata status"
+                        },
+                        {
+                            "id": "MON006",
+                            "description": "Netdata remove",
+                            "command": [
+                                "module_netdata remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_netdata status"
+                        },
+                        {
+                            "id": "MON007",
+                            "description": "Netdata purge data folder",
+                            "command": [
+                                "module_netdata purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_netdata status && [[ -d \"${SOFTWARE_FOLDER}/netdata\" ]]"
                         }
+
                     ]
                 },
                 {
