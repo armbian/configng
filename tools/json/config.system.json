@@ -337,7 +337,7 @@
                     "id": "SYODD",
                     "description": "Select Odroid board configuration",
                     "command": [
-                        "manage_odroid_board"
+                        "module_select_xuodroid"
                     ],
                     "status": "Preview",
                     "author": "",

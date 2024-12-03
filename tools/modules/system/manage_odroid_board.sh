@@ -1,16 +1,16 @@
 module_options+=(
-["manage_odroid_board,author"]=""
-["manage_odroid_board,ref_link"]=""
-["manage_odroid_board,feature"]="Odroid board"
-["manage_odroid_board,desc"]="Select optimised Odroid board configuration"
-["manage_odroid_board,example"]="manage_odroid_board"
-["manage_odroid_board,status"]="review"
+    ["manage_odroid_board,author"]="Geoff Clements"
+    ["manage_odroid_board,ref_link"]=""
+    ["manage_odroid_board,feature"]="Odroid board"
+    ["manage_odroid_board,desc"]="Select optimised Odroid board configuration"
+    ["manage_odroid_board,example"]="module_select_xuodroid"
+    ["manage_odroid_board,status"]="review"
 )
 #
 # @description Select optimised board configuration
 #
-function manage_odroid_board() {
-	local board_list=("Odroid XU4" "Odroid XU3" "Odroid XU3 Lite" "Odroid HC1/HC2")
+function module_select_xuodroid() {
+    local board_list=("Odroid XU4" "Odroid XU3" "Odroid XU3 Lite" "Odroid HC1/HC2")
     local board_id=("xu4" "xu3" "xu3l" "hc1")
     local -a list
     local state
