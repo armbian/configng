@@ -48,19 +48,23 @@ function generate_json_data() {
 		desc="${module_options[$desc_key]}"
 		example="${module_options[$example_key]}"
 
-		echo "  {"
-		echo "    \"id\": \"$id\","
-		echo "    \"description\": \"$desc ($feature) \","
+
 
 		case "$feature_prefix" in
 		"MOD")
+			echo "  {"
+			echo "    \"id\": \"$id\","
+			echo "    \"description\": \"$desc ($feature) \","
 			echo "    \"command\": [ \"see_menu $feature\" ],"
-			echo "    \"status\": \"$status\","
+			echo "    \"status\": \"test\","
 			echo "    \"condition\": \"[ -n see_ping ]\","
 			;;
 		*)
+			echo "  {"
+			echo "    \"id\": \"$id\","
+			echo "    \"description\": \"$desc ($feature) \","
 			echo "    \"command\": [ \"$feature\" ],"
-			echo "    \"status\": \"Disabled\","
+			echo "    \"status\": \"test\","
 			echo "    \"condition\": \"[ -n see_ping ]\","
 			;;
 		esac
