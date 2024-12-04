@@ -11,7 +11,7 @@ module_options+=(
 #
 # Function to generate a JSON-like object file
 #
-function generate_json_data() {
+function get_json_data() {
 	local i=0
 
 	features=()
@@ -22,10 +22,7 @@ function generate_json_data() {
 	done
 
 	{
-		echo -e "{\n\"menu\" : ["
-		echo -e "{\n\"id\" : \"Modules\","
-		echo -e "\"description\": \"Modules development and testing\","
-		echo -e "\"sub\": ["
+		#echo -e "["
 
 		for feature in "${features[@]}"; do
 		feature_prefix=$(echo "${feature:0:3}" | tr '[:lower:]' '[:upper:]') # Extract first 3 letters and convert to uppercase
@@ -49,54 +46,59 @@ function generate_json_data() {
 		example="${module_options[$example_key]}"
 
 
-
-		case "$feature_prefix" in
-		"MOD")
-			echo "  {"
-			echo "    \"id\": \"$id\","
-			echo "    \"description\": \"$desc ($feature) \","
-			echo "    \"command\": [ \"see_menu $feature\" ],"
-			echo "    \"status\": \"test\","
-			echo "    \"condition\": \"[ -n see_ping ]\","
-			;;
-		*)
-			echo "  {"
-			echo "    \"id\": \"$id\","
-			echo "    \"description\": \"$desc ($feature) \","
-			echo "    \"command\": [ \"$feature\" ],"
-			echo "    \"status\": \"test\","
-			echo "    \"condition\": \"[ -n see_ping ]\","
-			;;
-		esac
-
-		echo "    \"author\": \"$author\","
-		echo "    \"append_info\": \"review\","
-		echo "    \"arch\": \"review\","
-		echo "    \"ports\": \"review\""
-
+		echo "  {"
+		echo "    \"id\": \"$id\","
+		echo "    \"id\": \"$feature\","
+		echo "    \"description\": \"$desc ($feature) \","
+		echo "    \"command\": [ \"see_menu $feature\" ],"
+		echo "    \"status\": \"test\","
+		echo "    \"condition\": \"[ -n see_ping ]\","
+		echo "    \"author\": \"$author\""
 		if [ $i -ne ${#features[@]} ]; then
 			echo "  },"
 		else
 			echo "  }"
 		fi
 		done
+		#echo "]"
+
+	} #| jq .
+}
+
+
+set_json_head() {
+	echo -e "{\n\"menu\" : ["
+
+}
+
+set_json_foot() {
+	echo "]"
+	echo "}"
+}
+
+generate_json_data(){
+	{
+		set_json_head
+		echo -e "{\n\"id\" : \"Module\","
+		echo -e "\"description\": \"Development and testing\","
+		echo -e "\"sub\": ["
+		get_json_data
 		echo "]"
 		echo "}"
-		echo "]"
-		echo "}"
+		set_json_foot
+
 	} | jq .
 }
 
-test_json_data() {
+
+interface_json_data() {
 # Test Function
 
-	#generate_json_options > tools/json/config.temp.json
+	#set_json_data > tools/json/config.temp.json
 	#json_file="$tools_dir/json/config.temp.json"
-	#json_data=$(<$json_file)
-	#generate_top_menu "$json_data"
-
 	json_data=$(generate_json_data)
-	generate_menu "Modules" "$json_data"
+	generate_top_menu "$json_data"
+	#generate_menu "Modules" "$json_data"
 
 
 }
