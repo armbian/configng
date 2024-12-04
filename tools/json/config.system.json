@@ -334,14 +334,34 @@
                     "condition": "[ -d /boot/dtb/ ] && [ -f /boot/armbianEnv.txt ]"
                 },
                 {
-                    "id": "SYODD",
+                    "id": "SY018",
+                    "description": "ZFS filesystem - enable support",
+                    "command": [
+                        "module_zfs install"
+                    ],
+                    "status": "Stable",
+                    "author": "@armbian",
+                    "condition": "! module_zfs status && linux-version compare ${KERNELID} le $(module_zfs kernel_max)"
+                },
+                {
+                    "id": "SY019",
+                    "description": "ZFS filesystem - remove support",
+                    "command": [
+                        "module_zfs remove"
+                    ],
+                    "status": "Stable",
+                    "author": "@armbian",
+                    "condition": "module_zfs status"
+                },
+                {
+                    "id": "SY020",
                     "description": "Select Odroid board configuration",
                     "command": [
-                        "module_select_xuodroid"
+                        "manage_odroid_board select"
                     ],
                     "status": "Preview",
                     "author": "",
-                    "condition": "[ -f /etc/armbian-release ] && grep -q \"^BOARDFAMILY=odroidxu4\" /etc/armbian-release"
+                    "condition": "[ $BOARDFAMILY == odroidxu4 ]"
                 }
             ]
         }
