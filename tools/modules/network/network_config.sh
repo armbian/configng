@@ -55,19 +55,38 @@ function network_config() {
 			;;
 
 			sta)
+			LIST=()
 				ip link set ${adapter} up
-				default_wireless_network_config "${yamlfile}" "${adapter}"
+				local stationslist=$(mktemp /tmp/wifi.XXXXXX)
+				for wificycles in $(seq 1 1 10); do
 				LIST=()
-				for i in {1..3}; do
-					LIST=($(iw dev ${adapter} scan 2> /dev/null | grep 'SSID\|^BSS' | cut -d" " -f2 | sed "s/(.*//g" | xargs -n2 -d'\n' | awk '{print $2,$1}'))
-					sleep 3
-					[[ "${#LIST[@]}" -gt 0 ]]; break
-				done
-				LIST_LENGTH=$((${#LIST[@]} / 2))
+					iw ${adapter} scan 2> /dev/null | \
+					grep 'freq:\|SSID:\|signal:' \
+					| sed 's/.*:"//;s/"//' \
+					| xargs -n3 -d'\n' \
+					| sort -k4 -nr \
+					| sed "s/freq: //g" \
+					| sed "s/signal: //g" \
+					| sed "s/SSID: //g" \
+					> $stationslist
+					if [[ $? -eq 0 && $(cat "${stationslist}" | wc -l) -gt 0 ]]; then
+						break
+					fi
+					sleep 1
+				done | $DIALOG --title "" --infobox "Scanning. Please wait" 4 26
+				# construct second array
+				while IFS=$'\t' read -r -a wifiArray
+				do
+					# if SSID is not blank, add to new list
+					if [[ -n "${wifiArray[2]}" ]]; then
+					LIST+=("${wifiArray[2]}" "$(printf "%-30s" "${wifiArray[2]}") ${wifiArray[1]} ${wifiArray[0]} Mhz")
+					fi
+				done < $stationslist
+				rm -f $stationslist
 				if [[ ${#LIST[@]} == 0 ]]; then
 					restore_netplan_config
 				else
-					SELECTED_SSID=$($DIALOG --title "Select SSID" --menu "rf" $((${LIST_LENGTH} + 6)) 50 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
+					SELECTED_SSID=$($DIALOG --notags --backtitle "" --menu "Select WiFi Network" $((${#LIST[@]}/3 + 14 )) 70 $((${#LIST[@]}/3 + 6)) "${LIST[@]}" 3>&1 1>&2 2>&3)
 					if [[ -n $SELECTED_SSID ]]; then
 						SELECTED_PASSWORD=$($DIALOG --title "Enter new password for $SELECTED_SSID" --passwordbox "" 7 50 3>&1 1>&2 2>&3)
 						if [[ -n $SELECTED_PASSWORD ]]; then
