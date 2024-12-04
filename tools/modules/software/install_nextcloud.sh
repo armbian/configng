@@ -10,7 +10,7 @@ module_options+=(
 	["module_nextcloud,arch"]="x86-64,arm64"
 )
 #
-# Module nextcloud-PDF
+# Module nextcloud
 #
 function module_nextcloud () {
 	local title="nextcloud"

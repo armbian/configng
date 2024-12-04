@@ -10,7 +10,7 @@ module_options+=(
 	["module_syncthing,arch"]="x86-64,arm64"
 )
 #
-# Module syncthing-PDF
+# Module syncthing
 #
 function module_syncthing () {
 	local title="syncthing"
@@ -35,7 +35,7 @@ function module_syncthing () {
 			--hostname=syncthing `#optional` \
 			-e PUID=1000 \
 			-e PGID=1000 \
-			-e TZ=Etc/UTC \
+			-e TZ="$(cat /etc/timezone)" \
 			-p 8884:8384 \
 			-p 22000:22000/tcp \
 			-p 22000:22000/udp \

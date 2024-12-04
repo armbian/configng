@@ -32,7 +32,7 @@ function module_owncloud () {
 			--name=owncloud \
 			-e PUID=1000 \
 			-e PGID=1000 \
-			-e TZ=Etc/UTC \
+			-e TZ="$(cat /etc/timezone)" \
 			-e "OWNCLOUD_TRUSTED_DOMAINS=${LOCALIPADD}" \
 			-p 7787:8080 \
 			-v "${OWNCLOUD_BASE}/config:/config" \
@@ -70,12 +70,13 @@ function module_owncloud () {
 			echo -e "Commands:  ${module_options["module_owncloud,example"]}"
 			echo "Available commands:"
 			echo -e "\tinstall\t- Install $title."
-			echo -e "\tstatus\t- Installation status $title."
 			echo -e "\tremove\t- Remove $title."
+			echo -e "\tpurge\t- Purge $title data folder."
+			echo -e "\tstatus\t- Installation status $title."
 			echo
 		;;
 		*)
-		${module_options["module_owncloud,feature"]} ${commands[3]}
+		${module_options["module_owncloud,feature"]} ${commands[4]}
 		;;
 	esac
 }
