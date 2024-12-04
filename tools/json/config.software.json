@@ -1030,6 +1030,36 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "! module_nextcloud status && [[ -d \"${SOFTWARE_FOLDER}/nextcloud\" ]]"
+                        },
+                        {
+                            "id": "MED025",
+                            "description": "Owncloud Install",
+                            "command": [
+                                "module_owncloud install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_owncloud status"
+                        },
+                        {
+                            "id": "MED026",
+                            "description": "Owncloud Remove",
+                            "command": [
+                                "module_owncloud remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_owncloud status"
+                        },
+                        {
+                            "id": "MED027",
+                            "description": "Owncloud Purge data folder",
+                            "command": [
+                                "module_owncloud purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_owncloud status && [[ -d \"${SOFTWARE_FOLDER}/owncloud\" ]]"
                         }
                     ]
                 },
