@@ -72,6 +72,12 @@ sudo armbian-config
   - ### Manage device tree overlays
 
 
+  - ### ZFS filesystem - enable support
+
+
+  - ### ZFS filesystem - remove support
+
+
 
 
 - ## **Network** 
@@ -137,6 +143,18 @@ sudo armbian-config
     - ### Remove Readarr
     - ### Install Prowlarr
     - ### Remove Prowlarr
+    - ### Jellyseerr install
+    - ### Jellyseerr remove 
+    - ### Jellyseerr purge data folder
+
+
+  - ### Database
+    - ### Mariadb install
+    - ### Mariadb remove
+    - ### Mariadb purge
+    - ### phpMyAdmin install
+    - ### phpMyAdmin remove
+    - ### phpMyAdmin purge
 
 
   - ### DNS blockers
@@ -167,6 +185,8 @@ sudo armbian-config
     - ### Purge all Docker images, containers, and volumes
     - ### Install Portainer
     - ### Remove Portainer
+    - ### Watchtower install
+    - ### Watchtower remove
 
 
   - ### Media Servers and Editors
@@ -174,11 +194,18 @@ sudo armbian-config
     - ### Remove Plex Media server
     - ### Install Emby server
     - ### Remove Emby server
+    - ### Stirling-PDF Install
+    - ### Stirling-PDF Remove
+    - ### Stirling-PDF Purge data folder
 
 
   - ### Monitoring
-    - ### Install Uptime Kuma
-    - ### Uninstall Uptime Kuma
+    - ### Uptime Kuma install 
+    - ### Uptime Kuma remove
+    - ### Uptime Kuma purge data folder
+    - ### Netdata Install
+    - ### Netdata remove
+    - ### Netdata purge data folder
 
 
   - ### Remote Management tools
@@ -255,6 +282,8 @@ Outputs:
     --cmd SY014 - Adjust welcome screen (motd)
     --cmd SY015 - Install alternative kernels
     --cmd SY017 - Manage device tree overlays
+    --cmd SY018 - ZFS filesystem - enable support
+    --cmd SY019 - ZFS filesystem - remove support
 
   Network - Fixed and wireless network settings (eth0)
     NE001 - Configure network interfaces
@@ -281,27 +310,37 @@ Outputs:
 	--cmd NET008 - Remove hostname broadcast via mDNS (avahi-daemon)
     Downloaders - Download tools
 	--cmd DOW001 - Install qBittorrent
-	--cmd DOW002 - Remove qBittorrent (http://10.1.0.7:8090 6881)
+	--cmd DOW002 - Remove qBittorrent (http://10.1.0.149:8090 6881)
 	--cmd DOW003 - Install Deluge
-	--cmd DOW004 - Remove Deluge (http://10.1.0.7:8112 6181 58846)
+	--cmd DOW004 - Remove Deluge (http://10.1.0.149:8112 6181 58846)
 	--cmd DOW005 - Install Transmission
-	--cmd DOW006 - Remove Transmission (http://10.1.0.7:9091)
+	--cmd DOW006 - Remove Transmission (http://10.1.0.149:9091)
 	--cmd DOW011 - Install SABnzbd
-	--cmd DOW012 - Remove SABnzbd (http://10.1.0.7:8080)
+	--cmd DOW012 - Remove SABnzbd (http://10.1.0.149:8080)
 	--cmd DOW013 - Install Medusa
-	--cmd DOW014 - Remove Medusa (http://10.1.0.7:8081)
+	--cmd DOW014 - Remove Medusa (http://10.1.0.149:8081)
 	--cmd DOW015 - Install Sonarr
-	--cmd DOW016 - Remove Sonarr (http://10.1.0.7:8989)
+	--cmd DOW016 - Remove Sonarr (http://10.1.0.149:8989)
 	--cmd DOW017 - Install Radarr
-	--cmd DOW018 - Remove Radarr (http://10.1.0.7:7878)
+	--cmd DOW018 - Remove Radarr (http://10.1.0.149:7878)
 	--cmd DOW019 - Install Bazarr
-	--cmd DOW020 - Remove Bazarr (http://10.1.0.7:6767)
+	--cmd DOW020 - Remove Bazarr (http://10.1.0.149:6767)
 	--cmd DOW021 - Install Lidarr
-	--cmd DOW022 - Remove Lidarr (http://10.1.0.7:8686)
+	--cmd DOW022 - Remove Lidarr (http://10.1.0.149:8686)
 	--cmd DOW023 - Install Readarr
-	--cmd DOW024 - Remove Readarr (http://10.1.0.7:8787)
+	--cmd DOW024 - Remove Readarr (http://10.1.0.149:8787)
 	--cmd DOW025 - Install Prowlarr
-	--cmd DOW026 - Remove Prowlarr (http://10.1.0.7:9696)
+	--cmd DOW026 - Remove Prowlarr (http://10.1.0.149:9696)
+	--cmd DOW040 - Jellyseerr install
+	--cmd DOW041 - Jellyseerr remove  (http://10.1.0.149:5055)
+	--cmd DOW042 - Jellyseerr purge data folder
+    Database - Database
+	--cmd DAT001 - Mariadb install
+	--cmd DAT002 - Mariadb remove (Server: 10.1.0.149)
+	--cmd DAT003 - Mariadb purge
+	--cmd DAT005 - phpMyAdmin install
+	--cmd DAT006 - phpMyAdmin remove (http://10.1.0.149:8071)
+	--cmd DAT007 - phpMyAdmin purge
     DNS - DNS blockers
 	--cmd DNS001 - Install Pi-hole DNS ad blocker
 	--cmd DNS002 - Set Pi-hole web admin password
@@ -313,7 +352,7 @@ Outputs:
 	--cmd HA001 - Install openHAB
 	--cmd HA002 - Remove openHAB
 	--cmd HA003 - Install Home Assistant
-	--cmd HA004 - Remove Home Assistant (http://10.1.0.7:8123)
+	--cmd HA004 - Remove Home Assistant (http://10.1.0.149:8123)
     --cmd Benchy - System benchmaking and diagnostics
     Containers - Containerlization and Virtual Machines
 	--cmd CON001 - Install Docker Minimal
@@ -321,15 +360,24 @@ Outputs:
 	--cmd CON003 - Remove Docker
 	--cmd CON004 - Purge all Docker images, containers, and volumes
 	--cmd CON005 - Install Portainer
-	--cmd CON006 - Remove Portainer (http://10.1.0.7:9000)
+	--cmd CON006 - Remove Portainer (http://10.1.0.149:9000)
+	--cmd CON007 - Watchtower install
+	--cmd CON008 - Watchtower remove
     Media - Media Servers and Editors
 	--cmd MED001 - Install Plex Media server
 	--cmd MED002 - Remove Plex Media server
 	--cmd MED003 - Install Emby server
 	--cmd MED004 - Remove Emby server
+	--cmd MED010 - Stirling-PDF Install
+	--cmd MED011 - Stirling-PDF Remove
+	--cmd MED012 - Stirling-PDF Purge data folder
     Monitoring - Monitoring
-	--cmd MON001 - Install Uptime Kuma
-	--cmd MON002 - Uninstall Uptime Kuma
+	--cmd MON001 - Uptime Kuma install 
+	--cmd MON002 - Uptime Kuma remove
+	--cmd MON003 - Uptime Kuma purge data folder
+	--cmd MON005 - Netdata Install
+	--cmd MON006 - Netdata remove
+	--cmd MON007 - Netdata purge data folder
     Management - Remote Management tools
 	--cmd MAN001 - Install Cockpit web-based management tool
 	--cmd MAN002 - Purge Cockpit web-based management tool
@@ -533,6 +581,26 @@ Jobs:
 manage_dtoverlays
 ~~~
 
+### SY018
+
+ZFS filesystem - enable support
+
+Jobs:
+
+~~~
+module_zfs install
+~~~
+
+### SY019
+
+ZFS filesystem - remove support
+
+Jobs:
+
+~~~
+module_zfs remove
+~~~
+
 ### NE001
 
 Configure network interfaces
@@ -599,6 +667,16 @@ No commands available
 ### Downloaders
 
 Download tools
+
+Jobs:
+
+~~~
+No commands available
+~~~
+
+### Database
+
+Database
 
 Jobs:
 
@@ -717,14 +795,18 @@ These helper functions facilitate various operations related to job management, 
 | Hos container install and configure | help install uninstall | @igorpecovnik 
 | Set Armbian root filesystem to read only | manage_overlayfs enable/disable | @igorpecovnik 
 | Display a menu from pipe | show_menu <<< armbianmonitor -h  ;  | @Tearran 
+| Install watchtower container | install remove status help | @armbian 
 | Build the main menu from a object | generate_top_menu 'json_data' | @Tearran 
 | Install bazarr container | install remove status help | @igorpecovnik 
 | Install headers container | install remove status help | @armbian 
 | Migrated procedures from Armbian config. | is_package_manager_running | @armbian 
 | Migrated procedures from Armbian config. | check_desktop | @armbian 
+| Install phpmyadmin container | install remove purge status help |  
+| Install stirling container | install remove purge status help | @Frooodle 
 | Install sonarr container | install remove status help | @armbian 
 | Generate Document files. | generate_readme | @Tearran 
 | Storing netplan config to tmp | store_netplan_config | @igorpecovnik 
+| Install jellyseerr container | install remove purge status help | @armbian 
 | Needed by generate_menu | execute_command 'id' | @Tearran 
 | Display a Yes/No dialog box and process continue/exit | get_user_continue 'Do you wish to continue?' process_input | @Tearran 
 | Migrated procedures from Armbian config. | connect_bt_interface | @armbian 
@@ -737,6 +819,7 @@ These helper functions facilitate various operations related to job management, 
 | Install/uninstall/check status of portainer container | help install uninstall status | @armbian 
 | Migrated procedures from Armbian config. | check_if_installed nano | @armbian 
 | Generate 'Armbian CPU logo' SVG for document file. | generate_svg | @Tearran 
+| Install zfs filesystem support | install remove status kernel_max zfs_version help | @armbian 
 | Update submenu descriptions based on conditions | update_submenu_data | @Tearran 
 | sanitize input cli | sanitize_input | @Tearran 
 | Install lidarr container | install remove status help | @armbian 
@@ -757,13 +840,14 @@ These helper functions facilitate various operations related to job management, 
 | Uses Avalible (Whiptail, DIALOG, READ) for the menu interface | <function_name> | Tearran 
 | Netplan wrapper | network_config | @igorpecovnik 
 | Install medusa container | install remove status help | @armbian 
+| Install netdata container | install remove purge status help | @armbian 
 | Change the background color of the terminal or dialog box | set_colors 0-7 | @Tearran 
 | Show general information about this tool | about_armbian_configng | @igorpecovnik 
 | Serve the edit and debug server. | serve_doc | @Tearran 
 | Update JSON data with system information | update_json_data | @Tearran 
 | pipeline strings to an infobox  | show_infobox <<< 'hello world' ;  | @Tearran 
 | Install readarr container | install remove status help | @armbian 
-| Install/uninstall/check status of uptime kuma container | install uninstall status | @armbian 
+| Install uptimekuma container | install remove purge status help | @armbian 
 | Stop hostapd, clean config | default_wireless_network_config | @igorpecovnik 
 | Update sub-submenu descriptions based on conditions | update_sub_submenu_data "MenuID" "SubID" "SubSubID" "CMD" | @Tearran 
 | Parse json to get list of desired menu or submenu items | parse_menu_items 'menu_options_array' | @viraniac 
@@ -772,6 +856,7 @@ These helper functions facilitate various operations related to job management, 
 | Set system shell to BASH | manage_zsh enable|disable | @igorpecovnik 
 | Install sabnzbd container | install remove status help | @armbian 
 | Generate a Help message for cli commands. | see_cmd_list [category] | @Tearran 
+| Install mariadb container | install remove purge status help |  
 | Revert network config back to Armbian defaults | default_network_config | @igorpecovnik 
 | Install prowlarr container | install remove status help | @armbian 
 | freeze, unhold, reinstall armbian related packages. | armbian_fw_manipulate unhold/freeze/reinstall | @igorpecovnik 

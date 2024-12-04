@@ -281,7 +281,11 @@
                     "status": "Stable",
                     "author": "@igorpecovnik",
                     "condition": "[ -f /etc/default/armbian-motd ]"
-                },
+                },=======
+366
+>>>>>>> main
+367
+
                 {
                     "id": "SY015",
                     "description": "Install alternative kernels",
