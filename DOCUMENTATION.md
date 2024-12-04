@@ -197,6 +197,15 @@ sudo armbian-config
     - ### Stirling-PDF Install
     - ### Stirling-PDF Remove
     - ### Stirling-PDF Purge data folder
+    - ### Syncthing Install
+    - ### Syncthing Remove
+    - ### Syncthing Purge data folder
+    - ### Nextcloud Install
+    - ### Nextcloud Remove
+    - ### Nextcloud Purge data folder
+    - ### Owncloud Install
+    - ### Owncloud Remove
+    - ### Owncloud Purge data folder
 
 
   - ### Monitoring
@@ -310,36 +319,36 @@ Outputs:
 	--cmd NET008 - Remove hostname broadcast via mDNS (avahi-daemon)
     Downloaders - Download tools
 	--cmd DOW001 - Install qBittorrent
-	--cmd DOW002 - Remove qBittorrent (http://10.1.0.149:8090 6881)
+	--cmd DOW002 - Remove qBittorrent (http://10.1.0.10:8090 6881)
 	--cmd DOW003 - Install Deluge
-	--cmd DOW004 - Remove Deluge (http://10.1.0.149:8112 6181 58846)
+	--cmd DOW004 - Remove Deluge (http://10.1.0.10:8112 6181 58846)
 	--cmd DOW005 - Install Transmission
-	--cmd DOW006 - Remove Transmission (http://10.1.0.149:9091)
+	--cmd DOW006 - Remove Transmission (http://10.1.0.10:9091)
 	--cmd DOW011 - Install SABnzbd
-	--cmd DOW012 - Remove SABnzbd (http://10.1.0.149:8080)
+	--cmd DOW012 - Remove SABnzbd (http://10.1.0.10:8080)
 	--cmd DOW013 - Install Medusa
-	--cmd DOW014 - Remove Medusa (http://10.1.0.149:8081)
+	--cmd DOW014 - Remove Medusa (http://10.1.0.10:8081)
 	--cmd DOW015 - Install Sonarr
-	--cmd DOW016 - Remove Sonarr (http://10.1.0.149:8989)
+	--cmd DOW016 - Remove Sonarr (http://10.1.0.10:8989)
 	--cmd DOW017 - Install Radarr
-	--cmd DOW018 - Remove Radarr (http://10.1.0.149:7878)
+	--cmd DOW018 - Remove Radarr (http://10.1.0.10:7878)
 	--cmd DOW019 - Install Bazarr
-	--cmd DOW020 - Remove Bazarr (http://10.1.0.149:6767)
+	--cmd DOW020 - Remove Bazarr (http://10.1.0.10:6767)
 	--cmd DOW021 - Install Lidarr
-	--cmd DOW022 - Remove Lidarr (http://10.1.0.149:8686)
+	--cmd DOW022 - Remove Lidarr (http://10.1.0.10:8686)
 	--cmd DOW023 - Install Readarr
-	--cmd DOW024 - Remove Readarr (http://10.1.0.149:8787)
+	--cmd DOW024 - Remove Readarr (http://10.1.0.10:8787)
 	--cmd DOW025 - Install Prowlarr
-	--cmd DOW026 - Remove Prowlarr (http://10.1.0.149:9696)
+	--cmd DOW026 - Remove Prowlarr (http://10.1.0.10:9696)
 	--cmd DOW040 - Jellyseerr install
-	--cmd DOW041 - Jellyseerr remove  (http://10.1.0.149:5055)
+	--cmd DOW041 - Jellyseerr remove  (http://10.1.0.10:5055)
 	--cmd DOW042 - Jellyseerr purge data folder
     Database - Database
 	--cmd DAT001 - Mariadb install
-	--cmd DAT002 - Mariadb remove (Server: 10.1.0.149)
+	--cmd DAT002 - Mariadb remove (Server: 10.1.0.10)
 	--cmd DAT003 - Mariadb purge
 	--cmd DAT005 - phpMyAdmin install
-	--cmd DAT006 - phpMyAdmin remove (http://10.1.0.149:8071)
+	--cmd DAT006 - phpMyAdmin remove (http://10.1.0.10:8071)
 	--cmd DAT007 - phpMyAdmin purge
     DNS - DNS blockers
 	--cmd DNS001 - Install Pi-hole DNS ad blocker
@@ -352,7 +361,7 @@ Outputs:
 	--cmd HA001 - Install openHAB
 	--cmd HA002 - Remove openHAB
 	--cmd HA003 - Install Home Assistant
-	--cmd HA004 - Remove Home Assistant (http://10.1.0.149:8123)
+	--cmd HA004 - Remove Home Assistant (http://10.1.0.10:8123)
     --cmd Benchy - System benchmaking and diagnostics
     Containers - Containerlization and Virtual Machines
 	--cmd CON001 - Install Docker Minimal
@@ -360,7 +369,7 @@ Outputs:
 	--cmd CON003 - Remove Docker
 	--cmd CON004 - Purge all Docker images, containers, and volumes
 	--cmd CON005 - Install Portainer
-	--cmd CON006 - Remove Portainer (http://10.1.0.149:9000)
+	--cmd CON006 - Remove Portainer (http://10.1.0.10:9000)
 	--cmd CON007 - Watchtower install
 	--cmd CON008 - Watchtower remove
     Media - Media Servers and Editors
@@ -371,6 +380,15 @@ Outputs:
 	--cmd MED010 - Stirling-PDF Install
 	--cmd MED011 - Stirling-PDF Remove
 	--cmd MED012 - Stirling-PDF Purge data folder
+	--cmd MED015 - Syncthing Install
+	--cmd MED016 - Syncthing Remove (http://10.1.0.10:8884)
+	--cmd MED017 - Syncthing Purge data folder
+	--cmd MED020 - Nextcloud Install
+	--cmd MED021 - Nextcloud Remove (https://10.1.0.10:443)
+	--cmd MED022 - Nextcloud Purge data folder
+	--cmd MED025 - Owncloud Install
+	--cmd MED026 - Owncloud Remove (http://10.1.0.10:7787)
+	--cmd MED027 - Owncloud Purge data folder
     Monitoring - Monitoring
 	--cmd MON001 - Uptime Kuma install 
 	--cmd MON002 - Uptime Kuma remove
@@ -836,10 +854,13 @@ These helper functions facilitate various operations related to job management, 
 | Install qbittorrent container | install remove status help | @armbian 
 | Generate JSON-like object file. | generate_json | @Tearran 
 | Install transmission container | install remove status help | @armbian 
+| Install nextcloud container | install remove purge status help |  
 | Install wrapper | apt_install_wrapper apt-get -y purge armbian-zsh | @igorpecovnik 
 | Uses Avalible (Whiptail, DIALOG, READ) for the menu interface | <function_name> | Tearran 
 | Netplan wrapper | network_config | @igorpecovnik 
 | Install medusa container | install remove status help | @armbian 
+| Install syncthing container | install remove purge status help |  
+| Install owncloud container | install remove purge status help | @armbian 
 | Install netdata container | install remove purge status help | @armbian 
 | Change the background color of the terminal or dialog box | set_colors 0-7 | @Tearran 
 | Show general information about this tool | about_armbian_configng | @igorpecovnik 
