@@ -30,7 +30,7 @@ function manage_dtoverlays () {
 		fi
 		for overlay in ${available_overlays}; do
 			local status="OFF"
-			grep '^fdt_overlays' ${overlayconf} | grep -qw ${overlay} && status=ON
+			grep '^overlays' ${overlayconf} | grep -qw ${overlay} && status=ON
 			options+=( "$overlay" "" "$status")
 		done
 		selection=$($DIALOG --title "Manage devicetree overlays" --cancel-button "Back" \
@@ -41,8 +41,8 @@ function manage_dtoverlays () {
 			0)
 				changes="true"
 				newoverlays=$(echo $selection | sed 's/"//g')
-				sed -i "s/^fdt_overlays=.*/fdt_overlays=$newoverlays/" ${overlayconf}
-				if ! grep -q "^fdt_overlays" ${overlayconf}; then echo "fdt_overlays=$newoverlays" >> ${overlayconf}; fi
+				sed -i "s/^overlays=.*/overlays=$newoverlays/" ${overlayconf}
+				if ! grep -q "^overlays" ${overlayconf}; then echo "overlays=$newoverlays" >> ${overlayconf}; fi
 				sync
 				;;
 			1)
