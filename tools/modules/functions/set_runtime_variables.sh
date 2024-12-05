@@ -50,10 +50,13 @@ function set_runtime_variables() {
 	fi
 
 	[[ -f /etc/armbian-release ]] && source /etc/armbian-release && ARMBIAN="Armbian $VERSION $IMAGE_TYPE"
+	[[ -f /etc/armbian-distribution-status ]] && DISTRO_STATUS="/etc/armbian-distribution-status"
+
 	DISTRO=$(lsb_release -is)
-	DISTROID=$(lsb_release -sc)
+	DISTROID=$(lsb_release -sc || grep "VERSION=" /etc/os-release | grep -oP '(?<=\().*(?=\))')
 	KERNELID=$(uname -r)
 	[[ -z "${ARMBIAN// /}" ]] && ARMBIAN="$DISTRO $DISTROID"
+
 	SOFTWARE_FOLDER="/armbian" # where we should keep 3rd party software
 	DEFAULT_ADAPTER=$(ip -4 route ls | grep default | tail -1 | grep -Po '(?<=dev )(\S+)')
 	LOCALIPADD=$(ip -4 addr show dev $DEFAULT_ADAPTER | awk '/inet/ {print $2}' | cut -d'/' -f1)
