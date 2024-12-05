@@ -614,6 +614,72 @@
                     ]
                 },
                 {
+                    "id": "Database",
+                    "description": "Database",
+                    "sub": [
+                        {
+                            "id": "DAT001",
+                            "description": "Mariadb install",
+                            "command": [
+                                "module_mariadb install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_mariadb status"
+                        },
+                        {
+                            "id": "DAT002",
+                            "description": "Mariadb remove",
+                            "command": [
+                                "module_mariadb remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_mariadb status"
+                        },
+                        {
+                            "id": "DAT003",
+                            "description": "Mariadb purge",
+                            "command": [
+                                "module_mariadb purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_mariadb status && [[ -d \"${SOFTWARE_FOLDER}/mariadb\" ]]"
+                        },
+                        {
+                            "id": "DAT005",
+                            "description": "phpMyAdmin install",
+                            "command": [
+                                "module_phpmyadmin install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_phpmyadmin status"
+                        },
+                        {
+                            "id": "DAT006",
+                            "description": "phpMyAdmin remove",
+                            "command": [
+                                "module_phpmyadmin remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_phpmyadmin status"
+                        },
+                        {
+                            "id": "DAT007",
+                            "description": "phpMyAdmin purge",
+                            "command": [
+                                "module_phpmyadmin purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_phpmyadmin status && [[ -d \"${SOFTWARE_FOLDER}/phpmyadmin\" ]]"
+                        }
+                    ]
+                },
+                {
                     "id": "DNS",
                     "description": "DNS blockers",
                     "sub": [
@@ -904,8 +970,97 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "! module_stirling status && [[ -d \"${SOFTWARE_FOLDER}/stirling\" ]]"
+                        },
+                        {
+                            "id": "MED015",
+                            "description": "Syncthing Install",
+                            "command": [
+                                "module_syncthing install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_syncthing status"
+                        },
+                        {
+                            "id": "MED016",
+                            "description": "Syncthing Remove",
+                            "command": [
+                                "module_syncthing remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_syncthing status"
+                        },
+                        {
+                            "id": "MED017",
+                            "description": "Syncthing Purge data folder",
+                            "command": [
+                                "module_syncthing purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_syncthing status && [[ -d \"${SOFTWARE_FOLDER}/syncthing\" ]]"
+                        },
+                        {
+                            "id": "MED020",
+                            "description": "Nextcloud Install",
+                            "command": [
+                                "module_nextcloud install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_nextcloud status"
+                        },
+                        {
+                            "id": "MED021",
+                            "description": "Nextcloud Remove",
+                            "command": [
+                                "module_nextcloud remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_nextcloud status"
+                        },
+                        {
+                            "id": "MED022",
+                            "description": "Nextcloud Purge data folder",
+                            "command": [
+                                "module_nextcloud purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_nextcloud status && [[ -d \"${SOFTWARE_FOLDER}/nextcloud\" ]]"
+                        },
+                        {
+                            "id": "MED025",
+                            "description": "Owncloud Install",
+                            "command": [
+                                "module_owncloud install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_owncloud status"
+                        },
+                        {
+                            "id": "MED026",
+                            "description": "Owncloud Remove",
+                            "command": [
+                                "module_owncloud remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_owncloud status"
+                        },
+                        {
+                            "id": "MED027",
+                            "description": "Owncloud Purge data folder",
+                            "command": [
+                                "module_owncloud purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_owncloud status && [[ -d \"${SOFTWARE_FOLDER}/owncloud\" ]]"
                         }
-
                     ]
                 },
                 {

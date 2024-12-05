@@ -94,7 +94,12 @@ fi
 #plex_media_port="$(lsof -i -P -n | grep TCP | grep LISTEN | grep 'plex' | awk -F: '{print $2}' | awk '{print $1}' | head -n 1)"
 #update_sub_submenu_data "Software" "Media" "SW22" "https://localhost:$plex_media_port"
 
+update_sub_submenu_data "Software" "Database" "DAT002" "Server: $LOCALIPADD"
+update_sub_submenu_data "Software" "Database" "DAT006" "http://$LOCALIPADD:${module_options["module_phpmyadmin,port"]}"
 update_sub_submenu_data "Software" "Media" "MED006" "http://$LOCALIPADD:${module_options["module_stirling,port"]}"
+update_sub_submenu_data "Software" "Media" "MED016" "http://$LOCALIPADD:${module_options["module_syncthing,port"]}"
+update_sub_submenu_data "Software" "Media" "MED021" "https://$LOCALIPADD:${module_options["module_nextcloud,port"]}"
+update_sub_submenu_data "Software" "Media" "MED026" "http://$LOCALIPADD:${module_options["module_owncloud,port"]}"
 update_sub_submenu_data "Software" "Containers" "CON006" "http://$LOCALIPADD:${module_options["module_portainer,port"]}"
 update_sub_submenu_data "Software" "HomeAutomation" "HA004" "http://$LOCALIPADD:${module_options["module_haos,port"]}"
 update_sub_submenu_data "Software" "Monitoring" "MON004" "http://$LOCALIPADD:${module_options["module_netdata,port"]}"
