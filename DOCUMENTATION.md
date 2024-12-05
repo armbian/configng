@@ -323,36 +323,36 @@ Outputs:
 	--cmd NET008 - Remove hostname broadcast via mDNS (avahi-daemon)
     Downloaders - Download tools
 	--cmd DOW001 - Install qBittorrent
-	--cmd DOW002 - Remove qBittorrent (http://10.1.0.84:8090 6881)
+	--cmd DOW002 - Remove qBittorrent (http://10.1.0.32:8090 6881)
 	--cmd DOW003 - Install Deluge
-	--cmd DOW004 - Remove Deluge (http://10.1.0.84:8112 6181 58846)
+	--cmd DOW004 - Remove Deluge (http://10.1.0.32:8112 6181 58846)
 	--cmd DOW005 - Install Transmission
-	--cmd DOW006 - Remove Transmission (http://10.1.0.84:9091)
+	--cmd DOW006 - Remove Transmission (http://10.1.0.32:9091)
 	--cmd DOW011 - Install SABnzbd
-	--cmd DOW012 - Remove SABnzbd (http://10.1.0.84:8080)
+	--cmd DOW012 - Remove SABnzbd (http://10.1.0.32:8080)
 	--cmd DOW013 - Install Medusa
-	--cmd DOW014 - Remove Medusa (http://10.1.0.84:8081)
+	--cmd DOW014 - Remove Medusa (http://10.1.0.32:8081)
 	--cmd DOW015 - Install Sonarr
-	--cmd DOW016 - Remove Sonarr (http://10.1.0.84:8989)
+	--cmd DOW016 - Remove Sonarr (http://10.1.0.32:8989)
 	--cmd DOW017 - Install Radarr
-	--cmd DOW018 - Remove Radarr (http://10.1.0.84:7878)
+	--cmd DOW018 - Remove Radarr (http://10.1.0.32:7878)
 	--cmd DOW019 - Install Bazarr
-	--cmd DOW020 - Remove Bazarr (http://10.1.0.84:6767)
+	--cmd DOW020 - Remove Bazarr (http://10.1.0.32:6767)
 	--cmd DOW021 - Install Lidarr
-	--cmd DOW022 - Remove Lidarr (http://10.1.0.84:8686)
+	--cmd DOW022 - Remove Lidarr (http://10.1.0.32:8686)
 	--cmd DOW023 - Install Readarr
-	--cmd DOW024 - Remove Readarr (http://10.1.0.84:8787)
+	--cmd DOW024 - Remove Readarr (http://10.1.0.32:8787)
 	--cmd DOW025 - Install Prowlarr
-	--cmd DOW026 - Remove Prowlarr (http://10.1.0.84:9696)
+	--cmd DOW026 - Remove Prowlarr (http://10.1.0.32:9696)
 	--cmd DOW040 - Jellyseerr install
-	--cmd DOW041 - Jellyseerr remove  (http://10.1.0.84:5055)
+	--cmd DOW041 - Jellyseerr remove  (http://10.1.0.32:5055)
 	--cmd DOW042 - Jellyseerr purge data folder
     Database - Database
 	--cmd DAT001 - Mariadb install
-	--cmd DAT002 - Mariadb remove (Server: 10.1.0.84)
+	--cmd DAT002 - Mariadb remove (Server: 10.1.0.32)
 	--cmd DAT003 - Mariadb purge
 	--cmd DAT005 - phpMyAdmin install
-	--cmd DAT006 - phpMyAdmin remove (http://10.1.0.84:8071)
+	--cmd DAT006 - phpMyAdmin remove (http://10.1.0.32:8071)
 	--cmd DAT007 - phpMyAdmin purge
     DNS - DNS blockers
 	--cmd DNS001 - Install Pi-hole DNS ad blocker
@@ -365,7 +365,7 @@ Outputs:
 	--cmd HA001 - Install openHAB
 	--cmd HA002 - Remove openHAB
 	--cmd HA003 - Install Home Assistant
-	--cmd HA004 - Remove Home Assistant (http://10.1.0.84:8123)
+	--cmd HA004 - Remove Home Assistant (http://10.1.0.32:8123)
     --cmd Benchy - System benchmaking and diagnostics
     Containers - Containerlization and Virtual Machines
 	--cmd CON001 - Install Docker Minimal
@@ -373,7 +373,7 @@ Outputs:
 	--cmd CON003 - Remove Docker
 	--cmd CON004 - Purge all Docker images, containers, and volumes
 	--cmd CON005 - Install Portainer
-	--cmd CON006 - Remove Portainer (http://10.1.0.84:9000)
+	--cmd CON006 - Remove Portainer (http://10.1.0.32:9000)
 	--cmd CON007 - Watchtower install
 	--cmd CON008 - Watchtower remove
     Media - Media Servers and Editors
@@ -385,13 +385,13 @@ Outputs:
 	--cmd MED011 - Stirling-PDF Remove
 	--cmd MED012 - Stirling-PDF Purge data folder
 	--cmd MED015 - Syncthing Install
-	--cmd MED016 - Syncthing Remove (http://10.1.0.84:8884)
+	--cmd MED016 - Syncthing Remove (http://10.1.0.32:8884)
 	--cmd MED017 - Syncthing Purge data folder
 	--cmd MED020 - Nextcloud Install
-	--cmd MED021 - Nextcloud Remove (https://10.1.0.84:443)
+	--cmd MED021 - Nextcloud Remove (https://10.1.0.32:443)
 	--cmd MED022 - Nextcloud Purge data folder
 	--cmd MED025 - Owncloud Install
-	--cmd MED026 - Owncloud Remove (http://10.1.0.84:7787)
+	--cmd MED026 - Owncloud Remove (http://10.1.0.32:7787)
 	--cmd MED027 - Owncloud Purge data folder
     Monitoring - Monitoring
 	--cmd MON001 - Uptime Kuma install 
