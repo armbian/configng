@@ -29,15 +29,16 @@ function manage_odroid_board() {
 	list+=("${board_id[${board_num}]}" "${board_list[${board_num}]}" "${state}")
 	done
 
-	target_board=$($DIALOG --notags --title "Select optimised board configuration" --radiolist "" 10 42 4 "${list[@]}" 3>&1 1>&2 2>&3)
-	if [[ $? == 0 ]]; then
+	if target_board=$($DIALOG --notags --title "Select optimised board configuration" \
+	--radiolist "" 10 42 4 "${list[@]}" 3>&1 1>&2 2>&3); then
 		sed -i "s/^board_name=.*/board_name=${target_board}/" ${env_file} 2> /dev/null && \
 		grep -q "^board_name=${target_board}" ${env_file} 2>/dev/null || \
 		echo "board_name=${target_board}" >> ${env_file}
 		sed -i "s/^BOARD_NAME.*/BOARD_NAME=\"Odroid ${target_board^^}\"/" /etc/armbian-release
 
-		$DIALOG --title " Reboot required " --yes-button "Reboot" \
-		--no-button "Cancel" --yesno "A reboot is required to apply the changes. Shall we reboot now?" 7 34
-		[[ $? == 0 ]] && reboot
+		if $DIALOG --title " Reboot required " --yes-button "Reboot" --no-button "Cancel" --yesno \
+		"A reboot is required to apply the changes. Shall we reboot now?" 7 34; then
+		reboot
+		fi
 	fi
 }
