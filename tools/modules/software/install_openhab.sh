@@ -2,7 +2,7 @@
 module_options+=(
 	["openhab,author"]="@igorpecovnik"
 	["openhab,ref_link"]=""
-	["openhab,feature"]="install_openhab"
+	["openhab,feature"]="openhab"
 	["openhab,desc"]="Install openhab from a repo using apt"
 	["openhab,example"]="install uinstall"
 	["openhab,status"]="Active"
