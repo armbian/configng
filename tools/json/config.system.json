@@ -352,6 +352,16 @@
                     "status": "Stable",
                     "author": "@armbian",
                     "condition": "module_zfs status"
+                },
+                {
+                    "id": "SY020",
+                    "description": "Select Odroid board configuration",
+                    "command": [
+                        "manage_odroid_board select"
+                    ],
+                    "status": "Preview",
+                    "author": "",
+                    "condition": "[ $BOARDFAMILY == odroidxu4 ]"
                 }
             ]
         }

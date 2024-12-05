@@ -2,7 +2,7 @@
 module_options+=(
 ["manage_dtoverlays,author"]="@viraniac"
 ["manage_dtoverlays,ref_link"]=""
-["manage_dtoverlays,feature"]="dtoverlays"
+["manage_dtoverlays,feature"]="manage_dtoverlays"
 ["manage_dtoverlays,desc"]="Enable/disable device tree overlays"
 ["manage_dtoverlays,example"]="manage_dtoverlays"
 ["manage_dtoverlays,status"]="Active"

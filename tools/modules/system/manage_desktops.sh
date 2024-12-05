@@ -1,7 +1,7 @@
 module_options+=(
 	["manage_desktops,author"]="@igorpecovnik"
 	["manage_desktops,ref_link"]=""
-	["manage_desktops,feature"]="install_de"
+	["manage_desktops,feature"]="manage_desktops"
 	["manage_desktops,desc"]="Install Desktop environment"
 	["manage_desktops,example"]="manage_desktops xfce install"
 	["manage_desktops,status"]="Active"
