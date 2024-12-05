@@ -24,7 +24,7 @@ function check_distro_status() {
 			fi
 
 			# Check if the OS is listed as supported in the DISTRO_STATUS
-			if grep -qE "^${DISTROID}=.*supported" "$DISTRO_STATUS"; then
+			if grep -qE "^${DISTROID}=.*supported" "$DISTRO_STATUS" 2> /dev/null; then
 				echo "The current $ARMBIAN ($DISTROID) is supported."
 			else
 			BACKTITLE="Warning: The current OS ($DISTROID) is not supported or not listed"
