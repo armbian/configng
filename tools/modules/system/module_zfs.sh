@@ -23,8 +23,10 @@ function module_zfs () {
 
 	case "$1" in
 		"${commands[0]}")
-			module_headers install
-			apt_install_wrapper apt-get -y install zfsutils-linux zfs-dkms || exit 1
+			if ! module_armbian_firmware headers status; then
+				module_armbian_firmware headers install
+			fi
+			apt_install_wrapper DEBIAN_FRONTEND=noninteractive apt-get -y install zfsutils-linux zfs-dkms || exit 1
 		;;
 		"${commands[1]}")
 			module_headers remove

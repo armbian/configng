@@ -41,21 +41,21 @@
                     "id": "SY004",
                     "description": "Install Linux headers",
                     "command": [
-                        "module_headers install"
+                        "module_armbian_firmware headers install"
                     ],
                     "status": "Stable",
                     "author": "@igorpecovnik",
-                    "condition": "! module_headers status"
+                    "condition": "! module_armbian_firmware headers status"
                 },
                 {
                     "id": "SY005",
                     "description": "Remove Linux headers",
                     "command": [
-                        "module_headers remove"
+                        "module_armbian_firmware headers remove"
                     ],
                     "status": "Stable",
                     "author": "@igorpecovnik",
-                    "condition": "module_headers status"
+                    "condition": "module_armbian_firmware headers status"
                 },
                 {
                     "id": "SY006",
