@@ -1,14 +1,14 @@
 module_options+=(
-	["module_zfs,author"]="@armbian"
+	["module_zfs,author"]="@igorpecovnik"
 	["module_zfs,feature"]="module_zfs"
 	["module_zfs,desc"]="Install zfs filesystem support"
-	["module_zfs,example"]="install remove status kernel_max zfs_version help"
+	["module_zfs,example"]="install remove status kernel_max zfs_version zfs_installed_version help"
 	["module_zfs,port"]=""
 	["module_zfs,status"]="Active"
 	["module_zfs,arch"]=""
 )
 #
-# Mmodule_zfs
+# Module OpenZFS
 #
 function module_zfs () {
 	local title="zfs"
@@ -17,20 +17,17 @@ function module_zfs () {
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_zfs,example"]}"
 
-	# determine if our kernel is not too recent
-	local zfs_dkms=$(LC_ALL=C apt-cache policy zfs-dkms | grep Candidate | xargs | cut -d" " -f2 | cut -c-5)
-	local kernel_max=$(wget -qO- https://github.com/openzfs/zfs/raw/refs/tags/zfs-${zfs_dkms}/META | grep Maximum | cut -d" " -f2)
-
 	case "$1" in
 		"${commands[0]}")
+			# headers are needed, lets install then if they are not there already
 			if ! module_armbian_firmware headers status; then
 				module_armbian_firmware headers install
 			fi
-			apt_install_wrapper DEBIAN_FRONTEND=noninteractive apt-get -y install zfsutils-linux zfs-dkms || exit 1
+			DEBIAN_FRONTEND=noninteractive apt-get -y install zfsutils-linux zfs-dkms
 		;;
 		"${commands[1]}")
-			module_headers remove
-			apt_install_wrapper apt-get -y autopurge zfsutils-linux zfs-dkms || exit 1
+			module_armbian_firmware headers remove
+			apt_install_wrapper apt-get -y autopurge zfsutils-linux zfs-dkms
 		;;
 		"${commands[2]}")
 			if check_if_installed zfsutils-linux; then
@@ -40,22 +37,30 @@ function module_zfs () {
 			fi
 		;;
 		"${commands[3]}")
-			echo "${kernel_max}"
+			echo "${ZFS_KERNEL_MAX}"
 		;;
 		"${commands[4]}")
-			echo "v${zfs_dkms}"
+			echo "v${ZFS_DKMS_VERSION}"
 		;;
 		"${commands[5]}")
+			if check_if_installed zfsutils-linux; then
+				zfs --version 2>/dev/null| head -1 | cut -d"-" -f2
+			fi
+		;;
+		"${commands[6]}")
 			echo -e "\nUsage: ${module_options["module_zfs,feature"]} <command>"
 			echo -e "Commands:  ${module_options["module_zfs,example"]}"
 			echo "Available commands:"
 			echo -e "\tinstall\t- Install $title."
-			echo -e "\tstatus\t- Installation status $title."
 			echo -e "\tremove\t- Remove $title."
+			echo -e "\tstatus\t- Installation status $title."
+			echo -e "\kernel_max\t- Determine maximum version of kernel to support $title."
+			echo -e "\zfs_version\t- Gets $title version from Git."
+			echo -e "\zfs_installed_version\t- Read $title module info."
 			echo
 		;;
 		*)
-		${module_options["module_zfs,feature"]} ${commands[3]}
+		${module_options["module_zfs,feature"]} ${commands[6]}
 		;;
 	esac
 }

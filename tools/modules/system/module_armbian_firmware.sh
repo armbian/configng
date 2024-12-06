@@ -42,7 +42,7 @@ function module_armbian_firmware() {
 				done
 				)
 			local installed_kernel_version=$(dpkg -l | grep '^ii' | grep linux-image | awk '{print $2"="$3}' | head -1)
-			
+
 			# workaroun in case current is not installed
 			[[ -n ${installed_kernel_version} ]] && local grep_current_kernel=" | grep -v ${installed_kernel_version}"
 
@@ -269,8 +269,8 @@ function module_armbian_firmware() {
 					apt_install_wrapper apt-get install "linux-headers-$(uname -r | sed 's/'-$(dpkg --print-architecture)'//')"
 				fi
 			elif [[ "${command}" == "remove" ]]; then
-			    ${module_options["module_armbian_firmware,feature"]} ${commands[2]} "" "${version}" "hide" "" "true"
-			    apt_install_wrapper apt-get -y autopurge ${packages[@]}
+				${module_options["module_armbian_firmware,feature"]} ${commands[2]} "" "${version}" "hide" "" "true"
+				apt_install_wrapper apt-get -y autopurge ${packages[@]}
 			else
 				${module_options["module_armbian_firmware,feature"]} ${commands[2]} "" "${version}" "hide" "" "true"
 				if check_if_installed ${packages[@]}; then
