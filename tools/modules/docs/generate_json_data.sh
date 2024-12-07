@@ -11,7 +11,7 @@ module_options+=(
 #
 # Function to generate a JSON-like object file
 #
-function get_json_data() {
+function set_json_data() {
 	local i=0
 
 	features=()
@@ -22,7 +22,7 @@ function get_json_data() {
 	done
 
 	{
-		#echo -e "["
+		echo -e "["
 
 		for feature in "${features[@]}"; do
 		feature_prefix=$(echo "${feature:0:3}" | tr '[:lower:]' '[:upper:]') # Extract first 3 letters and convert to uppercase
@@ -50,7 +50,7 @@ function get_json_data() {
 		echo "    \"id\": \"$id\","
 		echo "    \"id\": \"$feature\","
 		echo "    \"description\": \"$desc ($feature) \","
-		echo "    \"command\": [ \"see_menu $feature\" ],"
+		echo "    \"command\": [ \"$feature\" ],"
 		echo "    \"status\": \"test\","
 		echo "    \"condition\": \"[ -n see_ping ]\","
 		echo "    \"author\": \"$author\""
@@ -60,35 +60,71 @@ function get_json_data() {
 			echo "  }"
 		fi
 		done
-		#echo "]"
-
-	} #| jq .
-}
-
-
-set_json_head() {
-	echo -e "{\n\"menu\" : ["
-
-}
-
-set_json_foot() {
-	echo "]"
-	echo "}"
-}
-
-generate_json_data(){
-	{
-		set_json_head
-		echo -e "{\n\"id\" : \"Module\","
-		echo -e "\"description\": \"Development and testing\","
-		echo -e "\"sub\": ["
-		get_json_data
 		echo "]"
-		echo "}"
-		set_json_foot
 
 	} | jq .
 }
+
+
+generate_json_data(){
+	set_json_data | jq '[.[] |
+    if .id | startswith("module_") then
+        {
+          "id": .id,
+          "description": .description,
+           "command": ["see_menu " + .command[0]],  # prepend see_menu to the command
+          "status": .status,
+          "condition": .condition,
+          "author": .author
+        }
+    elif .id | startswith("generate_") then
+        {
+          "id": .id,
+          "description": .description,
+           "command": ["show_infobox <<< " + .command[0]],  # prepend see_menu to the command
+          "status": .status,
+          "condition": .condition,
+          "author": .author
+        }
+    else
+        {
+          "id": .id,
+          "description": .description,
+          "command": .command,
+          "status": .status,
+          "condition": .condition,
+          "author": .author
+        }
+    end
+] | {
+    "menu": [
+
+                {
+                    "id": "Modules",
+			"description": "Description ...",
+                    "sub": [
+                        .[] | select(.id | startswith("module_"))
+                    ]
+                },
+		                {
+                    "id": "Generate",
+			"description": "Description ...",
+                    "sub": [
+                        .[] | select(.id | startswith("generate_"))
+                    ]
+                },
+                {
+                    "id": "Helpers",
+		     "description": "Description ...",
+                    "sub": [
+                        .[] | select(.id | startswith("module_") | not)
+                    ]
+                }
+    ]
+}'
+
+}
+
 
 
 interface_json_data() {
