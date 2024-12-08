@@ -126,6 +126,7 @@ function module_armbian_firmware() {
 
 			# if branch is not defined, we use the one that is currently installed
 			[[ -z $branch ]] && local branch=$BRANCH
+			[[ -z $BRANCH ]] && local branch="current"
 
 			# if repository is not defined, we use stable one
 			[[ -z $repository ]] && local repository="apt.armbian.com"
