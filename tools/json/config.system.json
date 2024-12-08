@@ -6,59 +6,6 @@
             "sub": [
                 {
                     "id": "SY001",
-                    "description": "Enable Armbian firmware upgrades",
-                    "about": "This will enable Armbian kernel upgrades that are currently put on hold.",
-                    "command": [
-                        "module_armbian_firmware unhold"
-                    ],
-                    "status": "Stable",
-                    "author": "@igorpecovnik",
-                    "condition": "module_armbian_firmware hold status"
-                },
-                {
-                    "id": "SY002",
-                    "description": "Disable Armbian kernel upgrades",
-                    "about": "Disable Armbian kernel/firmware upgrades",
-                    "command": [
-                        "module_armbian_firmware hold"
-                    ],
-                    "status": "Stable",
-                    "author": "@igorpecovnik",
-                    "condition": "! module_armbian_firmware hold status"
-                },
-                {
-                    "id": "SY003",
-                    "description": "Edit the boot environment",
-                    "about": "This will open /boot/armbianEnv.txt file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?",
-                    "command": [
-                        "nano /boot/armbianEnv.txt"
-                    ],
-                    "status": "Stable",
-                    "author": "@igorpecovnik",
-                    "condition": "[[ -f /boot/armbianEnv.txt ]]"
-                },
-                {
-                    "id": "SY004",
-                    "description": "Install Linux headers",
-                    "command": [
-                        "module_armbian_firmware headers install"
-                    ],
-                    "status": "Stable",
-                    "author": "@igorpecovnik",
-                    "condition": "! module_armbian_firmware headers status"
-                },
-                {
-                    "id": "SY005",
-                    "description": "Remove Linux headers",
-                    "command": [
-                        "module_armbian_firmware headers remove"
-                    ],
-                    "status": "Stable",
-                    "author": "@igorpecovnik",
-                    "condition": "module_armbian_firmware headers status"
-                },
-                {
-                    "id": "SY006",
                     "description": "Install to internal storage",
                     "command": [
                         "armbian-install"
@@ -68,8 +15,129 @@
                     "condition": "[[ -f /sbin/armbian-install || -f /usr/bin/armbian-install ]]"
                 },
                 {
-                    "id": "SY007",
-                    "description": "Manage SSH login options",
+                    "id": "SY003",
+                    "description": "Manage kernel options",
+                    "sub": [
+                        {
+                            "id": "SY201",
+                            "description": "Install alternative kernels",
+                            "about": "Switching between kernels might change functionality of your device. \n\nIt might fail to boot!",
+                            "command": [
+                                "module_armbian_firmware select"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": ""
+                        },
+                        {
+                            "id": "SY202",
+                            "description": "Enable Armbian firmware upgrades",
+                            "about": "This will enable Armbian kernel upgrades that are currently put on hold.",
+                            "command": [
+                                "module_armbian_firmware unhold"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_armbian_firmware hold status"
+                        },
+                        {
+                            "id": "SY203",
+                            "description": "Disable Armbian kernel upgrades",
+                            "about": "Disable Armbian kernel/firmware upgrades",
+                            "command": [
+                                "module_armbian_firmware hold"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_armbian_firmware hold status"
+                        },
+                        {
+                            "id": "SY204",
+                            "description": "Install Linux headers",
+                            "command": [
+                                "module_armbian_firmware headers install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_armbian_firmware headers status"
+                        },
+                        {
+                            "id": "SY205",
+                            "description": "Remove Linux headers",
+                            "command": [
+                                "module_armbian_firmware headers remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_armbian_firmware headers status"
+                        },
+                        {
+                            "id": "SY206",
+                            "description": "Switch to rolling packages repository",
+                            "about": "This will switch OS to rolling releases.",
+                            "command": [
+                                "module_armbian_firmware repository rolling"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_armbian_firmware repository stable status"
+                        },
+                        {
+                            "id": "SY207",
+                            "description": "Switch to stable packages repository",
+                            "about": "This will switch OS to stable releases",
+                            "command": [
+                                "module_armbian_firmware repository stable"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_armbian_firmware repository rolling status"
+                        },
+                        {
+                            "id": "SY210",
+                            "description": "Manage device tree overlays",
+                            "command": [
+                                "manage_dtoverlays"
+                            ],
+                            "status": "Stable",
+                            "author": "@viraniac @igorpecovnik",
+                            "condition": "[ -d /boot/dtb/ ] && [ -f /boot/armbianEnv.txt ]"
+                        },
+                        {
+                            "id": "SY220",
+                            "description": "ZFS filesystem - enable support",
+                            "command": [
+                                "module_zfs install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_zfs status && linux-version compare ${KERNELID} le $(module_zfs kernel_max)"
+                        },
+                        {
+                            "id": "SY221",
+                            "description": "ZFS filesystem - remove support",
+                            "command": [
+                                "module_zfs remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_zfs status"
+                        },
+                        {
+                            "id": "SY300",
+                            "description": "Select Odroid board configuration",
+                            "command": [
+                                "manage_odroid_board select"
+                            ],
+                            "status": "Preview",
+                            "author": "",
+                            "condition": "[ $BOARDFAMILY == odroidxu4 ]"
+                        }
+                    ]
+                },
+                {
+                    "id": "SY004",
+                    "description": "Manage SSH daemon options",
                     "sub": [
                         {
                             "id": "SY101",
@@ -211,7 +279,7 @@
                     ]
                 },
                 {
-                    "id": "SY008",
+                    "id": "SY005",
                     "description": "Change shell system wide to BASH",
                     "about": "This will switch system wide shell to BASH",
                     "command": [ "manage_zsh disable" ],
@@ -220,7 +288,7 @@
                     "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"zsh\" ]]"
                 },
                 {
-                    "id": "SY009",
+                    "id": "SY006",
                     "description": "Change shell system wide to ZSH",
                     "about": "This will switch system wide shell to ZSH",
                     "command": [ "manage_zsh enable" ],
@@ -229,29 +297,7 @@
                     "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"bash\" ]]"
                 },
                 {
-                    "id": "SY010",
-                    "description": "Switch to rolling packages repository",
-                    "about": "This will switch OS to rolling releases.",
-                    "command": [
-                        "module_armbian_firmware repository rolling"
-                    ],
-                    "status": "Stable",
-                    "author": "@igorpecovnik",
-                    "condition": "module_armbian_firmware repository stable status"
-                },
-                {
-                    "id": "SY011",
-                    "description": "Switch to stable packages repository",
-                    "about": "This will switch OS to stable releases",
-                    "command": [
-                        "module_armbian_firmware repository stable"
-                    ],
-                    "status": "Stable",
-                    "author": "@igorpecovnik",
-                    "condition": "module_armbian_firmware repository rolling status"
-                },
-                {
-                    "id": "SY012",
+                    "id": "SY007",
                     "description": "Enable read only filesystem",
                     "about": "This will enable Armbian read-only filesystem. Reboot is mandatory?\n",
                     "command": [
@@ -262,7 +308,7 @@
                     "condition": "modinfo overlay > /dev/null 2>&1 && [[ -z $(findmnt -k /media/root-ro | tail -1) ]] && [[ \"${DISTRO}\"=Ubuntu ]]"
                 },
                 {
-                    "id": "SY013",
+                    "id": "SY008",
                     "description": "Disable read only filesystem",
                     "about": "This will disable Armbian read-only filesystem. Reboot is mandatory?\n",
                     "command": [
@@ -273,7 +319,7 @@
                     "condition": "command -v overlayroot-chroot > /dev/null 2>&1 && findmnt -k /media/root-ro | tail -1 | grep -w /media/root-ro > /dev/null 2>&1"
                 },
                 {
-                    "id": "SY014",
+                    "id": "SY009",
                     "description": "Adjust welcome screen (motd)",
                     "command": [
                         "adjust_motd"
@@ -283,18 +329,18 @@
                     "condition": "[ -f /etc/default/armbian-motd ]"
                 },
                 {
-                    "id": "SY015",
-                    "description": "Install alternative kernels",
-                    "about": "Switching between kernels might change functionality of your device. \n\nIt might fail to boot!",
+                    "id": "SY010",
+                    "description": "Edit the boot environment",
+                    "about": "This will open /boot/armbianEnv.txt file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?",
                     "command": [
-                        "module_armbian_firmware select"
+                        "nano /boot/armbianEnv.txt"
                     ],
                     "status": "Stable",
                     "author": "@igorpecovnik",
-                    "condition": ""
+                    "condition": "[[ -f /boot/armbianEnv.txt ]]"
                 },
                 {
-                    "id": "SY016",
+                    "id": "SY050",
                     "description": "Distribution upgrades",
                     "status": "Disabled",
                     "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade rolling verify || release_upgrade stable verify",
@@ -322,46 +368,6 @@
                             "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade rolling verify"
                         }
                     ]
-                },
-                {
-                    "id": "SY017",
-                    "description": "Manage device tree overlays",
-                    "command": [
-                        "manage_dtoverlays"
-                    ],
-                    "status": "Stable",
-                    "author": "@viraniac @igorpecovnik",
-                    "condition": "[ -d /boot/dtb/ ] && [ -f /boot/armbianEnv.txt ]"
-                },
-                {
-                    "id": "SY018",
-                    "description": "ZFS filesystem - enable support",
-                    "command": [
-                        "module_zfs install"
-                    ],
-                    "status": "Stable",
-                    "author": "@armbian",
-                    "condition": "! module_zfs status && linux-version compare ${KERNELID} le $(module_zfs kernel_max)"
-                },
-                {
-                    "id": "SY019",
-                    "description": "ZFS filesystem - remove support",
-                    "command": [
-                        "module_zfs remove"
-                    ],
-                    "status": "Stable",
-                    "author": "@armbian",
-                    "condition": "module_zfs status"
-                },
-                {
-                    "id": "SY020",
-                    "description": "Select Odroid board configuration",
-                    "command": [
-                        "manage_odroid_board select"
-                    ],
-                    "status": "Preview",
-                    "author": "",
-                    "condition": "[ $BOARDFAMILY == odroidxu4 ]"
                 }
             ]
         }

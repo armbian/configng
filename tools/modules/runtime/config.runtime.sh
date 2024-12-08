@@ -94,8 +94,8 @@ fi
 #plex_media_port="$(lsof -i -P -n | grep TCP | grep LISTEN | grep 'plex' | awk -F: '{print $2}' | awk '{print $1}' | head -n 1)"
 #update_sub_submenu_data "Software" "Media" "SW22" "https://localhost:$plex_media_port"
 
-update_submenu_data "System" "SY018" "$(module_zfs zfs_version)"
-update_submenu_data "System" "SY019" "$(module_zfs zfs_installed_version)"
+update_sub_submenu_data "System" "SY003" "SY220" "$(module_zfs zfs_version)"
+update_sub_submenu_data "System" "SY003" "SY221" "$(module_zfs zfs_installed_version)"
 
 update_sub_submenu_data "Software" "Database" "DAT002" "Server: $LOCALIPADD"
 update_sub_submenu_data "Software" "Database" "DAT006" "http://$LOCALIPADD:${module_options["module_phpmyadmin,port"]}"
