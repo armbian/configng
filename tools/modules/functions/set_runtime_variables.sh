@@ -60,6 +60,9 @@ function set_runtime_variables() {
 	BACKTITLE="Contribute: https://github.com/armbian/configng"
 	TITLE="Armbian configuration utility"
 	[[ -z "${DEFAULT_ADAPTER// /}" ]] && DEFAULT_ADAPTER="lo"
+	# zfs subsystem - determine if our kernel is not too recent
+	ZFS_DKMS_VERSION=$(LC_ALL=C apt-cache policy zfs-dkms | grep Candidate | xargs | cut -d" " -f2 | cut -c-5)
+	ZFS_KERNEL_MAX=$(wget -qO- https://github.com/openzfs/zfs/raw/refs/tags/zfs-${ZFS_DKMS_VERSION}/META | grep Maximum | cut -d" " -f2)
 
 	# detect desktop
 	check_desktop
