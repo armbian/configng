@@ -12,25 +12,24 @@ sudo armbian-config
 
 - ## **System** 
 
-  - ### Enable Armbian firmware upgrades
+  - ### Alternative kernels, headers, rolling updates, overlays
+    - ### Install alternative kernels
+    - ### Install Linux headers
+    - ### Remove Linux headers
+    - ### Manage device tree overlays
+    - ### Select Odroid board configuration
+    - ### Edit the boot environment
 
 
-  - ### Disable Armbian kernel upgrades
+  - ### Install to internal media, ZFS, read-only rootfs
+    - ### Install to internal storage
+    - ### ZFS filesystem - enable support
+    - ### ZFS filesystem - remove support
+    - ### Enable read only filesystem
+    - ### Disable read only filesystem
 
 
-  - ### Edit the boot environment
-
-
-  - ### Install Linux headers
-
-
-  - ### Remove Linux headers
-
-
-  - ### Install to internal storage
-
-
-  - ### Manage SSH login options
+  - ### Manage SSH daemon options, enable 2FA
     - ### Disable root login
     - ### Enable root login
     - ### Disable password login
@@ -45,40 +44,17 @@ sudo armbian-config
     - ### Enable last login banner
 
 
-  - ### Change shell system wide to BASH
+  - ### Change shell, adjust MOTD
+    - ### Change shell system wide to BASH
+    - ### Change shell system wide to ZSH
+    - ### Adjust welcome screen (motd)
 
 
-  - ### Change shell system wide to ZSH
-
-
-  - ### Switch to rolling release
-
-
-  - ### Switch to stable release
-
-
-  - ### Enable read only filesystem
-
-
-  - ### Disable read only filesystem
-
-
-  - ### Adjust welcome screen (motd)
-
-
-  - ### Install alternative kernels
-
-
-  - ### Manage device tree overlays
-
-
-  - ### ZFS filesystem - enable support
-
-
-  - ### ZFS filesystem - remove support
-
-
-  - ### Select Odroid board configuration
+  - ### OS updates and distribution upgrades
+    - ### Enable Armbian firmware upgrades
+    - ### Disable Armbian kernel upgrades
+    - ### Switch system to rolling packages repository
+    - ### Switch system to stable packages repository
 
 
 
@@ -266,13 +242,20 @@ Outputs:
 ~~~
 
   System - System wide and admin settings (x86_64)
-    --cmd SY001 - Enable Armbian firmware upgrades
-    --cmd SY002 - Disable Armbian kernel upgrades
-    --cmd SY003 - Edit the boot environment
-    --cmd SY004 - Install Linux headers
-    --cmd SY005 - Remove Linux headers
-    --cmd SY006 - Install to internal storage
-    SY007 - Manage SSH login options
+    Kernel - Alternative kernels, headers, rolling updates, overlays
+	--cmd SY201 - Install alternative kernels
+	--cmd SY204 - Install Linux headers
+	--cmd SY205 - Remove Linux headers
+	--cmd SY210 - Manage device tree overlays
+	--cmd SY300 - Select Odroid board configuration
+	--cmd SY010 - Edit the boot environment
+    Storage - Install to internal media, ZFS, read-only rootfs
+	--cmd SY001 - Install to internal storage
+	--cmd SY220 - ZFS filesystem - enable support (v2.1.5)
+	--cmd SY221 - ZFS filesystem - remove support ()
+	--cmd SY007 - Enable read only filesystem
+	--cmd SY008 - Disable read only filesystem
+    Access - Manage SSH daemon options, enable 2FA
 	--cmd SY101 - Disable root login
 	--cmd SY102 - Enable root login
 	--cmd SY103 - Disable password login
@@ -285,18 +268,15 @@ Outputs:
 	--cmd SY110 - Show OTP authentication QR code
 	--cmd SY111 - Disable last login banner
 	--cmd SY112 - Enable last login banner
-    --cmd SY008 - Change shell system wide to BASH
-    --cmd SY009 - Change shell system wide to ZSH
-    --cmd SY010 - Switch to rolling release
-    --cmd SY011 - Switch to stable release
-    --cmd SY012 - Enable read only filesystem
-    --cmd SY013 - Disable read only filesystem
-    --cmd SY014 - Adjust welcome screen (motd)
-    --cmd SY015 - Install alternative kernels
-    --cmd SY017 - Manage device tree overlays
-    --cmd SY018 - ZFS filesystem - enable support
-    --cmd SY019 - ZFS filesystem - remove support
-    --cmd SY020 - Select Odroid board configuration
+    User - Change shell, adjust MOTD
+	--cmd SY005 - Change shell system wide to BASH
+	--cmd SY006 - Change shell system wide to ZSH
+	--cmd SY009 - Adjust welcome screen (motd)
+    Updates - OS updates and distribution upgrades
+	--cmd SY202 - Enable Armbian firmware upgrades
+	--cmd SY203 - Disable Armbian kernel upgrades
+	--cmd SY206 - Switch system to rolling packages repository
+	--cmd SY207 - Switch system to stable packages repository
 
   Network - Fixed and wireless network settings (eth0)
     NE001 - Configure network interfaces
@@ -323,36 +303,36 @@ Outputs:
 	--cmd NET008 - Remove hostname broadcast via mDNS (avahi-daemon)
     Downloaders - Download tools
 	--cmd DOW001 - Install qBittorrent
-	--cmd DOW002 - Remove qBittorrent (http://10.1.0.84:8090 6881)
+	--cmd DOW002 - Remove qBittorrent (http://10.1.0.15:8090 6881)
 	--cmd DOW003 - Install Deluge
-	--cmd DOW004 - Remove Deluge (http://10.1.0.84:8112 6181 58846)
+	--cmd DOW004 - Remove Deluge (http://10.1.0.15:8112 6181 58846)
 	--cmd DOW005 - Install Transmission
-	--cmd DOW006 - Remove Transmission (http://10.1.0.84:9091)
+	--cmd DOW006 - Remove Transmission (http://10.1.0.15:9091)
 	--cmd DOW011 - Install SABnzbd
-	--cmd DOW012 - Remove SABnzbd (http://10.1.0.84:8080)
+	--cmd DOW012 - Remove SABnzbd (http://10.1.0.15:8080)
 	--cmd DOW013 - Install Medusa
-	--cmd DOW014 - Remove Medusa (http://10.1.0.84:8081)
+	--cmd DOW014 - Remove Medusa (http://10.1.0.15:8081)
 	--cmd DOW015 - Install Sonarr
-	--cmd DOW016 - Remove Sonarr (http://10.1.0.84:8989)
+	--cmd DOW016 - Remove Sonarr (http://10.1.0.15:8989)
 	--cmd DOW017 - Install Radarr
-	--cmd DOW018 - Remove Radarr (http://10.1.0.84:7878)
+	--cmd DOW018 - Remove Radarr (http://10.1.0.15:7878)
 	--cmd DOW019 - Install Bazarr
-	--cmd DOW020 - Remove Bazarr (http://10.1.0.84:6767)
+	--cmd DOW020 - Remove Bazarr (http://10.1.0.15:6767)
 	--cmd DOW021 - Install Lidarr
-	--cmd DOW022 - Remove Lidarr (http://10.1.0.84:8686)
+	--cmd DOW022 - Remove Lidarr (http://10.1.0.15:8686)
 	--cmd DOW023 - Install Readarr
-	--cmd DOW024 - Remove Readarr (http://10.1.0.84:8787)
+	--cmd DOW024 - Remove Readarr (http://10.1.0.15:8787)
 	--cmd DOW025 - Install Prowlarr
-	--cmd DOW026 - Remove Prowlarr (http://10.1.0.84:9696)
+	--cmd DOW026 - Remove Prowlarr (http://10.1.0.15:9696)
 	--cmd DOW040 - Jellyseerr install
-	--cmd DOW041 - Jellyseerr remove  (http://10.1.0.84:5055)
+	--cmd DOW041 - Jellyseerr remove  (http://10.1.0.15:5055)
 	--cmd DOW042 - Jellyseerr purge data folder
     Database - Database
 	--cmd DAT001 - Mariadb install
-	--cmd DAT002 - Mariadb remove (Server: 10.1.0.84)
+	--cmd DAT002 - Mariadb remove (Server: 10.1.0.15)
 	--cmd DAT003 - Mariadb purge
 	--cmd DAT005 - phpMyAdmin install
-	--cmd DAT006 - phpMyAdmin remove (http://10.1.0.84:8071)
+	--cmd DAT006 - phpMyAdmin remove (http://10.1.0.15:8071)
 	--cmd DAT007 - phpMyAdmin purge
     DNS - DNS blockers
 	--cmd DNS001 - Install Pi-hole DNS ad blocker
@@ -365,7 +345,7 @@ Outputs:
 	--cmd HA001 - Install openHAB
 	--cmd HA002 - Remove openHAB
 	--cmd HA003 - Install Home Assistant
-	--cmd HA004 - Remove Home Assistant (http://10.1.0.84:8123)
+	--cmd HA004 - Remove Home Assistant (http://10.1.0.15:8123)
     --cmd Benchy - System benchmaking and diagnostics
     Containers - Containerlization and Virtual Machines
 	--cmd CON001 - Install Docker Minimal
@@ -373,7 +353,7 @@ Outputs:
 	--cmd CON003 - Remove Docker
 	--cmd CON004 - Purge all Docker images, containers, and volumes
 	--cmd CON005 - Install Portainer
-	--cmd CON006 - Remove Portainer (http://10.1.0.84:9000)
+	--cmd CON006 - Remove Portainer (http://10.1.0.15:9000)
 	--cmd CON007 - Watchtower install
 	--cmd CON008 - Watchtower remove
     Media - Media Servers and Editors
@@ -385,13 +365,13 @@ Outputs:
 	--cmd MED011 - Stirling-PDF Remove
 	--cmd MED012 - Stirling-PDF Purge data folder
 	--cmd MED015 - Syncthing Install
-	--cmd MED016 - Syncthing Remove (http://10.1.0.84:8884)
+	--cmd MED016 - Syncthing Remove (http://10.1.0.15:8884)
 	--cmd MED017 - Syncthing Purge data folder
 	--cmd MED020 - Nextcloud Install
-	--cmd MED021 - Nextcloud Remove (https://10.1.0.84:443)
+	--cmd MED021 - Nextcloud Remove (https://10.1.0.15:443)
 	--cmd MED022 - Nextcloud Purge data folder
 	--cmd MED025 - Owncloud Install
-	--cmd MED026 - Owncloud Remove (http://10.1.0.84:7787)
+	--cmd MED026 - Owncloud Remove (http://10.1.0.15:7787)
 	--cmd MED027 - Owncloud Purge data folder
     Monitoring - Monitoring
 	--cmd MON001 - Uptime Kuma install 
@@ -443,69 +423,9 @@ Click for more info:
 
 A list of the jobs defined in the Jobs file.
 ~~~
-### SY001
+### Kernel
 
-Enable Armbian firmware upgrades
-
-Jobs:
-
-~~~
-armbian_fw_manipulate unhold
-~~~
-
-### SY002
-
-Disable Armbian kernel upgrades
-
-Jobs:
-
-~~~
-armbian_fw_manipulate hold
-~~~
-
-### SY003
-
-Edit the boot environment
-
-Jobs:
-
-~~~
-nano /boot/armbianEnv.txt
-~~~
-
-### SY004
-
-Install Linux headers
-
-Jobs:
-
-~~~
-module_headers install
-~~~
-
-### SY005
-
-Remove Linux headers
-
-Jobs:
-
-~~~
-module_headers remove
-~~~
-
-### SY006
-
-Install to internal storage
-
-Jobs:
-
-~~~
-armbian-install
-~~~
-
-### SY007
-
-Manage SSH login options
+Alternative kernels, headers, rolling updates, overlays
 
 Jobs:
 
@@ -513,124 +433,44 @@ Jobs:
 No commands available
 ~~~
 
-### SY008
+### Storage
 
-Change shell system wide to BASH
-
-Jobs:
-
-~~~
-manage_zsh disable
-~~~
-
-### SY009
-
-Change shell system wide to ZSH
+Install to internal media, ZFS, read-only rootfs
 
 Jobs:
 
 ~~~
-manage_zsh enable
+No commands available
 ~~~
 
-### SY010
+### Access
 
-Switch to rolling release
+Manage SSH daemon options, enable 2FA
 
 Jobs:
 
 ~~~
-set_rolling
+No commands available
 ~~~
 
-### SY011
+### User
 
-Switch to stable release
+Change shell, adjust MOTD
 
 Jobs:
 
 ~~~
-set_stable
+No commands available
 ~~~
 
-### SY012
+### Updates
 
-Enable read only filesystem
+OS updates and distribution upgrades
 
 Jobs:
 
 ~~~
-manage_overlayfs enable
-~~~
-
-### SY013
-
-Disable read only filesystem
-
-Jobs:
-
-~~~
-manage_overlayfs disable
-~~~
-
-### SY014
-
-Adjust welcome screen (motd)
-
-Jobs:
-
-~~~
-adjust_motd
-~~~
-
-### SY015
-
-Install alternative kernels
-
-Jobs:
-
-~~~
-switch_kernels
-~~~
-
-### SY017
-
-Manage device tree overlays
-
-Jobs:
-
-~~~
-manage_dtoverlays
-~~~
-
-### SY018
-
-ZFS filesystem - enable support
-
-Jobs:
-
-~~~
-module_zfs install
-~~~
-
-### SY019
-
-ZFS filesystem - remove support
-
-Jobs:
-
-~~~
-module_zfs remove
-~~~
-
-### SY020
-
-Select Odroid board configuration
-
-Jobs:
-
-~~~
-manage_odroid_board select
+No commands available
 ~~~
 
 ### NE001
@@ -820,9 +660,7 @@ These helper functions facilitate various operations related to job management, 
 | Run time variables Migrated procedures from Armbian config. | set_runtime_variables | @igorpecovnik 
 | Check for (Whiptail, DIALOG, READ) tools and set the user interface. |  | Tearran 
 | Toggle SSH lastlog | toggle_ssh_lastlog | @Tearran 
-| Set Armbian to rolling release | set_rolling | @Tearran 
 | Generate this markdown table of all module_options | see_function_table_md | @Tearran 
-| Switching to alternative kernels | switch_kernels | @igorpecovnik 
 | Webmin setup and service setting. | help install remove start stop enable disable status check | @Tearran 
 | Hos container install and configure | help install uninstall | @igorpecovnik 
 | Set Armbian root filesystem to read only | manage_overlayfs enable/disable | @igorpecovnik 
@@ -841,6 +679,7 @@ These helper functions facilitate various operations related to job management, 
 | Install jellyseerr container | install remove purge status help | @armbian 
 | Needed by generate_menu | execute_command 'id' | @Tearran 
 | Display a Yes/No dialog box and process continue/exit | get_user_continue 'Do you wish to continue?' process_input | @Tearran 
+| Module for Armbian firmware manipulating. | select install show hold unhold repository headers help | @igorpecovnik 
 | Migrated procedures from Armbian config. | connect_bt_interface | @armbian 
 | Display a message box | show_message <<< 'hello world'  | @Tearran 
 | Menu for armbianmonitor features | see_monitoring | @Tearran 
@@ -851,7 +690,7 @@ These helper functions facilitate various operations related to job management, 
 | Install/uninstall/check status of portainer container | help install uninstall status | @armbian 
 | Migrated procedures from Armbian config. | check_if_installed nano | @armbian 
 | Generate 'Armbian CPU logo' SVG for document file. | generate_svg | @Tearran 
-| Install zfs filesystem support | install remove status kernel_max zfs_version help | @armbian 
+| Install zfs filesystem support | install remove status kernel_max zfs_version zfs_installed_version help | @igorpecovnik 
 | Update submenu descriptions based on conditions | update_submenu_data | @Tearran 
 | sanitize input cli | sanitize_input | @Tearran 
 | Install lidarr container | install remove status help | @armbian 
@@ -895,13 +734,11 @@ These helper functions facilitate various operations related to job management, 
 | Install mariadb container | install remove purge status help |  
 | Revert network config back to Armbian defaults | default_network_config | @igorpecovnik 
 | Install prowlarr container | install remove status help | @armbian 
-| freeze, unhold, reinstall armbian related packages. | armbian_fw_manipulate unhold/freeze/reinstall | @igorpecovnik 
 | Check the internet connection with fallback DNS | see_ping | @Tearran 
 | Upgrade to next stable or rolling release | release_upgrade stable verify | @igorpecovnik 
 | Install openhab from a repo using apt | install uinstall | @igorpecovnik 
 | Update the /etc/skel files in users directories | update_skel | @igorpecovnik 
 | change_system_hostname | change_system_hostname | @igorpecovnik 
-| Set Armbian to stable release | set_stable | @Tearran 
 | Secure version of get_user_continue | get_user_continue_secure 'Do you wish to continue?' process_input | @Tearran 
 | Install plexmediaserver from repo using apt | install_plexmediaserver | @schwar3kat 
 
