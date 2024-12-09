@@ -96,36 +96,6 @@
                     "status": "Disabled",
                     "author": "@armbian",
                     "condition": ""
-                },
-                {
-                    "id": "NE105",
-                    "description": "Install NFS daemon",
-                    "command": [
-                        "module_nfsd install"
-                    ],
-                    "status": "Stable",
-                    "author": "@igorpecovnik",
-                    "condition": "! module_nfsd status"
-                },
-                {
-                    "id": "NE106",
-                    "description": "Configure NFS daemon",
-                    "command": [
-                        "module_nfsd manage"
-                    ],
-                    "status": "Stable",
-                    "author": "@igorpecovnik",
-                    "condition": "module_nfsd status"
-                },
-                {
-                    "id": "NE107",
-                    "description": "Remove NFS daemon",
-                    "command": [
-                        "module_nfsd uninstall"
-                    ],
-                    "status": "Stable",
-                    "author": "@igorpecovnik",
-                    "condition": "module_nfsd status"
                 }
             ]
         }
