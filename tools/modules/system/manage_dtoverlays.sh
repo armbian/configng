@@ -24,7 +24,7 @@ function manage_dtoverlays () {
 		local options=()
 		j=0
 		if [[ -n "${BOOT_SOC}" ]]; then
-		available_overlays=$(ls -1 ${overlaydir}/*.dtbo | sed "s#^${overlaydir}/##" | sed 's/.dtbo//g' | grep $BOOT_SOC | tr '\n' ' ')
+		available_overlays=$(ls -1 ${overlaydir}/*.dtbo | sed "s#^${overlaydir}/##" | sed 's/.dtbo//g' | grep -E "$BOOT_SOC|$BOARD" | tr '\n' ' ')
 		else
 		available_overlays=$(ls -1 ${overlaydir}/*.dtbo | sed "s#^${overlaydir}/##" | sed 's/.dtbo//g' | tr '\n' ' ')
 		fi
