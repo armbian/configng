@@ -74,7 +74,7 @@
                 },
                 {
                     "id": "Storage",
-                    "description": "Install to internal media, ZFS, read-only rootfs",
+                    "description": "Install to internal media, ZFS, NFS, read-only rootfs",
                     "sub": [
                         {
                             "id": "SY001",
@@ -127,6 +127,36 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "command -v overlayroot-chroot > /dev/null 2>&1 && findmnt -k /media/root-ro | tail -1 | grep -w /media/root-ro > /dev/null 2>&1"
+                        },
+                        {
+                            "id": "NFS01",
+                            "description": "Install network filesystem (NFS) daemon",
+                            "command": [
+                                "module_nfsd install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_nfsd status"
+                        },
+                        {
+                            "id": "NFS02",
+                            "description": "Configure network filesystem (NFS) daemon",
+                            "command": [
+                                "module_nfsd manage"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_nfsd status"
+                        },
+                        {
+                            "id": "NFS03",
+                            "description": "Remove network filesystem (NFS) daemon",
+                            "command": [
+                                "module_nfsd uninstall"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_nfsd status"
                         }
                     ]
                 },

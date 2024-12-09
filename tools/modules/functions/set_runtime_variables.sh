@@ -60,6 +60,7 @@ function set_runtime_variables() {
 	SOFTWARE_FOLDER="/armbian" # where we should keep 3rd party software
 	DEFAULT_ADAPTER=$(ip -4 route ls | grep default | tail -1 | grep -Po '(?<=dev )(\S+)')
 	LOCALIPADD=$(ip -4 addr show dev $DEFAULT_ADAPTER | awk '/inet/ {print $2}' | cut -d'/' -f1)
+	LOCALSUBNET=$(echo ${LOCALIPADD} | cut -d"." -f1-3).0/24
 	BACKTITLE="Contribute: https://github.com/armbian/configng"
 	TITLE="Armbian configuration utility"
 	[[ -z "${DEFAULT_ADAPTER// /}" ]] && DEFAULT_ADAPTER="lo"
