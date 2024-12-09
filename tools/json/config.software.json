@@ -354,6 +354,28 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "check_if_installed avahi-daemon"
+                        },
+                        {
+                            "id": "NET009",
+                            "description": "Install Samba",
+                            "command": [
+                                "get_user_continue \"This operation will install Samba service.\nDo you wish to continue?\" process_input",
+                                "debconf-apt-progress -- apt-get -y install samba"
+                            ],
+                            "status": "Stable",
+                            "author": "@dimitry-ishenko",
+                            "condition": "! check_if_installed samba"
+                        },
+                        {
+                            "id": "NET010",
+                            "description": "Uninstall Samba",
+                            "command": [
+                                "get_user_continue \"This operation will purge Samba service.\nDo you wish to continue?\" process_input",
+                                "debconf-apt-progress -- apt-get -y autopurge samba"
+                            ],
+                            "status": "Stable",
+                            "author": "@dimitry-ishenko",
+                            "condition": "check_if_installed samba"
                         }
                     ]
                 },
