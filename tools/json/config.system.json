@@ -130,33 +130,65 @@
                         },
                         {
                             "id": "NFS01",
-                            "description": "Install network filesystem (NFS) daemon",
-                            "command": [
-                                "module_nfsd install"
-                            ],
-                            "status": "Stable",
-                            "author": "@igorpecovnik",
-                            "condition": "! module_nfsd status"
+                            "description": "Network filesystem (NFS) Server",
+                            "sub": [
+                                    {
+                                        "id": "NFS02",
+                                        "description": "Enable network filesystem (NFS) daemon",
+                                        "command": [
+                                            "module_nfsd install"
+                                        ],
+                                        "status": "Stable",
+                                        "author": "@igorpecovnik",
+                                        "condition": "! module_nfsd status"
+                                    },
+                                    {
+                                        "id": "NFS03",
+                                        "description": "Configure network filesystem (NFS) daemon",
+                                        "command": [
+                                            "module_nfsd manage"
+                                        ],
+                                        "status": "Stable",
+                                        "author": "@igorpecovnik",
+                                        "condition": "module_nfsd status"
+                                    },
+                                    {
+                                        "id": "NFS04",
+                                        "description": "Remove network filesystem (NFS) daemon",
+                                        "command": [
+                                            "module_nfsd remove"
+                                        ],
+                                        "status": "Stable",
+                                        "author": "@igorpecovnik",
+                                        "condition": "module_nfsd status"
+                                    },
+                                    {
+                                        "id": "NFS05",
+                                        "description": "Show network filesystem (NFS) daemon clients",
+                                        "command": [
+                                            "module_nfsd clients"
+                                        ],
+                                        "status": "Stable",
+                                        "author": "@igorpecovnik",
+                                        "condition": "module_nfsd status && [[ ${NFS_CLIENTS_NUMBER} -gt 0 ]]"
+                                    }
+                                ]
                         },
                         {
-                            "id": "NFS02",
-                            "description": "Configure network filesystem (NFS) daemon",
-                            "command": [
-                                "module_nfsd manage"
-                            ],
-                            "status": "Stable",
-                            "author": "@igorpecovnik",
-                            "condition": "module_nfsd status"
-                        },
-                        {
-                            "id": "NFS03",
-                            "description": "Remove network filesystem (NFS) daemon",
-                            "command": [
-                                "module_nfsd uninstall"
-                            ],
-                            "status": "Stable",
-                            "author": "@igorpecovnik",
-                            "condition": "module_nfsd status"
+                            "id": "NFS11",
+                            "description": "Network filesystem (NFS) Client",
+                            "sub": [
+                                {
+                                    "id": "NFS06",
+                                    "description": "Show network filesystem (NFS) servers in subnet",
+                                    "command": [
+                                        "module_nfsd servers"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": ""
+                                }
+                            ]
                         }
                     ]
                 },
