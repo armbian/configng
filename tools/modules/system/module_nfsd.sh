@@ -105,7 +105,12 @@ function module_nfsd () {
 			show_message <<< $(printf '%s\n' "${NFS_CLIENTS_CONNECTED[@]}")
 		;;
 		"${commands[6]}")
-			LIST=($(nmap -oG - -p2049 ${LOCALSUBNET} | grep '/open/' | cut -d' ' -f2))
+
+			if ! check_if_installed nmap; then
+				apt_install_wrapper apt-get -y install nmap
+			fi
+
+			LIST=($(nmap -oG - -p2049 ${LOCALSUBNET} | grep '/open/' | cut -d' ' -f2 | grep -v "${LOCALIPADD}"))
 			LIST_LENGTH=$((${#LIST[@]}))
 			if nfs_server=$(dialog --no-items \
 				--title "Network filesystem (NFS) servers in subnet" \

@@ -130,10 +130,31 @@
                         },
                         {
                             "id": "NFS01",
-                            "description": "Network filesystem (NFS) Server",
+                            "description": "Enable Network filesystem (NFS) support",
+                            "command": [
+                                "module_nfs install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! check_if_installed nfs-common"
+                        },
+                        {
+                            "id": "NFS02",
+                            "description": "Disable Network filesystem (NFS) support",
+                            "command": [
+                                "module_nfs remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "check_if_installed nfs-common"
+                        },
+                        {
+                            "id": "NFS05",
+                            "description": "Manage NFS Server",
+                            "condition": "check_if_installed nfs-common",
                             "sub": [
                                     {
-                                        "id": "NFS02",
+                                        "id": "NFS06",
                                         "description": "Enable network filesystem (NFS) daemon",
                                         "command": [
                                             "module_nfsd install"
@@ -143,7 +164,7 @@
                                         "condition": "! module_nfsd status"
                                     },
                                     {
-                                        "id": "NFS03",
+                                        "id": "NFS07",
                                         "description": "Configure network filesystem (NFS) daemon",
                                         "command": [
                                             "module_nfsd manage"
@@ -153,7 +174,7 @@
                                         "condition": "module_nfsd status"
                                     },
                                     {
-                                        "id": "NFS04",
+                                        "id": "NFS08",
                                         "description": "Remove network filesystem (NFS) daemon",
                                         "command": [
                                             "module_nfsd remove"
@@ -163,7 +184,7 @@
                                         "condition": "module_nfsd status"
                                     },
                                     {
-                                        "id": "NFS05",
+                                        "id": "NFS09",
                                         "description": "Show network filesystem (NFS) daemon clients",
                                         "command": [
                                             "module_nfsd clients"
@@ -175,18 +196,19 @@
                                 ]
                         },
                         {
-                            "id": "NFS11",
-                            "description": "Network filesystem (NFS) Client",
+                            "id": "NFS20",
+                            "description": "Manage NFS Client",
+                            "condition": "check_if_installed nfs-common",
                             "sub": [
                                 {
-                                    "id": "NFS06",
-                                    "description": "Show network filesystem (NFS) servers in subnet",
+                                    "id": "NFS21",
+                                    "description": "Find NFS servers in subnet and mount shares",
                                     "command": [
-                                        "module_nfsd servers"
+                                        "module_nfs servers"
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": ""
+                                    "condition": "check_if_installed nfs-common"
                                 }
                             ]
                         }
