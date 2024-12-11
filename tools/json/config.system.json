@@ -94,7 +94,7 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_zfs status && linux-version compare ${KERNELID} le $(module_zfs kernel_max)"
+                            "condition": "! module_zfs status && linux-version compare \"${KERNELID}\" le \"$(module_zfs kernel_max)\""
                         },
                         {
                             "id": "SY221",

@@ -17,6 +17,9 @@ function module_armbian_firmware() {
 	case "$1" in
 		"${commands[0]}") # choose kernel from the list
 
+			# We are updating beta packages repository quite often. In order to make sure, update won't break, always update package list
+			apt_install_wrapper	apt-get update
+
 			# make sure to proceed if this variable is not defined. This can surface on some old builds
 			[[ -z "${KERNEL_TEST_TARGET}" ]] && KERNEL_TEST_TARGET="legacy,vendor,current,edge"
 
