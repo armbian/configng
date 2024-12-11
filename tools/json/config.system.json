@@ -152,7 +152,7 @@
                             "id": "NFS03",
                             "description": "Remove network filesystem (NFS) daemon",
                             "command": [
-                                "module_nfsd uninstall"
+                                "module_nfsd remove"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
