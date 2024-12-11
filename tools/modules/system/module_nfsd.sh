@@ -14,6 +14,9 @@ function module_nfsd () {
 	local title="nfsd"
 	local condition=$(which "$title" 2>/dev/null)?
 
+	local package_name=nfs-kernel-server
+	local service_name=nfs-server.service
+
 	# we will store our config in subfolder
 	mkdir -p /etc/exports.d/
 
@@ -24,13 +27,13 @@ function module_nfsd () {
 
 	case "$1" in
 		"${commands[0]}")
-			apt_install_wrapper apt-get -y install nfs-common nfs-kernel-server
+			apt_install_wrapper apt-get -y install $package_name
 			# add some exports
 			${module_options["module_nfsd,feature"]} ${commands[2]}
-			systemctl restart nfs-server.service
+			service restart $service_name
 		;;
 		"${commands[1]}")
-			apt_install_wrapper apt-get -y autopurge nfs-kernel-server
+			apt_install_wrapper apt-get -y autopurge $package_name
 		;;
 		"${commands[2]}")
 			while true; do
@@ -65,7 +68,7 @@ function module_nfsd () {
 					break
 				fi
 			done
-			systemctl restart nfs-server.service
+			service restart $service_name
 		;;
 		"${commands[3]}")
 			# choose between most common options
@@ -96,11 +99,7 @@ function module_nfsd () {
 			fi
 		;;
 		"${commands[4]}")
-			if systemctl is-active --quiet nfs-server.service; then
-				return 0
-			else
-				return 1
-			fi
+			check_if_installed $package_name
 		;;
 		"${commands[5]}")
 			show_message <<< $(printf '%s\n' "${NFS_CLIENTS_CONNECTED[@]}")
@@ -169,7 +168,7 @@ function module_nfsd () {
 			echo
 		;;
 		*)
-		${module_options["module_nfsd,feature"]} ${commands[7]}
+			${module_options["module_nfsd,feature"]} ${commands[7]}
 		;;
 	esac
 }
