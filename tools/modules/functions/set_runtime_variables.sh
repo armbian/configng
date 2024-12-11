@@ -67,7 +67,9 @@ function set_runtime_variables() {
 	# zfs subsystem - determine if our kernel is not too recent
 	ZFS_DKMS_VERSION=$(LC_ALL=C apt-cache policy zfs-dkms | grep Candidate | xargs | cut -d" " -f2 | cut -c-5)
 	ZFS_KERNEL_MAX=$(wget -qO- https://github.com/openzfs/zfs/raw/refs/tags/zfs-${ZFS_DKMS_VERSION}/META | grep Maximum | cut -d" " -f2)
-
+	# count NFS clients that are connected to the system
+	NFS_CLIENTS_CONNECTED=($(ss | grep :nfs | awk '{print $NF}' | cut -d":" -f1))
+	NFS_CLIENTS_NUMBER="${#NFS_CLIENTS_CONNECTED[@]}"
 	# detect desktop
 	check_desktop
 
