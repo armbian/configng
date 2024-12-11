@@ -31,12 +31,11 @@ function check_distro_status() {
 			set_colors 1
 			get_user_continue "Warning:
 
-			The current OS ($DISTROID) is not a officially supported distribution!
+			The current OS ($DISTROID) is not a officially supported distro!
 
 			The tool might still work well, but be aware that issues may
-			not be accepted and addressed by the maintainers. However, you are
-			welcome to contribute fixes for any problems you encounter.
-
+			not be accepted and addressed by the maintainers. However, you
+			are welcome to contribute fixes for any problems you encounter.
 
 			Would you like to continue?
 			" process_input
