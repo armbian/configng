@@ -1,19 +1,20 @@
 
+
 module_options+=(
-	["generate_json_data,feature"]="generate_json_data"   # The name of the function, master KEY for the module parsing
-	["generate_json_data,helpers"]="set_json_data" # Helper dependancy
-	["generate_json_data,author"]="@Tearran"    # The module contributors git id
-	["generate_json_data,ref_link"]="@armbian"  # The maintainer's git id or link for additional information
-	["generate_json_data,desc"]="Example unattended interface module." # A short description of what the module does
-	["generate_json_data,example"]="check install remove help"   # A list of $1 options the module accepts
-	["generate_json_data,commands"]="install remove"   # A list of $1 options the module accepts
-	["generate_json_data,status"]="Development" # Options (Disabled, Development, Software, System, Network, Loca...)
-	["generate_json_data,group"]="Temp" # Long list see menu for sub groups
-	["generate_json_data,port"]=""      # Ports used
-	["generate_json_data,arch"]=""      # Options for Architecture information (?)
+	["set_json_data,feature"]="set_json_data"   # The name of the function, master KEY for the module parsing
+	["set_json_data,helpers"]="set_json_data" # Helper dependancy
+	["set_json_data,author"]="@Tearran"    # The module contributors git id
+	["set_json_data,ref_link"]="@armbian"  # The maintainer's git id or link for additional information
+	["set_json_data,desc"]="Example unattended interface module." # A short description of what the module does
+	["set_json_data,example"]="check install remove help"   # A list of $1 options the module accepts
+	["set_json_data,commands"]="install remove"   # A list of $1 options the module accepts
+	["set_json_data,status"]="Development" # Options (Disabled, Development, Software, System, Network, Loca...)
+	["set_json_data,group"]="Database" # Long list see menu for sub groups
+	["set_json_data,port"]=""      # Ports used
+	["set_json_data,arch"]=""      # Options for Architecture information (?)
 )
 #
-# Function to generate a JSON-like object file
+#
 #
 function set_json_data() {
 	local i=0
@@ -88,7 +89,24 @@ function set_json_data() {
 
 }
 
-generate_json_data(){
+
+module_options+=(
+	["generate_json_data,feature"]="generate_json_data"   # The name of the function, master KEY for the module parsing
+	["generate_json_data,helpers"]="set_json_data" # Helper dependancy
+	["generate_json_data,author"]="@Tearran"    # The module contributors git id
+	["generate_json_data,ref_link"]="@armbian"  # The maintainer's git id or link for additional information
+	["generate_json_data,desc"]="Example unattended interface module." # A short description of what the module does
+	["generate_json_data,example"]="check install remove help"   # A list of $1 options the module accepts
+	["generate_json_data,commands"]="install remove"   # A list of $1 options the module accepts
+	["generate_json_data,status"]="Development" # Options (Disabled, Development, Software, System, Network, Loca...)
+	["generate_json_data,group"]="Temp" # Long list see menu for sub groups
+	["generate_json_data,port"]=""      # Ports used
+	["generate_json_data,arch"]=""      # Options for Architecture information (?)
+)
+#
+# Function to generate a JSON-like object file
+#
+function generate_json_data(){
 set_json_data | jq '[
 	.[] |
 	if (.feature | type == "string") and (.feature | startswith("module_")) then
@@ -108,10 +126,9 @@ set_json_data | jq '[
 }
 
 
-
-
-interface_json_data() {
 # Test Function
+interface_json_data() {
+
 # uncomment to set the data to a file
 #set_json_data > tools/json/config.temp.json
 #json_file="$tools_dir/json/config.temp.json
