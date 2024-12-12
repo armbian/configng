@@ -1,12 +1,18 @@
 
 
 declare -A module_options
+declare -A module_options
 module_options+=(
 	["module_template,author"]="@Tearran"
+	["module_template,ref_link"]="@armbian"
 	["module_template,feature"]="module_template"
 	["module_template,example"]="install remove help"
 	["module_template,desc"]="Example module unattended interface."
 	["module_template,status"]="review"
+	["module_template,doc_link"]="" # Add the doc_link key
+	["module_template,group"]="Temp" # Add the group key
+	["module_template,port"]="8080" # Add the port key
+	["module_template,arch"]="aarch64" # Add the arch key
 )
 
 function module_template() {
