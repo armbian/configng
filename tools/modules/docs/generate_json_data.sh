@@ -69,7 +69,7 @@ function set_json_data() {
 		echo "    \"command\": \"$feature\","
 		echo "    \"options\": \"$example\","
 		echo "    \"status\": \"$status\","
-		echo "    \"condition\": \"$feature check\","
+		echo "    \"condition\": \"\","
 		echo "    \"reference\": \"$ref_link\","
 		echo "    \"author\": \"$author\","
 		echo "    \"group\": \"$group\","
@@ -106,23 +106,38 @@ module_options+=(
 #
 # Function to generate a JSON-like object file
 #
-function generate_json_data(){
-set_json_data | jq '[
-	.[] |
-	if (.feature | type == "string") and (.feature | startswith("module_")) then
-	{
-		"id": .id,
-		"description": .description,
-		"command": ("see_menu " + .feature),
-		"options": ("help " + .options + " status"),
-		"status": .status,
-		"helpers": .helpers,
-		"condition": .condition,
-		"author": .author
-	}
-	else empty
-	end
-	]'
+function generate_json_data() {
+   set_json_data | jq '{
+    "menu": [
+        {
+            "id": "Software",
+            "description": "Run/Install 3rd party applications",
+            "sub": [
+                {
+                    "id": "Modules",
+                    "description": "Various installable modules",
+                    "sub": [
+                        .[] |
+                        if (.feature | type == "string") and (.feature | startswith("module_")) then
+                        {
+                            "id": .id,
+                            "description": .description,
+                            "command": [("see_menu " + .feature)],
+                            "options": ("help " + .options + " status"),
+                            "status": .status,
+                            "helpers": .helpers,
+                            "condition": .condition,
+                            "author": .author
+                        }
+                        else empty
+                        end
+                    ]
+                }
+            ]
+        }
+    ]
+}'
+
 }
 
 
@@ -131,6 +146,7 @@ interface_json_data() {
 
 # uncomment to set the data to a file
 #set_json_data > tools/json/config.temp.json
+#generate_json_data > tools/json/config.temp.json
 #json_file="$tools_dir/json/config.temp.json
 
 	json_data=$(generate_json_data)
