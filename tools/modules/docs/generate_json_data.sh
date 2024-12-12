@@ -69,7 +69,7 @@ function set_json_data() {
 		echo "    \"command\": \"$feature\","
 		echo "    \"options\": \"$example\","
 		echo "    \"status\": \"$status\","
-		echo "    \"condition\": \"\","
+		echo "    \"condition\": \" \","
 		echo "    \"reference\": \"$ref_link\","
 		echo "    \"author\": \"$author\","
 		echo "    \"group\": \"$group\","
@@ -106,6 +106,26 @@ module_options+=(
 #
 # Function to generate a JSON-like object file
 #
+function generate_module_list(){
+set_json_data | jq '[
+	.[] |
+	if (.feature | type == "string") and (.feature | startswith("module_")) then
+	{
+		"id": .id,
+		"description": .description,
+		"command": ("see_menu " + .feature),
+		"options": ("help " + .options + " status"),
+		"status": .status,
+		"helpers": .helpers,
+		"condition": .condition,
+		"author": .author
+	}
+	else empty
+	end
+	]'
+}
+
+
 function generate_json_data() {
    set_json_data | jq '{
     "menu": [
