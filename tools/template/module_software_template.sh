@@ -1,6 +1,6 @@
 
 
-declare -A module_options
+
 declare -A module_options
 module_options+=(
 	["module_template,author"]="@Tearran"
