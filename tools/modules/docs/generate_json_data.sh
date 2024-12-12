@@ -109,17 +109,17 @@ set_json_data | jq '[
 
 
 
+
 interface_json_data() {
-# Test Function
+	# Test Function
         # uncomment to set the data to a file
 	#set_json_data > tools/json/config.temp.json
-	#json_file="$tools_dir/json/config.temp.json"
+	#json_file="$tools_dir/json/config.temp.json
 
 	json_data=$(generate_json_data)
 
 	generate_top_menu "$json_data"
 
 	#generate_menu "Modules" "$json_data"
-
 
 }
