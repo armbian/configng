@@ -177,38 +177,36 @@ generate_json_data | jq --indent 4 "." > tools/json/config.temp.json
 
 # Test Function
 interface_json_data() {
-    # Convert the example string to an array
-    local commands=("raw" "mnu" "top" "sub" "help")
+	# Convert the example string to an array
+	local commands=("raw" "mnu" "top" "sub" "help")
 	json_data=$(generate_json_data)
-    case "$1" in
-        "${commands[0]}")
-        echo "Setting JSON data to file..."
-        set_json_data | jq --tab --indent 4 '.' > tools/json/config.temp.json
-        ;;
-        "${commands[1]}")
-        echo "Generating JSON data..."
-        generate_json_data | jq --tab --indent 4 '.' > tools/json/config.temp.json
-        ;;
-        "${commands[2]}")
-        echo "Generating top menu..."
-        json_data=$(generate_json_data)
-        generate_top_menu "$json_data"
-        ;;
+	case "$1" in
+
+	"${commands[0]}")
+		echo "Setting JSON data to file..."
+		set_json_data | jq --tab --indent 4 '.' > tools/json/config.temp.json
+	;;
+	"${commands[1]}")
+		echo "Generating JSON data..."
+		generate_json_data | jq --tab --indent 4 '.' > tools/json/config.temp.json
+	;;
+	"${commands[2]}")
+		generate_top_menu "$json_data"
+	;;
 	"${commands[3]}")
-	json_data=$(generate_json_data)
-	generate_menu "Software" "$json_data"
-        ;;
-        "${commands[-1]}")
-        echo "Usage: interface_json_data <command>"
-        echo "Available commands:"
-        echo -e "\traw\t- Set flat JSON data to a file for inspection not used"
-        echo -e "\tmnu\t- Generate the Menu JSON data to file for inspection not used"
-        echo -e "\ttop\t- Show the top menu using the JSON data."
-	echo -e "\tsub\t- Show the Software menu using the JSON data."
-        ;;
+		generate_menu "Software" "$json_data"
+	;;
+	"${commands[-1]}")
+		echo "Usage: interface_json_data <command>"
+		echo "Available commands:"
+		echo -e "\traw\t- Set flat JSON data to a file for inspection not used"
+		echo -e "\tmnu\t- Generate the Menu JSON data to file for inspection not used"
+		echo -e "\ttop\t- Show the top menu using the JSON data."
+		echo -e "\tsub\t- Show the Software menu using the JSON data."
+	;;
 	*)
 
-        generate_top_menu "$json_data"
+	generate_top_menu "$json_data"
 	;;
-    esac
+	esac
 }
