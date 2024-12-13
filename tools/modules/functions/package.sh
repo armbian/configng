@@ -43,3 +43,29 @@ pkg_remove()
 {
 	_pkg_have_stdin && debconf-apt-progress -- apt-get -y autopurge "$@" || apt-get -y autopurge "$@"
 }
+
+module_options+=(
+	["package,author"]="@dimitry-ishenko"
+	["package,desc"]="Update package repository"
+	["package,example"]="pkg_update"
+	["package,feature"]="pkg_update"
+	["package,status"]="Interface"
+)
+
+pkg_update()
+{
+	_pkg_have_stdin && debconf-apt-progress -- apt-get -y update "$@" || apt-get -y update "$@"
+}
+
+module_options+=(
+	["package,author"]="@dimitry-ishenko"
+	["package,desc"]="Upgrade installed packages"
+	["package,example"]="pkg_upgrade"
+	["package,feature"]="pkg_upgrade"
+	["package,status"]="Interface"
+)
+
+pkg_upgrade()
+{
+	_pkg_have_stdin && debconf-apt-progress -- apt-get -y upgrade "$@" || apt-get -y upgrade "$@"
+}
