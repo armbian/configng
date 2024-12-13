@@ -12,7 +12,7 @@ module_options+=(
 	["set_json_data,group"]="Database" # Long list see menu for sub groups
 	["set_json_data,port"]=""      # Ports used
 	["set_json_data,arch"]=""      # Options for Architecture information (?)
-)
+	)
 #
 #
 #
@@ -127,50 +127,88 @@ set_json_data | jq '[
 
 
 function generate_json_data() {
-   set_json_data | jq '{
-    "menu": [
-        {
-            "id": "Software",
-            "description": "Run/Install 3rd party applications",
-            "sub": [
-                {
-                    "id": "Modules",
-                    "description": "Various installable modules",
-                    "sub": [
-                        .[] |
-                        if (.feature | type == "string") and (.feature | startswith("module_")) then
-                        {
-                            "id": .id,
-                            "description": .description,
-                            "command": [("see_menu " + .feature)],
-                            "options": ("help " + .options + " status"),
-                            "status": .status,
-                            "helpers": .helpers,
-                            "condition": .condition,
-                            "author": .author
-                        }
-                        else empty
-                        end
-                    ]
-                }
-            ]
-        }
-    ]
-}'
+	set_json_data | jq '{
+	"menu": [
+		{
+		"id": "Software",
+		"description": "Run/Install 3rd party applications",
+		"sub": [
+			{
+			"id": "Modules",
+			"description": "Various installable modules",
+			"sub": [
+				.[] |
+				if (.feature | type == "string") and (.feature | startswith("module_")) then
+				{
+				"id": .id,
+				"description": .description,
+				"command": [("see_menu " + .feature)],
+				"options": ("help " + .options + " status"),
+				"status": .status,
+				"condition": "",
+				"author": .author
+				}
+				else empty
+				end
+			]
+			}
+		]
+		}
+	]
+	}'
 
 }
 
 
 # Test Function
-interface_json_data() {
+interface_json_data_old() {
 
 # uncomment to set the data to a file
 #set_json_data > tools/json/config.temp.json
-#generate_json_data > tools/json/config.temp.json
+generate_json_data | jq --indent 4 "." > tools/json/config.temp.json
 #json_file="$tools_dir/json/config.temp.json
 
 	json_data=$(generate_json_data)
-	generate_top_menu "$json_data"
+	#generate_top_menu "$json_data"
 
-#generate_menu "Modules" "$json_data"
+        generate_menu "Software" "$json_data"
+}
+
+
+# Test Function
+interface_json_data() {
+    # Convert the example string to an array
+    local commands=("raw" "mnu" "top" "sub" "help")
+	json_data=$(generate_json_data)
+    case "$1" in
+        "${commands[0]}")
+        echo "Setting JSON data to file..."
+        set_json_data | jq --tab --indent 4 '.' > tools/json/config.temp.json
+        ;;
+        "${commands[1]}")
+        echo "Generating JSON data..."
+        generate_json_data | jq --tab --indent 4 '.' > tools/json/config.temp.json
+        ;;
+        "${commands[2]}")
+        echo "Generating top menu..."
+        json_data=$(generate_json_data)
+        generate_top_menu "$json_data"
+        ;;
+	"${commands[3]}")
+	json_data=$(generate_json_data)
+	generate_menu "Software" "$json_data"
+        ;;
+        "${commands[-1]}")
+        echo "Usage: interface_json_data <command>"
+        echo "Available commands:"
+        echo -e "\traw\t- Set flat JSON data to a file for inspection not used"
+        echo -e "\tmnu\t- Generate the Menu JSON data to file for inspection not used"
+        echo -e "\ttop\t- Show the top menu using the JSON data."
+	echo -e "\tsub\t- Show the Software menu using the JSON data."
+        ;;
+	*)
+
+        generate_top_menu "$json_data"
+	;;
+    esac
 }
