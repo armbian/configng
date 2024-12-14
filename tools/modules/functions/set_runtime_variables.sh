@@ -26,7 +26,7 @@ function set_runtime_variables() {
 	# If any dependencies are missing, print a combined message and exit
 	if [[ ${#missing_dependencies[@]} -ne 0 ]]; then
 		if is_package_manager_running; then
-			sudo apt install ${missing_dependencies[*]}
+			pkg_install ${missing_dependencies[*]}
 		fi
 	fi
 
