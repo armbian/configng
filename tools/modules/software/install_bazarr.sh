@@ -14,7 +14,7 @@ function module_bazarr () {
 	local title="bazarr"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if check_if_installed docker-ce; then
+	if pkg_installed docker-ce; then
 		local container=$(docker container ls -a | mawk '/bazarr?( |$)/{print $1}')
 		local image=$(docker image ls -a | mawk '/bazarr?( |$)/{print $3}')
 	fi
@@ -26,7 +26,7 @@ function module_bazarr () {
 
 	case "$1" in
 		"${commands[0]}")
-			check_if_installed docker-ce || install_docker
+			pkg_installed docker-ce || install_docker
 			[[ -d "$BAZARR_BASE" ]] || mkdir -p "$BAZARR_BASE" || { echo "Couldn't create storage directory: $BAZARR_BASE"; exit 1; }
 			docker run -d \
 			--name=bazarr \

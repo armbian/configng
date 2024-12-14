@@ -16,7 +16,7 @@ function module_stirling () {
 	local title="stirling"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if check_if_installed docker-ce; then
+	if pkg_installed docker-ce; then
 		local container=$(docker container ls -a | mawk '/stirling-pdf?( |$)/{print $1}')
 		local image=$(docker image ls -a | mawk '/stirling-pdf?( |$)/{print $3}')
 	fi
@@ -28,7 +28,7 @@ function module_stirling () {
 
 	case "$1" in
 		"${commands[0]}")
-			check_if_installed docker-ce || install_docker
+			pkg_installed docker-ce || install_docker
 			[[ -d "$STIRLING_BASE" ]] || mkdir -p "$STIRLING_BASE" || { echo "Couldn't create storage directory: $STIRLING_BASE"; exit 1; }
 			docker run -d \
 			-p 8077:8080 \

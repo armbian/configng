@@ -277,7 +277,7 @@ function module_armbian_firmware() {
 				apt_install_wrapper apt-get -y autopurge ${packages[@]}
 			else
 				${module_options["module_armbian_firmware,feature"]} ${commands[2]} "" "${version}" "hide" "" "true"
-				if check_if_installed ${packages[@]}; then
+				if pkg_installed ${packages[@]}; then
 					return 0
 				else
 					return 1
