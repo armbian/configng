@@ -50,7 +50,7 @@ module_haos() {
 			# https://github.com/armbian/os/blob/main/external/haos-agent.conf
 			# https://github.com/armbian/os/blob/main/external/haos-supervised-installer.conf
 
-			apt_install_wrapper apt-get -y install --download-only homeassistant-supervised os-agent
+			pkg_install --download-only homeassistant-supervised os-agent
 
 			# determine machine type
 			case "${ARCH}" in
@@ -61,7 +61,7 @@ module_haos() {
 			esac
 
 			# this we can't put behind wrapper
-			MACHINE="${MACHINE}" apt-get -y install homeassistant-supervised os-agent
+			MACHINE="${MACHINE}" pkg_install homeassistant-supervised os-agent
 
 			# workarounding supervisor loosing healthy state https://github.com/home-assistant/supervisor/issues/4381
 			cat <<- SUPERVISOR_FIX > "/usr/local/bin/supervisor_fix.sh"
@@ -124,7 +124,7 @@ module_haos() {
 			# disable service
 			systemctl disable supervisor-fix >/dev/null 2>&1
 			systemctl stop supervisor-fix >/dev/null 2>&1
-			apt_install_wrapper apt-get -y purge homeassistant-supervised os-agent
+			pkg_remove homeassistant-supervised os-agent
 			echo -e "Removing Home Assistant containers.\n\nPlease wait few minutes! "
 			if [[ "${container}" ]]; then
 				echo "${container}" | xargs docker stop >/dev/null 2>&1

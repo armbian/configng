@@ -24,24 +24,23 @@ function manage_desktops() {
 			case "$desktop" in
 				gnome)
 					echo "/usr/sbin/gdm3" > /etc/X11/default-display-manager
-					#apt_install_wrapper DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true apt-get -y install gdm3
+					#pkg_install gdm3
 				;;
 				kde-neon)
 					echo "/usr/sbin/sddm" > /etc/X11/default-display-manager
-					#apt_install_wrapper DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true apt-get -y install sddm
+					#pkg_install sddm
 				;;
 				*)
 					echo "/usr/sbin/lightdm" > /etc/X11/default-display-manager
-					#apt_install_wrapper DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true apt-get -y install lightdm
+					#pkg_install lightdm
 				;;
 			esac
 
 			# just make sure we have everything in order
-			apt_install_wrapper dpkg --configure -a
+			pkg_configure -a
 
 			# install desktop
-			export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
-			apt_install_wrapper apt-get -o Dpkg::Options::="--force-confold" -y --install-recommends install armbian-${DISTROID}-desktop-${desktop}
+			pkg_install -o Dpkg::Options::="--force-confold" --install-recommends armbian-${DISTROID}-desktop-${desktop}
 
 			# add user to groups
 			for additionalgroup in sudo netdev audio video dialout plugdev input bluetooth systemd-journal ssh; do
@@ -71,9 +70,8 @@ function manage_desktops() {
 		uninstall)
 			# we are uninstalling all variants until build time packages are fixed to prevent installing one over another
 			service display-manager stop
-			apt_install_wrapper apt-get -o Dpkg::Options::="--force-confold" -y --install-recommends purge armbian-${DISTROID}-desktop-$1 \
-			xfce4-session gnome-session slick-greeter lightdm gdm3 sddm cinnamon-session i3-wm
-			apt_install_wrapper apt-get -y autoremove
+			pkg_remove -o Dpkg::Options::="--force-confold" armbian-${DISTROID}-desktop-$1 \
+				xfce4-session gnome-session slick-greeter lightdm gdm3 sddm cinnamon-session i3-wm
 			# disable autologins
 			rm -f /etc/gdm3/custom.conf
 			rm -f /etc/sddm.conf.d/autologin.conf

@@ -33,12 +33,12 @@ function default_network_config() {
 		# exceptions
 		if [[ "${NETWORK_RENDERER}" == "NetworkManager" ]]; then
 			# uninstall packages
-			apt_install_wrapper apt-get -y purge hostapd
+			pkg_remove hostapd
 			netplan apply
 			nmcli con down br0
 		else
 			# uninstall packages
-			apt_install_wrapper apt-get -y purge hostapd networkd-dispatcher
+			pkg_remove hostapd networkd-dispatcher
 			# drop and delete bridge interface in case its there
 			if [[ -n $(ip link show type bridge) ]]; then
 				ip link set br0 down >/dev/null 2>&1

@@ -22,12 +22,12 @@ install_docker() {
 			cat <<- EOF > "/etc/apt/sources.list.d/docker.list"
 			deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker.gpg] https://download.docker.com/linux/${DISTRO,,} $DISTROID stable
 			EOF
-			apt_install_wrapper apt-get update
+			pkg_update
 			# Install docker
 			if [ "$1" = "engine" ]; then
-				apt_install_wrapper apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+				pkg_install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 			else
-				apt_install_wrapper apt-get -y install docker-ce docker-ce-cli containerd.io
+				pkg_install docker-ce docker-ce-cli containerd.io
 			fi
 			systemctl enable docker.service > /dev/null 2>&1
 			systemctl enable containerd.service > /dev/null 2>&1

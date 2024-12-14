@@ -18,7 +18,7 @@ function module_armbian_firmware() {
 		"${commands[0]}") # choose kernel from the list
 
 			# We are updating beta packages repository quite often. In order to make sure, update won't break, always update package list
-			apt_install_wrapper	apt-get update
+			pkg_update
 
 			# make sure to proceed if this variable is not defined. This can surface on some old builds
 			[[ -z "${KERNEL_TEST_TARGET}" ]] && KERNEL_TEST_TARGET="legacy,vendor,current,edge"
@@ -103,10 +103,10 @@ function module_armbian_firmware() {
 			for pkg in ${packages[@]}; do
 				purge_pkg=$(echo $pkg | sed -e 's/linux-image.*/linux-image*/;s/linux-dtb.*/linux-dtb*/;s/linux-headers.*/linux-headers*/;s/armbian-firmware.*/armbian-firmware*/')
 				# if test install is succesfull, proceed
-				apt_install_wrapper apt-get -y --simulate --download-only --allow-downgrades install "${pkg}"
+				pkg_install --simulate --download-only --allow-downgrades install "${pkg}"
 				if [[ $? == 0 ]]; then
-					apt_install_wrapper	apt-get -y purge "${purge_pkg}"
-					apt_install_wrapper apt-get --allow-downgrades -y install "${pkg}"
+					pkg_remove "${purge_pkg}"
+					pkg_install --allow-downgrades "${pkg}"
 				fi
 			done
 			if [[ -z "${headers}" ]]; then
@@ -238,7 +238,7 @@ function module_armbian_firmware() {
 				# performs list change & update if this is needed
 				if [[ "$repository" == "rolling" ]]; then
 					sed -i "s/http:\/\/[^ ]*/http:\/\/beta.armbian.com/" /etc/apt/sources.list.d/armbian.list
-					apt_install_wrapper	apt-get update
+					pkg_update
 				fi
 			else
 				if [[ "$repository" == "stable" && "$status" == "status" ]]; then
@@ -249,7 +249,7 @@ function module_armbian_firmware() {
 				# performs list change & update if this is needed
 				if [[ "$repository" == "stable" ]]; then
 					sed -i "s/http:\/\/[^ ]*/http:\/\/apt.armbian.com/" /etc/apt/sources.list.d/armbian.list
-					apt_install_wrapper	apt-get update
+					pkg_update
 				fi
 			fi
 
@@ -270,11 +270,11 @@ function module_armbian_firmware() {
 					${module_options["module_armbian_firmware,feature"]} ${commands[1]} "" "${version}" "" "true"
 				else
 					# for non armbian builds
-					apt_install_wrapper apt-get install "linux-headers-$(uname -r | sed 's/'-$(dpkg --print-architecture)'//')"
+					pkg_install "linux-headers-$(uname -r | sed 's/'-$(dpkg --print-architecture)'//')"
 				fi
 			elif [[ "${command}" == "remove" ]]; then
 				${module_options["module_armbian_firmware,feature"]} ${commands[2]} "" "${version}" "hide" "" "true"
-				apt_install_wrapper apt-get -y autopurge ${packages[@]}
+				pkg_remove ${packages[@]}
 			else
 				${module_options["module_armbian_firmware,feature"]} ${commands[2]} "" "${version}" "hide" "" "true"
 				if pkg_installed ${packages[@]}; then

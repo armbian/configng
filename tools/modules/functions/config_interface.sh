@@ -460,7 +460,7 @@ see_current_apt() {
 		return 0 # The package lists are up-to-date
 	else
 		[[ "$update_apt" != "update" ]] && echo "Update the package lists." # Suggest updating
-		[[ "$update_apt" == "update" ]] && apt_install_wrapper apt-get update
+		[[ "$update_apt" == "update" ]] && pkg_update
 		return 0 # The package lists are not up-to-date
 	fi
 }
