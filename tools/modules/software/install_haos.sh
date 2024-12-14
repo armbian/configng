@@ -14,7 +14,7 @@ module_haos() {
 
 
 
-	if check_if_installed docker-ce; then
+	if pkg_installed docker-ce; then
 		local container=$(docker container ls -a | mawk '/home-assistant/{print $1}')
 		local image=$(docker image ls -a | mawk '/home-assistant/{print $3}')
 	fi
@@ -38,7 +38,7 @@ module_haos() {
 			echo
 		;;
 		install)
-			check_if_installed docker-ce || install_docker
+			pkg_installed docker-ce || install_docker
 
 			# this hack will allow running it on minimal image, but this has to be done properly in the network section, to allow easy switching
 			systemctl disable systemd-networkd

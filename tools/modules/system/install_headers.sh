@@ -42,11 +42,7 @@ function module_headers () {
 			rm -rf /usr/src/linux-headers*
 		;;
 		"${commands[2]}")
-			if check_if_installed ${install_pkg}; then
-				return 0
-			else
-				return 1
-			fi
+			pkg_installed ${install_pkg}
 		;;
 		"${commands[3]}")
 			echo -e "\nUsage: ${module_options["module_headers,feature"]} <command>"
@@ -58,7 +54,7 @@ function module_headers () {
 			echo
 		;;
 		*)
-		${module_options["module_headers,feature"]} ${commands[3]}
+			${module_options["module_headers,feature"]} ${commands[3]}
 		;;
 	esac
 }
