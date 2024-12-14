@@ -54,7 +54,7 @@ module_options+=(
 
 pkg_update()
 {
-	_pkg_have_stdin && debconf-apt-progress -- apt-get -y update "$@" || apt-get -y update "$@"
+	_pkg_have_stdin && debconf-apt-progress -- apt-get -y update || apt-get -y update
 }
 
 module_options+=(
