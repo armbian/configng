@@ -5,11 +5,11 @@ _pkg_have_stdin() { [[ -t 0 ]] }
 
 declare -A module_options
 module_options+=(
-	["package,author"]="@dimitry-ishenko"
-	["package,desc"]="Install package"
-	["package,example"]="pkg_install neovim"
-	["package,feature"]="pkg_install"
-	["package,status"]="Interface"
+	["pkg_install,author"]="@dimitry-ishenko"
+	["pkg_install,desc"]="Install package"
+	["pkg_install,example"]="pkg_install neovim"
+	["pkg_install,feature"]="pkg_install"
+	["pkg_install,status"]="Interface"
 )
 
 pkg_install()
@@ -18,11 +18,11 @@ pkg_install()
 }
 
 module_options+=(
-	["package,author"]="@dimitry-ishenko"
-	["package,desc"]="Check if package is installed"
-	["package,example"]="pkg_installed mc"
-	["package,feature"]="pkg_installed"
-	["package,status"]="Interface"
+	["pkg_installed,author"]="@dimitry-ishenko"
+	["pkg_installed,desc"]="Check if package is installed"
+	["pkg_installed,example"]="pkg_installed mc"
+	["pkg_installed,feature"]="pkg_installed"
+	["pkg_installed,status"]="Interface"
 )
 
 pkg_installed()
@@ -32,11 +32,11 @@ pkg_installed()
 }
 
 module_options+=(
-	["package,author"]="@dimitry-ishenko"
-	["package,desc"]="Remove package"
-	["package,example"]="pkg_remove nmap"
-	["package,feature"]="pkg_remove"
-	["package,status"]="Interface"
+	["pkg_remove,author"]="@dimitry-ishenko"
+	["pkg_remove,desc"]="Remove package"
+	["pkg_remove,example"]="pkg_remove nmap"
+	["pkg_remove,feature"]="pkg_remove"
+	["pkg_remove,status"]="Interface"
 )
 
 pkg_remove()
@@ -45,11 +45,11 @@ pkg_remove()
 }
 
 module_options+=(
-	["package,author"]="@dimitry-ishenko"
-	["package,desc"]="Update package repository"
-	["package,example"]="pkg_update"
-	["package,feature"]="pkg_update"
-	["package,status"]="Interface"
+	["pkg_update,author"]="@dimitry-ishenko"
+	["pkg_update,desc"]="Update package repository"
+	["pkg_update,example"]="pkg_update"
+	["pkg_update,feature"]="pkg_update"
+	["pkg_update,status"]="Interface"
 )
 
 pkg_update()
@@ -58,11 +58,11 @@ pkg_update()
 }
 
 module_options+=(
-	["package,author"]="@dimitry-ishenko"
-	["package,desc"]="Upgrade installed packages"
-	["package,example"]="pkg_upgrade"
-	["package,feature"]="pkg_upgrade"
-	["package,status"]="Interface"
+	["pkg_upgrade,author"]="@dimitry-ishenko"
+	["pkg_upgrade,desc"]="Upgrade installed packages"
+	["pkg_upgrade,example"]="pkg_upgrade"
+	["pkg_upgrade,feature"]="pkg_upgrade"
+	["pkg_upgrade,status"]="Interface"
 )
 
 pkg_upgrade()
