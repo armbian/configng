@@ -5,6 +5,32 @@ _pkg_have_stdin() { [[ -t 0 ]] }
 
 declare -A module_options
 module_options+=(
+	["pkg_configure,author"]="@dimitry-ishenko"
+	["pkg_configure,desc"]="Configure an unconfigured package"
+	["pkg_configure,example"]="pkg_configure"
+	["pkg_configure,feature"]="pkg_configure"
+	["pkg_configure,status"]="Interface"
+)
+
+pkg_configure()
+{
+	_pkg_have_stdin && debconf-apt-progress -- dpkg --configure "$@" || dpkg --configure "$@"
+}
+
+module_options+=(
+	["pkg_full_upgrade,author"]="@dimitry-ishenko"
+	["pkg_full_upgrade,desc"]="Upgrade installed packages (potentially removing some)"
+	["pkg_full_upgrade,example"]="pkg_full_upgrade"
+	["pkg_full_upgrade,feature"]="pkg_full_upgrade"
+	["pkg_full_upgrade,status"]="Interface"
+)
+
+pkg_full_upgrade()
+{
+	_pkg_have_stdin && debconf-apt-progress -- apt-get -y full-upgrade "$@" || apt-get -y full-upgrade "$@"
+}
+
+module_options+=(
 	["pkg_install,author"]="@dimitry-ishenko"
 	["pkg_install,desc"]="Install package"
 	["pkg_install,example"]="pkg_install neovim"
