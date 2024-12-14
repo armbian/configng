@@ -5,7 +5,7 @@ module_options+=(
 	["apt_install_wrapper,feature"]="apt_install_wrapper"
 	["apt_install_wrapper,desc"]="Install wrapper"
 	["apt_install_wrapper,example"]="apt_install_wrapper apt-get -y purge armbian-zsh"
-	["apt_install_wrapper,status"]="Active"
+	["apt_install_wrapper,status"]="Deprecated"
 )
 #
 # @description Use TUI / GUI for apt install if exists
