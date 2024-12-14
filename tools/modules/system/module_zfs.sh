@@ -23,11 +23,11 @@ function module_zfs () {
 			if ! module_armbian_firmware headers status; then
 				module_armbian_firmware headers install
 			fi
-			DEBIAN_FRONTEND=noninteractive apt-get -y install zfsutils-linux zfs-dkms
+			pkg_install zfsutils-linux zfs-dkms
 		;;
 		"${commands[1]}")
 			module_armbian_firmware headers remove
-			apt_install_wrapper apt-get -y autopurge zfsutils-linux zfs-dkms
+			pkg_remove zfsutils-linux zfs-dkms
 		;;
 		"${commands[2]}")
 			pkg_installed zfsutils-linux

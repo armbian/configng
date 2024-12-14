@@ -112,7 +112,7 @@ function network_config() {
 				if [[ -f /etc/netplan/armbian.yaml && "$(netplan get bridges)" != "null" ]]; then
 				ip link set ${adapter} up
 				default_wireless_network_config "${yamlfile}" "${adapter}"
-				apt_install_wrapper apt-get -y --no-install-recommends install hostapd networkd-dispatcher bridge-utils
+				pkg_install --no-install-recommends hostapd networkd-dispatcher bridge-utils
 				SELECTED_SSID=$($DIALOG --title "Enter SSID for AP" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
 				if [[ -n "${SELECTED_SSID}" && $? == 0 ]]; then
 					SELECTED_PASSWORD=$($DIALOG --title "Enter new password for $SELECTED_SSID" --passwordbox "\nDefault password: 12345678\n" 9 50 "12345678" 3>&1 1>&2 2>&3)
