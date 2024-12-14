@@ -1,7 +1,7 @@
 # package.sh
 
 # internal function
-_pkg_have_stdin() { [[ -t 0 ]] }
+_pkg_have_stdin() { [[ -t 0 ]]; }
 
 declare -A module_options
 module_options+=(
