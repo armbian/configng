@@ -4,7 +4,7 @@ module_options+=(
 	["check_if_installed,feature"]="check_if_installed"
 	["check_if_installed,desc"]="Migrated procedures from Armbian config."
 	["check_if_installed,example"]="check_if_installed nano"
-	["check_if_installed,status"]="Active"
+	["check_if_installed,status"]="Deprecated"
 )
 #
 # check dpkg status of $1 -- currently only 'not installed at all' case caught
