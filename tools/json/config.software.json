@@ -253,7 +253,7 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "systemctl is-active --quiet service display-manager"
+                            "condition": "srv_active display-manager"
                         }
                     ]
                 },
@@ -348,7 +348,7 @@
                             "command": [
                                 "get_user_continue \"This operation will purge avahi-daemon \nDo you wish to continue?\" process_input",
                                 "check_if_installed avahi-daemon",
-                                "systemctl stop avahi-daemon avahi-daemon.socket",
+                                "srv_stop avahi-daemon avahi-daemon.socket",
                                 "debconf-apt-progress -- apt-get -y purge avahi-daemon"
                             ],
                             "status": "Stable",
@@ -1161,22 +1161,22 @@
                             "id": "MAN003",
                             "description": "Start Cockpit Service",
                             "command": [
-                                "sudo systemctl enable --now cockpit.socket | show_infobox "
+                                "srv_enable --now cockpit.socket | show_infobox "
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "check_if_installed cockpit && ! systemctl is-enabled cockpit.socket > /dev/null 2>&1"
+                            "condition": "check_if_installed cockpit && ! srv_enabled cockpit.socket > /dev/null 2>&1"
                         },
                         {
                             "id": "MAN004",
                             "description": "Stop Cockpit Service",
                             "command": [
-                                "systemctl stop cockpit cockpit.socket",
-                                "systemctl disable cockpit.socket | show_infobox "
+                                "srv_stop cockpit cockpit.socket",
+                                "srv_disable cockpit.socket | show_infobox "
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "check_if_installed cockpit && systemctl is-enabled cockpit.socket > /dev/null 2>&1"
+                            "condition": "check_if_installed cockpit && srv_enabled cockpit.socket > /dev/null 2>&1"
                         },
                         {
                             "id": "MAN005",
