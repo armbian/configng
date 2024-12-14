@@ -33,6 +33,9 @@ module_options+=(
 function see_menu() {
 	# Check if the function name was provided
 	local function_name="$1"
+	local status="$ARMBIAN $KERNELID ($DISTRO $DISTROID)"
+	local backtitle="$BACKTITLE"
+
 
 	# Get the help message from the specified function
 	help_message=$("$function_name" help)
@@ -41,17 +44,19 @@ function see_menu() {
 	options=()
 		while IFS= read -r line; do
 		if [[ $line =~ ^[[:space:]]*([a-zA-Z0-9_-]+)[[:space:]]*-\s*(.*)$ ]]; then
-			options+=("${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}")
+			options+=("${BASH_REMATCH[1]}" " - ${BASH_REMATCH[2]}")
 		fi
 		done <<< "$help_message"
 
 	# Display menu based on DIALOG tool
 	case $DIALOG in
 		"dialog")
-		choice=$(dialog --title "${function_name^} Management" --menu "Choose an option:" 15 60 9 "${options[@]}" 2>&1 >/dev/tty)
+		choice=$(dialog --backtitle "$backtitle" --title "${function_name^} Management" --menu "Choose an option:" 15 80 9 "${options[@]}" 2>&1 >/dev/tty)
 		;;
 		"whiptail")
-		choice=$(whiptail --title "${function_name^} Management" --menu "Choose an option:" 15 60 9 "${options[@]}" 3>&1 1>&2 2>&3)
+		#choice=$(whiptail --backtitle "$backtitle" --title "${function_name^} Management" --menu "Choose an option:" 15 80 9 "${options[@]}" 3>&1 1>&2 2>&3)
+		choice=$(whiptail --backtitle "$backtitle" --title "$TITLE" --menu "$status" 0 80 9 "${options[@]}" \
+			--ok-button Select --cancel-button Exit 3>&1 1>&2 2>&3)
 		;;
 		"read")
 		echo "Available options:"

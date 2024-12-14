@@ -1,322 +1,46 @@
 {
     "menu": [
         {
-            "id": "Software",
-            "description": "Run/Install 3rd party applications",
+            "id": "Template",
+            "description": "Description ... ",
             "sub": [
                 {
-                    "id": "Modules",
-                    "description": "Various installable modules",
+                    "id": "UID01",
+                    "description": "Description ... ",
+                    "prompt": "",
                     "sub": [
                         {
-                            "id": "MOD006",
-                            "description": "Webmin setup and service setting. (module_webmin)",
+                            "id": "SUB02",
+                            "description": "Description ... ",
                             "command": [
-                                "see_menu module_webmin"
+                                "show_message <<< \" Message ... \""
                             ],
-                            "options": "help help install remove start stop enable disable status check status",
-                            "status": "review",
-                            "condition": "",
-                            "author": "@Tearran"
-                        },
-                        {
-                            "id": "MOD007",
-                            "description": "Hos container install and configure (module_haos)",
-                            "command": [
-                                "see_menu module_haos"
-                            ],
-                            "options": "help help install uninstall status",
-                            "status": "review",
-                            "condition": "",
-                            "author": "@igorpecovnik"
-                        },
-                        {
-                            "id": "MOD010",
-                            "description": "Install watchtower container (module_watchtower)",
-                            "command": [
-                                "see_menu module_watchtower"
-                            ],
-                            "options": "help install remove status help status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": "@armbian"
-                        },
-                        {
-                            "id": "MOD012",
-                            "description": "Install bazarr container (module_bazarr)",
-                            "command": [
-                                "see_menu module_bazarr"
-                            ],
-                            "options": "help install remove status help status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": "@igorpecovnik"
-                        },
-                        {
-                            "id": "MOD013",
-                            "description": "Install headers container (module_headers)",
-                            "command": [
-                                "see_menu module_headers"
-                            ],
-                            "options": "help install remove status help status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": "@armbian"
-                        },
-                        {
-                            "id": "MOD016",
-                            "description": "Install phpmyadmin container (module_phpmyadmin)",
-                            "command": [
-                                "see_menu module_phpmyadmin"
-                            ],
-                            "options": "help install remove purge status help status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": ""
-                        },
-                        {
-                            "id": "MOD017",
-                            "description": "Install stirling container (module_stirling)",
-                            "command": [
-                                "see_menu module_stirling"
-                            ],
-                            "options": "help install remove purge status help status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": "@Frooodle"
-                        },
-                        {
-                            "id": "MOD018",
-                            "description": "Install sonarr container (module_sonarr)",
-                            "command": [
-                                "see_menu module_sonarr"
-                            ],
-                            "options": "help install remove status help status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": "@armbian"
-                        },
-                        {
-                            "id": "MOD021",
-                            "description": "Install jellyseerr container (module_jellyseerr)",
-                            "command": [
-                                "see_menu module_jellyseerr"
-                            ],
-                            "options": "help install remove purge status help status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": "@armbian"
-                        },
-                        {
-                            "id": "MOD024",
-                            "description": "Module for Armbian firmware manipulating. (module_armbian_firmware)",
-                            "command": [
-                                "see_menu module_armbian_firmware"
-                            ],
-                            "options": "help select install show hold unhold repository headers help status",
-                            "status": "review",
-                            "condition": "",
-                            "author": "@igorpecovnik"
-                        },
-                        {
-                            "id": "MOD032",
-                            "description": "Install/uninstall/check status of portainer container (module_portainer)",
-                            "command": [
-                                "see_menu module_portainer"
-                            ],
-                            "options": "help help install uninstall status status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": "@armbian"
-                        },
-                        {
-                            "id": "MOD035",
-                            "description": "Install zfs filesystem support (module_zfs)",
-                            "command": [
-                                "see_menu module_zfs"
-                            ],
-                            "options": "help install remove status kernel_max zfs_version zfs_installed_version help status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": "@igorpecovnik"
-                        },
-                        {
-                            "id": "MOD038",
-                            "description": "Install lidarr container (module_lidarr)",
-                            "command": [
-                                "see_menu module_lidarr"
-                            ],
-                            "options": "help install remove status help status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": "@armbian"
-                        },
-                        {
-                            "id": "MOD041",
-                            "description": "Install deluge container (module_deluge)",
-                            "command": [
-                                "see_menu module_deluge"
-                            ],
-                            "options": "help install remove status help status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": "@armbian"
-                        },
-                        {
-                            "id": "MOD047",
-                            "description": "Install radarr container (module_radarr)",
-                            "command": [
-                                "see_menu module_radarr"
-                            ],
-                            "options": "help install remove status help status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": "@armbian"
-                        },
-                        {
-                            "id": "MOD050",
-                            "description": "Install qbittorrent container (module_qbittorrent)",
-                            "command": [
-                                "see_menu module_qbittorrent"
-                            ],
-                            "options": "help install remove status help status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": "@armbian"
-                        },
-                        {
-                            "id": "MOD052",
-                            "description": "Install transmission container (module_transmission)",
-                            "command": [
-                                "see_menu module_transmission"
-                            ],
-                            "options": "help install remove status help status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": "@armbian"
-                        },
-                        {
-                            "id": "MOD053",
-                            "description": "Install nextcloud container (module_nextcloud)",
-                            "command": [
-                                "see_menu module_nextcloud"
-                            ],
-                            "options": "help install remove purge status help status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": ""
-                        },
-                        {
-                            "id": "MOD057",
-                            "description": "Install medusa container (module_medusa)",
-                            "command": [
-                                "see_menu module_medusa"
-                            ],
-                            "options": "help install remove status help status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": "@armbian"
-                        },
-                        {
-                            "id": "MOD058",
-                            "description": "Install syncthing container (module_syncthing)",
-                            "command": [
-                                "see_menu module_syncthing"
-                            ],
-                            "options": "help install remove purge status help status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": ""
-                        },
-                        {
-                            "id": "MOD060",
-                            "description": "Install owncloud container (module_owncloud)",
-                            "command": [
-                                "see_menu module_owncloud"
-                            ],
-                            "options": "help install remove purge status help status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": "@armbian"
-                        },
-                        {
-                            "id": "MOD061",
-                            "description": "Install netdata container (module_netdata)",
-                            "command": [
-                                "see_menu module_netdata"
-                            ],
-                            "options": "help install remove purge status help status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": "@armbian"
-                        },
-                        {
-                            "id": "MOD067",
-                            "description": "Install readarr container (module_readarr)",
-                            "command": [
-                                "see_menu module_readarr"
-                            ],
-                            "options": "help install remove status help status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": "@armbian"
-                        },
-                        {
-                            "id": "MOD068",
-                            "description": "Install uptimekuma container (module_uptimekuma)",
-                            "command": [
-                                "see_menu module_uptimekuma"
-                            ],
-                            "options": "help install remove purge status help status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": "@armbian"
-                        },
-                        {
-                            "id": "MOD075",
-                            "description": "Install sabnzbd container (module_sabnzbd)",
-                            "command": [
-                                "see_menu module_sabnzbd"
-                            ],
-                            "options": "help install remove status help status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": "@armbian"
-                        },
-                        {
-                            "id": "MOD078",
-                            "description": "Install mariadb container (module_mariadb)",
-                            "command": [
-                                "see_menu module_mariadb"
-                            ],
-                            "options": "help install remove purge status help status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": ""
-                        },
-                        {
-                            "id": "MOD081",
-                            "description": "Install prowlarr container (module_prowlarr)",
-                            "command": [
-                                "see_menu module_prowlarr"
-                            ],
-                            "options": "help install remove status help status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": "@armbian"
-                        },
-                        {
-                            "id": "MOD082",
-                            "description": "Install nfsd server (module_nfsd)",
-                            "command": [
-                                "see_menu module_nfsd"
-                            ],
-                            "options": "help install remove manage add status help status",
-                            "status": "Active",
-                            "condition": "",
-                            "author": "@igorpecovnik"
+                            "status": "",
+                            "author": "Github Username",
+                            "condition": ""
                         }
                     ]
+                },
+                {
+                    "id": "UID03",
+                    "description": "Description ... ",
+                    "command": [
+                        "show_message <<< \" Message ... \""
+                    ],
+                    "status": "",
+                    "author": "Github Username",
+                    "condition": ""
+                },
+                {
+                    "id": "UID04",
+                    "description": "Description  ... ",
+                    "prompt": "Prompt\nContinue?",
+                    "command": [
+                        "show_message <<< \" Message ... \""
+                    ],
+                    "status": "",
+                    "author": "Github Username",
+                    "condition": ""
                 }
             ]
         }

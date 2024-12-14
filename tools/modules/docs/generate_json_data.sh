@@ -163,15 +163,15 @@ function generate_json_data() {
 # Test Function
 interface_json_data_old() {
 
-# uncomment to set the data to a file
-#set_json_data > tools/json/config.temp.json
-generate_json_data | jq --indent 4 "." > tools/json/config.temp.json
-#json_file="$tools_dir/json/config.temp.json
+	# uncomment to set the data to a file
+	#set_json_data > tools/json/config.temp.json
+	generate_json_data | jq --indent 4 "." > tools/json/config.temp.json
+	#json_file="$tools_dir/json/config.temp.json
 
 	json_data=$(generate_json_data)
 	#generate_top_menu "$json_data"
 
-        generate_menu "Software" "$json_data"
+	generate_menu "Software" "$json_data"
 }
 
 
@@ -203,10 +203,6 @@ interface_json_data() {
 		echo -e "\tmnu\t- Generate the Menu JSON data to file for inspection not used"
 		echo -e "\ttop\t- Show the top menu using the JSON data."
 		echo -e "\tsub\t- Show the Software menu using the JSON data."
-	;;
-	*)
-
-	generate_top_menu "$json_data"
 	;;
 	esac
 }
