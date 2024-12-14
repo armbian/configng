@@ -5,6 +5,20 @@ _srv_inside_jail() { systemd-detect-virt -qc; }
 
 declare -A module_options
 module_options+=(
+	["srv_active,author"]="@dimitry-ishenko"
+	["srv_active,desc"]="Check if service is active"
+	["srv_active,example"]="srv_active ssh.service"
+	["srv_active,feature"]="srv_active"
+	["srv_active,status"]="Interface"
+)
+
+srv_active()
+{
+	# ignore inside container
+	_srv_inside_jail && return 1 || systemctl is-active --quiet "$@"
+}
+
+module_options+=(
 	["srv_disable,author"]="@dimitry-ishenko"
 	["srv_disable,desc"]="Disable service"
 	["srv_disable,example"]="srv_disable ssh.service"
