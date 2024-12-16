@@ -14,7 +14,7 @@ function module_jellyseerr () {
 	local title="jellyseerr"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if check_if_installed docker-ce; then
+	if pkg_installed docker-ce; then
 		local container=$(docker container ls -a | mawk '/jellyseerr?( |$)/{print $1}')
 		local image=$(docker image ls -a | mawk '/jellyseerr?( |$)/{print $3}')
 	fi
@@ -26,7 +26,7 @@ function module_jellyseerr () {
 
 	case "$1" in
 		"${commands[0]}")
-			check_if_installed docker-ce || install_docker
+			pkg_installed docker-ce || install_docker
 			[[ -d "$JELLYSEERR_BASE" ]] || mkdir -p "$JELLYSEERR_BASE" || { echo "Couldn't create storage directory: $JELLYSEERR_BASE"; exit 1; }
 			docker run -d \
 			--name jellyseerr \

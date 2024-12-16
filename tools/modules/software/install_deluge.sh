@@ -14,7 +14,7 @@ function module_deluge () {
 	local title="deluge"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if check_if_installed docker-ce; then
+	if pkg_installed docker-ce; then
 		local container=$(docker container ls -a | mawk '/deluge?( |$)/{print $1}')
 		local image=$(docker image ls -a | mawk '/deluge?( |$)/{print $3}')
 	fi
@@ -26,7 +26,7 @@ function module_deluge () {
 
 	case "$1" in
 		"${commands[0]}")
-			check_if_installed docker-ce || install_docker
+			pkg_installed docker-ce || install_docker
 			[[ -d "$DELUGE_BASE" ]] || mkdir -p "$DELUGE_BASE" || { echo "Couldn't create storage directory: $DELUGE_BASE"; exit 1; }
 			docker run -d \
 			--name=deluge \

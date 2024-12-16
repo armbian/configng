@@ -12,7 +12,7 @@ module_options+=(
 #
 function pi_hole () {
 
-	if check_if_installed docker-ce; then
+	if pkg_installed docker-ce; then
 		local container=$(docker container ls -a | mawk '/pihole?( |$)/{print $1}')
 		local image=$(docker image ls -a | mawk '/pihole?( |$)/{print $3}')
 	fi
@@ -39,7 +39,7 @@ function pi_hole () {
 		;;
 		install)
 
-			check_if_installed docker-ce || install_docker
+			pkg_installed docker-ce || install_docker
 
 			# disable dns within systemd-resolved
 			if systemctl is-active --quiet systemd-resolved.service && ! grep -q "^DNSStubListener=no" /etc/systemd/resolved.conf; then

@@ -16,7 +16,7 @@ function module_syncthing () {
 	local title="syncthing"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if check_if_installed docker-ce; then
+	if pkg_installed docker-ce; then
 		local container=$(docker container ls -a | mawk '/syncthing?( |$)/{print $1}')
 		local image=$(docker image ls -a | mawk '/syncthing?( |$)/{print $3}')
 	fi
@@ -28,7 +28,7 @@ function module_syncthing () {
 
 	case "$1" in
 		"${commands[0]}")
-			check_if_installed docker-ce || install_docker
+			pkg_installed docker-ce || install_docker
 			[[ -d "$SYNCTHING_BASE" ]] || mkdir -p "$SYNCTHING_BASE" || { echo "Couldn't create storage directory: $SYNCTHING_BASE"; exit 1; }
 			docker run -d \
 			--name=syncthing \

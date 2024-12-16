@@ -22,11 +22,11 @@ openhab() {
 			echo "deb [signed-by=/usr/share/keyrings/azul.gpg] https://repos.azul.com/zulu/deb stable main" > "/etc/apt/sources.list.d/zulu.list"
 			echo "deb [signed-by=/usr/share/keyrings/openhab.gpg] https://openhab.jfrog.io/artifactory/openhab-linuxpkg stable main" > "/etc/apt/sources.list.d/openhab.list"
 
-			apt_install_wrapper apt-get update
+			pkg_update
 
 			# Optional preinstall top 10 tools
-			apt_install_wrapper apt-get -y install zulu17-jdk
-			apt_install_wrapper apt-get -y install openhab openhab-addons
+			pkg_install zulu17-jdk
+			pkg_install openhab openhab-addons
 			systemctl daemon-reload 2> /dev/null
 			systemctl enable openhab.service 2> /dev/null
 			systemctl start openhab.service 2> /dev/null
@@ -35,7 +35,7 @@ openhab() {
 
 		uninstall)
 
-			apt_install_wrapper apt-get -y remove zulu17-jdk openhab openhab-addons
+			pkg_remove zulu17-jdk openhab openhab-addons
 			systemctl disable openhab.service 2> /dev/null
 			rm -f /usr/share/keyrings/openhab.gpg /usr/share/keyrings/azul.gpg
 			rm -f /etc/apt/sources.list.d/zulu.list /etc/apt/sources.list.d/openhab.list

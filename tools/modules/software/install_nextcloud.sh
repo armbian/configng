@@ -16,7 +16,7 @@ function module_nextcloud () {
 	local title="nextcloud"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if check_if_installed docker-ce; then
+	if pkg_installed docker-ce; then
 		local container=$(docker container ls -a | mawk '/nextcloud?( |$)/{print $1}')
 		local image=$(docker image ls -a | mawk '/nextcloud?( |$)/{print $3}')
 	fi
@@ -28,7 +28,7 @@ function module_nextcloud () {
 
 	case "$1" in
 		"${commands[0]}")
-			check_if_installed docker-ce || install_docker
+			pkg_installed docker-ce || install_docker
 			[[ -d "$NEXTCLOUD_BASE" ]] || mkdir -p "$NEXTCLOUD_BASE" || { echo "Couldn't create storage directory: $NEXTCLOUD_BASE"; exit 1; }
 			docker run -d \
 			--name=nextcloud \

@@ -24,13 +24,13 @@ function module_nfsd () {
 
 	case "$1" in
 		"${commands[0]}")
-			apt_install_wrapper apt-get -y install nfs-common nfs-kernel-server
+			pkg_install nfs-common nfs-kernel-server
 			# add some exports
 			${module_options["module_nfsd,feature"]} ${commands[2]}
 			systemctl restart nfs-server.service
 		;;
 		"${commands[1]}")
-			apt_install_wrapper apt-get -y autopurge nfs-kernel-server
+			pkg_remove nfs-kernel-server
 		;;
 		"${commands[2]}")
 			while true; do

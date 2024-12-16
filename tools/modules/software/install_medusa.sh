@@ -15,7 +15,7 @@ function module_medusa () {
 	local title="Medusa"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if check_if_installed docker-ce; then
+	if pkg_installed docker-ce; then
 		local container=$(docker container ls -a | mawk '/medusa?( |$)/{print $1}')
 		local image=$(docker image ls -a | mawk '/medusa?( |$)/{print $3}')
 	fi
@@ -27,7 +27,7 @@ function module_medusa () {
 
 	case "$1" in
 		"${commands[0]}")
-			check_if_installed docker-ce || install_docker
+			pkg_installed docker-ce || install_docker
 			[[ -d "$MEDUSA_BASE" ]] || mkdir -p "$MEDUSA_BASE" || { echo "Couldn't create storage directory: $MEDUSA_BASE"; exit 1; }
 			docker run -d \
 			--name=medusa \

@@ -37,14 +37,14 @@ function default_wireless_network_config(){
 
 	# exceptions
 	if [[ "${NETWORK_RENDERER}" == "NetworkManager" ]]; then
-			# uninstall packages
-			apt_install_wrapper apt-get -y --no-install-recommends purge hostapd
-			systemctl restart NetworkManager
-		else
-			# uninstall packages
-			apt_install_wrapper apt-get -y --no-install-recommends purge hostapd networkd-dispatcher
-			brctl delif br0 $adapter 2> /dev/null
-			networkctl reconfigure br0
+		# uninstall packages
+		pkg_remove hostapd
+		systemctl restart NetworkManager
+	else
+		# uninstall packages
+		pkg_remove hostapd networkd-dispatcher
+		brctl delif br0 $adapter 2> /dev/null
+		networkctl reconfigure br0
 	fi
 
 }

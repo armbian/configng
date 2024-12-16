@@ -235,7 +235,7 @@
                             "description": "Disable OTP authentication",
                             "command": [
                                 "clear",
-                                "! check_if_installed libpam-google-authenticator && ! check_if_installed qrencode || debconf-apt-progress -- apt-get -y purge libpam-google-authenticator qrencode",
+                                "! pkg_installed libpam-google-authenticator && ! pkg_installed qrencode || pkg_remove libpam-google-authenticator qrencode",
                                 "sed -i \"s/^#\\?ChallengeResponseAuthentication.*/ChallengeResponseAuthentication no/\" /etc/ssh/sshd_config || sed -i \"0,/KbdInteractiveAuthentication/s//ChallengeResponseAuthentication yes/\" /etc/ssh/sshd_config",
                                 "sed -i '/^auth required pam_google_authenticator.so nullok/ d' /etc/pam.d/sshd",
                                 "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
@@ -248,8 +248,8 @@
                             "id": "SY108",
                             "description": "Enable OTP authentication",
                             "command": [
-                                "check_if_installed libpam-google-authenticator || debconf-apt-progress -- apt-get -y install libpam-google-authenticator",
-                                "check_if_installed qrencode || debconf-apt-progress -- apt-get -y install qrencode",
+                                "pkg_installed libpam-google-authenticator || pkg_install libpam-google-authenticator",
+                                "pkg_installed qrencode || pkg_install qrencode",
                                 "sed -i \"s/^#\\?ChallengeResponseAuthentication.*/ChallengeResponseAuthentication yes/\" /etc/ssh/sshd_config",
                                 "sed -i $'/KbdInteractiveAuthentication/{iChallengeResponseAuthentication yes\\n:a;n;ba}' /etc/ssh/sshd_config || sed -n -i '/password updating/{p;:a;N;/@include common-password/!ba;s/.*\\n/auth required pam_google_authenticator.so nullok\\nauth required pam_permit.so\\n/};p' /etc/pam.d/sshd",
                                 "[ ! -f /root/.google_authenticator ] && qr_code generate",
@@ -257,7 +257,7 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! check_if_installed libpam-google-authenticator || ! check_if_installed qrencode || grep -q '^ChallengeResponseAuthentication no' /etc/ssh/sshd_config || ! grep -q 'ChallengeResponseAuthentication' /etc/ssh/sshd_config"
+                            "condition": "! pkg_installed libpam-google-authenticator || ! pkg_installed qrencode || grep -q '^ChallengeResponseAuthentication no' /etc/ssh/sshd_config || ! grep -q 'ChallengeResponseAuthentication' /etc/ssh/sshd_config"
                         },
                         {
                             "id": "SY109",
