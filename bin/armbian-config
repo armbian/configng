@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tput init
+[[ -t 1 ]] && tput init
 #
 # Language-based variable assignment for script directory path
 # This serves as a Rosetta Stone for developers,
@@ -38,24 +38,21 @@ declare -A module_options
 source "$lib_dir/config.functions.sh"
 # TODO move to runtime file
 set_runtime_variables
-check_distro_status
-echo "Loaded Runtime variables..." #| show_infobox ;
+#check_distro_status
+#echo "Loaded Runtime variables..." #| show_infobox ;
 # TODO
-echo "Loaded Dialog..." #| show_infobox ;
+[[ -t 1 ]] && echo "Loaded Dialog..." #| show_infobox ;
 source "$lib_dir/config.docs.sh"
-echo "Loaded Docs..." #| show_infobox ;
+#echo "Loaded Docs..." #| show_infobox ;
 source "$lib_dir/config.system.sh"
-echo "Loaded System helpers..." #| show_infobox ;
+#echo "Loaded System helpers..." #| show_infobox ;
 source "$lib_dir/config.network.sh"
-echo "Loaded Network helpers..." #| show_infobox ;
+#echo "Loaded Network helpers..." #| show_infobox ;
 source "$lib_dir/config.software.sh"
-echo "Loaded Software helpers..." #| show_infobox ;
+#echo "Loaded Software helpers..." #| show_infobox ;
 #
 # Loads the variables from beta armbian-config for runtime handling
 
-
-
-clear
 
 case "$1" in
 "--help")
