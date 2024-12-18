@@ -43,13 +43,13 @@ set_runtime_variables
 # TODO
 [[ -t 1 ]] && echo "Loaded Dialog..." #| show_infobox ;
 source "$lib_dir/config.docs.sh"
-#echo "Loaded Docs..." #| show_infobox ;
+[[ -t 1 ]] && echo "Loaded Docs..." #| show_infobox ;
 source "$lib_dir/config.system.sh"
-#echo "Loaded System helpers..." #| show_infobox ;
+[[ -t 1 ]] && echo "Loaded System helpers..." #| show_infobox ;
 source "$lib_dir/config.network.sh"
-#echo "Loaded Network helpers..." #| show_infobox ;
+[[ -t 1 ]] && echo "Loaded Network helpers..." #| show_infobox ;
 source "$lib_dir/config.software.sh"
-#echo "Loaded Software helpers..." #| show_infobox ;
+[[ -t 1 ]] && echo "Loaded Software helpers..." #| show_infobox ;
 #
 # Loads the variables from beta armbian-config for runtime handling
 
@@ -104,7 +104,7 @@ case "$1" in
 	# TODO remove interface spacifice function from docs into there own group files.
 	shift
 	option="$1"
-	[[ "$option" == "json" ]] && generate_json_options && exit 0 ;
+	[[ "$option" == "json" ]] && generate_json_options | jq --tab '.' && exit 0 ;
 	[[ "$option" == "docs" ]] && generate_readme && exit 0 ;
 	if [[ -z "$option" || "$option" == "help" ]] ; then
 		echo "Options:"
