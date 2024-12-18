@@ -98,7 +98,8 @@ case "$1" in
 "--api")
 	shift
 	# stage for seperation 
-	[[ -z "$@" ]] && generate_json_options ;
+	args="$@"
+	[[ -z "$args" ]] && generate_json_options ;
 	exit 0
 	;;
 "--noint")
