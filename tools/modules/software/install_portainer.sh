@@ -13,7 +13,7 @@ module_options+=(
 #
 module_portainer() {
 
-	if check_if_installed docker-ce; then
+	if pkg_installed docker-ce; then
 		local container=$(docker container ls -a | mawk '/portainer\/portainer(-ce)?( |$)/{print $1}')
 		local image=$(docker image ls -a | mawk '/portainer\/portainer(-ce)?( |$)/{print $3}')
 	fi
@@ -36,7 +36,7 @@ module_portainer() {
 			echo
 		;;
 		install)
-			check_if_installed docker-ce || install_docker
+			pkg_installed docker-ce || install_docker
 			docker volume ls -q | grep -xq 'portainer_data' || docker volume create portainer_data
 			docker run -d \
 			-p '9000:9000' \

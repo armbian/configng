@@ -35,18 +35,14 @@ function module_headers () {
 
 	case "$1" in
 		"${commands[0]}")
-			apt_install_wrapper apt-get -y install ${install_pkg} build-essential git || exit 1
+			pkg_install ${install_pkg} build-essential git || exit 1
 		;;
 		"${commands[1]}")
-			apt_install_wrapper apt-get -y autopurge ${install_pkg} build-essential || exit 1
+			pkg_remove ${install_pkg} build-essential || exit 1
 			rm -rf /usr/src/linux-headers*
 		;;
 		"${commands[2]}")
-			if check_if_installed ${install_pkg}; then
-				return 0
-			else
-				return 1
-			fi
+			pkg_installed ${install_pkg}
 		;;
 		"${commands[3]}")
 			echo -e "\nUsage: ${module_options["module_headers,feature"]} <command>"
@@ -58,7 +54,7 @@ function module_headers () {
 			echo
 		;;
 		*)
-		${module_options["module_headers,feature"]} ${commands[3]}
+			${module_options["module_headers,feature"]} ${commands[3]}
 		;;
 	esac
 }
