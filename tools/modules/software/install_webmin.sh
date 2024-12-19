@@ -41,22 +41,19 @@ function module_webmin() {
 		;;
 		"${commands[1]}")
 			## install webmin
-			apt update
-			apt install -y wget apt-transport-https
+			pkg_install --update wget apt-transport-https
 			echo "deb [signed-by=/usr/share/keyrings/webmin-archive-keyring.gpg] http://download.webmin.com/download/repository sarge contrib" | sudo tee /etc/apt/sources.list.d/webmin.list
 			wget -qO- http://www.webmin.com/jcameron-key.asc | gpg --dearmor | tee /usr/share/keyrings/webmin-archive-keyring.gpg > /dev/null
-			apt update
-			apt install -y webmin --install-recommends
+			pkg_install --update --install-recommends webmin
 			echo "Webmin installed successfully."
 		;;
 		"${commands[2]}")
 			## remove webmin
 			systemctl disable webmin
-			apt purge -y webmin
-			apt autoremove --purge -y
+			pkg_remove webmin
 			rm /etc/apt/sources.list.d/webmin.list
 			rm /usr/share/keyrings/webmin-archive-keyring.gpg
-			apt update
+			pkg_update
 			echo "Webmin removed successfully."
 		;;
 

@@ -266,94 +266,94 @@
                             "description": "Install realtime console network usage monitor (nload)",
                             "command": [
                                 "get_user_continue \"This operation will install nload.\n\nDo you wish to continue?\" process_input",
-                                "debconf-apt-progress -- apt-get -y install nload"
+                                "pkg_install nload"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! check_if_installed nload"
+                            "condition": "! pkg_installed nload"
                         },
                         {
                             "id": "NET002",
                             "description": "Remove realtime console network usage monitor (nload)",
                             "command": [
                                 "get_user_continue \"This operation will purge nload.\n\nDo you wish to continue?\" process_input",
-                                "debconf-apt-progress -- apt-get -y purge nload"
+                                "pkg_remove nload"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "check_if_installed nload"
+                            "condition": "pkg_installed nload"
                         },
                         {
                             "id": "NET003",
                             "description": "Install bandwidth measuring tool (iperf3)",
                             "command": [
                                 "get_user_continue \"This operation will install iperf3.\n\nDo you wish to continue?\" process_input",
-                                "debconf-apt-progress -- apt-get -y install iperf3"
+                                "pkg_install iperf3"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! check_if_installed iperf3"
+                            "condition": "! pkg_installed iperf3"
                         },
                         {
                             "id": "NET004",
                             "description": "Remove bandwidth measuring tool (iperf3)",
                             "command": [
                                 "get_user_continue \"This operation will purge iperf3.\n\nDo you wish to continue?\" process_input",
-                                "debconf-apt-progress -- apt-get -y purge iperf3"
+                                "pkg_remove iperf3"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "check_if_installed iperf3"
+                            "condition": "pkg_installed iperf3"
                         },
                         {
                             "id": "NET005",
                             "description": "Install IP LAN monitor (iptraf-ng)",
                             "command": [
                                 "get_user_continue \"This operation will install iptraf-ng.\n\nDo you wish to continue?\" process_input",
-                                "debconf-apt-progress -- apt-get -y install iptraf-ng"
+                                "pkg_install iptraf-ng"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! check_if_installed iptraf-ng"
+                            "condition": "! pkg_installed iptraf-ng"
                         },
                         {
                             "id": "NET006",
                             "description": "Remove IP LAN monitor (iptraf-ng)",
                             "command": [
                                 "get_user_continue \"This operation will purge nload.\n\nDo you wish to continue?\" process_input",
-                                "debconf-apt-progress -- apt-get -y purge iptraf-ng"
+                                "pkg_remove iptraf-ng"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "check_if_installed iptraf-ng"
+                            "condition": "pkg_installed iptraf-ng"
                         },
                         {
                             "id": "NET007",
                             "description": "Install hostname broadcast via mDNS (avahi-daemon)",
                             "command": [
                                 "get_user_continue \"This operation will install avahi-daemon and add configuration files.\nDo you wish to continue?\" process_input",
-                                "check_if_installed avahi-daemon",
-                                "debconf-apt-progress -- apt-get -y install avahi-daemon libnss-mdns",
+                                "pkg_installed avahi-daemon",
+                                "pkg_install avahi-daemon libnss-mdns",
                                 "cp /usr/share/doc/avahi-daemon/examples/sftp-ssh.service /etc/avahi/services/",
                                 "cp /usr/share/doc/avahi-daemon/examples/ssh.service /etc/avahi/services/",
                                 "service avahi-daemon restart"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! check_if_installed avahi-daemon"
+                            "condition": "! pkg_installed avahi-daemon"
                         },
                         {
                             "id": "NET008",
                             "description": "Remove hostname broadcast via mDNS (avahi-daemon)",
                             "command": [
                                 "get_user_continue \"This operation will purge avahi-daemon \nDo you wish to continue?\" process_input",
-                                "check_if_installed avahi-daemon",
+                                "pkg_installed avahi-daemon",
                                 "systemctl stop avahi-daemon avahi-daemon.socket",
-                                "debconf-apt-progress -- apt-get -y purge avahi-daemon"
+                                "pkg_remove avahi-daemon"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "check_if_installed avahi-daemon"
+                            "condition": "pkg_installed avahi-daemon"
                         }
                     ]
                 },
@@ -724,22 +724,22 @@
                             "description": "Install tools for cloning and managing repositories (git)",
                             "command": [
                                 "get_user_continue \"This operation will install git.\n\nDo you wish to continue?\" process_input",
-                                "debconf-apt-progress -- apt-get -y install git"
+                                "pkg_install git"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! check_if_installed git"
+                            "condition": "! pkg_installed git"
                         },
                         {
                             "id": "DEV002",
                             "description": "Remove tools for cloning and managing repositories (git)",
                             "command": [
                                 "get_user_continue \"This operation will remove git.\n\nDo you wish to continue?\" process_input",
-                                "debconf-apt-progress -- apt-get -y purge git"
+                                "pkg_remove git"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "check_if_installed git"
+                            "condition": "pkg_installed git"
                         }
                     ]
                 },
@@ -755,7 +755,7 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! check_if_installed openhab"
+                            "condition": "! pkg_installed openhab"
                         },
                         {
                             "id": "HA002",
@@ -765,7 +765,7 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "check_if_installed openhab"
+                            "condition": "pkg_installed openhab"
                         },
                         {
                             "id": "HA003",
@@ -775,7 +775,7 @@
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "! check_if_installed homeassistant-supervised && grep -q bookworm /etc/os-release"
+                            "condition": "! pkg_installed homeassistant-supervised && grep -q bookworm /etc/os-release"
                         },
                         {
                             "id": "HA004",
@@ -785,7 +785,7 @@
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "check_if_installed homeassistant-supervised"
+                            "condition": "pkg_installed homeassistant-supervised"
                         }
                     ]
                 },
@@ -812,7 +812,7 @@
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! check_if_installed docker-ce"
+                            "condition": "! pkg_installed docker-ce"
                         },
                         {
                             "id": "CON002",
@@ -823,18 +823,18 @@
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! check_if_installed docker-compose-plugin"
+                            "condition": "! pkg_installed docker-compose-plugin"
                         },
                         {
                             "id": "CON003",
                             "description": "Remove Docker",
                             "about": "This operation will purge Docker.",
                             "command": [
-                                "apt_install_wrapper apt -y purge docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras"
+                                "pkg_remove docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "check_if_installed docker-ce"
+                            "condition": "pkg_installed docker-ce"
                         },
                         {
                             "id": "CON004",
@@ -846,7 +846,7 @@
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! check_if_installed docker-ce && [ -d /var/lib/docker ]"
+                            "condition": "! pkg_installed docker-ce && [ -d /var/lib/docker ]"
                         },
                         {
                             "id": "CON005",
@@ -905,19 +905,19 @@
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! check_if_installed plexmediaserver"
+                            "condition": "! pkg_installed plexmediaserver"
                         },
                         {
                             "id": "MED002",
                             "description": "Remove Plex Media server",
                             "about": "This operation will purge Plex Media server.",
                             "command": [
-                                "apt_install_wrapper apt-get -y purge plexmediaserver",
+                                "pkg_remove plexmediaserver",
                                 "sed -i '/plexmediaserver.gpg/s/^/#/g' /etc/apt/sources.list.d/plexmediaserver.list"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "check_if_installed plexmediaserver"
+                            "condition": "pkg_installed plexmediaserver"
                         },
                         {
                             "id": "MED003",
@@ -928,18 +928,18 @@
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! check_if_installed emby-server"
+                            "condition": "! pkg_installed emby-server"
                         },
                         {
                             "id": "MED004",
                             "description": "Remove Emby server",
                             "about": "This operation will purge Emby server.",
                             "command": [
-                                "apt_install_wrapper apt -y purge emby-server"
+                                "pkg_remove emby-server"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "check_if_installed emby-server"
+                            "condition": "pkg_installed emby-server"
                         },
                         {
                             "id": "MED010",
@@ -1140,22 +1140,22 @@
                             "about": "This operation will install Cockpit.\ncockpit cockpit-ws cockpit-system cockpit-storaged",
                             "command": [
                                 "see_current_apt update",
-                                "apt_install_wrapper apt -y install cockpit cockpit-ws cockpit-system cockpit-storaged "
+                                "pkg_install cockpit cockpit-ws cockpit-system cockpit-storaged "
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! check_if_installed cockpit"
+                            "condition": "! pkg_installed cockpit"
                         },
                         {
                             "id": "MAN002",
                             "description": "Purge Cockpit web-based management tool",
                             "about": "This operation will purge Cockpit.",
                             "command": [
-                                "apt_install_wrapper apt -y purge cockpit"
+                                "pkg_remove cockpit"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "check_if_installed cockpit"
+                            "condition": "pkg_installed cockpit"
                         },
                         {
                             "id": "MAN003",
@@ -1165,7 +1165,7 @@
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "check_if_installed cockpit && ! systemctl is-enabled cockpit.socket > /dev/null 2>&1"
+                            "condition": "pkg_installed cockpit && ! systemctl is-enabled cockpit.socket > /dev/null 2>&1"
                         },
                         {
                             "id": "MAN004",
@@ -1176,7 +1176,7 @@
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "check_if_installed cockpit && systemctl is-enabled cockpit.socket > /dev/null 2>&1"
+                            "condition": "pkg_installed cockpit && systemctl is-enabled cockpit.socket > /dev/null 2>&1"
                         },
                         {
                             "id": "MAN005",
