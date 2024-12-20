@@ -47,6 +47,9 @@ function module_zfs () {
 				zfs --version 2>/dev/null| head -1 | cut -d"-" -f2
 			fi
 		;;
+		# add to import pool
+		# sudo zpool import | grep "pool:"
+		# sudo zpool import -f $POOL
 		"${commands[6]}")
 			echo -e "\nUsage: ${module_options["module_zfs,feature"]} <command>"
 			echo -e "Commands:  ${module_options["module_zfs,example"]}"
