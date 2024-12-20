@@ -542,8 +542,8 @@
                             "condition": "module_lidarr status"
                         },
                         {
-                            "id": "DOW023",
-                            "description": "Install Readarr",
+                            "id": "REDR01",
+                            "description": "Readarr Install",
                             "command": [
                                 "module_readarr install"
                             ],
@@ -552,14 +552,24 @@
                             "condition": "! module_readarr status"
                         },
                         {
-                            "id": "DOW024",
-                            "description": "Remove Readarr",
+                            "id": "REDR02",
+                            "description": "Readarr Remove",
                             "command": [
                                 "module_readarr remove"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "module_readarr status"
+                        },
+                        {
+                            "id": "REDR03",
+                            "description": "Readarr purge data folder",
+                            "command": [
+                                "module_readarr purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_readarr status && [[ -d \"${SOFTWARE_FOLDER}/readarr\" ]]"
                         },
                         {
                             "id": "DOW025",
@@ -889,6 +899,36 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "module_watchtower status"
+                        },
+                        {
+                            "id": "SWAG01",
+                            "description": "SWAG install",
+                            "command": [
+                                "module_swag install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_swag status"
+                        },
+                        {
+                            "id": "SWAG02",
+                            "description": "SWAG remove",
+                            "command": [
+                                "module_swag remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_swag status"
+                        },
+                        {
+                            "id": "SWAG03",
+                            "description": "SWAG purge data folder",
+                            "command": [
+                                "module_swag purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_swag status && [[ -d \"${SOFTWARE_FOLDER}/swag\" ]]"
                         }
                     ]
                 },

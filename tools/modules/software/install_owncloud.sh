@@ -30,10 +30,11 @@ function module_owncloud () {
 			[[ -d "$OWNCLOUD_BASE" ]] || mkdir -p "$OWNCLOUD_BASE" || { echo "Couldn't create storage directory: $OWNCLOUD_BASE"; exit 1; }
 			docker run -d \
 			--name=owncloud \
+			--net=lsio \
 			-e PUID=1000 \
 			-e PGID=1000 \
 			-e TZ="$(cat /etc/timezone)" \
-			-e "OWNCLOUD_TRUSTED_DOMAINS=${LOCALIPADD}" \
+			-e "OWNCLOUD_TRUSTED_DOMAINS=${LOCALIPADD},imola.armbian.com" \
 			-p 7787:8080 \
 			-v "${OWNCLOUD_BASE}/config:/config" \
 			-v "${OWNCLOUD_BASE}/data:/mnt/data" \
