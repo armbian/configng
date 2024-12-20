@@ -23,18 +23,14 @@ function module_zfs () {
 			if ! module_armbian_firmware headers status; then
 				module_armbian_firmware headers install
 			fi
-			DEBIAN_FRONTEND=noninteractive apt-get -y install zfsutils-linux zfs-dkms
+			pkg_install zfsutils-linux zfs-dkms
 		;;
 		"${commands[1]}")
 			module_armbian_firmware headers remove
-			apt_install_wrapper apt-get -y autopurge zfsutils-linux zfs-dkms
+			pkg_remove zfsutils-linux zfs-dkms
 		;;
 		"${commands[2]}")
-			if check_if_installed zfsutils-linux; then
-				return 0
-			else
-				return 1
-			fi
+			pkg_installed zfsutils-linux
 		;;
 		"${commands[3]}")
 			echo "${ZFS_KERNEL_MAX}"
@@ -43,7 +39,7 @@ function module_zfs () {
 			echo "v${ZFS_DKMS_VERSION}"
 		;;
 		"${commands[5]}")
-			if check_if_installed zfsutils-linux; then
+			if pkg_installed zfsutils-linux; then
 				zfs --version 2>/dev/null| head -1 | cut -d"-" -f2
 			fi
 		;;
@@ -60,7 +56,7 @@ function module_zfs () {
 			echo
 		;;
 		*)
-		${module_options["module_zfs,feature"]} ${commands[6]}
+			${module_options["module_zfs,feature"]} ${commands[6]}
 		;;
 	esac
 }

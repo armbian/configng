@@ -26,7 +26,7 @@ function set_runtime_variables() {
 	# If any dependencies are missing, print a combined message and exit
 	if [[ ${#missing_dependencies[@]} -ne 0 ]]; then
 		if is_package_manager_running; then
-			sudo apt install ${missing_dependencies[*]}
+			pkg_install ${missing_dependencies[*]}
 		fi
 	fi
 
@@ -45,8 +45,7 @@ function set_runtime_variables() {
 		if is_package_manager_running; then
 			sleep 3
 		fi
-		debconf-apt-progress -- apt-get update
-		debconf-apt-progress -- apt -y -qq --allow-downgrades --no-install-recommends install lsb-release
+		pkg_install --update --allow-downgrades --no-install-recommends lsb-release
 	fi
 
 	[[ -f /etc/armbian-release ]] && source /etc/armbian-release && ARMBIAN="Armbian $VERSION $IMAGE_TYPE"
@@ -66,10 +65,13 @@ function set_runtime_variables() {
 	[[ -z "${DEFAULT_ADAPTER// /}" ]] && DEFAULT_ADAPTER="lo"
 	# zfs subsystem - determine if our kernel is not too recent
 	ZFS_DKMS_VERSION=$(LC_ALL=C apt-cache policy zfs-dkms | grep Candidate | xargs | cut -d" " -f2 | cut -c-5)
-	ZFS_KERNEL_MAX=$(wget -qO- https://github.com/openzfs/zfs/raw/refs/tags/zfs-${ZFS_DKMS_VERSION}/META | grep Maximum | cut -d" " -f2)
-	# count NFS clients that are connected to the system
-	NFS_CLIENTS_CONNECTED=($(ss | grep :nfs | awk '{print $NF}' | cut -d":" -f1))
-	NFS_CLIENTS_NUMBER="${#NFS_CLIENTS_CONNECTED[@]}"
+	ZFS_KERNEL_MAX=$(wget -qO- https://raw.githubusercontent.com/openzfs/zfs/refs/tags/zfs-${ZFS_DKMS_VERSION}/META | grep Maximum | cut -d" " -f2)
+	# sometimes Ubuntu sets higher version then existing tag. Lets probe previous version
+	if [[ -z "${ZFS_KERNEL_MAX}" ]]; then
+		local previous_version="$(printf "%03d" "$(expr "$(echo $ZFS_DKMS_VERSION | sed 's/\.//g')" - 1)")"
+		local previous_version=$(echo "${previous_version:0:1}.${previous_version:1:1}.${previous_version:2:1}")
+		ZFS_KERNEL_MAX=$(wget -qO- https://raw.githubusercontent.com/openzfs/zfs/refs/tags/zfs-${previous_version}/META | grep Maximum | cut -d" " -f2)
+	fi
 	# detect desktop
 	check_desktop
 
