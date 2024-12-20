@@ -136,7 +136,7 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! check_if_installed nfs-common"
+                            "condition": "! pkg_installed nfs-common"
                         },
                         {
                             "id": "NFS02",
@@ -146,12 +146,12 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "check_if_installed nfs-common"
+                            "condition": "pkg_installed nfs-common"
                         },
                         {
                             "id": "NFS05",
                             "description": "Manage NFS Server",
-                            "condition": "check_if_installed nfs-common",
+                            "condition": "pkg_installed nfs-common",
                             "sub": [
                                     {
                                         "id": "NFS06",
@@ -198,7 +198,7 @@
                         {
                             "id": "NFS20",
                             "description": "Manage NFS Client",
-                            "condition": "check_if_installed nfs-common",
+                            "condition": "pkg_installed nfs-common",
                             "sub": [
                                 {
                                     "id": "NFS21",
@@ -208,7 +208,7 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "check_if_installed nfs-common"
+                                    "condition": "pkg_installed nfs-common"
                                 }
                             ]
                         }

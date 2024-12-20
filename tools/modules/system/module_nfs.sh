@@ -14,8 +14,6 @@ function module_nfs () {
 	local title="nfs"
 	local condition=$(which "$title" 2>/dev/null)?
 
-	local package_name=nfs-common
-
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_nfs,example"]}"
 
@@ -23,15 +21,15 @@ function module_nfs () {
 
 	case "$1" in
 		"${commands[0]}")
-			apt_install_wrapper apt-get -y install $package_name
+			pkg_install nfs-common
 		;;
 		"${commands[1]}")
-			apt_install_wrapper apt-get -y autopurge $package_name
+			pkg_remove nfs-common
 		;;
 		"${commands[2]}")
 
-			if ! check_if_installed nmap; then
-				apt_install_wrapper apt-get -y install nmap
+			if ! pkg_installed nmap; then
+				pkg_install nmap
 			fi
 
 			LIST=($(nmap -oG - -p2049 ${LOCALSUBNET} | grep '/open/' | cut -d' ' -f2 | grep -v "${LOCALIPADD}"))

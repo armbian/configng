@@ -98,15 +98,15 @@ function module_nfsd () {
 			fi
 		;;
 		"${commands[4]}")
-			check_if_installed nfs-kernel-server
+			pkg_installed nfs-kernel-server
 		;;
 		"${commands[5]}")
 			show_message <<< $(printf '%s\n' "${NFS_CLIENTS_CONNECTED[@]}")
 		;;
 		"${commands[6]}")
 
-			if ! check_if_installed nmap; then
-				apt_install_wrapper apt-get -y install nmap
+			if ! pkg_installed nmap; then
+				pkg_install nmap
 			fi
 
 			LIST=($(nmap -oG - -p2049 ${LOCALSUBNET} | grep '/open/' | cut -d' ' -f2 | grep -v "${LOCALIPADD}"))
