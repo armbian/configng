@@ -30,7 +30,8 @@ function module_netdata () {
 			[[ -d "$NETDATA_BASE" ]] || mkdir -p "$NETDATA_BASE" || { echo "Couldn't create storage directory: $NETDATA_BASE"; exit 1; }
 			docker run -d --name=netdata \
 			--pid=host \
-			--network=host \
+			--net=lsio \
+			-p 19999:19999 \
 			-v "${NETDATA_BASE}/netdataconfig:/etc/netdata" \
 			-v "${NETDATA_BASE}/netdatalib:/var/lib/netdata" \
 			-v "${NETDATA_BASE}/netdatacache:/var/cache/netdata" \

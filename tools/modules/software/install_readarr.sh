@@ -2,7 +2,7 @@ module_options+=(
 	["module_readarr,author"]="@armbian"
 	["module_readarr,feature"]="module_readarr"
 	["module_readarr,desc"]="Install readarr container"
-	["module_readarr,example"]="install remove status help"
+	["module_readarr,example"]="install remove purge status help"
 	["module_readarr,port"]="8787"
 	["module_readarr,status"]="Active"
 	["module_readarr,arch"]="x86-64,arm64"
@@ -30,9 +30,10 @@ function module_readarr () {
 			[[ -d "$READARR_BASE" ]] || mkdir -p "$READARR_BASE" || { echo "Couldn't create storage directory: $READARR_BASE"; exit 1; }
 			docker run -d \
 			--name=readarr \
+			--net=lsio \
 			-e PUID=1000 \
 			-e PGID=1000 \
-			-e TZ=Etc/UTC \
+			-e TZ="$(cat /etc/timezone)" \
 			-p 8787:8787 \
 			-v "${READARR_BASE}/config:/config" \
 			-v "${READARR_BASE}/books:/books" `#optional` \
@@ -54,26 +55,29 @@ function module_readarr () {
 		"${commands[1]}")
 			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
 			[[ "${image}" ]] && docker image rm "$image" >/dev/null
-			[[ -n "${READARR_BASE}" && "${READARR_BASE}" != "/" ]] && rm -rf "${READARR_BASE}"
 		;;
 		"${commands[2]}")
+			[[ -n "${READARR_BASE}" && "${READARR_BASE}" != "/" ]] && rm -rf "${READARR_BASE}"
+		;;
+		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then
 				return 0
 			else
 				return 1
 			fi
 		;;
-		"${commands[3]}")
+		"${commands[4]}")
 			echo -e "\nUsage: ${module_options["module_readarr,feature"]} <command>"
 			echo -e "Commands:  ${module_options["module_readarr,example"]}"
 			echo "Available commands:"
 			echo -e "\tinstall\t- Install $title."
 			echo -e "\tstatus\t- Installation status $title."
 			echo -e "\tremove\t- Remove $title."
+			echo -e "\tremove\t- Purge $title."
 			echo
 		;;
 		*)
-		${module_options["module_readarr,feature"]} ${commands[3]}
+		${module_options["module_readarr,feature"]} ${commands[4]}
 		;;
 	esac
 }
