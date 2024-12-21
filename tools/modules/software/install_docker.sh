@@ -29,6 +29,21 @@ install_docker() {
 			else
 				pkg_install docker-ce docker-ce-cli containerd.io
 			fi
+
+			groupadd docker 2>/dev/null || true
+			usermod -aG docker $SUDO_USER
+			su -u $SUDO_USER -c "newgrp docker"
+
+			# add all local users to Docker group
+			#getent passwd |
+			#while IFS=: read -r username x uid gid gecos home shell; do
+			#	if [ ! -d "$home" ] || [ "$username" == 'root' ] || [ "$uid" -le 1000 ]; then
+			#		continue
+			#	fi
+			#usermod -aG docker ${username}
+			#su ${username} -c "newgrp docker"
+			#done
+			#newgrp docker
 			systemctl enable docker.service > /dev/null 2>&1
 			systemctl enable containerd.service > /dev/null 2>&1
 		fi
