@@ -549,8 +549,9 @@
                             "condition": "module_radarr status"
                         },
                         {
-                            "id": "DOW019",
-                            "description": "Install Bazarr",
+                            "id": "DOW100",
+                            "description": "Bazarr Install",
+                            "about": "This operation will install Bazarr container",
                             "command": [
                                 "module_bazarr install"
                             ],
@@ -559,14 +560,26 @@
                             "condition": "! module_bazarr status"
                         },
                         {
-                            "id": "DOW020",
-                            "description": "Remove Bazarr",
+                            "id": "DOW101",
+                            "description": "Bazarr Remove",
+                            "about": "This operation will remove Bazarr container",
                             "command": [
                                 "module_bazarr remove"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "module_bazarr status"
+                        },
+                        {
+                            "id": "DOW102",
+                            "description": "Bazarr Purge data folder",
+                            "about": "This operation will remove Bazarr data folder",
+                            "command": [
+                                "module_bazarr purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_bazarr status && [[ -d \"${SOFTWARE_FOLDER}/bazarr\" ]]"
                         },
                         {
                             "id": "DOW021",
