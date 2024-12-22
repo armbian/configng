@@ -5,6 +5,53 @@
             "description": "Run/Install 3rd party applications",
             "sub": [
                 {
+                    "id": "WebHosting",
+                    "description": "Web hosting",
+                    "status": "Stable",
+                    "sub": [
+                        {
+                            "id": "SWAG01",
+                            "description": "SWAG reverse proxy install",
+                            "command": [
+                                "module_swag install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_swag status"
+                        },
+                        {
+                            "id": "SWAG02",
+                            "description": "SWAG reverse proxy .htpasswd set",
+                            "command": [
+                                "module_swag password"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_swag status"
+                        },
+                        {
+                            "id": "SWAG03",
+                            "description": "SWAG reverse proxy remove",
+                            "command": [
+                                "module_swag remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_swag status"
+                        },
+                        {
+                            "id": "SWAG04",
+                            "description": "SWAG reverse proxy purge data folder",
+                            "command": [
+                                "module_swag purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_swag status && [[ -d \"${SOFTWARE_FOLDER}/swag\" ]]"
+                        }
+                    ]
+                },
+                {
                     "id": "Desktops",
                     "description": "Desktop Environments",
                     "status": "Disabled",
