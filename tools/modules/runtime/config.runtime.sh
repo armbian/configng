@@ -96,6 +96,7 @@ fi
 
 update_sub_submenu_data "System" "Storage" "SY220" "$(module_zfs zfs_version)"
 update_sub_submenu_data "System" "Storage" "SY221" "$(module_zfs zfs_installed_version)"
+update_sub_submenu_data "System" "Storage" "NFS04" "$NFS_CLIENTS_NUMBER"
 update_sub_submenu_data "Software" "Database" "DAT002" "Server: $LOCALIPADD"
 update_sub_submenu_data "Software" "Database" "DAT006" "http://$LOCALIPADD:${module_options["module_phpmyadmin,port"]}"
 update_sub_submenu_data "Software" "Media" "MED006" "http://$LOCALIPADD:${module_options["module_stirling,port"]}"
