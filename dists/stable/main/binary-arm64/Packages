@@ -1,15 +1,15 @@
 Package: armbian-config
-Version: 25.2.0-trunk.199.1219.195725
+Version: 25.2.0-trunk.211.1222.111119
 Architecture: all
 Replaces: armbian-configng
 Maintainer: Igor Pecovnik <igor@armbian.com>
 Depends: bash, jq, whiptail, sudo, procps, systemd, lsb-release, iproute2, debconf, libtext-iconv-perl
 Priority: optional
 Section: default
-Filename: pool/main/a/armbian-config/armbian-config_25.2.0-trunk.199.1219.195725_all.deb
-Size: 122612
-SHA256: 834f8942eead92fa9d7878aaad64a4c1c2feb7d6fe9d4b289837b3f29d32c028
-SHA1: fd93422c1d7c324f8461b3826e6fab3ebf121fac
-MD5sum: b92272602b4a5312835380c37753b568
+Filename: pool/main/a/armbian-config/armbian-config_25.2.0-trunk.211.1222.111119_all.deb
+Size: 123512
+SHA256: abe1fad7e0f904ccf666687faa2606f99a1e33afd366e5c8d5a38ed628b8a522
+SHA1: 9b9ee6dac8fd12484546c35bae53bc967ecb657c
+MD5sum: 3157d7a8ce9853b94ee36cc04e18a6ba
 Description: Armbian config: The Next Generation
 
