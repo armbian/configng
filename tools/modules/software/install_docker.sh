@@ -29,6 +29,8 @@ install_docker() {
 			else
 				pkg_install docker-ce docker-ce-cli containerd.io
 			fi
+			groupadd docker 2>/dev/null || true
+			usermod -aG docker $SUDO_USER
 			systemctl enable docker.service > /dev/null 2>&1
 			systemctl enable containerd.service > /dev/null 2>&1
 		fi
