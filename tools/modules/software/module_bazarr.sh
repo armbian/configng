@@ -1,11 +1,14 @@
 module_options+=(
-	["module_bazarr,author"]="@igorpecovnik"
+	["module_bazarr,author"]=""
+	["module_bazarr,maintainer"]="@igorpecovnik"
 	["module_bazarr,feature"]="module_bazarr"
+	["module_bazarr,example"]="install remove purge status help"
 	["module_bazarr,desc"]="Install bazarr container"
-	["module_bazarr,example"]="install remove status help"
-	["module_bazarr,port"]="6767"
 	["module_bazarr,status"]="Active"
-	["module_bazarr,arch"]="x86-64,arm64"
+	["module_bazarr,doc_link"]="https://wiki.bazarr.media/"
+	["module_bazarr,group"]="Downloaders"
+	["module_bazarr,port"]="6767"
+	["module_bazarr,arch"]="x86-64 arm64"
 )
 #
 # Module Bazarr
@@ -26,13 +29,14 @@ function module_bazarr () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			[[ -d "$BAZARR_BASE" ]] || mkdir -p "$BAZARR_BASE" || { echo "Couldn't create storage directory: $BAZARR_BASE"; exit 1; }
 			docker run -d \
 			--name=bazarr \
+			--net=lsio \
 			-e PUID=1000 \
 			-e PGID=1000 \
-			-e TZ=Etc/UTC \
+			-e TZ="$(cat /etc/timezone)" \
 			-p 6767:6767 \
 			-v "${BAZARR_BASE}/config:/config" \
 			-v "${BAZARR_BASE}/movies:/movies" `#optional` \
@@ -54,26 +58,30 @@ function module_bazarr () {
 		"${commands[1]}")
 			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
 			[[ "${image}" ]] && docker image rm "$image" >/dev/null
-			[[ -n "${BAZARR_BASE}" && "${BAZARR_BASE}" != "/" ]] && rm -rf "${BAZARR_BASE}"
 		;;
 		"${commands[2]}")
+			${module_options["module_bazarr,feature"]} ${commands[1]}
+			[[ -n "${BAZARR_BASE}" && "${BAZARR_BASE}" != "/" ]] && rm -rf "${BAZARR_BASE}"
+		;;
+		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then
 				return 0
 			else
 				return 1
 			fi
 		;;
-		"${commands[3]}")
+		"${commands[4]}")
 			echo -e "\nUsage: ${module_options["module_bazarr,feature"]} <command>"
 			echo -e "Commands:  ${module_options["module_bazarr,example"]}"
 			echo "Available commands:"
 			echo -e "\tinstall\t- Install $title."
 			echo -e "\tstatus\t- Installation status $title."
 			echo -e "\tremove\t- Remove $title."
+			echo -e "\tremove\t- Purge $title."
 			echo
 		;;
 		*)
-		${module_options["module_bazarr,feature"]} ${commands[3]}
+			${module_options["module_bazarr,feature"]} ${commands[4]}
 		;;
 	esac
 }
