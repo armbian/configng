@@ -108,7 +108,7 @@ update_sub_submenu_data "Software" "Containers" "CON006" "http://$LOCALIPADD:${m
 update_sub_submenu_data "Software" "HomeAutomation" "HA002" "http://$LOCALIPADD:${module_options["module_openhab,port"]}"
 update_sub_submenu_data "Software" "HomeAutomation" "HA004" "http://$LOCALIPADD:${module_options["module_haos,port"]}"
 update_sub_submenu_data "Software" "Monitoring" "MON004" "http://$LOCALIPADD:${module_options["module_netdata,port"]}"
-update_sub_submenu_data "Software" "Downloaders" "DOW002" "http://$LOCALIPADD:${module_options["module_qbittorrent,port"]}"
+update_sub_submenu_data "Software" "Downloaders" "DOW002" "http://$LOCALIPADD:${module_options["module_qbittorrent,port"]% *}"
 update_sub_submenu_data "Software" "Downloaders" "DOW004" "http://$LOCALIPADD:${module_options["module_deluge,port"]}"
 update_sub_submenu_data "Software" "Downloaders" "DOW006" "http://$LOCALIPADD:${module_options["module_transmission,port"]}"
 update_sub_submenu_data "Software" "Downloaders" "DOW012" "http://$LOCALIPADD:${module_options["module_sabnzbd,port"]}"

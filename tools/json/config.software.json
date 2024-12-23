@@ -410,7 +410,7 @@
                     "sub": [
                         {
                             "id": "DOW001",
-                            "description": "Install qBittorrent",
+                            "description": "qBittorrent Install ",
                             "command": [
                                 "module_qbittorrent install"
                             ],
@@ -420,9 +420,19 @@
                         },
                         {
                             "id": "DOW002",
-                            "description": "Remove qBittorrent",
+                            "description": "qBittorrent Remove",
                             "command": [
                                 "module_qbittorrent remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_qbittorrent status"
+                        },
+                        {
+                            "id": "DOW003",
+                            "description": "qBittorrent Purge",
+                            "command": [
+                                "module_qbittorrent purge"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
