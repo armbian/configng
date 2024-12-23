@@ -8,7 +8,7 @@ module_options+=(
 	["module_bazarr,doc_link"]="https://wiki.bazarr.media/"
 	["module_bazarr,group"]="Downloaders"
 	["module_bazarr,port"]="6767"
-	["module_bazarr,arch"]="x86-64,arm64"
+	["module_bazarr,arch"]="x86-64 arm64"
 )
 #
 # Module Bazarr
@@ -29,7 +29,7 @@ function module_bazarr () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			[[ -d "$BAZARR_BASE" ]] || mkdir -p "$BAZARR_BASE" || { echo "Couldn't create storage directory: $BAZARR_BASE"; exit 1; }
 			docker run -d \
 			--name=bazarr \

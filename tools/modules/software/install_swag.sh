@@ -32,9 +32,7 @@ function module_swag() {
 				# adjust hostname
 				hostnamectl set-hostname $(echo ${SWAG_URL} | sed -E 's/^\s*.*:\/\///g')
 				# install docker
-				pkg_installed docker-ce || install_docker
-				# add additional bridge where containers see each other
-				docker network create lsio 2> /dev/null
+				pkg_installed docker-ce || module_docker install
 
 				[[ -d "$SWAG_BASE" ]] || mkdir -p "$SWAG_BASE" || { echo "Couldn't create storage directory: $SWAG_BASE"; exit 1; }
 

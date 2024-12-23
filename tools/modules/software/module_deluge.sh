@@ -8,7 +8,7 @@ module_options+=(
 	["module_deluge,doc_link"]="https://deluge-torrent.org/userguide/"
 	["module_deluge,group"]="Downloaders"
 	["module_deluge,port"]="8112 6181 58846"
-	["module_deluge,arch"]="x86-64,arm64"
+	["module_deluge,arch"]="x86-64 arm64"
 )
 #
 # Module deluge
@@ -29,7 +29,7 @@ function module_deluge () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			[[ -d "$DELUGE_BASE" ]] || mkdir -p "$DELUGE_BASE" || { echo "Couldn't create storage directory: $DELUGE_BASE"; exit 1; }
 			docker run -d \
 			--name=deluge \

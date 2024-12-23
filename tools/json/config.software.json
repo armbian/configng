@@ -878,48 +878,47 @@
                     "sub": [
                         {
                             "id": "CON001",
-                            "description": "Install Docker Minimal",
+                            "description": "Docker Minimal Install",
                             "about": "This operation will install Docker Minimal.",
                             "command": [
-                                "install_docker"
+                                "module_docker install minimal"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! pkg_installed docker-ce"
+                            "condition": "! module_docker status docker-ce"
                         },
                         {
                             "id": "CON002",
-                            "description": "Install Docker Engine",
+                            "description": "Docker Engine Install",
                             "about": "This operation will install Docker Engine.",
                             "command": [
-                                "install_docker engine"
+                                "module_docker install engine"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! pkg_installed docker-compose-plugin"
+                            "condition": "! module_docker status docker-compose-plugin"
                         },
                         {
                             "id": "CON003",
-                            "description": "Remove Docker",
+                            "description": "Docker Remove",
                             "about": "This operation will purge Docker.",
                             "command": [
-                                "pkg_remove docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras"
+                                "module_docker remove"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "pkg_installed docker-ce"
+                            "condition": "module_docker status docker-ce"
                         },
                         {
                             "id": "CON004",
-                            "description": "Purge all Docker images, containers, and volumes",
+                            "description": "Docker Purge all images, containers, and volumes",
                             "about": "This operation will delete all Docker images, containers, and volumes.",
                             "command": [
-                                "rm -rf /var/lib/docker",
-                                "rm -rf /var/lib/containerd"
+                                "module_docker purge"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! pkg_installed docker-ce && [ -d /var/lib/docker ]"
+                            "condition": "! module_docker status docker-ce && [ -d /var/lib/docker ]"
                         },
                         {
                             "id": "CON005",
