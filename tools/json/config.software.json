@@ -443,8 +443,8 @@
                         },
                         {
                             "id": "DEL001",
-                            "description": "Deluge install",
-                            "about": "This operation will install Deluge container",
+                            "description": "Deluge P2P server install",
+                            "about": "This operation will install P2P server",
                             "command": [
                                 "module_deluge install"
                             ],
@@ -454,8 +454,8 @@
                         },
                         {
                             "id": "DEL002",
-                            "description": "Deluge Remove",
-                            "about": "This operation will remove Deluge container",
+                            "description": "Deluge P2P server remove",
+                            "about": "This operation will remove Deluge P2P server",
                             "command": [
                                 "module_deluge remove"
                             ],
@@ -465,14 +465,14 @@
                         },
                         {
                             "id": "DEL003",
-                            "description": "Deluge Purge data folder",
-                            "about": "This operation will remove Deluge data folder",
+                            "description": "Deluge P2P server purge data folder",
+                            "about": "This operation will remove Deluge P2P server data folder",
                             "command": [
                                 "module_deluge purge"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_deluge status && [[ -d \"${SOFTWARE_FOLDER}/deluge\" ]]"
+                            "condition": "module_deluge status"
                         },
                         {
                             "id": "TRA001",
@@ -508,8 +508,8 @@
                             "condition": "module_transmission status"
                         },
                         {
-                            "id": "DOW011",
-                            "description": "Install SABnzbd",
+                            "id": "SABN01",
+                            "description": "SABnzbd newsgroup downloader install",
                             "command": [
                                 "module_sabnzbd install"
                             ],
@@ -518,10 +518,20 @@
                             "condition": "! module_sabnzbd status"
                         },
                         {
-                            "id": "DOW012",
-                            "description": "Remove SABnzbd",
+                            "id": "SABN02",
+                            "description": "SABnzbd newsgroup downloader remove",
                             "command": [
                                 "module_sabnzbd remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_sabnzbd status"
+                        },
+                        {
+                            "id": "SABN03",
+                            "description": "SABnzbd newsgroup downloader purge",
+                            "command": [
+                                "module_sabnzbd purge"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
