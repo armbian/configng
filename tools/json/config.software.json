@@ -607,8 +607,9 @@
                             "condition": "module_sonarr status"
                         },
                         {
-                            "id": "DOW017",
-                            "description": "Install Radarr",
+                            "id": "RAD001",
+                            "description": "Radarr movie collection manager install",
+                            "about": "This operation will install Radarr movie collection manager",
                             "command": [
                                 "module_radarr install"
                             ],
@@ -617,8 +618,9 @@
                             "condition": "! module_radarr status"
                         },
                         {
-                            "id": "DOW018",
-                            "description": "Remove Radarr",
+                            "id": "RAD002",
+                            "description": "Radarr movie collection manager remove",
+                            "about": "This operation will remove Radarr movie collection manager",
                             "command": [
                                 "module_radarr remove"
                             ],
@@ -627,9 +629,20 @@
                             "condition": "module_radarr status"
                         },
                         {
-                            "id": "DOW100",
-                            "description": "Bazarr Install",
-                            "about": "This operation will install Bazarr container",
+                            "id": "RAD003",
+                            "description": "Radarr movie collection manager purge",
+                            "about": "This operation will purge Radarr movie collection manager data folder",
+                            "command": [
+                                "module_radarr purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_radarr status"
+                        },
+                        {
+                            "id": "BAZ001",
+                            "description": "Bazarr subtitles manager for Sonarr and Radarr install",
+                            "about": "This operation will install Bazarr subtitles manager for Sonarr and Radarr",
                             "command": [
                                 "module_bazarr install"
                             ],
@@ -638,9 +651,9 @@
                             "condition": "! module_bazarr status"
                         },
                         {
-                            "id": "DOW101",
-                            "description": "Bazarr Remove",
-                            "about": "This operation will remove Bazarr container",
+                            "id": "BAZ002",
+                            "description": "Bazarr subtitles manager for Sonarr and Radarr Remove",
+                            "about": "This operation will remove Bazarr subtitles manager for Sonarr and Radarr",
                             "command": [
                                 "module_bazarr remove"
                             ],
@@ -649,15 +662,15 @@
                             "condition": "module_bazarr status"
                         },
                         {
-                            "id": "DOW102",
+                            "id": "BAZ003",
                             "description": "Bazarr Purge data folder",
-                            "about": "This operation will remove Bazarr data folder",
+                            "about": "This operation will purge Bazarr subtitles manager data folder",
                             "command": [
                                 "module_bazarr purge"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_bazarr status && [[ -d \"${SOFTWARE_FOLDER}/bazarr\" ]]"
+                            "condition": "module_bazarr status"
                         },
                         {
                             "id": "DOW021",

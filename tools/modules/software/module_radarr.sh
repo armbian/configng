@@ -1,11 +1,14 @@
 module_options+=(
 	["module_radarr,author"]="@armbian"
+	["module_radarr,maintainer"]="@igorpecovnik"
 	["module_radarr,feature"]="module_radarr"
+	["module_radarr,example"]="install remove purge status help"
 	["module_radarr,desc"]="Install radarr container"
-	["module_radarr,example"]="install remove status help"
-	["module_radarr,port"]="7878"
 	["module_radarr,status"]="Active"
-	["module_radarr,arch"]="x86-64,arm64"
+	["module_radarr,doc_link"]="https://wiki.servarr.com/radarr"
+	["module_radarr,group"]="Downloaders"
+	["module_radarr,port"]="7878"	
+	["module_radarr,arch"]="x86-64 arm64"
 )
 #
 # Module radarr
@@ -26,10 +29,11 @@ function module_radarr () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			[[ -d "$RADARR_BASE" ]] || mkdir -p "$RADARR_BASE" || { echo "Couldn't create storage directory: $RADARR_BASE"; exit 1; }
 			docker run -d \
 			--name=radarr \
+			--net=lsio \
 			-e PUID=1000 \
 			-e PGID=1000 \
 			-e TZ="$(cat /etc/timezone)" \
@@ -54,16 +58,19 @@ function module_radarr () {
 		"${commands[1]}")
 			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
 			[[ "${image}" ]] && docker image rm "$image" >/dev/null
-			[[ -n "${RADARR_BASE}" && "${RADARR_BASE}" != "/" ]] && rm -rf "${RADARR_BASE}"
 		;;
 		"${commands[2]}")
+			${module_options["module_radarr,feature"]} ${commands[1]}
+			[[ -n "${RADARR_BASE}" && "${RADARR_BASE}" != "/" ]] && rm -rf "${RADARR_BASE}"
+		;;
+		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then
 				return 0
 			else
 				return 1
 			fi
 		;;
-		"${commands[3]}")
+		"${commands[4]}")
 			echo -e "\nUsage: ${module_options["module_radarr,feature"]} <command>"
 			echo -e "Commands:  ${module_options["module_radarr,example"]}"
 			echo "Available commands:"
@@ -73,7 +80,7 @@ function module_radarr () {
 			echo
 		;;
 		*)
-		${module_options["module_radarr,feature"]} ${commands[3]}
+			${module_options["module_radarr,feature"]} ${commands[4]}
 		;;
 	esac
 }

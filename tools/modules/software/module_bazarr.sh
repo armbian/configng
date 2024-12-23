@@ -60,6 +60,7 @@ function module_bazarr () {
 			[[ "${image}" ]] && docker image rm "$image" >/dev/null
 		;;
 		"${commands[2]}")
+			${module_options["module_bazarr,feature"]} ${commands[1]}
 			[[ -n "${BAZARR_BASE}" && "${BAZARR_BASE}" != "/" ]] && rm -rf "${BAZARR_BASE}"
 		;;
 		"${commands[3]}")
@@ -80,7 +81,7 @@ function module_bazarr () {
 			echo
 		;;
 		*)
-		${module_options["module_bazarr,feature"]} ${commands[4]}
+			${module_options["module_bazarr,feature"]} ${commands[4]}
 		;;
 	esac
 }
