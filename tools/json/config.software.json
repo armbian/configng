@@ -410,7 +410,8 @@
                     "sub": [
                         {
                             "id": "DOW001",
-                            "description": "qBittorrent Install ",
+                            "description": "qBittorrent P2P server install ",
+                            "about": "This operation will install qBittorrent P2P server",
                             "command": [
                                 "module_qbittorrent install"
                             ],
@@ -420,7 +421,8 @@
                         },
                         {
                             "id": "DOW002",
-                            "description": "qBittorrent Remove",
+                            "description": "qBittorrent P2P server remove",
+                            "about": "This operation will remove qBittorrent server",
                             "command": [
                                 "module_qbittorrent remove"
                             ],
@@ -430,7 +432,8 @@
                         },
                         {
                             "id": "DOW003",
-                            "description": "qBittorrent Purge",
+                            "description": "qBittorrent P2P server purge",
+                            "about": "This operation will remove qBittorrent data folder",
                             "command": [
                                 "module_qbittorrent purge"
                             ],
@@ -472,8 +475,9 @@
                             "condition": "! module_deluge status && [[ -d \"${SOFTWARE_FOLDER}/deluge\" ]]"
                         },
                         {
-                            "id": "DOW005",
-                            "description": "Install Transmission",
+                            "id": "TRA001",
+                            "description": "Transmission install",
+                            "about": "This operation will install Transmission server",
                             "command": [
                                 "module_transmission install"
                             ],
@@ -482,10 +486,22 @@
                             "condition": "! module_transmission status"
                         },
                         {
-                            "id": "DOW006",
-                            "description": "Remove Transmission",
+                            "id": "TRA002",
+                            "description": "Transmission remove",
+                            "about": "This operation will remove Transmission server",
                             "command": [
                                 "module_transmission remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_transmission status"
+                        },
+                        {
+                            "id": "TRA003",
+                            "description": "Transmission purge data folder",
+                            "about": "This operation will remove Transmission data folder",
+                            "command": [
+                                "module_transmission purge"
                             ],
                             "status": "Stable",
                             "author": "@armbian",

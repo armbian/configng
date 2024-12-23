@@ -57,7 +57,7 @@ function module_qbittorrent () {
 			done
 			sleep 3
 			TEMP_PASSWORD=$(docker logs qbittorrent 2>&1 | grep password | grep session | cut -d":" -f2 | xargs)
-			dialog --msgbox "Qbittorrent is listening at http://$LOCALIPADD:${module_options["module_qbittorrent,port"]}\n\nLogin as: admin\n\nTemporally password: ${TEMP_PASSWORD} " 9 70
+			dialog --msgbox "Qbittorrent is listening at http://$LOCALIPADD:${module_options["module_qbittorrent,port"]% *}\n\nLogin as: admin\n\nTemporally password: ${TEMP_PASSWORD} " 9 70
 		;;
 		"${commands[1]}")
 			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null

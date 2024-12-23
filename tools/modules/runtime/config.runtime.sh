@@ -110,7 +110,7 @@ update_sub_submenu_data "Software" "HomeAutomation" "HA004" "http://$LOCALIPADD:
 update_sub_submenu_data "Software" "Monitoring" "MON004" "http://$LOCALIPADD:${module_options["module_netdata,port"]}"
 update_sub_submenu_data "Software" "Downloaders" "DOW002" "http://$LOCALIPADD:${module_options["module_qbittorrent,port"]% *}"
 update_sub_submenu_data "Software" "Downloaders" "DOW004" "http://$LOCALIPADD:${module_options["module_deluge,port"]}"
-update_sub_submenu_data "Software" "Downloaders" "DOW006" "http://$LOCALIPADD:${module_options["module_transmission,port"]}"
+update_sub_submenu_data "Software" "Downloaders" "TRA002" "http://$LOCALIPADD:${module_options["module_transmission,port"]% *}"
 update_sub_submenu_data "Software" "Downloaders" "DOW012" "http://$LOCALIPADD:${module_options["module_sabnzbd,port"]}"
 update_sub_submenu_data "Software" "Downloaders" "DOW014" "http://$LOCALIPADD:${module_options["module_medusa,port"]}"
 update_sub_submenu_data "Software" "Downloaders" "DOW016" "http://$LOCALIPADD:${module_options["module_sonarr,port"]}"
