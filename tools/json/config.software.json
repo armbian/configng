@@ -429,8 +429,9 @@
                             "condition": "module_qbittorrent status"
                         },
                         {
-                            "id": "DOW003",
-                            "description": "Install Deluge",
+                            "id": "DEL001",
+                            "description": "Deluge install",
+                            "about": "This operation will install Deluge container",
                             "command": [
                                 "module_deluge install"
                             ],
@@ -439,14 +440,26 @@
                             "condition": "! module_deluge status"
                         },
                         {
-                            "id": "DOW004",
-                            "description": "Remove Deluge",
+                            "id": "DEL002",
+                            "description": "Deluge Remove",
+                            "about": "This operation will remove Deluge container",
                             "command": [
                                 "module_deluge remove"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "module_deluge status"
+                        },
+                        {
+                            "id": "DEL003",
+                            "description": "Deluge Purge data folder",
+                            "about": "This operation will remove Deluge data folder",
+                            "command": [
+                                "module_deluge purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_deluge status && [[ -d \"${SOFTWARE_FOLDER}/deluge\" ]]"
                         },
                         {
                             "id": "DOW005",
