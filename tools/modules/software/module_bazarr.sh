@@ -36,7 +36,7 @@ function module_bazarr () {
 			--net=lsio \
 			-e PUID=1000 \
 			-e PGID=1000 \
-			-e TZ=Etc/UTC \
+			-e TZ="$(cat /etc/timezone)" \
 			-p 6767:6767 \
 			-v "${BAZARR_BASE}/config:/config" \
 			-v "${BAZARR_BASE}/movies:/movies" `#optional` \

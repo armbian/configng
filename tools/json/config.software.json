@@ -993,25 +993,35 @@
                         },
                         {
                             "id": "MED003",
-                            "description": "Install Emby server",
+                            "description": "Emby server Install",
                             "about": "This operation will install Emby server.",
                             "command": [
-                                "install_embyserver"
+                                "module_emby install"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! pkg_installed emby-server"
+                            "condition": "! module_emby status"
                         },
                         {
                             "id": "MED004",
-                            "description": "Remove Emby server",
+                            "description": "Emby server Remove",
                             "about": "This operation will purge Emby server.",
                             "command": [
-                                "pkg_remove emby-server"
+                                "module_emby remove"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "pkg_installed emby-server"
+                            "condition": "module_emby status"
+                        },
+                        {
+                            "id": "MED005",
+                            "description": "Emby server Purge data folder",
+                            "command": [
+                                "module_emby purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "! module_emby status && [[ -d \"${SOFTWARE_FOLDER}/emby\" ]]"
                         },
                         {
                             "id": "MED010",

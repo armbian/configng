@@ -99,6 +99,7 @@ update_sub_submenu_data "System" "Storage" "SY221" "$(module_zfs zfs_installed_v
 update_sub_submenu_data "System" "Storage" "NFS04" "$NFS_CLIENTS_NUMBER"
 update_sub_submenu_data "Software" "Database" "DAT002" "Server: $LOCALIPADD"
 update_sub_submenu_data "Software" "Database" "DAT006" "http://$LOCALIPADD:${module_options["module_phpmyadmin,port"]}"
+update_sub_submenu_data "Software" "Media" "MED004" "http://$LOCALIPADD:${module_options["module_emby,port"]}"
 update_sub_submenu_data "Software" "Media" "MED006" "http://$LOCALIPADD:${module_options["module_stirling,port"]}"
 update_sub_submenu_data "Software" "Media" "MED016" "http://$LOCALIPADD:${module_options["module_syncthing,port"]}"
 update_sub_submenu_data "Software" "Media" "MED021" "https://$LOCALIPADD:${module_options["module_nextcloud,port"]}"

@@ -12,11 +12,10 @@ module_options+=(
 )
 #
 # Install Docker from repo using apt
-# Setup sources list and GPG key then install the app. If you want a full desktop then $1=desktop
 #
 function module_docker() {
 
-	local title="bazarr"
+	local title="docker"
 	local condition=$(which "$title" 2>/dev/null)
 
 	local commands
@@ -28,11 +27,13 @@ function module_docker() {
 			URL="https://download.docker.com/linux/${DISTRO,,}/dists/$DISTROID"
 			if wget --spider "${URL}" 2> /dev/null; then
 				# Add Docker's official GPG key:
-				wget -qO - https://download.docker.com/linux/${DISTRO,,}/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/docker.gpg > /dev/null
+				wget -qO - https://download.docker.com/linux/${DISTRO,,}/gpg \
+				| gpg --dearmor | sudo tee /usr/share/keyrings/docker.gpg > /dev/null
 				if [[ $? -eq 0 ]]; then
 					# Add the repository to Apt sources:
 					cat <<- EOF > "/etc/apt/sources.list.d/docker.list"
-					deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker.gpg] https://download.docker.com/linux/${DISTRO,,} $DISTROID stable
+					deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker.gpg] \
+					https://download.docker.com/linux/${DISTRO,,} $DISTROID stable
 					EOF
 					pkg_update
 					# Install docker
@@ -73,7 +74,7 @@ function module_docker() {
 				else
 					return 1
 				fi
-			fi		
+			fi
 		;;
 		"${commands[4]}")
 			echo -e "\nUsage: ${module_options["module_docker,feature"]} <command>"
