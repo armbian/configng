@@ -822,23 +822,23 @@
                     "sub": [
                         {
                             "id": "HA001",
-                            "description": "Install openHAB",
+                            "description": "openHAB Install",
                             "command": [
-                                "openhab install"
+                                "module_openhab install"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! pkg_installed openhab"
+                            "condition": "! module_openhab status"
                         },
                         {
                             "id": "HA002",
-                            "description": "Remove openHAB",
+                            "description": "openHAB Remove",
                             "command": [
-                                "openhab uninstall"
+                                "module_openhab remove"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "pkg_installed openhab"
+                            "condition": "module_openhab status"
                         },
                         {
                             "id": "HA003",

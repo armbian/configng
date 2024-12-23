@@ -13,7 +13,8 @@ module_options+=(
 #
 # Install haos supervised
 #
-module_haos() {
+function module_haos() {
+
 	local title="haos"
 	local condition=$(which "$title" 2>/dev/null)
 
