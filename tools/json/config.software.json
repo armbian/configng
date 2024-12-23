@@ -574,8 +574,9 @@
                             "condition": "module_medusa status"
                         },
                         {
-                            "id": "DOW015",
-                            "description": "Install Sonarr",
+                            "id": "SON001",
+                            "description": "Sonarr PVR for Usenet and BitTorrent install",
+                            "about": "This operation will install Sonarr PVR for Usenet and BitTorrent",
                             "command": [
                                 "module_sonarr install"
                             ],
@@ -584,10 +585,22 @@
                             "condition": "! module_sonarr status"
                         },
                         {
-                            "id": "DOW016",
-                            "description": "Remove Sonarr",
+                            "id": "SON002",
+                            "description": "Sonarr PVR for Usenet and BitTorrent remove",
+                            "about": "This operation will remove Sonarr PVR for Usenet and BitTorrent",
                             "command": [
                                 "module_sonarr remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_sonarr status"
+                        },                        
+                        {
+                            "id": "SON003",
+                            "description": "Sonarr PVR for Usenet and BitTorrent purge data folder",
+                            "about": "This operation will purge Sonarr PVR for Usenet and BitTorrent purge data folder",
+                            "command": [
+                                "module_sonarr purge"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
