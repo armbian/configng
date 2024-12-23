@@ -476,8 +476,8 @@
                         },
                         {
                             "id": "TRA001",
-                            "description": "Transmission install",
-                            "about": "This operation will install Transmission server",
+                            "description": "Transmission P2P server install",
+                            "about": "This operation will install Transmission P2P server",
                             "command": [
                                 "module_transmission install"
                             ],
@@ -487,8 +487,8 @@
                         },
                         {
                             "id": "TRA002",
-                            "description": "Transmission remove",
-                            "about": "This operation will remove Transmission server",
+                            "description": "Transmission P2P server remove",
+                            "about": "This operation will remove Transmission P2P server",
                             "command": [
                                 "module_transmission remove"
                             ],
@@ -498,8 +498,8 @@
                         },
                         {
                             "id": "TRA003",
-                            "description": "Transmission purge data folder",
-                            "about": "This operation will remove Transmission data folder",
+                            "description": "Transmission P2P server purge data folder",
+                            "about": "This operation will remove Transmission P2P server data folder",
                             "command": [
                                 "module_transmission purge"
                             ],
@@ -510,6 +510,7 @@
                         {
                             "id": "SABN01",
                             "description": "SABnzbd newsgroup downloader install",
+                            "about": "This operation will install SABnzbd newsgroup downloader",
                             "command": [
                                 "module_sabnzbd install"
                             ],
@@ -520,6 +521,7 @@
                         {
                             "id": "SABN02",
                             "description": "SABnzbd newsgroup downloader remove",
+                            "about": "This operation will remove SABnzbd newsgroup downloader",
                             "command": [
                                 "module_sabnzbd remove"
                             ],
@@ -530,6 +532,7 @@
                         {
                             "id": "SABN03",
                             "description": "SABnzbd newsgroup downloader purge",
+                            "about": "This operation will purge SABnzbd newsgroup data folder",
                             "command": [
                                 "module_sabnzbd purge"
                             ],
@@ -538,8 +541,9 @@
                             "condition": "module_sabnzbd status"
                         },
                         {
-                            "id": "DOW013",
-                            "description": "Install Medusa",
+                            "id": "MDS001",
+                            "description": "Medusa TV shows downloader install",
+                            "about": "This operation will install Medusa TV shows downloader",
                             "command": [
                                 "module_medusa install"
                             ],
@@ -548,10 +552,22 @@
                             "condition": "! module_medusa status"
                         },
                         {
-                            "id": "DOW014",
-                            "description": "Remove Medusa",
+                            "id": "MDS002",
+                            "description": "Medusa TV shows downloader remove",
+                            "about": "This operation will remove Medusa TV shows downloader",
                             "command": [
                                 "module_medusa remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_medusa status"
+                        },
+                        {
+                            "id": "MDS003",
+                            "description": "Medusa TV shows downloader purge",
+                            "about": "This operation will purge Medusa TV shows data folder",
+                            "command": [
+                                "module_medusa purge"
                             ],
                             "status": "Stable",
                             "author": "@armbian",

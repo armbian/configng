@@ -27,7 +27,7 @@ function module_qbittorrent () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			[[ -d "$QBITTORRENT_BASE" ]] || mkdir -p "$QBITTORRENT_BASE" || { echo "Couldn't create storage directory: $QBITTORRENT_BASE"; exit 1; }
 			docker run -d \
 			--name=qbittorrent \

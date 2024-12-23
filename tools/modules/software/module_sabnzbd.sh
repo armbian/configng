@@ -29,7 +29,7 @@ function module_sabnzbd () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			[[ -d "$SABNZBD_BASE" ]] || mkdir -p "$SABNZBD_BASE" || { echo "Couldn't create storage directory: $SABNZBD_BASE"; exit 1; }
 			docker run -d \
 			--name=sabnzbd \
