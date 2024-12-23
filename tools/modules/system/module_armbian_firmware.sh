@@ -103,7 +103,7 @@ function module_armbian_firmware() {
 			for pkg in ${packages[@]}; do
 				purge_pkg=$(echo $pkg | sed -e 's/linux-image.*/linux-image*/;s/linux-dtb.*/linux-dtb*/;s/linux-headers.*/linux-headers*/;s/armbian-firmware.*/armbian-firmware*/')
 				# if test install is succesfull, proceed
-				pkg_install --simulate --download-only --allow-downgrades install "${pkg}"
+				pkg_install --simulate --download-only --allow-downgrades "${pkg}"
 				if [[ $? == 0 ]]; then
 					pkg_remove "${purge_pkg}"
 					pkg_install --allow-downgrades "${pkg}"
