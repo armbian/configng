@@ -26,7 +26,7 @@ function module_uptimekuma () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			[[ -d "$UPTIMEKUMA_BASE" ]] || mkdir -p "$UPTIMEKUMA_BASE" || { echo "Couldn't create storage directory: $UPTIMEKUMA_BASE"; exit 1; }
 			docker run -d --name uptime-kuma \
 			--restart=always \

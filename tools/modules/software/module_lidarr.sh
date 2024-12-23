@@ -7,7 +7,7 @@ module_options+=(
 	["module_lidarr,status"]="Active"
 	["module_lidarr,doc_link"]="https://wiki.servarr.com/lidarr"
 	["module_lidarr,group"]="Downloaders"
-	["module_lidarr,port"]="8686"	
+	["module_lidarr,port"]="8686"
 	["module_lidarr,arch"]="x86-64 arm64"
 )
 #

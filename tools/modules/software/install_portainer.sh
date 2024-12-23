@@ -36,7 +36,7 @@ module_portainer() {
 			echo
 		;;
 		install)
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			docker volume ls -q | grep -xq 'portainer_data' || docker volume create portainer_data
 			docker run -d \
 			-p '9000:9000' \

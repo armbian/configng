@@ -23,14 +23,13 @@ function module_openhab() {
 
 	case "$1" in
 		"${commands[0]}")
-			
 			wget -qO - https://repos.azul.com/azul-repo.key | gpg --dearmor > "/usr/share/keyrings/azul.gpg"
 			wget -qO - https://openhab.jfrog.io/artifactory/api/gpg/key/public | gpg --dearmor > "/usr/share/keyrings/openhab.gpg"
 			echo "deb [signed-by=/usr/share/keyrings/azul.gpg] https://repos.azul.com/zulu/deb stable main" > "/etc/apt/sources.list.d/zulu.list"
 			echo "deb [signed-by=/usr/share/keyrings/openhab.gpg] https://openhab.jfrog.io/artifactory/openhab-linuxpkg stable main" > "/etc/apt/sources.list.d/openhab.list"
 			pkg_update
 			pkg_install zulu17-jdk
-			pkg_install openhab openhab-addons			
+			pkg_install openhab openhab-addons
 			systemctl daemon-reload 2> /dev/null
 			service enable openhab.service
 			service start openhab.service

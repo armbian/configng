@@ -7,7 +7,7 @@ module_options+=(
 	["module_sonarr,status"]="Active"
 	["module_sonarr,doc_link"]="https://transmissionbt.com/"
 	["module_sonarr,group"]="Downloaders"
-	["module_sonarr,port"]="8989"	
+	["module_sonarr,port"]="8989"
 	["module_sonarr,arch"]="x86-64 arm64"
 )
 #

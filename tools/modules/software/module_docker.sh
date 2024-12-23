@@ -1,5 +1,5 @@
 module_options+=(
-	["module_docker,author"]="@schwar3kat"	
+	["module_docker,author"]="@schwar3kat"
 	["module_docker,maintainer"]="@igorpecovnik"
 	["module_docker,feature"]="install_docker"
 	["module_docker,example"]="install remove purge status help"

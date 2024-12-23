@@ -7,7 +7,7 @@ module_options+=(
 	["module_radarr,status"]="Active"
 	["module_radarr,doc_link"]="https://wiki.servarr.com/radarr"
 	["module_radarr,group"]="Downloaders"
-	["module_radarr,port"]="7878"	
+	["module_radarr,port"]="7878"
 	["module_radarr,arch"]="x86-64 arm64"
 )
 #

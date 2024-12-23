@@ -7,7 +7,7 @@ module_options+=(
 	["module_medusa,status"]="Active"
 	["module_medusa,doc_link"]="https://github.com/pymedusa/Medusa/wiki"
 	["module_medusa,group"]="Downloaders"
-	["module_medusa,port"]="8081"	
+	["module_medusa,port"]="8081"
 	["module_medusa,arch"]="x86-64 arm64"
 )
 #
