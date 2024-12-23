@@ -673,8 +673,9 @@
                             "condition": "module_bazarr status"
                         },
                         {
-                            "id": "DOW021",
-                            "description": "Install Lidarr",
+                            "id": "LID001",
+                            "description": "Lidarr music collection manager install",
+                            "about": "This operation will install Lidarr music collection manager for Usenet and BitTorrent users",
                             "command": [
                                 "module_lidarr install"
                             ],
@@ -683,8 +684,9 @@
                             "condition": "! module_lidarr status"
                         },
                         {
-                            "id": "DOW022",
-                            "description": "Remove Lidarr",
+                            "id": "LID002",
+                            "description": "Lidarr remove",
+                            "about": "This operation will remove Lidarr",
                             "command": [
                                 "module_lidarr remove"
                             ],
@@ -693,7 +695,18 @@
                             "condition": "module_lidarr status"
                         },
                         {
-                            "id": "DOW023",
+                            "id": "LID003",
+                            "description": "Lidarr purge",
+                            "about": "This operation will purge Lidarr data folder",
+                            "command": [
+                                "module_lidarr purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_lidarr status"
+                        },
+                        {
+                            "id": "RDR001",
                             "description": "Install Readarr",
                             "command": [
                                 "module_readarr install"
@@ -703,10 +716,20 @@
                             "condition": "! module_readarr status"
                         },
                         {
-                            "id": "DOW024",
+                            "id": "RDR002",
                             "description": "Remove Readarr",
                             "command": [
                                 "module_readarr remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_readarr status"
+                        },
+                        {
+                            "id": "RDR003",
+                            "description": "Remove Readarr",
+                            "command": [
+                                "module_readarr purge"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
