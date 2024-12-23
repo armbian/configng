@@ -842,23 +842,33 @@
                         },
                         {
                             "id": "HA003",
-                            "description": "Install Home Assistant",
+                            "description": "Home Assistant Install",
                             "command": [
                                 "module_haos install"
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "! pkg_installed homeassistant-supervised && grep -q bookworm /etc/os-release"
+                            "condition": "! module_haos status && grep -q bookworm /etc/os-release"
                         },
                         {
                             "id": "HA004",
-                            "description": "Remove Home Assistant",
+                            "description": "Home Assistant Remove",
                             "command": [
-                                "module_haos uninstall"
+                                "module_haos remove"
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "pkg_installed homeassistant-supervised"
+                            "condition": "module_haos status"
+                        },
+                        {
+                            "id": "HA005",
+                            "description": "Home Assistant Purge",
+                            "command": [
+                                "module_haos purge"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_haos status"
                         }
                     ]
                 },

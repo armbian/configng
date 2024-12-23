@@ -13,4 +13,4 @@ Perfect to run on any single board computer with 4 cores and at least 512Mb of m
 
     Home Assistant on Armbian runs supervised in a Docker container. This secures same functionality as stock HAOS.
 
-    - Config directory: `/usr/share/haos`
+    - Config directory: `/armbian/haos`
