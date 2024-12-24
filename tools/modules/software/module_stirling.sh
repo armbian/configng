@@ -32,6 +32,7 @@ function module_stirling () {
 			pkg_installed docker-ce || install_docker
 			[[ -d "$STIRLING_BASE" ]] || mkdir -p "$STIRLING_BASE" || { echo "Couldn't create storage directory: $STIRLING_BASE"; exit 1; }
 			docker run -d \
+			--net=lsio \
 			-p 8077:8080 \
 			-v "${STIRLING_BASE}/trainingData:/usr/share/tessdata" \
 			-v "${STIRLING_BASE}/extraConfigs:/configs" \

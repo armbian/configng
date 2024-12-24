@@ -1,12 +1,13 @@
 module_options+=(
 	["module_syncthing,author"]=""
 	["module_syncthing,maintainer"]="@igorpecovnik"
-	["module_syncthing,testers"]="@igorpecovnik"
 	["module_syncthing,feature"]="module_syncthing"
-	["module_syncthing,desc"]="Install syncthing container"
 	["module_syncthing,example"]="install remove purge status help"
-	["module_syncthing,port"]="8884"
+	["module_syncthing,desc"]="Install syncthing container"
 	["module_syncthing,status"]="Active"
+	["module_syncthing,doc_link"]="https://docs.syncthing.net/"
+	["module_syncthing,group"]="Media"	
+	["module_syncthing,port"]="8884"
 	["module_syncthing,arch"]="x86-64,arm64"
 )
 #
@@ -28,11 +29,12 @@ function module_syncthing () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			[[ -d "$SYNCTHING_BASE" ]] || mkdir -p "$SYNCTHING_BASE" || { echo "Couldn't create storage directory: $SYNCTHING_BASE"; exit 1; }
 			docker run -d \
 			--name=syncthing \
 			--hostname=syncthing `#optional` \
+			--net=lsio \
 			-e PUID=1000 \
 			-e PGID=1000 \
 			-e TZ="$(cat /etc/timezone)" \

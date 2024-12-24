@@ -31,7 +31,9 @@ function module_uptimekuma () {
 		"${commands[0]}")
 			pkg_installed docker-ce || module_docker install
 			[[ -d "$UPTIMEKUMA_BASE" ]] || mkdir -p "$UPTIMEKUMA_BASE" || { echo "Couldn't create storage directory: $UPTIMEKUMA_BASE"; exit 1; }
-			docker run -d --name uptime-kuma \
+			docker run -d \
+			--net=lsio \
+			--name uptime-kuma \
 			--restart=always \
 			-p 3001:3001 \
 			-v "${UPTIMEKUMA_BASE}:/app/data" \
