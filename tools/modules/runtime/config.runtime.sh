@@ -94,25 +94,34 @@ fi
 #plex_media_port="$(lsof -i -P -n | grep TCP | grep LISTEN | grep 'plex' | awk -F: '{print $2}' | awk '{print $1}' | head -n 1)"
 #update_sub_submenu_data "Software" "Media" "SW22" "https://localhost:$plex_media_port"
 
+# System
 update_sub_submenu_data "System" "Storage" "SY220" "$(module_zfs zfs_version)"
 update_sub_submenu_data "System" "Storage" "SY221" "$(module_zfs zfs_installed_version)"
 update_sub_submenu_data "System" "Storage" "NFS04" "$NFS_CLIENTS_NUMBER"
+
+# Database
 update_sub_submenu_data "Software" "Database" "DAT002" "Server: $LOCALIPADD"
 update_sub_submenu_data "Software" "Database" "DAT006" "http://$LOCALIPADD:${module_options["module_phpmyadmin,port"]}"
 
 # Media
-update_sub_submenu_data "Software" "Media" "MED004" "http://$LOCALIPADD:${module_options["module_emby,port"]}"
+update_sub_submenu_data "Software" "Media" "MED002" "http://$LOCALIPADD:${module_options["module_plexmediaserver,port"]}"
+update_sub_submenu_data "Software" "Media" "MED004" "http://$LOCALIPADD:${module_options["module_embyserver,port"]}"
 update_sub_submenu_data "Software" "Media" "MED011" "http://$LOCALIPADD:${module_options["module_stirling,port"]}"
-update_sub_submenu_data "Software" "Media" "MED016" "http://$LOCALIPADD:${module_options["module_syncthing,port"]}"
+update_sub_submenu_data "Software" "Media" "MED016" "http://$LOCALIPADD:${module_options["module_syncthing,port"]%% *}" # removing second port from url
 update_sub_submenu_data "Software" "Media" "MED021" "https://$LOCALIPADD:${module_options["module_nextcloud,port"]}"
 update_sub_submenu_data "Software" "Media" "MED026" "http://$LOCALIPADD:${module_options["module_owncloud,port"]}"
-update_sub_submenu_data "Software" "Containers" "CON006" "http://$LOCALIPADD:${module_options["module_portainer,port"]}"
+
+# Containers
+update_sub_submenu_data "Software" "Containers" "CON006" "http://$LOCALIPADD:${module_options["module_portainer,port"]%% *}" # removing second port from url
 
 # Home automation
 update_sub_submenu_data "Software" "HomeAutomation" "HAB002" "http://$LOCALIPADD:${module_options["module_openhab,port"]}"
 update_sub_submenu_data "Software" "HomeAutomation" "HAS002" "http://$LOCALIPADD:${module_options["module_haos,port"]}"
 
-#
+# DNS
+update_sub_submenu_data "Software" "DNS" "DNS003" "http://$LOCALIPADD:${module_options["module_pi_hole,port"]%% *}" # removing second port from url
+
+# Monitoring
 update_sub_submenu_data "Software" "Monitoring" "MON002" "http://$LOCALIPADD:${module_options["module_uptimekuma,port"]}"
 update_sub_submenu_data "Software" "Monitoring" "MON006" "http://$LOCALIPADD:${module_options["module_netdata,port"]}"
 

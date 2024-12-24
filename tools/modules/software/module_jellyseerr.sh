@@ -1,7 +1,7 @@
 module_options+=(
 	["module_jellyseerr,author"]="@armbian"
 	["module_jellyseerr,maintainer"]="@igorpecovnik"
-	["module_jellyseerr,feature"]="module_jellyseerr"	
+	["module_jellyseerr,feature"]="module_jellyseerr"
 	["module_jellyseerr,example"]="install remove purge status help"
 	["module_jellyseerr,desc"]="Install jellyseerr container"
 	["module_jellyseerr,status"]="Active"

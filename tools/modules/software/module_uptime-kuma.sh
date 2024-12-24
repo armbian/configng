@@ -7,7 +7,7 @@ module_options+=(
 	["module_uptimekuma,status"]="Active"
 	["module_uptimekuma,doc_link"]="https://github.com/louislam/uptime-kuma/wiki"
 	["module_uptimekuma,group"]="Downloaders"
-	["module_uptimekuma,port"]="3001"	
+	["module_uptimekuma,port"]="3001"
 	["module_uptimekuma,arch"]="x86-64 arm64"
 )
 #

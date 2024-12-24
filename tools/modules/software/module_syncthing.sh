@@ -6,9 +6,9 @@ module_options+=(
 	["module_syncthing,desc"]="Install syncthing container"
 	["module_syncthing,status"]="Active"
 	["module_syncthing,doc_link"]="https://docs.syncthing.net/"
-	["module_syncthing,group"]="Media"	
-	["module_syncthing,port"]="8884"
-	["module_syncthing,arch"]="x86-64,arm64"
+	["module_syncthing,group"]="Media"
+	["module_syncthing,port"]="8884 22000 21027"
+	["module_syncthing,arch"]="x86-64 arm64"
 )
 #
 # Module syncthing
@@ -64,6 +64,7 @@ function module_syncthing () {
 			[[ "${image}" ]] && docker image rm "$image" >/dev/null
 		;;
 		"${commands[2]}")
+			${module_options["module_syncthing,feature"]} ${commands[1]}
 			[[ -n "${SYNCTHING_BASE}" && "${SYNCTHING_BASE}" != "/" ]] && rm -rf "${SYNCTHING_BASE}"
 		;;
 		"${commands[3]}")
@@ -85,7 +86,7 @@ function module_syncthing () {
 			echo
 		;;
 		*)
-		${module_options["module_syncthing,feature"]} ${commands[4]}
+			${module_options["module_syncthing,feature"]} ${commands[4]}
 		;;
 	esac
 }

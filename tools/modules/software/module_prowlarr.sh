@@ -7,7 +7,7 @@ module_options+=(
 	["module_prowlarr,status"]="Active"
 	["module_prowlarr,doc_link"]="https://prowlarr.com/"
 	["module_prowlarr,group"]="Database"
-	["module_prowlarr,port"]="9696"	
+	["module_prowlarr,port"]="9696"
 	["module_prowlarr,arch"]="x86-64,arm64"
 )
 #

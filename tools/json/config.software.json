@@ -57,7 +57,8 @@
                     "sub": [
                         {
                             "id": "HAB001",
-                            "description": "openHAB install",
+                            "description": "openHAB empowering the smart home",
+                            "about": "This operation will install openHAB.",
                             "command": [
                                 "module_openhab install"
                             ],
@@ -68,6 +69,7 @@
                         {
                             "id": "HAB002",
                             "description": "openHAB remove",
+                            "about": "This operation will purge openHAB.",
                             "command": [
                                 "module_openhab remove"
                             ],
@@ -78,6 +80,7 @@
                         {
                             "id": "HAB003",
                             "description": "openHAB purge with data folder",
+                            "about": "This operation will purge openHAB.",
                             "command": [
                                 "module_openhab purge"
                             ],
@@ -87,7 +90,8 @@
                         },
                         {
                             "id": "HAS001",
-                            "description": "Home Assistant install",
+                            "description": "Home Assistant open source home automation",
+                            "about": "This operation will install Home Assistant.",
                             "command": [
                                 "module_haos install"
                             ],
@@ -98,6 +102,7 @@
                         {
                             "id": "HAS002",
                             "description": "Home Assistant remove",
+                            "about": "This operation will remove Home Assistant.",
                             "command": [
                                 "module_haos remove"
                             ],
@@ -108,6 +113,7 @@
                         {
                             "id": "HAS003",
                             "description": "Home Assistant purge with data folder",
+                            "about": "This operation will purge Home Assistant.",
                             "command": [
                                 "module_haos purge"
                             ],
@@ -132,18 +138,8 @@
                             "condition": "! module_pi_hole status"
                         },
                         {
-                            "id": "DNS002",
-                            "description": "Pi-hole web admin password",
-                            "command": [
-                                "module_pi_hole password"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "module_pi_hole status"
-                        },
-                        {
                             "id": "DNS003",
-                            "description": "Pi-hole DNS ad blocker remove",
+                            "description": "Pi-hole remove",
                             "command": [
                                 "module_pi_hole remove"
                             ],
@@ -152,8 +148,18 @@
                             "condition": "module_pi_hole status"
                         },
                         {
+                            "id": "DNS002",
+                            "description": "Pi-hole change web admin password",
+                            "command": [
+                                "module_pi_hole password"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_pi_hole status"
+                        },
+                        {
                             "id": "DNS004",
-                            "description": "Pi-hole DNS ad blocker purge",
+                            "description": "Pi-hole purge",
                             "command": [
                                 "module_pi_hole remove"
                             ],
@@ -972,8 +978,8 @@
                         },
                         {
                             "id": "CON005",
-                            "description": "Install Portainer",
-                            "prompt": "This operation will install Portainer.\nWould you like to continue?",
+                            "description": "Portainer container management platform",
+                            "prompt": "This operation will install Portainer container management platform.",
                             "command": [
                                 "module_portainer install"
                             ],
@@ -983,10 +989,21 @@
                         },
                         {
                             "id": "CON006",
-                            "description": "Remove Portainer",
-                            "prompt": "This operation will delete Portainer container.\nWould you like to continue?",
+                            "description": "Portainer remove",
+                            "prompt": "This operation will remove Portainer container management platform.",
                             "command": [
-                                "module_portainer uninstall"
+                                "module_portainer remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_portainer status"
+                        },
+                        {
+                            "id": "CON007",
+                            "description": "Portainer purge with with data folder",
+                            "prompt": "This operation will remove Portainer container management platform.",
+                            "command": [
+                                "module_portainer remove"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
@@ -996,66 +1013,65 @@
                 },
                 {
                     "id": "Media",
-                    "description": "Media Servers and Editors",
+                    "description": "Media servers, organizers and editors",
                     "sub": [
                         {
                             "id": "MED001",
-                            "description": "Install Plex Media server",
+                            "description": "Plex Media server",
                             "about": "This operation will install Plex Media server.",
                             "command": [
-                                "install_plexmediaserver"
+                                "module_plexmediaserver install"
                             ],
-                            "status": "Stable",
+                            "status": "Disabled",
                             "author": "@schwar3kat",
-                            "condition": "! pkg_installed plexmediaserver"
+                            "condition": "! module_plexmediaserver status"
                         },
                         {
                             "id": "MED002",
-                            "description": "Remove Plex Media server",
+                            "description": "Plex Media server remove",
                             "about": "This operation will purge Plex Media server.",
                             "command": [
-                                "pkg_remove plexmediaserver",
-                                "sed -i '/plexmediaserver.gpg/s/^/#/g' /etc/apt/sources.list.d/plexmediaserver.list"
+                                "module_plexmediaserver remove"
                             ],
-                            "status": "Stable",
+                            "status": "Disabled",
                             "author": "@schwar3kat",
-                            "condition": "pkg_installed plexmediaserver"
+                            "condition": "module_plexmediaserver status"
                         },
                         {
                             "id": "MED003",
-                            "description": "Emby server Install",
+                            "description": "Emby organizes video, music, live TV, and photos",
                             "about": "This operation will install Emby server.",
                             "command": [
-                                "module_emby install"
+                                "module_embyserver install"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! module_emby status"
+                            "condition": "! module_embyserver status"
                         },
                         {
                             "id": "MED004",
-                            "description": "Emby server Remove",
-                            "about": "This operation will purge Emby server.",
+                            "description": "Emby server remove",
+                            "about": "This operation will remove Emby server",
                             "command": [
-                                "module_emby remove"
+                                "module_embyserver remove"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "module_emby status"
+                            "condition": "module_embyserver status"
                         },
                         {
                             "id": "MED005",
-                            "description": "Emby server Purge data folder",
+                            "description": "Emby server purge with data folder",
                             "command": [
-                                "module_emby purge"
+                                "module_embyserver purge"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! module_emby status && [[ -d \"${SOFTWARE_FOLDER}/emby\" ]]"
+                            "condition": "module_embyserver status"
                         },
                         {
                             "id": "MED010",
-                            "description": "Stirling-PDF tools for viewing and editing PDF files",
+                            "description": "Stirling PDF tools for viewing and editing PDF files",
                             "about": "This operation will install Stirling-PDF tools.",
                             "command": [
                                 "module_stirling install"
@@ -1066,7 +1082,7 @@
                         },
                         {
                             "id": "MED011",
-                            "description": "Stirling-PDF remove",
+                            "description": "Stirling PDF remove",
                             "about": "This operation will remove Stirling-PDF tools.",
                             "command": [
                                 "module_stirling remove"
@@ -1077,7 +1093,7 @@
                         },
                         {
                             "id": "MED012",
-                            "description": "Stirling-PDF purge with data folder",
+                            "description": "Stirling PDF purge with data folder",
                             "about": "This operation will purge Stirling-PDF tools with data folder.",
                             "command": [
                                 "module_stirling purge"
@@ -1088,7 +1104,7 @@
                         },
                         {
                             "id": "MED015",
-                            "description": "Syncthing Install",
+                            "description": "Syncthing continuous file synchronization",
                             "command": [
                                 "module_syncthing install"
                             ],
@@ -1098,7 +1114,7 @@
                         },
                         {
                             "id": "MED016",
-                            "description": "Syncthing Remove",
+                            "description": "Syncthing remove",
                             "command": [
                                 "module_syncthing remove"
                             ],
@@ -1108,17 +1124,17 @@
                         },
                         {
                             "id": "MED017",
-                            "description": "Syncthing Purge data folder",
+                            "description": "Syncthing purge with data folder",
                             "command": [
                                 "module_syncthing purge"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_syncthing status && [[ -d \"${SOFTWARE_FOLDER}/syncthing\" ]]"
+                            "condition": "module_syncthing status"
                         },
                         {
                             "id": "MED020",
-                            "description": "Nextcloud Install",
+                            "description": "Nextcloud content collaboration platform",
                             "command": [
                                 "module_nextcloud install"
                             ],
@@ -1128,7 +1144,7 @@
                         },
                         {
                             "id": "MED021",
-                            "description": "Nextcloud Remove",
+                            "description": "Nextcloud remove",
                             "command": [
                                 "module_nextcloud remove"
                             ],
@@ -1138,7 +1154,7 @@
                         },
                         {
                             "id": "MED022",
-                            "description": "Nextcloud Purge data folder",
+                            "description": "Nextcloud purge with data folder",
                             "command": [
                                 "module_nextcloud purge"
                             ],
@@ -1148,7 +1164,7 @@
                         },
                         {
                             "id": "MED025",
-                            "description": "Owncloud Install",
+                            "description": "Owncloud share files and folders, easy and secure",
                             "command": [
                                 "module_owncloud install"
                             ],
@@ -1158,7 +1174,7 @@
                         },
                         {
                             "id": "MED026",
-                            "description": "Owncloud Remove",
+                            "description": "Owncloud remove",
                             "command": [
                                 "module_owncloud remove"
                             ],
@@ -1168,13 +1184,13 @@
                         },
                         {
                             "id": "MED027",
-                            "description": "Owncloud Purge data folder",
+                            "description": "Owncloud purge with data folder",
                             "command": [
                                 "module_owncloud purge"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_owncloud status && [[ -d \"${SOFTWARE_FOLDER}/owncloud\" ]]"
+                            "condition": "module_owncloud status"
                         }
                     ]
                 },
@@ -1317,9 +1333,9 @@
                     "sub": [
                         {
                             "id": "NET001",
-                            "description": "Install realtime console network usage monitor (nload)",
+                            "description": "nload -realtime console network usage monitor",
+                            "prompt": "This operation will install nload.",
                             "command": [
-                                "get_user_continue \"This operation will install nload.\n\nDo you wish to continue?\" process_input",
                                 "pkg_install nload"
                             ],
                             "status": "Stable",
@@ -1328,9 +1344,9 @@
                         },
                         {
                             "id": "NET002",
-                            "description": "Remove realtime console network usage monitor (nload)",
+                            "description": "nload - remove",
+                            "prompt": "This operation will remove nload.",
                             "command": [
-                                "get_user_continue \"This operation will purge nload.\n\nDo you wish to continue?\" process_input",
                                 "pkg_remove nload"
                             ],
                             "status": "Stable",
@@ -1339,9 +1355,9 @@
                         },
                         {
                             "id": "NET003",
-                            "description": "Install bandwidth measuring tool (iperf3)",
-                            "command": [
-                                "get_user_continue \"This operation will install iperf3.\n\nDo you wish to continue?\" process_input",
+                            "description": "iperf3 bandwidth measuring tool",
+                            "prompt": "This operation will install iperf3.",
+                            "command": [                                
                                 "pkg_install iperf3"
                             ],
                             "status": "Stable",
@@ -1350,9 +1366,9 @@
                         },
                         {
                             "id": "NET004",
-                            "description": "Remove bandwidth measuring tool (iperf3)",
+                            "description": "iperf3 remove",
+                            "prompt": "This operation will remove iperf3.",
                             "command": [
-                                "get_user_continue \"This operation will purge iperf3.\n\nDo you wish to continue?\" process_input",
                                 "pkg_remove iperf3"
                             ],
                             "status": "Stable",
@@ -1361,9 +1377,9 @@
                         },
                         {
                             "id": "NET005",
-                            "description": "Install IP LAN monitor (iptraf-ng)",
+                            "description": "iptraf-ng IP LAN monitor",
+                            "prompt": "This operation will install iptraf-ng.",
                             "command": [
-                                "get_user_continue \"This operation will install iptraf-ng.\n\nDo you wish to continue?\" process_input",
                                 "pkg_install iptraf-ng"
                             ],
                             "status": "Stable",
@@ -1372,9 +1388,9 @@
                         },
                         {
                             "id": "NET006",
-                            "description": "Remove IP LAN monitor (iptraf-ng)",
+                            "description": "iptraf-ng remove",
+                            "prompt": "This operation will remove iptraf-ng.",
                             "command": [
-                                "get_user_continue \"This operation will purge nload.\n\nDo you wish to continue?\" process_input",
                                 "pkg_remove iptraf-ng"
                             ],
                             "status": "Stable",
@@ -1383,14 +1399,13 @@
                         },
                         {
                             "id": "NET007",
-                            "description": "Install hostname broadcast via mDNS (avahi-daemon)",
+                            "description": "avahi-daemon hostname broadcast via mDNS",
+                            "prompt": "This operation will install avahi-daemon.",
                             "command": [
-                                "get_user_continue \"This operation will install avahi-daemon and add configuration files.\nDo you wish to continue?\" process_input",
-                                "pkg_installed avahi-daemon",
                                 "pkg_install avahi-daemon libnss-mdns",
                                 "cp /usr/share/doc/avahi-daemon/examples/sftp-ssh.service /etc/avahi/services/",
                                 "cp /usr/share/doc/avahi-daemon/examples/ssh.service /etc/avahi/services/",
-                                "service avahi-daemon restart"
+                                "service restart avahi-daemon"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
@@ -1398,10 +1413,9 @@
                         },
                         {
                             "id": "NET008",
-                            "description": "Remove hostname broadcast via mDNS (avahi-daemon)",
+                            "description": "avahi-daemon remove",
+                            "prompt": "This operation will remove avahi-daemon.",
                             "command": [
-                                "get_user_continue \"This operation will purge avahi-daemon \nDo you wish to continue?\" process_input",
-                                "pkg_installed avahi-daemon",
                                 "systemctl stop avahi-daemon avahi-daemon.socket",
                                 "pkg_remove avahi-daemon"
                             ],

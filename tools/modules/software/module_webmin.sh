@@ -1,11 +1,14 @@
-
-
 module_options+=(
 	["module_webmin,author"]="@Tearran"
+	["module_webmin,maintainer"]="@Tearran"
 	["module_webmin,feature"]="module_webmin"
 	["module_webmin,example"]="help install remove start stop enable disable status check"
 	["module_webmin,desc"]="Webmin setup and service setting."
-	["module_webmin,status"]="review"
+	["module_webmin,status"]="Active"
+	["module_webmin,doc_link"]="https://webmin.com/docs/"
+	["module_webmin,group"]="Management"
+	["module_webmin,port"]="10000"
+	["module_webmin,arch"]="x86-64 arm64 armhf"
 )
 
 function module_webmin() {
@@ -41,10 +44,12 @@ function module_webmin() {
 		;;
 		"${commands[1]}")
 			## install webmin
-			pkg_install --update wget apt-transport-https
+			pkg_update
+			pkg_install wget apt-transport-https
 			echo "deb [signed-by=/usr/share/keyrings/webmin-archive-keyring.gpg] http://download.webmin.com/download/repository sarge contrib" | sudo tee /etc/apt/sources.list.d/webmin.list
 			wget -qO- http://www.webmin.com/jcameron-key.asc | gpg --dearmor | tee /usr/share/keyrings/webmin-archive-keyring.gpg > /dev/null
-			pkg_install --update --install-recommends webmin
+			pkg_update
+			pkg_install webmin
 			echo "Webmin installed successfully."
 		;;
 		"${commands[2]}")
@@ -105,6 +110,3 @@ function module_webmin() {
 		;;
 	esac
 }
-
-
-#module_webmin "$1"

@@ -1,19 +1,19 @@
 module_options+=(
-	["module_emby,author"]="@schwar3kat"
-	["module_emby,maintainer"]="@schwar3kat"
-	["module_emby,feature"]="module_emby"
-	["module_emby,example"]="install remove purge status help"
-	["module_emby,desc"]="Install embyserver container"
-	["module_emby,status"]="Active"
-	["module_emby,doc_link"]="https://emby.media"
-	["module_emby,group"]="Media"
-	["module_emby,port"]="8096"
-	["module_emby,arch"]="x86-64 arm64"
+	["module_embyserver,author"]="@schwar3kat"
+	["module_embyserver,maintainer"]="@schwar3kat"
+	["module_embyserver,feature"]="module_embyserver"
+	["module_embyserver,example"]="install remove purge status help"
+	["module_embyserver,desc"]="Install embyserver container"
+	["module_embyserver,status"]="Active"
+	["module_embyserver,doc_link"]="https://emby.media"
+	["module_embyserver,group"]="Media"
+	["module_embyserver,port"]="8096"
+	["module_embyserver,arch"]="x86-64 arm64"
 )
 #
 # Module Emby server
 #
-function module_emby () {
+function module_embyserver () {
 	local title="emby"
 	local condition=$(which "$title" 2>/dev/null)
 
@@ -23,7 +23,7 @@ function module_emby () {
 	fi
 
 	local commands
-	IFS=' ' read -r -a commands <<< "${module_options["module_emby,example"]}"
+	IFS=' ' read -r -a commands <<< "${module_options["module_embyserver,example"]}"
 
 	EMBY_BASE="${SOFTWARE_FOLDER}/emby"
 
@@ -60,6 +60,7 @@ function module_emby () {
 			[[ "${image}" ]] && docker image rm "$image" >/dev/null
 		;;
 		"${commands[2]}")
+			${module_options["module_embyserver,feature"]} ${commands[1]}
 			[[ -n "${EMBY_BASE}" && "${EMBY_BASE}" != "/" ]] && rm -rf "${EMBY_BASE}"
 		;;
 		"${commands[3]}")
@@ -80,7 +81,7 @@ function module_emby () {
 			echo
 		;;
 		*)
-		${module_options["module_embyserver,feature"]} ${commands[4]}
+			${module_options["module_embyserver,feature"]} ${commands[4]}
 		;;
 	esac
 }

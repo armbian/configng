@@ -1,7 +1,7 @@
 module_options+=(
 	["module_watchtower,author"]="@armbian"
 	["module_watchtower,maintainer"]="@igorpecovnik"
-	["module_watchtower,feature"]="module_watchtower"	
+	["module_watchtower,feature"]="module_watchtower"
 	["module_watchtower,example"]="install remove status help"
 	["module_watchtower,desc"]="Install watchtower container"
 	["module_watchtower,status"]="Active"
