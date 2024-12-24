@@ -1,5 +1,5 @@
 module_options+=(
-	["module_bazarr,author"]=""
+	["module_bazarr,author"]="@igorpecovnik"
 	["module_bazarr,maintainer"]="@igorpecovnik"
 	["module_bazarr,feature"]="module_bazarr"
 	["module_bazarr,example"]="install remove purge status help"

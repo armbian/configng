@@ -1,7 +1,7 @@
 module_options+=(
 	["module_docker,author"]="@schwar3kat"
 	["module_docker,maintainer"]="@igorpecovnik"
-	["module_docker,feature"]="install_docker"
+	["module_docker,feature"]="module_docker"
 	["module_docker,example"]="install remove purge status help"
 	["module_docker,desc"]="Install docker from a repo using apt"
 	["module_docker,status"]="Active"

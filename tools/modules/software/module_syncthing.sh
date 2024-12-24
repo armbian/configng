@@ -1,5 +1,5 @@
 module_options+=(
-	["module_syncthing,author"]=""
+	["module_syncthing,author"]="@igorpecovnik"
 	["module_syncthing,maintainer"]="@igorpecovnik"
 	["module_syncthing,feature"]="module_syncthing"
 	["module_syncthing,example"]="install remove purge status help"

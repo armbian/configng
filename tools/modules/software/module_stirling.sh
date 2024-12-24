@@ -29,7 +29,7 @@ function module_stirling () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			[[ -d "$STIRLING_BASE" ]] || mkdir -p "$STIRLING_BASE" || { echo "Couldn't create storage directory: $STIRLING_BASE"; exit 1; }
 			docker run -d \
 			--net=lsio \
