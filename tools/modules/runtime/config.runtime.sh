@@ -121,5 +121,5 @@ update_sub_submenu_data "Software" "Downloaders" "BAZ002" "http://$LOCALIPADD:${
 update_sub_submenu_data "Software" "Downloaders" "LID002" "http://$LOCALIPADD:${module_options["module_lidarr,port"]}"
 update_sub_submenu_data "Software" "Downloaders" "RDR002" "http://$LOCALIPADD:${module_options["module_readarr,port"]}"
 update_sub_submenu_data "Software" "Downloaders" "DOW026" "http://$LOCALIPADD:${module_options["module_prowlarr,port"]}"
-update_sub_submenu_data "Software" "Downloaders" "DOW041" "http://$LOCALIPADD:${module_options["module_jellyseerr,port"]}"
+update_sub_submenu_data "Software" "Downloaders" "JEL002" "http://$LOCALIPADD:${module_options["module_jellyseerr,port"]}"
 

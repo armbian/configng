@@ -1,11 +1,14 @@
 module_options+=(
 	["module_jellyseerr,author"]="@armbian"
-	["module_jellyseerr,feature"]="module_jellyseerr"
-	["module_jellyseerr,desc"]="Install jellyseerr container"
+	["module_jellyseerr,maintainer"]="@igorpecovnik"
+	["module_jellyseerr,feature"]="module_jellyseerr"	
 	["module_jellyseerr,example"]="install remove purge status help"
-	["module_jellyseerr,port"]="5055"
+	["module_jellyseerr,desc"]="Install jellyseerr container"
 	["module_jellyseerr,status"]="Active"
-	["module_jellyseerr,arch"]="x86-64,arm64"
+	["module_jellyseerr,doc_link"]="https://docs.jellyseerr.dev/"
+	["module_jellyseerr,group"]="Downloaders"
+	["module_jellyseerr,port"]="5055"
+	["module_jellyseerr,arch"]="x86-64 arm64"
 )
 #
 # Module jellyseerr
@@ -26,10 +29,11 @@ function module_jellyseerr () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			[[ -d "$JELLYSEERR_BASE" ]] || mkdir -p "$JELLYSEERR_BASE" || { echo "Couldn't create storage directory: $JELLYSEERR_BASE"; exit 1; }
 			docker run -d \
 			--name jellyseerr \
+			--net=lsio \
 			-e LOG_LEVEL=debug \
 			-e TZ="$(cat /etc/timezone)" \
 			-e PORT=5055 `#optional` \
@@ -54,6 +58,7 @@ function module_jellyseerr () {
 			[[ "${image}" ]] && docker image rm "$image" >/dev/null
 		;;
 		"${commands[2]}")
+			${module_options["module_jellyseerr,feature"]} ${commands[1]}
 			[[ -n "${JELLYSEERR_BASE}" && "${JELLYSEERR_BASE}" != "/" ]] && rm -rf "${JELLYSEERR_BASE}"
 		;;
 		"${commands[3]}")
@@ -73,7 +78,7 @@ function module_jellyseerr () {
 			echo
 		;;
 		*)
-		${module_options["module_jellyseerr,feature"]} ${commands[4]}
+			${module_options["module_jellyseerr,feature"]} ${commands[4]}
 		;;
 	esac
 }
