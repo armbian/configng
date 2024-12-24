@@ -15,6 +15,7 @@
 - **Lightweight**: Minimal dependencies for optimal performance.
 - **Flexible**: Supports JSON, TUI, CLI, and API interfaces.
 - **Modern**: A fresh approach to configuration.
+- **Low entropy**: Byte clean uninstall for most targets
 
 ## Features
 
