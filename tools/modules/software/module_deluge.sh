@@ -1,11 +1,14 @@
 module_options+=(
-	["module_deluge,author"]="@armbian"
+	["module_deluge,author"]="@igorpecovnik"
+	["module_deluge,maintainer"]="@igorpecovnik"
 	["module_deluge,feature"]="module_deluge"
+	["module_deluge,example"]="install remove purge status help"
 	["module_deluge,desc"]="Install deluge container"
-	["module_deluge,example"]="install remove status help"
-	["module_deluge,port"]="8112 6181 58846"
 	["module_deluge,status"]="Active"
-	["module_deluge,arch"]="x86-64,arm64"
+	["module_deluge,doc_link"]="https://deluge-torrent.org/userguide/"
+	["module_deluge,group"]="Downloaders"
+	["module_deluge,port"]="8112 6181 58846"
+	["module_deluge,arch"]="x86-64 arm64"
 )
 #
 # Module deluge
@@ -26,10 +29,11 @@ function module_deluge () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			[[ -d "$DELUGE_BASE" ]] || mkdir -p "$DELUGE_BASE" || { echo "Couldn't create storage directory: $DELUGE_BASE"; exit 1; }
 			docker run -d \
 			--name=deluge \
+			--net=lsio \
 			-e PUID=1000 \
 			-e PGID=1000 \
 			-e TZ="$(cat /etc/timezone)" \
@@ -57,16 +61,18 @@ function module_deluge () {
 		"${commands[1]}")
 			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
 			[[ "${image}" ]] && docker image rm "$image" >/dev/null
-			[[ -n "${DELUGE_BASE}" && "${DELUGE_BASE}" != "/" ]] && rm -rf "${DELUGE_BASE}"
 		;;
 		"${commands[2]}")
+			[[ -n "${DELUGE_BASE}" && "${DELUGE_BASE}" != "/" ]] && rm -rf "${DELUGE_BASE}"
+		;;
+		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then
 				return 0
 			else
 				return 1
 			fi
 		;;
-		"${commands[3]}")
+		"${commands[4]}")
 			echo -e "\nUsage: ${module_options["module_deluge,feature"]} <command>"
 			echo -e "Commands:  ${module_options["module_deluge,example"]}"
 			echo "Available commands:"
@@ -76,7 +82,7 @@ function module_deluge () {
 			echo
 		;;
 		*)
-		${module_options["module_deluge,feature"]} ${commands[3]}
+		${module_options["module_deluge,feature"]} ${commands[4]}
 		;;
 	esac
 }

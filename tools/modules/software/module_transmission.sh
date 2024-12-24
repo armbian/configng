@@ -1,11 +1,14 @@
 module_options+=(
 	["module_transmission,author"]="@armbian"
+	["module_transmission,maintainer"]="@igorpecovnik"
 	["module_transmission,feature"]="module_transmission"
+	["module_transmission,example"]="install remove purge status help"
 	["module_transmission,desc"]="Install transmission container"
-	["module_transmission,example"]="install remove status help"
-	["module_transmission,port"]="9091"
 	["module_transmission,status"]="Active"
-	["module_transmission,arch"]="x86-64,arm64"
+	["module_transmission,doc_link"]="https://transmissionbt.com/"
+	["module_transmission,group"]="Downloaders"
+	["module_transmission,port"]="9091 51413"
+	["module_transmission,arch"]="x86-64 arm64"
 )
 #
 # Module transmission
@@ -26,19 +29,19 @@ function module_transmission () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			[[ -d "$TRANSMISSION_BASE" ]] || mkdir -p "$TRANSMISSION_BASE" || { echo "Couldn't create storage directory: $TRANSMISSION_BASE"; exit 1; }
+			TRANSMISSION_USER=$($DIALOG --title "Enter username for Transmission server" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
+			TRANSMISSION_PASS=$($DIALOG --title "Enter password for Transmission server" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
 			docker run -d \
 			--name=transmission \
+			--net=lsio \
 			-e PUID=1000 \
 			-e PGID=1000 \
 			-e TZ="$(cat /etc/timezone)" \
-			-e TRANSMISSION_WEB_HOME= `#optional` \
-			-e USER= `#optional` \
-			-e PASS= `#optional` \
-			-e WHITELIST= `#optional` \
-			-e PEERPORT= `#optional` \
-			-e HOST_WHITELIST= `#optional` \
+			-e USER="${TRANSMISSION_USER}" \
+			-e PASS="${TRANSMISSION_PASS}" \
+			-e WHITELIST="${LOCALWHITELIST}" \
 			-p 9091:9091 \
 			-p 51413:51413 \
 			-p 51413:51413/udp \
@@ -62,16 +65,19 @@ function module_transmission () {
 		"${commands[1]}")
 			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
 			[[ "${image}" ]] && docker image rm "$image" >/dev/null
-			[[ -n "${TRANSMISSION_BASE}" && "${TRANSMISSION_BASE}" != "/" ]] && rm -rf "${TRANSMISSION_BASE}"
 		;;
 		"${commands[2]}")
+			${module_options["module_transmission,feature"]} ${commands[1]}
+			[[ -n "${TRANSMISSION_BASE}" && "${TRANSMISSION_BASE}" != "/" ]] && rm -rf "${TRANSMISSION_BASE}"
+		;;
+		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then
 				return 0
 			else
 				return 1
 			fi
 		;;
-		"${commands[3]}")
+		"${commands[4]}")
 			echo -e "\nUsage: ${module_options["module_transmission,feature"]} <command>"
 			echo -e "Commands:  ${module_options["module_transmission,example"]}"
 			echo "Available commands:"
@@ -81,7 +87,7 @@ function module_transmission () {
 			echo
 		;;
 		*)
-		${module_options["module_transmission,feature"]} ${commands[3]}
+			${module_options["module_transmission,feature"]} ${commands[4]}
 		;;
 	esac
 }

@@ -410,7 +410,8 @@
                     "sub": [
                         {
                             "id": "DOW001",
-                            "description": "Install qBittorrent",
+                            "description": "qBittorrent P2P server install ",
+                            "about": "This operation will install qBittorrent P2P server",
                             "command": [
                                 "module_qbittorrent install"
                             ],
@@ -420,7 +421,8 @@
                         },
                         {
                             "id": "DOW002",
-                            "description": "Remove qBittorrent",
+                            "description": "qBittorrent P2P server remove",
+                            "about": "This operation will remove qBittorrent server",
                             "command": [
                                 "module_qbittorrent remove"
                             ],
@@ -430,7 +432,19 @@
                         },
                         {
                             "id": "DOW003",
-                            "description": "Install Deluge",
+                            "description": "qBittorrent P2P server purge",
+                            "about": "This operation will remove qBittorrent data folder",
+                            "command": [
+                                "module_qbittorrent purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_qbittorrent status"
+                        },
+                        {
+                            "id": "DEL001",
+                            "description": "Deluge P2P server install",
+                            "about": "This operation will install P2P server",
                             "command": [
                                 "module_deluge install"
                             ],
@@ -439,8 +453,9 @@
                             "condition": "! module_deluge status"
                         },
                         {
-                            "id": "DOW004",
-                            "description": "Remove Deluge",
+                            "id": "DEL002",
+                            "description": "Deluge P2P server remove",
+                            "about": "This operation will remove Deluge P2P server",
                             "command": [
                                 "module_deluge remove"
                             ],
@@ -449,8 +464,20 @@
                             "condition": "module_deluge status"
                         },
                         {
-                            "id": "DOW005",
-                            "description": "Install Transmission",
+                            "id": "DEL003",
+                            "description": "Deluge P2P server purge data folder",
+                            "about": "This operation will remove Deluge P2P server data folder",
+                            "command": [
+                                "module_deluge purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_deluge status"
+                        },
+                        {
+                            "id": "TRA001",
+                            "description": "Transmission P2P server install",
+                            "about": "This operation will install Transmission P2P server",
                             "command": [
                                 "module_transmission install"
                             ],
@@ -459,8 +486,9 @@
                             "condition": "! module_transmission status"
                         },
                         {
-                            "id": "DOW006",
-                            "description": "Remove Transmission",
+                            "id": "TRA002",
+                            "description": "Transmission P2P server remove",
+                            "about": "This operation will remove Transmission P2P server",
                             "command": [
                                 "module_transmission remove"
                             ],
@@ -469,8 +497,20 @@
                             "condition": "module_transmission status"
                         },
                         {
-                            "id": "DOW011",
-                            "description": "Install SABnzbd",
+                            "id": "TRA003",
+                            "description": "Transmission P2P server purge data folder",
+                            "about": "This operation will remove Transmission P2P server data folder",
+                            "command": [
+                                "module_transmission purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_transmission status"
+                        },
+                        {
+                            "id": "SABN01",
+                            "description": "SABnzbd newsgroup downloader install",
+                            "about": "This operation will install SABnzbd newsgroup downloader",
                             "command": [
                                 "module_sabnzbd install"
                             ],
@@ -479,8 +519,9 @@
                             "condition": "! module_sabnzbd status"
                         },
                         {
-                            "id": "DOW012",
-                            "description": "Remove SABnzbd",
+                            "id": "SABN02",
+                            "description": "SABnzbd newsgroup downloader remove",
+                            "about": "This operation will remove SABnzbd newsgroup downloader",
                             "command": [
                                 "module_sabnzbd remove"
                             ],
@@ -489,8 +530,20 @@
                             "condition": "module_sabnzbd status"
                         },
                         {
-                            "id": "DOW013",
-                            "description": "Install Medusa",
+                            "id": "SABN03",
+                            "description": "SABnzbd newsgroup downloader purge",
+                            "about": "This operation will purge SABnzbd newsgroup data folder",
+                            "command": [
+                                "module_sabnzbd purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_sabnzbd status"
+                        },
+                        {
+                            "id": "MDS001",
+                            "description": "Medusa TV shows downloader install",
+                            "about": "This operation will install Medusa TV shows downloader",
                             "command": [
                                 "module_medusa install"
                             ],
@@ -499,8 +552,9 @@
                             "condition": "! module_medusa status"
                         },
                         {
-                            "id": "DOW014",
-                            "description": "Remove Medusa",
+                            "id": "MDS002",
+                            "description": "Medusa TV shows downloader remove",
+                            "about": "This operation will remove Medusa TV shows downloader",
                             "command": [
                                 "module_medusa remove"
                             ],
@@ -509,8 +563,20 @@
                             "condition": "module_medusa status"
                         },
                         {
-                            "id": "DOW015",
-                            "description": "Install Sonarr",
+                            "id": "MDS003",
+                            "description": "Medusa TV shows downloader purge",
+                            "about": "This operation will purge Medusa TV shows data folder",
+                            "command": [
+                                "module_medusa purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_medusa status"
+                        },
+                        {
+                            "id": "SON001",
+                            "description": "Sonarr PVR for Usenet and BitTorrent install",
+                            "about": "This operation will install Sonarr PVR for Usenet and BitTorrent",
                             "command": [
                                 "module_sonarr install"
                             ],
@@ -519,18 +585,31 @@
                             "condition": "! module_sonarr status"
                         },
                         {
-                            "id": "DOW016",
-                            "description": "Remove Sonarr",
+                            "id": "SON002",
+                            "description": "Sonarr PVR for Usenet and BitTorrent remove",
+                            "about": "This operation will remove Sonarr PVR for Usenet and BitTorrent",
                             "command": [
                                 "module_sonarr remove"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "module_sonarr status"
+                        },                        
+                        {
+                            "id": "SON003",
+                            "description": "Sonarr PVR for Usenet and BitTorrent purge data folder",
+                            "about": "This operation will purge Sonarr PVR for Usenet and BitTorrent purge data folder",
+                            "command": [
+                                "module_sonarr purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_sonarr status"
                         },
                         {
-                            "id": "DOW017",
-                            "description": "Install Radarr",
+                            "id": "RAD001",
+                            "description": "Radarr movie collection manager install",
+                            "about": "This operation will install Radarr movie collection manager",
                             "command": [
                                 "module_radarr install"
                             ],
@@ -539,8 +618,9 @@
                             "condition": "! module_radarr status"
                         },
                         {
-                            "id": "DOW018",
-                            "description": "Remove Radarr",
+                            "id": "RAD002",
+                            "description": "Radarr movie collection manager remove",
+                            "about": "This operation will remove Radarr movie collection manager",
                             "command": [
                                 "module_radarr remove"
                             ],
@@ -549,8 +629,20 @@
                             "condition": "module_radarr status"
                         },
                         {
-                            "id": "DOW019",
-                            "description": "Install Bazarr",
+                            "id": "RAD003",
+                            "description": "Radarr movie collection manager purge",
+                            "about": "This operation will purge Radarr movie collection manager data folder",
+                            "command": [
+                                "module_radarr purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_radarr status"
+                        },
+                        {
+                            "id": "BAZ001",
+                            "description": "Bazarr subtitles manager for Sonarr and Radarr install",
+                            "about": "This operation will install Bazarr subtitles manager for Sonarr and Radarr",
                             "command": [
                                 "module_bazarr install"
                             ],
@@ -559,8 +651,9 @@
                             "condition": "! module_bazarr status"
                         },
                         {
-                            "id": "DOW020",
-                            "description": "Remove Bazarr",
+                            "id": "BAZ002",
+                            "description": "Bazarr subtitles manager for Sonarr and Radarr Remove",
+                            "about": "This operation will remove Bazarr subtitles manager for Sonarr and Radarr",
                             "command": [
                                 "module_bazarr remove"
                             ],
@@ -569,8 +662,20 @@
                             "condition": "module_bazarr status"
                         },
                         {
-                            "id": "DOW021",
-                            "description": "Install Lidarr",
+                            "id": "BAZ003",
+                            "description": "Bazarr Purge data folder",
+                            "about": "This operation will purge Bazarr subtitles manager data folder",
+                            "command": [
+                                "module_bazarr purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_bazarr status"
+                        },
+                        {
+                            "id": "LID001",
+                            "description": "Lidarr music collection manager install",
+                            "about": "This operation will install Lidarr music collection manager for Usenet and BitTorrent users",
                             "command": [
                                 "module_lidarr install"
                             ],
@@ -579,8 +684,9 @@
                             "condition": "! module_lidarr status"
                         },
                         {
-                            "id": "DOW022",
-                            "description": "Remove Lidarr",
+                            "id": "LID002",
+                            "description": "Lidarr remove",
+                            "about": "This operation will remove Lidarr",
                             "command": [
                                 "module_lidarr remove"
                             ],
@@ -589,7 +695,18 @@
                             "condition": "module_lidarr status"
                         },
                         {
-                            "id": "DOW023",
+                            "id": "LID003",
+                            "description": "Lidarr purge",
+                            "about": "This operation will purge Lidarr data folder",
+                            "command": [
+                                "module_lidarr purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_lidarr status"
+                        },
+                        {
+                            "id": "RDR001",
                             "description": "Install Readarr",
                             "command": [
                                 "module_readarr install"
@@ -599,10 +716,20 @@
                             "condition": "! module_readarr status"
                         },
                         {
-                            "id": "DOW024",
+                            "id": "RDR002",
                             "description": "Remove Readarr",
                             "command": [
                                 "module_readarr remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_readarr status"
+                        },
+                        {
+                            "id": "RDR003",
+                            "description": "Remove Readarr",
+                            "command": [
+                                "module_readarr purge"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
@@ -796,43 +923,53 @@
                     "sub": [
                         {
                             "id": "HA001",
-                            "description": "Install openHAB",
+                            "description": "openHAB Install",
                             "command": [
-                                "openhab install"
+                                "module_openhab install"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! pkg_installed openhab"
+                            "condition": "! module_openhab status"
                         },
                         {
                             "id": "HA002",
-                            "description": "Remove openHAB",
+                            "description": "openHAB Remove",
                             "command": [
-                                "openhab uninstall"
+                                "module_openhab remove"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "pkg_installed openhab"
+                            "condition": "module_openhab status"
                         },
                         {
                             "id": "HA003",
-                            "description": "Install Home Assistant",
+                            "description": "Home Assistant Install",
                             "command": [
                                 "module_haos install"
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "! pkg_installed homeassistant-supervised && grep -q bookworm /etc/os-release"
+                            "condition": "! module_haos status && grep -q bookworm /etc/os-release"
                         },
                         {
                             "id": "HA004",
-                            "description": "Remove Home Assistant",
+                            "description": "Home Assistant Remove",
                             "command": [
-                                "module_haos uninstall"
+                                "module_haos remove"
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "pkg_installed homeassistant-supervised"
+                            "condition": "module_haos status"
+                        },
+                        {
+                            "id": "HA005",
+                            "description": "Home Assistant Purge",
+                            "command": [
+                                "module_haos purge"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_haos status"
                         }
                     ]
                 },
@@ -852,48 +989,47 @@
                     "sub": [
                         {
                             "id": "CON001",
-                            "description": "Install Docker Minimal",
+                            "description": "Docker Minimal Install",
                             "about": "This operation will install Docker Minimal.",
                             "command": [
-                                "install_docker"
+                                "module_docker install minimal"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! pkg_installed docker-ce"
+                            "condition": "! module_docker status docker-ce"
                         },
                         {
                             "id": "CON002",
-                            "description": "Install Docker Engine",
+                            "description": "Docker Engine Install",
                             "about": "This operation will install Docker Engine.",
                             "command": [
-                                "install_docker engine"
+                                "module_docker install engine"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! pkg_installed docker-compose-plugin"
+                            "condition": "! module_docker status docker-compose-plugin"
                         },
                         {
                             "id": "CON003",
-                            "description": "Remove Docker",
+                            "description": "Docker Remove",
                             "about": "This operation will purge Docker.",
                             "command": [
-                                "pkg_remove docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras"
+                                "module_docker remove"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "pkg_installed docker-ce"
+                            "condition": "module_docker status docker-ce"
                         },
                         {
                             "id": "CON004",
-                            "description": "Purge all Docker images, containers, and volumes",
+                            "description": "Docker Purge all images, containers, and volumes",
                             "about": "This operation will delete all Docker images, containers, and volumes.",
                             "command": [
-                                "rm -rf /var/lib/docker",
-                                "rm -rf /var/lib/containerd"
+                                "module_docker purge"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! pkg_installed docker-ce && [ -d /var/lib/docker ]"
+                            "condition": "! module_docker status docker-ce && [ -d /var/lib/docker ]"
                         },
                         {
                             "id": "CON005",
@@ -968,25 +1104,35 @@
                         },
                         {
                             "id": "MED003",
-                            "description": "Install Emby server",
+                            "description": "Emby server Install",
                             "about": "This operation will install Emby server.",
                             "command": [
-                                "install_embyserver"
+                                "module_emby install"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! pkg_installed emby-server"
+                            "condition": "! module_emby status"
                         },
                         {
                             "id": "MED004",
-                            "description": "Remove Emby server",
+                            "description": "Emby server Remove",
                             "about": "This operation will purge Emby server.",
                             "command": [
-                                "pkg_remove emby-server"
+                                "module_emby remove"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "pkg_installed emby-server"
+                            "condition": "module_emby status"
+                        },
+                        {
+                            "id": "MED005",
+                            "description": "Emby server Purge data folder",
+                            "command": [
+                                "module_emby purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "! module_emby status && [[ -d \"${SOFTWARE_FOLDER}/emby\" ]]"
                         },
                         {
                             "id": "MED010",

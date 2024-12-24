@@ -28,7 +28,7 @@ function module_mariadb () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			[[ -d "$MARIADB_BASE" ]] || mkdir -p "$MARIADB_BASE" || { echo "Couldn't create storage directory: $MARIADB_BASE"; exit 1; }
 
 			# get parameters

@@ -1,11 +1,14 @@
 module_options+=(
 	["module_sonarr,author"]="@armbian"
+	["module_sonarr,maintainer"]="@igorpecovnik"
 	["module_sonarr,feature"]="module_sonarr"
+	["module_sonarr,example"]="install remove purge status help"
 	["module_sonarr,desc"]="Install sonarr container"
-	["module_sonarr,example"]="install remove status help"
-	["module_sonarr,port"]="8989"
 	["module_sonarr,status"]="Active"
-	["module_sonarr,arch"]="x86-64,arm64"
+	["module_sonarr,doc_link"]="https://transmissionbt.com/"
+	["module_sonarr,group"]="Downloaders"
+	["module_sonarr,port"]="8989"
+	["module_sonarr,arch"]="x86-64 arm64"
 )
 #
 # Mmodule_sonarr
@@ -26,10 +29,11 @@ function module_sonarr () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			[[ -d "$SONARR_BASE" ]] || mkdir -p "$SONARR_BASE" || { echo "Couldn't create storage directory: $SONARR_BASE"; exit 1; }
 			docker run -d \
 			--name=sonarr \
+			--net=lsio \
 			-e PUID=1000 \
 			-e PGID=1000 \
 			-e TZ="$(cat /etc/timezone)" \
@@ -54,26 +58,30 @@ function module_sonarr () {
 		"${commands[1]}")
 			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
 			[[ "${image}" ]] && docker image rm "$image" >/dev/null
-			[[ -n "${SONARR_BASE}" && "${SONARR_BASE}" != "/" ]] && rm -rf "${SONARR_BASE}"
 		;;
 		"${commands[2]}")
+			${module_options["module_sonarr,feature"]} ${commands[1]}
+			[[ -n "${SONARR_BASE}" && "${SONARR_BASE}" != "/" ]] && rm -rf "${SONARR_BASE}"
+		;;
+		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then
 				return 0
 			else
 				return 1
 			fi
 		;;
-		"${commands[3]}")
+		"${commands[4]}")
 			echo -e "\nUsage: ${module_options["module_sonarr,feature"]} <command>"
 			echo -e "Commands:  ${module_options["module_sonarr,example"]}"
 			echo "Available commands:"
 			echo -e "\tinstall\t- Install $title."
 			echo -e "\tstatus\t- Installation status $title."
 			echo -e "\tremove\t- Remove $title."
+			echo -e "\tpurge\t- Purge $title."
 			echo
 		;;
 		*)
-		${module_options["module_sonarr,feature"]} ${commands[3]}
+			${module_options["module_sonarr,feature"]} ${commands[4]}
 		;;
 	esac
 }

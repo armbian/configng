@@ -1,12 +1,14 @@
-declare -A module_options
 module_options+=(
-	["module_qbittorrent,author"]="@armbian"
+	["module_qbittorrent,author"]="@qbittorrent"
+	["module_qbittorrent,maintainer"]="@igorpecovnik"
 	["module_qbittorrent,feature"]="module_qbittorrent"
+	["module_qbittorrent,example"]="install remove purge status help"
 	["module_qbittorrent,desc"]="Install qbittorrent container"
-	["module_qbittorrent,example"]="install remove status help"
-	["module_qbittorrent,port"]="8090 6881"
 	["module_qbittorrent,status"]="Active"
-	["module_qbittorrent,arch"]="x86-64,arm64"
+	["module_qbittorrent,doc_link"]="https://github.com/qbittorrent/qBittorrent/wiki/"
+	["module_qbittorrent,group"]="Downloaders"
+	["module_qbittorrent,port"]="8090 6881"
+	["module_qbittorrent,arch"]="x86-64 arm64"
 )
 #
 # Module qbittorrent
@@ -25,10 +27,11 @@ function module_qbittorrent () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			[[ -d "$QBITTORRENT_BASE" ]] || mkdir -p "$QBITTORRENT_BASE" || { echo "Couldn't create storage directory: $QBITTORRENT_BASE"; exit 1; }
 			docker run -d \
 			--name=qbittorrent \
+			--net=lsio \
 			-e PUID=1000 \
 			-e PGID=1000 \
 			-e TZ="$(cat /etc/timezone)" \
@@ -54,31 +57,35 @@ function module_qbittorrent () {
 			done
 			sleep 3
 			TEMP_PASSWORD=$(docker logs qbittorrent 2>&1 | grep password | grep session | cut -d":" -f2 | xargs)
-			dialog --msgbox "Qbittorrent is listening at http://$LOCALIPADD:${module_options["module_qbittorrent,port"]}\n\nLogin as: admin\n\nTemporally password: ${TEMP_PASSWORD} " 9 70
+			dialog --msgbox "Qbittorrent is listening at http://$LOCALIPADD:${module_options["module_qbittorrent,port"]% *}\n\nLogin as: admin\n\nTemporally password: ${TEMP_PASSWORD} " 9 70
 		;;
 		"${commands[1]}")
 			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
 			[[ "${image}" ]] && docker image rm "$image" >/dev/null
-			[[ -n "${QBITTORRENT_BASE}" && "${QBITTORRENT_BASE}" != "/" ]] && rm -rf "${QBITTORRENT_BASE}"
 		;;
 		"${commands[2]}")
+			${module_options["module_qbittorrent,feature"]} ${commands[1]}
+			[[ -n "${QBITTORRENT_BASE}" && "${QBITTORRENT_BASE}" != "/" ]] && rm -rf "${QBITTORRENT_BASE}"
+		;;
+		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then
 				return 0
 			else
 				return 1
 			fi
 		;;
-		"${commands[3]}")
+		"${commands[4]}")
 			echo -e "\nUsage: ${module_options["module_qbittorrent,feature"]} <command>"
 			echo -e "Commands:  ${module_options["module_qbittorrent,example"]}"
 			echo "Available commands:"
 			echo -e "\tinstall\t- Install $title."
 			echo -e "\tstatus\t- Installation status $title."
 			echo -e "\tremove\t- Remove $title."
+			echo -e "\tpurge\t- Remove $title."
 			echo
 		;;
 		*)
-		${module_options["module_qbittorrent,feature"]} ${commands[3]}
+			${module_options["module_qbittorrent,feature"]} ${commands[4]}
 		;;
 	esac
 }
