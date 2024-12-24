@@ -29,7 +29,7 @@ function module_owncloud () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			[[ -d "$OWNCLOUD_BASE" ]] || mkdir -p "$OWNCLOUD_BASE" || { echo "Couldn't create storage directory: $OWNCLOUD_BASE"; exit 1; }
 			docker run -d \
 			--name=owncloud \

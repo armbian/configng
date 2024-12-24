@@ -1,10 +1,13 @@
 module_options+=(
-	["module_prowlarr,author"]="@armbian"
+	["module_prowlarr,author"]="@Prowlarr"
+	["module_prowlarr,maintainer"]="@armbian"
 	["module_prowlarr,feature"]="module_prowlarr"
+	["module_prowlarr,example"]="install remove purge status help"
 	["module_prowlarr,desc"]="Install prowlarr container"
-	["module_prowlarr,example"]="install remove status help"
-	["module_prowlarr,port"]="9696"
 	["module_prowlarr,status"]="Active"
+	["module_prowlarr,doc_link"]="https://prowlarr.com/"
+	["module_prowlarr,group"]="Database"
+	["module_prowlarr,port"]="9696"	
 	["module_prowlarr,arch"]="x86-64,arm64"
 )
 #
@@ -26,10 +29,11 @@ function module_prowlarr () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			[[ -d "$PROWLARR_BASE" ]] || mkdir -p "$PROWLARR_BASE" || { echo "Couldn't create storage directory: $PROWLARR_BASE"; exit 1; }
 			docker run -d \
 			--name=prowlarr \
+			--net=lsio \
 			-e PUID=1000 \
 			-e PGID=1000 \
 			-e TZ="$(cat /etc/timezone)" \
@@ -52,26 +56,30 @@ function module_prowlarr () {
 		"${commands[1]}")
 			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
 			[[ "${image}" ]] && docker image rm "$image" >/dev/null
-			[[ -n "${PROWLARR_BASE}" && "${PROWLARR_BASE}" != "/" ]] && rm -rf "${PROWLARR_BASE}"
 		;;
 		"${commands[2]}")
+			${module_options["module_prowlarr,feature"]} ${commands[1]}
+			[[ -n "${PROWLARR_BASE}" && "${PROWLARR_BASE}" != "/" ]] && rm -rf "${PROWLARR_BASE}"
+		;;
+		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then
 				return 0
 			else
 				return 1
 			fi
 		;;
-		"${commands[3]}")
+		"${commands[4]}")
 			echo -e "\nUsage: ${module_options["module_prowlarr,feature"]} <command>"
 			echo -e "Commands:  ${module_options["module_prowlarr,example"]}"
 			echo "Available commands:"
 			echo -e "\tinstall\t- Install $title."
 			echo -e "\tstatus\t- Installation status $title."
 			echo -e "\tremove\t- Remove $title."
+			echo -e "\tpurge\t- Purge $title."
 			echo
 		;;
 		*)
-		${module_options["module_prowlarr,feature"]} ${commands[3]}
+			${module_options["module_prowlarr,feature"]} ${commands[4]}
 		;;
 	esac
 }

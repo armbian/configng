@@ -105,14 +105,16 @@ update_sub_submenu_data "Software" "Media" "MED016" "http://$LOCALIPADD:${module
 update_sub_submenu_data "Software" "Media" "MED021" "https://$LOCALIPADD:${module_options["module_nextcloud,port"]}"
 update_sub_submenu_data "Software" "Media" "MED026" "http://$LOCALIPADD:${module_options["module_owncloud,port"]}"
 update_sub_submenu_data "Software" "Containers" "CON006" "http://$LOCALIPADD:${module_options["module_portainer,port"]}"
-update_sub_submenu_data "Software" "HomeAutomation" "HA002" "http://$LOCALIPADD:${module_options["module_openhab,port"]}"
-update_sub_submenu_data "Software" "HomeAutomation" "HA004" "http://$LOCALIPADD:${module_options["module_haos,port"]}"
+
+# Home automation
+update_sub_submenu_data "Software" "HomeAutomation" "HAB002" "http://$LOCALIPADD:${module_options["module_openhab,port"]}"
+update_sub_submenu_data "Software" "HomeAutomation" "HAS002" "http://$LOCALIPADD:${module_options["module_haos,port"]}"
 update_sub_submenu_data "Software" "Monitoring" "MON004" "http://$LOCALIPADD:${module_options["module_netdata,port"]}"
 
 # Downloaders
-update_sub_submenu_data "Software" "Downloaders" "DOW002" "http://$LOCALIPADD:${module_options["module_qbittorrent,port"]% *}" # removing second port from url
-update_sub_submenu_data "Software" "Downloaders" "DOW004" "http://$LOCALIPADD:${module_options["module_deluge,port"]}"
-update_sub_submenu_data "Software" "Downloaders" "TRA002" "http://$LOCALIPADD:${module_options["module_transmission,port"]% *}" # removing second port from url
+update_sub_submenu_data "Software" "Downloaders" "DOW002" "http://$LOCALIPADD:${module_options["module_qbittorrent,port"]%% *}" # removing second port from url
+update_sub_submenu_data "Software" "Downloaders" "DEL002" "http://$LOCALIPADD:${module_options["module_deluge,port"]%% *}" # removing second port from url
+update_sub_submenu_data "Software" "Downloaders" "TRA002" "http://$LOCALIPADD:${module_options["module_transmission,port"]%% *}" # removing second port from url
 update_sub_submenu_data "Software" "Downloaders" "SABN02" "http://$LOCALIPADD:${module_options["module_sabnzbd,port"]}"
 update_sub_submenu_data "Software" "Downloaders" "MDS002" "http://$LOCALIPADD:${module_options["module_medusa,port"]}"
 update_sub_submenu_data "Software" "Downloaders" "SON002" "http://$LOCALIPADD:${module_options["module_sonarr,port"]}"

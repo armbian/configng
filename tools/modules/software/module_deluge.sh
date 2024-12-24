@@ -63,6 +63,7 @@ function module_deluge () {
 			[[ "${image}" ]] && docker image rm "$image" >/dev/null
 		;;
 		"${commands[2]}")
+			${module_options["module_deluge,feature"]} ${commands[1]}
 			[[ -n "${DELUGE_BASE}" && "${DELUGE_BASE}" != "/" ]] && rm -rf "${DELUGE_BASE}"
 		;;
 		"${commands[3]}")
@@ -82,7 +83,7 @@ function module_deluge () {
 			echo
 		;;
 		*)
-		${module_options["module_deluge,feature"]} ${commands[4]}
+			${module_options["module_deluge,feature"]} ${commands[4]}
 		;;
 	esac
 }

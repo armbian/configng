@@ -29,7 +29,7 @@ function module_nextcloud () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			[[ -d "$NEXTCLOUD_BASE" ]] || mkdir -p "$NEXTCLOUD_BASE" || { echo "Couldn't create storage directory: $NEXTCLOUD_BASE"; exit 1; }
 			docker run -d \
 			--name=nextcloud \

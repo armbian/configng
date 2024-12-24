@@ -29,7 +29,7 @@ function module_netdata () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			[[ -d "$NETDATA_BASE" ]] || mkdir -p "$NETDATA_BASE" || { echo "Couldn't create storage directory: $NETDATA_BASE"; exit 1; }
 			docker run -d \
 			--name=netdata \
