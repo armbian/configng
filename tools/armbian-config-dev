@@ -1,11 +1,6 @@
 #!/bin/bash
 
 tput init
-#
-# Language-based variable assignment for script directory path
-# This serves as a Rosetta Stone for developers,
-# allowing them to use the variable name they are most comfortable with.
-
 # allows CTRL c to exit
 trap "exit" INT TERM
 [[ $EUID != 0 ]] && exec sudo "$0" "$@"
@@ -16,19 +11,12 @@ script_dir="$(dirname "$0")"
 [[ -d "$script_dir/../tools" ]] && tools_dir="$script_dir/../tools"
 [[ ! -d "$script_dir/../lib" && -n "$tools_dir" ]] && echo -e "Please run\nbash "$tools_dir/config-assemble.sh" to build the lib directory\n" && exit 1 
 
-# 'whiptail' is a simple dialog box utility that works well with Bash. It doesn't have all the features of some other dialog box utilities, but it does everything we need for this script.
-[[ -x "$(command -v whiptail)" ]] && DIALOG="whiptail"
 
 # Define the lib directory one level up from the script directory
 lib_dir="$script_dir/../lib/armbian-config"
 doc_dir="$script_dir/../share/doc/armbian-config"
 json_file="$lib_dir/config.jobs.json"
 
-#
-# Load The Bash procedure Objects
-json_data=$(<"$json_file")
-
-#
 # Prepare the module options array
 declare -A module_options
 
@@ -36,10 +24,11 @@ declare -A module_options
 # Load configng core functions and module options array
 
 source "$lib_dir/config.functions.sh"
+set_interface
 set_runtime_variables
 check_distro_status
+
 echo "Loaded Runtime variables..." #| show_infobox ;
-#set_newt_colors 2
 echo "Loaded Dialog..." #| show_infobox ;
 source "$lib_dir/config.docs.sh"
 echo "Loaded Docs..." #| show_infobox ;
@@ -51,6 +40,8 @@ source "$lib_dir/config.software.sh"
 echo "Loaded Software helpers..." #| show_infobox ;
 #
 # Loads the variables from beta armbian-config for runtime handling
+#json_data=$(generate_json_data)
+json_data=$(generate_module_list)
 
 source "$lib_dir/config.runtime.sh"
 echo "Loaded Runtime conditions..." #| show_infobox ;
@@ -90,7 +81,6 @@ case "$1" in
 		see_cmd_list
 		exit 0
 	fi
-
 	args=$(sanitize_input "$@")
 	execute_command "$args"
 	exit 0
@@ -103,49 +93,21 @@ case "$1" in
 	fi
 	option="$1"
 	shift
-	args=$(sanitize_input "$@")
+	args="$@"
 	# echo -e "\"$option\" \"$args\""
 	"$option" "$args"
 	exit 0
 	;;
-"main=help" | "main=Help")
-	see_cli_legacy
-	echo ""
-	exit 0
-	;;
-"main="*)
-	declare -A main_map
-	main_map=(
-		# map name to menu category
-		["System"]="S"
-		["Software"]="I"
-		["Network"]="N"
-		["Localisation"]="L"
-	)
-	main_value="${1#main=}"
-	main_value="${main_map[$main_value]}"
-
-	if [ -z "$main_value" ]; then
-		echo "Error: Invalid List $1"
-		exit 1
+"--noint")
+	shift
+	if [[ -z "$1" || "$1" == "help" ]]; then
+		see_use
+		exit 0
 	fi
-	declare -A select_map
-	# map name to menu number
-	select_map=(
-		["Headers"]="04"
-		["Headers_install"]="04"
-		["Headers_remove"]="05"
-		["Firmware"]="06"
-		["Nightly"]="07"
-	)
-	select_value="${2#selection=}"
-	select_value="${select_map[$select_value]}"
-	if [ -z "$select_value" ]; then
-		echo "Error: Invalid Option $2"
-		exit 1
-	fi
-	echo "$main_value""$select_value"
-	execute_command "$main_value""$select_value"
+	option="$1"
+	shift
+	args="$@"
+	"$option" "$args"
 	exit 0
 	;;
 *)

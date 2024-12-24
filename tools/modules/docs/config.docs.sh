@@ -324,25 +324,25 @@ function see_jobs_from_json_md() {
 	echo -e "\n"
 
 	# Use jq to parse the JSON
-	menu_items=$(jq -r '.menu | length' "$json_file")
+	menu_items=$(jq -r '.menu | length'  <(echo "$json_data"))
 
 	for ((i = 0; i < $menu_items; i++)); do
-		cat=$(jq -r ".menu[$i].id" "$json_file")
-		description=$(jq -r ".menu[$i].description" "$json_file")
+		cat=$(jq -r ".menu[$i].id"  <(echo "$json_data"))
+		description=$(jq -r ".menu[$i].description"  <(echo "$json_data"))
 		#echo -e "## $cat\n"
 		#echo -e "$description\n"
 		echo -e "| "$cat" | ID  | Description | Documents | Status |"
 		echo -e "|:------ | :-- | :---------- | --------: | ------:|"
 
-		sub_items=$(jq -r ".menu[$i].sub | length" "$json_file")
+		sub_items=$(jq -r ".menu[$i].sub | length"  <(echo "$json_data"))
 
 		for ((j = 0; j < $sub_items; j++)); do
-			id=$(jq -r ".menu[$i].sub[$j].id" "$json_file")
-			id_link=$(jq -r ".menu[$i].sub[$j].id" "$json_file" | tr '[:upper:]' '[:lower:]')
-			description=$(jq -r ".menu[$i].sub[$j].description" "$json_file")
-			command=$(jq -r ".menu[$i].sub[$j].command" "$json_file")
-			status=$(jq -r ".menu[$i].sub[$j].status" "$json_file")
-			doc_link=$(jq -r ".menu[$i].sub[$j].doc_link" "$json_file")
+			id=$(jq -r ".menu[$i].sub[$j].id"  <(echo "$json_data"))
+			id_link=$(jq -r ".menu[$i].sub[$j].id"  <(echo "$json_data") | tr '[:upper:]' '[:lower:]')
+			description=$(jq -r ".menu[$i].sub[$j].description"  <(echo "$json_data"))
+			command=$(jq -r ".menu[$i].sub[$j].command"  <(echo "$json_data"))
+			status=$(jq -r ".menu[$i].sub[$j].status"  <(echo "$json_data"))
+			doc_link=$(jq -r ".menu[$i].sub[$j].doc_link"  <(echo "$json_data"))
 
 			# Check if src_reference and doc_link are null
 			[ -z "$doc_link" ] && doc_link="#$id_link" || doc_link="[Document]($doc_link)"
@@ -362,27 +362,27 @@ function see_full_list() {
 		menu_items=$(echo "$json_data" | jq -r '.menu | length')
 
 	for ((i = 0; i < menu_items; i++)); do
-		cat=$(jq -r ".menu[$i].id" "$json_file")
-		description=$(jq -r ".menu[$i].description" "$json_file")
+		cat=$(jq -r ".menu[$i].id"  <(echo "$json_data"))
+		description=$(jq -r ".menu[$i].description"  <(echo "$json_data"))
 
 		echo -e "- ## **$cat** \n"
 
-		sub_items=$(jq -r ".menu[$i].sub | length" "$json_file")
+		sub_items=$(jq -r ".menu[$i].sub | length"  <(echo "$json_data"))
 
 		for ((j = 0; j < sub_items; j++)); do
-			id=$(jq -r ".menu[$i].sub[$j].id" "$json_file")
-			sub_description=$(jq -r ".menu[$i].sub[$j].description" "$json_file")
+			id=$(jq -r ".menu[$i].sub[$j].id"  <(echo "$json_data"))
+			sub_description=$(jq -r ".menu[$i].sub[$j].description"  <(echo "$json_data"))
 
 			echo -e "  - ### $sub_description"
 
 			# Handle nested sub-items
-			nested_sub_items=$(jq -r ".menu[$i].sub[$j].sub | length" "$json_file")
+			nested_sub_items=$(jq -r ".menu[$i].sub[$j].sub | length"  <(echo "$json_data"))
 
 			# Check if nested sub-items are present
 			if [ "$nested_sub_items" -gt 0 ]; then
 				for ((k = 0; k < nested_sub_items; k++)); do
-					nested_id=$(jq -r ".menu[$i].sub[$j].sub[$k].id" "$json_file")
-					nested_description=$(jq -r ".menu[$i].sub[$j].sub[$k].description" "$json_file")
+					nested_id=$(jq -r ".menu[$i].sub[$j].sub[$k].id"  <(echo "$json_data"))
+					nested_description=$(jq -r ".menu[$i].sub[$j].sub[$k].description"  <(echo "$json_data"))
 
 					echo -e "    - ### $nested_description"
 				done

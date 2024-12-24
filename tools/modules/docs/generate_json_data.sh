@@ -1,21 +1,6 @@
 
 
-module_options+=(
-	["set_json_data,feature"]="set_json_data"   # The name of the function, master KEY for the module parsing
-	["set_json_data,helpers"]="set_json_data" # Helper dependancy
-	["set_json_data,author"]="@Tearran"    # The module contributors git id
-	["set_json_data,ref_link"]="@armbian"  # The maintainer's git id or link for additional information
-	["set_json_data,desc"]="Example unattended interface module." # A short description of what the module does
-	["set_json_data,example"]="check install remove help"   # A list of $1 options the module accepts
-	["set_json_data,commands"]="install remove"   # A list of $1 options the module accepts
-	["set_json_data,status"]="Development" # Options (Disabled, Development, Software, System, Network, Loca...)
-	["set_json_data,group"]="Database" # Long list see menu for sub groups
-	["set_json_data,port"]=""      # Ports used
-	["set_json_data,arch"]=""      # Options for Architecture information (?)
-	)
-#
-#
-#
+
 function set_json_data() {
 	local i=0
 
@@ -90,39 +75,40 @@ function set_json_data() {
 }
 
 
-module_options+=(
-	["generate_json_data,feature"]="generate_json_data"   # The name of the function, master KEY for the module parsing
-	["generate_json_data,helpers"]="set_json_data" # Helper dependancy
-	["generate_json_data,author"]="@Tearran"    # The module contributors git id
-	["generate_json_data,ref_link"]="@armbian"  # The maintainer's git id or link for additional information
-	["generate_json_data,desc"]="Example unattended interface module." # A short description of what the module does
-	["generate_json_data,example"]="check install remove help"   # A list of $1 options the module accepts
-	["generate_json_data,commands"]="install remove"   # A list of $1 options the module accepts
-	["generate_json_data,status"]="Development" # Options (Disabled, Development, Software, System, Network, Loca...)
-	["generate_json_data,group"]="Temp" # Long list see menu for sub groups
-	["generate_json_data,port"]=""      # Ports used
-	["generate_json_data,arch"]=""      # Options for Architecture information (?)
-)
-#
-# Function to generate a JSON-like object file
-#
-function generate_module_list(){
-set_json_data | jq '[
-	.[] |
-	if (.feature | type == "string") and (.feature | startswith("module_")) then
-	{
-		"id": .id,
-		"description": .description,
-		"command": ("see_menu " + .feature),
-		"options": ("help " + .options + " status"),
-		"status": .status,
-		"helpers": .helpers,
-		"condition": .condition,
-		"author": .author
-	}
-	else empty
-	end
-	]'
+function generate_module_list() {
+  set_json_data | jq '
+  # Define an array of allowed software groups
+  def softwareGroups: ["WebHosting", "Netconfig", "Downloaders", "Database", "DNS", "DevTools", "HomeAutomation", "Benchy", "Containers", "Media", "Monitoring", "Management"];
+
+  {
+    "menu": [
+      {
+        "id": "Software",
+        "description": "Run/Install 3rd party applications",
+        "sub": (
+          group_by(.group)
+          # Skip grouped arrays where the group is null, empty, or not in softwareGroups
+          | map(select(.[0].group != null and .[0].group != "" and (.[0].group | IN(softwareGroups[]))))
+          | map({
+              "id": .[0].group,
+              "description": .[0].group,
+              "sub": (
+                map({
+                  "id": .id,
+                  "description": .description,
+                  "command": [("see_menu " + .feature)],
+                  "options": ("help " + .options + " status"),
+                  "status": .status,
+                  "condition": "",
+                  "author": .author
+                })
+              )
+            })
+        )
+      }
+    ]
+  }
+  '
 }
 
 
@@ -164,7 +150,7 @@ function generate_json_data() {
 interface_json_data_old() {
 
 	# uncomment to set the data to a file
-	#set_json_data > tools/json/config.temp.json
+	set_json_data > tools/json/config.raw.json
 	generate_json_data | jq --indent 4 "." > tools/json/config.temp.json
 	#json_file="$tools_dir/json/config.temp.json
 

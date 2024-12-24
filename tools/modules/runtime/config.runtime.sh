@@ -84,7 +84,7 @@ else
 	update_submenu_data "Network" "N08" "IPV4"
 fi
 
-
+update_submenu_data "Software" "Downloaders" "Install Dowloaders"
 #
 # Sub sub menu updates
 #cockpit_port="$(systemctl cat cockpit.socket | grep ListenStream | awk -F= '{print $2}' | awk '{print $1}')"
