@@ -75,40 +75,45 @@ function set_json_data() {
 }
 
 
+
+
+
 function generate_module_list() {
   set_json_data | jq '
-  # Define an array of allowed software groups
-  def softwareGroups: ["WebHosting", "Netconfig", "Downloaders", "Database", "DNS", "DevTools", "HomeAutomation", "Benchy", "Containers", "Media", "Monitoring", "Management"];
+	# Define an array of allowed software groups
+	def softwareGroups: ["WebHosting", "Netconfig", "Downloaders", "Database", "DNS", "DevTools", "HomeAutomation", "Benchy", "Containers", "Media", "Monitoring", "Management"];
 
-  {
-    "menu": [
-      {
-        "id": "Software",
-        "description": "Run/Install 3rd party applications",
-        "sub": (
-          group_by(.group)
-          # Skip grouped arrays where the group is null, empty, or not in softwareGroups
-          | map(select(.[0].group != null and .[0].group != "" and (.[0].group | IN(softwareGroups[]))))
-          | map({
-              "id": .[0].group,
-              "description": .[0].group,
-              "sub": (
-                map({
-                  "id": .id,
-                  "description": .description,
-                  "command": [("see_menu " + .feature)],
-                  "options": ("help " + .options + " status"),
-                  "status": .status,
-                  "condition": "",
-                  "author": .author
-                })
-              )
-            })
-        )
-      }
-    ]
-  }
-  '
+	{
+	"menu": [
+	{
+		"id": "Software",
+		"description": "Run/Install 3rd party applications",
+		"sub": (
+		group_by(.group)
+		# Skip grouped arrays where the group is null, empty, or not in softwareGroups
+		| map(select(.[0].group != null and .[0].group != "" and (.[0].group | IN(softwareGroups[]))))
+		| map({
+		"id": .[0].group,
+		"description": .[0].group,
+		"sub": (
+			map({
+			"id": .id,
+			"description": .description,
+			"command": [("see_menu " + .feature)],
+			"options": ("help " + .options + " status"),
+			"status": .status,
+			"condition": "",
+			"author": .author
+			})
+		)
+		})
+		)
+	}
+	]
+	}
+	'
+
+
 }
 
 
@@ -116,7 +121,7 @@ function generate_json_data() {
 	set_json_data | jq '{
 	"menu": [
 		{
-		"id": "Software",
+		"id": "tests",
 		"description": "Run/Install 3rd party applications",
 		"sub": [
 			{
@@ -150,7 +155,7 @@ function generate_json_data() {
 interface_json_data_old() {
 
 	# uncomment to set the data to a file
-	set_json_data > tools/json/config.raw.json
+	set_json_data | jq --tab --indent 4 '.' > tools/json/config.raw.json
 	generate_json_data | jq --indent 4 "." > tools/json/config.temp.json
 	#json_file="$tools_dir/json/config.temp.json
 
