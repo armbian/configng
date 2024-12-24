@@ -1,13 +1,14 @@
 module_options+=(
-	["module_phpmyadmin,author"]=""
+	["module_phpmyadmin,author"]="@igorpecovnik"
 	["module_phpmyadmin,maintainer"]="@igorpecovnik"
-	["module_phpmyadmin,testers"]="@igorpecovnik"
 	["module_phpmyadmin,feature"]="module_phpmyadmin"
-	["module_phpmyadmin,desc"]="Install phpmyadmin container"
 	["module_phpmyadmin,example"]="install remove purge status help"
-	["module_phpmyadmin,port"]="8071"
+	["module_phpmyadmin,desc"]="Install phpmyadmin container"
 	["module_phpmyadmin,status"]="Active"
-	["module_phpmyadmin,arch"]=""
+	["module_phpmyadmin,doc_link"]="https://www.phpmyadmin.net/docs/"
+	["module_phpmyadmin,group"]="Database"
+	["module_phpmyadmin,port"]="8071"
+	["module_phpmyadmin,arch"]="x86-64 arm64"
 )
 #
 # Module phpmyadmin-PDF
@@ -32,6 +33,7 @@ function module_phpmyadmin () {
 			[[ -d "$PHPMYADMIN_BASE" ]] || mkdir -p "$PHPMYADMIN_BASE" || { echo "Couldn't create storage directory: $PHPMYADMIN_BASE"; exit 1; }
 			docker run -d \
 			--name=phpmyadmin \
+			--net=lsio \
 			-e PUID=1000 \
 			-e PGID=1000 \
 			-e TZ="$(cat /etc/timezone)" \
@@ -57,6 +59,7 @@ function module_phpmyadmin () {
 			[[ "${image}" ]] && docker image rm "$image" >/dev/null
 		;;
 		"${commands[2]}")
+			${module_options["module_phpmyadmin,feature"]} ${commands[1]}
 			[[ -n "${PHPMYADMIN_BASE}" && "${PHPMYADMIN_BASE}" != "/" ]] && rm -rf "${PHPMYADMIN_BASE}"
 		;;
 		"${commands[3]}")
@@ -78,7 +81,7 @@ function module_phpmyadmin () {
 			echo
 		;;
 		*)
-		${module_options["module_phpmyadmin,feature"]} ${commands[4]}
+			${module_options["module_phpmyadmin,feature"]} ${commands[4]}
 		;;
 	esac
 }
