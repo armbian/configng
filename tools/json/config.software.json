@@ -1222,7 +1222,7 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_nextcloud status && [[ -d \"${SOFTWARE_FOLDER}/nextcloud\" ]]"
+                            "condition": "module_nextcloud status"
                         },
                         {
                             "id": "MED025",

@@ -1,11 +1,14 @@
 module_options+=(
 	["module_netdata,author"]="@armbian"
-	["module_netdata,feature"]="module_netdata"
-	["module_netdata,desc"]="Install netdata container"
+	["module_netdata,maintainer"]="@igorpecovnik"
+	["module_netdata,feature"]="module_netdata"	
 	["module_netdata,example"]="install remove purge status help"
-	["module_netdata,port"]="19999"
+	["module_netdata,desc"]="Install netdata container"
 	["module_netdata,status"]="Active"
-	["module_netdata,arch"]="x86-64,arm64"
+	["module_netdata,doc_link"]="https://transmissionbt.com/"
+	["module_netdata,group"]="Monitoring"
+	["module_netdata,port"]="19999"	
+	["module_netdata,arch"]="x86-64 arm64"
 )
 #
 # Module netdata
@@ -28,9 +31,10 @@ function module_netdata () {
 		"${commands[0]}")
 			pkg_installed docker-ce || install_docker
 			[[ -d "$NETDATA_BASE" ]] || mkdir -p "$NETDATA_BASE" || { echo "Couldn't create storage directory: $NETDATA_BASE"; exit 1; }
-			docker run -d --name=netdata \
+			docker run -d \
+			--name=netdata \
 			--pid=host \
-			--network=host \
+			--net=lsio \
 			-v "${NETDATA_BASE}/netdataconfig:/etc/netdata" \
 			-v "${NETDATA_BASE}/netdatalib:/var/lib/netdata" \
 			-v "${NETDATA_BASE}/netdatacache:/var/cache/netdata" \
@@ -65,6 +69,7 @@ function module_netdata () {
 			[[ "${image}" ]] && docker image rm "$image" >/dev/null
 		;;
 		"${commands[2]}")
+			${module_options["module_netdata,feature"]} ${commands[1]}
 			[[ -n "${NETDATA_BASE}" && "${NETDATA_BASE}" != "/" ]] && rm -rf "${NETDATA_BASE}"
 		;;
 		"${commands[3]}")
@@ -84,7 +89,7 @@ function module_netdata () {
 			echo
 		;;
 		*)
-		${module_options["module_netdata,feature"]} ${commands[4]}
+			${module_options["module_netdata,feature"]} ${commands[4]}
 		;;
 	esac
 }
