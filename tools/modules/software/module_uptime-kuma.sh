@@ -1,11 +1,14 @@
 module_options+=(
 	["module_uptimekuma,author"]="@armbian"
+	["module_uptimekuma,maintainer"]="@igorpecovnik"
 	["module_uptimekuma,feature"]="module_uptimekuma"
-	["module_uptimekuma,desc"]="Install uptimekuma container"
 	["module_uptimekuma,example"]="install remove purge status help"
-	["module_uptimekuma,port"]="3001"
+	["module_uptimekuma,desc"]="Install uptimekuma container"
 	["module_uptimekuma,status"]="Active"
-	["module_uptimekuma,arch"]="x86-64,arm64"
+	["module_uptimekuma,doc_link"]="https://github.com/louislam/uptime-kuma/wiki"
+	["module_uptimekuma,group"]="Downloaders"
+	["module_uptimekuma,port"]="3001"	
+	["module_uptimekuma,arch"]="x86-64 arm64"
 )
 #
 # Module uptimekuma
@@ -50,6 +53,7 @@ function module_uptimekuma () {
 			[[ "${image}" ]] && docker image rm "$image" >/dev/null
 		;;
 		"${commands[2]}")
+			${module_options["module_uptimekuma,feature"]} ${commands[1]}
 			[[ -n "${UPTIMEKUMA_BASE}" && "${UPTIMEKUMA_BASE}" != "/" ]] && rm -rf "${UPTIMEKUMA_BASE}"
 		;;
 		"${commands[3]}")
@@ -70,7 +74,7 @@ function module_uptimekuma () {
 			echo
 		;;
 		*)
-		${module_options["module_uptimekuma,feature"]} ${commands[4]}
+			${module_options["module_uptimekuma,feature"]} ${commands[4]}
 		;;
 	esac
 }

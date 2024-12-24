@@ -886,7 +886,7 @@
                 },
                 {
                     "id": "DevTools",
-                    "description": "Development",
+                    "description": "Applications and tools for development",
                     "sub": [
                         {
                             "id": "DEV001",
@@ -1055,7 +1055,8 @@
                         },
                         {
                             "id": "MED010",
-                            "description": "Stirling-PDF Install",
+                            "description": "Stirling-PDF tools for viewing and editing PDF files",
+                            "about": "This operation will install Stirling-PDF tools.",
                             "command": [
                                 "module_stirling install"
                             ],
@@ -1065,7 +1066,8 @@
                         },
                         {
                             "id": "MED011",
-                            "description": "Stirling-PDF Remove",
+                            "description": "Stirling-PDF remove",
+                            "about": "This operation will remove Stirling-PDF tools.",
                             "command": [
                                 "module_stirling remove"
                             ],
@@ -1075,13 +1077,14 @@
                         },
                         {
                             "id": "MED012",
-                            "description": "Stirling-PDF Purge data folder",
+                            "description": "Stirling-PDF purge with data folder",
+                            "about": "This operation will purge Stirling-PDF tools with data folder.",
                             "command": [
                                 "module_stirling purge"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_stirling status && [[ -d \"${SOFTWARE_FOLDER}/stirling\" ]]"
+                            "condition": "module_stirling status"
                         },
                         {
                             "id": "MED015",
@@ -1181,7 +1184,8 @@
                     "sub": [
                         {
                             "id": "MON001",
-                            "description": "Uptime Kuma install ",
+                            "description": "Uptime Kuma self-hosted monitoring tool",
+                            "about": "This operation will install Uptime Kuma",
                             "command": [
                                 "module_uptimekuma install"
                             ],
@@ -1192,6 +1196,7 @@
                         {
                             "id": "MON002",
                             "description": "Uptime Kuma remove",
+                            "about": "This operation will remove Uptime Kuma",
                             "command": [
                                 "module_uptimekuma remove"
                             ],
@@ -1201,17 +1206,19 @@
                         },
                         {
                             "id": "MON003",
-                            "description": "Uptime Kuma purge data folder",
+                            "description": "Uptime Kuma purge with data folder",
+                            "about": "This operation will remove Uptime Kuma with data folder",
                             "command": [
                                 "module_uptimekuma purge"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_uptimekuma status && [[ -d \"${SOFTWARE_FOLDER}/uptimekuma\" ]]"
+                            "condition": "module_uptimekuma status"
                         },
                         {
                             "id": "MON005",
-                            "description": "Netdata Install",
+                            "description": "Netdata - monitoring real-time metrics",
+                            "about": "This operation will install Netdata",
                             "command": [
                                 "module_netdata install"
                             ],
@@ -1222,6 +1229,7 @@
                         {
                             "id": "MON006",
                             "description": "Netdata remove",
+                            "about": "This operation will remove Netdata",
                             "command": [
                                 "module_netdata remove"
                             ],
@@ -1231,13 +1239,14 @@
                         },
                         {
                             "id": "MON007",
-                            "description": "Netdata purge data folder",
+                            "description": "Netdata purge with data folder",
+                            "about": "This operation will purge Netdata with data folder",
                             "command": [
                                 "module_netdata purge"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_netdata status && [[ -d \"${SOFTWARE_FOLDER}/netdata\" ]]"
+                            "condition": "module_netdata status"
                         }
 
                     ]

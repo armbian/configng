@@ -99,8 +99,10 @@ update_sub_submenu_data "System" "Storage" "SY221" "$(module_zfs zfs_installed_v
 update_sub_submenu_data "System" "Storage" "NFS04" "$NFS_CLIENTS_NUMBER"
 update_sub_submenu_data "Software" "Database" "DAT002" "Server: $LOCALIPADD"
 update_sub_submenu_data "Software" "Database" "DAT006" "http://$LOCALIPADD:${module_options["module_phpmyadmin,port"]}"
+
+# Media
 update_sub_submenu_data "Software" "Media" "MED004" "http://$LOCALIPADD:${module_options["module_emby,port"]}"
-update_sub_submenu_data "Software" "Media" "MED006" "http://$LOCALIPADD:${module_options["module_stirling,port"]}"
+update_sub_submenu_data "Software" "Media" "MED011" "http://$LOCALIPADD:${module_options["module_stirling,port"]}"
 update_sub_submenu_data "Software" "Media" "MED016" "http://$LOCALIPADD:${module_options["module_syncthing,port"]}"
 update_sub_submenu_data "Software" "Media" "MED021" "https://$LOCALIPADD:${module_options["module_nextcloud,port"]}"
 update_sub_submenu_data "Software" "Media" "MED026" "http://$LOCALIPADD:${module_options["module_owncloud,port"]}"
@@ -109,7 +111,10 @@ update_sub_submenu_data "Software" "Containers" "CON006" "http://$LOCALIPADD:${m
 # Home automation
 update_sub_submenu_data "Software" "HomeAutomation" "HAB002" "http://$LOCALIPADD:${module_options["module_openhab,port"]}"
 update_sub_submenu_data "Software" "HomeAutomation" "HAS002" "http://$LOCALIPADD:${module_options["module_haos,port"]}"
-update_sub_submenu_data "Software" "Monitoring" "MON004" "http://$LOCALIPADD:${module_options["module_netdata,port"]}"
+
+#
+update_sub_submenu_data "Software" "Monitoring" "MON002" "http://$LOCALIPADD:${module_options["module_uptimekuma,port"]}"
+update_sub_submenu_data "Software" "Monitoring" "MON006" "http://$LOCALIPADD:${module_options["module_netdata,port"]}"
 
 # Downloaders
 update_sub_submenu_data "Software" "Downloaders" "DOW002" "http://$LOCALIPADD:${module_options["module_qbittorrent,port"]%% *}" # removing second port from url
