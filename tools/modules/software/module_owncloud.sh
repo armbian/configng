@@ -1,11 +1,14 @@
 module_options+=(
 	["module_owncloud,author"]="@armbian"
+	["module_owncloud,maintainer"]="@igorpecovnik"
 	["module_owncloud,feature"]="module_owncloud"
-	["module_owncloud,desc"]="Install owncloud container"
 	["module_owncloud,example"]="install remove purge status help"
-	["module_owncloud,port"]="7787"
+	["module_owncloud,desc"]="Install owncloud container"
 	["module_owncloud,status"]="Active"
-	["module_owncloud,arch"]="x86-64,arm64"
+	["module_owncloud,doc_link"]="https://doc.owncloud.com/"
+	["module_owncloud,group"]="Database"
+	["module_owncloud,port"]="7787"
+	["module_owncloud,arch"]="x86-64 arm64"
 )
 #
 # Module owncloud
@@ -26,10 +29,11 @@ function module_owncloud () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			[[ -d "$OWNCLOUD_BASE" ]] || mkdir -p "$OWNCLOUD_BASE" || { echo "Couldn't create storage directory: $OWNCLOUD_BASE"; exit 1; }
 			docker run -d \
 			--name=owncloud \
+			--net=lsio \
 			-e PUID=1000 \
 			-e PGID=1000 \
 			-e TZ="$(cat /etc/timezone)" \
@@ -56,6 +60,7 @@ function module_owncloud () {
 			[[ "${image}" ]] && docker image rm "$image" >/dev/null
 		;;
 		"${commands[2]}")
+			${module_options["module_owncloud,feature"]} ${commands[1]}
 			[[ -n "${OWNCLOUD_BASE}" && "${OWNCLOUD_BASE}" != "/" ]] && rm -rf "${OWNCLOUD_BASE}"
 		;;
 		"${commands[3]}")
@@ -76,7 +81,7 @@ function module_owncloud () {
 			echo
 		;;
 		*)
-		${module_options["module_owncloud,feature"]} ${commands[4]}
+			${module_options["module_owncloud,feature"]} ${commands[4]}
 		;;
 	esac
 }

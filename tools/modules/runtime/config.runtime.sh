@@ -94,28 +94,48 @@ fi
 #plex_media_port="$(lsof -i -P -n | grep TCP | grep LISTEN | grep 'plex' | awk -F: '{print $2}' | awk '{print $1}' | head -n 1)"
 #update_sub_submenu_data "Software" "Media" "SW22" "https://localhost:$plex_media_port"
 
+# System
 update_sub_submenu_data "System" "Storage" "SY220" "$(module_zfs zfs_version)"
 update_sub_submenu_data "System" "Storage" "SY221" "$(module_zfs zfs_installed_version)"
 update_sub_submenu_data "System" "Storage" "NFS04" "$NFS_CLIENTS_NUMBER"
+
+# Database
 update_sub_submenu_data "Software" "Database" "DAT002" "Server: $LOCALIPADD"
 update_sub_submenu_data "Software" "Database" "DAT006" "http://$LOCALIPADD:${module_options["module_phpmyadmin,port"]}"
-update_sub_submenu_data "Software" "Media" "MED006" "http://$LOCALIPADD:${module_options["module_stirling,port"]}"
-update_sub_submenu_data "Software" "Media" "MED016" "http://$LOCALIPADD:${module_options["module_syncthing,port"]}"
+
+# Media
+update_sub_submenu_data "Software" "Media" "MED002" "http://$LOCALIPADD:${module_options["module_plexmediaserver,port"]}"
+update_sub_submenu_data "Software" "Media" "MED004" "http://$LOCALIPADD:${module_options["module_embyserver,port"]}"
+update_sub_submenu_data "Software" "Media" "MED011" "http://$LOCALIPADD:${module_options["module_stirling,port"]}"
+update_sub_submenu_data "Software" "Media" "MED016" "http://$LOCALIPADD:${module_options["module_syncthing,port"]%% *}" # removing second port from url
 update_sub_submenu_data "Software" "Media" "MED021" "https://$LOCALIPADD:${module_options["module_nextcloud,port"]}"
 update_sub_submenu_data "Software" "Media" "MED026" "http://$LOCALIPADD:${module_options["module_owncloud,port"]}"
-update_sub_submenu_data "Software" "Containers" "CON006" "http://$LOCALIPADD:${module_options["module_portainer,port"]}"
-update_sub_submenu_data "Software" "HomeAutomation" "HA004" "http://$LOCALIPADD:${module_options["module_haos,port"]}"
-update_sub_submenu_data "Software" "Monitoring" "MON004" "http://$LOCALIPADD:${module_options["module_netdata,port"]}"
-update_sub_submenu_data "Software" "Downloaders" "DOW002" "http://$LOCALIPADD:${module_options["module_qbittorrent,port"]}"
-update_sub_submenu_data "Software" "Downloaders" "DOW004" "http://$LOCALIPADD:${module_options["module_deluge,port"]}"
-update_sub_submenu_data "Software" "Downloaders" "DOW006" "http://$LOCALIPADD:${module_options["module_transmission,port"]}"
-update_sub_submenu_data "Software" "Downloaders" "DOW012" "http://$LOCALIPADD:${module_options["module_sabnzbd,port"]}"
-update_sub_submenu_data "Software" "Downloaders" "DOW014" "http://$LOCALIPADD:${module_options["module_medusa,port"]}"
-update_sub_submenu_data "Software" "Downloaders" "DOW016" "http://$LOCALIPADD:${module_options["module_sonarr,port"]}"
-update_sub_submenu_data "Software" "Downloaders" "DOW018" "http://$LOCALIPADD:${module_options["module_radarr,port"]}"
-update_sub_submenu_data "Software" "Downloaders" "DOW020" "http://$LOCALIPADD:${module_options["module_bazarr,port"]}"
-update_sub_submenu_data "Software" "Downloaders" "DOW022" "http://$LOCALIPADD:${module_options["module_lidarr,port"]}"
-update_sub_submenu_data "Software" "Downloaders" "DOW024" "http://$LOCALIPADD:${module_options["module_readarr,port"]}"
+
+# Containers
+update_sub_submenu_data "Software" "Containers" "CON006" "http://$LOCALIPADD:${module_options["module_portainer,port"]%% *}" # removing second port from url
+
+# Home automation
+update_sub_submenu_data "Software" "HomeAutomation" "HAB002" "http://$LOCALIPADD:${module_options["module_openhab,port"]}"
+update_sub_submenu_data "Software" "HomeAutomation" "HAS002" "http://$LOCALIPADD:${module_options["module_haos,port"]}"
+
+# DNS
+update_sub_submenu_data "Software" "DNS" "DNS003" "http://$LOCALIPADD:${module_options["module_pi_hole,port"]%% *}" # removing second port from url
+
+# Monitoring
+update_sub_submenu_data "Software" "Monitoring" "MON002" "http://$LOCALIPADD:${module_options["module_uptimekuma,port"]}"
+update_sub_submenu_data "Software" "Monitoring" "MON006" "http://$LOCALIPADD:${module_options["module_netdata,port"]}"
+
+# Downloaders
+update_sub_submenu_data "Software" "Downloaders" "DOW002" "http://$LOCALIPADD:${module_options["module_qbittorrent,port"]%% *}" # removing second port from url
+update_sub_submenu_data "Software" "Downloaders" "DEL002" "http://$LOCALIPADD:${module_options["module_deluge,port"]%% *}" # removing second port from url
+update_sub_submenu_data "Software" "Downloaders" "TRA002" "http://$LOCALIPADD:${module_options["module_transmission,port"]%% *}" # removing second port from url
+update_sub_submenu_data "Software" "Downloaders" "SABN02" "http://$LOCALIPADD:${module_options["module_sabnzbd,port"]}"
+update_sub_submenu_data "Software" "Downloaders" "MDS002" "http://$LOCALIPADD:${module_options["module_medusa,port"]}"
+update_sub_submenu_data "Software" "Downloaders" "SON002" "http://$LOCALIPADD:${module_options["module_sonarr,port"]}"
+update_sub_submenu_data "Software" "Downloaders" "RAD002" "http://$LOCALIPADD:${module_options["module_radarr,port"]}"
+update_sub_submenu_data "Software" "Downloaders" "BAZ002" "http://$LOCALIPADD:${module_options["module_bazarr,port"]}"
+update_sub_submenu_data "Software" "Downloaders" "LID002" "http://$LOCALIPADD:${module_options["module_lidarr,port"]}"
+update_sub_submenu_data "Software" "Downloaders" "RDR002" "http://$LOCALIPADD:${module_options["module_readarr,port"]}"
 update_sub_submenu_data "Software" "Downloaders" "DOW026" "http://$LOCALIPADD:${module_options["module_prowlarr,port"]}"
-update_sub_submenu_data "Software" "Downloaders" "DOW041" "http://$LOCALIPADD:${module_options["module_jellyseerr,port"]}"
+update_sub_submenu_data "Software" "Downloaders" "JEL002" "http://$LOCALIPADD:${module_options["module_jellyseerr,port"]}"
 

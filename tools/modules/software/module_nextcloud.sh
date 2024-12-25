@@ -1,13 +1,14 @@
 module_options+=(
-	["module_nextcloud,author"]=""
+	["module_nextcloud,author"]="@igorpecovnik"
 	["module_nextcloud,maintainer"]="@igorpecovnik"
-	["module_nextcloud,testers"]="@igorpecovnik"
 	["module_nextcloud,feature"]="module_nextcloud"
-	["module_nextcloud,desc"]="Install nextcloud container"
 	["module_nextcloud,example"]="install remove purge status help"
-	["module_nextcloud,port"]="443"
+	["module_nextcloud,desc"]="Install nextcloud container"
 	["module_nextcloud,status"]="Active"
-	["module_nextcloud,arch"]="x86-64,arm64"
+	["module_nextcloud,doc_link"]="https://nextcloud.com/support/"
+	["module_nextcloud,group"]="Downloaders"
+	["module_nextcloud,port"]="443"
+	["module_nextcloud,arch"]="x86-64 arm64"
 )
 #
 # Module nextcloud
@@ -28,10 +29,11 @@ function module_nextcloud () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			[[ -d "$NEXTCLOUD_BASE" ]] || mkdir -p "$NEXTCLOUD_BASE" || { echo "Couldn't create storage directory: $NEXTCLOUD_BASE"; exit 1; }
 			docker run -d \
 			--name=nextcloud \
+			--net=lsio \
 			-e PUID=1000 \
 			-e PGID=1000 \
 			-e TZ="$(cat /etc/timezone)" \
@@ -57,6 +59,7 @@ function module_nextcloud () {
 			[[ "${image}" ]] && docker image rm "$image" >/dev/null
 		;;
 		"${commands[2]}")
+			${module_options["module_nextcloud,feature"]} ${commands[1]}
 			[[ -n "${NEXTCLOUD_BASE}" && "${NEXTCLOUD_BASE}" != "/" ]] && rm -rf "${NEXTCLOUD_BASE}"
 		;;
 		"${commands[3]}")
@@ -78,7 +81,7 @@ function module_nextcloud () {
 			echo
 		;;
 		*)
-		${module_options["module_nextcloud,feature"]} ${commands[4]}
+			${module_options["module_nextcloud,feature"]} ${commands[4]}
 		;;
 	esac
 }

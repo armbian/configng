@@ -462,7 +462,29 @@
                             "status": "Disabled",
                             "author": "@igorpecovnik",
                             "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade rolling verify"
+                        },
+                        {
+                            "id": "WTC001",
+                            "description": "Enable automating Docker container base images updating",
+                            "command": [
+                                "module_watchtower install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_watchtower status && pkg_installed docker-ce"
+                        },
+                        {
+                            "id": "WTC002",
+                            "description": "Disable automating Docker container base images updating",
+                            "command": [
+                                "module_watchtower remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_watchtower status && pkg_installed docker-ce"
                         }
+
+
                     ]
                 }
             ]

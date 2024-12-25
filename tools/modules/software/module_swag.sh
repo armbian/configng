@@ -1,9 +1,14 @@
 module_options+=(
 	["module_swag,author"]="@igorpecovnik"
+	["module_swag,maintainer"]="@igorpecovnik"
 	["module_swag,feature"]="module_swag"
-	["module_swag,desc"]="Example module unattended interface."
 	["module_swag,example"]="install remove purge status password help"
+	["module_swag,desc"]="Secure Web Application Gateway "
 	["module_swag,status"]="Active"
+	["module_swag,doc_link"]="https://github.com/linuxserver/docker-swag"
+	["module_swag,group"]="WebHosting"
+	["module_swag,port"]="443"
+	["module_swag,arch"]="x86-64 arm64"
 )
 
 function module_swag() {
@@ -32,9 +37,7 @@ function module_swag() {
 				# adjust hostname
 				hostnamectl set-hostname $(echo ${SWAG_URL} | sed -E 's/^\s*.*:\/\///g')
 				# install docker
-				pkg_installed docker-ce || install_docker
-				# add additional bridge where containers see each other
-				docker network create lsio 2> /dev/null
+				pkg_installed docker-ce || module_docker install
 
 				[[ -d "$SWAG_BASE" ]] || mkdir -p "$SWAG_BASE" || { echo "Couldn't create storage directory: $SWAG_BASE"; exit 1; }
 
