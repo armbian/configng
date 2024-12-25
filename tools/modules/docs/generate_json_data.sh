@@ -74,7 +74,7 @@ function set_json_data() {
 }
 
 
-function generate_software_json() {
+function generate_json_data() {
 	set_json_data | jq '
 	# Define an array of allowed software groups
 	def softwareGroups: ["WebHosting", "Netconfig", "Downloaders", "Database", "DNS", "DevTools", "HomeAutomation", "Benchy", "Containers", "Media", "Monitoring", "Management"];
