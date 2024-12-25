@@ -172,7 +172,7 @@ function generate_menu() {
 			[ -z "$OPTION" ] && break
 
 			# Check if the selected option has a submenu
-			local submenu_count=$(jq -r --arg id "$OPTION" '.menu[] | .. | objects | select(.id==$id) | .sub? | length' "$json_file")
+			local submenu_count=$(jq -r --arg id "$OPTION" '.menu[] | .. | objects | select(.id==$id) | .sub? | length'  <(echo "$json_data"))
 			submenu_count=${submenu_count:-0} # If submenu_count is null or empty, set it to 0
 			if [ "$submenu_count" -gt 0 ]; then
 				# If it does, generate a new menu for the submenu
@@ -208,7 +208,7 @@ function execute_command() {
 		.. |
 		objects |
 		select(.id == $id) |
-		.command[]?' "$json_file")
+		.command[]?'  <(echo "$json_data"))
 
 	# Check if a about exists
 	local about=$(jq -r --arg id "$id" '
@@ -216,7 +216,7 @@ function execute_command() {
 		.. |
 		objects |
 		select(.id == $id) |
-		.about?' "$json_file")
+		.about?'  <(echo "$json_data"))
 
 	# If a about exists, display it and wait for user confirmation
 	if [[ "$about" != "null" && $INPUTMODE != "cmd" ]]; then
