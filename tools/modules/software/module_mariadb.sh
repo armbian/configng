@@ -1,13 +1,14 @@
 module_options+=(
-	["module_mariadb,author"]=""
+	["module_mariadb,author"]="@igorpecovnik"
 	["module_mariadb,maintainer"]="@igorpecovnik"
-	["module_mariadb,testers"]="@igorpecovnik"
 	["module_mariadb,feature"]="module_mariadb"
-	["module_mariadb,desc"]="Install mariadb container"
 	["module_mariadb,example"]="install remove purge status help"
-	["module_mariadb,port"]="3306"
+	["module_mariadb,desc"]="Install mariadb container"
 	["module_mariadb,status"]="Active"
-	["module_mariadb,arch"]=""
+	["module_mariadb,doc_link"]="https://mariadb.org/documentation/"
+	["module_mariadb,group"]="Database"
+	["module_mariadb,port"]="3306"
+	["module_mariadb,arch"]="x86-64 arm64"
 )
 #
 # Module mariadb-PDF
@@ -28,7 +29,7 @@ function module_mariadb () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			[[ -d "$MARIADB_BASE" ]] || mkdir -p "$MARIADB_BASE" || { echo "Couldn't create storage directory: $MARIADB_BASE"; exit 1; }
 
 			# get parameters
@@ -38,6 +39,7 @@ function module_mariadb () {
 			MYSQL_PASSWORD=$($DIALOG --title "Enter new password for ${MYSQL_USER}" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
 			docker run -d \
 			--name=mariadb \
+			--net=lsio \
 			-e PUID=1000 \
 			-e PGID=1000 \
 			-e TZ="$(cat /etc/timezone)" \
@@ -66,6 +68,7 @@ function module_mariadb () {
 			[[ "${image}" ]] && docker image rm "$image" >/dev/null
 		;;
 		"${commands[2]}")
+			${module_options["module_mariadb,feature"]} ${commands[1]}
 			[[ -n "${MARIADB_BASE}" && "${MARIADB_BASE}" != "/" ]] && rm -rf "${MARIADB_BASE}"
 		;;
 		"${commands[3]}")
@@ -83,11 +86,10 @@ function module_mariadb () {
 			echo -e "\tremove\t- Remove $title."
 			echo -e "\tpurge\t- Purge $title data folder."
 			echo -e "\tstatus\t- Installation status $title."
-
 			echo
 		;;
 		*)
-		${module_options["module_mariadb,feature"]} ${commands[4]}
+			${module_options["module_mariadb,feature"]} ${commands[4]}
 		;;
 	esac
 }

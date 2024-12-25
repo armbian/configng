@@ -1,13 +1,14 @@
 module_options+=(
 	["module_stirling,author"]="@Frooodle"
-	["module_stirling,maintainer"]="@armbian @igorpecovnik"
-	["module_stirling,testers"]="@igorpecovnik"
+	["module_stirling,maintainer"]="@igorpecovnik"
 	["module_stirling,feature"]="module_stirling"
-	["module_stirling,desc"]="Install stirling container"
 	["module_stirling,example"]="install remove purge status help"
-	["module_stirling,port"]="8077"
+	["module_stirling,desc"]="Install stirling container"
 	["module_stirling,status"]="Active"
-	["module_stirling,arch"]=""
+	["module_stirling,doc_link"]="https://docs.stirlingpdf.com"
+	["module_stirling,group"]="Media"
+	["module_stirling,port"]="8077"
+	["module_stirling,arch"]="x86-64 arm64"
 )
 #
 # Module stirling-PDF
@@ -28,9 +29,10 @@ function module_stirling () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			[[ -d "$STIRLING_BASE" ]] || mkdir -p "$STIRLING_BASE" || { echo "Couldn't create storage directory: $STIRLING_BASE"; exit 1; }
 			docker run -d \
+			--net=lsio \
 			-p 8077:8080 \
 			-v "${STIRLING_BASE}/trainingData:/usr/share/tessdata" \
 			-v "${STIRLING_BASE}/extraConfigs:/configs" \
@@ -58,6 +60,7 @@ function module_stirling () {
 			[[ "${image}" ]] && docker image rm "$image" >/dev/null
 		;;
 		"${commands[2]}")
+			${module_options["module_stirling,feature"]} ${commands[1]}
 			[[ -n "${STIRLING_BASE}" && "${STIRLING_BASE}" != "/" ]] && rm -rf "${STIRLING_BASE}"
 		;;
 		"${commands[3]}")
@@ -79,7 +82,7 @@ function module_stirling () {
 			echo
 		;;
 		*)
-		${module_options["module_stirling,feature"]} ${commands[4]}
+			${module_options["module_stirling,feature"]} ${commands[4]}
 		;;
 	esac
 }

@@ -1,44 +1,37 @@
-declare -A module_options
 module_options+=(
 	["module_haos,author"]="@igorpecovnik"
+	["module_haos,maintainer"]="@igorpecovnik"
 	["module_haos,feature"]="module_haos"
-	["module_haos,example"]="help install uninstall"
-	["module_haos,desc"]="Hos container install and configure"
+	["module_haos,example"]="install remove purge status help"
+	["module_haos,desc"]="Install HA supervised container"
+	["module_haos,status"]="Active"
+	["module_haos,doc_link"]="https://github.com/home-assistant/supervised-installer"
+	["module_haos,group"]="HomeAutomation"
 	["module_haos,port"]="8123"
-	["module_haos,status"]="review"
+	["module_haos,arch"]="x86-64 arm64 armhf"
 )
 #
-# Install haos container
+# Install haos supervised
 #
-module_haos() {
+function module_haos() {
 
-
+	local title="haos"
+	local condition=$(which "$title" 2>/dev/null)
 
 	if pkg_installed docker-ce; then
 		local container=$(docker container ls -a | mawk '/home-assistant/{print $1}')
 		local image=$(docker image ls -a | mawk '/home-assistant/{print $3}')
 	fi
 
-	# Convert the example string to an array
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_haos,example"]}"
 
+	HAOS_BASE="${SOFTWARE_FOLDER}/haos"
+
 	case "$1" in
 		"${commands[0]}")
-			## help/menu options for the module
-			echo -e "\nUsage: ${module_options["module_haos,feature"]} <command>"
-			echo -e "Commands: ${module_options["module_haos,example"]}"
-			echo "Available commands:"
-			if [[ "${container}" ]] || [[ "${image}" ]]; then
-				echo -e "\tstatus\t- Show the status of the $title service."
-				echo -e "\tremove\t- Remove $title."
-			else
-				echo -e "  install\t- Install $title."
-			fi
-			echo
-		;;
-		install)
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
+			[[ -d "$HAOS_BASE" ]] || mkdir -p "$HAOS_BASE" || { echo "Couldn't create storage directory: $HAOS_BASE"; exit 1; }
 
 			# this hack will allow running it on minimal image, but this has to be done properly in the network section, to allow easy switching
 			systemctl disable systemd-networkd
@@ -61,7 +54,7 @@ module_haos() {
 			esac
 
 			# this we can't put behind wrapper
-			MACHINE="${MACHINE}" pkg_install homeassistant-supervised os-agent
+			DATA_SHARE="$HAOS_BASE" MACHINE="${MACHINE}" pkg_install homeassistant-supervised os-agent
 
 			# workarounding supervisor loosing healthy state https://github.com/home-assistant/supervisor/issues/4381
 			cat <<- SUPERVISOR_FIX > "/usr/local/bin/supervisor_fix.sh"
@@ -98,17 +91,16 @@ module_haos() {
 				echo "extraargs=systemd.unified_cgroup_hierarchy=0 apparmor=1 security=apparmor" >> "/boot/armbianEnv.txt"
 			fi
 			sleep 5
-			for s in {1..10};do
+			for s in {1..50};do
 				for i in {0..100..10}; do
 					j=$i
 					echo "$i"
-					sleep 1
+					sleep 2
 				done
-				if [[ -n "$(docker container ls -a | mawk '/hassio-cli/{print $1}')" ]]; then
-					ha supervisor info --raw-json >/dev/null
-					if [[ $status -ne 0 ]]; then break; fi
+				if [[ -n "$(ss | grep ${module_options["module_haos,port"]})" ]]; then
+						break;
 				fi
-			done | $DIALOG --gauge "Preparing Home Assistant Supervised\n\nPlease wait! " 10 50 0
+			done | $DIALOG --gauge "Preparing Home Assistant Supervised\n\nPlease wait! (can take 15 minutes) " 10 50 0
 
 			# enable service
 			systemctl enable supervisor-fix >/dev/null 2>&1
@@ -117,10 +109,8 @@ module_haos() {
 			# restore os-release
 			sed -i "s/^PRETTY_NAME=\".*/PRETTY_NAME=\"${VENDOR} ${REVISION} ($VERSION_CODENAME)\"/g" "/etc/os-release"
 
-			# show that its done
-			$DIALOG --msgbox "Home assistant is available at\n\nhttps://${LOCALIPADD}:8123 " 10 38
 		;;
-		uninstall)
+		"${commands[1]}")
 			# disable service
 			systemctl disable supervisor-fix >/dev/null 2>&1
 			systemctl stop supervisor-fix >/dev/null 2>&1
@@ -140,10 +130,29 @@ module_haos() {
 			# restore os-release
 			sed -i "s/^PRETTY_NAME=\".*/PRETTY_NAME=\"${VENDOR} ${REVISION} ($VERSION_CODENAME)\"/g" "/etc/os-release"
 		;;
-		status)
-			[[ "${container}" ]] || [[ "${image}" ]] && return 0
+		"${commands[2]}")
+			${module_options["module_haos,feature"]} ${commands[1]}
+			[[ -n "${HAOS_BASE}" && "${HAOS_BASE}" != "/" ]] && rm -rf "${HAOS_BASE}"
+		;;
+		"${commands[3]}")
+			if [[ "${container}" && "${image}" ]]; then
+				return 0
+			else
+				return 1
+			fi
+		;;
+		"${commands[4]}")
+			echo -e "\nUsage: ${module_options["module_haos,feature"]} <command>"
+			echo -e "Commands:  ${module_options["module_haos,example"]}"
+			echo "Available commands:"
+			echo -e "\tinstall\t- Install $title."
+			echo -e "\tstatus\t- Installation status $title."
+			echo -e "\tremove\t- Remove $title."
+			echo -e "\tpurge\t- Purge $title."
+			echo
+		;;
+		*)
+		${module_options["module_haos,feature"]} ${commands[4]}
 		;;
 	esac
 }
-
-module_haos "$1"

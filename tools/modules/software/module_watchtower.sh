@@ -1,11 +1,14 @@
 module_options+=(
 	["module_watchtower,author"]="@armbian"
+	["module_watchtower,maintainer"]="@igorpecovnik"
 	["module_watchtower,feature"]="module_watchtower"
-	["module_watchtower,desc"]="Install watchtower container"
 	["module_watchtower,example"]="install remove status help"
-	["module_watchtower,port"]=""
+	["module_watchtower,desc"]="Install watchtower container"
 	["module_watchtower,status"]="Active"
-	["module_watchtower,arch"]=""
+	["module_watchtower,doc_link"]="https://containrrr.dev/watchtower/"
+	["module_watchtower,group"]="Updates"
+	["module_watchtower,port"]=""
+	["module_watchtower,arch"]="x86-64 arm64"
 )
 #
 # Module watchtower
@@ -24,8 +27,9 @@ function module_watchtower () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
+			pkg_installed docker-ce || module_docker install
 			docker run -d \
+			--net=lsio \
 			--name watchtower \
 			-v /var/run/docker.sock:/var/run/docker.sock \
 			containrrr/watchtower
