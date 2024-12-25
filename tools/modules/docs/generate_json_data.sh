@@ -114,7 +114,7 @@ function generate_json_data() {
 interface_json_data() {
 	# Convert the example string to an array
 	local commands=("raw" "mnu" "top" "sub" "help")
-	json_data=$(generate_software_json)
+	json_data=$(generate_json_data)
 	case "$1" in
 
 	"${commands[0]}")
@@ -123,7 +123,7 @@ interface_json_data() {
 	;;
 	"${commands[1]}")
 		echo "Generating JSON data..."
-		generate_software_json | jq --tab --indent 4 '.' > tools/json/config.temp.json
+		generate_json_data | jq --tab --indent 4 '.' > tools/json/config.temp.json
 	;;
 	"${commands[2]}")
 		generate_top_menu "$json_data"
