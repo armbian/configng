@@ -24,16 +24,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Load JSON
+      - name: Verify JSON File
+        id: verify-json
+        run: |
+          echo "Verifying JSON file location..."
+          JSON_FILE_PATH="tools/json/config.temp.json"
+          if [ ! -f $JSON_FILE_PATH ]; then
+            echo "Error: JSON file not found at $JSON_FILE_PATH"
+            exit 1
+          fi
+
+      - name: Load and Parse JSON
         id: load-json
         run: |
           echo "Loading JSON data..."
-          if [ ! -f tools/json/config.temp.json ]; then
-            echo "Error: JSON file not found at tools/json/config.temp.json"
+          JSON_FILE_PATH="tools/json/config.temp.json"
+          DATA=$(cat $JSON_FILE_PATH)
+          echo "DATA=$DATA" >> $GITHUB_ENV
+          echo "$DATA" > $GITHUB_WORKSPACE/loaded_data.json
+          PARSED_DATA=$(jq '.' $GITHUB_WORKSPACE/loaded_data.json)
+          if [ $? -ne 0 ]; then
+            echo "Error: Failed to parse JSON data"
             exit 1
           fi
-          DATA=$(cat tools/json/config.temp.json)
-          echo "$DATA" > $GITHUB_WORKSPACE/loaded_data.json
 
       - name: Run Tests
         run: |
