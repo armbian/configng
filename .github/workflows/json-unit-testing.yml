@@ -40,9 +40,8 @@ jobs:
           echo "Loading JSON data..."
           JSON_FILE_PATH="tools/json/config.temp.json"
           DATA=$(cat $JSON_FILE_PATH)
-          echo "DATA=$DATA" >> $GITHUB_ENV
           echo "$DATA" > $GITHUB_WORKSPACE/loaded_data.json
-          PARSED_DATA=$(jq '.' $GITHUB_WORKSPACE/loaded_data.json)
+          jq '.' $GITHUB_WORKSPACE/loaded_data.json > /dev/null
           if [ $? -ne 0 ]; then
             echo "Error: Failed to parse JSON data"
             exit 1
