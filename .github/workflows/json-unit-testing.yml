@@ -1,112 +1,42 @@
-name: "JSON Unit Tests"
+name: "Validate JSON"
+
 on:
-  workflow_dispatch:
-  repository_dispatch:
-    types: ["JSON Unit Tests"]
-  schedule:
-    - cron: '0 3 * * *'
+  push:
+    branches:
+      - main
   pull_request:
-    types: [opened, reopened, edited, synchronize, review_requested]
-
-env:
-  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  PR_NUMBER: ${{ github.event.number }}
-
-concurrency:
-  group: pipeline-pr-json-${{github.event.pull_request.number}}
-  cancel-in-progress: true
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
-  test:
-    name: "JSON Unit Tests"
+  validate-json:
+    name: "Validate JSON File"
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Verify JSON File
+      - name: Verify JSON File Exists
         id: verify-json
         run: |
-          echo "Verifying JSON file location..."
           JSON_FILE_PATH="tools/json/config.temp.json"
-          if [ ! -f $JSON_FILE_PATH ]; then
+          if [ -f "$JSON_FILE_PATH" ]; then
+            echo "JSON file found at $JSON_FILE_PATH"
+          else
             echo "Error: JSON file not found at $JSON_FILE_PATH"
             exit 1
           fi
 
-      - name: Validate JSON
+      - name: Validate JSON Format
         id: validate-json
         run: |
-          echo "Validating JSON format..."
           JSON_FILE_PATH="tools/json/config.temp.json"
           jq '.' $JSON_FILE_PATH > /dev/null
-          if [ $? -ne 0 ]; then
+          if [ $? -eq 0 ]; then
+            echo "JSON format is valid"
+          else
             echo "Error: Invalid JSON format in $JSON_FILE_PATH"
             exit 1
           fi
-
-      - name: Load and Parse JSON
-        id: load-json
-        run: |
-          echo "Loading JSON data..."
-          JSON_FILE_PATH="tools/json/config.temp.json"
-          DATA=$(cat $JSON_FILE_PATH)
-          echo "$DATA" > $GITHUB_WORKSPACE/loaded_data.json
-
-      - name: Run Tests
-        run: |
-          echo "Running tests..."
-          DATA=$(cat $GITHUB_WORKSPACE/loaded_data.json)
-          for row in $(echo "${DATA}" | jq -r '.[] | @base64'); do
-            _jq() {
-              echo ${row} | base64 --decode | jq -r ${1}
-            }
-            ID=$(_jq '.id')
-            COMMAND=$(_jq '.command')
-            OPTIONS=$(_jq '.options')
-            STATUS=$(_jq '.status')
-            ARCH=$(_jq '.arch')
-
-            echo "Running test for $ID: $COMMAND with options $OPTIONS on status $STATUS for arch $ARCH"
-            # Add the logic to run the actual command here
-            # Example: touch a dummy file for the artifact
-            echo "Test result for $ID" > "./config/${ID}.result"
-          done
-
-      - name: Upload test artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: TESTDATA
-          path: './config/*.result'
-          if-no-files-found: error
-
-  gradle:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download test artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: TESTDATA
-
-      - name: Generate Summary
-        run: |
-          echo "# Successful tests:" >> $GITHUB_STEP_SUMMARY
-          echo "|ID|Command|Options|Status|Arch|" >> $GITHUB_STEP_SUMMARY
-          echo "|:---|:---|:---|:---|:---|" >> $GITHUB_STEP_SUMMARY
-          DATA=$(cat $GITHUB_WORKSPACE/loaded_data.json)
-          for row in $(echo "${DATA}" | jq -r '.[] | @base64'); do
-            _jq() {
-              echo ${row} | base64 --decode | jq -r ${1}
-            }
-            ID=$(_jq '.id')
-            COMMAND=$(_jq '.command')
-            OPTIONS=$(_jq '.options')
-            STATUS=$(_jq '.status')
-            ARCH=$(_jq '.arch')
-
-            echo "|$ID|$COMMAND|$OPTIONS|$STATUS|$ARCH|" >> $GITHUB_STEP_SUMMARY
-          done
