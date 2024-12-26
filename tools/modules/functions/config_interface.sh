@@ -133,13 +133,13 @@ generate_top_menu() {
 		parse_menu_items menu_options
 		menu_options+=("Help" " -  About this tool")
 		local OPTION=$($DIALOG --backtitle "$backtitle" --title "$TITLE" --menu "$status" 0 80 9 "${menu_options[@]}" \
-			--ok-button Select --cancel-button Exit 3>&1 1>&2 2>&3)
+		--ok-button Select --cancel-button Exit 3>&1 1>&2 2>&3)
 		local exitstatus=$?
 
 		if [ $exitstatus = 0 ]; then
 			[ -z "$OPTION" ] && break
 			if [[ "$OPTION" == "Help" ]]; then
-			 	show_message <<< "$(about_armbian_configng)" ;
+				show_message <<< "$(about_armbian_configng)" ;
 			else
 				generate_menu "$OPTION"
 			fi
