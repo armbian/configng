@@ -34,6 +34,17 @@ jobs:
             exit 1
           fi
 
+      - name: Validate JSON
+        id: validate-json
+        run: |
+          echo "Validating JSON format..."
+          JSON_FILE_PATH="tools/json/config.temp.json"
+          jq '.' $JSON_FILE_PATH > /dev/null
+          if [ $? -ne 0 ]; then
+            echo "Error: Invalid JSON format in $JSON_FILE_PATH"
+            exit 1
+          fi
+
       - name: Load and Parse JSON
         id: load-json
         run: |
@@ -41,11 +52,6 @@ jobs:
           JSON_FILE_PATH="tools/json/config.temp.json"
           DATA=$(cat $JSON_FILE_PATH)
           echo "$DATA" > $GITHUB_WORKSPACE/loaded_data.json
-          jq '.' $GITHUB_WORKSPACE/loaded_data.json > /dev/null
-          if [ $? -ne 0 ]; then
-            echo "Error: Failed to parse JSON data"
-            exit 1
-          fi
 
       - name: Run Tests
         run: |
