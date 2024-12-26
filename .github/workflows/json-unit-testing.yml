@@ -1,0 +1,93 @@
+name: "JSON Unit Tests"
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: ["JSON Unit Tests"]
+  schedule:
+    - cron: '0 3 * * *'
+  pull_request:
+    types: [opened, reopened, edited, synchronize, review_requested]
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  PR_NUMBER: ${{ github.event.number }}
+
+concurrency:
+  group: pipeline-pr-json-${{github.event.pull_request.number}}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: "JSON Unit Tests"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: 'config'
+
+      - name: Load JSON
+        id: load-json
+        run: |
+          echo "Loading JSON data..."
+          DATA=$(cat ./tools/json/config.temp.json)
+          echo "DATA=$DATA" >> $GITHUB_ENV
+
+      - name: Run Tests
+        run: |
+          echo "Running tests..."
+          for row in $(echo "${DATA}" | jq -r '.[] | @base64'); do
+            _jq() {
+              echo ${row} | base64 --decode | jq -r ${1}
+            }
+            ID=$(_jq '.id')
+            COMMAND=$(_jq '.command')
+            OPTIONS=$(_jq '.options')
+            STATUS=$(_jq '.status')
+            ARCH=$(_jq '.arch')
+
+            echo "Running test for $ID: $COMMAND with options $OPTIONS on status $STATUS for arch $ARCH"
+            # Add the logic to run the actual command here
+          done
+
+  gradle:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: 'config'
+
+      - name: Install
+        run: |
+          # Add installation and testing steps here
+
+  stop:
+    name: "Merge test artifacts"
+    if: always()
+    needs: gradle
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Download changes"
+        uses: actions/download-artifact@v3-node20
+        with:
+          name: TESTDATA
+
+      - name: Generate Summary
+        run: |
+          echo "# Successful tests:" >> $GITHUB_STEP_SUMMARY
+          echo "|ID|Command|Options|Status|Arch|" >> $GITHUB_STEP_SUMMARY
+          echo "|:---|:---|:---|:---|:---|" >> $GITHUB_STEP_SUMMARY
+          for row in $(echo "${DATA}" | jq -r '.[] | @base64'); do
+            _jq() {
+              echo ${row} | base64 --decode | jq -r ${1}
+            }
+            ID=$(_jq '.id')
+            COMMAND=$(_jq '.command')
+            OPTIONS=$(_jq '.options')
+            STATUS=$(_jq '.status')
+            ARCH=$(_jq '.arch')
+
+            echo "|$ID|$COMMAND|$OPTIONS|$STATUS|$ARCH|" >> $GITHUB_STEP_SUMMARY
+          done
