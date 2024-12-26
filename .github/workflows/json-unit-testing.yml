@@ -23,22 +23,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          path: 'config'
 
       - name: Load JSON
+        id: load-json
         run: |
           echo "Loading JSON data..."
-          if [ ! -f config/tools/json/config.temp.json ]; then
-            echo "Error: JSON file not found at config/tools/json/config.temp.json"
+          if [ ! -f tools/json/config.temp.json ]; then
+            echo "Error: JSON file not found at tools/json/config.temp.json"
             exit 1
           fi
-          DATA=$(cat config/tools/json/config.temp.json)
-          echo "DATA=$DATA" >> $GITHUB_ENV
+          DATA=$(cat tools/json/config.temp.json)
+          echo "$DATA" > $GITHUB_WORKSPACE/loaded_data.json
 
       - name: Run Tests
         run: |
           echo "Running tests..."
+          DATA=$(cat $GITHUB_WORKSPACE/loaded_data.json)
           for row in $(echo "${DATA}" | jq -r '.[] | @base64'); do
             _jq() {
               echo ${row} | base64 --decode | jq -r ${1}
@@ -68,8 +68,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          path: 'config'
 
       - name: Download test artifacts
         uses: actions/download-artifact@v3
@@ -81,6 +79,7 @@ jobs:
           echo "# Successful tests:" >> $GITHUB_STEP_SUMMARY
           echo "|ID|Command|Options|Status|Arch|" >> $GITHUB_STEP_SUMMARY
           echo "|:---|:---|:---|:---|:---|" >> $GITHUB_STEP_SUMMARY
+          DATA=$(cat $GITHUB_WORKSPACE/loaded_data.json)
           for row in $(echo "${DATA}" | jq -r '.[] | @base64'); do
             _jq() {
               echo ${row} | base64 --decode | jq -r ${1}
