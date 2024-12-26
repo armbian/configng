@@ -1,46 +1,1429 @@
 {
     "menu": [
         {
-            "id": "Template",
-            "description": "Description ... ",
+            "id": "Software00",
+            "description": "Run/Install 3rd party applications",
             "sub": [
                 {
-                    "id": "UID01",
-                    "description": "Description ... ",
-                    "prompt": "",
+                    "id": "WebHosting",
+                    "description": "Web server, LEMP, reverse proxy, Let's Encrypt SSL",
+                    "status": "Stable",
                     "sub": [
                         {
-                            "id": "SUB02",
-                            "description": "Description ... ",
+                            "id": "SWAG01",
+                            "description": "SWAG reverse proxy install",
                             "command": [
-                                "show_message <<< \" Message ... \""
+                                "module_swag install"
                             ],
-                            "status": "",
-                            "author": "Github Username",
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_swag status"
+                        },
+                        {
+                            "id": "SWAG02",
+                            "description": "SWAG reverse proxy .htpasswd set",
+                            "command": [
+                                "module_swag password"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_swag status"
+                        },
+                        {
+                            "id": "SWAG03",
+                            "description": "SWAG remove",
+                            "command": [
+                                "module_swag remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_swag status"
+                        },
+                        {
+                            "id": "SWAG04",
+                            "description": "SWAG purge with data folder",
+                            "command": [
+                                "module_swag purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_swag status"
+                        }
+                    ]
+                },
+                {
+                    "id": "HomeAutomation",
+                    "description": "Home Automation for monitoring and/or control home appliances",
+                    "sub": [
+                        {
+                            "id": "HAB001",
+                            "description": "openHAB empowering the smart home",
+                            "about": "This operation will install openHAB.",
+                            "command": [
+                                "module_openhab install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_openhab status"
+                        },
+                        {
+                            "id": "HAB002",
+                            "description": "openHAB remove",
+                            "about": "This operation will purge openHAB.",
+                            "command": [
+                                "module_openhab remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_openhab status"
+                        },
+                        {
+                            "id": "HAB003",
+                            "description": "openHAB purge with data folder",
+                            "about": "This operation will purge openHAB.",
+                            "command": [
+                                "module_openhab purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_openhab status"
+                        },
+                        {
+                            "id": "HAS001",
+                            "description": "Home Assistant open source home automation",
+                            "about": "This operation will install Home Assistant.",
+                            "command": [
+                                "module_haos install"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_haos status && grep -q bookworm /etc/os-release"
+                        },
+                        {
+                            "id": "HAS002",
+                            "description": "Home Assistant remove",
+                            "about": "This operation will remove Home Assistant.",
+                            "command": [
+                                "module_haos remove"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_haos status"
+                        },
+                        {
+                            "id": "HAS003",
+                            "description": "Home Assistant purge with data folder",
+                            "about": "This operation will purge Home Assistant.",
+                            "command": [
+                                "module_haos purge"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_haos status"
+                        }
+                    ]
+                },
+                {
+                    "id": "DNS",
+                    "description": "Network-wide ad blockers servers",
+                    "sub": [
+                        {
+                            "id": "DNS001",
+                            "description": "Pi-hole DNS ad blocker install",
+                            "command": [
+                                "module_pi_hole install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_pi_hole status"
+                        },
+                        {
+                            "id": "DNS003",
+                            "description": "Pi-hole remove",
+                            "command": [
+                                "module_pi_hole remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_pi_hole status"
+                        },
+                        {
+                            "id": "DNS002",
+                            "description": "Pi-hole change web admin password",
+                            "command": [
+                                "module_pi_hole password"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_pi_hole status"
+                        },
+                        {
+                            "id": "DNS004",
+                            "description": "Pi-hole purge",
+                            "command": [
+                                "module_pi_hole remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_pi_hole status"
+                        }
+                    ]
+                },
+                {
+                    "id": "Desktops",
+                    "description": "Desktop Environments",
+                    "status": "Disabled",
+                    "sub": [
+                        {
+                            "id": "XFCE",
+                            "description": "XFCE desktop",
+                            "status": "Disabled",
+                            "sub": [
+                                {
+                                    "id": "XFCE01",
+                                    "about": "Install XFCE:\nXfce is a lightweight desktop environment for UNIX-like operating systems. It aims to be fast and low on system resources, while still being visually appealing and user friendly.",
+                                    "description": "XFCE desktop Install",
+                                    "command": [
+                                        "manage_desktops 'xfce' 'install'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ ! -f /usr/share/xsessions/xfce.desktop ]"
+                                },
+                                {
+                                    "id": "XFCE02",
+                                    "description": "Uninstall",
+                                    "command": [
+                                        "manage_desktops 'xfce' 'uninstall'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/xfce.desktop ]"
+                                },
+                                {
+                                    "id": "XFCE03",
+                                    "description": "Enable autologin",
+                                    "command": [
+                                        "manage_desktops 'xfce' 'auto'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/xfce.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                },
+                                {
+                                    "id": "XFCE04",
+                                    "description": "Disable autologin",
+                                    "command": [
+                                        "manage_desktops 'xfce' 'manual'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/xfce.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "Gnome",
+                            "description": "Gnome desktop",
+                            "status": "Disabled",
+                            "sub": [
+                                {
+                                    "id": "GNOME01",
+                                    "description": "Gnome desktop Install",
+                                    "command": [
+                                        "manage_desktops 'gnome' 'install'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ ! -f /usr/share/xsessions/gnome.desktop ]"
+                                },
+                                {
+                                    "id": "GNOME02",
+                                    "description": "Uninstall",
+                                    "command": [
+                                        "manage_desktops 'gnome' 'uninstall'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ]"
+                                },
+                                {
+                                    "id": "GNOME03",
+                                    "description": "Enable autologin",
+                                    "command": [
+                                        "manage_desktops 'gnome' 'auto'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && ! cat /etc/gdm3/custom.conf 2>/dev/null | grep AutomaticLoginEnable | grep true >/dev/null"
+                                },
+                                {
+                                    "id": "GNOME04",
+                                    "description": "Disable autologin",
+                                    "command": [
+                                        "manage_desktops 'gnome' 'manual'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && cat /etc/gdm3/custom.conf 2>/dev/null | grep AutomaticLoginEnable | grep true >/dev/null"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "I3WM",
+                            "description": "i3-wm desktop",
+                            "status": "Disabled",
+                            "sub": [
+                                {
+                                    "id": "I3WM01",
+                                    "description": "i3 desktop Install",
+                                    "command": [
+                                        "manage_desktops 'i3-wm' 'install'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ ! -f /usr/share/xsessions/i3.desktop ]"
+                                },
+                                {
+                                    "id": "I3WM02",
+                                    "description": "i3 desktop uninstall",
+                                    "command": [
+                                        "manage_desktops 'i3-wm' 'uninstall'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/i3.desktop ]"
+                                },
+                                {
+                                    "id": "I3WM03",
+                                    "description": "Enable autologin",
+                                    "command": [
+                                        "manage_desktops 'i3-wm' 'auto'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/i3.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                },
+                                {
+                                    "id": "I3WM04",
+                                    "description": "Disable autologin",
+                                    "command": [
+                                        "manage_desktops 'i3-wm' 'manual'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/i3.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "Cinnamon",
+                            "description": "Cinnamon desktop",
+                            "status": "Disabled",
+                            "sub": [
+                                {
+                                    "id": "CINNAMON01",
+                                    "description": "Cinnamon desktop Install",
+                                    "command": [
+                                        "manage_desktops 'cinnamon' 'install'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ ! -f /usr/share/xsessions/cinnamon.desktop ] && [ ! -f /usr/share/xsessions/cinnamon2d.desktop ]"
+                                },
+                                {
+                                    "id": "CINNAMON02",
+                                    "description": "Cinnamon desktop uninstall",
+                                    "command": [
+                                        "manage_desktops 'cinnamon' 'uninstall'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] || [ -f /usr/share/xsessions/cinnamon2d.desktop ]"
+                                },
+                                {
+                                    "id": "CINNAMON03",
+                                    "description": "Enable autologin",
+                                    "command": [
+                                        "manage_desktops 'cinnamon' 'auto'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                },
+                                {
+                                    "id": "CINNAMON04",
+                                    "description": "Disable autologin",
+                                    "command": [
+                                        "manage_desktops 'cinnamon' 'manual'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "KDEN",
+                            "description": "Kde-neon desktop",
+                            "status": "Disabled",
+                            "sub": [
+                                {
+                                    "id": "KDENEON01",
+                                    "description": "Kde-neon desktop Install",
+                                    "command": [
+                                        "manage_desktops 'kde-neon' 'install'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ ! -f /usr/share/xsessions/gnome.desktop ]"
+                                },
+                                {
+                                    "id": "KDENEON02",
+                                    "description": "Uninstall",
+                                    "command": [
+                                        "manage_desktops 'kde-neon' 'uninstall'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ]"
+                                },
+                                {
+                                    "id": "KDENEON03",
+                                    "description": "Enable autologin",
+                                    "command": [
+                                        "manage_desktops 'kde-neon' 'auto'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                },
+                                {
+                                    "id": "KDENEON04",
+                                    "description": "Disable autologin",
+                                    "command": [
+                                        "manage_desktops 'kde-neon' 'manual'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "Xapian",
+                            "description": "Improve application search speed",
+                            "command": [
+                                "update-apt-xapian-index -u; sleep 3"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "systemctl is-active --quiet service display-manager"
+                        }
+                    ]
+                },
+                {
+                    "id": "Downloaders",
+                    "description": "P2P download managers for movies, TV shows, music and subtitles",
+                    "sub": [
+                        {
+                            "id": "DOW001",
+                            "description": "qBittorrent BitTorrent server ",
+                            "about": "This operation will install qBittorrent BitTorrent server",
+                            "command": [
+                                "module_qbittorrent install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_qbittorrent status"
+                        },
+                        {
+                            "id": "DOW002",
+                            "description": "qBittorrent remove",
+                            "about": "This operation will remove qBittorrent BitTorrent server",
+                            "command": [
+                                "module_qbittorrent remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_qbittorrent status"
+                        },
+                        {
+                            "id": "DOW003",
+                            "description": "qBittorrent purge with data folder",
+                            "about": "This operation will remove qBittorrent BitTorrent data folder",
+                            "command": [
+                                "module_qbittorrent purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_qbittorrent status"
+                        },
+                        {
+                            "id": "DEL001",
+                            "description": "Deluge BitTorrent server",
+                            "about": "This operation will install BitTorrent server",
+                            "command": [
+                                "module_deluge install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_deluge status"
+                        },
+                        {
+                            "id": "DEL002",
+                            "description": "Deluge remove",
+                            "about": "This operation will remove Deluge BitTorrent server",
+                            "command": [
+                                "module_deluge remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_deluge status"
+                        },
+                        {
+                            "id": "DEL003",
+                            "description": "Deluge purge with data folder",
+                            "about": "This operation will remove Deluge BitTorrent server data folder",
+                            "command": [
+                                "module_deluge purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_deluge status"
+                        },
+                        {
+                            "id": "TRA001",
+                            "description": "Transmission BitTorrent server",
+                            "about": "This operation will install Transmission BitTorrent server",
+                            "command": [
+                                "module_transmission install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_transmission status"
+                        },
+                        {
+                            "id": "TRA002",
+                            "description": "Transmission remove",
+                            "about": "This operation will remove Transmission BitTorrent server",
+                            "command": [
+                                "module_transmission remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_transmission status"
+                        },
+                        {
+                            "id": "TRA003",
+                            "description": "Transmission purge with data folder",
+                            "about": "This operation will remove Transmission BitTorrent server data folder",
+                            "command": [
+                                "module_transmission purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_transmission status"
+                        },
+                        {
+                            "id": "SABN01",
+                            "description": "SABnzbd newsgroup downloader",
+                            "about": "This operation will install SABnzbd newsgroup downloader",
+                            "command": [
+                                "module_sabnzbd install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_sabnzbd status"
+                        },
+                        {
+                            "id": "SABN02",
+                            "description": "SABnzbd remove",
+                            "about": "This operation will remove SABnzbd newsgroup downloader",
+                            "command": [
+                                "module_sabnzbd remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_sabnzbd status"
+                        },
+                        {
+                            "id": "SABN03",
+                            "description": "SABnzbd purge with data folder",
+                            "about": "This operation will purge SABnzbd newsgroup data folder",
+                            "command": [
+                                "module_sabnzbd purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_sabnzbd status"
+                        },
+                        {
+                            "id": "MDS001",
+                            "description": "Medusa automatic downloader for TV shows",
+                            "about": "This operation will install Medusa TV shows downloader",
+                            "command": [
+                                "module_medusa install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_medusa status"
+                        },
+                        {
+                            "id": "MDS002",
+                            "description": "Medusa TV shows downloader remove",
+                            "about": "This operation will remove Medusa TV shows downloader",
+                            "command": [
+                                "module_medusa remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_medusa status"
+                        },
+                        {
+                            "id": "MDS003",
+                            "description": "Medusa TV shows downloader purge",
+                            "about": "This operation will purge Medusa TV shows data folder",
+                            "command": [
+                                "module_medusa purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_medusa status"
+                        },
+                        {
+                            "id": "SON001",
+                            "description": "Sonarr automatic downloader for TV shows",
+                            "about": "This operation will install Sonarr PVR for Usenet and BitTorrent",
+                            "command": [
+                                "module_sonarr install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_sonarr status"
+                        },
+                        {
+                            "id": "SON002",
+                            "description": "Sonarr remove",
+                            "about": "This operation will remove Sonarr PVR for Usenet and BitTorrent",
+                            "command": [
+                                "module_sonarr remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_sonarr status"
+                        },                        
+                        {
+                            "id": "SON003",
+                            "description": "Sonarr purge with data folder",
+                            "about": "This operation will purge Sonarr PVR for Usenet and BitTorrent purge data folder",
+                            "command": [
+                                "module_sonarr purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_sonarr status"
+                        },
+                        {
+                            "id": "RAD001",
+                            "description": "Radarr automatic downloader for movies",
+                            "about": "This operation will install Radarr movie collection manager",
+                            "command": [
+                                "module_radarr install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_radarr status"
+                        },
+                        {
+                            "id": "RAD002",
+                            "description": "Radarr remove",
+                            "about": "This operation will remove Radarr movie collection manager",
+                            "command": [
+                                "module_radarr remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_radarr status"
+                        },
+                        {
+                            "id": "RAD003",
+                            "description": "Radarr purge with data folder",
+                            "about": "This operation will purge Radarr movie collection manager data folder",
+                            "command": [
+                                "module_radarr purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_radarr status"
+                        },
+                        {
+                            "id": "BAZ001",
+                            "description": "Bazarr automatic subtitles downloader for Sonarr and Radarr",
+                            "about": "This operation will install Bazarr subtitles manager for Sonarr and Radarr",
+                            "command": [
+                                "module_bazarr install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_bazarr status"
+                        },
+                        {
+                            "id": "BAZ002",
+                            "description": "Bazarr remove",
+                            "about": "This operation will remove Bazarr subtitles manager for Sonarr and Radarr",
+                            "command": [
+                                "module_bazarr remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_bazarr status"
+                        },
+                        {
+                            "id": "BAZ003",
+                            "description": "Bazarr purge with data folder",
+                            "about": "This operation will purge Bazarr subtitles manager with data folder",
+                            "command": [
+                                "module_bazarr purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_bazarr status"
+                        },
+                        {
+                            "id": "LID001",
+                            "description": "Lidarr automatic music downloader",
+                            "about": "This operation will install Lidarr music collection manager for Usenet and BitTorrent users",
+                            "command": [
+                                "module_lidarr install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_lidarr status"
+                        },
+                        {
+                            "id": "LID002",
+                            "description": "Lidarr remove",
+                            "about": "This operation will remove Lidarr",
+                            "command": [
+                                "module_lidarr remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_lidarr status"
+                        },
+                        {
+                            "id": "LID003",
+                            "description": "Lidarr purge with data folder",
+                            "about": "This operation will purge Lidarr with data folder",
+                            "command": [
+                                "module_lidarr purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_lidarr status"
+                        },
+                        {
+                            "id": "RDR001",
+                            "description": "Readarr automatic downloader for Ebooks",
+                            "about": "This operation will install Readarr",
+                            "command": [
+                                "module_readarr install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_readarr status"
+                        },
+                        {
+                            "id": "RDR002",
+                            "description": "Readarr remove",
+                            "about": "This operation will remove Readarr",
+                            "command": [
+                                "module_readarr remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_readarr status"
+                        },
+                        {
+                            "id": "RDR003",
+                            "description": "Readarr purge with data folder",
+                            "about": "This operation will purge Readarr with data folder",
+                            "command": [
+                                "module_readarr purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_readarr status"
+                        },
+                        {
+                            "id": "DOW025",
+                            "description": "Prowlarr index manager and proxy for PVR",
+                            "about": "This operation will install Prowlarr",
+                            "command": [
+                                "module_prowlarr install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_prowlarr status"
+                        },
+                        {
+                            "id": "DOW026",
+                            "description": "Prowlarr remove",
+                            "about": "This operation will remove Prowlarr",
+                            "command": [
+                                "module_prowlarr remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_prowlarr status"
+                        },
+                        {
+                            "id": "DOW027",
+                            "description": "Prowlarr purge with data folder",
+                            "about": "This operation will purge Prowlarr with data folder",
+                            "command": [
+                                "module_prowlarr purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_prowlarr status"
+                        },
+                        {
+                            "id": "JEL001",
+                            "description": "Jellyseerr Jellyfin/Emby/Plex integration install",
+                            "about": "This operation will install Jellyseerr",
+                            "command": [
+                                "module_jellyseerr install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_jellyseerr status"
+                        },
+                        {
+                            "id": "JEL002",
+                            "description": "Jellyseerr remove",
+                            "about": "This operation will remove Jellyseerr",
+                            "command": [
+                                "module_jellyseerr remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_jellyseerr status"
+                        },
+                        {
+                            "id": "JEL003",
+                            "description": "Jellyseerr purge with data folder",
+                            "about": "This operation will purge Jellyseerr with data folder",
+                            "command": [
+                                "module_jellyseerr purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_jellyseerr status ]]"
+                        }
+                    ]
+                },
+                {
+                    "id": "Database",
+                    "description": "SQL database servers and web interface managers",
+                    "sub": [
+                        {
+                            "id": "DAT001",
+                            "description": "Mariadb install",
+                            "command": [
+                                "module_mariadb install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_mariadb status"
+                        },
+                        {
+                            "id": "DAT002",
+                            "description": "Mariadb remove",
+                            "command": [
+                                "module_mariadb remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_mariadb status"
+                        },
+                        {
+                            "id": "DAT003",
+                            "description": "Mariadb purge",
+                            "command": [
+                                "module_mariadb purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_mariadb status && [[ -d \"${SOFTWARE_FOLDER}/mariadb\" ]]"
+                        },
+                        {
+                            "id": "DAT005",
+                            "description": "phpMyAdmin install",
+                            "command": [
+                                "module_phpmyadmin install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_phpmyadmin status"
+                        },
+                        {
+                            "id": "DAT006",
+                            "description": "phpMyAdmin remove",
+                            "command": [
+                                "module_phpmyadmin remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_phpmyadmin status"
+                        },
+                        {
+                            "id": "DAT007",
+                            "description": "phpMyAdmin purge",
+                            "command": [
+                                "module_phpmyadmin purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_phpmyadmin status && [[ -d \"${SOFTWARE_FOLDER}/phpmyadmin\" ]]"
+                        }
+                    ]
+                },
+                {
+                    "id": "DevTools",
+                    "description": "Applications and tools for development",
+                    "sub": [
+                        {
+                            "id": "DEV001",
+                            "description": "Install tools for cloning and managing repositories (git)",
+                            "command": [
+                                "get_user_continue \"This operation will install git.\n\nDo you wish to continue?\" process_input",
+                                "pkg_install git"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! pkg_installed git"
+                        },
+                        {
+                            "id": "DEV002",
+                            "description": "Remove tools for cloning and managing repositories (git)",
+                            "command": [
+                                "get_user_continue \"This operation will remove git.\n\nDo you wish to continue?\" process_input",
+                                "pkg_remove git"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "pkg_installed git"
+                        }
+                    ]
+                },
+                {
+                    "id": "Benchy",
+                    "description": "System benchmaking and diagnostics",
+                    "command": [
+                        "see_monitoring"
+                    ],
+                    "status": "Disabled",
+                    "author": "@armbian",
+                    "condition": "[ -f /usr/bin/armbianmonitor ]"
+                },
+                {
+                    "id": "Containers",
+                    "description": "Docker containerization and KVM virtual machines",
+                    "sub": [
+                        {
+                            "id": "CON001",
+                            "description": "Docker Minimal Install",
+                            "about": "This operation will install Docker Minimal.",
+                            "command": [
+                                "module_docker install minimal"
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "! module_docker status docker-ce"
+                        },
+                        {
+                            "id": "CON002",
+                            "description": "Docker Engine Install",
+                            "about": "This operation will install Docker Engine.",
+                            "command": [
+                                "module_docker install engine"
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "! module_docker status docker-compose-plugin"
+                        },
+                        {
+                            "id": "CON003",
+                            "description": "Docker Remove",
+                            "about": "This operation will purge Docker.",
+                            "command": [
+                                "module_docker remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "module_docker status docker-ce"
+                        },
+                        {
+                            "id": "CON004",
+                            "description": "Docker Purge all images, containers, and volumes",
+                            "about": "This operation will delete all Docker images, containers, and volumes.",
+                            "command": [
+                                "module_docker purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "! module_docker status docker-ce && [ -d /var/lib/docker ]"
+                        },
+                        {
+                            "id": "CON005",
+                            "description": "Portainer container management platform",
+                            "prompt": "This operation will install Portainer container management platform.",
+                            "command": [
+                                "module_portainer install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_portainer status"
+                        },
+                        {
+                            "id": "CON006",
+                            "description": "Portainer remove",
+                            "prompt": "This operation will remove Portainer container management platform.",
+                            "command": [
+                                "module_portainer remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_portainer status"
+                        },
+                        {
+                            "id": "CON007",
+                            "description": "Portainer purge with with data folder",
+                            "prompt": "This operation will remove Portainer container management platform.",
+                            "command": [
+                                "module_portainer remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_portainer status"
+                        }
+                    ]
+                },
+                {
+                    "id": "Media",
+                    "description": "Media servers, organizers and editors",
+                    "sub": [
+                        {
+                            "id": "MED001",
+                            "description": "Plex Media server",
+                            "about": "This operation will install Plex Media server.",
+                            "command": [
+                                "module_plexmediaserver install"
+                            ],
+                            "status": "Disabled",
+                            "author": "@schwar3kat",
+                            "condition": "! module_plexmediaserver status"
+                        },
+                        {
+                            "id": "MED002",
+                            "description": "Plex Media server remove",
+                            "about": "This operation will purge Plex Media server.",
+                            "command": [
+                                "module_plexmediaserver remove"
+                            ],
+                            "status": "Disabled",
+                            "author": "@schwar3kat",
+                            "condition": "module_plexmediaserver status"
+                        },
+                        {
+                            "id": "MED003",
+                            "description": "Emby organizes video, music, live TV, and photos",
+                            "about": "This operation will install Emby server.",
+                            "command": [
+                                "module_embyserver install"
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "! module_embyserver status"
+                        },
+                        {
+                            "id": "MED004",
+                            "description": "Emby server remove",
+                            "about": "This operation will remove Emby server",
+                            "command": [
+                                "module_embyserver remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "module_embyserver status"
+                        },
+                        {
+                            "id": "MED005",
+                            "description": "Emby server purge with data folder",
+                            "command": [
+                                "module_embyserver purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "module_embyserver status"
+                        },
+                        {
+                            "id": "MED010",
+                            "description": "Stirling PDF tools for viewing and editing PDF files",
+                            "about": "This operation will install Stirling-PDF tools.",
+                            "command": [
+                                "module_stirling install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_stirling status"
+                        },
+                        {
+                            "id": "MED011",
+                            "description": "Stirling PDF remove",
+                            "about": "This operation will remove Stirling-PDF tools.",
+                            "command": [
+                                "module_stirling remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_stirling status"
+                        },
+                        {
+                            "id": "MED012",
+                            "description": "Stirling PDF purge with data folder",
+                            "about": "This operation will purge Stirling-PDF tools with data folder.",
+                            "command": [
+                                "module_stirling purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_stirling status"
+                        },
+                        {
+                            "id": "MED015",
+                            "description": "Syncthing continuous file synchronization",
+                            "command": [
+                                "module_syncthing install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_syncthing status"
+                        },
+                        {
+                            "id": "MED016",
+                            "description": "Syncthing remove",
+                            "command": [
+                                "module_syncthing remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_syncthing status"
+                        },
+                        {
+                            "id": "MED017",
+                            "description": "Syncthing purge with data folder",
+                            "command": [
+                                "module_syncthing purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_syncthing status"
+                        },
+                        {
+                            "id": "MED020",
+                            "description": "Nextcloud content collaboration platform",
+                            "command": [
+                                "module_nextcloud install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_nextcloud status"
+                        },
+                        {
+                            "id": "MED021",
+                            "description": "Nextcloud remove",
+                            "command": [
+                                "module_nextcloud remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_nextcloud status"
+                        },
+                        {
+                            "id": "MED022",
+                            "description": "Nextcloud purge with data folder",
+                            "command": [
+                                "module_nextcloud purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_nextcloud status"
+                        },
+                        {
+                            "id": "MED025",
+                            "description": "Owncloud share files and folders, easy and secure",
+                            "command": [
+                                "module_owncloud install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_owncloud status"
+                        },
+                        {
+                            "id": "MED026",
+                            "description": "Owncloud remove",
+                            "command": [
+                                "module_owncloud remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_owncloud status"
+                        },
+                        {
+                            "id": "MED027",
+                            "description": "Owncloud purge with data folder",
+                            "command": [
+                                "module_owncloud purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_owncloud status"
+                        }
+                    ]
+                },
+                {
+                    "id": "Monitoring",
+                    "description": "Real-time monitoring, collecting metrics, up-time status",
+                    "sub": [
+                        {
+                            "id": "MON001",
+                            "description": "Uptime Kuma self-hosted monitoring tool",
+                            "about": "This operation will install Uptime Kuma",
+                            "command": [
+                                "module_uptimekuma install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_uptimekuma status"
+                        },
+                        {
+                            "id": "MON002",
+                            "description": "Uptime Kuma remove",
+                            "about": "This operation will remove Uptime Kuma",
+                            "command": [
+                                "module_uptimekuma remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_uptimekuma status"
+                        },
+                        {
+                            "id": "MON003",
+                            "description": "Uptime Kuma purge with data folder",
+                            "about": "This operation will remove Uptime Kuma with data folder",
+                            "command": [
+                                "module_uptimekuma purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_uptimekuma status"
+                        },
+                        {
+                            "id": "MON005",
+                            "description": "Netdata - monitoring real-time metrics",
+                            "about": "This operation will install Netdata",
+                            "command": [
+                                "module_netdata install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_netdata status"
+                        },
+                        {
+                            "id": "MON006",
+                            "description": "Netdata remove",
+                            "about": "This operation will remove Netdata",
+                            "command": [
+                                "module_netdata remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_netdata status"
+                        },
+                        {
+                            "id": "MON007",
+                            "description": "Netdata purge with data folder",
+                            "about": "This operation will purge Netdata with data folder",
+                            "command": [
+                                "module_netdata purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_netdata status"
+                        }
+
+                    ]
+                },
+                {
+                    "id": "Management",
+                    "description": "Remote Management tools",
+                    "sub": [
+                        {
+                            "id": "MAN001",
+                            "description": "Install Cockpit web-based management tool",
+                            "about": "This operation will install Cockpit.\ncockpit cockpit-ws cockpit-system cockpit-storaged",
+                            "command": [
+                                "see_current_apt update",
+                                "pkg_install cockpit cockpit-ws cockpit-system cockpit-storaged "
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "! pkg_installed cockpit"
+                        },
+                        {
+                            "id": "MAN002",
+                            "description": "Purge Cockpit web-based management tool",
+                            "about": "This operation will purge Cockpit.",
+                            "command": [
+                                "pkg_remove cockpit"
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "pkg_installed cockpit"
+                        },
+                        {
+                            "id": "MAN003",
+                            "description": "Start Cockpit Service",
+                            "command": [
+                                "sudo systemctl enable --now cockpit.socket | show_infobox "
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "pkg_installed cockpit && ! systemctl is-enabled cockpit.socket > /dev/null 2>&1"
+                        },
+                        {
+                            "id": "MAN004",
+                            "description": "Stop Cockpit Service",
+                            "command": [
+                                "systemctl stop cockpit cockpit.socket",
+                                "systemctl disable cockpit.socket | show_infobox "
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "pkg_installed cockpit && systemctl is-enabled cockpit.socket > /dev/null 2>&1"
+                        },
+                        {
+                            "id": "MAN005",
+                            "description": "Webmin web-based management tool",
+                            "command": [
+                                "see_menu module_webmin"
+                            ],
+                            "status": "Stable",
+                            "author": "@Tearran",
                             "condition": ""
                         }
                     ]
                 },
                 {
-                    "id": "UID03",
-                    "description": "Description ... ",
-                    "command": [
-                        "show_message <<< \" Message ... \""
-                    ],
-                    "status": "",
-                    "author": "Github Username",
-                    "condition": ""
-                },
-                {
-                    "id": "UID04",
-                    "description": "Description  ... ",
-                    "prompt": "Prompt\nContinue?",
-                    "command": [
-                        "show_message <<< \" Message ... \""
-                    ],
-                    "status": "",
-                    "author": "Github Username",
-                    "condition": ""
+                    "id": "Netconfig",
+                    "description": "Console network tools for measuring load and bandwidth",
+                    "sub": [
+                        {
+                            "id": "NET001",
+                            "description": "nload -realtime console network usage monitor",
+                            "prompt": "This operation will install nload.",
+                            "command": [
+                                "pkg_install nload"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! pkg_installed nload"
+                        },
+                        {
+                            "id": "NET002",
+                            "description": "nload - remove",
+                            "prompt": "This operation will remove nload.",
+                            "command": [
+                                "pkg_remove nload"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "pkg_installed nload"
+                        },
+                        {
+                            "id": "NET003",
+                            "description": "iperf3 bandwidth measuring tool",
+                            "prompt": "This operation will install iperf3.",
+                            "command": [                                
+                                "pkg_install iperf3"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! pkg_installed iperf3"
+                        },
+                        {
+                            "id": "NET004",
+                            "description": "iperf3 remove",
+                            "prompt": "This operation will remove iperf3.",
+                            "command": [
+                                "pkg_remove iperf3"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "pkg_installed iperf3"
+                        },
+                        {
+                            "id": "NET005",
+                            "description": "iptraf-ng IP LAN monitor",
+                            "prompt": "This operation will install iptraf-ng.",
+                            "command": [
+                                "pkg_install iptraf-ng"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! pkg_installed iptraf-ng"
+                        },
+                        {
+                            "id": "NET006",
+                            "description": "iptraf-ng remove",
+                            "prompt": "This operation will remove iptraf-ng.",
+                            "command": [
+                                "pkg_remove iptraf-ng"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "pkg_installed iptraf-ng"
+                        },
+                        {
+                            "id": "NET007",
+                            "description": "avahi-daemon hostname broadcast via mDNS",
+                            "prompt": "This operation will install avahi-daemon.",
+                            "command": [
+                                "pkg_install avahi-daemon libnss-mdns",
+                                "cp /usr/share/doc/avahi-daemon/examples/sftp-ssh.service /etc/avahi/services/",
+                                "cp /usr/share/doc/avahi-daemon/examples/ssh.service /etc/avahi/services/",
+                                "service restart avahi-daemon"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! pkg_installed avahi-daemon"
+                        },
+                        {
+                            "id": "NET008",
+                            "description": "avahi-daemon remove",
+                            "prompt": "This operation will remove avahi-daemon.",
+                            "command": [
+                                "systemctl stop avahi-daemon avahi-daemon.socket",
+                                "pkg_remove avahi-daemon"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "pkg_installed avahi-daemon"
+                        }
+                    ]
                 }
             ]
         }
