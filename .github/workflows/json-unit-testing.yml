@@ -23,19 +23,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          path: 'config'
 
       - name: Load JSON
         id: load-json
         run: |
           echo "Loading JSON data..."
-          DATA=$(cat ./tools/json/config.temp.json)
-          echo "DATA=$DATA" >> $GITHUB_ENV
+          if [ ! -f tools/json/config.temp.json ]; then
+            echo "Error: JSON file not found at tools/json/config.temp.json"
+            exit 1
+          fi
+          DATA=$(cat tools/json/config.temp.json)
+          echo "$DATA" > $GITHUB_WORKSPACE/loaded_data.json
 
       - name: Run Tests
         run: |
           echo "Running tests..."
+          DATA=$(cat $GITHUB_WORKSPACE/loaded_data.json)
           for row in $(echo "${DATA}" | jq -r '.[] | @base64'); do
             _jq() {
               echo ${row} | base64 --decode | jq -r ${1}
@@ -48,7 +51,16 @@ jobs:
 
             echo "Running test for $ID: $COMMAND with options $OPTIONS on status $STATUS for arch $ARCH"
             # Add the logic to run the actual command here
+            # Example: touch a dummy file for the artifact
+            echo "Test result for $ID" > "./config/${ID}.result"
           done
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: TESTDATA
+          path: './config/*.result'
+          if-no-files-found: error
 
   gradle:
     needs: test
@@ -56,21 +68,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          path: 'config'
 
-      - name: Install
-        run: |
-          # Add installation and testing steps here
-
-  stop:
-    name: "Merge test artifacts"
-    if: always()
-    needs: gradle
-    runs-on: ubuntu-latest
-    steps:
-      - name: "Download changes"
-        uses: actions/download-artifact@v3-node20
+      - name: Download test artifacts
+        uses: actions/download-artifact@v3
         with:
           name: TESTDATA
 
@@ -79,6 +79,7 @@ jobs:
           echo "# Successful tests:" >> $GITHUB_STEP_SUMMARY
           echo "|ID|Command|Options|Status|Arch|" >> $GITHUB_STEP_SUMMARY
           echo "|:---|:---|:---|:---|:---|" >> $GITHUB_STEP_SUMMARY
+          DATA=$(cat $GITHUB_WORKSPACE/loaded_data.json)
           for row in $(echo "${DATA}" | jq -r '.[] | @base64'); do
             _jq() {
               echo ${row} | base64 --decode | jq -r ${1}

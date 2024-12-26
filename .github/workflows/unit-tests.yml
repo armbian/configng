@@ -1,10 +1,10 @@
-name: "JSON Unit Tests"
+name: "Unit tests"
 on:
   workflow_dispatch:
   repository_dispatch:
-    types: ["JSON Unit Tests"]
+    types: ["Unit tests"]
   schedule:
-    - cron: '0 3 * * *'
+    - cron: '0 2 * * *'
   pull_request:
     types: [opened, reopened, edited, synchronize, review_requested]
 
@@ -13,83 +13,158 @@ env:
   PR_NUMBER: ${{ github.event.number }}
 
 concurrency:
-  group: pipeline-pr-json-${{github.event.pull_request.number}}
+  group: pipeline-pr-${{github.event.pull_request.number}}
   cancel-in-progress: true
 
 jobs:
+
   test:
-    name: "JSON Unit Tests"
+    name: "Unit tests"
     runs-on: ubuntu-latest
+    outputs:
+      matrix:  ${{steps.json.outputs.JSON_CONTENT}}
     steps:
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
           path: 'config'
 
-      - name: Load JSON
-        run: |
-          echo "Loading JSON data..."
-          if [ ! -f config/tools/json/config.temp.json ]; then
-            echo "Error: JSON file not found at config/tools/json/config.temp.json"
-            exit 1
-          fi
-          DATA=$(cat config/tools/json/config.temp.json)
-          echo "DATA=$DATA" >> $GITHUB_ENV
-
-      - name: Run Tests
-        run: |
-          echo "Running tests..."
-          for row in $(echo "${DATA}" | jq -r '.[] | @base64'); do
-            _jq() {
-              echo ${row} | base64 --decode | jq -r ${1}
-            }
-            ID=$(_jq '.id')
-            COMMAND=$(_jq '.command')
-            OPTIONS=$(_jq '.options')
-            STATUS=$(_jq '.status')
-            ARCH=$(_jq '.arch')
-
-            echo "Running test for $ID: $COMMAND with options $OPTIONS on status $STATUS for arch $ARCH"
-            # Add the logic to run the actual command here
-            # Example: touch a dummy file for the artifact
-            echo "Test result for $ID" > "./config/${ID}.result"
-          done
-
-      - name: Upload test artifacts
-        uses: actions/upload-artifact@v3
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v45
         with:
-          name: TESTDATA
-          path: './config/*.result'
-          if-no-files-found: error
+          path: config
+          files: |
+              tests/*.conf
+
+      - name: "Make JSON ${{ steps.changed-files.outputs.all_changed_files }}"
+        id: json
+        run: |
+
+          echo 'JSON_CONTENT<<EOF' >> $GITHUB_OUTPUT
+          # define docker images where we will run test install
+          dockerimages=("debian:bookworm" "ubuntu:jammy" "ubuntu:noble")
+
+          # go to repo folder
+          cd config
+
+          # read tests cases
+          if [[ -n "${{ steps.changed-files.outputs.all_changed_files }}" ]]; then
+              tests=($(grep -rwl ${{ steps.changed-files.outputs.all_changed_files }} -e "ENABLED=true" | cut -d":" -f1))
+              else
+              tests=($(grep -rwl tests/*.conf -e "ENABLED=true" | cut -d":" -f1))
+          fi
+
+          # loop enabled test cases
+          for i in "${tests[@]}"; do
+             unset RELEASE
+             source "${i}"
+             if [[ -z "${RELEASE}" ]]; then RELEASE=all; fi
+             # if we speficy releases, we need to loop docker images and use if there is a match
+             if [[ $RELEASE != all || -z $RELEASE ]]; then
+                for j in ${dockerimages[@]}; do
+                    elements=($(echo $RELEASE | tr ':' "\n"))
+                    for SELECTED_RELEASE in "${elements[@]}"; do
+                        if [[ $j == *"${SELECTED_RELEASE}"* ]]; then
+                           echo "{\"package\":\"${i}\",\"image\":\"$j\"}"
+                        fi
+                    done
+                done
+             else
+                for j in ${dockerimages[@]}; do
+                    echo "{\"package\":\"${i}\",\"image\":\"$j\"}"
+                done
+             fi
+
+          done | jq -s >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
 
   gradle:
     needs: test
+    strategy:
+      fail-fast: false
+      max-parallel: 32
+      matrix:
+        image: ${{ fromJSON(needs.test.outputs.matrix) }}
+
+    name: "I"
     runs-on: ubuntu-latest
+    timeout-minutes: 7
+    container:
+        image: "${{ matrix.image.image }}"
     steps:
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
           path: 'config'
 
-      - name: Download test artifacts
-        uses: actions/download-artifact@v3
+      - name: Install
+        run: |
+
+            # source vars
+            . "config/${{ matrix.image.package }}"
+            echo ${TEST_TITLE}
+
+            RELEASE=$(echo "${{ matrix.image.image }}" | cut -d":" -f2)
+            TEST_ID=$(echo "${{ matrix.image.package }}" | cut -d "/" -f2 | cut -d "." -f1)
+            # update index
+            apt update
+            # install basics
+            DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata keyboard-configuration wget gpg netcat-traditional lsof
+
+            # add armbian repository
+            URL=beta.armbian.com
+            wget https://${URL}/armbian.key -O key
+            gpg --dearmor < key | tee /usr/share/keyrings/armbian.gpg > /dev/null
+            chmod go+r /usr/share/keyrings/armbian.gpg
+            echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] http://${URL} $RELEASE main ${RELEASE}-utils ${RELEASE}-desktop" | tee /etc/apt/sources.list.d/armbian.list
+            apt update -y
+            apt upgrade -y
+            apt -y -o Dpkg::Options::="--force-confold" install sudo procps systemd whiptail jq lsb-release iproute2 armbian-bsp-cli-wsl2-x86-current-grub
+            sudo -b unshare --pid --fork --mount-proc /lib/systemd/systemd --system-unit=basic.target
+            cat /etc/armbian-distribution-status
+
+            # install packages / except howdy as its too large
+            export DEBIAN_FRONTEND=noninteractive
+            cd config
+            bash tools/config-assemble.sh -p
+            #eval $"( "${PREINSTALL}" )"
+            eval "$PREINSTALL"
+            sudo bash bin/armbian-config --cmd "$TEST_ID"
+            #eval $"( "${CONDITION}" )"
+            eval "$CONDITION"
+
+            # stats
+            FILENAME="data-"$(echo ${{ matrix.image.image }} | sed "s/:/-/g")"-${TEST_ID}.teststats"
+            RAWCOMMAND=$(bash bin/armbian-config --cmd | grep "${TEST_ID}" | xargs)
+            COMMAND=$(echo $RAWCOMMAND | cut -d" " -f1,2)
+            DESCRIPTION=$(echo $RAWCOMMAND | cut -d" " -f4-)
+            echo "|${RELEASE}|\`armbian-config ${COMMAND}\`| ${DESCRIPTION} |" > ../${FILENAME}
+
+      - name: Upload test
+        uses: actions/upload-artifact@v3.2.1-node20
+        with:
+          name: TESTDATA
+          path: data-*.teststats
+
+  stop:
+    name: "Merge test artifacts"
+    if: always()
+    needs: gradle
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: "Download changes"
+        uses: actions/download-artifact@v3-node20
         with:
           name: TESTDATA
 
-      - name: Generate Summary
+      - name: Install
         run: |
-          echo "# Successful tests:" >> $GITHUB_STEP_SUMMARY
-          echo "|ID|Command|Options|Status|Arch|" >> $GITHUB_STEP_SUMMARY
-          echo "|:---|:---|:---|:---|:---|" >> $GITHUB_STEP_SUMMARY
-          for row in $(echo "${DATA}" | jq -r '.[] | @base64'); do
-            _jq() {
-              echo ${row} | base64 --decode | jq -r ${1}
-            }
-            ID=$(_jq '.id')
-            COMMAND=$(_jq '.command')
-            OPTIONS=$(_jq '.options')
-            STATUS=$(_jq '.status')
-            ARCH=$(_jq '.arch')
 
-            echo "|$ID|$COMMAND|$OPTIONS|$STATUS|$ARCH|" >> $GITHUB_STEP_SUMMARY
-          done
+          echo "# Succesful tests:" >> $GITHUB_STEP_SUMMARY
+          echo "|Release|Command|Description|" >> $GITHUB_STEP_SUMMARY
+          echo "|:---|:---|:---|" >> $GITHUB_STEP_SUMMARY
+          cat ./*.teststats | sed '$ s/.$//' >> $GITHUB_STEP_SUMMARY
