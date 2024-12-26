@@ -26,20 +26,14 @@ jobs:
         with:
           path: 'config'
 
-      - name: Checkout JSON config
-        uses: actions/checkout@v4
-        with:
-          path: './tools/json'
-
       - name: Load JSON
-        id: load-json
         run: |
           echo "Loading JSON data..."
-          if [ ! -f ./tools/json/config.temp.json ]; then
-            echo "Error: JSON file not found at ./tools/json/config.temp.json"
+          if [ ! -f config/tools/json/config.temp.json ]; then
+            echo "Error: JSON file not found at config/tools/json/config.temp.json"
             exit 1
           fi
-          DATA=$(cat ./tools/json/config.temp.json)
+          DATA=$(cat config/tools/json/config.temp.json)
           echo "DATA=$DATA" >> $GITHUB_ENV
 
       - name: Run Tests
@@ -66,6 +60,7 @@ jobs:
         with:
           name: TESTDATA
           path: './config/*.result'
+          if-no-files-found: error
 
   gradle:
     needs: test
