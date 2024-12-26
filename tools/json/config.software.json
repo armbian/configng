@@ -11,7 +11,7 @@
                     "sub": [
                         {
                             "id": "SWAG01",
-                            "description": "SWAG reverse proxy install",
+                            "description": "SWAG reverse proxy",
                             "command": [
                                 "module_swag install"
                             ],
@@ -53,7 +53,7 @@
                 },
                 {
                     "id": "HomeAutomation",
-                    "description": "Home Automation for monitoring and/or control home appliances",
+                    "description": "Home Automation for control home appliances",
                     "sub": [
                         {
                             "id": "HAB001",
@@ -129,7 +129,7 @@
                     "sub": [
                         {
                             "id": "DNS001",
-                            "description": "Pi-hole DNS ad blocker install",
+                            "description": "Pi-hole DNS ad blocker",
                             "command": [
                                 "module_pi_hole install"
                             ],
@@ -159,7 +159,7 @@
                         },
                         {
                             "id": "DNS004",
-                            "description": "Pi-hole purge",
+                            "description": "Pi-hole purge with data folder",
                             "command": [
                                 "module_pi_hole remove"
                             ],
@@ -424,7 +424,7 @@
                 },
                 {
                     "id": "Downloaders",
-                    "description": "P2P download managers for movies, TV shows, music and subtitles",
+                    "description": "Download apps for movies, TV shows, music and subtitles",
                     "sub": [
                         {
                             "id": "DOW001",
@@ -830,7 +830,7 @@
                     "sub": [
                         {
                             "id": "DAT001",
-                            "description": "Mariadb install",
+                            "description": "Mariadb SQL database server",
                             "command": [
                                 "module_mariadb install"
                             ],
@@ -850,17 +850,17 @@
                         },
                         {
                             "id": "DAT003",
-                            "description": "Mariadb purge",
+                            "description": "Mariadb purge with data folder",
                             "command": [
                                 "module_mariadb purge"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_mariadb status && [[ -d \"${SOFTWARE_FOLDER}/mariadb\" ]]"
+                            "condition": "module_mariadb status"
                         },
                         {
                             "id": "DAT005",
-                            "description": "phpMyAdmin install",
+                            "description": "phpMyAdmin web interface manager",
                             "command": [
                                 "module_phpmyadmin install"
                             ],
@@ -880,13 +880,13 @@
                         },
                         {
                             "id": "DAT007",
-                            "description": "phpMyAdmin purge",
+                            "description": "phpMyAdmin purge with data folder",
                             "command": [
                                 "module_phpmyadmin purge"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_phpmyadmin status && [[ -d \"${SOFTWARE_FOLDER}/phpmyadmin\" ]]"
+                            "condition": "module_phpmyadmin status"
                         }
                     ]
                 },
@@ -934,7 +934,7 @@
                     "sub": [
                         {
                             "id": "CON001",
-                            "description": "Docker Minimal Install",
+                            "description": "Docker minimal",
                             "about": "This operation will install Docker Minimal.",
                             "command": [
                                 "module_docker install minimal"
@@ -945,7 +945,7 @@
                         },
                         {
                             "id": "CON002",
-                            "description": "Docker Engine Install",
+                            "description": "Docker engine",
                             "about": "This operation will install Docker Engine.",
                             "command": [
                                 "module_docker install engine"
@@ -956,7 +956,7 @@
                         },
                         {
                             "id": "CON003",
-                            "description": "Docker Remove",
+                            "description": "Docker remove",
                             "about": "This operation will purge Docker.",
                             "command": [
                                 "module_docker remove"
@@ -967,14 +967,14 @@
                         },
                         {
                             "id": "CON004",
-                            "description": "Docker Purge all images, containers, and volumes",
+                            "description": "Docker purge with all images, containers, and volumes",
                             "about": "This operation will delete all Docker images, containers, and volumes.",
                             "command": [
                                 "module_docker purge"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! module_docker status docker-ce && [ -d /var/lib/docker ]"
+                            "condition": "module_docker status docker-ce"
                         },
                         {
                             "id": "CON005",
