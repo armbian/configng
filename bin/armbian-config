@@ -24,10 +24,6 @@ lib_dir="$script_dir/../lib/armbian-config"
 doc_dir="$script_dir/../share/doc/armbian-config"
 json_file="$lib_dir/config.jobs.json"
 
-#
-# Load The Bash procedure Objects
-old_json_data=$(<"$json_file")
-
 
 #
 # Prepare the module options array
@@ -38,7 +34,7 @@ declare -A module_options
 
 source "$lib_dir/config.functions.sh"
 set_runtime_variables
-check_distro_status
+#check_distro_status
 echo "Loaded Runtime variables..." #| show_infobox ;
 #set_newt_colors 2
 echo "Loaded Dialog..." #| show_infobox ;
@@ -53,11 +49,13 @@ echo "Loaded Software helpers..." #| show_infobox ;
 #
 # Loads the variables from beta armbian-config for runtime handling
 
-source "$lib_dir/config.runtime.sh"
-echo "Loaded Runtime conditions..." #| show_infobox ;
+
+#
+# Load The Bash procedure Objects
+old_json_data=$(<"$json_file")
 
 # Generate the new JSON data
-new_json_data=$(generate_json_data)
+new_json_data=$(generate_software_json)
 
 json_data=$(jq -s '
   .[0] as $existing |
@@ -66,8 +64,13 @@ json_data=$(jq -s '
     menu: ($existing.menu + $new.menu)
   }
 ' <(echo "$old_json_data") <(echo "$new_json_data"))
-# Output the combined JSON data
-#echo "$combined_json" > "$lib_dir/combined.config.jobs.json"
+
+
+#source "$lib_dir/config.runtime.sh"
+echo "Loaded Runtime conditions..." #| show_infobox ;
+
+
+
 
 
 

@@ -1,5 +1,4 @@
 
-
 function set_json_data() {
 	local i=0
 
@@ -74,7 +73,7 @@ function set_json_data() {
 }
 
 
-function generate_json_data() {
+function generate_software_json() {
 	set_json_data | jq '
 	# Define an array of allowed software groups
 	def softwareGroups: ["WebHosting", "Netconfig", "Downloaders", "Database", "DNS", "DevTools", "HomeAutomation", "Benchy", "Containers", "Media", "Monitoring", "Management"];
@@ -114,7 +113,7 @@ function generate_json_data() {
 interface_json_data() {
 	# Convert the example string to an array
 	local commands=("raw" "mnu" "top" "sub" "help")
-	json_data=$(generate_json_data)
+	json_data=$(generate_software_json)
 	case "$1" in
 
 	"${commands[0]}")
@@ -123,7 +122,7 @@ interface_json_data() {
 	;;
 	"${commands[1]}")
 		echo "Generating JSON data..."
-		generate_json_data | jq --tab --indent 4 '.' > tools/json/config.temp.json
+		generate_software_json | jq --tab --indent 4 '.' > tools/json/config.temp.json
 	;;
 	"${commands[2]}")
 		generate_top_menu "$json_data"
