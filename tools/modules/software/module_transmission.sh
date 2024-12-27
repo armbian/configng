@@ -31,8 +31,8 @@ function module_transmission () {
 		"${commands[0]}")
 			pkg_installed docker-ce || module_docker install
 			[[ -d "$TRANSMISSION_BASE" ]] || mkdir -p "$TRANSMISSION_BASE" || { echo "Couldn't create storage directory: $TRANSMISSION_BASE"; exit 1; }
-			TRANSMISSION_USER=$($DIALOG --title "Enter username for Transmission server" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
-			TRANSMISSION_PASS=$($DIALOG --title "Enter password for Transmission server" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
+			TRANSMISSION_USER=$($DIALOG --title "Enter username for Transmission client" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
+			TRANSMISSION_PASS=$($DIALOG --title "Enter password for Transmission client" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
 			docker run -d \
 			--name=transmission \
 			--net=lsio \

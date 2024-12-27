@@ -428,8 +428,8 @@
                     "sub": [
                         {
                             "id": "DOW001",
-                            "description": "qBittorrent BitTorrent server ",
-                            "about": "This operation will install qBittorrent BitTorrent server",
+                            "description": "qBittorrent BitTorrent client ",
+                            "about": "This operation will install qBittorrent BitTorrent client",
                             "command": [
                                 "module_qbittorrent install"
                             ],
@@ -440,7 +440,7 @@
                         {
                             "id": "DOW002",
                             "description": "qBittorrent remove",
-                            "about": "This operation will remove qBittorrent BitTorrent server",
+                            "about": "This operation will remove qBittorrent BitTorrent client",
                             "command": [
                                 "module_qbittorrent remove"
                             ],
@@ -461,8 +461,8 @@
                         },
                         {
                             "id": "DEL001",
-                            "description": "Deluge BitTorrent server",
-                            "about": "This operation will install BitTorrent server",
+                            "description": "Deluge BitTorrent client",
+                            "about": "This operation will install BitTorrent client",
                             "command": [
                                 "module_deluge install"
                             ],
@@ -473,7 +473,7 @@
                         {
                             "id": "DEL002",
                             "description": "Deluge remove",
-                            "about": "This operation will remove Deluge BitTorrent server",
+                            "about": "This operation will remove Deluge BitTorrent client",
                             "command": [
                                 "module_deluge remove"
                             ],
@@ -484,7 +484,7 @@
                         {
                             "id": "DEL003",
                             "description": "Deluge purge with data folder",
-                            "about": "This operation will remove Deluge BitTorrent server data folder",
+                            "about": "This operation will remove Deluge BitTorrent client data folder",
                             "command": [
                                 "module_deluge purge"
                             ],
@@ -494,8 +494,8 @@
                         },
                         {
                             "id": "TRA001",
-                            "description": "Transmission BitTorrent server",
-                            "about": "This operation will install Transmission BitTorrent server",
+                            "description": "Transmission BitTorrent client",
+                            "about": "This operation will install Transmission BitTorrent client",
                             "command": [
                                 "module_transmission install"
                             ],
@@ -506,7 +506,7 @@
                         {
                             "id": "TRA002",
                             "description": "Transmission remove",
-                            "about": "This operation will remove Transmission BitTorrent server",
+                            "about": "This operation will remove Transmission BitTorrent client",
                             "command": [
                                 "module_transmission remove"
                             ],
@@ -517,7 +517,7 @@
                         {
                             "id": "TRA003",
                             "description": "Transmission purge with data folder",
-                            "about": "This operation will remove Transmission BitTorrent server data folder",
+                            "about": "This operation will remove Transmission BitTorrent client data folder",
                             "command": [
                                 "module_transmission purge"
                             ],
