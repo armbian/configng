@@ -54,7 +54,7 @@ module_options+=(
 	["update_sub_submenu_data,author"]="@Tearran"
 	["update_sub_submenu_data,feature"]="update_sub_submenu_data"
 	["update_sub_submenu_data,desc"]="Update sub-submenu descriptions based on conditions"
-	["update_sub_submenu_data,example"]="update_sub_submenu_data \"MenuID\" \"SubID\" \"SubSubID\" \"CMD\""
+	["update_sub_submenu_data,example"]="update_sub_submenu_data MenuID SubID SubSubID CMD"
 	["update_sub_submenu_data,status"]=""
 )
 #
