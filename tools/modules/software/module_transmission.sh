@@ -41,7 +41,7 @@ function module_transmission () {
 			-e TZ="$(cat /etc/timezone)" \
 			-e USER="${TRANSMISSION_USER}" \
 			-e PASS="${TRANSMISSION_PASS}" \
-			-e WHITELIST="${LOCALWHITELIST}" \
+			-e WHITELIST="${TRANSMISSION_WHITELIST}" \
 			-p 9091:9091 \
 			-p 51413:51413 \
 			-p 51413:51413/udp \
