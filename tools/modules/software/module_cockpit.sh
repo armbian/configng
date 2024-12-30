@@ -46,7 +46,19 @@ function module_cockpit() {
 		"${commands[1]}")
 		## install cockpit
 		pkg_update
-		pkg_install cockpit cockpit-ws cockpit-system cockpit-storaged
+		pkg_install cockpit cockpit-ws cockpit-system cockpit-storaged cockpit-machines samba dnsmasq virtinst qemu-kvm qemu-utils
+		# add bridged networking
+		cat <<- EOF > /etc/libvirt/kvm-hostbridge.xml
+		<network>
+		<name>hostbridge</name>
+		<forward mode="bridge"/>
+		<bridge name="br0"/>
+		</network>
+		EOF
+		virsh net-define /etc/libvirt/kvm-hostbridge.xml
+		virsh net-start hostbridge
+		virsh net-autostart hostbridge
+
 		echo "Cockpit installed successfully."
 		;;
 		"${commands[2]}")
