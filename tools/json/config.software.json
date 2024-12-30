@@ -5,6 +5,171 @@
             "description": "Run/Install 3rd party applications",
             "sub": [
                 {
+                    "id": "WebHosting",
+                    "description": "Web server, LEMP, reverse proxy, Let's Encrypt SSL",
+                    "status": "Stable",
+                    "sub": [
+                        {
+                            "id": "SWAG01",
+                            "description": "SWAG reverse proxy",
+                            "command": [
+                                "module_swag install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_swag status"
+                        },
+                        {
+                            "id": "SWAG02",
+                            "description": "SWAG reverse proxy .htpasswd set",
+                            "command": [
+                                "module_swag password"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_swag status"
+                        },
+                        {
+                            "id": "SWAG03",
+                            "description": "SWAG remove",
+                            "command": [
+                                "module_swag remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_swag status"
+                        },
+                        {
+                            "id": "SWAG04",
+                            "description": "SWAG purge with data folder",
+                            "command": [
+                                "module_swag purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_swag status"
+                        }
+                    ]
+                },
+                {
+                    "id": "HomeAutomation",
+                    "description": "Home Automation for control home appliances",
+                    "sub": [
+                        {
+                            "id": "HAB001",
+                            "description": "openHAB empowering the smart home",
+                            "about": "This operation will install openHAB.",
+                            "command": [
+                                "module_openhab install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_openhab status"
+                        },
+                        {
+                            "id": "HAB002",
+                            "description": "openHAB remove",
+                            "about": "This operation will purge openHAB.",
+                            "command": [
+                                "module_openhab remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_openhab status"
+                        },
+                        {
+                            "id": "HAB003",
+                            "description": "openHAB purge with data folder",
+                            "about": "This operation will purge openHAB.",
+                            "command": [
+                                "module_openhab purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_openhab status"
+                        },
+                        {
+                            "id": "HAS001",
+                            "description": "Home Assistant open source home automation",
+                            "about": "This operation will install Home Assistant.",
+                            "command": [
+                                "module_haos install"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_haos status && grep -q bookworm /etc/os-release"
+                        },
+                        {
+                            "id": "HAS002",
+                            "description": "Home Assistant remove",
+                            "about": "This operation will remove Home Assistant.",
+                            "command": [
+                                "module_haos remove"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_haos status"
+                        },
+                        {
+                            "id": "HAS003",
+                            "description": "Home Assistant purge with data folder",
+                            "about": "This operation will purge Home Assistant.",
+                            "command": [
+                                "module_haos purge"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_haos status"
+                        }
+                    ]
+                },
+                {
+                    "id": "DNS",
+                    "description": "Network-wide ad blockers servers",
+                    "sub": [
+                        {
+                            "id": "DNS001",
+                            "description": "Pi-hole DNS ad blocker",
+                            "command": [
+                                "module_pi_hole install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_pi_hole status"
+                        },
+                        {
+                            "id": "DNS003",
+                            "description": "Pi-hole remove",
+                            "command": [
+                                "module_pi_hole remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_pi_hole status"
+                        },
+                        {
+                            "id": "DNS002",
+                            "description": "Pi-hole change web admin password",
+                            "command": [
+                                "module_pi_hole password"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_pi_hole status"
+                        },
+                        {
+                            "id": "DNS004",
+                            "description": "Pi-hole purge with data folder",
+                            "command": [
+                                "module_pi_hole remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_pi_hole status"
+                        }
+                    ]
+                },
+                {
                     "id": "Desktops",
                     "description": "Desktop Environments",
                     "status": "Disabled",
@@ -258,112 +423,13 @@
                     ]
                 },
                 {
-                    "id": "Netconfig",
-                    "description": "Network tools",
-                    "sub": [
-                        {
-                            "id": "NET001",
-                            "description": "Install realtime console network usage monitor (nload)",
-                            "command": [
-                                "get_user_continue \"This operation will install nload.\n\nDo you wish to continue?\" process_input",
-                                "pkg_install nload"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "! pkg_installed nload"
-                        },
-                        {
-                            "id": "NET002",
-                            "description": "Remove realtime console network usage monitor (nload)",
-                            "command": [
-                                "get_user_continue \"This operation will purge nload.\n\nDo you wish to continue?\" process_input",
-                                "pkg_remove nload"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "pkg_installed nload"
-                        },
-                        {
-                            "id": "NET003",
-                            "description": "Install bandwidth measuring tool (iperf3)",
-                            "command": [
-                                "get_user_continue \"This operation will install iperf3.\n\nDo you wish to continue?\" process_input",
-                                "pkg_install iperf3"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "! pkg_installed iperf3"
-                        },
-                        {
-                            "id": "NET004",
-                            "description": "Remove bandwidth measuring tool (iperf3)",
-                            "command": [
-                                "get_user_continue \"This operation will purge iperf3.\n\nDo you wish to continue?\" process_input",
-                                "pkg_remove iperf3"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "pkg_installed iperf3"
-                        },
-                        {
-                            "id": "NET005",
-                            "description": "Install IP LAN monitor (iptraf-ng)",
-                            "command": [
-                                "get_user_continue \"This operation will install iptraf-ng.\n\nDo you wish to continue?\" process_input",
-                                "pkg_install iptraf-ng"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "! pkg_installed iptraf-ng"
-                        },
-                        {
-                            "id": "NET006",
-                            "description": "Remove IP LAN monitor (iptraf-ng)",
-                            "command": [
-                                "get_user_continue \"This operation will purge nload.\n\nDo you wish to continue?\" process_input",
-                                "pkg_remove iptraf-ng"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "pkg_installed iptraf-ng"
-                        },
-                        {
-                            "id": "NET007",
-                            "description": "Install hostname broadcast via mDNS (avahi-daemon)",
-                            "command": [
-                                "get_user_continue \"This operation will install avahi-daemon and add configuration files.\nDo you wish to continue?\" process_input",
-                                "pkg_installed avahi-daemon",
-                                "pkg_install avahi-daemon libnss-mdns",
-                                "cp /usr/share/doc/avahi-daemon/examples/sftp-ssh.service /etc/avahi/services/",
-                                "cp /usr/share/doc/avahi-daemon/examples/ssh.service /etc/avahi/services/",
-                                "service avahi-daemon restart"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "! pkg_installed avahi-daemon"
-                        },
-                        {
-                            "id": "NET008",
-                            "description": "Remove hostname broadcast via mDNS (avahi-daemon)",
-                            "command": [
-                                "get_user_continue \"This operation will purge avahi-daemon \nDo you wish to continue?\" process_input",
-                                "pkg_installed avahi-daemon",
-                                "systemctl stop avahi-daemon avahi-daemon.socket",
-                                "pkg_remove avahi-daemon"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "pkg_installed avahi-daemon"
-                        }
-                    ]
-                },
-                {
                     "id": "Downloaders",
-                    "description": "Download tools",
+                    "description": "Download apps for movies, TV shows, music and subtitles",
                     "sub": [
                         {
                             "id": "DOW001",
-                            "description": "Install qBittorrent",
+                            "description": "qBittorrent BitTorrent client ",
+                            "about": "This operation will install qBittorrent BitTorrent client",
                             "command": [
                                 "module_qbittorrent install"
                             ],
@@ -373,7 +439,8 @@
                         },
                         {
                             "id": "DOW002",
-                            "description": "Remove qBittorrent",
+                            "description": "qBittorrent remove",
+                            "about": "This operation will remove qBittorrent BitTorrent client",
                             "command": [
                                 "module_qbittorrent remove"
                             ],
@@ -383,7 +450,19 @@
                         },
                         {
                             "id": "DOW003",
-                            "description": "Install Deluge",
+                            "description": "qBittorrent purge with data folder",
+                            "about": "This operation will remove qBittorrent BitTorrent data folder",
+                            "command": [
+                                "module_qbittorrent purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_qbittorrent status"
+                        },
+                        {
+                            "id": "DEL001",
+                            "description": "Deluge BitTorrent client",
+                            "about": "This operation will install BitTorrent client",
                             "command": [
                                 "module_deluge install"
                             ],
@@ -392,8 +471,9 @@
                             "condition": "! module_deluge status"
                         },
                         {
-                            "id": "DOW004",
-                            "description": "Remove Deluge",
+                            "id": "DEL002",
+                            "description": "Deluge remove",
+                            "about": "This operation will remove Deluge BitTorrent client",
                             "command": [
                                 "module_deluge remove"
                             ],
@@ -402,8 +482,20 @@
                             "condition": "module_deluge status"
                         },
                         {
-                            "id": "DOW005",
-                            "description": "Install Transmission",
+                            "id": "DEL003",
+                            "description": "Deluge purge with data folder",
+                            "about": "This operation will remove Deluge BitTorrent client data folder",
+                            "command": [
+                                "module_deluge purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_deluge status"
+                        },
+                        {
+                            "id": "TRA001",
+                            "description": "Transmission BitTorrent client",
+                            "about": "This operation will install Transmission BitTorrent client",
                             "command": [
                                 "module_transmission install"
                             ],
@@ -412,8 +504,9 @@
                             "condition": "! module_transmission status"
                         },
                         {
-                            "id": "DOW006",
-                            "description": "Remove Transmission",
+                            "id": "TRA002",
+                            "description": "Transmission remove",
+                            "about": "This operation will remove Transmission BitTorrent client",
                             "command": [
                                 "module_transmission remove"
                             ],
@@ -422,8 +515,20 @@
                             "condition": "module_transmission status"
                         },
                         {
-                            "id": "DOW011",
-                            "description": "Install SABnzbd",
+                            "id": "TRA003",
+                            "description": "Transmission purge with data folder",
+                            "about": "This operation will remove Transmission BitTorrent client data folder",
+                            "command": [
+                                "module_transmission purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_transmission status"
+                        },
+                        {
+                            "id": "SABN01",
+                            "description": "SABnzbd newsgroup downloader",
+                            "about": "This operation will install SABnzbd newsgroup downloader",
                             "command": [
                                 "module_sabnzbd install"
                             ],
@@ -432,8 +537,9 @@
                             "condition": "! module_sabnzbd status"
                         },
                         {
-                            "id": "DOW012",
-                            "description": "Remove SABnzbd",
+                            "id": "SABN02",
+                            "description": "SABnzbd remove",
+                            "about": "This operation will remove SABnzbd newsgroup downloader",
                             "command": [
                                 "module_sabnzbd remove"
                             ],
@@ -442,8 +548,20 @@
                             "condition": "module_sabnzbd status"
                         },
                         {
-                            "id": "DOW013",
-                            "description": "Install Medusa",
+                            "id": "SABN03",
+                            "description": "SABnzbd purge with data folder",
+                            "about": "This operation will purge SABnzbd newsgroup data folder",
+                            "command": [
+                                "module_sabnzbd purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_sabnzbd status"
+                        },
+                        {
+                            "id": "MDS001",
+                            "description": "Medusa automatic downloader for TV shows",
+                            "about": "This operation will install Medusa TV shows downloader",
                             "command": [
                                 "module_medusa install"
                             ],
@@ -452,8 +570,9 @@
                             "condition": "! module_medusa status"
                         },
                         {
-                            "id": "DOW014",
-                            "description": "Remove Medusa",
+                            "id": "MDS002",
+                            "description": "Medusa TV shows downloader remove",
+                            "about": "This operation will remove Medusa TV shows downloader",
                             "command": [
                                 "module_medusa remove"
                             ],
@@ -462,8 +581,20 @@
                             "condition": "module_medusa status"
                         },
                         {
-                            "id": "DOW015",
-                            "description": "Install Sonarr",
+                            "id": "MDS003",
+                            "description": "Medusa TV shows downloader purge",
+                            "about": "This operation will purge Medusa TV shows data folder",
+                            "command": [
+                                "module_medusa purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_medusa status"
+                        },
+                        {
+                            "id": "SON001",
+                            "description": "Sonarr automatic downloader for TV shows",
+                            "about": "This operation will install Sonarr PVR for Usenet and BitTorrent",
                             "command": [
                                 "module_sonarr install"
                             ],
@@ -472,8 +603,9 @@
                             "condition": "! module_sonarr status"
                         },
                         {
-                            "id": "DOW016",
-                            "description": "Remove Sonarr",
+                            "id": "SON002",
+                            "description": "Sonarr remove",
+                            "about": "This operation will remove Sonarr PVR for Usenet and BitTorrent",
                             "command": [
                                 "module_sonarr remove"
                             ],
@@ -482,8 +614,20 @@
                             "condition": "module_sonarr status"
                         },
                         {
-                            "id": "DOW017",
-                            "description": "Install Radarr",
+                            "id": "SON003",
+                            "description": "Sonarr purge with data folder",
+                            "about": "This operation will purge Sonarr PVR for Usenet and BitTorrent purge data folder",
+                            "command": [
+                                "module_sonarr purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_sonarr status"
+                        },
+                        {
+                            "id": "RAD001",
+                            "description": "Radarr automatic downloader for movies",
+                            "about": "This operation will install Radarr movie collection manager",
                             "command": [
                                 "module_radarr install"
                             ],
@@ -492,8 +636,9 @@
                             "condition": "! module_radarr status"
                         },
                         {
-                            "id": "DOW018",
-                            "description": "Remove Radarr",
+                            "id": "RAD002",
+                            "description": "Radarr remove",
+                            "about": "This operation will remove Radarr movie collection manager",
                             "command": [
                                 "module_radarr remove"
                             ],
@@ -502,8 +647,20 @@
                             "condition": "module_radarr status"
                         },
                         {
-                            "id": "DOW019",
-                            "description": "Install Bazarr",
+                            "id": "RAD003",
+                            "description": "Radarr purge with data folder",
+                            "about": "This operation will purge Radarr movie collection manager data folder",
+                            "command": [
+                                "module_radarr purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_radarr status"
+                        },
+                        {
+                            "id": "BAZ001",
+                            "description": "Bazarr automatic subtitles downloader for Sonarr and Radarr",
+                            "about": "This operation will install Bazarr subtitles manager for Sonarr and Radarr",
                             "command": [
                                 "module_bazarr install"
                             ],
@@ -512,8 +669,9 @@
                             "condition": "! module_bazarr status"
                         },
                         {
-                            "id": "DOW020",
-                            "description": "Remove Bazarr",
+                            "id": "BAZ002",
+                            "description": "Bazarr remove",
+                            "about": "This operation will remove Bazarr subtitles manager for Sonarr and Radarr",
                             "command": [
                                 "module_bazarr remove"
                             ],
@@ -522,8 +680,20 @@
                             "condition": "module_bazarr status"
                         },
                         {
-                            "id": "DOW021",
-                            "description": "Install Lidarr",
+                            "id": "BAZ003",
+                            "description": "Bazarr purge with data folder",
+                            "about": "This operation will purge Bazarr subtitles manager with data folder",
+                            "command": [
+                                "module_bazarr purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_bazarr status"
+                        },
+                        {
+                            "id": "LID001",
+                            "description": "Lidarr automatic music downloader",
+                            "about": "This operation will install Lidarr music collection manager for Usenet and BitTorrent users",
                             "command": [
                                 "module_lidarr install"
                             ],
@@ -532,8 +702,9 @@
                             "condition": "! module_lidarr status"
                         },
                         {
-                            "id": "DOW022",
-                            "description": "Remove Lidarr",
+                            "id": "LID002",
+                            "description": "Lidarr remove",
+                            "about": "This operation will remove Lidarr",
                             "command": [
                                 "module_lidarr remove"
                             ],
@@ -542,8 +713,20 @@
                             "condition": "module_lidarr status"
                         },
                         {
-                            "id": "DOW023",
-                            "description": "Install Readarr",
+                            "id": "LID003",
+                            "description": "Lidarr purge with data folder",
+                            "about": "This operation will purge Lidarr with data folder",
+                            "command": [
+                                "module_lidarr purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_lidarr status"
+                        },
+                        {
+                            "id": "RDR001",
+                            "description": "Readarr automatic downloader for Ebooks",
+                            "about": "This operation will install Readarr",
                             "command": [
                                 "module_readarr install"
                             ],
@@ -552,8 +735,9 @@
                             "condition": "! module_readarr status"
                         },
                         {
-                            "id": "DOW024",
-                            "description": "Remove Readarr",
+                            "id": "RDR002",
+                            "description": "Readarr remove",
+                            "about": "This operation will remove Readarr",
                             "command": [
                                 "module_readarr remove"
                             ],
@@ -562,8 +746,20 @@
                             "condition": "module_readarr status"
                         },
                         {
+                            "id": "RDR003",
+                            "description": "Readarr purge with data folder",
+                            "about": "This operation will purge Readarr with data folder",
+                            "command": [
+                                "module_readarr purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_readarr status"
+                        },
+                        {
                             "id": "DOW025",
-                            "description": "Install Prowlarr",
+                            "description": "Prowlarr index manager and proxy for PVR",
+                            "about": "This operation will install Prowlarr",
                             "command": [
                                 "module_prowlarr install"
                             ],
@@ -573,7 +769,8 @@
                         },
                         {
                             "id": "DOW026",
-                            "description": "Remove Prowlarr",
+                            "description": "Prowlarr remove",
+                            "about": "This operation will remove Prowlarr",
                             "command": [
                                 "module_prowlarr remove"
                             ],
@@ -582,8 +779,20 @@
                             "condition": "module_prowlarr status"
                         },
                         {
-                            "id": "DOW040",
-                            "description": "Jellyseerr install",
+                            "id": "DOW027",
+                            "description": "Prowlarr purge with data folder",
+                            "about": "This operation will purge Prowlarr with data folder",
+                            "command": [
+                                "module_prowlarr purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_prowlarr status"
+                        },
+                        {
+                            "id": "JEL001",
+                            "description": "Jellyseerr Jellyfin/Emby/Plex integration install",
+                            "about": "This operation will install Jellyseerr",
                             "command": [
                                 "module_jellyseerr install"
                             ],
@@ -592,8 +801,9 @@
                             "condition": "! module_jellyseerr status"
                         },
                         {
-                            "id": "DOW041",
-                            "description": "Jellyseerr remove ",
+                            "id": "JEL002",
+                            "description": "Jellyseerr remove",
+                            "about": "This operation will remove Jellyseerr",
                             "command": [
                                 "module_jellyseerr remove"
                             ],
@@ -602,24 +812,25 @@
                             "condition": "module_jellyseerr status"
                         },
                         {
-                            "id": "DOW042",
-                            "description": "Jellyseerr purge data folder",
+                            "id": "JEL003",
+                            "description": "Jellyseerr purge with data folder",
+                            "about": "This operation will purge Jellyseerr with data folder",
                             "command": [
                                 "module_jellyseerr purge"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_jellyseerr status && [[ -d \"${SOFTWARE_FOLDER}/jellyseerr\" ]]"
+                            "condition": "module_jellyseerr status ]]"
                         }
                     ]
                 },
                 {
                     "id": "Database",
-                    "description": "Database",
+                    "description": "SQL database servers and web interface managers",
                     "sub": [
                         {
                             "id": "DAT001",
-                            "description": "Mariadb install",
+                            "description": "Mariadb SQL database server",
                             "command": [
                                 "module_mariadb install"
                             ],
@@ -639,17 +850,17 @@
                         },
                         {
                             "id": "DAT003",
-                            "description": "Mariadb purge",
+                            "description": "Mariadb purge with data folder",
                             "command": [
                                 "module_mariadb purge"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_mariadb status && [[ -d \"${SOFTWARE_FOLDER}/mariadb\" ]]"
+                            "condition": "module_mariadb status"
                         },
                         {
                             "id": "DAT005",
-                            "description": "phpMyAdmin install",
+                            "description": "phpMyAdmin web interface manager",
                             "command": [
                                 "module_phpmyadmin install"
                             ],
@@ -669,55 +880,19 @@
                         },
                         {
                             "id": "DAT007",
-                            "description": "phpMyAdmin purge",
+                            "description": "phpMyAdmin purge with data folder",
                             "command": [
                                 "module_phpmyadmin purge"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_phpmyadmin status && [[ -d \"${SOFTWARE_FOLDER}/phpmyadmin\" ]]"
-                        }
-                    ]
-                },
-                {
-                    "id": "DNS",
-                    "description": "DNS blockers",
-                    "sub": [
-                        {
-                            "id": "DNS001",
-                            "description": "Install Pi-hole DNS ad blocker",
-                            "command": [
-                                "pi_hole install"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "! pi_hole status"
-                        },
-                        {
-                            "id": "DNS002",
-                            "description": "Set Pi-hole web admin password",
-                            "command": [
-                                "pi_hole password"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "pi_hole status"
-                        },
-                        {
-                            "id": "DNS003",
-                            "description": "Remove Pi-hole DNS ad blocker",
-                            "command": [
-                                "pi_hole uninstall"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "pi_hole status"
+                            "condition": "module_phpmyadmin status"
                         }
                     ]
                 },
                 {
                     "id": "DevTools",
-                    "description": "Development",
+                    "description": "Applications and tools for development",
                     "sub": [
                         {
                             "id": "DEV001",
@@ -744,114 +919,67 @@
                     ]
                 },
                 {
-                    "id": "HomeAutomation",
-                    "description": "Home Automation",
-                    "sub": [
-                        {
-                            "id": "HA001",
-                            "description": "Install openHAB",
-                            "command": [
-                                "openhab install"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "! pkg_installed openhab"
-                        },
-                        {
-                            "id": "HA002",
-                            "description": "Remove openHAB",
-                            "command": [
-                                "openhab uninstall"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "pkg_installed openhab"
-                        },
-                        {
-                            "id": "HA003",
-                            "description": "Install Home Assistant",
-                            "command": [
-                                "module_haos install"
-                            ],
-                            "status": "Preview",
-                            "author": "@igorpecovnik",
-                            "condition": "! pkg_installed homeassistant-supervised && grep -q bookworm /etc/os-release"
-                        },
-                        {
-                            "id": "HA004",
-                            "description": "Remove Home Assistant",
-                            "command": [
-                                "module_haos uninstall"
-                            ],
-                            "status": "Preview",
-                            "author": "@igorpecovnik",
-                            "condition": "pkg_installed homeassistant-supervised"
-                        }
-                    ]
-                },
-                {
                     "id": "Benchy",
                     "description": "System benchmaking and diagnostics",
                     "command": [
                         "see_monitoring"
                     ],
-                    "status": "Stable",
+                    "status": "Disabled",
                     "author": "@armbian",
                     "condition": "[ -f /usr/bin/armbianmonitor ]"
                 },
                 {
                     "id": "Containers",
-                    "description": "Containerlization and Virtual Machines",
+                    "description": "Docker containerization and KVM virtual machines",
                     "sub": [
                         {
                             "id": "CON001",
-                            "description": "Install Docker Minimal",
+                            "description": "Docker minimal",
                             "about": "This operation will install Docker Minimal.",
                             "command": [
-                                "install_docker"
+                                "module_docker install minimal"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! pkg_installed docker-ce"
+                            "condition": "! module_docker status docker-ce"
                         },
                         {
                             "id": "CON002",
-                            "description": "Install Docker Engine",
+                            "description": "Docker engine",
                             "about": "This operation will install Docker Engine.",
                             "command": [
-                                "install_docker engine"
+                                "module_docker install engine"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! pkg_installed docker-compose-plugin"
+                            "condition": "! module_docker status docker-compose-plugin"
                         },
                         {
                             "id": "CON003",
-                            "description": "Remove Docker",
+                            "description": "Docker remove",
                             "about": "This operation will purge Docker.",
                             "command": [
-                                "pkg_remove docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras"
+                                "module_docker remove"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "pkg_installed docker-ce"
+                            "condition": "module_docker status docker-ce"
                         },
                         {
                             "id": "CON004",
-                            "description": "Purge all Docker images, containers, and volumes",
+                            "description": "Docker purge with all images, containers, and volumes",
                             "about": "This operation will delete all Docker images, containers, and volumes.",
                             "command": [
-                                "rm -rf /var/lib/docker",
-                                "rm -rf /var/lib/containerd"
+                                "module_docker purge"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! pkg_installed docker-ce && [ -d /var/lib/docker ]"
+                            "condition": "module_docker status docker-ce"
                         },
                         {
                             "id": "CON005",
-                            "description": "Install Portainer",
-                            "prompt": "This operation will install Portainer.\nWould you like to continue?",
+                            "description": "Portainer container management platform",
+                            "prompt": "This operation will install Portainer container management platform.",
                             "command": [
                                 "module_portainer install"
                             ],
@@ -861,10 +989,10 @@
                         },
                         {
                             "id": "CON006",
-                            "description": "Remove Portainer",
-                            "prompt": "This operation will delete Portainer container.\nWould you like to continue?",
+                            "description": "Portainer remove",
+                            "prompt": "This operation will remove Portainer container management platform.",
                             "command": [
-                                "module_portainer uninstall"
+                                "module_portainer remove"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
@@ -872,78 +1000,79 @@
                         },
                         {
                             "id": "CON007",
-                            "description": "Watchtower install",
+                            "description": "Portainer purge with with data folder",
+                            "prompt": "This operation will remove Portainer container management platform.",
                             "command": [
-                                "module_watchtower install"
+                                "module_portainer remove"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_watchtower status"
-                        },
-                        {
-                            "id": "CON008",
-                            "description": "Watchtower remove",
-                            "command": [
-                                "module_watchtower remove"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "module_watchtower status"
+                            "condition": "module_portainer status"
                         }
                     ]
                 },
                 {
                     "id": "Media",
-                    "description": "Media Servers and Editors",
+                    "description": "Media servers, organizers and editors",
                     "sub": [
                         {
                             "id": "MED001",
-                            "description": "Install Plex Media server",
+                            "description": "Plex Media server",
                             "about": "This operation will install Plex Media server.",
                             "command": [
-                                "install_plexmediaserver"
+                                "module_plexmediaserver install"
                             ],
-                            "status": "Stable",
+                            "status": "Disabled",
                             "author": "@schwar3kat",
-                            "condition": "! pkg_installed plexmediaserver"
+                            "condition": "! module_plexmediaserver status"
                         },
                         {
                             "id": "MED002",
-                            "description": "Remove Plex Media server",
+                            "description": "Plex Media server remove",
                             "about": "This operation will purge Plex Media server.",
                             "command": [
-                                "pkg_remove plexmediaserver",
-                                "sed -i '/plexmediaserver.gpg/s/^/#/g' /etc/apt/sources.list.d/plexmediaserver.list"
+                                "module_plexmediaserver remove"
                             ],
-                            "status": "Stable",
+                            "status": "Disabled",
                             "author": "@schwar3kat",
-                            "condition": "pkg_installed plexmediaserver"
+                            "condition": "module_plexmediaserver status"
                         },
                         {
                             "id": "MED003",
-                            "description": "Install Emby server",
+                            "description": "Emby organizes video, music, live TV, and photos",
                             "about": "This operation will install Emby server.",
                             "command": [
-                                "install_embyserver"
+                                "module_embyserver install"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! pkg_installed emby-server"
+                            "condition": "! module_embyserver status"
                         },
                         {
                             "id": "MED004",
-                            "description": "Remove Emby server",
-                            "about": "This operation will purge Emby server.",
+                            "description": "Emby server remove",
+                            "about": "This operation will remove Emby server",
                             "command": [
-                                "pkg_remove emby-server"
+                                "module_embyserver remove"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "pkg_installed emby-server"
+                            "condition": "module_embyserver status"
+                        },
+                        {
+                            "id": "MED005",
+                            "description": "Emby server purge with data folder",
+                            "command": [
+                                "module_embyserver purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@schwar3kat",
+                            "condition": "module_embyserver status"
                         },
                         {
                             "id": "MED010",
-                            "description": "Stirling-PDF Install",
+                            "description": "Stirling PDF tools for viewing and editing PDF files",
+                            "about": "This operation will install Stirling-PDF tools.",
                             "command": [
                                 "module_stirling install"
                             ],
@@ -953,7 +1082,8 @@
                         },
                         {
                             "id": "MED011",
-                            "description": "Stirling-PDF Remove",
+                            "description": "Stirling PDF remove",
+                            "about": "This operation will remove Stirling-PDF tools.",
                             "command": [
                                 "module_stirling remove"
                             ],
@@ -963,17 +1093,18 @@
                         },
                         {
                             "id": "MED012",
-                            "description": "Stirling-PDF Purge data folder",
+                            "description": "Stirling PDF purge with data folder",
+                            "about": "This operation will purge Stirling-PDF tools with data folder.",
                             "command": [
                                 "module_stirling purge"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_stirling status && [[ -d \"${SOFTWARE_FOLDER}/stirling\" ]]"
+                            "condition": "module_stirling status"
                         },
                         {
                             "id": "MED015",
-                            "description": "Syncthing Install",
+                            "description": "Syncthing continuous file synchronization",
                             "command": [
                                 "module_syncthing install"
                             ],
@@ -983,7 +1114,7 @@
                         },
                         {
                             "id": "MED016",
-                            "description": "Syncthing Remove",
+                            "description": "Syncthing remove",
                             "command": [
                                 "module_syncthing remove"
                             ],
@@ -993,17 +1124,17 @@
                         },
                         {
                             "id": "MED017",
-                            "description": "Syncthing Purge data folder",
+                            "description": "Syncthing purge with data folder",
                             "command": [
                                 "module_syncthing purge"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_syncthing status && [[ -d \"${SOFTWARE_FOLDER}/syncthing\" ]]"
+                            "condition": "module_syncthing status"
                         },
                         {
                             "id": "MED020",
-                            "description": "Nextcloud Install",
+                            "description": "Nextcloud content collaboration platform",
                             "command": [
                                 "module_nextcloud install"
                             ],
@@ -1013,7 +1144,7 @@
                         },
                         {
                             "id": "MED021",
-                            "description": "Nextcloud Remove",
+                            "description": "Nextcloud remove",
                             "command": [
                                 "module_nextcloud remove"
                             ],
@@ -1023,17 +1154,17 @@
                         },
                         {
                             "id": "MED022",
-                            "description": "Nextcloud Purge data folder",
+                            "description": "Nextcloud purge with data folder",
                             "command": [
                                 "module_nextcloud purge"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_nextcloud status && [[ -d \"${SOFTWARE_FOLDER}/nextcloud\" ]]"
+                            "condition": "module_nextcloud status"
                         },
                         {
                             "id": "MED025",
-                            "description": "Owncloud Install",
+                            "description": "Owncloud share files and folders, easy and secure",
                             "command": [
                                 "module_owncloud install"
                             ],
@@ -1043,7 +1174,7 @@
                         },
                         {
                             "id": "MED026",
-                            "description": "Owncloud Remove",
+                            "description": "Owncloud remove",
                             "command": [
                                 "module_owncloud remove"
                             ],
@@ -1053,23 +1184,24 @@
                         },
                         {
                             "id": "MED027",
-                            "description": "Owncloud Purge data folder",
+                            "description": "Owncloud purge with data folder",
                             "command": [
                                 "module_owncloud purge"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_owncloud status && [[ -d \"${SOFTWARE_FOLDER}/owncloud\" ]]"
+                            "condition": "module_owncloud status"
                         }
                     ]
                 },
                 {
                     "id": "Monitoring",
-                    "description": "Monitoring",
+                    "description": "Real-time monitoring, collecting metrics, up-time status",
                     "sub": [
                         {
                             "id": "MON001",
-                            "description": "Uptime Kuma install ",
+                            "description": "Uptime Kuma self-hosted monitoring tool",
+                            "about": "This operation will install Uptime Kuma",
                             "command": [
                                 "module_uptimekuma install"
                             ],
@@ -1080,6 +1212,7 @@
                         {
                             "id": "MON002",
                             "description": "Uptime Kuma remove",
+                            "about": "This operation will remove Uptime Kuma",
                             "command": [
                                 "module_uptimekuma remove"
                             ],
@@ -1089,17 +1222,19 @@
                         },
                         {
                             "id": "MON003",
-                            "description": "Uptime Kuma purge data folder",
+                            "description": "Uptime Kuma purge with data folder",
+                            "about": "This operation will remove Uptime Kuma with data folder",
                             "command": [
                                 "module_uptimekuma purge"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_uptimekuma status && [[ -d \"${SOFTWARE_FOLDER}/uptimekuma\" ]]"
+                            "condition": "module_uptimekuma status"
                         },
                         {
                             "id": "MON005",
-                            "description": "Netdata Install",
+                            "description": "Netdata - monitoring real-time metrics",
+                            "about": "This operation will install Netdata",
                             "command": [
                                 "module_netdata install"
                             ],
@@ -1110,6 +1245,7 @@
                         {
                             "id": "MON006",
                             "description": "Netdata remove",
+                            "about": "This operation will remove Netdata",
                             "command": [
                                 "module_netdata remove"
                             ],
@@ -1119,15 +1255,15 @@
                         },
                         {
                             "id": "MON007",
-                            "description": "Netdata purge data folder",
+                            "description": "Netdata purge with data folder",
+                            "about": "This operation will purge Netdata with data folder",
                             "command": [
                                 "module_netdata purge"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_netdata status && [[ -d \"${SOFTWARE_FOLDER}/netdata\" ]]"
+                            "condition": "module_netdata status"
                         }
-
                     ]
                 },
                 {
@@ -1136,47 +1272,13 @@
                     "sub": [
                         {
                             "id": "MAN001",
-                            "description": "Install Cockpit web-based management tool",
-                            "about": "This operation will install Cockpit.\ncockpit cockpit-ws cockpit-system cockpit-storaged",
+                            "description": "Cockpit web-based management tool",
                             "command": [
-                                "see_current_apt update",
-                                "pkg_install cockpit cockpit-ws cockpit-system cockpit-storaged "
+                                "see_menu module_cockpit"
                             ],
                             "status": "Stable",
-                            "author": "@schwar3kat",
-                            "condition": "! pkg_installed cockpit"
-                        },
-                        {
-                            "id": "MAN002",
-                            "description": "Purge Cockpit web-based management tool",
-                            "about": "This operation will purge Cockpit.",
-                            "command": [
-                                "pkg_remove cockpit"
-                            ],
-                            "status": "Stable",
-                            "author": "@schwar3kat",
-                            "condition": "pkg_installed cockpit"
-                        },
-                        {
-                            "id": "MAN003",
-                            "description": "Start Cockpit Service",
-                            "command": [
-                                "sudo systemctl enable --now cockpit.socket | show_infobox "
-                            ],
-                            "status": "Stable",
-                            "author": "@schwar3kat",
-                            "condition": "pkg_installed cockpit && ! systemctl is-enabled cockpit.socket > /dev/null 2>&1"
-                        },
-                        {
-                            "id": "MAN004",
-                            "description": "Stop Cockpit Service",
-                            "command": [
-                                "systemctl stop cockpit cockpit.socket",
-                                "systemctl disable cockpit.socket | show_infobox "
-                            ],
-                            "status": "Stable",
-                            "author": "@schwar3kat",
-                            "condition": "pkg_installed cockpit && systemctl is-enabled cockpit.socket > /dev/null 2>&1"
+                            "author": "@Tearran",
+                            "condition": ""
                         },
                         {
                             "id": "MAN005",
@@ -1207,6 +1309,104 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "module_homepage status"
+                        }
+                    ]
+                },
+                {
+                    "id": "Netconfig",
+                    "description": "Console network tools for measuring load and bandwidth",
+                    "sub": [
+                        {
+                            "id": "NET001",
+                            "description": "nload -realtime console network usage monitor",
+                            "prompt": "This operation will install nload.",
+                            "command": [
+                                "pkg_install nload"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! pkg_installed nload"
+                        },
+                        {
+                            "id": "NET002",
+                            "description": "nload - remove",
+                            "prompt": "This operation will remove nload.",
+                            "command": [
+                                "pkg_remove nload"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "pkg_installed nload"
+                        },
+                        {
+                            "id": "NET003",
+                            "description": "iperf3 bandwidth measuring tool",
+                            "prompt": "This operation will install iperf3.",
+                            "command": [
+                                "pkg_install iperf3"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! pkg_installed iperf3"
+                        },
+                        {
+                            "id": "NET004",
+                            "description": "iperf3 remove",
+                            "prompt": "This operation will remove iperf3.",
+                            "command": [
+                                "pkg_remove iperf3"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "pkg_installed iperf3"
+                        },
+                        {
+                            "id": "NET005",
+                            "description": "iptraf-ng IP LAN monitor",
+                            "prompt": "This operation will install iptraf-ng.",
+                            "command": [
+                                "pkg_install iptraf-ng"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! pkg_installed iptraf-ng"
+                        },
+                        {
+                            "id": "NET006",
+                            "description": "iptraf-ng remove",
+                            "prompt": "This operation will remove iptraf-ng.",
+                            "command": [
+                                "pkg_remove iptraf-ng"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "pkg_installed iptraf-ng"
+                        },
+                        {
+                            "id": "NET007",
+                            "description": "avahi-daemon hostname broadcast via mDNS",
+                            "prompt": "This operation will install avahi-daemon.",
+                            "command": [
+                                "pkg_install avahi-daemon libnss-mdns",
+                                "cp /usr/share/doc/avahi-daemon/examples/sftp-ssh.service /etc/avahi/services/",
+                                "cp /usr/share/doc/avahi-daemon/examples/ssh.service /etc/avahi/services/",
+                                "service restart avahi-daemon"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! pkg_installed avahi-daemon"
+                        },
+                        {
+                            "id": "NET008",
+                            "description": "avahi-daemon remove",
+                            "prompt": "This operation will remove avahi-daemon.",
+                            "command": [
+                                "systemctl stop avahi-daemon avahi-daemon.socket",
+                                "pkg_remove avahi-daemon"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "pkg_installed avahi-daemon"
                         }
                     ]
                 }

@@ -130,33 +130,87 @@
                         },
                         {
                             "id": "NFS01",
-                            "description": "Install network filesystem (NFS) daemon",
+                            "description": "Enable Network filesystem (NFS) support",
                             "command": [
-                                "module_nfsd install"
+                                "module_nfs install"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_nfsd status"
+                            "condition": "! pkg_installed nfs-common"
                         },
                         {
                             "id": "NFS02",
-                            "description": "Configure network filesystem (NFS) daemon",
+                            "description": "Disable Network filesystem (NFS) support",
                             "command": [
-                                "module_nfsd manage"
+                                "module_nfs remove"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_nfsd status"
+                            "condition": "pkg_installed nfs-common"
                         },
                         {
-                            "id": "NFS03",
-                            "description": "Remove network filesystem (NFS) daemon",
-                            "command": [
-                                "module_nfsd uninstall"
-                            ],
-                            "status": "Stable",
-                            "author": "@igorpecovnik",
-                            "condition": "module_nfsd status"
+                            "id": "NFS05",
+                            "description": "Manage NFS Server",
+                            "condition": "pkg_installed nfs-common",
+                            "sub": [
+                                    {
+                                        "id": "NFS06",
+                                        "description": "Enable network filesystem (NFS) daemon",
+                                        "command": [
+                                            "module_nfsd install"
+                                        ],
+                                        "status": "Stable",
+                                        "author": "@igorpecovnik",
+                                        "condition": "! module_nfsd status"
+                                    },
+                                    {
+                                        "id": "NFS07",
+                                        "description": "Configure network filesystem (NFS) daemon",
+                                        "command": [
+                                            "module_nfsd manage"
+                                        ],
+                                        "status": "Stable",
+                                        "author": "@igorpecovnik",
+                                        "condition": "module_nfsd status"
+                                    },
+                                    {
+                                        "id": "NFS08",
+                                        "description": "Remove network filesystem (NFS) daemon",
+                                        "command": [
+                                            "module_nfsd remove"
+                                        ],
+                                        "status": "Stable",
+                                        "author": "@igorpecovnik",
+                                        "condition": "module_nfsd status"
+                                    },
+                                    {
+                                        "id": "NFS09",
+                                        "description": "Show network filesystem (NFS) daemon clients",
+                                        "command": [
+                                            "module_nfsd clients"
+                                        ],
+                                        "status": "Stable",
+                                        "author": "@igorpecovnik",
+                                        "condition": "module_nfsd status && [[ ${NFS_CLIENTS_NUMBER} -gt 0 ]]"
+                                    }
+                                ]
+                        },
+                        {
+                            "id": "NFS20",
+                            "description": "Manage NFS Client",
+                            "condition": "pkg_installed nfs-common",
+                            "sub": [
+                                {
+                                    "id": "NFS21",
+                                    "description": "Find NFS servers in subnet and mount shares",
+                                    "command": [
+                                        "module_nfs servers"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "pkg_installed nfs-common"
+                                }
+                            ]
                         }
                     ]
                 },
@@ -408,7 +462,29 @@
                             "status": "Disabled",
                             "author": "@igorpecovnik",
                             "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade rolling verify"
+                        },
+                        {
+                            "id": "WTC001",
+                            "description": "Enable automating Docker container base images updating",
+                            "command": [
+                                "module_watchtower install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_watchtower status && pkg_installed docker-ce"
+                        },
+                        {
+                            "id": "WTC002",
+                            "description": "Disable automating Docker container base images updating",
+                            "command": [
+                                "module_watchtower remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_watchtower status && pkg_installed docker-ce"
                         }
+
+
                     ]
                 }
             ]
