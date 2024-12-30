@@ -428,8 +428,8 @@
                     "sub": [
                         {
                             "id": "DOW001",
-                            "description": "qBittorrent BitTorrent server ",
-                            "about": "This operation will install qBittorrent BitTorrent server",
+                            "description": "qBittorrent BitTorrent client ",
+                            "about": "This operation will install qBittorrent BitTorrent client",
                             "command": [
                                 "module_qbittorrent install"
                             ],
@@ -440,7 +440,7 @@
                         {
                             "id": "DOW002",
                             "description": "qBittorrent remove",
-                            "about": "This operation will remove qBittorrent BitTorrent server",
+                            "about": "This operation will remove qBittorrent BitTorrent client",
                             "command": [
                                 "module_qbittorrent remove"
                             ],
@@ -461,8 +461,8 @@
                         },
                         {
                             "id": "DEL001",
-                            "description": "Deluge BitTorrent server",
-                            "about": "This operation will install BitTorrent server",
+                            "description": "Deluge BitTorrent client",
+                            "about": "This operation will install BitTorrent client",
                             "command": [
                                 "module_deluge install"
                             ],
@@ -473,7 +473,7 @@
                         {
                             "id": "DEL002",
                             "description": "Deluge remove",
-                            "about": "This operation will remove Deluge BitTorrent server",
+                            "about": "This operation will remove Deluge BitTorrent client",
                             "command": [
                                 "module_deluge remove"
                             ],
@@ -484,7 +484,7 @@
                         {
                             "id": "DEL003",
                             "description": "Deluge purge with data folder",
-                            "about": "This operation will remove Deluge BitTorrent server data folder",
+                            "about": "This operation will remove Deluge BitTorrent client data folder",
                             "command": [
                                 "module_deluge purge"
                             ],
@@ -494,8 +494,8 @@
                         },
                         {
                             "id": "TRA001",
-                            "description": "Transmission BitTorrent server",
-                            "about": "This operation will install Transmission BitTorrent server",
+                            "description": "Transmission BitTorrent client",
+                            "about": "This operation will install Transmission BitTorrent client",
                             "command": [
                                 "module_transmission install"
                             ],
@@ -506,7 +506,7 @@
                         {
                             "id": "TRA002",
                             "description": "Transmission remove",
-                            "about": "This operation will remove Transmission BitTorrent server",
+                            "about": "This operation will remove Transmission BitTorrent client",
                             "command": [
                                 "module_transmission remove"
                             ],
@@ -517,7 +517,7 @@
                         {
                             "id": "TRA003",
                             "description": "Transmission purge with data folder",
-                            "about": "This operation will remove Transmission BitTorrent server data folder",
+                            "about": "This operation will remove Transmission BitTorrent client data folder",
                             "command": [
                                 "module_transmission purge"
                             ],
@@ -612,7 +612,7 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "module_sonarr status"
-                        },                        
+                        },
                         {
                             "id": "SON003",
                             "description": "Sonarr purge with data folder",
@@ -1264,7 +1264,6 @@
                             "author": "@igorpecovnik",
                             "condition": "module_netdata status"
                         }
-
                     ]
                 },
                 {
@@ -1273,47 +1272,13 @@
                     "sub": [
                         {
                             "id": "MAN001",
-                            "description": "Install Cockpit web-based management tool",
-                            "about": "This operation will install Cockpit.\ncockpit cockpit-ws cockpit-system cockpit-storaged",
+                            "description": "Cockpit web-based management tool",
                             "command": [
-                                "see_current_apt update",
-                                "pkg_install cockpit cockpit-ws cockpit-system cockpit-storaged "
+                                "see_menu module_cockpit"
                             ],
                             "status": "Stable",
-                            "author": "@schwar3kat",
-                            "condition": "! pkg_installed cockpit"
-                        },
-                        {
-                            "id": "MAN002",
-                            "description": "Purge Cockpit web-based management tool",
-                            "about": "This operation will purge Cockpit.",
-                            "command": [
-                                "pkg_remove cockpit"
-                            ],
-                            "status": "Stable",
-                            "author": "@schwar3kat",
-                            "condition": "pkg_installed cockpit"
-                        },
-                        {
-                            "id": "MAN003",
-                            "description": "Start Cockpit Service",
-                            "command": [
-                                "sudo systemctl enable --now cockpit.socket | show_infobox "
-                            ],
-                            "status": "Stable",
-                            "author": "@schwar3kat",
-                            "condition": "pkg_installed cockpit && ! systemctl is-enabled cockpit.socket > /dev/null 2>&1"
-                        },
-                        {
-                            "id": "MAN004",
-                            "description": "Stop Cockpit Service",
-                            "command": [
-                                "systemctl stop cockpit cockpit.socket",
-                                "systemctl disable cockpit.socket | show_infobox "
-                            ],
-                            "status": "Stable",
-                            "author": "@schwar3kat",
-                            "condition": "pkg_installed cockpit && systemctl is-enabled cockpit.socket > /dev/null 2>&1"
+                            "author": "@Tearran",
+                            "condition": ""
                         },
                         {
                             "id": "MAN005",
@@ -1357,7 +1322,7 @@
                             "id": "NET003",
                             "description": "iperf3 bandwidth measuring tool",
                             "prompt": "This operation will install iperf3.",
-                            "command": [                                
+                            "command": [
                                 "pkg_install iperf3"
                             ],
                             "status": "Stable",

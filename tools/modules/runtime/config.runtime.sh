@@ -125,6 +125,9 @@ update_sub_submenu_data "Software" "DNS" "DNS003" "http://$LOCALIPADD:${module_o
 update_sub_submenu_data "Software" "Monitoring" "MON002" "http://$LOCALIPADD:${module_options["module_uptimekuma,port"]}"
 update_sub_submenu_data "Software" "Monitoring" "MON006" "http://$LOCALIPADD:${module_options["module_netdata,port"]}"
 
+# Management
+update_sub_submenu_data "Software" "Management" "MAN001" "http://$LOCALIPADD:${module_options["module_cockpit,port"]}"
+
 # Downloaders
 update_sub_submenu_data "Software" "Downloaders" "DOW002" "http://$LOCALIPADD:${module_options["module_qbittorrent,port"]%% *}" # removing second port from url
 update_sub_submenu_data "Software" "Downloaders" "DEL002" "http://$LOCALIPADD:${module_options["module_deluge,port"]%% *}" # removing second port from url

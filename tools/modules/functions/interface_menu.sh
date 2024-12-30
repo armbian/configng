@@ -41,17 +41,17 @@ function see_menu() {
 	options=()
 		while IFS= read -r line; do
 		if [[ $line =~ ^[[:space:]]*([a-zA-Z0-9_-]+)[[:space:]]*-\s*(.*)$ ]]; then
-			options+=("${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}")
+			options+=("${BASH_REMATCH[1]}" "  -  ${BASH_REMATCH[2]}")
 		fi
 		done <<< "$help_message"
 
 	# Display menu based on DIALOG tool
 	case $DIALOG in
 		"dialog")
-		choice=$(dialog --title "${function_name^} Management" --menu "Choose an option:" 15 60 9 "${options[@]}" 2>&1 >/dev/tty)
+		choice=$(dialog --title "${function_name^}" --menu "Choose an option:" 0 80 9 "${options[@]}" 2>&1 >/dev/tty)
 		;;
 		"whiptail")
-		choice=$(whiptail --title "${function_name^} Management" --menu "Choose an option:" 15 60 9 "${options[@]}" 3>&1 1>&2 2>&3)
+		choice=$(whiptail --title "${function_name^}" --menu "Choose an option:" 0 80 9 "${options[@]}" 3>&1 1>&2 2>&3)
 		;;
 		"read")
 		echo "Available options:"
