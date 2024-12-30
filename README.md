@@ -7,62 +7,79 @@
 <a href=https://github.com/armbian/configng/actions/workflows/debian.yml><img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/armbian/configng/debian.yml?logo=githubactions&label=Packaging&style=for-the-badge&branch=main"></a> <a href=https://github.com/armbian/configng/actions/workflows/unit-tests.yml><img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/armbian/configng/unit-tests.yml?logo=githubactions&label=Unit%20tests&style=for-the-badge&branch=main"></a> <a href=https://github.com/armbian/configng/actions/workflows/docs.yml><img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/armbian/configng/docs.yml?logo=githubactions&label=Documentation&style=for-the-badge&branch=main"></a>
 </p>
 
+**armbian-config** provides configuration and installation routines for customizing and automating tasks within Armbian Linux environment. These utilties help streamline setup processes for various use cases.
 
-> Note: Some references may still use the old name during the transition period.
+<a href=#><img src=.github/images/common.png></a>
 
-armbian-config provides configuration scripts for customizing and automating tasks within Armbian environments. These scripts help streamline setup processes for various configurations and use cases.
+## Key Advantages
+- **Lightweight**: Minimal dependencies for optimal performance.
+- **Flexible**: Supports JSON, TUI, CLI, and API interfaces.
+- **Modern**: A fresh approach to configuration.
+- **Low entropy**: Byte clean uninstall for most targets
 
 ## Features
 
-- **System Configuration**: Automate system-level settings, including hardware configuration and performance tuning.
-- **Network Management**: Manage network settings such as IP configuration, Wi-Fi, and other connectivity options.
-- **Localization Settings**: Configure time zone, language, and other localization preferences.
-- **Software Installation/Uninstallation**: Simplify software management, including installing or removing packages as needed.
+- **System Configuration**: 
+  - kernel manamenent, headers, hardware tweaks.
+  - NFS and ZFS storage management.
+  - SSH user access tweaks.
+  - system updates, rolling / stable, containers update.
+- **Network Management**: 
+  - fixed / dynamic IP configuration.
+  - connecting to wireless network.
+  - access point management.
+- **Localization Settings**: 
+  - Configure time zone.
+  - Set language and locales.
+  - Change hostname.
+- **Software Management**:
+  - Software installation and removal.
+  - Native and containerized environment.
+  - Standardised, updatable, maintained.
 
 ## Compatibility
 
-This tool is tailored to works best with [**Armbian Linux**](https://www.armbian.com) but it has also been automatically tested on **Debian Bookworm**, **Ubuntu Jammy** and **Ubuntu Noble**. In theory it should work on all apt based Linux distributions.
+This tool is tailored to works best with [**Armbian Linux**](https://www.armbian.com) but it has also been automatically tested on:
+- Debian Bookworm
+- Ubuntu Jammy
+- Ubuntu Noble
 
-## Key Advantages
-- **Extremely Lightweight**: Minimal dependencies for optimal performance.
-- **Redesigned from Scratch**: A fresh approach to configuration.
-- **Flexible Menu Structure**: Supports JSON, TUI, CLI, and API interfaces.
+In theory it should work on all systemd APT based Linux distributions: Linux Mint, Elementary OS, Kali Linux, MX Linux, Parrot OS, Proxmox, Raspberry Pi OS, ...
 
 ## Getting Started
-We expect to deploy this tool in production with the upcoming release. Your help with testing and completion is invaluable!
 
-### Clone and run
-Run the following commands in your terminal:
+Armbian config is preinstalled on Armbian. Open or login into your terminal and run:
 
 ```bash
-git clone https://github.com/armbian/configng
-cd configng
-tools/config-assemble.sh -p # Use -t for testing
-sudo bin/armbian-config
+armbian-config
 ```
 
-### Install from Development Repository
-Run the following commands in your terminal:
+#### Compatible distributions
+
+Add Armbian repository and install the tool:
 
 ```bash
-echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] https://github.armbian.com/configng stable main" | sudo tee /etc/apt/sources.list.d/armbian-development.list > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] \
+https://github.armbian.com/configng stable main" | \
+sudo tee /etc/apt/sources.list.d/armbian-development.list > /dev/null
 sudo apt update
 sudo apt -y install armbian-config
 ```
 
+```bash
+armbian-config
+```
+
 ## Contributing
 
-Contributions are welcome! Please refer to general [CONTRIBUTING.md](CONTRIBUTING.md) and guidelines for [adding a new feature](https://docs.armbian.com/User-Guide_Armbian-Software/#adding-example).
+Please refer to general [CONTRIBUTING.md](CONTRIBUTING.md) and specific guidelines for [adding a new feature](https://docs.armbian.com/Contribute/Armbian-config/).
 
-## Support Us
+## Donations
 
-Join the community and be a part of Armbian userspace testing and development.
+Sustainability of Armbian development relies on [donations](https://www.armbian.com/donate/) and [sponsorships](https://github.com/sponsors/armbian).
 
-- **Discord**: [invite](https://discord.com/invite/armbian)
-- **Forums**: [Join us](https://forum.armbian.com/)
-- **IRC**: [how to](https://docs.armbian.com/Community_IRC/)
+## License
 
-- **Donate**: [Armbian](https://www.armbian.com/donate/)
-- **Sponsor**: [Sponsor Armbian](https://github.com/sponsors/armbian)
-- **Subscribe**: [Armbian Forum Subscriptions](https://forum.armbian.com/subscriptions/)
+(c) [Contributors](https://github.com/armbian/configng/graphs/contributors)
 
+All code is licensed under the GPL, v3 or later. See [LICENSE](LICENSE) file for details.
