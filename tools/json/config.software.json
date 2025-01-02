@@ -1293,6 +1293,45 @@
                     ]
                 },
                 {
+                    "id": "Printing",
+                    "description": "Tools for printing and 3D printing",
+                    "sub": [
+                        {
+                            "id": "OCT001",
+                            "description": "OctoPrint web-based 3D printers management tool",
+                            "about": "This operation will install OctoPrint",
+                            "command": [
+                                "module_octoprint install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_octoprint status"
+                        },
+                        {
+                            "id": "OCT002",
+                            "description": "OctoPrint remove",
+                            "about": "This operation will remove OctoPrint",
+                            "command": [
+                                "module_octoprint remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_octoprint status"
+                        },
+                        {
+                            "id": "OCT003",
+                            "description": "OctoPrint purge with data folder",
+                            "about": "This operation will purge OctoPrint with data folder",
+                            "command": [
+                                "module_octoprint purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_octoprint status"
+                        }
+                    ]
+                },
+                {
                     "id": "Netconfig",
                     "description": "Console network tools for measuring load and bandwidth",
                     "sub": [
