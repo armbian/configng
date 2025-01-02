@@ -124,6 +124,7 @@ update_sub_submenu_data "Software" "DNS" "DNS003" "http://$LOCALIPADD:${module_o
 # Monitoring
 update_sub_submenu_data "Software" "Monitoring" "MON002" "http://$LOCALIPADD:${module_options["module_uptimekuma,port"]}"
 update_sub_submenu_data "Software" "Monitoring" "MON006" "http://$LOCALIPADD:${module_options["module_netdata,port"]}"
+update_sub_submenu_data "Software" "Monitoring" "GRA002" "http://$LOCALIPADD:${module_options["module_grafana,port"]}"
 
 # Management
 update_sub_submenu_data "Software" "Management" "MAN001" "http://$LOCALIPADD:${module_options["module_cockpit,port"]}"

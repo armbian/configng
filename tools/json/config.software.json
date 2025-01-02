@@ -1263,6 +1263,39 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "module_netdata status"
+                        },
+                        {
+                            "id": "GRA001",
+                            "description": "Grafana data analytics",
+                            "prompt": "This operation will install Grafana.",
+                            "command": [
+                                "module_grafana install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_grafana status"
+                        },
+                        {
+                            "id": "GRA002",
+                            "description": "Grafana remove",
+                            "prompt": "This operation will remove Grafana.",
+                            "command": [
+                                "module_grafana remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_grafana status"
+                        },
+                        {
+                            "id": "GRA003",
+                            "description": "Grafana purge with data folder",
+                            "about": "This operation will purge Grafana with data folder",
+                            "command": [
+                                "module_grafana purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_grafana status"
                         }
                     ]
                 },
