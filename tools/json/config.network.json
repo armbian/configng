@@ -51,6 +51,48 @@
                     ]
                 },
                 {
+                    "id": "WG001",
+                    "description": "WireGuard VPN client / server",
+                    "command": [
+                        "module_wireguard install"
+                    ],
+                    "status": "Enabled",
+                    "author": "@armbian",
+                    "condition": "! module_wireguard status"
+                },
+                {
+                    "id": "WG002",
+                    "description": "WireGuard remove",
+                    "about": "This operation will remove WireGuard",
+                    "command": [
+                        "module_wireguard remove"
+                    ],
+                    "status": "Enabled",
+                    "author": "@armbian",
+                    "condition": "module_wireguard status"
+                },
+                {
+                    "id": "WG003",
+                    "description": "WireGuard clients QR codes",
+                    "command": [
+                        "module_wireguard qrcode"
+                    ],
+                    "status": "Enabled",
+                    "author": "@armbian",
+                    "condition": "module_wireguard status"
+                },
+                {
+                    "id": "WG004",
+                    "description": "WireGuard purge with data folder",
+                    "about": "This operation will purge WireGuard with data folder",
+                    "command": [
+                        "module_wireguard purge"
+                    ],
+                    "status": "Enabled",
+                    "author": "@armbian",
+                    "condition": "module_wireguard status"
+                },
+                {
                     "id": "NE101",
                     "description": "Install Bluetooth support",
                     "command": [

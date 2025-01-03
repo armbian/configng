@@ -47,6 +47,7 @@ function module_docker() {
 					usermod -aG docker $SUDO_USER
 					systemctl enable docker.service > /dev/null 2>&1
 					systemctl enable containerd.service > /dev/null 2>&1
+					systemctl start docker.service > /dev/null 2>&1
 					docker network create lsio 2> /dev/null
 				fi
 			else
