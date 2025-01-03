@@ -93,6 +93,27 @@
                     "condition": "module_wireguard status"
                 },
                 {
+                    "id": "RAP001",
+                    "description": "RaspAP server",
+                    "command": [
+                        "module_raspap install"
+                    ],
+                    "status": "Enabled",
+                    "author": "@armbian",
+                    "condition": "! module_raspap status"
+                },
+                {
+                    "id": "RAP002",
+                    "description": "RaspAP remove",
+                    "about": "This operation will remove WireGuard",
+                    "command": [
+                        "module_raspap remove"
+                    ],
+                    "status": "Enabled",
+                    "author": "@armbian",
+                    "condition": "module_raspap status"
+                },
+                {
                     "id": "NE101",
                     "description": "Install Bluetooth support",
                     "command": [
