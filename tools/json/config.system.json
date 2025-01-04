@@ -354,7 +354,41 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "grep -q '^PrintLastLog no' /etc/ssh/sshd_config"
+                        },
+                        {
+                            "id": "SSH200",
+                            "description": "Sandboxed & containerised SSH server",
+                            "about": "This operation will install SSH server.",
+                            "command": [
+                                "module_openssh-server install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_openssh-server status"
+                        },
+                        {
+                            "id": "SSH201",
+                            "description": "Remove sandboxed SSH server",
+                            "about": "This operation will remove SSH server.",
+                            "command": [
+                                "module_openssh-server remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_openssh-server status"
+                        },
+                        {
+                            "id": "SSH202",
+                            "description": "Purge sandboxed SSH server with data folder",
+                            "about": "This operation will purge SSH server with data folder.",
+                            "command": [
+                                "module_openssh-server purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_openssh-server status"
                         }
+
                     ]
                 },
                 {
