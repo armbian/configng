@@ -112,7 +112,7 @@ source "$lib_dir/config.functions.sh"
 
 set_runtime_variables
 
-check_distro_status
+set_checkpoint mark "$(check_distro_status)" true
 
 set_checkpoint mark  "Loaded Runtime variables..." true #| show_infobox ;
 #set_newt_colors 2
@@ -213,9 +213,5 @@ set_checkpoint stop
 #
 # Show about this tool on exit
 about_armbian_configng
-
-echo ""
-
-set_checkpoint show
 
 exit 0
