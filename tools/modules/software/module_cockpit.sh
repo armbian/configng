@@ -101,3 +101,4 @@ function module_cockpit() {
 		;;
 	esac
 }
+
