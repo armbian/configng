@@ -11,6 +11,7 @@ on:
 env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   PR_NUMBER: ${{ github.event.number }}
+  REPOSITORY: "apt.armbian.com"
 
 concurrency:
   group: pipeline-pr-${{github.event.pull_request.number}}
@@ -20,7 +21,7 @@ jobs:
 
   test:
     name: "Unit tests"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       matrix:  ${{steps.json.outputs.JSON_CONTENT}}
     steps:
@@ -82,6 +83,7 @@ jobs:
 
   gradle:
     needs: test
+    if: ${{ needs.test.outputs.matrix != '[]' && needs.test.outputs.matrix != '' }}
     strategy:
       fail-fast: false
       max-parallel: 32
@@ -89,7 +91,7 @@ jobs:
         image: ${{ fromJSON(needs.test.outputs.matrix) }}
 
     name: "I"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 7
     container:
         image: "${{ matrix.image.image }}"
@@ -103,28 +105,30 @@ jobs:
       - name: Install
         run: |
 
-            # source vars
-            . "config/${{ matrix.image.package }}"
-            echo ${TEST_TITLE}
+            mkdir -p test
 
             RELEASE=$(echo "${{ matrix.image.image }}" | cut -d":" -f2)
             TEST_ID=$(echo "${{ matrix.image.package }}" | cut -d "/" -f2 | cut -d "." -f1)
+
+            # store to GH environment
+            echo "TEST_ID=${TEST_ID}" >> $GITHUB_ENV
+            echo "RELEASE=${RELEASE}" >> $GITHUB_ENV
+
             # update index
             apt update
             # install basics
             DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata keyboard-configuration wget gpg netcat-traditional lsof
 
             # add armbian repository
-            URL=beta.armbian.com
+            URL=apt.armbian.com
             wget https://${URL}/armbian.key -O key
             gpg --dearmor < key | tee /usr/share/keyrings/armbian.gpg > /dev/null
             chmod go+r /usr/share/keyrings/armbian.gpg
-            echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] http://${URL} $RELEASE main ${RELEASE}-utils ${RELEASE}-desktop" | tee /etc/apt/sources.list.d/armbian.list
+            echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] http://${{ env.REPOSITORY }} $RELEASE main ${RELEASE}-utils ${RELEASE}-desktop" | tee /etc/apt/sources.list.d/armbian.list
             apt update -y
             apt upgrade -y
             apt -y -o Dpkg::Options::="--force-confold" install sudo procps systemd whiptail jq lsb-release iproute2 armbian-bsp-cli-wsl2-x86-current-grub
-            sudo -b unshare --pid --fork --mount-proc /lib/systemd/systemd --system-unit=basic.target
-            cat /etc/armbian-distribution-status
+            sudo -b unshare --pid --fork --mount-proc /lib/systemd/systemd --system-unit=basic.target            
 
             # install packages / except howdy as its too large
             export DEBIAN_FRONTEND=noninteractive
@@ -136,30 +140,31 @@ jobs:
             #eval $"( "${CONDITION}" )"
             eval "$CONDITION"
 
-            # stats
-            FILENAME="data-"$(echo ${{ matrix.image.image }} | sed "s/:/-/g")"-${TEST_ID}.teststats"
             RAWCOMMAND=$(bash bin/armbian-config --cmd | grep "${TEST_ID}" | xargs)
             COMMAND=$(echo $RAWCOMMAND | cut -d" " -f1,2)
             DESCRIPTION=$(echo $RAWCOMMAND | cut -d" " -f4-)
-            echo "|${RELEASE}|\`armbian-config ${COMMAND}\`| ${DESCRIPTION} |" > ../${FILENAME}
+            echo "|${RELEASE}|\`armbian-config ${COMMAND}\`| ${DESCRIPTION} |" > ../test/${TEST_ID}-${RELEASE}
 
-      - name: Upload test
-        uses: actions/upload-artifact@v3.2.1-node20
+      - name: "Upload ${{ env.TEST_ID }} for ${{ env.RELEASE }}"
+        uses: actions/upload-artifact@v4
         with:
-          name: TESTDATA
-          path: data-*.teststats
+          name: test-${{ env.TEST_ID }}-${{ env.RELEASE }}
+          path: test
+          if-no-files-found: ignore
 
   stop:
     name: "Merge test artifacts"
     if: always()
     needs: gradle
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
 
-      - name: "Download changes"
-        uses: actions/download-artifact@v3-node20
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
         with:
-          name: TESTDATA
+          path: test
+          pattern: test-*
+          merge-multiple: true
 
       - name: Install
         run: |
@@ -167,4 +172,9 @@ jobs:
           echo "# Succesful tests:" >> $GITHUB_STEP_SUMMARY
           echo "|Release|Command|Description|" >> $GITHUB_STEP_SUMMARY
           echo "|:---|:---|:---|" >> $GITHUB_STEP_SUMMARY
-          cat ./*.teststats | sed '$ s/.$//' >> $GITHUB_STEP_SUMMARY
+          cat test/* | sed '$ s/.$//' >> $GITHUB_STEP_SUMMARY
+
+      - uses: geekyeggo/delete-artifact@v5
+        with:
+          name: |
+            test-*

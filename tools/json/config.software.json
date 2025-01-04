@@ -1263,6 +1263,39 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "module_netdata status"
+                        },
+                        {
+                            "id": "GRA001",
+                            "description": "Grafana data analytics",
+                            "prompt": "This operation will install Grafana.",
+                            "command": [
+                                "module_grafana install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_grafana status"
+                        },
+                        {
+                            "id": "GRA002",
+                            "description": "Grafana remove",
+                            "prompt": "This operation will remove Grafana.",
+                            "command": [
+                                "module_grafana remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_grafana status"
+                        },
+                        {
+                            "id": "GRA003",
+                            "description": "Grafana purge with data folder",
+                            "about": "This operation will purge Grafana with data folder",
+                            "command": [
+                                "module_grafana purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_grafana status"
                         }
                     ]
                 },
@@ -1289,6 +1322,45 @@
                             "status": "Stable",
                             "author": "@Tearran",
                             "condition": ""
+                        }
+                    ]
+                },
+                {
+                    "id": "Printing",
+                    "description": "Tools for printing and 3D printing",
+                    "sub": [
+                        {
+                            "id": "OCT001",
+                            "description": "OctoPrint web-based 3D printers management tool",
+                            "about": "This operation will install OctoPrint",
+                            "command": [
+                                "module_octoprint install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_octoprint status"
+                        },
+                        {
+                            "id": "OCT002",
+                            "description": "OctoPrint remove",
+                            "about": "This operation will remove OctoPrint",
+                            "command": [
+                                "module_octoprint remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_octoprint status"
+                        },
+                        {
+                            "id": "OCT003",
+                            "description": "OctoPrint purge with data folder",
+                            "about": "This operation will purge OctoPrint with data folder",
+                            "command": [
+                                "module_octoprint purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_octoprint status"
                         }
                     ]
                 },
