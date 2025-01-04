@@ -50,31 +50,6 @@ echo "Loaded Software helpers..." #| show_infobox ;
 # Loads the variables from beta armbian-config for runtime handling
 
 
-#
-# Load The Bash procedure Objects
-old_json_data=$(<"$json_file")
-
-# Generate the new JSON data
-new_json_data=$(generate_software_json)
-
-json_data=$(jq -s '
-  .[0] as $existing |
-  .[1] as $new |
-  {
-    menu: ($existing.menu + $new.menu)
-  }
-' <(echo "$old_json_data") <(echo "$new_json_data"))
-
-
-#source "$lib_dir/config.runtime.sh"
-echo "Loaded Runtime conditions..." #| show_infobox ;
-
-
-
-
-
-
-
 clear
 
 case "$1" in
