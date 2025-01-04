@@ -114,6 +114,9 @@ update_sub_submenu_data "Software" "Media" "MED026" "http://$LOCALIPADD:${module
 # Containers
 update_sub_submenu_data "Software" "Containers" "CON006" "http://$LOCALIPADD:${module_options["module_portainer,port"]%% *}" # removing second port from url
 
+# Printing
+update_sub_submenu_data "Software" "Printing" "OCT002" "http://$LOCALIPADD:${module_options["module_octoprint,port"]}"
+
 # Home automation
 update_sub_submenu_data "Software" "HomeAutomation" "HAB002" "http://$LOCALIPADD:${module_options["module_openhab,port"]}"
 update_sub_submenu_data "Software" "HomeAutomation" "HAS002" "http://$LOCALIPADD:${module_options["module_haos,port"]}"
@@ -124,6 +127,10 @@ update_sub_submenu_data "Software" "DNS" "DNS003" "http://$LOCALIPADD:${module_o
 # Monitoring
 update_sub_submenu_data "Software" "Monitoring" "MON002" "http://$LOCALIPADD:${module_options["module_uptimekuma,port"]}"
 update_sub_submenu_data "Software" "Monitoring" "MON006" "http://$LOCALIPADD:${module_options["module_netdata,port"]}"
+update_sub_submenu_data "Software" "Monitoring" "GRA002" "http://$LOCALIPADD:${module_options["module_grafana,port"]}"
+
+# Management
+update_sub_submenu_data "Software" "Management" "MAN001" "http://$LOCALIPADD:${module_options["module_cockpit,port"]}"
 
 # Downloaders
 update_sub_submenu_data "Software" "Downloaders" "DOW002" "http://$LOCALIPADD:${module_options["module_qbittorrent,port"]%% *}" # removing second port from url

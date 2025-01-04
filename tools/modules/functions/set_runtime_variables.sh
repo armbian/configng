@@ -60,7 +60,14 @@ function set_runtime_variables() {
 	DEFAULT_ADAPTER=$(ip -4 route ls | grep default | tail -1 | grep -Po '(?<=dev )(\S+)')
 	LOCALIPADD=$(ip -4 addr show dev $DEFAULT_ADAPTER | awk '/inet/ {print $2}' | cut -d'/' -f1)
 	LOCALSUBNET=$(echo ${LOCALIPADD} | cut -d"." -f1-3).0/24
-	LOCALWHITELIST=$(echo ${LOCALIPADD} | cut -d"." -f1-3)".*" # for transmission
+
+	# create local lan and docker lan whitelist for transmission
+	TRANSMISSION_WHITELIST=$(echo ${LOCALIPADD} | cut -d"." -f1-3)".*"
+	local docker_subnet=$(docker network inspect lsio 2> /dev/null | grep Subnet | xargs | cut -d" " -f2 | cut -d"/" -f1 | cut -d"." -f1-2)
+	if [[ -n "${docker_subnet}" ]]; then
+		TRANSMISSION_WHITELIST+=",${docker_subnet}.*.*"
+	fi
+
 	BACKTITLE="Contribute: https://github.com/armbian/configng"
 	TITLE="Armbian configuration utility"
 	[[ -z "${DEFAULT_ADAPTER// /}" ]] && DEFAULT_ADAPTER="lo"
