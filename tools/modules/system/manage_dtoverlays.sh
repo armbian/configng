@@ -23,7 +23,7 @@ function manage_dtoverlays () {
 	[[ "$LINUXFAMILY" == "meson64" ]] && overlaydir="/boot/dtb/amlogic/overlay";
 	[[ "$LINUXFAMILY" == "rockchip64" || "$LINUXFAMILY" == "rk3399" || "$LINUXFAMILY" == "rockchip-rk3588" || "$LINUXFAMILY" == "rk35xx" ]] && overlaydir="/boot/dtb/rockchip/overlay";
 
-
+	[[ ! -f "${overlayconf}" || ! -d "${overlaydir}" ]] && echo -e "Incompatible OS configuration\nArmbian device tree configuration files not found" | show_message && return 1
 	#[[ -f "${overlayconf}" ]] && source "${overlayconf}"
 	while true; do
 		local options=()
