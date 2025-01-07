@@ -34,6 +34,9 @@ function module_wireguard () {
 			if [[ -z $2 ]]; then
 				NUMBER_OF_PEERS=$($DIALOG --title "Enter comma delimited peer keywords" --inputbox " \n" 7 50 "pc,laptop,phone" 3>&1 1>&2 2>&3)
 			fi
+			if [[ -z $3 ]]; then
+				WG_PORT=$($DIALOG --title "Change WG server incoming port or use defaults" --inputbox " \n" 7 50 "51820" 3>&1 1>&2 2>&3)
+			fi
 			docker run -d \
 			--name=wireguard \
 			--net=lsio \
@@ -43,14 +46,14 @@ function module_wireguard () {
 			-e PGID=1000 \
 			-e TZ="$(cat /etc/timezone)" \
 			-e SERVERURL=auto \
-			-e SERVERPORT=51820 \
+			-e SERVERPORT=${WG_PORT} \
 			-e PEERS="${NUMBER_OF_PEERS}" \
 			-e PEERDNS=auto \
 			-e INTERNAL_SUBNET=10.13.13.0 \
 			-e ALLOWEDIPS=0.0.0.0/0 \
 			-e PERSISTENTKEEPALIVE_PEERS= \
 			-e LOG_CONFS=true \
-			-p 51820:51820/udp \
+			-p ${WG_PORT}:51820/udp \
 			-v "${WIREGUARD_BASE}/config:/config" \
 			--sysctl="net.ipv4.conf.all.src_valid_mark=1" \
 			--restart unless-stopped \
