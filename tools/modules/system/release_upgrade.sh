@@ -26,7 +26,7 @@ release_upgrade(){
 	fi
 
 	local upgrade=$(for j in $filter; do
-		for i in $(grep "^${distroid}" /etc/armbian-distribution-status | cut -d";" -f2 | cut -d"=" -f2 | sed "s/,/ /g"); do
+		for i in $(grep "^${distroid}" /etc/armbian-distribution-status | cut -d";" -f2 | cut -d"=" -f1 | sed "s/,/ /g"); do
 			if [[ $i == $j ]]; then
 				echo $i
 			fi
