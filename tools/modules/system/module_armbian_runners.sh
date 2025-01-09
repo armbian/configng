@@ -1,4 +1,4 @@
-declare -A module_options
+#declare -A module_options
 module_options+=(
 	["module_armbian_runners,author"]="@igorpecovnik"
 	["module_armbian_runners,feature"]="module_armbian_runners"
@@ -148,4 +148,4 @@ function module_armbian_runners () {
 		;;
 	esac
 }
-module_armbian_runners "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10"
+#module_armbian_runners "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10"
