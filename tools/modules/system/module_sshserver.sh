@@ -62,6 +62,8 @@ function module_openssh-server () {
 					exit 1
 				fi
 			done
+			# install rsync
+			docker exec -it openssh-server /bin/bash -c "apk update; apk add rsync"
 		;;
 		"${commands[1]}")
 			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
