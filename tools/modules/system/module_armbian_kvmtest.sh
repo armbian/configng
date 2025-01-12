@@ -54,6 +54,10 @@ function module_armbian_kvmtest () {
 		)
 	fi
 
+qcowimages=(
+https://imola.armbian.com/incoming/Armbian-unofficial_25.02.0-trunk_Uefi-x86_noble_current_6.6.71_minimal.img.qcow2
+)
+
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_armbian_kvmtest,example"]}"
 
