@@ -19,7 +19,7 @@ function module_armbian_kvmtest () {
 	# read additional parameters from command line
 	local parameter
 	IFS=' ' read -r -a parameter <<< "${1}"
-	for feature in instances provisioning firstconfig keyword arch; do
+	for feature in instances provisioning firstconfig keyword arch distro bridge; do
 	for selected in ${parameter[@]}; do
 		IFS='=' read -r -a split <<< "${selected}"
 		[[ ${split[0]} == $feature ]] && eval "$feature=${split[1]}"
@@ -27,27 +27,32 @@ function module_armbian_kvmtest () {
 	done
 
 	local arch="${arch:-x86}" # VM architecture
+	local bridge="${bridge:-br0}" # Bridge number
+	local distro="${distro:-stable}" # Stable or rolling images
 	local instances="${instances:-01}" # number of instances
 	local destination="${destination:-/var/lib/libvirt/images}"
 	local kvmprefix="${kvmprefix:-kvmtest}"
 	local startingip="${startingip:-10.0.40.60}"
 	local keyword=$(echo $keyword | sed "s/_/|/g") # convert
 
-	# those targets we are updating every day
-	qcowimages=(
-		"https://dl.armbian.com/nightly/uefi-${arch}/Bullseye_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Bookworm_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Trixie_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Focal_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Jammy_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Noble_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Oracular_current_minimal-qcow2"
-	)
-
-	qcowimages=(
-	https://imola.armbian.com/dl/uefi-x86/archive/Armbian_24.11.1_Uefi-x86_noble_current_6.6.60_minimal.img.qcow2.xz
-	https://imola.armbian.com/dl/uefi-x86/archive/Armbian_24.11.1_Uefi-x86_bookworm_current_6.6.60_minimal.img.qcow2.xz
-	)
+	if [[ ${distro} == stable ]]; then
+		# use point releases
+		qcowimages=(
+			https://imola.armbian.com/dl/uefi-${arch}/archive/Armbian_24.11.1_Uefi-${arch}_noble_current_6.6.60_minimal.img.qcow2.xz
+			https://imola.armbian.com/dl/uefi-${arch}/archive/Armbian_24.11.1_Uefi-${arch}_bookworm_current_6.6.60_minimal.img.qcow2.xz
+		)
+	else
+		# those targets we are updating every day
+		qcowimages=(
+			"https://dl.armbian.com/nightly/uefi-${arch}/Bullseye_current_minimal-qcow2"
+			"https://dl.armbian.com/nightly/uefi-${arch}/Bookworm_current_minimal-qcow2"
+			"https://dl.armbian.com/nightly/uefi-${arch}/Trixie_current_minimal-qcow2"
+			"https://dl.armbian.com/nightly/uefi-${arch}/Focal_current_minimal-qcow2"
+			"https://dl.armbian.com/nightly/uefi-${arch}/Jammy_current_minimal-qcow2"
+			"https://dl.armbian.com/nightly/uefi-${arch}/Noble_current_minimal-qcow2"
+			"https://dl.armbian.com/nightly/uefi-${arch}/Oracular_current_minimal-qcow2"
+		)
+	fi
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_armbian_kvmtest,example"]}"
@@ -57,6 +62,10 @@ function module_armbian_kvmtest () {
 		"${commands[0]}")
 			# Install portainer with KVM support
 			# TBD - need to be added to armbian-config
+
+			if ! pkg_installed xz-utils; then
+				pkg_install xz-utils
+			fi
 
 			# download images
 			tempfolder=$(mktemp -d)
@@ -116,7 +125,7 @@ function module_armbian_kvmtest () {
 					--disk ${destination}/$i-$(basename $qcowimage | sed "s/.xz//g"),bus=sata \
 					--import \
 					--os-variant ubuntu24.04 \
-					--network bridge=br1 \
+					--network bridge=${bridge} \
 					--noautoconsole
 					# create snapshot of initial state
 					virsh snapshot-create-as --domain ${kvmprefix}-$image --name "initial-state"
@@ -160,11 +169,13 @@ function module_armbian_kvmtest () {
 			echo -e "\tkeyword\t- Use only certain. keyword=Jammy_Noble for example"
 			echo -e "\tstatus\t- Installation status $title."
 			echo -e "\nAvailable switches:\n"
+			echo -e "\tbridge\t- Network bridge br0,br1,...\n"
 			echo -e "\tinstances\t- Repetitions if more then 1"
 			echo -e "\tprovisioning\t- File of command that is executed at first run."
 			echo -e "\tfirstconfig\t- Armbian first config."
 			echo -e "\tkeyword\t\t- Select only certain image, example: Focal_Jammy VM image."
 			echo -e "\tarch\t\t- architecture of VM image."
+			echo -e "\tdistro\t\t- stable or rolling."
 			echo
 		;;
 		*)
