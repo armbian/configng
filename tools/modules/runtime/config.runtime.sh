@@ -130,7 +130,7 @@ update_sub_submenu_data "Software" "Monitoring" "MON006" "http://$LOCALIPADD:${m
 update_sub_submenu_data "Software" "Monitoring" "GRA002" "http://$LOCALIPADD:${module_options["module_grafana,port"]}"
 
 # Management
-update_sub_submenu_data "Software" "Management" "MAN001" "http://$LOCALIPADD:${module_options["module_cockpit,port"]}"
+update_sub_submenu_data "Software" "Management" "COC002" "https://$LOCALIPADD:${module_options["module_cockpit,port"]}"
 
 # Downloaders
 update_sub_submenu_data "Software" "Downloaders" "DOW002" "http://$LOCALIPADD:${module_options["module_qbittorrent,port"]%% *}" # removing second port from url

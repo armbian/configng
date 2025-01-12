@@ -1304,14 +1304,24 @@
                     "description": "Remote Management tools",
                     "sub": [
                         {
-                            "id": "MAN001",
-                            "description": "Cockpit web-based management tool",
+                            "id": "COC001",
+                            "description": "Cockpit OS and VM management tool",
                             "command": [
-                                "see_menu module_cockpit"
+                                "module_cockpit install"
                             ],
                             "status": "Stable",
-                            "author": "@Tearran",
-                            "condition": ""
+                            "author": "@igorpecovnik",
+                            "condition": "! module_cockpit status"
+                        },
+                        {
+                            "id": "COC002",
+                            "description": "Remove Cockpit",
+                            "command": [
+                                "module_cockpit remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_cockpit status"
                         },
                         {
                             "id": "MAN005",
