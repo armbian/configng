@@ -44,7 +44,7 @@ function module_docker() {
 					fi
 
 					groupadd docker 2>/dev/null || true
-					usermod -aG docker $SUDO_USER
+					[[ -n "${SUDO_USER}" ]] && usermod -aG docker "${SUDO_USER}"
 					systemctl enable docker.service > /dev/null 2>&1
 					systemctl enable containerd.service > /dev/null 2>&1
 					systemctl start docker.service > /dev/null 2>&1
