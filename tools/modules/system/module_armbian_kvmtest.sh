@@ -32,7 +32,7 @@ function module_armbian_kvmtest () {
 	local instances="${instances:-01}" # number of instances
 	local destination="${destination:-/var/lib/libvirt/images}"
 	local kvmprefix="${kvmprefix:-kvmtest}"
-	local startingip="${startingip:-10.0.40.60}"
+	local startingip="${startingip:-10.0.60.60}"
 	local keyword=$(echo $keyword | sed "s/_/|/g") # convert
 
 	if [[ ${distro} == stable ]]; then
@@ -53,10 +53,6 @@ function module_armbian_kvmtest () {
 			"https://dl.armbian.com/nightly/uefi-${arch}/Oracular_current_minimal-qcow2"
 		)
 	fi
-
-qcowimages=(
-https://imola.armbian.com/incoming/Armbian-unofficial_25.02.0-trunk_Uefi-x86_noble_current_6.6.71_minimal.img.qcow2
-)
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_armbian_kvmtest,example"]}"
@@ -103,21 +99,34 @@ https://imola.armbian.com/incoming/Armbian-unofficial_25.02.0-trunk_Uefi-x86_nob
 					# commands for changing follows here
 					local ip_address=$(awk -F\. '{ print $1"."$2"."$3"."$4+'$i' }' <<< $startingip )
 					# this part needs be changed in build framework
-					cp ${mounttempfolder}/etc/rc.local ${mounttempfolder}/etc/rc.local.bak
-					if [[ -f ${provisioning} ]]; then 
-					echo "Provision"
-						echo "#!/bin/bash" > ${mounttempfolder}/etc/rc.local
-						echo "for i in {1..10}; do ping -q -c 5 -i 1 9.9.9.9; [[ \$? -eq 0 ]] && break; sleep 1; done" >> ${mounttempfolder}/etc/rc.local
-						cat "${provisioning}" >> ${mounttempfolder}/etc/rc.local
-						echo "mv /etc/rc.local.bak /etc/rc.local" >> ${mounttempfolder}/etc/rc.local
-						echo "exit 0" >> ${mounttempfolder}/etc/rc.local
-						chmod +x ${mounttempfolder}/etc/rc.local
+					
+					# script that is executed at firstrun
+					if [[ -f ${provisioning} ]]; then
+						echo "INSTANCE=$i" > ${mounttempfolder}/root/provisioning.sh
+						cat "${provisioning}" >> ${mounttempfolder}/root/provisioning.sh
+						chmod +x ${mounttempfolder}/root/provisioning.sh
 					fi
 
-					# copy first config
-					if [[ -f ${firstconfig} ]]; then
-						cat "${firstconfig}" >> ${mounttempfolder}/root/.not_logged_in_yet
-					fi
+					# first config
+					cat <<- EOF >> ${mounttempfolder}/root/.not_logged_in_yet
+					PRESET_NET_CHANGE_DEFAULTS="1"
+					PRESET_NET_ETHERNET_ENABLED="1"
+					PRESET_NET_USE_STATIC="1"
+					PRESET_NET_STATIC_IP="${ip_address}"
+					PRESET_NET_STATIC_MASK="255.255.255.0"
+					PRESET_NET_STATIC_GATEWAY="10.0.60.1"
+					PRESET_NET_STATIC_DNS="9.9.9.9 8.8.4.4"
+					SET_LANG_BASED_ON_LOCATION="y"
+					PRESET_LOCALE="sl_SI.UTF-8"
+					PRESET_TIMEZONE="Europe/Ljubljana"
+					PRESET_ROOT_PASSWORD="test"
+					PRESET_USER_NAME="armbian"
+					PRESET_USER_PASSWORD="UserPassword"
+					PRESET_USER_KEY=""
+					PRESET_DEFAULT_REALNAME="Armbian user"
+					PRESET_USER_SHELL="bash"
+					EOF
+
 					umount /dev/nbd0p3 # unmount
 					qemu-nbd --disconnect /dev/nbd0 >/dev/null # disconnect from qemu image
 					# install and start VM
@@ -147,7 +156,7 @@ https://imola.armbian.com/incoming/Armbian-unofficial_25.02.0-trunk_Uefi-x86_nob
 				if [[ -z "$(virsh list --name | grep ${kvmprefix})" ]]; then break; fi
 			done
 			if [[ $i -lt 10 ]]; then
-				for j in $(virsh list --all --name | grep ${kvmprefix}); do virsh undefine $j; done
+				for j in $(virsh list --all --name | grep ${kvmprefix}); do virsh undefine $j --remove-all-storage; done
 			fi
 		;;
 		"${commands[2]}")
