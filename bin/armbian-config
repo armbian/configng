@@ -1,7 +1,8 @@
 #!/bin/bash
 
-tput init
-#
+# initializes the terminal from TERM if stdin is a terminal
+[[ -t 0 ]] && tput init
+
 # Language-based variable assignment for script directory path
 # This serves as a Rosetta Stone for developers,
 # allowing them to use the variable name they are most comfortable with.

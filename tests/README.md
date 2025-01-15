@@ -1,7 +1,19 @@
 # Unit tests
 
-- name of the the file is function ID.
+If function testcase returns 0, test is succesful. Put the code there.
+
+- name of the the file is function ID.conf
 - ENABLED=false|true
-- PREINSTALL="cmd" in order to satisfy test case
-- CONDITION must return 0 for test success
 - RELEASE="bookworm:jammy:noble" run on specific or leave empty to run on all
+
+Example:
+
+```
+ENABLED=true
+RELEASE="bookworm:noble"
+
+function testcase {
+        ./bin/armbian-config --api module_cockpit install
+        [ -f /usr/bin/cockpit-bridge ]
+}
+```
