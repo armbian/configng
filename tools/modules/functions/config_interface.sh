@@ -367,7 +367,7 @@ module_options+=(
 )
 function info_wait_continue() {
 	local message="$1"
-        local next_action="$2"
+	local next_action="$2"
 	{
 	for ((i=0; i<=100; i+=10)); do
 		sleep 1
