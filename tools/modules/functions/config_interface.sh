@@ -352,6 +352,30 @@ function get_user_continue() {
 	fi
 }
 
+
+#
+# Functions to display warning for 10 seconds with a gauge
+#
+module_options+=(
+        ["info_wait_autocontinue,author"]="@igorpecovnik"
+        ["info_wait_autocontinue,ref_link"]=""
+        ["info_wait_autocontinue,feature"]="info_wait_autocontinue"
+        ["info_wait_autocontinue,desc"]="Display a warning with a gauge for 10 seconds then continue"
+        ["info_wait_autocontinue,example"]=""
+        ["info_wait_autocontinue,doc_link"]=""
+        ["info_wait_autocontinue,status"]="Active"
+)
+function info_wait_continue() {
+	local message="$1"
+        local next_action="$2"
+	{
+	for ((i=0; i<=100; i+=10)); do
+		sleep 1
+		echo $i
+	done
+	} | $DIALOG --gauge "$message" 15 80 0
+}
+
 menu_options+=(
 	["get_user_continue,author"]="@Tearran"
 	["get_user_continue,ref_link"]=""
