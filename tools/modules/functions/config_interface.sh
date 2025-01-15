@@ -357,13 +357,13 @@ function get_user_continue() {
 # Functions to display warning for 10 seconds with a gauge
 #
 module_options+=(
-        ["info_wait_autocontinue,author"]="@igorpecovnik"
-        ["info_wait_autocontinue,ref_link"]=""
-        ["info_wait_autocontinue,feature"]="info_wait_autocontinue"
-        ["info_wait_autocontinue,desc"]="Display a warning with a gauge for 10 seconds then continue"
-        ["info_wait_autocontinue,example"]=""
-        ["info_wait_autocontinue,doc_link"]=""
-        ["info_wait_autocontinue,status"]="Active"
+	["info_wait_autocontinue,author"]="@igorpecovnik"
+	["info_wait_autocontinue,ref_link"]=""
+	["info_wait_autocontinue,feature"]="info_wait_autocontinue"
+	["info_wait_autocontinue,desc"]="Display a warning with a gauge for 10 seconds then continue"
+	["info_wait_autocontinue,example"]=""
+	["info_wait_autocontinue,doc_link"]=""
+	["info_wait_autocontinue,status"]="Active"
 )
 function info_wait_continue() {
 	local message="$1"
