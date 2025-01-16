@@ -15,7 +15,6 @@ function manage_overlayfs() {
 		pkg_install -o Dpkg::Options::="--force-confold" overlayroot cryptsetup cryptsetup-bin
 		[[ ! -f /etc/overlayroot.conf ]] && cp /etc/overlayroot.conf.dpkg-new /etc/overlayroot.conf
 		sed -i "s/^overlayroot=.*/overlayroot=\"tmpfs\"/" /etc/overlayroot.conf
-		sed -i "s/^overlayroot_cfgdisk=.*/overlayroot_cfgdisk=\"enabled\"/" /etc/overlayroot.conf
 	else
 		overlayroot-chroot rm /etc/overlayroot.conf > /dev/null 2>&1
 		pkg_remove overlayroot cryptsetup cryptsetup-bin
