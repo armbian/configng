@@ -30,6 +30,9 @@ function module_armbian_kvmtest () {
 		PRESET_NET_CHANGE_DEFAULTS="1"
 	fi
 
+	local startingip=$(echo $startingip | sed "s/_/./g")
+	local gateway=$(echo $gateway | sed "s/_/./g")
+
 	local arch="${arch:-x86}" # VM architecture
 	local network="${network:-default}"
 	if [[ -n "${bridge}" ]]; then network="bridge=${bridge}"; fi
@@ -144,12 +147,12 @@ function module_armbian_kvmtest () {
 					virt-install \
 					--name ${domain} \
 					--memory ${memory} \
-					--vcpus 2 \
+					--vcpus ${vcpus} \
 					--autostart \
 					--disk ${destination}/${image},bus=sata \
 					--import \
 					--os-variant ubuntu24.04 \
-					--network default \
+					--network ${network} \
 					--noautoconsole
 				done
 			done
