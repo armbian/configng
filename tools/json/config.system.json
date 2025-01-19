@@ -109,24 +109,24 @@
                         {
                             "id": "SY007",
                             "description": "Enable read only filesystem",
-                            "about": "This will enable Armbian read-only filesystem. Reboot is mandatory?\n",
+                            "prompt": "This will enable Armbian read-only filesystem.\n",
                             "command": [
-                                "manage_overlayfs enable"
+                                "module_overlayfs install"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "modinfo overlay > /dev/null 2>&1 && [[ -z $(findmnt -k /media/root-ro | tail -1) ]] && [[ \"${DISTRO}\"=Ubuntu ]]"
+                            "condition": "module_overlayfs status"
                         },
                         {
                             "id": "SY008",
                             "description": "Disable read only filesystem",
-                            "about": "This will disable Armbian read-only filesystem. Reboot is mandatory?\n",
+                            "prompt": "This will disable Armbian read-only filesystem.\n",
                             "command": [
-                                "manage_overlayfs disable"
+                                "module_overlayfs remove"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "command -v overlayroot-chroot > /dev/null 2>&1 && findmnt -k /media/root-ro | tail -1 | grep -w /media/root-ro > /dev/null 2>&1"
+                            "condition": "! module_overlayfs status"
                         },
                         {
                             "id": "NFS01",
