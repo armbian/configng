@@ -59,6 +59,8 @@ armbian-config
 Add Armbian repository and install the tool:
 
 ```bash
+wget -qO - https://apt.armbian.com/armbian.key | gpg --dearmor | \
+sudo tee /usr/share/keyrings/armbian.gpg > /dev/null
 echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] \
 https://github.armbian.com/configng stable main" | \
 sudo tee /etc/apt/sources.list.d/armbian-development.list > /dev/null
