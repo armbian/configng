@@ -14,6 +14,8 @@ function module_headers () {
 	local title="headers"
 	local condition=$(which "$title" 2>/dev/null)
 
+	pkg_update
+
 	if [[ -f /etc/armbian-release ]]; then
 		source /etc/armbian-release
 		# branch information is stored in armbian-release at boot time. When we change kernel branches, we need to re-read this and add it
