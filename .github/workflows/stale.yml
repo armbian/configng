@@ -1,0 +1,23 @@
+name: "Close inactive"
+run-name: Close inactive issues
+'on':
+  schedule:
+    - cron: "0 12 * * 1"
+
+jobs:
+  close-issues:
+    runs-on: ubuntu-24.04
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/stale@v8
+        with:
+          days-before-stale: 14
+          days-before-close: 7
+          any-of-labels: "Can be closed?"
+          stale-issue-message: |
+            This issue has been resolved. If there is no further activity, the issue will be closed in another 7 days. Thank you for your contribution!
+          close-issue-message: |
+            This issue has been closed due to inactivity. If you feel this is in error, please reopen the issue or file a new issue with the relevant details.
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
