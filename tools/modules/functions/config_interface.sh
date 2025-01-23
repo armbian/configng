@@ -103,8 +103,11 @@ parse_menu_items() {
 		else
 			# If the condition field is empty or null, add the menu item to the menu
 			options+=("$id" "  -  $description ")
+
 		fi
+
 	done < <(echo "$json_data" | jq -r '.menu[] | '${parent_id:+".. | objects | select(.id==\"$parent_id\") | .sub[]? |"}' select(.status != "Disabled") | "\(.id)\n\(.description)\n\(.condition)"' || exit 1)
+
 }
 
 module_options+=(
@@ -128,15 +131,18 @@ generate_top_menu() {
 		local menu_options=()
 
 		parse_menu_items menu_options
-
+		menu_options+=("Help" " -  About this tool")
 		local OPTION=$($DIALOG --backtitle "$backtitle" --title "$TITLE" --menu "$status" 0 80 9 "${menu_options[@]}" \
-			--ok-button Select --cancel-button Exit 3>&1 1>&2 2>&3)
+		--ok-button Select --cancel-button Exit 3>&1 1>&2 2>&3)
 		local exitstatus=$?
 
 		if [ $exitstatus = 0 ]; then
 			[ -z "$OPTION" ] && break
-			[[ -n "$debug" ]] && echo "$OPTION"
-			generate_menu "$OPTION"
+			if [[ "$OPTION" == "Help" ]]; then
+				show_message <<< "$(about_armbian_configng)" ;
+			else
+				generate_menu "$OPTION"
+			fi
 		fi
 	done
 }
@@ -172,7 +178,7 @@ function generate_menu() {
 			[ -z "$OPTION" ] && break
 
 			# Check if the selected option has a submenu
-			local submenu_count=$(jq -r --arg id "$OPTION" '.menu[] | .. | objects | select(.id==$id) | .sub? | length' "$json_file")
+			local submenu_count=$(jq -r --arg id "$OPTION" '.menu[] | .. | objects | select(.id==$id) | .sub? | length'  <(echo "$json_data"))
 			submenu_count=${submenu_count:-0} # If submenu_count is null or empty, set it to 0
 			if [ "$submenu_count" -gt 0 ]; then
 				# If it does, generate a new menu for the submenu
@@ -208,7 +214,7 @@ function execute_command() {
 		.. |
 		objects |
 		select(.id == $id) |
-		.command[]?' "$json_file")
+		.command[]?'  <(echo "$json_data"))
 
 	# Check if a about exists
 	local about=$(jq -r --arg id "$id" '
@@ -216,7 +222,7 @@ function execute_command() {
 		.. |
 		objects |
 		select(.id == $id) |
-		.about?' "$json_file")
+		.about?'  <(echo "$json_data"))
 
 	# If a about exists, display it and wait for user confirmation
 	if [[ "$about" != "null" && $INPUTMODE != "cmd" ]]; then
