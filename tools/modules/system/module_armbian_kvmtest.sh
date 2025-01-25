@@ -52,7 +52,7 @@ function module_armbian_kvmtest () {
 		"https://dl.armbian.com/nightly/uefi-${arch}/Focal_current_minimal-qcow2"
 		"https://dl.armbian.com/nightly/uefi-${arch}/Jammy_current_minimal-qcow2"
 		"https://dl.armbian.com/nightly/uefi-${arch}/Noble_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Oracular_current_minimal-qcow2"
+		"https://dl.armbian.com/nightly/uefi-${arch}/Plucky_current_minimal-qcow2"
 	)
 
 	local commands
