@@ -1,7 +1,7 @@
 
 module_options+=(
 ["manage_dtoverlays,author"]="@viraniac"
-["manage_dtoverlays,maintainer"]=""
+["manage_dtoverlays,maintainer"]="@igorpecovnik,@The-Going"
 ["manage_dtoverlays,ref_link"]=""
 ["manage_dtoverlays,feature"]="manage_dtoverlays"
 ["manage_dtoverlays,desc"]="Enable/disable device tree overlays"
@@ -18,20 +18,22 @@ function manage_dtoverlays () {
 	# check if user agree to enter this area
 	local changes="false"
 	local overlayconf="/boot/armbianEnv.txt"
-	local overlaydir="/boot/dtb/overlay";
-	[[ "$LINUXFAMILY" == "sunxi64" ]] && overlaydir="/boot/dtb/allwinner/overlay";
-	[[ "$LINUXFAMILY" == "meson64" ]] && overlaydir="/boot/dtb/amlogic/overlay";
-	[[ "$LINUXFAMILY" == "rockchip64" || "$LINUXFAMILY" == "rk3399" || "$LINUXFAMILY" == "rockchip-rk3588" || "$LINUXFAMILY" == "rk35xx" ]] && overlaydir="/boot/dtb/rockchip/overlay";
+	local overlaydir="$(find /boot/dtb/ -name overlay -and -type d)"
+	local overlay_prefix=$(awk -F"=" '/overlay_prefix/ {print $2}' $overlayconf)
+	if [[ -z $(find ${overlaydir} -name *$overlay_prefix* 2> /dev/null) ]] ; then
+		echo "Invalid overlay_prefix $overlay_prefix"; exit 1
+	fi
 
 	[[ ! -f "${overlayconf}" || ! -d "${overlaydir}" ]] && echo -e "Incompatible OS configuration\nArmbian device tree configuration files not found" | show_message && return 1
-	#[[ -f "${overlayconf}" ]] && source "${overlayconf}"
+
 	while true; do
 		local options=()
 		j=0
+
 		if [[ -n "${BOOT_SOC}" ]]; then
-		available_overlays=$(ls -1 ${overlaydir}/*.dtbo | sed "s#^${overlaydir}/##" | sed 's/.dtbo//g' | grep -E "$BOOT_SOC|$BOARD" | tr '\n' ' ')
+			available_overlays=$(ls -1 ${overlaydir}/${overlay_prefix}*.dtbo | sed 's/^.*\('${overlay_prefix}'.*\)/\1/g' | grep -E "$BOOT_SOC|$BOARD" | sed 's/'${overlay_prefix}'-//g' | sed 's/.dtbo//g')
 		else
-		available_overlays=$(ls -1 ${overlaydir}/*.dtbo | sed "s#^${overlaydir}/##" | sed 's/.dtbo//g' | tr '\n' ' ')
+			available_overlays=$(ls -1 ${overlaydir}/${overlay_prefix}*.dtbo | sed 's/^.*\('${overlay_prefix}'.*\)/\1/g' | sed 's/'${overlay_prefix}'-//g' | sed 's/.dtbo//g')
 		fi
 		for overlay in ${available_overlays}; do
 			local status="OFF"
