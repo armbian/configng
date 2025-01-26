@@ -5,8 +5,30 @@
             "description": "Fixed and wireless network settings",
             "sub": [
                 {
-                    "id": "NE001",
-                    "description": "Configure network interfaces",
+                    "id": "SNC001",
+                    "description": "Simple network configuration",
+                    "command": [
+                        "module_simple_network simple"
+                    ],
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
+                    "condition": ""
+                    },
+                    {
+                    "id": "SNC003",
+                    "description": "Drop fallback DHCP configuration",
+                    "about": "Drop /etc/netplan/10-dhcp-all-interfaces.yaml after your configuration is set and you are connected via newly set IP address.",
+                    "command": [
+                        "rm -f /etc/netplan/10-dhcp-all-interfaces.yaml",
+                        "netplan apply"
+                    ],
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
+                    "condition": "[ -f /etc/netplan/10-dhcp-all-interfaces.yaml ] && [ -f /etc/netplan/armbian.yaml ]"
+                },
+                {
+                    "id": "NEA002",
+                    "description": "Advanced bridged network configuration",
                     "sub": [
                         {
                             "id": "NE002",
