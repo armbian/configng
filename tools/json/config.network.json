@@ -5,8 +5,8 @@
             "description": "Fixed and wireless network settings",
             "sub": [
                 {
-                    "id": "SNC001",
-                    "description": "Simple network configuration",
+                    "id": "BNS001",
+                    "description": "Basic Network Setup",
                     "command": [
                         "module_simple_network simple"
                     ],
@@ -15,9 +15,9 @@
                     "condition": ""
                     },
                     {
-                    "id": "SNC003",
-                    "description": "Drop fallback DHCP configuration",
-                    "about": "Drop /etc/netplan/10-dhcp-all-interfaces.yaml after your configuration is set and you are connected via newly set IP address.",
+                    "id": "BNS002",
+                    "description": "Remove Fallback DHCP Configuration",
+                    "about": "Drop preinstalled automatic DHCP on all wired interfaces after your configuration is setup.",
                     "command": [
                         "rm -f /etc/netplan/10-dhcp-all-interfaces.yaml",
                         "netplan apply"
@@ -25,6 +25,16 @@
                     "status": "Stable",
                     "author": "@igorpecovnik",
                     "condition": "[ -f /etc/netplan/10-dhcp-all-interfaces.yaml ] && [ -f /etc/netplan/armbian.yaml ]"
+                },
+                {
+                    "id": "VNS001",
+                    "description": "View Network Settings",
+                    "command": [
+                        "show_message <<< \"$(netplan get all)\""
+                    ],
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
+                    "condition": "[[ -f /etc/netplan/armbian.yaml ]]"
                 },
                 {
                     "id": "NEA002",

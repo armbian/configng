@@ -1,6 +1,6 @@
 Network configuration is simple and easy to follow:
 
-1. Choose the interface. If it's a wireless interface, you'll be prompted to select an access point (AP) and enter its password.
+1. Choose the interface. If it's a wireless interface, you'll be prompted to select an access point (AP) and enter its password. Leave empty for open network.
 
 2. Choose between DHCP (Dynamic Host Configuration Protocol) or static IP configuration. 
 
