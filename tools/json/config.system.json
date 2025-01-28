@@ -209,6 +209,16 @@
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
                                     "condition": "pkg_installed nfs-common"
+                                },
+                                {
+                                    "id": "NFS22",
+                                    "description": "Show and manage NFS mounts",
+                                    "command": [
+                                        "module_nfs mounts"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[[ -n $(mount --type=nfs4) ]]"
                                 }
                             ]
                         }
