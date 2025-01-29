@@ -120,6 +120,39 @@
                             "status": "Preview",
                             "author": "@igorpecovnik",
                             "condition": "module_haos status"
+                        },
+                        {
+                            "id": "DOM001",
+                            "description": "Domoticz open source home automation",
+                            "about": "This operation will install Domoticz.",
+                            "command": [
+                                "module_domoticz install"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_domoticz status"
+                        },
+                        {
+                            "id": "DOM002",
+                            "description": "Domoticz remove",
+                            "about": "This operation will remove Domoticz.",
+                            "command": [
+                                "module_domoticz remove"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_domoticz status"
+                        },
+                        {
+                            "id": "DOM003",
+                            "description": "Domoticz purge with data folder",
+                            "about": "This operation will purge Domoticz.",
+                            "command": [
+                                "module_domoticz purge"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_domoticz status"
                         }
                     ]
                 },
