@@ -132,6 +132,9 @@ sudo armbian-config
     - ### Home Assistant open source home automation
     - ### Home Assistant remove
     - ### Home Assistant purge with data folder
+    - ### Domoticz open source home automation
+    - ### Domoticz remove
+    - ### Domoticz purge with data folder
 
 
   - ### Network-wide ad blockers servers
@@ -378,14 +381,17 @@ Outputs:
 	--cmd SWAG04 - SWAG purge with data folder
     HomeAutomation - Home Automation for control home appliances
 	--cmd HAB001 - openHAB empowering the smart home
-	--cmd HAB002 - openHAB remove (http://10.1.0.210:8080)
+	--cmd HAB002 - openHAB remove (http://10.1.0.152:8080)
 	--cmd HAB003 - openHAB purge with data folder
 	--cmd HAS001 - Home Assistant open source home automation
-	--cmd HAS002 - Home Assistant remove (http://10.1.0.210:8123)
+	--cmd HAS002 - Home Assistant remove (http://10.1.0.152:8123)
 	--cmd HAS003 - Home Assistant purge with data folder
+	--cmd DOM001 - Domoticz open source home automation
+	--cmd DOM002 - Domoticz remove (http://10.1.0.152:8080)
+	--cmd DOM003 - Domoticz purge with data folder
     DNS - Network-wide ad blockers servers
 	--cmd DNS001 - Pi-hole DNS ad blocker
-	--cmd DNS003 - Pi-hole remove (http://10.1.0.210:80)
+	--cmd DNS003 - Pi-hole remove (http://10.1.0.152:80)
 	--cmd DNS002 - Pi-hole change web admin password
 	--cmd DNS004 - Pi-hole purge with data folder
     Music - Music servers and streamers
@@ -394,47 +400,47 @@ Outputs:
 	--cmd NAV003 - Navidrome purge with data folder
     Downloaders - Download apps for movies, TV shows, music and subtitles
 	--cmd DOW001 - qBittorrent BitTorrent client 
-	--cmd DOW002 - qBittorrent remove (http://10.1.0.210:8090)
+	--cmd DOW002 - qBittorrent remove (http://10.1.0.152:8090)
 	--cmd DOW003 - qBittorrent purge with data folder
 	--cmd DEL001 - Deluge BitTorrent client
-	--cmd DEL002 - Deluge remove (http://10.1.0.210:8112)
+	--cmd DEL002 - Deluge remove (http://10.1.0.152:8112)
 	--cmd DEL003 - Deluge purge with data folder
 	--cmd TRA001 - Transmission BitTorrent client
-	--cmd TRA002 - Transmission remove (http://10.1.0.210:9091)
+	--cmd TRA002 - Transmission remove (http://10.1.0.152:9091)
 	--cmd TRA003 - Transmission purge with data folder
 	--cmd SABN01 - SABnzbd newsgroup downloader
-	--cmd SABN02 - SABnzbd remove (http://10.1.0.210:8080)
+	--cmd SABN02 - SABnzbd remove (http://10.1.0.152:8080)
 	--cmd SABN03 - SABnzbd purge with data folder
 	--cmd MDS001 - Medusa automatic downloader for TV shows
-	--cmd MDS002 - Medusa TV shows downloader remove (http://10.1.0.210:8081)
+	--cmd MDS002 - Medusa TV shows downloader remove (http://10.1.0.152:8081)
 	--cmd MDS003 - Medusa TV shows downloader purge
 	--cmd SON001 - Sonarr automatic downloader for TV shows
-	--cmd SON002 - Sonarr remove (http://10.1.0.210:8989)
+	--cmd SON002 - Sonarr remove (http://10.1.0.152:8989)
 	--cmd SON003 - Sonarr purge with data folder
 	--cmd RAD001 - Radarr automatic downloader for movies
-	--cmd RAD002 - Radarr remove (http://10.1.0.210:7878)
+	--cmd RAD002 - Radarr remove (http://10.1.0.152:7878)
 	--cmd RAD003 - Radarr purge with data folder
 	--cmd BAZ001 - Bazarr automatic subtitles downloader for Sonarr and Radarr
-	--cmd BAZ002 - Bazarr remove (http://10.1.0.210:6767)
+	--cmd BAZ002 - Bazarr remove (http://10.1.0.152:6767)
 	--cmd BAZ003 - Bazarr purge with data folder
 	--cmd LID001 - Lidarr automatic music downloader
-	--cmd LID002 - Lidarr remove (http://10.1.0.210:8686)
+	--cmd LID002 - Lidarr remove (http://10.1.0.152:8686)
 	--cmd LID003 - Lidarr purge with data folder
 	--cmd RDR001 - Readarr automatic downloader for Ebooks
-	--cmd RDR002 - Readarr remove (http://10.1.0.210:8787)
+	--cmd RDR002 - Readarr remove (http://10.1.0.152:8787)
 	--cmd RDR003 - Readarr purge with data folder
 	--cmd DOW025 - Prowlarr index manager and proxy for PVR
-	--cmd DOW026 - Prowlarr remove (http://10.1.0.210:9696)
+	--cmd DOW026 - Prowlarr remove (http://10.1.0.152:9696)
 	--cmd DOW027 - Prowlarr purge with data folder
 	--cmd JEL001 - Jellyseerr Jellyfin/Emby/Plex integration install
-	--cmd JEL002 - Jellyseerr remove (http://10.1.0.210:5055)
+	--cmd JEL002 - Jellyseerr remove (http://10.1.0.152:5055)
 	--cmd JEL003 - Jellyseerr purge with data folder
     Database - SQL database servers and web interface managers
 	--cmd DAT001 - Mariadb SQL database server
-	--cmd DAT002 - Mariadb remove (Server: 10.1.0.210)
+	--cmd DAT002 - Mariadb remove (Server: 10.1.0.152)
 	--cmd DAT003 - Mariadb purge with data folder
 	--cmd DAT005 - phpMyAdmin web interface manager
-	--cmd DAT006 - phpMyAdmin remove (http://10.1.0.210:8071)
+	--cmd DAT006 - phpMyAdmin remove (http://10.1.0.152:8071)
 	--cmd DAT007 - phpMyAdmin purge with data folder
     DevTools - Applications and tools for development
 	--cmd DEV001 - Install tools for cloning and managing repositories (git)
@@ -445,40 +451,40 @@ Outputs:
 	--cmd CON003 - Docker remove
 	--cmd CON004 - Docker purge with all images, containers, and volumes
 	--cmd CON005 - Portainer container management platform
-	--cmd CON006 - Portainer remove (http://10.1.0.210:9000)
+	--cmd CON006 - Portainer remove (http://10.1.0.152:9000)
 	--cmd CON007 - Portainer purge with with data folder
     Media - Media servers, organizers and editors
 	--cmd MED003 - Emby organizes video, music, live TV, and photos
-	--cmd MED004 - Emby server remove (http://10.1.0.210:8096)
+	--cmd MED004 - Emby server remove (http://10.1.0.152:8096)
 	--cmd MED005 - Emby server purge with data folder
 	--cmd MED010 - Stirling PDF tools for viewing and editing PDF files
-	--cmd MED011 - Stirling PDF remove (http://10.1.0.210:8077)
+	--cmd MED011 - Stirling PDF remove (http://10.1.0.152:8077)
 	--cmd MED012 - Stirling PDF purge with data folder
 	--cmd MED015 - Syncthing continuous file synchronization
-	--cmd MED016 - Syncthing remove (http://10.1.0.210:8884)
+	--cmd MED016 - Syncthing remove (http://10.1.0.152:8884)
 	--cmd MED017 - Syncthing purge with data folder
 	--cmd MED020 - Nextcloud content collaboration platform
-	--cmd MED021 - Nextcloud remove (https://10.1.0.210:443)
+	--cmd MED021 - Nextcloud remove (https://10.1.0.152:443)
 	--cmd MED022 - Nextcloud purge with data folder
 	--cmd MED025 - Owncloud share files and folders, easy and secure
-	--cmd MED026 - Owncloud remove (http://10.1.0.210:7787)
+	--cmd MED026 - Owncloud remove (http://10.1.0.152:7787)
 	--cmd MED027 - Owncloud purge with data folder
     Monitoring - Real-time monitoring, collecting metrics, up-time status
 	--cmd MON001 - Uptime Kuma self-hosted monitoring tool
-	--cmd MON002 - Uptime Kuma remove (http://10.1.0.210:3001)
+	--cmd MON002 - Uptime Kuma remove (http://10.1.0.152:3001)
 	--cmd MON003 - Uptime Kuma purge with data folder
 	--cmd MON005 - Netdata - monitoring real-time metrics
-	--cmd MON006 - Netdata remove (http://10.1.0.210:19999)
+	--cmd MON006 - Netdata remove (http://10.1.0.152:19999)
 	--cmd MON007 - Netdata purge with data folder
 	--cmd GRA001 - Grafana data analytics
-	--cmd GRA002 - Grafana remove (http://10.1.0.210:3000)
+	--cmd GRA002 - Grafana remove (http://10.1.0.152:3000)
 	--cmd GRA003 - Grafana purge with data folder
     Management - Remote Management tools
-	--cmd MAN001 - Cockpit web-based management tool (http://10.1.0.210:9090)
+	--cmd MAN001 - Cockpit web-based management tool (http://10.1.0.152:9090)
 	--cmd MAN005 - Webmin web-based management tool
     Printing - Tools for printing and 3D printing
 	--cmd OCT001 - OctoPrint web-based 3D printers management tool
-	--cmd OCT002 - OctoPrint remove (http://10.1.0.210:7981)
+	--cmd OCT002 - OctoPrint remove (http://10.1.0.152:7981)
 	--cmd OCT003 - OctoPrint purge with data folder
     Netconfig - Console network tools for measuring load and bandwidth
 	--cmd NET001 - nload -realtime console network usage monitor
@@ -878,6 +884,7 @@ These helper functions facilitate various operations related to job management, 
 | Migrated procedures from Armbian config. | connect_bt_interface | @armbian 
 | Display a message box | show_message <<< 'hello world'  | @Tearran 
 | Manage self hosted runners | install remove remove_online purge help | @igorpecovnik 
+| Install domoticz container | install remove purge status help | @armbian 
 | Menu for armbianmonitor features | see_monitoring | @Tearran 
 | Enable/disable device tree overlays |  | @viraniac 
 | Show or generate QR code for Google OTP | qr_code generate | @igorpecovnik 
