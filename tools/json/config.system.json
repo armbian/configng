@@ -439,7 +439,7 @@
                     "id": "Updates",
                     "description": "OS updates and distribution upgrades",
                     "status": "Active",
-                    "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade rolling verify || release_upgrade stable verify",
+                    "condition": "[ -f /etc/armbian-distribution-status ]",
                     "sub": [
                         {
                             "id": "SY202",
@@ -464,7 +464,7 @@
                             "condition": "! module_armbian_firmware hold status"
                         },
                         {
-                            "id": "SY206",
+                            "id": "ROLLING",
                             "description": "Switch system to rolling packages repository",
                             "about": "This will switch OS to rolling releases.",
                             "command": [
@@ -475,7 +475,7 @@
                             "condition": "module_armbian_firmware repository stable status"
                         },
                         {
-                            "id": "SY207",
+                            "id": "STABLE",
                             "description": "Switch system to stable packages repository",
                             "about": "This will switch OS to stable releases",
                             "command": [
