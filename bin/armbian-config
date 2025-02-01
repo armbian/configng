@@ -3,16 +3,33 @@
 # initializes the terminal from TERM if stdin is a terminal
 [[ -t 0 ]] && tput init
 
-# Language-based variable assignment for script directory path
-# This serves as a Rosetta Stone for developers,
-# allowing them to use the variable name they are most comfortable with.
-
 # allows CTRL c to exit
 trap "exit" INT TERM
 [[ $EUID != 0 ]] && exec sudo "$0" "$@"
 #
 # Get the script directory
 script_dir="$(dirname "$0")"
+
+declare -A module_options
+
+# Conditional settings based on arguments
+# for interactive vs non-interactive modes
+if [[ "$1" == "--api" || "$1" == "--doc" ]]; then
+    UXMODE="false"
+elif [[ -z "$1" || "$1" == "--cmd" || "$1" == "--help" ]]; then
+    UXMODE="true"
+fi
+
+# Additional check for interactive vs non-interactive mode
+if [[ ! -t 0 ]]; then
+    UXMODE="false"
+fi
+
+# Load the initialize modules
+source "$script_dir/../lib/armbian-config/config.initialize.sh"
+
+set_checkpoint start
+set_checkpoint mark "Initializing script" true
 
 [[ -d "$script_dir/../tools" ]] && tools_dir="$script_dir/../tools"
 [[ ! -d "$script_dir/../lib" && -n "$tools_dir" ]] && echo -e "Please run\nbash "$tools_dir/config-assemble.sh" to build the lib directory\n" && exit 1 
@@ -29,32 +46,29 @@ json_file="$lib_dir/config.jobs.json"
 # Load The Bash procedure Objects
 json_data=$(<"$json_file")
 
-#
-# Prepare the module options array
-declare -A module_options
 
-#
 # Load configng core functions and module options array
 
 source "$lib_dir/config.functions.sh"
 set_runtime_variables
-check_distro_status
-echo "Loaded Runtime variables..." #| show_infobox ;
-#set_newt_colors 2
-echo "Loaded Dialog..." #| show_infobox ;
+set_checkpoint mark "Loaded Runtime variables..." true
+# checks for supported os
+set_checkpoint mark "$(check_distro_status)" true
+
+set_checkpoint mark "Loaded Dialog..." true
 source "$lib_dir/config.docs.sh"
-echo "Loaded Docs..." #| show_infobox ;
+set_checkpoint mark "Loaded Docs..." true
 source "$lib_dir/config.system.sh"
-echo "Loaded System helpers..." #| show_infobox ;
+set_checkpoint mark "Loaded System helpers..." true
 source "$lib_dir/config.network.sh"
-echo "Loaded Network helpers..." #| show_infobox ;
+set_checkpoint mark "Loaded Network helpers..." true
 source "$lib_dir/config.software.sh"
-echo "Loaded Software helpers..." #| show_infobox ;
+set_checkpoint mark "Loaded Software helpers..." true
 #
 # Loads the variables from beta armbian-config for runtime handling
 
 source "$lib_dir/config.runtime.sh"
-echo "Loaded Runtime conditions..." #| show_infobox ;
+echo "Loaded Runtime conditions..." true
 
 clear
 
@@ -85,7 +99,6 @@ case "$1" in
 	exit 0
 	;;
 "--cmd")
-	INPUTMODE="cmd"
 	shift
 	if [[ -z "$1" || "$1" == "help" ]]; then
 		see_cmd_list
@@ -104,9 +117,9 @@ case "$1" in
 	fi
 	option="$1"
 	shift
-	args=$(sanitize_input "$@")
+
 	# echo -e "\"$option\" \"$args\""
-	"$option" "$args"
+	"$option" "$@"
 	exit 0
 	;;
 "main=help" | "main=Help")
@@ -171,3 +184,4 @@ generate_top_menu "$json_data"
 about_armbian_configng
 
 exit 0
+
