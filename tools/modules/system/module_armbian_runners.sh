@@ -37,6 +37,10 @@ function module_armbian_runners () {
 	local owner="${owner}"
 	local repository="${repository}"
 
+	# workaround. Remove when parameters handling is fixed
+	local label_primary=$(echo $label_primary | sed "s/_/,/g") # convert
+	local label_secondary=$(echo $label_secondary | sed "s/_/,/g") # convert
+
 	# we can generate per org or per repo
 	local registration_url="${organisation}"
 	local prefix="orgs"
@@ -82,7 +86,7 @@ function module_armbian_runners () {
 				-H "X-GitHub-Api-Version: 2022-11-28" \
 				https://api.github.com/${prefix}/${registration_url}/actions/runners/registration-token | jq -r .token)
 
-				${module_options["module_armbian_runners,feature"]} ${commands[1]} ${runner_name}
+				${module_options["module_armbian_runners,feature"]} ${commands[1]} ${runner_name} "${i}"
 
 				adduser --quiet --disabled-password --shell /bin/bash \
 				--home /home/actions-runner-${i} --gecos "actions-runner-${i}" actions-runner-${i}
@@ -114,19 +118,17 @@ function module_armbian_runners () {
 		;;
 		"${commands[1]}")
 			# delete if previous already exists
-			if id "actions-runner-${i}" >/dev/null 2>&1; then
-				echo "Removing runner ${i} on GitHub"
-				${module_options["module_armbian_runners,feature"]} ${commands[2]} "$2-${i}"
-				echo "Removing runner ${i} locally"
-				runner_home=$(getent passwd "actions-runner-${i}" | cut -d: -f6)
-				if [[ -f "${runner_home}/svc.sh" ]]; then
-					sh -c "cd ${runner_home} ; sudo ./svc.sh stop actions-runner-${i} >/dev/null; sudo ./svc.sh uninstall actions-runner-${i} >/dev/null"
-				fi
-				userdel -r -f actions-runner-${i} 2>/dev/null
-				groupdel actions-runner-${i} 2>/dev/null
-				sed -i "/^actions-runner-${i}.*/d" /etc/sudoers
-				rm -rf "${runner_home}"
+			echo "Removing runner $3 on GitHub"
+			${module_options["module_armbian_runners,feature"]} ${commands[2]} "$2-$3"
+			echo "Removing runner $3 locally"
+			runner_home=$(getent passwd "actions-runner-${3}" | cut -d: -f6)
+			if [[ -f "${runner_home}/svc.sh" ]]; then
+				sh -c "cd ${runner_home} ; sudo ./svc.sh stop actions-runner-$3 >/dev/null; sudo ./svc.sh uninstall actions-runner-$3 >/dev/null"
 			fi
+			userdel -r -f actions-runner-$3 2>/dev/null
+			groupdel actions-runner-$3 2>/dev/null
+			sed -i "/^actions-runner-$3.*/d" /etc/sudoers
+			[[ ${runner_home} != "/" ]] && rm -rf "${runner_home}"
 		;;
 		"${commands[2]}")
 			DELETE=$2
