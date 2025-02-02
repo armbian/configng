@@ -1,0 +1,5 @@
+Types: deb
+URIs: https://github.armbian.com/configng
+Suites: stable
+Components: main
+Signed-By: /usr/share/keyrings/armbian.gpg

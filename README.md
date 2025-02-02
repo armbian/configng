@@ -7,7 +7,7 @@
 <a href=https://github.com/armbian/configng/actions/workflows/debian.yml><img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/armbian/configng/debian.yml?logo=githubactions&label=Packaging&style=for-the-badge&branch=main"></a> <a href=https://github.com/armbian/configng/actions/workflows/unit-tests.yml><img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/armbian/configng/unit-tests.yml?logo=githubactions&label=Unit%20tests&style=for-the-badge&branch=main"></a> <a href=https://github.com/armbian/configng/actions/workflows/docs.yml><img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/armbian/configng/docs.yml?logo=githubactions&label=Documentation&style=for-the-badge&branch=main"></a>
 </p>
 
-**armbian-config** provides configuration and installation routines for customizing and automating tasks within Armbian Linux environment. These utilties help streamline setup processes for various use cases.
+**armbian-config** provides configuration and installation routines for customizing and automating tasks within Armbian Linux environment. These utilities help streamline setup processes for various use cases.
 
 <a href=#><img src=.github/images/common.png></a>
 
@@ -15,19 +15,19 @@
 - **Lightweight**: Minimal dependencies for optimal performance.
 - **Flexible**: Supports JSON, TUI, CLI, and API interfaces.
 - **Modern**: A fresh approach to configuration.
-- **Low entropy**: Byte clean uninstall for most targets
+- **Low entropy**: Byte clean uninstall for most targets.
 
 ## Features
 
 - **System Configuration**: 
-  - kernel manamenent, headers, hardware tweaks.
+  - Kernel management, headers, hardware tweaks.
   - NFS and ZFS storage management.
   - SSH user access tweaks.
-  - system updates, rolling / stable, containers update.
+  - System updates, rolling / stable, containers update.
 - **Network Management**: 
-  - fixed / dynamic IP configuration.
-  - connecting to wireless network.
-  - access point management.
+  - Fixed / dynamic IP configuration.
+  - Connecting to wireless network.
+  - Access point management.
 - **Localization Settings**: 
   - Configure time zone.
   - Set language and locales.
@@ -61,9 +61,13 @@ Add Armbian key + repository and install the tool:
 ```bash
 wget -qO - https://apt.armbian.com/armbian.key | gpg --dearmor | \
 sudo tee /usr/share/keyrings/armbian.gpg > /dev/null
-echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] \
-https://github.armbian.com/configng stable main" | \
-sudo tee /etc/apt/sources.list.d/armbian-config.list > /dev/null
+cat << EOF | sudo tee /etc/apt/sources.list.d/armbian-config.sources > /dev/null
+Types: deb
+URIs: https://github.armbian.com/configng
+Suites: stable
+Components: main
+Signed-By: /usr/share/keyrings/armbian.gpg
+EOF
 sudo apt update
 sudo apt -y install armbian-config
 ```
