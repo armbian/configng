@@ -83,30 +83,26 @@ case "$1" in
 
     "--cmd")
         INPUTMODE="cmd"
-        shift
-        case "$1" in
+        case "$2" in
             ""|"help")
                 see_cmd_list
             ;;
             *)
-                args=$(sanitize_input "$@")
-                execute_command "$args"
+                cmd=$(sanitize "$2") || die
+                execute_command "$cmd"
             ;;
         esac
     ;;
 
     "--api")
-        shift
-        case "$1" in
+        case "$2" in
             ""|"help")
                 see_use
             ;;
             *)
-                option="$1"
-                shift
-                args=$(sanitize_input "$@")
-                # echo -e "\"$option\" \"$args\""
-                "$option" "$args"
+                fn=$(sanitize "$2") || die
+                shift 2
+                "$fn" "$@"
             ;;
         esac
 	;;
