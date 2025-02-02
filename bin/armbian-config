@@ -149,12 +149,6 @@ case "$1" in
 	execute_command "$main_value""$select_value"
 	exit 0
 	;;
-*)
-	if [[ $EUID != 0 ]]; then
-		echo -e "error: Exiting \nTry: 'sudo armbian-config'\n or: 'armbian-config --help' for More info\n\n"
-		exit 0
-	fi
-	;;
 esac
 
 
