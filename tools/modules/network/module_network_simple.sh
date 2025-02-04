@@ -235,7 +235,7 @@ function module_simple_network() {
 			$((${#list[@]}/2 + 10 )) 50 $((${#list[@]}/2 + 1)) "${list[@]}" 3>&1 1>&2 2>&3)
 			if [[ $? -eq 0 ]]; then
 				if $DIALOG --title "Action for ${adapter}" --yes-button "Configure" --no-button "Drop" --yesno "$1" 5 60; then
-					:
+					ip link set ${adapter} up
 				else
 					sed -i -e 'H;x;/^\(  *\)\n\1/{s/\n.*//;x;d;}' \
 					-e 's/.*//;x;/'${adapter}'/{s/^\( *\).*/ \1/;x;d;}' /etc/netplan/${yamlfile}.yaml
