@@ -73,14 +73,12 @@ echo "Loaded Runtime conditions..." true
 clear
 
 case "$1" in
-"--help")
-	if [[ -n "$2" ]]; then
-		see_cmd_list "$2"
-		echo ""
-		exit 0
-	fi
-
-	echo "Usage:  armbian-config --[option]
+    "--help")
+        if [[ -n "$2" ]]; then
+            see_cmd_list "$2"
+            echo ""
+        else
+            echo "Usage:  armbian-config --[option]
      Options:
      --help [category]   Use [category] to filter specific menu options.
      --cmd  [option]     Run a command from the menu (simple)
@@ -92,93 +90,80 @@ case "$1" in
      armbian-config --cmd help 
      armbian-config --api help
 "
-	exit 0
-	;;
-"--doc")
-	generate_readme
-	exit 0
-	;;
-"--cmd")
-	shift
-	if [[ -z "$1" || "$1" == "help" ]]; then
-		see_cmd_list
-		exit 0
-	fi
+        fi
+    ;;
 
-	args=$(sanitize_input "$@")
-	execute_command "$args"
-	exit 0
-	;;
-"--api")
-	shift
-	if [[ -z "$1" || "$1" == "help" ]]; then
-		see_use
-		exit 0
-	fi
-	option="$1"
-	shift
+    "--doc")
+        generate_readme
+    ;;
 
-	# echo -e "\"$option\" \"$args\""
-	"$option" "$@"
-	exit 0
-	;;
-"main=help" | "main=Help")
-	see_cli_legacy
-	echo ""
-	exit 0
-	;;
-"main="*)
-	declare -A main_map
-	main_map=(
-		# map name to menu category
-		["System"]="S"
-		["Software"]="I"
-		["Network"]="N"
-		["Localisation"]="L"
-	)
-	main_value="${1#main=}"
-	main_value="${main_map[$main_value]}"
+    "--cmd")
+        INPUTMODE="cmd"
+        case "$2" in
+            ""|"help")
+                see_cmd_list
+            ;;
+            *)
+                cmd=$(sanitize "$2") || die
+                execute_command "$cmd"
+            ;;
+        esac
+    ;;
 
-	if [ -z "$main_value" ]; then
-		echo "Error: Invalid List $1"
-		exit 1
-	fi
-	declare -A select_map
-	# map name to menu number
-	select_map=(
-		["Headers"]="04"
-		["Headers_install"]="04"
-		["Headers_remove"]="05"
-		["Firmware"]="06"
-		["Nightly"]="07"
-	)
-	select_value="${2#selection=}"
-	select_value="${select_map[$select_value]}"
-	if [ -z "$select_value" ]; then
-		echo "Error: Invalid Option $2"
-		exit 1
-	fi
-	echo "$main_value""$select_value"
-	execute_command "$main_value""$select_value"
-	exit 0
+    "--api")
+        case "$2" in
+            ""|"help")
+                see_use
+            ;;
+            *)
+                fn=$(sanitize "$2") || die
+                shift 2
+                "$fn" "$@"
+            ;;
+        esac
 	;;
-	*)
-	#
-	# Generate the top menu with the modified Object data
-	set_colors 4
-	generate_top_menu "$json_data"
 
-	#
-	# Exit the script with a success status code
-
-	#
-	# Show about this tool on exit
-	about_armbian_configng
+    "main=help" | "main=Help")
+        see_cli_legacy
+        echo ""
 	;;
+
+    "main="*)
+        declare -A main_map
+        main_map=(
+            # map name to menu category
+            ["System"]="S"
+            ["Software"]="I"
+            ["Network"]="N"
+            ["Localisation"]="L"
+        )
+        main_value="${1#main=}"
+        main_value="${main_map[$main_value]}"
+        [ -z "$main_value" ] && die "Error: Invalid List $1"
+
+        declare -A select_map
+        # map name to menu number
+        select_map=(
+            ["Headers"]="04"
+            ["Headers_install"]="04"
+            ["Headers_remove"]="05"
+            ["Firmware"]="06"
+            ["Nightly"]="07"
+        )
+        select_value="${2#selection=}"
+        select_value="${select_map[$select_value]}"
+        [ -z "$select_value" ] && die "Error: Invalid Option $2"
+
+        echo "$main_value""$select_value"
+        execute_command "$main_value""$select_value"
+	;;
+
+    *)
+        # Generate the top menu with the modified Object data
+        set_colors 4
+        generate_top_menu "$json_data"
+
+        # Show about this tool on exit
+        about_armbian_configng
+    ;;
 esac
-
-
-
-
-exit 0
-
