@@ -1,10 +1,11 @@
 #!/bin/bash
 
 # initializes the terminal from TERM if stdin is a terminal
-[[ -t 0 ]] && tput init
-
+unset UXMODE
+[[ -t 0 && "$1" =~ ^(|--cmd|--help)$ ]] && UXMODE="true" && tput init
 # allows CTRL c to exit
 trap "exit" INT TERM
+
 [[ $EUID != 0 ]] && exec sudo "$0" "$@"
 #
 # Get the script directory
@@ -12,27 +13,26 @@ script_dir="$(dirname "$0")"
 
 declare -A module_options
 
-# Conditional settings based on arguments
-# for interactive vs non-interactive modes
-if [[ "$1" == "--api" || "$1" == "--doc" ]]; then
-    UXMODE="false"
-elif [[ -z "$1" || "$1" == "--cmd" || "$1" == "--help" ]]; then
-    UXMODE="true"
-fi
-
-# Additional check for interactive vs non-interactive mode
-if [[ ! -t 0 ]]; then
-    UXMODE="false"
-fi
-
 # Load the initialize modules
 source "$script_dir/../lib/armbian-config/config.initialize.sh"
 
+# Start loading messages
 set_checkpoint start
-set_checkpoint mark "Initializing script" true
+set_checkpoint mark "Initializing script"
 
 [[ -d "$script_dir/../tools" ]] && tools_dir="$script_dir/../tools"
 [[ ! -d "$script_dir/../lib" && -n "$tools_dir" ]] && die -e "Please run\nbash "$tools_dir/config-assemble.sh" to build the lib directory\n"
+
+
+DEV=$([[ "$(basename "$0")" =~ .*"-dev"$ ]] && echo "true")
+
+# If the script name ends with "-dev", source all .sh files in the dev directory
+if [[ "$DEV" == "true" ]]; then
+	for file in "$tools_dir/development"/*.sh; do
+		set_checkpoint mark "Loading development modules"
+		. "$file"
+	done
+fi
 
 # 'whiptail' is a simple dialog box utility that works well with Bash. It doesn't have all the features of some other dialog box utilities, but it does everything we need for this script.
 [[ -x "$(command -v whiptail)" ]] && DIALOG="whiptail"
@@ -51,24 +51,25 @@ json_data=$(<"$json_file")
 
 source "$lib_dir/config.functions.sh"
 set_runtime_variables
-set_checkpoint mark "Loaded Runtime variables..." true
+set_checkpoint mark "Loaded Runtime variables..."
 # checks for supported os
-set_checkpoint mark "$(check_distro_status)" true
+set_checkpoint mark "$(check_distro_status)"
 
-set_checkpoint mark "Loaded Dialog..." true
+set_checkpoint mark "Loaded Dialog..."
 source "$lib_dir/config.docs.sh"
-set_checkpoint mark "Loaded Docs..." true
+set_checkpoint mark "Loaded Docs..."
 source "$lib_dir/config.system.sh"
-set_checkpoint mark "Loaded System helpers..." true
+set_checkpoint mark "Loaded System helpers..."
 source "$lib_dir/config.network.sh"
-set_checkpoint mark "Loaded Network helpers..." true
+set_checkpoint mark "Loaded Network helpers..."
 source "$lib_dir/config.software.sh"
-set_checkpoint mark "Loaded Software helpers..." true
+set_checkpoint mark "Loaded Software helpers..."
 #
 # Loads the variables from beta armbian-config for runtime handling
 
 source "$lib_dir/config.runtime.sh"
-echo "Loaded Runtime conditions..." true
+set_checkpoint mark "Loaded Runtime conditions..."
+set_checkpoint stop
 
 case "$1" in
     "--help")
@@ -77,7 +78,7 @@ case "$1" in
             echo ""
         else
             echo "Usage:  armbian-config --[option]
-     Options:
+  Options:
      --help [category]   Use [category] to filter specific menu options.
      --cmd  [option]     Run a command from the menu (simple)
      --api  [option]     Run a helper command        (advanced)
