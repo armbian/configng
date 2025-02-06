@@ -124,6 +124,7 @@ update_sub_submenu_data "Software" "HomeAutomation" "DOM002" "http://$LOCALIPADD
 
 # DNS
 update_sub_submenu_data "Software" "DNS" "DNS003" "http://$LOCALIPADD:${module_options["module_pi_hole,port"]%% *}" # removing second port from url
+update_sub_submenu_data "Software" "DNS" "ADG002" "http://$LOCALIPADD:${module_options["module_adguardhome,port"]%% *}" # removing second port from url
 
 # Monitoring
 update_sub_submenu_data "Software" "Monitoring" "MON002" "http://$LOCALIPADD:${module_options["module_uptimekuma,port"]}"
