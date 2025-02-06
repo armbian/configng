@@ -259,7 +259,7 @@ function module_armbian_firmware() {
 			local repository=$2
 			local status=$3
 
-			if grep -q 'apt.armbian.com' /etc/apt/sources.list.d/armbian.list; then
+			if grep -q 'apt.armbian.com' /etc/apt/sources.list.d/armbian.sources; then
 				if [[ "$repository" == "rolling" && "$status" == "status" ]]; then
 					return 1
 				elif [[ "$status" == "status" ]]; then
@@ -267,7 +267,7 @@ function module_armbian_firmware() {
 				fi
 				# performs list change & update if this is needed
 				if [[ "$repository" == "rolling" ]]; then
-					sed -i "s/http:\/\/[^ ]*/http:\/\/beta.armbian.com/" /etc/apt/sources.list.d/armbian.list
+					sed -iE "s/https?:\/\/[^ ]*/https:\/\/beta.armbian.com/" /etc/apt/sources.list.d/armbian.sources
 					pkg_update
 				fi
 			else
@@ -278,7 +278,7 @@ function module_armbian_firmware() {
 				fi
 				# performs list change & update if this is needed
 				if [[ "$repository" == "stable" ]]; then
-					sed -i "s/http:\/\/[^ ]*/http:\/\/apt.armbian.com/" /etc/apt/sources.list.d/armbian.list
+					sed -iE "s/https?:\/\/[^ ]*/https:\/\/apt.armbian.com/" /etc/apt/sources.list.d/armbian.sources
 					pkg_update
 				fi
 			fi

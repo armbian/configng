@@ -289,7 +289,14 @@ sudo apt install armbian-config
 	sudo wget https://apt.armbian.com/armbian.key -O key
 	sudo gpg --dearmor < key | sudo tee /usr/share/keyrings/armbian.gpg > /dev/null
 	sudo chmod go+r /usr/share/keyrings/armbian.gpg
-	sudo echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/armbian.gpg] http://apt.armbian.com $(lsb_release -cs) main  $(lsb_release -cs)-utils  $(lsb_release -cs)-desktop" | sudo tee /etc/apt/sources.list.d/armbian.list
+	cat <<- EOF | sudo tee /etc/apt/sources.list.d/armbian.sources
+	Types: deb
+	URIs: https://apt.armbian.com
+	Suites: $(lsb_release -cs)
+	Components: main $(lsb_release -cs)-utils $(lsb_release -cs)-desktop
+	Architectures: $(dpkg --print-architecture)
+	Signed-By: /usr/share/keyrings/armbian.gpg
+	EOF
 	sudo apt update
 	sudo apt install armbian-config
 }
@@ -1029,4 +1036,3 @@ Install and test Development deb:
 ~~~
 
 </details>
-
