@@ -1634,7 +1634,7 @@
                                 "pkg_install avahi-daemon libnss-mdns",
                                 "cp /usr/share/doc/avahi-daemon/examples/sftp-ssh.service /etc/avahi/services/",
                                 "cp /usr/share/doc/avahi-daemon/examples/ssh.service /etc/avahi/services/",
-                                "service restart avahi-daemon"
+                                "srv_restart avahi-daemon.service"
                             ],
                             "status": "Stable",
                             "author": "@armbian",

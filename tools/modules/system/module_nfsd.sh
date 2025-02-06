@@ -29,7 +29,7 @@ function module_nfsd () {
 			pkg_install nfs-common nfs-kernel-server
 			# add some exports
 			${module_options["module_nfsd,feature"]} ${commands[2]}
-			service restart $service_name
+			srv_restart $service_name
 		;;
 		"${commands[1]}")
 			pkg_remove nfs-kernel-server
@@ -67,7 +67,7 @@ function module_nfsd () {
 					break
 				fi
 			done
-			service restart $service_name
+			srv_restart $service_name
 		;;
 		"${commands[3]}")
 			# choose between most common options
