@@ -988,6 +988,36 @@
                             "condition": "module_mariadb status"
                         },
                         {
+                            "id": "PGR001",
+                            "description": "Postgres SQL database server",
+                            "command": [
+                                "module_postgres install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_postgres status"
+                        },
+                        {
+                            "id": "PGR002",
+                            "description": "Postgres remove",
+                            "command": [
+                                "module_postgres remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_postgres status"
+                        },
+                        {
+                            "id": "PGR003",
+                            "description": "Postgres purge with data folder",
+                            "command": [
+                                "module_postgres purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_postgres status"
+                        },
+                        {
                             "id": "DAT005",
                             "description": "phpMyAdmin web interface manager",
                             "command": [
