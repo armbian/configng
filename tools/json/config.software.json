@@ -153,6 +153,39 @@
                             "status": "Preview",
                             "author": "@igorpecovnik",
                             "condition": "module_domoticz status"
+                        },
+                        {
+                            "id": "EVCC01",
+                            "description": "EVCC - solar charging automation",
+                            "about": "This operation will install solar charging automation.",
+                            "command": [
+                                "module_evcc install"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_evcc status"
+                        },
+                        {
+                            "id": "EVCC02",
+                            "description": "EVCC - solar charging automation remove",
+                            "about": "This operation will remove solar charging automation.",
+                            "command": [
+                                "module_evcc remove"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_evcc status"
+                        },
+                        {
+                            "id": "EVCC03",
+                            "description": "EVCC purge with data folder",
+                            "about": "This operation will purge solar charging automation with data folder.",
+                            "command": [
+                                "module_evcc purge"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_evcc status"
                         }
                     ]
                 },
