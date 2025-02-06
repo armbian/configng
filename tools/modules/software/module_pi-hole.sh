@@ -8,7 +8,7 @@ module_options+=(
 	["module_pi_hole,doc_link"]="https://docs.pi-hole.net/"
 	["module_pi_hole,group"]="DNS"
 	["module_pi_hole,port"]="80 53"
-	["module_pi_hole,arch"]="x86-64 arm64"
+	["module_pi_hole,arch"]=""
 )
 #
 # Module Pi-Hole
@@ -30,24 +30,7 @@ function module_pi_hole () {
 		"${commands[0]}")
 			pkg_installed docker-ce || module_docker install
 			[[ -d "$PIHOLE_BASE" ]] || mkdir -p "$PIHOLE_BASE" || { echo "Couldn't create storage directory: $PIHOLE_BASE"; exit 1; }
-			# disable dns within systemd-resolved
-			if systemctl is-active --quiet systemd-resolved.service; then
-				# Debian doesn't enable this file by default
-				[[ ! -f /etc/systemd/resolved.conf ]] && ln -s /etc/systemd/resolved.conf.real /etc/systemd/resolved.conf
-				if ! grep -q "^DNSStubListener=no" /etc/systemd/resolved.conf 2> /dev/null; then
-					sed -i "s/^#\?DNSStubListener=.*/DNSStubListener=no/" /etc/systemd/resolved.conf
-					systemctl restart systemd-resolved.service
-					sleep 3
-				fi
-			fi
-			# disable dns within Network manager
-			if systemctl is-active --quiet NetworkManager && [[ -f /etc/NetworkManager/NetworkManager.conf ]]; then
-				if grep -q "dns=true" /etc/NetworkManager/NetworkManager.conf; then
-					sed -i "s/dns=.*/dns=false/g" /etc/NetworkManager/NetworkManager.conf
-					systemctl restart NetworkManager
-					sleep 3
-				fi
-			fi
+			[[ ! -f "/etc/systemd/resolved.conf.d/armbian-defaults.conf" ]] && ${module_options["module_pi_hole,feature"]} ${commands[1]}
 			docker run -d \
 			--name pihole \
 			--net=lsio \
@@ -74,10 +57,31 @@ function module_pi_hole () {
 					exit 1
 				fi
 			done
+			local container_ip=$(docker inspect --format '{{ .NetworkSettings.Networks.lsio.IPAddress }}' pihole)
+			if systemctl is-active --quiet systemd-resolved.service; then
+				mkdir -p /etc/systemd/resolved.conf.d/
+				cat > "/etc/systemd/resolved.conf.d/armbian-defaults.conf" <<- EOT
+				[Resolve]
+				DNS=127.0.0.1 ${container_ip}
+				DNSStubListener=no
+				EOT
+				systemctl restart systemd-resolved.service
+				sleep 2
+			fi
 		;;
 		"${commands[1]}")
 			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
 			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+			# restore DNS settings
+			if systemctl is-active --quiet systemd-resolved.service; then
+				mkdir -p /etc/systemd/resolved.conf.d/
+				cat > "/etc/systemd/resolved.conf.d/armbian-defaults.conf" <<- EOT
+				[Resolve]
+				DNSStubListener=no
+				EOT
+				systemctl restart systemd-resolved.service
+				sleep 2
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_pi_hole,feature"]} ${commands[1]}

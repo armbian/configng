@@ -31,6 +31,7 @@ function module_adguardhome () {
 		"${commands[0]}")
 			pkg_installed docker-ce || module_docker install
 			[[ -d "$ADGUARDHOME_BASE" ]] || mkdir -p "$ADGUARDHOME_BASE" || { echo "Couldn't create storage directory: $ADGUARDHOME_BASE"; exit 1; }
+			[[ ! -f "/etc/systemd/resolved.conf.d/armbian-defaults.conf" ]] && ${module_options["module_adguardhome,feature"]} ${commands[1]}
 			docker run -d \
 			--net=lsio \
 			-p 53:53/tcp -p 53:53/udp \
@@ -57,24 +58,30 @@ function module_adguardhome () {
 				fi
 			done
 			local container_ip=$(docker inspect --format '{{ .NetworkSettings.Networks.lsio.IPAddress }}' adguardhome)
-			cat > "/etc/systemd/resolved.conf.d/armbian-defaults.conf" <<- EOT
-			[Resolve]
-			DNS=127.0.0.1 ${container_ip}
-			DNSStubListener=no
-			EOT
-			systemctl restart systemd-resolved.service
-			sleep 3
+			if systemctl is-active --quiet systemd-resolved.service; then
+				mkdir -p /etc/systemd/resolved.conf.d/
+				cat > "/etc/systemd/resolved.conf.d/armbian-defaults.conf" <<- EOT
+				[Resolve]
+				DNS=127.0.0.1 ${container_ip}
+				DNSStubListener=no
+				EOT
+				systemctl restart systemd-resolved.service
+				sleep 2
+			fi
 		;;
 		"${commands[1]}")
 			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
 			[[ "${image}" ]] && docker image rm "$image" >/dev/null
 			# restore DNS settings
-			cat > "/etc/systemd/resolved.conf.d/armbian-defaults.conf" <<- EOT
-			[Resolve]
-			DNSStubListener=no
-			EOT
-			systemctl restart systemd-resolved.service
-			sleep 2
+			if systemctl is-active --quiet systemd-resolved.service; then
+				mkdir -p /etc/systemd/resolved.conf.d/
+				cat > "/etc/systemd/resolved.conf.d/armbian-defaults.conf" <<- EOT
+				[Resolve]
+				DNSStubListener=no
+				EOT
+				systemctl restart systemd-resolved.service
+				sleep 2
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_adguardhome,feature"]} ${commands[1]}
