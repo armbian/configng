@@ -1,7 +1,7 @@
 # service.sh
 
 # internal function
-_srv_inside_jail() { systemd-detect-virt -qc; }
+_srv_system_running() { [[ $(systemctl is-system-running) =~ ^(running|degraded)$ ]]; }
 
 declare -A module_options
 module_options+=(
@@ -14,8 +14,8 @@ module_options+=(
 
 srv_active()
 {
-	# ignore inside container
-	_srv_inside_jail && return 1 || systemctl is-active --quiet "$@"
+	# fail inside container
+	_srv_system_running && systemctl is-active --quiet "$@"
 }
 
 module_options+=(
@@ -69,7 +69,7 @@ module_options+=(
 srv_reload()
 {
 	# ignore inside container
-	_srv_inside_jail || systemctl reload "$@"
+	_srv_system_running && systemctl reload "$@" || true
 }
 
 module_options+=(
@@ -83,7 +83,7 @@ module_options+=(
 srv_restart()
 {
 	# ignore inside container
-	_srv_inside_jail || systemctl restart "$@"
+	_srv_system_running && systemctl restart "$@" || true
 }
 
 module_options+=(
@@ -97,7 +97,7 @@ module_options+=(
 srv_start()
 {
 	# ignore inside container
-	_srv_inside_jail || systemctl start "$@"
+	_srv_system_running && systemctl start "$@" || true
 }
 
 module_options+=(
@@ -111,7 +111,7 @@ module_options+=(
 srv_stop()
 {
 	# ignore inside container
-	_srv_inside_jail || systemctl stop "$@"
+	_srv_system_running && systemctl stop "$@" || true
 }
 
 module_options+=(
