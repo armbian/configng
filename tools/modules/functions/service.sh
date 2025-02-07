@@ -18,6 +18,21 @@ srv_active()
 	_srv_system_running && systemctl is-active --quiet "$@"
 }
 
+declare -A module_options
+module_options+=(
+	["srv_daemon_reload,author"]="@dimitry-ishenko"
+	["srv_daemon_reload,desc"]="Reload systemd configuration"
+	["srv_daemon_reload,example"]="srv_daemon_reload"
+	["srv_daemon_reload,feature"]="srv_daemon_reload"
+	["srv_daemon_reload,status"]="Interface"
+)
+
+srv_daemon_reload()
+{
+	# ignore inside container
+	_srv_system_running && systemctl daemon-reload || true
+}
+
 module_options+=(
 	["srv_disable,author"]="@dimitry-ishenko"
 	["srv_disable,desc"]="Disable service"
