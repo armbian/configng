@@ -90,6 +90,9 @@ function module_armbian_firmware() {
 
 		"${commands[1]}") # purge old and install new packages from desired branch and version
 
+			# We are updating beta packages repository quite often. In order to make sure, update won't break, always update package list
+			pkg_update
+
 			# input parameters
 			local branch=$2
 			local version=$3
@@ -101,12 +104,13 @@ function module_armbian_firmware() {
 
 			# purge and install
 			for pkg in ${packages[@]}; do
-				purge_pkg=$(echo $pkg | sed -e 's/linux-image.*/linux-image*/;s/linux-dtb.*/linux-dtb*/;s/linux-headers.*/linux-headers*/;s/armbian-firmware.*/armbian-firmware*/')
 				# if test install is succesfull, proceed
-				pkg_install --simulate --download-only --allow-downgrades "${pkg}"
-				if [[ $? == 0 ]]; then
+				if [[ -z $(LC_ALL=C apt-get install --simulate --download-only --allow-downgrades --reinstall "${pkg}" 2>/dev/null| grep "not possible") ]]; then
+					purge_pkg=$(echo $pkg | sed -e 's/linux-image.*/linux-image*/;s/linux-dtb.*/linux-dtb*/;s/linux-headers.*/linux-headers*/;s/armbian-firmware.*/armbian-firmware*/')
 					pkg_remove "${purge_pkg}"
 					pkg_install --allow-downgrades "${pkg}"
+				else
+					die "Error: Package install not possible due to network / repository problem"
 				fi
 			done
 			if [[ -z "${headers}" ]]; then
