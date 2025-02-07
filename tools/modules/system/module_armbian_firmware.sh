@@ -105,21 +105,19 @@ function module_armbian_firmware() {
 			# purge and install
 			for pkg in ${packages[@]}; do
 				# if test install is succesfull, proceed
-				if [[ -z $(LC_ALL=C apt-get install --simulate --download-only --allow-downgrades --reinstall "${pkg}" 2>/dev/null| grep "not possible") ]]; then
+				if [[ -z $(LC_ALL=C apt-get install --simulate --download-only --allow-downgrades --reinstall "${pkg}" 2>/dev/null | grep "not possible") ]]; then
 					purge_pkg=$(echo $pkg | sed -e 's/linux-image.*/linux-image*/;s/linux-dtb.*/linux-dtb*/;s/linux-headers.*/linux-headers*/;s/armbian-firmware.*/armbian-firmware*/')
 					pkg_remove "${purge_pkg}"
 					pkg_install --allow-downgrades "${pkg}"
 				else
-					die "Error: Package install not possible due to network / repository problem"
+					echo "Error: Package install not possible due to network / repository problem. Try again later and report to Armbian forums"
+					exit 0
 				fi
 			done
-			if [[ -z "${headers}" ]]; then
-				if $DIALOG --title " Reboot required " --yes-button "Reboot" --no-button "Cancel" --yesno \
-					"A reboot is required to apply the changes. Shall we reboot now?" 7 34; then
-					reboot
-				fi
+			if test -t 0 && $DIALOG --title " Reboot required " --yes-button "Reboot" --no-button "Cancel" --yesno \
+				"A reboot is required to apply the changes. Shall we reboot now?" 7 34; then
+				reboot
 			fi
-
 
 		;;
 		"${commands[2]}") # generate a list of possible packages to install
@@ -171,21 +169,20 @@ function module_armbian_firmware() {
 			# package version was removed from repository. Just in case.
 			packages=""
 			for pkg in ${armbian_packages[@]}; do
+
+				# look into cache
+				local cache_show=$(apt-cache show "$pkg" 2> /dev/null | grep -E "Package:|^Version:|family" \
+					| sed -n -e 's/^.*: //p' \
+					| sed 's/\.$//g' \
+					| xargs -n2 -d'\n' \
+					| grep "${pkg}")
+
 				# use package + version if found else use package if found
-				if apt-cache show "$pkg" 2> /dev/null \
-					| grep -E "Package:|^Version:|family" \
-					| sed -n -e 's/^.*: //p' \
-					| sed 's/\.$//g' \
-					| xargs -n2 -d'\n' \
-					| grep ${pkg} | grep -e ${version} >/dev/null 2>&1; then
-					packages+="${pkg}=${version} ";
-				elif
-					apt-cache show "$pkg" 2> /dev/null \
-					| grep -E "Package:|^Version:|family" \
-					| sed -n -e 's/^.*: //p' \
-					| sed 's/\.$//g' \
-					| xargs -n2 -d'\n' \
-					| grep "${pkg}" >/dev/null 2>&1 ; then
+				if [[ -n "${version}" && -n "${cache_show}" ]]; then
+					if [[ -n $(echo "$cache_show" | grep "$version""$" ) ]]; then
+						packages+="${pkg}=${version} ";
+					fi
+				elif [[ -n "${cache_show}" ]]; then
 					packages+="${pkg} ";
 				fi
 			done
@@ -290,7 +287,6 @@ function module_armbian_firmware() {
 
 		;;
 
-
 		"${commands[7]}")
 			echo -e "\nUsage: ${module_options["module_armbian_firmware,feature"]} <command> <switches>"
 			echo -e "Commands:  ${module_options["module_armbian_firmware,example"]}"
@@ -305,7 +301,7 @@ function module_armbian_firmware() {
 			echo
 		;;
 		*)
-		${module_options["module_armbian_firmware,feature"]} ${commands[7]}
+			${module_options["module_armbian_firmware,feature"]} ${commands[7]}
 		;;
 	esac
 }
