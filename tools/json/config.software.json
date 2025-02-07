@@ -199,6 +199,66 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "module_pi_hole status"
+                        },
+                        {
+                            "id": "UNB001",
+                            "description": "Unbound caching DNS resolver",
+                            "command": [
+                                "module_unbound install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_unbound status"
+                        },
+                        {
+                            "id": "UNB002",
+                            "description": "Unbound remove",
+                            "command": [
+                                "module_unbound remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_unbound status"
+                        },
+                        {
+                            "id": "UNB003",
+                            "description": "Unbound purge with data folder",
+                            "command": [
+                                "module_unbound remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_unbound status"
+                        },
+                        {
+                            "id": "ADG001",
+                            "description": "AdGuardHome DNS sinkhole",
+                            "command": [
+                                "module_adguardhome install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_adguardhome status"
+                        },
+                        {
+                            "id": "ADG002",
+                            "description": "AdGuardHome remove",
+                            "command": [
+                                "module_adguardhome remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_adguardhome status"
+                        },
+                        {
+                            "id": "ADG003",
+                            "description": "AdGuardHome purge with data folder",
+                            "command": [
+                                "module_adguardhome remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_adguardhome status"
                         }
                     ]
                 },
