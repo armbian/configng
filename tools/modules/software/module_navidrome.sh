@@ -54,12 +54,12 @@ function module_navidrome () {
 			done
 		;;
 		"${commands[1]}")
-			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+			if [[ "${container}" ]]; then docker container rm -f "$container" >/dev/null; fi
+			if [[ "${image}" ]]; then docker image rm "$image" >/dev/null; fi
 		;;
 		"${commands[2]}")
 			${module_options["module_navidrome,feature"]} ${commands[1]}
-			[[ -n "${NAVIDROME_BASE}" && "${NAVIDROME_BASE}" != "/" ]] && rm -rf "${NAVIDROME_BASE}"
+			if [[ -n "${NAVIDROME_BASE}" && "${NAVIDROME_BASE}" != "/" ]]; then rm -rf "${NAVIDROME_BASE}"; fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then
