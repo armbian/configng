@@ -33,17 +33,18 @@ function set_checkpoint() {
 			set_checkpoint_STOP=$(date +%s)
 		;;
 		mark)
-			if [[ "$UXMODE" == "true" ]]; then
+			if [[ "$UXMODE" == "true" || -n "$DEBUG" ]]; then
 				local checkpoint_time=$(date +%s)
 				local checkpoint_duration=$((checkpoint_time - set_checkpoint_PREV))
 				set_checkpoint_PREV=$checkpoint_time
 				set_checkpoint_CHECKPOINTS+=($checkpoint_time)
 				set_checkpoint_DESCRIPTIONS+=("$2")
 				local count=${#set_checkpoint_DESCRIPTIONS[@]}
-				printf "%-30s %10d seconds\n" "$2 " "${checkpoint_duration}"
+				[[ -z "$DEBUG" ]] && printf "%-30s %10d seconds\n" "$2 " "${checkpoint_duration}"
 			fi
 		;;
 		show)
+			[[ -z "$set_checkpoint_STOP" ]]	&& set_checkpoint stop
 			if [[ -n "$set_checkpoint_START" && -n "$set_checkpoint_STOP" ]]; then
 				set_checkpoint_DURATION=$((set_checkpoint_STOP - set_checkpoint_START))
 				printf "%-30s: %d seconds\n" "Total elapsed time" "${set_checkpoint_DURATION}"

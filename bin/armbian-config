@@ -23,17 +23,6 @@ set_checkpoint mark "Initializing script"
 [[ -d "$script_dir/../tools" ]] && tools_dir="$script_dir/../tools"
 [[ ! -d "$script_dir/../lib" && -n "$tools_dir" ]] && die -e "Please run\nbash "$tools_dir/config-assemble.sh" to build the lib directory\n"
 
-
-DEV=$([[ "$(basename "$0")" =~ .*"-dev"$ ]] && echo "true")
-
-# If the script name ends with "-dev", source all .sh files in the dev directory
-if [[ "$DEV" == "true" ]]; then
-	for file in "$tools_dir/development"/*.sh; do
-		set_checkpoint mark "Loading development modules"
-		. "$file"
-	done
-fi
-
 # 'whiptail' is a simple dialog box utility that works well with Bash. It doesn't have all the features of some other dialog box utilities, but it does everything we need for this script.
 [[ -x "$(command -v whiptail)" ]] && DIALOG="whiptail"
 
@@ -69,7 +58,10 @@ set_checkpoint mark "Loaded Software helpers..."
 
 source "$lib_dir/config.runtime.sh"
 set_checkpoint mark "Loaded Runtime conditions..."
-set_checkpoint stop
+
+# usage: sudo DEBUG=1 ./config-time/bin/armbian-config $@
+# place one in a section with a quoted "about message"  
+[[ -n "$DEBUG" ]] && set_checkpoint mark "DEBUG Meaasges on" ;
 
 case "$1" in
     "--help")
@@ -161,8 +153,9 @@ case "$1" in
         # Generate the top menu with the modified Object data
         set_colors 4
         generate_top_menu "$json_data"
-
         # Show about this tool on exit
         about_armbian_configng
     ;;
 esac
+
+[[ -n "$DEBUG" && -n $tools_dir ]] && set_checkpoint show
