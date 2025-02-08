@@ -52,7 +52,7 @@ function set_runtime_variables() {
 	[[ -f /etc/armbian-distribution-status ]] && DISTRO_STATUS="/etc/armbian-distribution-status"
 
 	DISTRO=$(lsb_release -is)
-	DISTROID=$(lsb_release -sc || grep "VERSION=" /etc/os-release | grep -oP '(?<=\().*(?=\))')
+	DISTROID=$(lsb_release -sc 2> /dev/null || grep "VERSION=" /etc/os-release | grep -oP '(?<=\().*(?=\))')
 	KERNELID=$(uname -r)
 	[[ -z "${ARMBIAN// /}" ]] && ARMBIAN="$DISTRO $DISTROID"
 
