@@ -1327,7 +1327,7 @@
                             "command": [
                                 "module_jellyfin install"
                             ],
-                            "status": "Stable",
+                            "status": "Preview",
                             "author": "@igorpecovnik",
                             "condition": "! module_jellyfin status"
                         },
@@ -1337,7 +1337,7 @@
                             "command": [
                                 "module_jellyfin remove"
                             ],
-                            "status": "Stable",
+                            "status": "Preview",
                             "author": "@igorpecovnik",
                             "condition": "module_jellyfin status"
                         },
@@ -1347,7 +1347,7 @@
                             "command": [
                                 "module_jellyfin purge"
                             ],
-                            "status": "Stable",
+                            "status": "Preview",
                             "author": "@igorpecovnik",
                             "condition": "module_jellyfin status"
                         }
