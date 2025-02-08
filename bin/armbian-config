@@ -89,14 +89,17 @@ case "$1" in
     ;;
 
     "--cmd")
+    checkpoint debug "Starting Command line UX option"
         INPUTMODE="cmd"
         case "$2" in
             ""|"help")
                 see_cmd_list
+		checkpoint debug "Exiting help message"
             ;;
             *)
                 cmd=$(sanitize "$2") || die
                 execute_command "$cmd"
+		checkpoint debug "Starting Command line options UX"
             ;;
         esac
     ;;
@@ -155,9 +158,12 @@ case "$1" in
     *)
         # Generate the top menu with the modified Object data
         set_colors 4
+	checkpoint debug "Starting Text User Interface (TUI)"
         generate_top_menu "$json_data"
-        # Show about this tool on exit
+        checkpoint debug "Exiting TUI"
+	# Show about this tool on exit
         about_armbian_configng
+
     ;;
 esac
 
