@@ -1320,6 +1320,36 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "module_owncloud status"
+                        },
+                        {
+                            "id": "MED030",
+                            "description": "Jellyfin Media System",
+                            "command": [
+                                "module_jellyfin install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_jellyfin status"
+                        },
+                        {
+                            "id": "MED031",
+                            "description": "Jellyfin remove",
+                            "command": [
+                                "module_jellyfin remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_jellyfin status"
+                        },
+                        {
+                            "id": "MED032",
+                            "description": "Jellyfin purge with data folder",
+                            "command": [
+                                "module_jellyfin purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_jellyfin status"
                         }
                     ]
                 },

@@ -110,6 +110,7 @@ update_sub_submenu_data "Software" "Media" "MED011" "http://$LOCALIPADD:${module
 update_sub_submenu_data "Software" "Media" "MED016" "http://$LOCALIPADD:${module_options["module_syncthing,port"]%% *}" # removing second port from url
 update_sub_submenu_data "Software" "Media" "MED021" "https://$LOCALIPADD:${module_options["module_nextcloud,port"]}"
 update_sub_submenu_data "Software" "Media" "MED026" "http://$LOCALIPADD:${module_options["module_owncloud,port"]}"
+update_sub_submenu_data "Software" "Media" "MED031" "http://$LOCALIPADD:${module_options["module_jellyfin,port"]}"
 
 # Containers
 update_sub_submenu_data "Software" "Containers" "CON006" "http://$LOCALIPADD:${module_options["module_portainer,port"]%% *}" # removing second port from url
