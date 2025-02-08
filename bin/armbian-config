@@ -61,7 +61,7 @@ set_checkpoint mark "Loaded Runtime conditions..."
 
 # usage: sudo DEBUG=1 ./config-time/bin/armbian-config $@
 # place one in a section with a quoted "about message"  
-[[ -n "$DEBUG" ]] && set_checkpoint mark "DEBUG Meaasges on" ;
+[[ -n "$DEBUG" ]] && set_checkpoint mark "DEBUG Messages on" ;
 
 case "$1" in
     "--help")
