@@ -4,7 +4,7 @@ module_options+=(
 	["module_jellyfin,feature"]="module_jellyfin"
 	["module_jellyfin,example"]="install remove purge status help"
 	["module_jellyfin,desc"]="Install jellyfin container"
-	["module_jellyfin,status"]="Active"
+	["module_jellyfin,status"]="Preview"
 	["module_jellyfin,doc_link"]="https://jellyfin.org/docs/general/quick-start/"
 	["module_jellyfin,group"]="Media"
 	["module_jellyfin,port"]="8096"
@@ -23,8 +23,13 @@ function module_jellyfin () {
 	fi
 
 	# Hardware acceleration
+	unset hwacc
 	if [[ "${LINUXFAMILY}" == "rockchip64" && "${BOOT_SOC}" == "rk3588" ]]; then
-	:
+		for dev in dri dma_heap mali0 rga mpp_service \
+			iep mpp-service vpu_service vpu-service \
+			hevc_service hevc-service rkvdec rkvenc vepu h265e ; do \
+			[ -e "/dev/$dev" ] && hwacc+=" --device /dev/$dev"; \
+		done
 	elif [[ "${LINUXFAMILY}" == "bcm2711" ]]; then
 		local hwacc="--device=/dev/video10:/dev/video10 --device=/dev/video11:/dev/video11 --device=/dev/video12:/dev/video12"
 	elif [[ "${LINUXFAMILY}" == "x86" ]]; then
