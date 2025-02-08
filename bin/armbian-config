@@ -102,14 +102,17 @@ case "$1" in
     ;;
 
     "--api")
+	checkpoint debug "Starting --api options"
         case "$2" in
             ""|"help")
                 see_use
+		checkpoint debug "Exiting help message"
             ;;
             *)
                 fn=$(sanitize "$2") || die
                 shift 2
                 "$fn" "$@"
+		checkpoint debug "Exiting --api"
             ;;
         esac
 	;;

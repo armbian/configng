@@ -1,4 +1,3 @@
-
 module_options+=(
 	["set_checkpoint,author"]="@armbian"
 	["set_checkpoint,maintainer"]="@igorpecovnik"
@@ -10,6 +9,19 @@ module_options+=(
 	["set_checkpoint,group"]="Development"
 	["set_checkpoint,port"]=""
 	["set_checkpoint,arch"]="x86-64 arm64"
+)
+
+module_options+=(
+	["debug_checkpoint,author"]="@armbian"
+	["debug_checkpoint,maintainer"]="@igorpecovnik"
+	["debug_checkpoint,feature"]="debug_checkpoint"
+	["debug_checkpoint,example"]="help start mark stop show"
+	["debug_checkpoint,desc"]="Helper module for debug info"
+	["debug_checkpoint,status"]=""
+	["debug_checkpoint,doc_link"]=""
+	["debug_checkpoint,group"]="Development"
+	["debug_checkpoint,port"]=""
+	["debug_checkpoint,arch"]="x86-64 arm64"
 )
 #
 # Function to manage timer with multiple checkpoints
@@ -40,7 +52,11 @@ function set_checkpoint() {
 				set_checkpoint_CHECKPOINTS+=($checkpoint_time)
 				set_checkpoint_DESCRIPTIONS+=("$2")
 				local count=${#set_checkpoint_DESCRIPTIONS[@]}
+				# No debug UX mode debug level 1 defaulted here
 				[[ -z "$DEBUG" ]] && printf "%-30s %10d seconds\n" "$2 " "${checkpoint_duration}"
+
+				# debug level 2 shows all message
+				[[ "$DEBUG" -eq 2 ]] && printf "%-30s %10d seconds\n" "$2 " "${checkpoint_duration}"
 			fi
 		;;
 		show)
@@ -65,4 +81,24 @@ function set_checkpoint() {
 			echo "Usage: set_checkpoint <start|stop|mark|show> [description]"
 		;;
 	esac
+}
+
+# Example usage
+# set_checkpoint aluse with debugging
+checkpoint() {
+    case "$1" in
+        start|stop|mark|show)
+            set_checkpoint "$1" "$2"
+            ;;
+        debug)
+            [[ -n "$DEBUG" && -n $tools_dir ]] && set_checkpoint mark "$2"
+            ;;
+        help)
+            set_checkpoint help
+            echo "  debug              DEBUG checkpoint message"
+            ;;
+        *)
+            echo "Invalid command. Use: help, start, stop, mark, debug, show"
+            ;;
+    esac
 }
