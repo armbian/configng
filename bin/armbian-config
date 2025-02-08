@@ -94,7 +94,6 @@ case "$1" in
         case "$2" in
             ""|"help")
                 see_cmd_list
-		checkpoint debug "Exiting help message"
             ;;
             *)
                 cmd=$(sanitize "$2") || die
@@ -109,7 +108,6 @@ case "$1" in
         case "$2" in
             ""|"help")
                 see_use
-		checkpoint debug "Exiting help message"
             ;;
             *)
                 fn=$(sanitize "$2") || die
