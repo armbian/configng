@@ -58,14 +58,14 @@ function module_adguardhome () {
 				fi
 			done
 			local container_ip=$(docker inspect --format '{{ .NetworkSettings.Networks.lsio.IPAddress }}' adguardhome)
-			if systemctl is-active --quiet systemd-resolved.service; then
+			if srv_active systemd-resolved; then
 				mkdir -p /etc/systemd/resolved.conf.d/
 				cat > "/etc/systemd/resolved.conf.d/armbian-defaults.conf" <<- EOT
 				[Resolve]
 				DNS=127.0.0.1 ${container_ip}
 				DNSStubListener=no
 				EOT
-				systemctl restart systemd-resolved.service
+				srv_restart systemd-resolved
 				sleep 2
 			fi
 		;;
@@ -73,13 +73,13 @@ function module_adguardhome () {
 			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
 			[[ "${image}" ]] && docker image rm "$image" >/dev/null
 			# restore DNS settings
-			if systemctl is-active --quiet systemd-resolved.service; then
+			if srv_active systemd-resolved; then
 				mkdir -p /etc/systemd/resolved.conf.d/
 				cat > "/etc/systemd/resolved.conf.d/armbian-defaults.conf" <<- EOT
 				[Resolve]
 				DNSStubListener=no
 				EOT
-				systemctl restart systemd-resolved.service
+				srv_restart systemd-resolved
 				sleep 2
 			fi
 		;;

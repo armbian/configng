@@ -30,9 +30,9 @@ function module_openhab() {
 			pkg_update
 			pkg_install zulu17-jdk
 			pkg_install openhab openhab-addons
-			systemctl daemon-reload 2> /dev/null
-			srv_enable openhab.service 2> /dev/null
-			srv_start openhab.service 2> /dev/null
+			srv_daemon_reload
+			srv_enable openhab
+			srv_start openhab
 			;;
 		"${commands[1]}")
 			pkg_remove zulu17-jdk openhab openhab-addons

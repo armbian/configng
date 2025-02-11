@@ -60,16 +60,14 @@ function manage_desktops() {
 			manage_desktops "$desktop" "auto"
 
 			# stop display managers in case we are switching them
-			service gdm3 stop
-			service lightdm stop
-			service sddm stop
+			srv_stop gdm3 lightdm sddm
 
 			# start new default display manager
-			service display-manager restart
+			srv_restart display-manager
 		;;
 		uninstall)
 			# we are uninstalling all variants until build time packages are fixed to prevent installing one over another
-			service display-manager stop
+			srv_stop display-manager
 			pkg_remove -o Dpkg::Options::="--force-confold" armbian-${DISTROID}-desktop-$1 \
 				xfce4-session gnome-session slick-greeter lightdm gdm3 sddm cinnamon-session i3-wm
 			# disable autologins
@@ -109,7 +107,7 @@ function manage_desktops() {
 				;;
 			esac
 			# restart after selection
-			service display-manager restart
+			srv_restart display-manager
 		;;
 		manual)
 			case "$desktop" in
@@ -118,7 +116,7 @@ function manage_desktops() {
 				*)        rm -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ;;
 			esac
 			# restart after selection
-			service display-manager restart
+			srv_restart display-manager
 		;;
 	esac
 

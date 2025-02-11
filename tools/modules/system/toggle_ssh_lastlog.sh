@@ -14,7 +14,7 @@ function toggle_ssh_lastlog() {
 	if ! grep -q '^#\?PrintLastLog ' "${SDCARD}/etc/ssh/sshd_config"; then
 		# If PrintLastLog is not found, append it with the value 'yes'
 		echo 'PrintLastLog no' >> "${SDCARD}/etc/ssh/sshd_config"
-		sudo service ssh restart
+		srv_restart ssh
 	else
 		# If PrintLastLog is found, toggle between 'yes' and 'no'
 		sed -i '/^#\?PrintLastLog /
@@ -23,7 +23,7 @@ function toggle_ssh_lastlog() {
 	t;
 	s/PrintLastLog no/PrintLastLog yes/
 }' "${SDCARD}/etc/ssh/sshd_config"
-		sudo service ssh restart
+		srv_restart ssh
 	fi
 
 }

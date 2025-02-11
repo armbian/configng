@@ -31,7 +31,7 @@ function set_runtime_variables() {
 	fi
 
 	# Determine which network renderer is in use for NetPlan
-	if systemctl is-active NetworkManager 1> /dev/null; then
+	if srv_active NetworkManager; then
 		NETWORK_RENDERER=NetworkManager
 	else
 		NETWORK_RENDERER=networkd

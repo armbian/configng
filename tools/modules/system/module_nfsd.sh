@@ -154,7 +154,7 @@ function module_nfsd () {
 								read
 								sed -i '\?^'$nfs_server:$shares'?d' /etc/fstab
 								echo "${nfs_server}:${shares} ${mount_folder} nfs ${mount_options}" >> /etc/fstab
-								systemctl daemon-reload
+								srv_daemon_reload
 								mount ${mount_options}
 							fi
 							fi
