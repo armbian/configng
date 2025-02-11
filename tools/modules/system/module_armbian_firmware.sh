@@ -15,9 +15,12 @@ function module_armbian_firmware() {
 	IFS=' ' read -r -a commands <<< "${module_options["module_armbian_firmware,example"]}"
 
 	case "$1" in
-		"${commands[0]}") # choose kernel from the list
+
+		# choose kernel from the list
+		"${commands[0]}")
 
 			# We are updating beta packages repository quite often. In order to make sure, update won't break, always update package list
+
 			pkg_update
 
 			# make sure to proceed if this variable is not defined. This can surface on some old builds
@@ -33,7 +36,7 @@ function module_armbian_firmware() {
 			fi
 
 			# by default we define which kernels are suitable
-			if ! $DIALOG --title "Advanced options" --yesno "Show only mainstream kernels on the list?" 7 60; then
+			if ! $DIALOG --title "Advanced options" --yesno --defaultno "Show only mainstream kernels on the list?" 7 60; then
 				KERNEL_TEST_TARGET="legacy,vendor,current,edge"
 			fi
 
@@ -88,7 +91,19 @@ function module_armbian_firmware() {
 
 		;;
 
-		"${commands[1]}") # purge old and install new packages from desired branch and version
+		# purge old and install new packages from desired branch and version
+		"${commands[1]}")
+
+			# We are updating beta packages repository quite often. In order to make sure, update won't break, always update package list
+			pkg_update
+			pkg_upgrade
+
+			cat > "/etc/apt/preferences.d/armbian-upgrade-policy" <<- EOT
+			Package: *
+			Pin: release a=${DISTROID}
+			Pin-Priority: 1001
+			EOT
+			trap '{ rm -f -- "/etc/apt/preferences.d/armbian-upgrade-policy"; }' EXIT
 
 			# input parameters
 			local branch=$2
@@ -101,28 +116,38 @@ function module_armbian_firmware() {
 
 			# purge and install
 			for pkg in ${packages[@]}; do
-				purge_pkg=$(echo $pkg | sed -e 's/linux-image.*/linux-image*/;s/linux-dtb.*/linux-dtb*/;s/linux-headers.*/linux-headers*/;s/armbian-firmware.*/armbian-firmware*/')
 				# if test install is succesfull, proceed
-				pkg_install --simulate --download-only --allow-downgrades "${pkg}"
-				if [[ $? == 0 ]]; then
+				if [[ -z $(LC_ALL=C apt-get install --simulate --download-only --allow-downgrades --reinstall "${pkg}" 2>/dev/null | grep "not possible") ]]; then
+					purge_pkg=$(echo $pkg | sed -e 's/linux-image.*/linux-image*/;s/linux-dtb.*/linux-dtb*/;s/linux-headers.*/linux-headers*/;s/armbian-firmware-*/armbian-firmware*/')
 					pkg_remove "${purge_pkg}"
 					pkg_install --allow-downgrades "${pkg}"
+				else
+					echo "Error: Package ${pkg} install not possible due to network / repository problem. Try again later and report to Armbian forums"
+					exit 0
 				fi
 			done
-			if [[ -z "${headers}" ]]; then
-				if $DIALOG --title " Reboot required " --yes-button "Reboot" --no-button "Cancel" --yesno \
-					"A reboot is required to apply the changes. Shall we reboot now?" 7 34; then
-					reboot
-				fi
+			# at the end, also switch bsp
+			# if branch is not defined, we use the one that is currently installed
+			[[ -z $branch ]] && local branch=$BRANCH
+			[[ -z $BRANCH ]] && local branch="current"
+			local bsp=$(dpkg -l | grep -E "armbian-bsp-cli" | awk '{print $2}' | sed "s/legacy\|vendor\|current\|edge/${branch}/g")
+			if [[ -z $(LC_ALL=C apt-get install --simulate --download-only --allow-downgrades --reinstall "${bsp}" 2>/dev/null | grep "not possible") ]]; then
+				pkg_remove "armbian-bsp-cli*"
+				pkg_install --allow-downgrades "${bsp}"
 			fi
 
-
+			if test -t 0 && $DIALOG --title " Reboot required " --yes-button "Reboot" --no-button "Cancel" --yesno \
+				"A reboot is required to apply the changes. Shall we reboot now?" 7 34; then
+				reboot
+			fi
 		;;
-		"${commands[2]}") # generate a list of possible packages to install
+
+		# generate a list of possible packages to install
+		"${commands[2]}")
 
 			# input parameters
 			local branch="$2"
-			local version="$3"
+			local version="$( echo $3 | tr -d '\011\012\013\014\015\040')" # remove tabs and spaces from version
 			local hide="$4"
 			local repository="$5"
 			local headers="$6"
@@ -167,21 +192,20 @@ function module_armbian_firmware() {
 			# package version was removed from repository. Just in case.
 			packages=""
 			for pkg in ${armbian_packages[@]}; do
+
+				# look into cache
+				local cache_show=$(apt-cache show "$pkg" 2> /dev/null | grep -E "Package:|^Version:|family" \
+					| sed -n -e 's/^.*: //p' \
+					| sed 's/\.$//g' \
+					| xargs -n2 -d'\n' \
+					| grep "${pkg}")
+
 				# use package + version if found else use package if found
-				if apt-cache show "$pkg" 2> /dev/null \
-					| grep -E "Package:|^Version:|family" \
-					| sed -n -e 's/^.*: //p' \
-					| sed 's/\.$//g' \
-					| xargs -n2 -d'\n' \
-					| grep ${pkg} | grep -e ${version} >/dev/null 2>&1; then
-					packages+="${pkg}=${version} ";
-				elif
-					apt-cache show "$pkg" 2> /dev/null \
-					| grep -E "Package:|^Version:|family" \
-					| sed -n -e 's/^.*: //p' \
-					| sed 's/\.$//g' \
-					| xargs -n2 -d'\n' \
-					| grep "${pkg}" >/dev/null 2>&1 ; then
+				if [[ -n "${version}" && -n "${cache_show}" ]]; then
+					if [[ -n $(echo "$cache_show" | grep "$version""$" ) ]]; then
+						packages+="${pkg}=${version} ";
+					fi
+				elif [[ -n "${cache_show}" ]]; then
 					packages+="${pkg} ";
 				fi
 			done
@@ -190,7 +214,9 @@ function module_armbian_firmware() {
 			[[ "$4" != "hide" ]] && echo ${packages[@]}
 
 		;;
-		"${commands[3]}") # holds Armbian firmware packages or provides status
+
+		# holds Armbian firmware packages or provides status
+		"${commands[3]}")
 
 			# input parameter
 			local status=$2
@@ -213,7 +239,9 @@ function module_armbian_firmware() {
 			fi
 
 		;;
-		"${commands[4]}") # unhold Armbian firmware packages
+
+		# unhold Armbian firmware packages
+		"${commands[4]}")
 
 			# generate a list of packages
 			${module_options["module_armbian_firmware,feature"]} ${commands[2]} "" "" hide
@@ -222,14 +250,21 @@ function module_armbian_firmware() {
 			apt-mark unhold ${packages[@]} >/dev/null 2>&1
 
 		;;
-		"${commands[5]}") # switches repository to rolling / stable and performs update or provides status
+
+		# switches repository to rolling / stable and performs update or provides status
+		"${commands[5]}")
 
 			# input parameters
 
 			local repository=$2
 			local status=$3
 
-			if grep -q 'apt.armbian.com' /etc/apt/sources.list.d/armbian.list; then
+			local sources_files=()
+			for file in "/etc/apt/sources.list.d/armbian.list" "/etc/apt/sources.list.d/armbian.sources"; do
+				[[ -e "$file" ]] && sources_files+=("$file")
+			done
+
+			if grep -q 'apt.armbian.com' "${sources_files[@]}"; then
 				if [[ "$repository" == "rolling" && "$status" == "status" ]]; then
 					return 1
 				elif [[ "$status" == "status" ]]; then
@@ -237,7 +272,7 @@ function module_armbian_firmware() {
 				fi
 				# performs list change & update if this is needed
 				if [[ "$repository" == "rolling" ]]; then
-					sed -i "s/http:\/\/[^ ]*/http:\/\/beta.armbian.com/" /etc/apt/sources.list.d/armbian.list
+					sed -E -i "s/ https?:\/\/[a-z0-9-]+\.armbian\.com\/( |$)/ https:\/\/beta.armbian.com\/\1/" "${sources_files[@]}"
 					pkg_update
 				fi
 			else
@@ -248,7 +283,7 @@ function module_armbian_firmware() {
 				fi
 				# performs list change & update if this is needed
 				if [[ "$repository" == "stable" ]]; then
-					sed -i "s/http:\/\/[^ ]*/http:\/\/apt.armbian.com/" /etc/apt/sources.list.d/armbian.list
+					sed -E -i "s/ https?:\/\/[a-z0-9-]+\.armbian\.com\/( |$)/ https:\/\/apt.armbian.com\/\1/" "${sources_files[@]}"
 					pkg_update
 				fi
 			fi
@@ -257,7 +292,8 @@ function module_armbian_firmware() {
 			[[ "$status" != "status" ]] && ${module_options["module_armbian_firmware,feature"]} ${commands[1]}
 		;;
 
-		"${commands[6]}") # installs kernel headers
+		# installs kernel headers
+		"${commands[6]}")
 
 			# input parameters
 			local command=$2
@@ -286,7 +322,6 @@ function module_armbian_firmware() {
 
 		;;
 
-
 		"${commands[7]}")
 			echo -e "\nUsage: ${module_options["module_armbian_firmware,feature"]} <command> <switches>"
 			echo -e "Commands:  ${module_options["module_armbian_firmware,example"]}"
@@ -301,7 +336,7 @@ function module_armbian_firmware() {
 			echo
 		;;
 		*)
-		${module_options["module_armbian_firmware,feature"]} ${commands[7]}
+			${module_options["module_armbian_firmware,feature"]} ${commands[7]}
 		;;
 	esac
 }

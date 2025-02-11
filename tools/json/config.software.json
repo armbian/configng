@@ -120,6 +120,72 @@
                             "status": "Preview",
                             "author": "@igorpecovnik",
                             "condition": "module_haos status"
+                        },
+                        {
+                            "id": "DOM001",
+                            "description": "Domoticz open source home automation",
+                            "about": "This operation will install Domoticz.",
+                            "command": [
+                                "module_domoticz install"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_domoticz status"
+                        },
+                        {
+                            "id": "DOM002",
+                            "description": "Domoticz remove",
+                            "about": "This operation will remove Domoticz.",
+                            "command": [
+                                "module_domoticz remove"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_domoticz status"
+                        },
+                        {
+                            "id": "DOM003",
+                            "description": "Domoticz purge with data folder",
+                            "about": "This operation will purge Domoticz.",
+                            "command": [
+                                "module_domoticz purge"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_domoticz status"
+                        },
+                        {
+                            "id": "EVCC01",
+                            "description": "EVCC - solar charging automation",
+                            "about": "This operation will install solar charging automation.",
+                            "command": [
+                                "module_evcc install"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_evcc status"
+                        },
+                        {
+                            "id": "EVCC02",
+                            "description": "EVCC - solar charging automation remove",
+                            "about": "This operation will remove solar charging automation.",
+                            "command": [
+                                "module_evcc remove"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_evcc status"
+                        },
+                        {
+                            "id": "EVCC03",
+                            "description": "EVCC purge with data folder",
+                            "about": "This operation will purge solar charging automation with data folder.",
+                            "command": [
+                                "module_evcc purge"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_evcc status"
                         }
                     ]
                 },
@@ -166,6 +232,66 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "module_pi_hole status"
+                        },
+                        {
+                            "id": "UNB001",
+                            "description": "Unbound caching DNS resolver",
+                            "command": [
+                                "module_unbound install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_unbound status"
+                        },
+                        {
+                            "id": "UNB002",
+                            "description": "Unbound remove",
+                            "command": [
+                                "module_unbound remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_unbound status"
+                        },
+                        {
+                            "id": "UNB003",
+                            "description": "Unbound purge with data folder",
+                            "command": [
+                                "module_unbound remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_unbound status"
+                        },
+                        {
+                            "id": "ADG001",
+                            "description": "AdGuardHome DNS sinkhole",
+                            "command": [
+                                "module_adguardhome install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_adguardhome status"
+                        },
+                        {
+                            "id": "ADG002",
+                            "description": "AdGuardHome remove",
+                            "command": [
+                                "module_adguardhome remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_adguardhome status"
+                        },
+                        {
+                            "id": "ADG003",
+                            "description": "AdGuardHome purge with data folder",
+                            "command": [
+                                "module_adguardhome remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_adguardhome status"
                         }
                     ]
                 },
@@ -1227,6 +1353,36 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "module_owncloud status"
+                        },
+                        {
+                            "id": "MED030",
+                            "description": "Jellyfin Media System",
+                            "command": [
+                                "module_jellyfin install"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_jellyfin status"
+                        },
+                        {
+                            "id": "MED031",
+                            "description": "Jellyfin remove",
+                            "command": [
+                                "module_jellyfin remove"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_jellyfin status"
+                        },
+                        {
+                            "id": "MED032",
+                            "description": "Jellyfin purge with data folder",
+                            "command": [
+                                "module_jellyfin purge"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_jellyfin status"
                         }
                     ]
                 },

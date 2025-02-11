@@ -81,7 +81,7 @@ function module_nfsd () {
 			if add_folder=$(dialog --title \
 							"Which folder do you want to export?" \
 							--inputbox "" \
-							6 80 "/armbian" 3>&1 1>&2 2>&3); then
+							6 80 "${SOFTWARE_FOLDER}" 3>&1 1>&2 2>&3); then
 				if add_ip=$(dialog --title \
 							"Which IP or range can access this folder?" \
 							--inputbox "\nExamples: 192.168.1.1, 192.168.1.0/24" \
@@ -93,6 +93,7 @@ function module_nfsd () {
 							$((${LIST_LENGTH} + 6)) 80 ${LIST_LENGTH} "${LIST[@]}" 3>&1 1>&2 2>&3); then
 							echo "$add_folder $add_ip($(echo $add_options | tr ' ' ','))" \
 							>> /etc/exports.d/armbian.exports
+							[[ -n "${add_folder}" ]] && mkdir -p "${add_folder}"
 					fi
 				fi
 			fi
