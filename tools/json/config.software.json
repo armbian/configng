@@ -580,7 +580,7 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "systemctl is-active --quiet service display-manager"
+                            "condition": "srv_active display-manager"
                         }
                     ]
                 },
@@ -1645,7 +1645,7 @@
                             "description": "avahi-daemon remove",
                             "prompt": "This operation will remove avahi-daemon.",
                             "command": [
-                                "systemctl stop avahi-daemon avahi-daemon.socket",
+                                "srv_stop avahi-daemon avahi-daemon.socket",
                                 "pkg_remove avahi-daemon"
                             ],
                             "status": "Stable",

@@ -34,7 +34,7 @@ function module_haos() {
 			[[ -d "$HAOS_BASE" ]] || mkdir -p "$HAOS_BASE" || { echo "Couldn't create storage directory: $HAOS_BASE"; exit 1; }
 
 			# this hack will allow running it on minimal image, but this has to be done properly in the network section, to allow easy switching
-			systemctl disable systemd-networkd
+			srv_disable systemd-networkd
 
 			# hack to force install
 			sed -i 's/^PRETTY_NAME=".*/PRETTY_NAME="Debian GNU\/Linux 12 (bookworm)"/g' "${SDCARD}/etc/os-release"
@@ -62,7 +62,7 @@ function module_haos() {
 			while true; do
 			if ha supervisor info 2>&1 | grep -q "healthy: false"; then
 				echo "Unhealthy detected, restarting" | systemd-cat -t $(basename "$0") -p debug
-				systemctl restart hassio-supervisor.service
+				srv_restart hassio-supervisor
 				sleep 600
 			else
 				sleep 5
@@ -103,8 +103,8 @@ function module_haos() {
 			done | $DIALOG --gauge "Preparing Home Assistant Supervised\n\nPlease wait! (can take 15 minutes) " 10 50 0
 
 			# enable service
-			systemctl enable supervisor-fix >/dev/null 2>&1
-			systemctl start supervisor-fix >/dev/null 2>&1
+			srv_enable supervisor-fix
+			srv_start supervisor-fix
 
 			# restore os-release
 			sed -i "s/^PRETTY_NAME=\".*/PRETTY_NAME=\"${VENDOR} ${REVISION} ($VERSION_CODENAME)\"/g" "/etc/os-release"
@@ -112,8 +112,8 @@ function module_haos() {
 		;;
 		"${commands[1]}")
 			# disable service
-			systemctl disable supervisor-fix >/dev/null 2>&1
-			systemctl stop supervisor-fix >/dev/null 2>&1
+			srv_disable supervisor-fix
+			srv_stop supervisor-fix
 			pkg_remove homeassistant-supervised os-agent
 			echo -e "Removing Home Assistant containers.\n\nPlease wait few minutes! "
 			if [[ "${container}" ]]; then
@@ -126,7 +126,7 @@ function module_haos() {
 			rm -f /usr/local/bin/supervisor_fix.sh
 			rm -f /etc/systemd/system/supervisor-fix.service
 			sed -i "s/ systemd.unified_cgroup_hierarchy=0 apparmor=1 security=apparmor//" /boot/armbianEnv.txt
-			systemctl daemon-reload >/dev/null 2>&1
+			srv_daemon_reload
 			# restore os-release
 			sed -i "s/^PRETTY_NAME=\".*/PRETTY_NAME=\"${VENDOR} ${REVISION} ($VERSION_CODENAME)\"/g" "/etc/os-release"
 		;;

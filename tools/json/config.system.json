@@ -233,7 +233,7 @@
                             "description": "Disable root login",
                             "command": [
                                 "sed -i \"s|^#\\?PermitRootLogin.*|PermitRootLogin no|\" /etc/ssh/sshd_config",
-                                "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
+                                "srv_restart ssh"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -244,7 +244,7 @@
                             "description": "Enable root login",
                             "command": [
                                 "sed -i \"s/^#\\?PermitRootLogin.*/PermitRootLogin yes/\" /etc/ssh/sshd_config",
-                                "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
+                                "srv_restart ssh"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -255,7 +255,7 @@
                             "description": "Disable password login",
                             "command": [
                                 "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication no/\" /etc/ssh/sshd_config",
-                                "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
+                                "srv_restart ssh"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -266,7 +266,7 @@
                             "description": "Enable password login",
                             "command": [
                                 "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication yes/\" /etc/ssh/sshd_config",
-                                "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
+                                "srv_restart ssh"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -277,7 +277,7 @@
                             "description": "Disable Public key authentication login",
                             "command": [
                                 "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication no/\" /etc/ssh/sshd_config",
-                                "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
+                                "srv_restart ssh"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -288,7 +288,7 @@
                             "description": "Enable Public key authentication login",
                             "command": [
                                 "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication yes/\" /etc/ssh/sshd_config",
-                                "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
+                                "srv_restart ssh"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -302,7 +302,7 @@
                                 "! pkg_installed libpam-google-authenticator && ! pkg_installed qrencode || pkg_remove libpam-google-authenticator qrencode",
                                 "sed -i \"s/^#\\?ChallengeResponseAuthentication.*/ChallengeResponseAuthentication no/\" /etc/ssh/sshd_config || sed -i \"0,/KbdInteractiveAuthentication/s//ChallengeResponseAuthentication yes/\" /etc/ssh/sshd_config",
                                 "sed -i '/^auth required pam_google_authenticator.so nullok/ d' /etc/pam.d/sshd",
-                                "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
+                                "srv_restart ssh"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -317,7 +317,7 @@
                                 "sed -i \"s/^#\\?ChallengeResponseAuthentication.*/ChallengeResponseAuthentication yes/\" /etc/ssh/sshd_config",
                                 "sed -i $'/KbdInteractiveAuthentication/{iChallengeResponseAuthentication yes\\n:a;n;ba}' /etc/ssh/sshd_config || sed -n -i '/password updating/{p;:a;N;/@include common-password/!ba;s/.*\\n/auth required pam_google_authenticator.so nullok\\nauth required pam_permit.so\\n/};p' /etc/pam.d/sshd",
                                 "[ ! -f /root/.google_authenticator ] && qr_code generate",
-                                "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
+                                "srv_restart ssh"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -348,7 +348,7 @@
                             "description": "Disable last login banner",
                             "command": [
                                 "sed -i \"s/^#\\?PrintLastLog.*/PrintLastLog no/\" /etc/ssh/sshd_config",
-                                "systemctl restart ssh.service "
+                                "srv_restart ssh"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -359,7 +359,7 @@
                             "description": "Enable last login banner",
                             "command": [
                                 "sed -i \"s/^#\\?PrintLastLog.*/PrintLastLog yes/\" /etc/ssh/sshd_config",
-                                "systemctl restart ssh.service "
+                                "srv_restart ssh"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",

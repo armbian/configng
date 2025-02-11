@@ -75,7 +75,7 @@ function module_nfs () {
 								mkdir -p ${mount_folder}
 								sed -i '\?^'$nfs_server:$shares'?d' /etc/fstab
 								echo "${nfs_server}:${shares} ${mount_folder} nfs ${mount_options}" >> /etc/fstab
-								systemctl daemon-reload
+								srv_daemon_reload
 								mount ${mount_folder}
 								show_message <<< $(mount -t nfs4 | cut -d" " -f1)
 							fi
