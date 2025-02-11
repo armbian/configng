@@ -116,6 +116,16 @@ srv_start()
 }
 
 module_options+=(
+	["srv_status,author"]="@dimitry-ishenko"
+	["srv_status,desc"]="Show service status information"
+	["srv_status,example"]="srv_status ssh.service"
+	["srv_status,feature"]="srv_status"
+	["srv_status,status"]="Interface"
+)
+
+srv_status() { systemctl status "$@"; }
+
+module_options+=(
 	["srv_stop,author"]="@dimitry-ishenko"
 	["srv_stop,desc"]="Stop service"
 	["srv_stop,example"]="srv_stop ssh.service"
