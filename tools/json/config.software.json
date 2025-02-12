@@ -153,6 +153,39 @@
                             "status": "Preview",
                             "author": "@igorpecovnik",
                             "condition": "module_domoticz status"
+                        },
+                        {
+                            "id": "EVCC01",
+                            "description": "EVCC - solar charging automation",
+                            "about": "This operation will install solar charging automation.",
+                            "command": [
+                                "module_evcc install"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_evcc status"
+                        },
+                        {
+                            "id": "EVCC02",
+                            "description": "EVCC - solar charging automation remove",
+                            "about": "This operation will remove solar charging automation.",
+                            "command": [
+                                "module_evcc remove"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_evcc status"
+                        },
+                        {
+                            "id": "EVCC03",
+                            "description": "EVCC purge with data folder",
+                            "about": "This operation will purge solar charging automation with data folder.",
+                            "command": [
+                                "module_evcc purge"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_evcc status"
                         }
                     ]
                 },
@@ -1320,6 +1353,36 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "module_owncloud status"
+                        },
+                        {
+                            "id": "MED030",
+                            "description": "Jellyfin Media System",
+                            "command": [
+                                "module_jellyfin install"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_jellyfin status"
+                        },
+                        {
+                            "id": "MED031",
+                            "description": "Jellyfin remove",
+                            "command": [
+                                "module_jellyfin remove"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_jellyfin status"
+                        },
+                        {
+                            "id": "MED032",
+                            "description": "Jellyfin purge with data folder",
+                            "command": [
+                                "module_jellyfin purge"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_jellyfin status"
                         }
                     ]
                 },
