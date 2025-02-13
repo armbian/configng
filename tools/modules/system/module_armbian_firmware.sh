@@ -99,7 +99,7 @@ function module_armbian_firmware() {
 			pkg_upgrade
 
 			cat > "/etc/apt/preferences.d/armbian-upgrade-policy" <<- EOT
-			Package: *
+			Package: armbian-bsp* armbian-firmware* linux-*
 			Pin: release a=${DISTROID}
 			Pin-Priority: 1001
 			EOT
@@ -138,6 +138,7 @@ function module_armbian_firmware() {
 
 			if test -t 0 && $DIALOG --title " Reboot required " --yes-button "Reboot" --no-button "Cancel" --yesno \
 				"A reboot is required to apply the changes. Shall we reboot now?" 7 34; then
+				rm -f /etc/apt/preferences.d/armbian-upgrade-policy
 				reboot
 			fi
 		;;
@@ -272,7 +273,7 @@ function module_armbian_firmware() {
 				fi
 				# performs list change & update if this is needed
 				if [[ "$repository" == "rolling" ]]; then
-					sed -E -i "s/ https?:\/\/[a-z0-9-]+\.armbian\.com\/( |$)/ https:\/\/beta.armbian.com\/\1/" "${sources_files[@]}"
+					sed -i 's|[a-zA-Z0-9.-]*\.armbian\.com|beta.armbian.com|g' "${sources_files[@]}"
 					pkg_update
 				fi
 			else
@@ -283,7 +284,7 @@ function module_armbian_firmware() {
 				fi
 				# performs list change & update if this is needed
 				if [[ "$repository" == "stable" ]]; then
-					sed -E -i "s/ https?:\/\/[a-z0-9-]+\.armbian\.com\/( |$)/ https:\/\/apt.armbian.com\/\1/" "${sources_files[@]}"
+					sed -i 's|[a-zA-Z0-9.-]*\.armbian\.com|apt.armbian.com|g' "${sources_files[@]}"
 					pkg_update
 				fi
 			fi
