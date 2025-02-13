@@ -1,18 +1,24 @@
 #!/bin/bash
 
 # initializes the terminal from TERM if stdin is a terminal
-[[ -t 0 ]] && tput init
-
-# Language-based variable assignment for script directory path
-# This serves as a Rosetta Stone for developers,
-# allowing them to use the variable name they are most comfortable with.
-
+unset UXMODE
+[[ -t 0 && "$1" =~ ^(|--cmd|--help)$ ]] && UXMODE="true" && tput init
 # allows CTRL c to exit
 trap "exit" INT TERM
+
 [[ $EUID != 0 ]] && exec sudo "$0" "$@"
 #
 # Get the script directory
 script_dir="$(dirname "$0")"
+
+declare -A module_options
+
+# Load the initialize modules
+source "$script_dir/../lib/armbian-config/config.initialize.sh"
+
+# Start loading messages
+set_checkpoint start
+set_checkpoint mark "Initializing script"
 
 [[ -d "$script_dir/../tools" ]] && tools_dir="$script_dir/../tools"
 [[ ! -d "$script_dir/../lib" && -n "$tools_dir" ]] && die -e "Please run\nbash "$tools_dir/config-assemble.sh" to build the lib directory\n"
@@ -29,32 +35,33 @@ json_file="$lib_dir/config.jobs.json"
 # Load The Bash procedure Objects
 json_data=$(<"$json_file")
 
-#
-# Prepare the module options array
-declare -A module_options
 
-#
 # Load configng core functions and module options array
 
 source "$lib_dir/config.functions.sh"
 set_runtime_variables
-check_distro_status
-echo "Loaded Runtime variables..." #| show_infobox ;
-#set_newt_colors 2
-echo "Loaded Dialog..." #| show_infobox ;
+set_checkpoint mark "Loaded Runtime variables..."
+# checks for supported os
+set_checkpoint mark "$(check_distro_status)"
+
+set_checkpoint mark "Loaded Dialog..."
 source "$lib_dir/config.docs.sh"
-echo "Loaded Docs..." #| show_infobox ;
+set_checkpoint mark "Loaded Docs..."
 source "$lib_dir/config.system.sh"
-echo "Loaded System helpers..." #| show_infobox ;
+set_checkpoint mark "Loaded System helpers..."
 source "$lib_dir/config.network.sh"
-echo "Loaded Network helpers..." #| show_infobox ;
+set_checkpoint mark "Loaded Network helpers..."
 source "$lib_dir/config.software.sh"
-echo "Loaded Software helpers..." #| show_infobox ;
+set_checkpoint mark "Loaded Software helpers..."
 #
 # Loads the variables from beta armbian-config for runtime handling
 
 source "$lib_dir/config.runtime.sh"
-echo "Loaded Runtime conditions..." #| show_infobox ;
+set_checkpoint mark "Loaded Runtime conditions..."
+
+# usage: sudo DEBUG=1 ./config-time/bin/armbian-config $@
+# place one in a section with a quoted "about message"  
+[[ -n "$DEBUG" ]] && set_checkpoint mark "DEBUG Messages on" ;
 
 case "$1" in
     "--help")
@@ -63,7 +70,7 @@ case "$1" in
             echo ""
         else
             echo "Usage:  armbian-config --[option]
-     Options:
+  Options:
      --help [category]   Use [category] to filter specific menu options.
      --cmd  [option]     Run a command from the menu (simple)
      --api  [option]     Run a helper command        (advanced)
@@ -82,6 +89,7 @@ case "$1" in
     ;;
 
     "--cmd")
+    checkpoint debug "Starting Command line UX option"
         INPUTMODE="cmd"
         case "$2" in
             ""|"help")
@@ -90,11 +98,13 @@ case "$1" in
             *)
                 cmd=$(sanitize "$2") || die
                 execute_command "$cmd"
+		checkpoint debug "Starting Command line options UX"
             ;;
         esac
     ;;
 
     "--api")
+	checkpoint debug "Starting --api options"
         case "$2" in
             ""|"help")
                 see_use
@@ -103,6 +113,7 @@ case "$1" in
                 fn=$(sanitize "$2") || die
                 shift 2
                 "$fn" "$@"
+		checkpoint debug "Exiting --api"
             ;;
         esac
 	;;
@@ -145,9 +156,13 @@ case "$1" in
     *)
         # Generate the top menu with the modified Object data
         set_colors 4
+	checkpoint debug "Starting Text User Interface (TUI)"
         generate_top_menu "$json_data"
-
-        # Show about this tool on exit
+        checkpoint debug "Exiting TUI"
+	# Show about this tool on exit
         about_armbian_configng
+
     ;;
 esac
+
+[[ -n "$DEBUG" && -n $tools_dir ]] && set_checkpoint show
