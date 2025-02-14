@@ -334,53 +334,51 @@
                 {
                     "id": "Desktops",
                     "description": "Desktop Environments",
-                    "status": "Disabled",
                     "sub": [
                         {
                             "id": "XFCE",
                             "description": "XFCE desktop",
-                            "status": "Disabled",
                             "sub": [
                                 {
                                     "id": "XFCE01",
                                     "about": "Install XFCE:\nXfce is a lightweight desktop environment for UNIX-like operating systems. It aims to be fast and low on system resources, while still being visually appealing and user friendly.",
                                     "description": "XFCE desktop Install",
                                     "command": [
-                                        "manage_desktops 'xfce' 'install'"
+                                        "module_desktop install de=xfce"
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ ! -f /usr/share/xsessions/xfce.desktop ]"
+                                    "condition": "! module_desktop status"
                                 },
                                 {
                                     "id": "XFCE02",
                                     "description": "Uninstall",
                                     "command": [
-                                        "manage_desktops 'xfce' 'uninstall'"
+                                        "module_desktop remove de=xfce"
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/xfce.desktop ]"
+                                    "condition": "module_desktop status"
                                 },
                                 {
                                     "id": "XFCE03",
                                     "description": "Enable autologin",
                                     "command": [
-                                        "manage_desktops 'xfce' 'auto'"
+                                        "module_desktop 'xfce' 'auto'"
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/xfce.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                    "condition": "module_desktop status"
                                 },
                                 {
                                     "id": "XFCE04",
                                     "description": "Disable autologin",
                                     "command": [
-                                        "manage_desktops 'xfce' 'manual'"
+                                        "module_desktop 'xfce' 'manual'"
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/xfce.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                    "condition": "module_desktop status"
                                 }
                             ]
                         },
