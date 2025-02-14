@@ -334,100 +334,97 @@
                 {
                     "id": "Desktops",
                     "description": "Desktop Environments",
-                    "status": "Disabled",
                     "sub": [
                         {
                             "id": "XFCE",
                             "description": "XFCE desktop",
-                            "status": "Disabled",
                             "sub": [
                                 {
                                     "id": "XFCE01",
-                                    "about": "Install XFCE:\nXfce is a lightweight desktop environment for UNIX-like operating systems. It aims to be fast and low on system resources, while still being visually appealing and user friendly.",
+                                    "about": "Install XFCE:\n\nXfce is a lightweight desktop environment for UNIX-like operating systems. It aims to be fast and low on system resources, while still being visually appealing and user friendly.",
                                     "description": "XFCE desktop Install",
                                     "command": [
-                                        "manage_desktops 'xfce' 'install'"
+                                        "module_desktop install de=xfce"
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ ! -f /usr/share/xsessions/xfce.desktop ]"
+                                    "condition": "! module_desktop status de=xfce"
                                 },
                                 {
                                     "id": "XFCE02",
                                     "description": "Uninstall",
                                     "command": [
-                                        "manage_desktops 'xfce' 'uninstall'"
+                                        "module_desktop remove de=xfce"
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/xfce.desktop ]"
+                                    "condition": "module_desktop status de=xfce"
                                 },
                                 {
                                     "id": "XFCE03",
                                     "description": "Enable autologin",
                                     "command": [
-                                        "manage_desktops 'xfce' 'auto'"
-                                    ],
+                                        "module_desktop auto de=xfce"
+                                    ],  
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/xfce.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                    "condition": "module_desktop status de=xfce && ! module_desktop login"
                                 },
                                 {
                                     "id": "XFCE04",
                                     "description": "Disable autologin",
                                     "command": [
-                                        "manage_desktops 'xfce' 'manual'"
+                                        "module_desktop manual de=xfce"
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/xfce.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                    "condition": "module_desktop status de=xfce && module_desktop login"
                                 }
                             ]
                         },
                         {
                             "id": "Gnome",
                             "description": "Gnome desktop",
-                            "status": "Disabled",
                             "sub": [
                                 {
                                     "id": "GNOME01",
                                     "description": "Gnome desktop Install",
                                     "command": [
-                                        "manage_desktops 'gnome' 'install'"
+                                        "module_desktop 'install' 'de=gnome'"
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ ! -f /usr/share/xsessions/gnome.desktop ]"
+                                    "condition": "! module_desktop status de=gnome"
                                 },
                                 {
                                     "id": "GNOME02",
                                     "description": "Uninstall",
                                     "command": [
-                                        "manage_desktops 'gnome' 'uninstall'"
+                                        "module_desktop 'remove' 'de=gnome'"
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ]"
+                                    "condition": "module_desktop status de=gnome"
                                 },
                                 {
                                     "id": "GNOME03",
                                     "description": "Enable autologin",
                                     "command": [
-                                        "manage_desktops 'gnome' 'auto'"
-                                    ],
+                                        "module_desktop auto de=gnome"
+                                    ],  
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && ! cat /etc/gdm3/custom.conf 2>/dev/null | grep AutomaticLoginEnable | grep true >/dev/null"
+                                    "condition": "module_desktop status de=gnome && ! module_desktop login"
                                 },
                                 {
                                     "id": "GNOME04",
                                     "description": "Disable autologin",
                                     "command": [
-                                        "manage_desktops 'gnome' 'manual'"
+                                        "module_desktop manual de=gnome"
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && cat /etc/gdm3/custom.conf 2>/dev/null | grep AutomaticLoginEnable | grep true >/dev/null"
+                                    "condition": "module_desktop status de=gnome && module_desktop login"
                                 }
                             ]
                         },
