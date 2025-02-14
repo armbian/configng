@@ -2,7 +2,7 @@ module_options+=(
 	["module_armbian_kvmtest,author"]="@igorpecovnik"
 	["module_armbian_kvmtest,feature"]="module_armbian_kvmtest"
 	["module_armbian_kvmtest,desc"]="Deploy Armbian KVM instances"
-	["module_armbian_kvmtest,example"]="install remove save restore list help"
+	["module_armbian_kvmtest,example"]="install remove save drop restore list help"
 	["module_armbian_kvmtest,port"]=""
 	["module_armbian_kvmtest,status"]="Active"
 	["module_armbian_kvmtest,arch"]="x86-64"
@@ -173,11 +173,17 @@ function module_armbian_kvmtest () {
 		;;
 		"${commands[2]}")
 			for j in $(virsh list --all --name | grep ${kvmprefix}); do
-				# create snapshot
+				# create snapshots
 				virsh snapshot-create-as --domain ${j} --name "initial-state"
 			done
 		;;
 		"${commands[3]}")
+			for j in $(virsh list --all --name | grep ${kvmprefix}); do
+				# drop snapshots
+				virsh snapshot-delete "${j}" "initial-state"
+			done
+		;;
+		"${commands[4]}")
 			for j in $(virsh list --all --name | grep ${kvmprefix}); do
 				virsh shutdown $j 2>/dev/null
 				virsh snapshot-revert --domain $j --snapshotname "initial-state" --running
@@ -189,13 +195,13 @@ function module_armbian_kvmtest () {
 				virsh start $j 2>/dev/null
 			done
 		;;
-		"${commands[4]}")
+		"${commands[5]}")
 			for qcowimage in ${qcowimages[@]}; do
 				[[ ! $qcowimage =~ ${keyword/,/|} ]] && continue # skip not needed ones
 				echo $qcowimage
 			done
 		;;
-		"${commands[5]}")
+		"${commands[6]}")
 			echo -e "\nUsage: ${module_options["module_armbian_kvmtest,feature"]} <command> [switches]"
 			echo -e "Commands:  ${module_options["module_armbian_kvmtest,example"]}"
 			echo -e "Available commands:\n"
@@ -203,6 +209,7 @@ function module_armbian_kvmtest () {
 			echo -e "\tremove\t- Remove all virtual machines $title."
 			echo -e "\tsave\t- Save state of all VM $title."
 			echo -e "\trestore\t- Restore all saved state of VM $title."
+			echo -e "\tdrop\t- Drop all saved states of VM $title."
 			echo -e "\tlist\t- Show available VM machines $title."
 			echo -e "\nAvailable switches:\n"
 			echo -e "\tkvmprefix\t- Name prefix (default = kvmtest)"
@@ -217,7 +224,7 @@ function module_armbian_kvmtest () {
 			echo
 		;;
 		*)
-			${module_options["module_armbian_kvmtest,feature"]} ${commands[5]}
+			${module_options["module_armbian_kvmtest,feature"]} ${commands[6]}
 		;;
 	esac
 }
