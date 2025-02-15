@@ -6,7 +6,7 @@ module_options+=(
 	["module_wireguard,desc"]="Install wireguard container"
 	["module_wireguard,status"]="Active"
 	["module_wireguard,doc_link"]="https://docs.linuxserver.io/images/docker-wireguard/#server-mode"
-	["module_wireguard,group"]="Network"
+	["module_wireguard,group"]="Netconfig"
 	["module_wireguard,port"]="51820"
 	["module_wireguard,arch"]="x86-64 arm64"
 )
