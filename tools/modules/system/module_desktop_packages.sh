@@ -1,6 +1,6 @@
 declare -A module_options
 module_options+=(
-	["module_desktop_packages,author"]="@igorpecovnik"	
+	["module_desktop_packages,author"]="@igorpecovnik"
 	["module_desktop_packages,feature"]="module_desktop"
 	["module_desktop_packages,desc"]="Generate desktop packages list"
 	["module_desktop_packages,de"]="budgie cinnamon deepin enlightenment gnome i3-wm kde-plasma mate xfce xmonad"
@@ -12,12 +12,25 @@ module_options+=(
 # Module desktop packages
 #
 function module_desktop_packages() {
-    local title="test"
+	local title="test"
 	local condition=$(which "$title" 2>/dev/null)
 
 	# Convert the example string to an array
 	local de
 	IFS=' ' read -r -a de <<< "${module_options["module_desktop_packages,de"]}"
+
+	# Common desktop packages
+	local packages+=(
+			"anacron"
+			"cups"
+			"eject"
+			"printer-driver-all"
+			"profile-sync-daemon"
+			"system-config-printer"
+			"terminator"
+			"upower"
+			"xarchiver"
+		)
 
 	case "$1" in
 		"${de[0]}")
@@ -35,15 +48,12 @@ function module_desktop_packages() {
 		"${de[4]}")
 			# gnome
 			local packages+=(
-				"anacron"
 				"apt-xapian-index"
 				"at-spi2-core"
 				"colord"
-				"cups"
 				"dbus-x11"
 				"dconf-cli"
 				"dmz-cursor-theme"
-				"eject"
 				"foomatic-db-compressed-ppds"
 				"fonts-noto-cjk"
 				"fonts-ubuntu"
@@ -70,23 +80,14 @@ function module_desktop_packages() {
 				"nautilus"
 				"nautilus-extension-gnome-terminal"
 				"pavucontrol"
-				"printer-driver-all"
-				"profile-sync-daemon"
 				"pulseaudio"
 				"pulseaudio-module-bluetooth"
 				"software-properties-gtk"
 				"synaptic"
-				"system-config-printer"
-				"terminator"
-				"tracker"
-				"tracker-extract"
-				"tracker-miner-fs"
-				"upower"
 				"x11-apps"
 				"x11-session-utils"
 				"x11-utils"
 				"x11-xserver-utils"
-				"xarchiver"
 				"xdg-user-dirs"
 				"xdg-user-dirs-gtk"
 				"xfonts-base"
@@ -236,7 +237,7 @@ function module_desktop_packages() {
 			local supported=(
 				"supported"
 			)
-			local packages_uninstall=()			
+			local packages_uninstall=()
 			local packages_remove=()
 		;;
 		"${de[9]}")
@@ -307,7 +308,7 @@ function module_desktop_packages() {
 	# Remove packages_remove from packages
 	filtered_packages=()
 	for p in "${packages[@]}"; do
-	    # Check if $p is in packages_remove
+		# Check if $p is in packages_remove
 		if [[ ! " ${packages_remove[@]} " =~ " $p " ]]; then
 			filtered_packages+=("$p")
 		fi
