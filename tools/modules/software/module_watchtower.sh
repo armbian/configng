@@ -9,7 +9,7 @@ module_options+=(
 	["module_watchtower,doc_link"]="https://containrrr.dev/watchtower/"
 	["module_watchtower,author"]="@armbian"
 	["module_watchtower,parent"]="software"
-	["module_watchtower,group"]="Monitor"
+	["module_watchtower,group"]="Monitoring"
 	["module_watchtower,port"]="Unset"
 	["module_watchtower,arch"]="x86-64 arm64"
 )

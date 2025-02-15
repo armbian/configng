@@ -6,7 +6,7 @@ module_options+=(
 	["module_openssh-server,desc"]="Install openssh-server container"
 	["module_openssh-server,status"]="Active"
 	["module_openssh-server,doc_link"]="https://docs.linuxserver.io/images/docker-openssh-server/#server-mode"
-	["module_openssh-server,group"]="Network"
+	["module_openssh-server,group"]="Netconfig"
 	["module_openssh-server,port"]="2222"
 	["module_openssh-server,arch"]="x86-64 arm64"
 )
