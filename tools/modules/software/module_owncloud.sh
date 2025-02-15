@@ -6,7 +6,7 @@ module_options+=(
 	["module_owncloud,desc"]="Install owncloud container"
 	["module_owncloud,status"]="Active"
 	["module_owncloud,doc_link"]="https://doc.owncloud.com/"
-	["module_owncloud,group"]="Database"
+	["module_owncloud,group"]="Media"
 	["module_owncloud,port"]="7787"
 	["module_owncloud,arch"]="x86-64 arm64"
 )

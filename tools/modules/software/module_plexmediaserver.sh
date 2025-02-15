@@ -1,8 +1,8 @@
 module_options+=(
 	["module_plexmediaserver,author"]="@schwar3kat"
 	["module_plexmediaserver,maintainer"]="@igorpecovnik"
-	["module_plexmediaserver,feature"]="Install plexmediaserver"
-	["module_plexmediaserver,example"]="install remove status"
+	["module_plexmediaserver,feature"]="module_plexmediaserve"
+	["module_plexmediaserver,example"]="install remove status help"
 	["module_plexmediaserver,desc"]="Install plexmediaserver from repo using apt"
 	["module_plexmediaserver,status"]="Active"
 	["module_plexmediaserver,doc_link"]="https://www.plex.tv/"
