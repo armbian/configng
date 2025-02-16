@@ -15,7 +15,7 @@ env:
 
 concurrency:
   group: pipeline-pr-${{github.event.pull_request.number}}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
 
@@ -83,7 +83,7 @@ jobs:
       max-parallel: 32
       matrix:
         server: ${{ fromJSON(needs.prepare.outputs.DEPLOYMENT_MATRIX) }}
-    name: "${{ matrix.server.name }} on Armbian ${{ matrix.server.os }}"
+    name: "${{ matrix.server.name }} (${{ matrix.server.os }})"
     runs-on: "${{ matrix.server.os }}"
     timeout-minutes: 15
     steps:
@@ -107,13 +107,11 @@ jobs:
         run: |
 
           export TERM=linux
-          rm -rf test;mkdir -p test
+          rm -rf test; mkdir -p test
           cd config
+          # assemble armbian config
           bash tools/config-assemble.sh -p
-          #RAWCOMMAND=$(./bin/armbian-config --cmd | grep "${{ matrix.server.id }}" | xargs)
-          #COMMAND=$(echo $RAWCOMMAND | cut -d" " -f1,2)
-          #DESCRIPTION=$(echo $RAWCOMMAND | cut -d" " -f4-)
-          #echo "DESCRIPTION=$DESCRIPTION" >> "${GITHUB_ENV}"
+          # read test
           source "${{ matrix.server.package }}"
 
           # Test case execution
@@ -121,11 +119,11 @@ jobs:
           figlet  "RUN TEST CASE"
           testcase # function inside test script
           finish_time=$(date +%s)
-          
+
           # Generate table entry
           echo "|${{ matrix.server.os }}| ${{ matrix.server.name }} | $((finish_time - start_time)) sec |" > ../test/${{ matrix.server.id }}-${{ matrix.server.os }}
 
-      - name: "${{ env.DESCRIPTION }}"
+      - name: "Run fastfecth"
         run: |
           fastfetch
 
