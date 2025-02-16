@@ -14,7 +14,50 @@ module_options+=(
 	["module_api_files,port"]="Unset"
 	["module_api_files,arch"]="Missing"
 )
+#
+# Function to handle the module commands for 'module_api_files'
+function module_api_files() {
 
+	# Convert the example string to an array
+	local commands
+	IFS=' ' read -r -a commands <<< "${module_options["module_api_files,example"]}"
+
+	# Handle the command passed to the function
+	case "$1" in
+		"${commands[0]}")
+		echo -e "\nUsage: ${module_options["module_api_files,feature"]} <command>"
+		echo -e "Commands:  ${module_options["module_api_files,example"]}"
+		echo "Available commands:"
+		echo -e "\tarray\t- Generate module_options files from production module_options array."
+		echo -e "\tjson\t- Generate JSON object from module_options"
+		echo -e "\tdbt\t- Generate DBT from module_options"
+		echo -e "\ttest\t- Generate unit-test CONF from module_options."
+		echo -e "\tall\t- Generate All above."
+		echo
+		;;
+		"${commands[1]}")
+		geneate_files_api "gen_api_array"
+		;;
+		"${commands[2]}")
+		geneate_files_api "gen_api_json"
+		;;
+		"${commands[3]}")
+		geneate_files_api "gen_api_dbt"
+		;;
+		"${commands[4]}")
+		geneate_files_api "unit_test_files"
+		;;
+		"all")
+		geneate_files_api "gen_api_array"
+		geneate_files_api "gen_api_json"
+		geneate_files_api "gen_api_dbt"
+		geneate_files_api "unit_test_files"
+		;;
+		*)
+		echo "${module_options["module_api_files,example"]}"
+		;;
+	esac
+}
 
 
 module_helper+=(
@@ -31,7 +74,8 @@ module_helper+=(
 	["geneate_files_api,port"]=""
 	["geneate_files_api,arch"]=""
 )
-#
+# Use production array to verify a parent/group and subgroup/subsubgroup keys are valid
+# may be used to verify other keys if needed
 function geneate_files_api() {
 	local generator=$1
 	local i=0
@@ -135,19 +179,13 @@ function geneate_files_api() {
 }
 
 
-#
+# adds missing keys to array
 gen_api_array(){
-		# Determine the file path based on group
-	if [ "$group" != "unknown" ]; then
-		module_options_file="$tools_dir/modules/${parent}/${feature}_array.sh"
-	else
-		module_options_file="$tools_dir/dev/array/${feature}_array.sh"
-	fi
 
+	module_options_file="$tools_dir/dev/array/${parent}/${feature}_array.sh"
 
 	# Create the parent directory if it doesn't exist
 	mkdir -p "$(dirname "$module_options_file")"
-
 
 cat << EOF > "$module_options_file"
 module_options+=(
@@ -173,9 +211,9 @@ EOF
 gen_api_json(){
 
 	if [ "$group" != "unknown" ]; then
-		json_objects="$tools_dir/dev/json/${parent}/${group}/${feature}.json"
+		[ "$parent" != "docs" ] && json_objects="$tools_dir/dev/json/${parent}/${group}/${feature}.json"
 	else
-		json_objects="$tools_dir/dev/json/${parent}/${feature}.json"
+		json_objects="$tools_dir/dev/json/fix-${parent}/${feature}.json"
 	fi
 
 	# Create the parent directory if it doesn't exist
@@ -348,47 +386,3 @@ function unit_test_files(){
 }
 
 
-
-# Function to handle the module commands for 'module_api_files'
-function module_api_files() {
-
-	# Convert the example string to an array
-	local commands
-	IFS=' ' read -r -a commands <<< "${module_options["module_api_files,example"]}"
-
-	# Handle the command passed to the function
-	case "$1" in
-		"${commands[0]}")
-		echo -e "\nUsage: ${module_options["module_api_files,feature"]} <command>"
-		echo -e "Commands:  ${module_options["module_api_files,example"]}"
-		echo "Available commands:"
-		echo -e "\tarray\t- Generate module_options files from production module_options array."
-		echo -e "\tjson\t- Generate JSON object from module_options"
-		echo -e "\tdbt\t- Generate DBT from module_options"
-		echo -e "\ttest\t- Generate unit-test CONF from module_options."
-		echo -e "\tall\t- Generate All above."
-		echo
-		;;
-		"${commands[1]}")
-		geneate_files_api "gen_api_array"
-		;;
-		"${commands[2]}")
-		geneate_files_api "gen_api_json"
-		;;
-		"${commands[3]}")
-		geneate_files_api "gen_api_dbt"
-		;;
-		"${commands[4]}")
-		geneate_files_api "unit_test_files"
-		;;
-		"all")
-		geneate_files_api "gen_api_array"
-		geneate_files_api "gen_api_json"
-		geneate_files_api "gen_api_dbt"
-		geneate_files_api "unit_test_files"
-		;;
-		*)
-		echo "${module_options["module_api_files,example"]}"
-		;;
-	esac
-}
