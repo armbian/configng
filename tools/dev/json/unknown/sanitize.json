@@ -1,0 +1,10 @@
+{
+	"id": "1180",
+	"description": "Make sure param contains only valid chars",
+	"command": [
+	"see_menu sanitize"
+	],
+	"status": "",
+	"author": "@Tearran",
+	"condition": "sanitize status | grep install"
+}

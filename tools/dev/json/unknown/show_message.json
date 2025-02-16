@@ -1,0 +1,10 @@
+{
+	"id": "0320",
+	"description": "Display a message box",
+	"command": [
+	"see_menu show_message"
+	],
+	"status": "",
+	"author": "@Tearran",
+	"condition": "show_message status | grep install"
+}

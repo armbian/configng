@@ -1,0 +1,10 @@
+{
+	"id": "0080",
+	"description": "Reload service",
+	"command": [
+	"see_menu srv_reload"
+	],
+	"status": "",
+	"author": "@dimitry-ishenko",
+	"condition": "srv_reload status | grep install"
+}

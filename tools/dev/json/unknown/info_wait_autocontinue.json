@@ -1,0 +1,10 @@
+{
+	"id": "0630",
+	"description": "Display a warning with a gauge for 10 seconds then continue",
+	"command": [
+	"see_menu info_wait_autocontinue"
+	],
+	"status": "",
+	"author": "@igorpecovnik",
+	"condition": "info_wait_autocontinue status | grep install"
+}

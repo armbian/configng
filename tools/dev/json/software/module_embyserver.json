@@ -1,0 +1,10 @@
+{
+	"id": "MED0670",
+	"description": "Install embyserver container",
+	"command": [
+	"see_menu module_embyserver"
+	],
+	"status": "",
+	"author": "@schwar3kat",
+	"condition": "module_embyserver status | grep install"
+}

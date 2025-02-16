@@ -1,0 +1,10 @@
+{
+	"id": "1250",
+	"description": "Secure version of get_user_continue",
+	"command": [
+	"see_menu get_user_continue_secure"
+	],
+	"status": "",
+	"author": "@Tearran",
+	"condition": "get_user_continue_secure status | grep install"
+}

@@ -1,0 +1,10 @@
+{
+	"id": "0580",
+	"description": "Generate a submenu from a parent_id",
+	"command": [
+	"see_menu generate_menu"
+	],
+	"status": "",
+	"author": "@Tearran",
+	"condition": "generate_menu status | grep install"
+}

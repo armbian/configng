@@ -1,0 +1,10 @@
+{
+	"id": "NET0530",
+	"description": "Install wireguard container",
+	"command": [
+	"see_menu module_wireguard"
+	],
+	"status": "",
+	"author": "@armbian",
+	"condition": "module_wireguard status | grep install"
+}

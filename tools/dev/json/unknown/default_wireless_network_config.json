@@ -1,0 +1,10 @@
+{
+	"id": "0940",
+	"description": "Stop hostapd, clean config",
+	"command": [
+	"see_menu default_wireless_network_config"
+	],
+	"status": "",
+	"author": "@igorpecovnik",
+	"condition": "default_wireless_network_config status | grep install"
+}

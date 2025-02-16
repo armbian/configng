@@ -1,0 +1,10 @@
+{
+	"id": "PRI0600",
+	"description": "Install octoprint container",
+	"command": [
+	"see_menu module_octoprint"
+	],
+	"status": "",
+	"author": "@armbian",
+	"condition": "module_octoprint status | grep install"
+}

@@ -1,0 +1,10 @@
+{
+	"id": "0390",
+	"description": "Check when apt list was last updated and suggest updating or update",
+	"command": [
+	"see_menu see_current_apt"
+	],
+	"status": "",
+	"author": "@Tearran",
+	"condition": "see_current_apt status | grep install"
+}

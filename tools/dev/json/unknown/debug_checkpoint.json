@@ -1,0 +1,10 @@
+{
+	"id": "DEV1030",
+	"description": "Helper module for debug info",
+	"command": [
+	"see_menu debug_checkpoint"
+	],
+	"status": "",
+	"author": "@armbian",
+	"condition": "debug_checkpoint status | grep install"
+}

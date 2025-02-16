@@ -1,0 +1,10 @@
+{
+	"id": "DOW0930",
+	"description": "Install uptimekuma container",
+	"command": [
+	"see_menu module_uptimekuma"
+	],
+	"status": "",
+	"author": "@armbian",
+	"condition": "module_uptimekuma status | grep install"
+}

@@ -1,0 +1,10 @@
+{
+	"id": "DOW0150",
+	"description": "Install bazarr container",
+	"command": [
+	"see_menu module_bazarr"
+	],
+	"status": "",
+	"author": "@igorpecovnik",
+	"condition": "module_bazarr status | grep install"
+}

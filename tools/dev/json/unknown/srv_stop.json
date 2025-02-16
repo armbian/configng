@@ -1,0 +1,10 @@
+{
+	"id": "1070",
+	"description": "Stop service",
+	"command": [
+	"see_menu srv_stop"
+	],
+	"status": "",
+	"author": "@dimitry-ishenko",
+	"condition": "srv_stop status | grep install"
+}

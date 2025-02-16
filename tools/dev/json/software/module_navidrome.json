@@ -1,0 +1,10 @@
+{
+	"id": "DOW0730",
+	"description": "Install navidrome container",
+	"command": [
+	"see_menu module_navidrome"
+	],
+	"status": "",
+	"author": "@armbian",
+	"condition": "module_navidrome status | grep install"
+}

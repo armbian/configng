@@ -1,0 +1,10 @@
+{
+	"id": "1100",
+	"description": "Generate a Help message for cli commands.",
+	"command": [
+	"see_menu see_cmd_list"
+	],
+	"status": "",
+	"author": "@Tearran",
+	"condition": "see_cmd_list status | grep install"
+}
