@@ -150,10 +150,10 @@ gen_api_json(){
 
 	# Generate the JSON content and format it with jq before writing to the file
 	jq --indent 4 -n --arg id "$id" \
-	      --arg desc "$desc" \
-	      --arg feature "$feature" \
-	      --arg author "$author" \
-	      --arg condition "$feature status | grep install" \
+		--arg desc "$desc" \
+		--arg feature "$feature" \
+		--arg author "$author" \
+		--arg condition "$feature status | grep install" \
 		'{
 			"id": $id,
 			"description": $desc,
