@@ -17,11 +17,13 @@ function module_armbian_kvmtest () {
 
 	# read additional parameters from command line
 	local parameter
-	IFS=' ' read -r -a parameter <<< "${1}"
-	for feature in instances provisioning firstconfig startingip gateway keyword arch kvmprefix network bridge memory vcpus; do
-	for selected in ${parameter[@]}; do
-		IFS='=' read -r -a split <<< "${selected}"
-		[[ ${split[0]} == $feature ]] && eval "$feature=${split[1]}"
+	for var in "$@"; do
+		IFS=' ' read -r -a parameter <<< "${var}"
+		for feature in instances provisioning firstconfig startingip gateway keyword arch kvmprefix network bridge memory vcpus size; do
+			for selected in ${parameter[@]}; do
+				IFS='=' read -r -a split <<< "${selected}"
+				[[ ${split[0]} == $feature ]] && eval "$feature=${split[1]}"
+			done
 		done
 	done
 
@@ -37,13 +39,14 @@ function module_armbian_kvmtest () {
 	local network="${network:-default}"
 	if [[ -n "${bridge}" ]]; then network="bridge=${bridge}"; fi
 	local instances="${instances:-01}" # number of instances
+	local size="${size:-10}" # number of instances
 	local destination="${destination:-/var/lib/libvirt/images}"
 	local kvmprefix="${kvmprefix:-kvmtest}"
 	local memory="${memory:-3072}"
 	local vcpus="${vcpus:-2}"
 	local startingip="${startingip:-10.0.60.60}"
 	local gateway="${gateway:-10.0.60.1}"
-	local keyword=$(echo $keyword | sed "s/_/|/g") # convert
+	local keyword=$(echo $keyword | sed "s/,/|/g") # convert
 
 	qcowimages=(
 		"https://dl.armbian.com/nightly/uefi-${arch}/Bullseye_current_minimal-qcow2"
@@ -58,7 +61,7 @@ function module_armbian_kvmtest () {
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_armbian_kvmtest,example"]}"
 
-	case "${parameter[0]}" in
+	case "$1" in
 
 		"${commands[0]}")
 
@@ -96,7 +99,7 @@ function module_armbian_kvmtest () {
 					local image="$i"-"${kvmprefix}"-"${filename}" # get image name
 					cp ${tempfolder}/${filename} ${destination}/${image} # make a copy under different number
 					sync
-					qemu-img resize ${destination}/${image} +10G # expand
+					qemu-img resize ${destination}/${image} +"${size}G" # expand
 					qemu-nbd --connect=/dev/nbd0 ${destination}/${image} # connect to qemu image
 					printf "fix\n" | sudo parted ---pretend-input-tty /dev/nbd0 print >/dev/null # fix resize
 					mount /dev/nbd0p3 ${mounttempfolder} # 3rd partition on uefi images is rootfs
