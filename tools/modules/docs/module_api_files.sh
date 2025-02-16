@@ -210,56 +210,56 @@ EOF
 
 convert_dbt_array(){
 	# Ensure input file is provided
-if [[ $# -ne 1 ]]; then
-    echo "Usage: $0 <input_file>"
-    exit 1
-fi
+	if [[ $# -ne 1 ]]; then
+		echo "Usage: $0 <input_file>"
+		exit 1
+	fi
 
-input_file="$1"
-output_file="${input_file%.dbt}_array.sh"  # Generate output based on input file name
+	input_file="$1"
+	output_file="${input_file%.dbt}_array.sh"  # Generate output based on input file name
 
-# Extract the module name from the first line (assumes it's in [brackets])
-module_name=$(awk -F'[][]' '/^\[/{print $2; exit}' "$input_file")
+	# Extract the module name from the first line (assumes it's in [brackets])
+	module_name=$(awk -F'[][]' '/^\[/{print $2; exit}' "$input_file")
 
-# Ensure module_name is set
-if [[ -z "$module_name" ]]; then
-    echo "Error: No module name found in $input_file"
-    exit 1
-fi
+	# Ensure module_name is set
+	if [[ -z "$module_name" ]]; then
+		echo "Error: No module name found in $input_file"
+		exit 1
+	fi
 
-# Start writing the output file
-echo "module_options+=(" > "$output_file"
+	# Start writing the output file
+	echo "module_options+=(" > "$output_file"
 
-# Process key-value pairs
-awk -v module="$module_name" -F ' *= *' '
-    NF == 2 {
-        key=$1; value=$2;
-        gsub(/"/, "\\\"", value); # Escape double quotes
-        print "\t[\"" module "," key "\"]=\"" value "\"";
-    }
-' "$input_file" >> "$output_file"
+	# Process key-value pairs
+	awk -v module="$module_name" -F ' *= *' '
+	NF == 2 {
+		key=$1; value=$2;
+		gsub(/"/, "\\\"", value); # Escape double quotes
+		print "\t[\"" module "," key "\"]=\"" value "\"";
+	}
+	' "$input_file" >> "$output_file"
 
-# End the array
-echo ")" #>> "$output_file"
+	# End the array
+	echo ")" #>> "$output_file"
 
-echo "Conversion complete: $output_file"
+	echo "Conversion complete: $output_file"
 
 }
 
 
 function dbt_to_array() {
-    local ini_file=$1
-    declare -gA ini_options
+	local ini_file=$1
+	declare -gA ini_options
 
-    while IFS='=' read -r key value; do
-        key="${key%%[[:space:]]*}"   # Trim spaces around the key
-        value="${value##*[[:space:]]}" # Trim spaces around the value
+	while IFS='=' read -r key value; do
+		key="${key%%[[:space:]]*}"   # Trim spaces around the key
+		value="${value##*[[:space:]]}" # Trim spaces around the value
 
-        if [[ -n "$key" && "${key:0:1}" != "#" && "${key:0:1}" != ";" ]]; then
-            ini_options["$key"]="$value"
-        fi
-    done < "$ini_file"
-}
+		if [[ -n "$key" && "${key:0:1}" != "#" && "${key:0:1}" != ";" ]]; then
+			ini_options["$key"]="$value"
+		fi
+	done < "$ini_file"
+	}
 
 module_helper+=(
 	["unit_test_files,maintainer"]="@Tearran"
