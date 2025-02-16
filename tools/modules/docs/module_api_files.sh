@@ -179,11 +179,11 @@ module_helper+=(
 )
 #
 gen_api_dbt(){
-        if [ "$group" != "unknown" ]; then
-        	dbt_file="$tools_dir/modules/${parent}/${feature}_database.dbt"
-        else
-        	dbt_file="$tools_dir/dev/dbt/${parent}/${feature}_database.dbt"
-        fi
+	if [ "$group" != "unknown" ]; then
+		dbt_file="$tools_dir/modules/${parent}/${feature}_database.dbt"
+	else
+		dbt_file="$tools_dir/dev/dbt/${parent}/${feature}_database.dbt"
+	fi
 
 	# Create the parent directory if it doesn't exist
 	mkdir -p "$(dirname "$dbt_file")"
