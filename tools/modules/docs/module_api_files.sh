@@ -188,7 +188,6 @@ gen_api_dbt(){
 	# Create the parent directory if it doesn't exist
 	mkdir -p "$(dirname "$dbt_file")"
 
-
 	# Create the .conf file with the defined variables
 	cat << EOF > "$dbt_file"
 [${feature}]
