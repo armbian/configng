@@ -1,10 +1,10 @@
 {
-	"id": "0370",
-	"description": "Show or generate QR code for Google OTP",
-	"command": [
-	"see_menu qr_code"
-	],
-	"status": "",
-	"author": "@igorpecovnik",
-	"condition": "qr_code status | grep install"
+    "id": "0370",
+    "description": "Show or generate QR code for Google OTP",
+    "command": [
+        "see_menu qr_code"
+    ],
+    "status": "",
+    "author": "@igorpecovnik",
+    "condition": "qr_code status | grep install"
 }

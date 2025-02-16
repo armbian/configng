@@ -140,27 +140,28 @@ EOF
 gen_api_json(){
 
 	if [ "$group" != "unknown" ]; then
-		json_opjects="$tools_dir/dev/json/${parent}/${group}/${feature}.json"
+		json_objects="$tools_dir/dev/json/${parent}/${group}/${feature}.json"
 	else
-		json_opjects="$tools_dir/dev/json/${parent}/${feature}.json"
+		json_objects="$tools_dir/dev/json/${parent}/${feature}.json"
 	fi
 
 	# Create the parent directory if it doesn't exist
-	mkdir -p "$(dirname "$json_opjects")"
+	mkdir -p "$(dirname "$json_objects")"
 
-	cat << EOF > "$json_opjects"
-{
-	"id": "$id",
-	"description": "$desc",
-	"command": [
-	"see_menu $feature"
-	],
-	"status": "",
-	"author": "$author",
-	"condition": "$feature status | grep install"
-}
-EOF
-
+	# Generate the JSON content and format it with jq before writing to the file
+	jq --indent 4 -n --arg id "$id" \
+	      --arg desc "$desc" \
+	      --arg feature "$feature" \
+	      --arg author "$author" \
+	      --arg condition "$feature status | grep install" \
+		'{
+			"id": $id,
+			"description": $desc,
+			"command": ["see_menu \($feature)"],
+			"status": "",
+			"author": $author,
+			"condition": $condition
+		}' > "$json_objects"
 }
 
 module_helper+=(
@@ -358,6 +359,3 @@ function module_api_files() {
 		;;
 	esac
 }
-
-# Uncomment to test the module
-# module_api_files "$1"

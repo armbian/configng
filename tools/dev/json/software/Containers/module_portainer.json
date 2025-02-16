@@ -1,10 +1,10 @@
 {
-	"id": "CON0400",
-	"description": "Install/uninstall/check status of portainer container",
-	"command": [
-	"see_menu module_portainer"
-	],
-	"status": "",
-	"author": "@armbian",
-	"condition": "module_portainer status | grep install"
+    "id": "CON0400",
+    "description": "Install/uninstall/check status of portainer container",
+    "command": [
+        "see_menu module_portainer"
+    ],
+    "status": "",
+    "author": "@armbian",
+    "condition": "module_portainer status | grep install"
 }

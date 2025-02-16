@@ -1,10 +1,10 @@
 {
-	"id": "MED0790",
-	"description": "Install syncthing container",
-	"command": [
-	"see_menu module_syncthing"
-	],
-	"status": "",
-	"author": "@igorpecovnik",
-	"condition": "module_syncthing status | grep install"
+    "id": "MED0790",
+    "description": "Install syncthing container",
+    "command": [
+        "see_menu module_syncthing"
+    ],
+    "status": "",
+    "author": "@igorpecovnik",
+    "condition": "module_syncthing status | grep install"
 }

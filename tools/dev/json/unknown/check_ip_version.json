@@ -1,10 +1,10 @@
 {
-	"id": "0510",
-	"description": "Check if a domain is reachable via IPv4 and IPv6",
-	"command": [
-	"see_menu check_ip_version"
-	],
-	"status": "",
-	"author": "@Tearran",
-	"condition": "check_ip_version status | grep install"
+    "id": "0510",
+    "description": "Check if a domain is reachable via IPv4 and IPv6",
+    "command": [
+        "see_menu check_ip_version"
+    ],
+    "status": "",
+    "author": "@Tearran",
+    "condition": "check_ip_version status | grep install"
 }

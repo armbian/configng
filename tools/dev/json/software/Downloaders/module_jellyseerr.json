@@ -1,10 +1,10 @@
 {
-	"id": "DOW0250",
-	"description": "Install jellyseerr container",
-	"command": [
-	"see_menu module_jellyseerr"
-	],
-	"status": "",
-	"author": "@armbian",
-	"condition": "module_jellyseerr status | grep install"
+    "id": "DOW0250",
+    "description": "Install jellyseerr container",
+    "command": [
+        "see_menu module_jellyseerr"
+    ],
+    "status": "",
+    "author": "@armbian",
+    "condition": "module_jellyseerr status | grep install"
 }

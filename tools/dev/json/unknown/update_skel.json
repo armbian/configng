@@ -1,10 +1,10 @@
 {
-	"id": "1210",
-	"description": "Update the /etc/skel files in users directories",
-	"command": [
-	"see_menu update_skel"
-	],
-	"status": "",
-	"author": "@igorpecovnik",
-	"condition": "update_skel status | grep install"
+    "id": "1210",
+    "description": "Update the /etc/skel files in users directories",
+    "command": [
+        "see_menu update_skel"
+    ],
+    "status": "",
+    "author": "@igorpecovnik",
+    "condition": "update_skel status | grep install"
 }

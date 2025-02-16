@@ -1,10 +1,10 @@
 {
-	"id": "0850",
-	"description": "Show general information about this tool",
-	"command": [
-	"see_menu about_armbian_configng"
-	],
-	"status": "",
-	"author": "@igorpecovnik",
-	"condition": "about_armbian_configng status | grep install"
+    "id": "0850",
+    "description": "Show general information about this tool",
+    "command": [
+        "see_menu about_armbian_configng"
+    ],
+    "status": "",
+    "author": "@igorpecovnik",
+    "condition": "about_armbian_configng status | grep install"
 }

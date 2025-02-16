@@ -1,10 +1,10 @@
 {
-	"id": "0620",
-	"description": "Generate jobs from JSON file.",
-	"command": [
-	"see_menu generate_jobs_from_json"
-	],
-	"status": "",
-	"author": "@Tearran",
-	"condition": "generate_jobs_from_json status | grep install"
+    "id": "0620",
+    "description": "Generate jobs from JSON file.",
+    "command": [
+        "see_menu generate_jobs_from_json"
+    ],
+    "status": "",
+    "author": "@Tearran",
+    "condition": "generate_jobs_from_json status | grep install"
 }

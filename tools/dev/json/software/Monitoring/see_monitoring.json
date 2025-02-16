@@ -1,10 +1,10 @@
 {
-	"id": "MON0350",
-	"description": "Menu for armbianmonitor features",
-	"command": [
-	"see_menu see_monitoring"
-	],
-	"status": "",
-	"author": "@Tearran",
-	"condition": "see_monitoring status | grep install"
+    "id": "MON0350",
+    "description": "Menu for armbianmonitor features",
+    "command": [
+        "see_menu see_monitoring"
+    ],
+    "status": "",
+    "author": "@Tearran",
+    "condition": "see_monitoring status | grep install"
 }

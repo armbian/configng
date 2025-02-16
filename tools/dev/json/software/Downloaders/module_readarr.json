@@ -1,10 +1,10 @@
 {
-	"id": "DOW0920",
-	"description": "Install readarr container",
-	"command": [
-	"see_menu module_readarr"
-	],
-	"status": "",
-	"author": "@armbian",
-	"condition": "module_readarr status | grep install"
+    "id": "DOW0920",
+    "description": "Install readarr container",
+    "command": [
+        "see_menu module_readarr"
+    ],
+    "status": "",
+    "author": "@armbian",
+    "condition": "module_readarr status | grep install"
 }

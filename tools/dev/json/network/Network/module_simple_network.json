@@ -1,10 +1,10 @@
 {
-	"id": "NET0060",
-	"description": "Netplan wrapper",
-	"command": [
-	"see_menu module_simple_network"
-	],
-	"status": "",
-	"author": "@igorpecovnik",
-	"condition": "module_simple_network status | grep install"
+    "id": "NET0060",
+    "description": "Netplan wrapper",
+    "command": [
+        "see_menu module_simple_network"
+    ],
+    "status": "",
+    "author": "@igorpecovnik",
+    "condition": "module_simple_network status | grep install"
 }

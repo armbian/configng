@@ -1,10 +1,10 @@
 {
-	"id": "0040",
-	"description": "Toggle SSH lastlog",
-	"command": [
-	"see_menu toggle_ssh_lastlog"
-	],
-	"status": "",
-	"author": "@Tearran",
-	"condition": "toggle_ssh_lastlog status | grep install"
+    "id": "0040",
+    "description": "Toggle SSH lastlog",
+    "command": [
+        "see_menu toggle_ssh_lastlog"
+    ],
+    "status": "",
+    "author": "@Tearran",
+    "condition": "toggle_ssh_lastlog status | grep install"
 }

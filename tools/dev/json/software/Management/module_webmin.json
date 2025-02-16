@@ -1,10 +1,10 @@
 {
-	"id": "MAN0090",
-	"description": "Webmin setup and service setting.",
-	"command": [
-	"see_menu module_webmin"
-	],
-	"status": "",
-	"author": "@Tearran",
-	"condition": "module_webmin status | grep install"
+    "id": "MAN0090",
+    "description": "Webmin setup and service setting.",
+    "command": [
+        "see_menu module_webmin"
+    ],
+    "status": "",
+    "author": "@Tearran",
+    "condition": "module_webmin status | grep install"
 }

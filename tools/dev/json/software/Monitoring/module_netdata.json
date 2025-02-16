@@ -1,10 +1,10 @@
 {
-	"id": "MON0830",
-	"description": "Install netdata container",
-	"command": [
-	"see_menu module_netdata"
-	],
-	"status": "",
-	"author": "@armbian",
-	"condition": "module_netdata status | grep install"
+    "id": "MON0830",
+    "description": "Install netdata container",
+    "command": [
+        "see_menu module_netdata"
+    ],
+    "status": "",
+    "author": "@armbian",
+    "condition": "module_netdata status | grep install"
 }

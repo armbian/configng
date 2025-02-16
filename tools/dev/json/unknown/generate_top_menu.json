@@ -1,10 +1,10 @@
 {
-	"id": "0140",
-	"description": "Build the main menu from a object",
-	"command": [
-	"see_menu generate_top_menu"
-	],
-	"status": "",
-	"author": "@Tearran",
-	"condition": "generate_top_menu status | grep install"
+    "id": "0140",
+    "description": "Build the main menu from a object",
+    "command": [
+        "see_menu generate_top_menu"
+    ],
+    "status": "",
+    "author": "@Tearran",
+    "condition": "generate_top_menu status | grep install"
 }

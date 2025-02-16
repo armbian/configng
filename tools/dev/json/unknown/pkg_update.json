@@ -1,10 +1,10 @@
 {
-	"id": "1240",
-	"description": "Update package repository",
-	"command": [
-	"see_menu pkg_update"
-	],
-	"status": "",
-	"author": "@dimitry-ishenko",
-	"condition": "pkg_update status | grep install"
+    "id": "1240",
+    "description": "Update package repository",
+    "command": [
+        "see_menu pkg_update"
+    ],
+    "status": "",
+    "author": "@dimitry-ishenko",
+    "condition": "pkg_update status | grep install"
 }

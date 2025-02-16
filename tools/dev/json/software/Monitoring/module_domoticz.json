@@ -1,10 +1,10 @@
 {
-	"id": "MON0340",
-	"description": "Install domoticz container",
-	"command": [
-	"see_menu module_domoticz"
-	],
-	"status": "",
-	"author": "@armbian",
-	"condition": "module_domoticz status | grep install"
+    "id": "MON0340",
+    "description": "Install domoticz container",
+    "command": [
+        "see_menu module_domoticz"
+    ],
+    "status": "",
+    "author": "@armbian",
+    "condition": "module_domoticz status | grep install"
 }

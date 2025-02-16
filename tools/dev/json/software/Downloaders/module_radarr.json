@@ -1,10 +1,10 @@
 {
-	"id": "DOW0640",
-	"description": "Install radarr container",
-	"command": [
-	"see_menu module_radarr"
-	],
-	"status": "",
-	"author": "@armbian",
-	"condition": "module_radarr status | grep install"
+    "id": "DOW0640",
+    "description": "Install radarr container",
+    "command": [
+        "see_menu module_radarr"
+    ],
+    "status": "",
+    "author": "@armbian",
+    "condition": "module_radarr status | grep install"
 }

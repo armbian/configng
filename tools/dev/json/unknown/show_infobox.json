@@ -1,10 +1,10 @@
 {
-	"id": "0910",
-	"description": "pipeline strings to an infobox ",
-	"command": [
-	"see_menu show_infobox"
-	],
-	"status": "",
-	"author": "@Tearran",
-	"condition": "show_infobox status | grep install"
+    "id": "0910",
+    "description": "pipeline strings to an infobox ",
+    "command": [
+        "see_menu show_infobox"
+    ],
+    "status": "",
+    "author": "@Tearran",
+    "condition": "show_infobox status | grep install"
 }

@@ -1,10 +1,10 @@
 {
-	"id": "DOW0680",
-	"description": "Install qbittorrent container",
-	"command": [
-	"see_menu module_qbittorrent"
-	],
-	"status": "",
-	"author": "@qbittorrent",
-	"condition": "module_qbittorrent status | grep install"
+    "id": "DOW0680",
+    "description": "Install qbittorrent container",
+    "command": [
+        "see_menu module_qbittorrent"
+    ],
+    "status": "",
+    "author": "@qbittorrent",
+    "condition": "module_qbittorrent status | grep install"
 }

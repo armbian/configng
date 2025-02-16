@@ -1,10 +1,10 @@
 {
-	"id": "DOC0740",
-	"description": "Example module unattended interface.",
-	"command": [
-	"see_menu module_api_files"
-	],
-	"status": "",
-	"author": "@Tearran",
-	"condition": "module_api_files status | grep install"
+    "id": "DOC0740",
+    "description": "Example module unattended interface.",
+    "command": [
+        "see_menu module_api_files"
+    ],
+    "status": "",
+    "author": "@Tearran",
+    "condition": "module_api_files status | grep install"
 }

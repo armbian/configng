@@ -1,10 +1,10 @@
 {
-	"id": "MED0410",
-	"description": "Install plexmediaserver from repo using apt",
-	"command": [
-	"see_menu module_plexmediaserver"
-	],
-	"status": "",
-	"author": "@schwar3kat",
-	"condition": "module_plexmediaserver status | grep install"
+    "id": "MED0410",
+    "description": "Install plexmediaserver from repo using apt",
+    "command": [
+        "see_menu module_plexmediaserver"
+    ],
+    "status": "",
+    "author": "@schwar3kat",
+    "condition": "module_plexmediaserver status | grep install"
 }

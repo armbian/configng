@@ -1,10 +1,10 @@
 {
-	"id": "0980",
-	"description": "Show the usage of the functions.",
-	"command": [
-	"see_menu see_use"
-	],
-	"status": "",
-	"author": "@Tearran",
-	"condition": "see_use status | grep install"
+    "id": "0980",
+    "description": "Show the usage of the functions.",
+    "command": [
+        "see_menu see_use"
+    ],
+    "status": "",
+    "author": "@Tearran",
+    "condition": "see_use status | grep install"
 }

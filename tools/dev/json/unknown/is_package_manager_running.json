@@ -1,10 +1,10 @@
 {
-	"id": "0170",
-	"description": "Migrated procedures from Armbian config.",
-	"command": [
-	"see_menu is_package_manager_running"
-	],
-	"status": "",
-	"author": "@armbian",
-	"condition": "is_package_manager_running status | grep install"
+    "id": "0170",
+    "description": "Migrated procedures from Armbian config.",
+    "command": [
+        "see_menu is_package_manager_running"
+    ],
+    "status": "",
+    "author": "@armbian",
+    "condition": "is_package_manager_running status | grep install"
 }

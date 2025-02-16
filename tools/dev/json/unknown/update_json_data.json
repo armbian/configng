@@ -1,10 +1,10 @@
 {
-	"id": "0880",
-	"description": "Update JSON data with system information",
-	"command": [
-	"see_menu update_json_data"
-	],
-	"status": "",
-	"author": "@Tearran",
-	"condition": "update_json_data status | grep install"
+    "id": "0880",
+    "description": "Update JSON data with system information",
+    "command": [
+        "see_menu update_json_data"
+    ],
+    "status": "",
+    "author": "@Tearran",
+    "condition": "update_json_data status | grep install"
 }

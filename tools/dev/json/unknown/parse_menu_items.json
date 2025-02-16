@@ -1,10 +1,10 @@
 {
-	"id": "0960",
-	"description": "Parse json to get list of desired menu or submenu items",
-	"command": [
-	"see_menu parse_menu_items"
-	],
-	"status": "",
-	"author": "@viraniac",
-	"condition": "parse_menu_items status | grep install"
+    "id": "0960",
+    "description": "Parse json to get list of desired menu or submenu items",
+    "command": [
+        "see_menu parse_menu_items"
+    ],
+    "status": "",
+    "author": "@viraniac",
+    "condition": "parse_menu_items status | grep install"
 }

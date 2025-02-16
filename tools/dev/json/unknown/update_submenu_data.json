@@ -1,10 +1,10 @@
 {
-	"id": "0460",
-	"description": "Update submenu descriptions based on conditions",
-	"command": [
-	"see_menu update_submenu_data"
-	],
-	"status": "",
-	"author": "@Tearran",
-	"condition": "update_submenu_data status | grep install"
+    "id": "0460",
+    "description": "Update submenu descriptions based on conditions",
+    "command": [
+        "see_menu update_submenu_data"
+    ],
+    "status": "",
+    "author": "@Tearran",
+    "condition": "update_submenu_data status | grep install"
 }
