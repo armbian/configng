@@ -1,0 +1,10 @@
+{
+	"id": "0290",
+	"description": "Deploy Armbian KVM instances",
+	"command": [
+	"see_menu module_armbian_kvmtest"
+	],
+	"status": "",
+	"author": "@igorpecovnik",
+	"condition": "module_armbian_kvmtest status | grep install"
+}

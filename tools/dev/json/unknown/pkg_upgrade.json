@@ -1,0 +1,10 @@
+{
+	"id": "0490",
+	"description": "Upgrade installed packages",
+	"command": [
+	"see_menu pkg_upgrade"
+	],
+	"status": "",
+	"author": "@dimitry-ishenko",
+	"condition": "pkg_upgrade status | grep install"
+}

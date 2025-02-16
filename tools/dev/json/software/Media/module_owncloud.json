@@ -1,0 +1,10 @@
+{
+	"id": "MED0820",
+	"description": "Install owncloud container",
+	"command": [
+	"see_menu module_owncloud"
+	],
+	"status": "",
+	"author": "@armbian",
+	"condition": "module_owncloud status | grep install"
+}

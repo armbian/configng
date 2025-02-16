@@ -1,0 +1,10 @@
+{
+	"id": "1080",
+	"description": "Configure an unconfigured package",
+	"command": [
+	"see_menu pkg_configure"
+	],
+	"status": "",
+	"author": "@dimitry-ishenko",
+	"condition": "pkg_configure status | grep install"
+}

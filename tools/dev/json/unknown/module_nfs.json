@@ -1,0 +1,10 @@
+{
+	"id": "0900",
+	"description": "Install nfs client",
+	"command": [
+	"see_menu module_nfs"
+	],
+	"status": "",
+	"author": "@igorpecovnik",
+	"condition": "module_nfs status | grep install"
+}

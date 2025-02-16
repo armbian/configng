@@ -1,0 +1,10 @@
+{
+	"id": "MED0240",
+	"description": "Install jellyfin container",
+	"command": [
+	"see_menu module_jellyfin"
+	],
+	"status": "",
+	"author": "@armbian",
+	"condition": "module_jellyfin status | grep install"
+}

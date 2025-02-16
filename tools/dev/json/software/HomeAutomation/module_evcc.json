@@ -1,0 +1,10 @@
+{
+	"id": "HOM0470",
+	"description": "Install evcc container",
+	"command": [
+	"see_menu module_evcc"
+	],
+	"status": "",
+	"author": "@naltatis",
+	"condition": "module_evcc status | grep install"
+}

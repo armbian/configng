@@ -1,0 +1,10 @@
+{
+	"id": "MON0130",
+	"description": "Install watchtower container",
+	"command": [
+	"see_menu module_watchtower"
+	],
+	"status": "",
+	"author": "@armbian",
+	"condition": "module_watchtower status | grep install"
+}

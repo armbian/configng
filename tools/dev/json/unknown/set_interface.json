@@ -1,0 +1,10 @@
+{
+	"id": "0030",
+	"description": "Check for (Whiptail, DIALOG, READ) tools and set the user interface.",
+	"command": [
+	"see_menu set_interface"
+	],
+	"status": "",
+	"author": "Tearran",
+	"condition": "set_interface status | grep install"
+}

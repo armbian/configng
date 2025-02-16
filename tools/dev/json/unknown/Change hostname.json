@@ -1,0 +1,10 @@
+{
+	"id": "1220",
+	"description": "",
+	"command": [
+	"see_menu Change hostname"
+	],
+	"status": "",
+	"author": "Unknown",
+	"condition": "Change hostname status | grep install"
+}

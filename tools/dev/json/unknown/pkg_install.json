@@ -1,0 +1,10 @@
+{
+	"id": "0520",
+	"description": "Install package",
+	"command": [
+	"see_menu pkg_install"
+	],
+	"status": "",
+	"author": "@dimitry-ishenko",
+	"condition": "pkg_install status | grep install"
+}

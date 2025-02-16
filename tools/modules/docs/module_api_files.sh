@@ -140,7 +140,7 @@ EOF
 gen_api_json(){
 
 	if [ "$group" != "unknown" ]; then
-		json_opjects="$tools_dir/dev/json/${parent}/&{group}/${feature}.json"
+		json_opjects="$tools_dir/dev/json/${parent}/${group}/${feature}.json"
 	else
 		json_opjects="$tools_dir/dev/json/${parent}/${feature}.json"
 	fi

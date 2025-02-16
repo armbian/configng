@@ -1,0 +1,10 @@
+{
+	"id": "0280",
+	"description": "Module for Armbian firmware manipulating.",
+	"command": [
+	"see_menu module_armbian_firmware"
+	],
+	"status": "",
+	"author": "@igorpecovnik",
+	"condition": "module_armbian_firmware status | grep install"
+}

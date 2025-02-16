@@ -1,0 +1,10 @@
+{
+	"id": "0230",
+	"description": "Storing netplan config to tmp",
+	"command": [
+	"see_menu store_netplan_config"
+	],
+	"status": "",
+	"author": "@igorpecovnik",
+	"condition": "store_netplan_config status | grep install"
+}

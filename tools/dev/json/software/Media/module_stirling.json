@@ -1,0 +1,10 @@
+{
+	"id": "MED0200",
+	"description": "Install stirling container",
+	"command": [
+	"see_menu module_stirling"
+	],
+	"status": "",
+	"author": "@Frooodle",
+	"condition": "module_stirling status | grep install"
+}

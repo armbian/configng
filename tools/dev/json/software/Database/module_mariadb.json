@@ -1,0 +1,10 @@
+{
+	"id": "DAT1110",
+	"description": "Install mariadb container",
+	"command": [
+	"see_menu module_mariadb"
+	],
+	"status": "",
+	"author": "@igorpecovnik",
+	"condition": "module_mariadb status | grep install"
+}

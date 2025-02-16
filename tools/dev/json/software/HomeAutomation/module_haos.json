@@ -1,0 +1,10 @@
+{
+	"id": "HOM0100",
+	"description": "Install HA supervised container",
+	"command": [
+	"see_menu module_haos"
+	],
+	"status": "",
+	"author": "@igorpecovnik",
+	"condition": "module_haos status | grep install"
+}

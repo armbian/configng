@@ -1,0 +1,10 @@
+{
+	"id": "1160",
+	"description": "Install nfsd server",
+	"command": [
+	"see_menu module_nfsd"
+	],
+	"status": "",
+	"author": "@igorpecovnik",
+	"condition": "module_nfsd status | grep install"
+}

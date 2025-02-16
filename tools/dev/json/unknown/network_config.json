@@ -1,0 +1,10 @@
+{
+	"id": "0770",
+	"description": "Netplan wrapper",
+	"command": [
+	"see_menu network_config"
+	],
+	"status": "",
+	"author": "@igorpecovnik",
+	"condition": "network_config status | grep install"
+}
