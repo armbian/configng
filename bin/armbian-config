@@ -40,28 +40,28 @@ json_data=$(<"$json_file")
 
 source "$lib_dir/config.functions.sh"
 set_runtime_variables
-checkpoint mark "Loaded Runtime variables..."
+set_checkpoint mark "Loaded Runtime variables..."
 # checks for supported os
-checkpoint mark "$(check_distro_status)"
+set_checkpoint mark "$(check_distro_status)"
 
-checkpoint mark "Loaded Dialog..."
+set_checkpoint mark "Loaded Dialog..."
 source "$lib_dir/config.docs.sh"
-checkpoint mark "Loaded Docs..."
+set_checkpoint mark "Loaded Docs..."
 source "$lib_dir/config.system.sh"
-checkpoint mark "Loaded System helpers..."
+set_checkpoint mark "Loaded System helpers..."
 source "$lib_dir/config.network.sh"
-checkpoint mark "Loaded Network helpers..."
+set_checkpoint mark "Loaded Network helpers..."
 source "$lib_dir/config.software.sh"
-checkpoint mark "Loaded Software helpers..."
+set_checkpoint mark "Loaded Software helpers..."
 #
 # Loads the variables from beta armbian-config for runtime handling
 
 source "$lib_dir/config.runtime.sh"
-checkpoint mark "Loaded Runtime conditions..."
+set_checkpoint mark "Loaded Runtime conditions..."
 
 # usage: sudo DEBUG=1 ./config-time/bin/armbian-config $@
 # place one in a section with a quoted "about message"  
-[[ -n "$DEBUG" ]] && checkpoint mark "DEBUG Messages on" ;
+[[ -n "$DEBUG" ]] && set_checkpoint mark "DEBUG Messages on" ;
 
 case "$1" in
     "--help")
