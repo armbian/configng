@@ -306,7 +306,7 @@ function unit_test_files(){
 
 			echo "}"
 
-        		} > "$conf_file"
+			} > "$conf_file"
 		fi
 
 	fi
