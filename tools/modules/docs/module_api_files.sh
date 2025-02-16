@@ -1,17 +1,3 @@
-module_helper+=(
-	["geneate_files_api,maintainer"]="@Tearran"
-	["geneate_files_api,feature"]="geneate_files_api"
-	["geneate_files_api,example"]="help array json dbt test all"
-	["geneate_files_api,desc"]="Example module unattended interface."
-	["geneate_files_api,status"]="Active"
-	["geneate_files_api,condition"]=""
-	["geneate_files_api,doc_link"]=""
-	["geneate_files_api,author"]="@Tearran"
-	["geneate_files_api,parent"]="docs"
-	["geneate_files_api,group"]="Docs"
-	["geneate_files_api,port"]=""
-	["geneate_files_api,arch"]=""
-)
 #
 function geneate_files_api() {
 	local generator=$1
@@ -291,7 +277,7 @@ module_helper+=(
 	["unit_test_files,arch"]=""
 )
 #
-unit_test_files(){
+function unit_test_files(){
         if [ "$group" != "unknown" ] && [ -n "$id" ]; then
         	conf_file="$tools_dir/dev/test/${id}.conf"
         fi
@@ -342,11 +328,11 @@ function module_api_files() {
 		echo -e "\nUsage: ${module_options["module_api_files,feature"]} <command>"
 		echo -e "Commands:  ${module_options["module_api_files,example"]}"
 		echo "Available commands:"
-		echo -e "\tarray\t- Generate Data array API."
-		echo -e "\tjson\t- Generate JSON from API."
-		echo -e "\tdbt\t- Generate DBT from API."
-		echo -e "\ttest\t- Generate test CONF from API."
-		echo -e "\tall\t- Generate tAll above."
+		echo -e "\tarray\t- Generate module_options files from production module_options array."
+		echo -e "\tjson\t- Generate JSON object from module_options"
+		echo -e "\tdbt\t- Generate DBT from module_options"
+		echo -e "\ttest\t- Generate unit-test CONF from module_options."
+		echo -e "\tall\t- Generate All above."
 		echo
 		;;
 		"${commands[1]}")

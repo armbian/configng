@@ -1,15 +1,3 @@
-module_options+=(
-	["module_sonarr,author"]="@armbian"
-	["module_sonarr,maintainer"]="@igorpecovnik"
-	["module_sonarr,feature"]="module_sonarr"
-	["module_sonarr,example"]="install remove purge status help"
-	["module_sonarr,desc"]="Install sonarr container"
-	["module_sonarr,status"]="Active"
-	["module_sonarr,doc_link"]="https://transmissionbt.com/"
-	["module_sonarr,group"]="Downloaders"
-	["module_sonarr,port"]="8989"
-	["module_sonarr,arch"]="x86-64 arm64"
-)
 #
 # Mmodule_sonarr
 #

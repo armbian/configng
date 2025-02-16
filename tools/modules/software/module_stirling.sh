@@ -1,15 +1,3 @@
-module_options+=(
-	["module_stirling,author"]="@Frooodle"
-	["module_stirling,maintainer"]="@igorpecovnik"
-	["module_stirling,feature"]="module_stirling"
-	["module_stirling,example"]="install remove purge status help"
-	["module_stirling,desc"]="Install stirling container"
-	["module_stirling,status"]="Active"
-	["module_stirling,doc_link"]="https://docs.stirlingpdf.com"
-	["module_stirling,group"]="Media"
-	["module_stirling,port"]="8077"
-	["module_stirling,arch"]="x86-64 arm64"
-)
 #
 # Module stirling-PDF
 #
