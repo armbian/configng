@@ -140,7 +140,7 @@ EOF
 gen_api_json(){
 
 	if [ "$group" != "unknown" ]; then
-		json_opjects="$tools_dir/dev/json/${parent}/${feature}.json"
+		json_opjects="$tools_dir/dev/json/${parent}/&{group}/${feature}.json"
 	else
 		json_opjects="$tools_dir/dev/json/${parent}/${feature}.json"
 	fi
@@ -279,7 +279,7 @@ module_helper+=(
 #
 function unit_test_files(){
         if [ "$group" != "unknown" ] && [ -n "$id" ]; then
-        	conf_file="$tools_dir/dev/test/${id}.conf"
+        	conf_file="$tools_dir/../test/${id}.conf"
         fi
 
 	# Create the parent directory if it doesn't exist
