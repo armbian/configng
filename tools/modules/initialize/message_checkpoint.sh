@@ -23,6 +23,10 @@ module_options+=(
 	["debug_checkpoint,port"]=""
 	["debug_checkpoint,arch"]="x86-64 arm64"
 )
+debug_checkpoint() {
+        checkpoint "$@"
+}
+
 #
 # Function to manage timer with multiple checkpoints
 function set_checkpoint() {
@@ -83,6 +87,19 @@ function set_checkpoint() {
 	esac
 }
 
+
+module_options+=(
+	["checkpoint,author"]="@tearran"
+	["checkpoint,maintainer"]="@igorpecovnik"
+	["checkpoint,feature"]="checkpoint"
+	["checkpoint,example"]="help start mark stop show"
+	["checkpoint,desc"]="Helper module for debug info"
+	["checkpoint,status"]=""
+	["checkpoint,doc_link"]=""
+	["checkpoint,group"]="Development"
+	["checkpoint,port"]=""
+	["checkpoint,arch"]="x86-64 arm64"
+)
 # Example usage
 # set_checkpoint aluse with debugging
 checkpoint() {

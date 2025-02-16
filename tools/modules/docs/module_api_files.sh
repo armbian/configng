@@ -1,3 +1,36 @@
+
+module_options+=(
+	["module_api_files,id"]="DOC0740"
+	["module_api_files,maintainer"]="@Tearran"
+	["module_api_files,feature"]="module_api_files"
+	["module_api_files,desc"]="Example module unattended interface."
+	["module_api_files,example"]="help array json dbt test all"
+	["module_api_files,status"]="Active"
+	["module_api_files,about"]=""
+	["module_api_files,doc_link"]="Missing"
+	["module_api_files,author"]="@Tearran"
+	["module_api_files,parent"]="docs"
+	["module_api_files,group"]="Docs"
+	["module_api_files,port"]="Unset"
+	["module_api_files,arch"]="Missing"
+)
+
+
+
+module_helper+=(
+	["geneate_files_api,maintainer"]="@Tearran"
+	["geneate_files_api,feature"]="geneate_files_api"
+	["geneate_files_api,example"]=""
+	["geneate_files_api,desc"]="Helper for module_api"
+	["geneate_files_api,status"]="Active"
+	["geneate_files_api,condition"]=""
+	["geneate_files_api,doc_link"]=""
+	["geneate_files_api,author"]="@Tearran"
+	["geneate_files_api,parent"]="docs"
+	["geneate_files_api,group"]="Docs"
+	["geneate_files_api,port"]=""
+	["geneate_files_api,arch"]=""
+)
 #
 function geneate_files_api() {
 	local generator=$1
