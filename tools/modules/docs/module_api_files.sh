@@ -6,7 +6,7 @@ function geneate_files_api() {
 	features=()
 	for key in "${!module_options[@]}"; do
 		if [[ $key == *",feature" ]]; then
-		features+=("${module_options[$key]}")
+			features+=("${module_options[$key]}")
 		fi
 	done
 
@@ -112,11 +112,11 @@ gen_api_array(){
 	fi
 
 
-        # Create the parent directory if it doesn't exist
-        mkdir -p "$(dirname "$module_options_file")"
+	# Create the parent directory if it doesn't exist
+	mkdir -p "$(dirname "$module_options_file")"
 
 
-	cat << EOF > "$module_options_file"
+cat << EOF > "$module_options_file"
 module_options+=(
 	["$feature,id"]="$id"
 	["$feature,maintainer"]="$maintainer"
