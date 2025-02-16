@@ -1,4 +1,3 @@
-#declare -A module_options
 module_options+=(
 	["module_desktop,author"]="@igorpecovnik"
 	["module_desktop,feature"]="module_desktop"

@@ -1,4 +1,3 @@
-declare -A module_options
 module_options+=(
 	["module_desktop_packages,author"]="@igorpecovnik"
 	["module_desktop_packages,feature"]="module_desktop"
@@ -320,8 +319,4 @@ function module_desktop_packages() {
 	SUPPORTED=${supported}
 	ARCHITECTURE=${architecture}
 
-#echo $PACKAGES
-
 }
-
-module_desktop_packages "$1" "$2"
