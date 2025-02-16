@@ -276,10 +276,11 @@ module_helper+=(
 	["unit_test_files,arch"]=""
 )
 #
+#
 function unit_test_files(){
-        if [ "$group" != "unknown" ] && [ -n "$id" ]; then
-        	conf_file="$tools_dir/../test/${id}.conf"
-        fi
+	if [ "$group" != "unknown" ] && [ -n "$id" ]; then
+		conf_file="$tools_dir/../test/${id}.conf"
+	fi
 
 	# Create the parent directory if it doesn't exist
 	mkdir -p "$(dirname "$conf_file")"
