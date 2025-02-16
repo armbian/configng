@@ -189,22 +189,22 @@ gen_api_dbt(){
 	mkdir -p "$(dirname "$dbt_file")"
 
 	# Create the .conf file with the defined variables
-	cat << EOF > "$dbt_file"
-[${feature}]
-id         = ${id}
-maintainer = ${maintainer}
-feature    = ${feature}
-desc       = ${desc}
-example    = ${example}
-status     = ${status}
-about      = ${about}
-doc_link   = ${doc_link}
-author     = ${author}
-parent     = ${parent}
-group      = ${group}
-port       = ${port}
-arch       = ${arch}
-EOF
+	{
+		echo "[${feature}]"
+		echo "id         = ${id}"
+		echo "maintainer = ${maintainer}"
+		echo "feature    = ${feature}"
+		echo "desc       = ${desc}"
+		echo "example    = ${example}"
+		echo "status     = ${status}"
+		echo "about      = ${about}"
+		echo "doc_link   = ${doc_link}"
+		echo "author     = ${author}"
+		echo "parent     = ${parent}"
+		echo "group      = ${group}"
+		echo "port       = ${port}"
+		echo "arch       = ${arch}"
+	} > "$dbt_file"
 
 }
 
