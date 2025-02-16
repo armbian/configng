@@ -15,7 +15,7 @@ env:
 
 concurrency:
   group: pipeline-pr-${{github.event.pull_request.number}}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
 
@@ -62,14 +62,14 @@ jobs:
                     testid=($(echo $i | cut -d"/" -f2 | cut -d"." -f1))
                     for SELECTED_RELEASE in "${elements[@]}"; do
                         if [[ $j == *"${SELECTED_RELEASE}"* ]]; then
-                           echo "{\"package\":\"${i}\",\"os\":\"$j\",\"id\":\"$testid\"}"
+                           echo "{\"package\":\"${i}\",\"name\":\"${TESTNAME}\",\"os\":\"$j\",\"id\":\"$testid\"}"
                         fi
                     done
                 done
              else
                 for j in ${images[@]}; do
                     testid=($(echo $i | cut -d"/" -f2 | cut -d"." -f1))
-                    echo "{\"package\":\"${i}\",\"os\":\"$j\",\"id\":\"$testid\"}"
+                    echo "{\"package\":\"${i}\",\"name\":\"${TESTNAME}\",\"os\":\"$j\",\"id\":\"$testid\"}"
                 done
              fi
           done | jq -s >> $GITHUB_OUTPUT
@@ -83,35 +83,35 @@ jobs:
       max-parallel: 32
       matrix:
         server: ${{ fromJSON(needs.prepare.outputs.DEPLOYMENT_MATRIX) }}
-    name: "${{ matrix.server.id }} on Armbian ${{ matrix.server.os }}"
+    name: "${{ matrix.server.name }} (${{ matrix.server.os }})"
     runs-on: "${{ matrix.server.os }}"
-    timeout-minutes: 7
+    timeout-minutes: 15
     steps:
 
       - name: "Install dependencies: fastfetch"
-        run: sudo apt-get -y install fastfetch
+        run: |
+          if lsof /var/lib/dpkg/lock >/dev/null 2>&1; then reboot; fi
+          sudo dpkg --configure -a
+          sudo apt-get -y install fastfetch
 
       - name: "Checkout Armbian configuration tool"
         uses: actions/checkout@v4
         with:
           path: 'config'
 
-      - name: "${{ env.DESCRIPTION }}"
+      - name: "Run fastfecth"
         run: |
           fastfetch
 
-      - name: "Run unit test: ${{ matrix.server.id }} "
+      - name: "Run unit test: ${{ matrix.server.name }} "
         run: |
 
           export TERM=linux
-          rm -rf test
-          mkdir -p test
+          rm -rf test; mkdir -p test
           cd config
+          # assemble armbian config
           bash tools/config-assemble.sh -p
-          RAWCOMMAND=$(./bin/armbian-config --cmd | grep "${{ matrix.server.id }}" | xargs)
-          COMMAND=$(echo $RAWCOMMAND | cut -d" " -f1,2)
-          DESCRIPTION=$(echo $RAWCOMMAND | cut -d" " -f4-)
-          echo "DESCRIPTION=$DESCRIPTION" >> "${GITHUB_ENV}"
+          # read test
           source "${{ matrix.server.package }}"
 
           # Test case execution
@@ -119,11 +119,11 @@ jobs:
           figlet  "RUN TEST CASE"
           testcase # function inside test script
           finish_time=$(date +%s)
-          
-          # Generate table entry
-          echo "|${{ matrix.server.os }}|\`armbian-config ${COMMAND}\`| ${DESCRIPTION} | $((finish_time - start_time)) sec |" > ../test/${{ matrix.server.id }}-${{ matrix.server.os }}
 
-      - name: "${{ env.DESCRIPTION }}"
+          # Generate table entry
+          echo "|${{ matrix.server.os }}| ${{ matrix.server.name }} | $((finish_time - start_time)) sec |" > ../test/${{ matrix.server.id }}-${{ matrix.server.os }}
+
+      - name: "Run fastfecth"
         run: |
           fastfetch
 
@@ -152,8 +152,8 @@ jobs:
         run: |
 
           echo "# Succesful tests:" >> $GITHUB_STEP_SUMMARY
-          echo "|Release|Command|Description|Duration|" >> $GITHUB_STEP_SUMMARY
-          echo "|:---|:---|:---|---:|" >> $GITHUB_STEP_SUMMARY
+          echo "|Release|Test name|Duration|" >> $GITHUB_STEP_SUMMARY
+          echo "|:---|:---|---:|" >> $GITHUB_STEP_SUMMARY
           cat test/* | sed '$ s/.$//' >> $GITHUB_STEP_SUMMARY
 
       - uses: geekyeggo/delete-artifact@v5
