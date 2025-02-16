@@ -88,17 +88,17 @@ function geneate_files_api() {
 			;;
 		esac
 
-        # Call the specified generator function
-        if [[ $(type -t "$generator") == "function" ]]; then
-            "$generator"
-        else
-            echo "Error: Invalid generator function '$generator'."
-            return 1
-        fi
+	# Call the specified generator function
+	if [[ $(type -t "$generator") == "function" ]]; then
+		"$generator"
+	else
+		echo "Error: Invalid generator function '$generator'."
+		return 1
+	fi
 
 	done
 
-        chown -R "${SUDO_USER:-$USER}":"${SUDO_USER:-$USER}" "$tools_dir"
+	chown -R "${SUDO_USER:-$USER}":"${SUDO_USER:-$USER}" "$tools_dir"
 }
 
 
