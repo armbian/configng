@@ -356,7 +356,7 @@ function module_api_files() {
 		echo "${module_options["module_api_files,example"]}"
 		;;
 	esac
-	}
+}
 
 # Uncomment to test the module
 # module_api_files "$1"
