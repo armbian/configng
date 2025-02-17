@@ -64,7 +64,7 @@ module_helper+=(
 	["geneate_files_api,maintainer"]="@Tearran"
 	["geneate_files_api,feature"]="geneate_files_api"
 	["geneate_files_api,example"]=""
-	["geneate_files_api,desc"]="Helper for module_api"
+	["geneate_files_api,desc"]="Helper to sort module_option array"
 	["geneate_files_api,status"]="Active"
 	["geneate_files_api,condition"]=""
 	["geneate_files_api,doc_link"]=""
@@ -179,7 +179,7 @@ function geneate_files_api() {
 }
 
 
-# adds missing keys to array
+# adds missing keys to module_option array
 gen_api_array(){
 
 	module_options_file="$tools_dir/dev/array/${parent}/${feature}_array.sh"
@@ -208,6 +208,9 @@ EOF
 
 }
 
+#
+# output json objects for each module_option
+#
 gen_api_json(){
 
 	if [ "$group" != "unknown" ]; then
@@ -250,6 +253,8 @@ module_helper+=(
 	["gen_api_dbt,arch"]=""
 )
 #
+# can output a Configuration file
+#
 gen_api_dbt(){
 	if [ "$group" != "unknown" ]; then
 		dbt_file="$tools_dir/modules/${parent}/${feature}_database.dbt"
@@ -280,6 +285,9 @@ gen_api_dbt(){
 
 }
 
+#
+# Testing consept to convert config file to module_option array
+#
 convert_dbt_array(){
 	# Ensure input file is provided
 	if [[ $# -ne 1 ]]; then
@@ -317,8 +325,9 @@ convert_dbt_array(){
 	echo "Conversion complete: $output_file"
 
 }
-
-
+#
+# same testing as above
+#
 function dbt_to_array() {
 	local ini_file=$1
 	declare -gA ini_options
@@ -331,58 +340,62 @@ function dbt_to_array() {
 			ini_options["$key"]="$value"
 		fi
 	done < "$ini_file"
-	}
+}
 
 module_helper+=(
-	["unit_test_files,maintainer"]="@Tearran"
-	["unit_test_files,feature"]="unit_test_files"
-	["unit_test_files,example"]=""
-	["unit_test_files,desc"]="Helper for module_api"
-	["unit_test_files,status"]="Active"
-	["unit_test_files,condition"]=""
-	["unit_test_files,doc_link"]=""
-	["unit_test_files,author"]="@Tearran"
-	["unit_test_files,parent"]="docs"
-	["unit_test_files,group"]="Docs"
-	["unit_test_files,port"]=""
-	["unit_test_files,arch"]=""
+    ["unit_test_files,maintainer"]="@Tearran"
+    ["unit_test_files,feature"]="unit_test_files"
+    ["unit_test_files,example"]=""
+    ["unit_test_files,desc"]="Helper for module_api"
+    ["unit_test_files,status"]="Active"
+    ["unit_test_files,condition"]=""
+    ["unit_test_files,doc_link"]=""
+    ["unit_test_files,author"]="@Tearran"
+    ["unit_test_files,parent"]="docs"
+    ["unit_test_files,group"]="Docs"
+    ["unit_test_files,port"]=""
+    ["unit_test_files,arch"]=""
 )
-#
-#
+
+# Unrefined unit-test config file for  ./test/*.conf
 function unit_test_files(){
-	if [ "$group" != "unknown" ] && [ -n "$id" ]; then
-		conf_file="$tools_dir/../test/${id}.conf"
-	fi
+    if [ "$group" != "unknown" ] && [ -n "$id" ]; then
+        conf_file="$tools_dir/dev/tests/${id}.conf"
+    fi
 
-	# Create the parent directory if it doesn't exist
-	mkdir -p "$(dirname "$conf_file")"
+    # Create the parent directory if it doesn't exist
+    mkdir -p "$(dirname "$conf_file")"
 
-	local commands
-	IFS=' ' read -r -a commands <<< "${module_options["$feature,example"]}"
+    local commands
+    IFS=' ' read -r -a commands <<< "${module_options["$feature,example"]}"
 
-	if [[ $parent == "software" ]]; then
-		if [[ " ${commands[@]} " =~ " help " && " ${commands[@]} " =~ " status " ]]; then
-			{
-			echo "ENABLED=true"
-			echo "RELEASE=\"$arch\""
-			echo ""
-			echo "function testcase(){"
+    if [[ $parent == "software" ]]; then
+        if [[ " ${commands[@]} " =~ " help " && " ${commands[@]} " =~ " status " ]]; then
+            {
+            echo "ENABLED=true"
+            echo "RELEASE=\"$arch\""
+	    echo "MENUID=\"$id\""
+            echo ""
+            echo "function testcase(){"
 
-			for i in "${!commands[@]}"; do
+            for i in "${!commands[@]}"; do
 
-				echo "	armbian-config --api $feature ${commands[$i]}"
-				echo "	[ -z \$(armbian-config --api $feature help | grep ${commands[$i]}) ]"
-				echo ""
+                if [[ "${commands[$i]}" == "install" || "${commands[$i]}" == "setup"  ]]; then
+        		echo "		armbian-config --api $feature ${commands[$i]}"
+			echo "		[[ -n \"\$condition\" ]]"
+                elif [[ "${commands[$i]}" == "uninstall" || "${commands[$i]}" == "remove"  ]]; then
+			echo "		armbian-config --api $feature ${commands[$i]}"
+			echo "		[[ -z \"\$condition\" ]]"
+		else
+			continue
+                fi
+            done
 
-			done
+            echo "}"
 
-			echo "}"
-
-			} > "$conf_file"
-		fi
-
-	fi
-
+            } > "$conf_file"
+        fi
+    fi
 }
 
 
