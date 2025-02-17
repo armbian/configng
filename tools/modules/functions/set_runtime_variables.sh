@@ -85,3 +85,13 @@ function set_runtime_variables() {
 
 }
 
+function update_branch_env() {
+	if [[ -z "${BRANCH}" && -f /etc/armbian-release ]]; then
+		BRANCH=$(dpkg -l | grep -E "linux-image" | grep -E "current|vendor|legacy|edge" | awk '{print $2}' | cut -d"-" -f3 | head -1)
+		if grep -q BRANCH /etc/armbian-release; then
+			[[ -n ${BRANCH} ]] && sed -i "s/BRANCH=.*/BRANCH=$BRANCH/g" /etc/armbian-release
+			else
+			[[ -n ${BRANCH} ]] && echo "BRANCH=$BRANCH" >> /etc/armbian-release
+		fi
+	fi
+}
