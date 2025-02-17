@@ -343,18 +343,18 @@ function dbt_to_array() {
 }
 
 module_helper+=(
-    ["unit_test_files,maintainer"]="@Tearran"
-    ["unit_test_files,feature"]="unit_test_files"
-    ["unit_test_files,example"]=""
-    ["unit_test_files,desc"]="Helper for module_api"
-    ["unit_test_files,status"]="Active"
-    ["unit_test_files,condition"]=""
-    ["unit_test_files,doc_link"]=""
-    ["unit_test_files,author"]="@Tearran"
-    ["unit_test_files,parent"]="docs"
-    ["unit_test_files,group"]="Docs"
-    ["unit_test_files,port"]=""
-    ["unit_test_files,arch"]=""
+	["unit_test_files,maintainer"]="@Tearran"
+	["unit_test_files,feature"]="unit_test_files"
+	["unit_test_files,example"]=""
+	["unit_test_files,desc"]="Helper for module_api"
+	["unit_test_files,status"]="Active"
+	["unit_test_files,condition"]=""
+	["unit_test_files,doc_link"]=""
+	["unit_test_files,author"]="@Tearran"
+	["unit_test_files,parent"]="docs"
+	["unit_test_files,group"]="Docs"
+	["unit_test_files,port"]=""
+	["unit_test_files,arch"]=""
 )
 
 # Unrefined unit-test config file for  ./test/*.conf
