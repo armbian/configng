@@ -35,6 +35,23 @@ function manage_dtoverlays () {
 		else
 			available_overlays=$(ls -1 ${overlaydir}/${overlay_prefix}*.dtbo | sed 's/^.*\('${overlay_prefix}'.*\)/\1/g' | sed 's/'${overlay_prefix}'-//g' | sed 's/.dtbo//g')
 		fi
+
+		# Check the branch in case it is not available in /etc/armbian-release
+		if [[ -z "${BRANCH}" ]]; then
+			BRANCH=$(dpkg -l | grep -E "linux-image" | grep -E "current|vendor|legacy|edge" | awk '{print $2}' | cut -d"-" -f3 | head -1)
+			if grep -q BRANCH /etc/armbian-release; then
+				[[ -n ${BRANCH} ]] && sed -i "s/BRANCH=.*/BRANCH=$BRANCH/g" /etc/armbian-release
+				else
+				[[ -n ${BRANCH} ]] && echo "BRANCH=$BRANCH" >> /etc/armbian-release
+			fi
+		fi
+
+		# Add support for rk3588 vendor kernel overlays which don't have overlay prefix mostly
+		builtin_overlays=""
+		if [[ $BOARDFAMILY == "rockchip-rk3588" ]] && [[ $BRANCH == "vendor" ]]; then
+			builtin_overlays=$(ls -1 ${overlaydir}/*.dtbo | grep -v ${overlay_prefix} | sed 's#^'${overlaydir}'/##' | sed 's/.dtbo//g')
+		fi
+
 		for overlay in ${available_overlays}; do
 			local status="OFF"
 			grep '^overlays' ${overlayconf} | grep -qw ${overlay} && status=ON
