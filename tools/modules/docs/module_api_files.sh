@@ -357,45 +357,45 @@ module_helper+=(
 	["unit_test_files,arch"]=""
 )
 
-# Unrefined unit-test config file for  ./test/*.conf
+	# Unrefined unit-test config file for  ./test/*.conf
 function unit_test_files(){
-    if [ "$group" != "unknown" ] && [ -n "$id" ]; then
-        conf_file="$tools_dir/dev/tests/${id}.conf"
-    fi
+	if [ "$group" != "unknown" ] && [ -n "$id" ]; then
+		conf_file="$tools_dir/dev/tests/${id}.conf"
+	fi
 
-    # Create the parent directory if it doesn't exist
-    mkdir -p "$(dirname "$conf_file")"
+	# Create the parent directory if it doesn't exist
+	mkdir -p "$(dirname "$conf_file")"
 
-    local commands
-    IFS=' ' read -r -a commands <<< "${module_options["$feature,example"]}"
+	local commands
+	IFS=' ' read -r -a commands <<< "${module_options["$feature,example"]}"
 
-    if [[ $parent == "software" ]]; then
-        if [[ " ${commands[@]} " =~ " help " && " ${commands[@]} " =~ " status " ]]; then
-            {
-            echo "ENABLED=true"
-            echo "RELEASE=\"$arch\""
-	    echo "MENUID=\"$id\""
-            echo ""
-            echo "function testcase(){"
+	if [[ $parent == "software" ]]; then
+		if [[ " ${commands[@]} " =~ " help " && " ${commands[@]} " =~ " status " ]]; then
+		{
+		echo "ENABLED=true"
+		echo "RELEASE=\"$arch\""
+		echo "MENUID=\"$id\""
+		echo ""
+		echo "function testcase(){"
 
-            for i in "${!commands[@]}"; do
+		for i in "${!commands[@]}"; do
 
-                if [[ "${commands[$i]}" == "install" || "${commands[$i]}" == "setup"  ]]; then
-        		echo "		armbian-config --api $feature ${commands[$i]}"
-			echo "		[[ -n \"\$condition\" ]]"
-                elif [[ "${commands[$i]}" == "uninstall" || "${commands[$i]}" == "remove"  ]]; then
-			echo "		armbian-config --api $feature ${commands[$i]}"
-			echo "		[[ -z \"\$condition\" ]]"
-		else
-			continue
-                fi
-            done
+			if [[ "${commands[$i]}" == "install" || "${commands[$i]}" == "setup"  ]]; then
+				echo "		armbian-config --api $feature ${commands[$i]}"
+				echo "		[[ -n \"\$condition\" ]]"
+			elif [[ "${commands[$i]}" == "uninstall" || "${commands[$i]}" == "remove"  ]]; then
+				echo "		armbian-config --api $feature ${commands[$i]}"
+				echo "		[[ -z \"\$condition\" ]]"
+			else
+				continue
+			fi
+		done
 
-            echo "}"
+		echo "}"
 
-            } > "$conf_file"
-        fi
-    fi
+		} > "$conf_file"
+		fi
+	fi
 }
 
 
