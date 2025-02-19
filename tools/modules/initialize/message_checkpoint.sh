@@ -11,18 +11,7 @@ module_options+=(
 	["set_checkpoint,arch"]="x86-64 arm64"
 )
 
-module_options+=(
-	["debug_checkpoint,author"]="@armbian"
-	["debug_checkpoint,maintainer"]="@igorpecovnik"
-	["debug_checkpoint,feature"]="debug_checkpoint"
-	["debug_checkpoint,example"]="help start mark stop show"
-	["debug_checkpoint,desc"]="Helper module for debug info"
-	["debug_checkpoint,status"]=""
-	["debug_checkpoint,doc_link"]=""
-	["debug_checkpoint,group"]="Development"
-	["debug_checkpoint,port"]=""
-	["debug_checkpoint,arch"]="x86-64 arm64"
-)
+
 #
 # Function to manage timer with multiple checkpoints
 function set_checkpoint() {
@@ -83,6 +72,19 @@ function set_checkpoint() {
 	esac
 }
 
+
+module_options+=(
+	["checkpoint,author"]="@armbian"
+	["checkpoint,maintainer"]="@igorpecovnik"
+	["checkpoint,feature"]="checkpoint"
+	["checkpoint,example"]="help debug start mark stop show"
+	["checkpoint,desc"]="Helper module for debug info"
+	["checkpoint,status"]=""
+	["checkpoint,doc_link"]=""
+	["checkpoint,group"]="Development"
+	["checkpoint,port"]=""
+	["checkpoint,arch"]="x86-64 arm64"
+)
 # Example usage
 # set_checkpoint aluse with debugging
 checkpoint() {
