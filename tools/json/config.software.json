@@ -1074,6 +1074,26 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "pkg_installed git"
+                        },
+                        {
+                            "id": "DEV003",
+                            "description": "Armbian router for repository mirror automation",
+                            "command": [
+                                "module_armbianrouter install"
+                            ],
+                            "status": "Stable",
+                            "author": "@efectn",
+                            "condition": "! module_armbianrouter status"
+                        },
+                        {
+                            "id": "DEV004",
+                            "description": "Remove Armbian router",
+                            "command": [
+                                "module_armbianrouter remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@efectn",
+                            "condition": "module_armbianrouter status"
                         }
                     ]
                 },
