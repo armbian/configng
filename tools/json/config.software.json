@@ -365,7 +365,7 @@
                                     "description": "Enable autologin",
                                     "command": [
                                         "module_desktop auto de=xfce"
-                                    ],  
+                                    ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
                                     "condition": "module_desktop status de=xfce && ! module_desktop login"
@@ -411,7 +411,7 @@
                                     "description": "Enable autologin",
                                     "command": [
                                         "module_desktop auto de=gnome"
-                                    ],  
+                                    ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
                                     "condition": "module_desktop status de=gnome && ! module_desktop login"
@@ -1380,6 +1380,36 @@
                             "status": "Preview",
                             "author": "@igorpecovnik",
                             "condition": "module_jellyfin status"
+                        },
+                        {
+                            "id": "MED033",
+                            "description": "Hastebin Paste Server",
+                            "command": [
+                                "module_hastebin install"
+                            ],
+                            "status": "Stable",
+                            "author": "@efectn",
+                            "condition": "! module_hastebin status"
+                        },
+                        {
+                            "id": "MED034",
+                            "description": "Hastebin remove",
+                            "command": [
+                                "module_hastebin remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@efectn",
+                            "condition": "module_hastebin status"
+                        },
+                        {
+                            "id": "MED035",
+                            "description": "Hastebin purge with data folder",
+                            "command": [
+                                "module_hastebin purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@efectn",
+                            "condition": "module_hastebin status"
                         }
                     ]
                 },
