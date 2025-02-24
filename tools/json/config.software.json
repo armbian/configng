@@ -1094,6 +1094,26 @@
                             "status": "Stable",
                             "author": "@efectn",
                             "condition": "module_armbianrouter status"
+                        },
+                        {
+                            "id": "DEV010",
+                            "description": "Armbian rsyncd server",
+                            "command": [
+                                "module_armbian_rsyncd install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_armbian_rsyncd status"
+                        },
+                        {
+                            "id": "DEV011",
+                            "description": "Remove Armbian rsyncd server",
+                            "command": [
+                                "module_armbian_rsyncd remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_armbian_rsyncd status"
                         }
                     ]
                 },
