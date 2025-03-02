@@ -38,6 +38,7 @@ function module_armbianrouter () {
 	routers["8082"]="dlrouter-archive"
 	routers["8083"]="dlrouter-debs-beta"
 	routers["8084"]="dlrouter-cache"
+	routers["8100"]="dlrouter-content"
 
 	case "$1" in
 		"${commands[0]}")
