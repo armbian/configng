@@ -7,7 +7,7 @@ module_options+=(
 	["module_armbianrouter,status"]="Active"
 	["module_armbianrouter,doc_link"]="https://github.com/armbian/armbian-router"
 	["module_armbianrouter,group"]="Other"
-	["module_armbianrouter,port"]="8080"
+	["module_armbianrouter,port"]="8080 8081 8082 8083 8084 8100"
 	["module_armbianrouter,arch"]="x86-64 arm64"
 )
 
