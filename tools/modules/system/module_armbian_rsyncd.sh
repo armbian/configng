@@ -7,7 +7,7 @@ module_options+=(
 	["module_armbian_rsyncd,doc_link"]=""
 	["module_armbian_rsyncd,group"]="DevTools"
 	["module_armbian_rsyncd,status"]="Active"
-	["module_armbian_rsyncd,port"]="22"
+	["module_armbian_rsyncd,port"]="873"
 	["module_armbian_rsyncd,arch"]=""
 )
 
