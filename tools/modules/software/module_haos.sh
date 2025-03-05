@@ -87,7 +87,10 @@ function module_haos() {
 			WantedBy=multi-user.target
 			SUPERVISOR_FIX_SERVICE
 
-			if [[ -f /boot/armbianEnv.txt ]]; then
+			if [[ -f /boot/firmware/cmdline.txt ]]; then
+				# Raspberry Pi
+				sed -i '/./ s/$/ systemd.unified_cgroup_hierarchy=0 apparmor=1 security=apparmor/' /boot/firmware/cmdline.txt
+			elif [[ -f /boot/armbianEnv.txt ]]; then
 				echo "extraargs=systemd.unified_cgroup_hierarchy=0 apparmor=1 security=apparmor" >> "/boot/armbianEnv.txt"
 			fi
 			sleep 5
@@ -109,6 +112,12 @@ function module_haos() {
 			# restore os-release
 			sed -i "s/^PRETTY_NAME=\".*/PRETTY_NAME=\"${VENDOR} ${REVISION} ($VERSION_CODENAME)\"/g" "/etc/os-release"
 
+			# reboot is mandatory
+			if $DIALOG --title " Reboot required " --yes-button "Reboot" --no-button "Cancel" --yesno \
+			"A reboot is required to enable AppArmor. Shall we reboot now?" 7 68; then
+			reboot
+			fi
+
 		;;
 		"${commands[1]}")
 			# disable service
@@ -126,6 +135,8 @@ function module_haos() {
 			rm -f /usr/local/bin/supervisor_fix.sh
 			rm -f /etc/systemd/system/supervisor-fix.service
 			sed -i "s/ systemd.unified_cgroup_hierarchy=0 apparmor=1 security=apparmor//" /boot/armbianEnv.txt
+			# Raspberry Pi
+			sed -i "s/ systemd.unified_cgroup_hierarchy=0 apparmor=1 security=apparmor//" /boot/firmware/cmdline.txt
 			srv_daemon_reload
 			# restore os-release
 			sed -i "s/^PRETTY_NAME=\".*/PRETTY_NAME=\"${VENDOR} ${REVISION} ($VERSION_CODENAME)\"/g" "/etc/os-release"
