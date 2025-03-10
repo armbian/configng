@@ -1555,6 +1555,39 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "module_grafana status"
+                        },
+                        {
+                            "id": "PRO001",
+                            "description": "Prometheus docker image",
+                            "prompt": "This operation will install Prometheus.",
+                            "command": [
+                                "module_prometheus install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_prometheus status"
+                        },
+                        {
+                            "id": "PRO002",
+                            "description": "Prometheus remove",
+                            "prompt": "This operation will remove Prometheus.",
+                            "command": [
+                                "module_prometheus remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_prometheus status"
+                        },
+                        {
+                            "id": "PRO003",
+                            "description": "Prometheus purge with data folder",
+                            "about": "This operation will purge Prometheus with data folder",
+                            "command": [
+                                "module_prometheus purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_prometheus status"
                         }
                     ]
                 },
