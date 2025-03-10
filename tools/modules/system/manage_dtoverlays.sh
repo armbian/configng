@@ -1,16 +1,3 @@
-
-module_options+=(
-["manage_dtoverlays,author"]="@viraniac"
-["manage_dtoverlays,maintainer"]="@igorpecovnik,@The-Going"
-["manage_dtoverlays,ref_link"]=""
-["manage_dtoverlays,feature"]="manage_dtoverlays"
-["manage_dtoverlays,desc"]="Enable/disable device tree overlays"
-["manage_dtoverlays,example"]=""
-["manage_dtoverlays,status"]="Active"
-["manage_dtoverlays,group"]="Kernel"
-["manage_dtoverlays,port"]=""
-["manage_dtoverlays,arch"]="aarch64 armhf"
-)
 #
 # @description Enable/disable device tree overlays
 #
