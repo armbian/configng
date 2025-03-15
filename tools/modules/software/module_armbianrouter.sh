@@ -7,7 +7,7 @@ module_options+=(
 	["module_armbianrouter,status"]="Active"
 	["module_armbianrouter,doc_link"]="https://github.com/armbian/armbian-router"
 	["module_armbianrouter,group"]="Other"
-	["module_armbianrouter,port"]="8080"
+	["module_armbianrouter,port"]="8080 8081 8082 8083 8084 8100"
 	["module_armbianrouter,arch"]="x86-64 arm64"
 )
 
@@ -38,6 +38,7 @@ function module_armbianrouter () {
 	routers["8082"]="dlrouter-archive"
 	routers["8083"]="dlrouter-debs-beta"
 	routers["8084"]="dlrouter-cache"
+	routers["8100"]="dlrouter-content"
 
 	case "$1" in
 		"${commands[0]}")
