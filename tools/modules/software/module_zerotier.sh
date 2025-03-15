@@ -8,6 +8,7 @@ module_options+=(
 	["module_zerotier,doc_link"]="https://docs.zerotier.com/wat"
 	["module_zerotier,status"]="Active"
 	["module_zerotier,group"]="VPN"
+	["module_zerotier,arch"]="x86-64 arm64 armhf"
 )
 
 function module_zerotier() {
