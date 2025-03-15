@@ -1720,6 +1720,22 @@
                             "condition": "pkg_installed avahi-daemon"
                         }
                     ]
+                },
+                {
+                    "id": "VPN",
+                    "description": "VPN tools",
+                    "sub": [
+                        {
+                            "id": "VPN001",
+                            "description": "ZeroTier connect devices over your own private network in the world.",
+                            "command": [
+                                "see_menu module_zerotier"
+                            ],
+                            "status": "Stable",
+                            "author": "@jnovos",
+                            "condition": ""
+                        }
+                    ]
                 }
             ]
         }
