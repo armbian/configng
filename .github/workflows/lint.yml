@@ -21,14 +21,14 @@ jobs:
          uses: actions/checkout@v4
 
        - name: Get changed files
-         id: files
-         uses: UplandJacob/retrieve-changed-files@v4
+         id: changed-files
+         uses: tj-actions/changed-files@v45
 
        - name: "Show which files we check"
          shell: bash {0}
          run: |
            echo "# Checked files:" >> $GITHUB_STEP_SUMMARY
-           echo "${{ steps.files.outputs.all }}" | sed "s/ /\n/g" >> $GITHUB_STEP_SUMMARY
+           echo "${{ steps.changed-files.outputs.all_changed_files }}" | sed "s/ /\n/g" >> $GITHUB_STEP_SUMMARY
 
        - name: Environment variables
          run: sudo -E bash -c set
@@ -37,8 +37,8 @@ jobs:
          shell: bash {0}
          run: |
 
-           if [[ -n "${{ steps.files.outputs.all }}" ]]; then
-               FILES="${{ steps.files.outputs.all }}"
+           if [[ -n "${{ steps.changed-files.outputs.all_changed_files }}" ]]; then
+               FILES="${{ steps.changed-files.outputs.all_changed_files }}"
                for file in $FILES; do
                    if grep -qE "^#\!/.*bash" $file; then
                        shellcheck --severity=error $file || ret=$?
