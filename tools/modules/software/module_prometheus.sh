@@ -34,6 +34,7 @@ function module_prometheus () {
 
 			# Create dummy prometheus config file if it is not exist
 			if [ ! -f "$PROMETHEUS_BASE/prometheus.yml" ]; then
+				# // editorconfig-checker-disable
   				cat <<- EOF > "$PROMETHEUS_BASE/prometheus.yml"
 				global:
 				  scrape_interval: 15s
@@ -44,6 +45,7 @@ function module_prometheus () {
 				    static_configs:
 				      - targets: ['localhost:9090']
 				EOF
+				# // editorconfig-checker-enable
 			fi
 
 			docker run -d \
