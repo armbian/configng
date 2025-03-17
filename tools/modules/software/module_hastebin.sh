@@ -32,18 +32,21 @@ function module_hastebin () {
 			pkg_installed docker-ce || module_docker install
 			[[ -d "$HASTEBIN_BASE" ]] || mkdir -p "$HASTEBIN_BASE" || { echo "Couldn't create storage directory: $HASTEBIN_BASE"; exit 1; }
 			mkdir -p "$HASTEBIN_BASE/pastes"
-			chown -R 1000:1000 "$HASTEBIN_BASE" # this is necessary as the container runs as user 1000 (node)
+
+			wget -qO- https://raw.githubusercontent.com/armbian/hastebin-ansi/refs/heads/main/about.md > "$HASTEBIN_BASE/about.md"
 
 			docker run -d \
 			--name=hastebin \
 			--net=lsio \
 			-e STORAGE_TYPE=file \
-			-e STORAGE_FILEPATH="/app/pastes" \
-			-e RATELIMITS_NORMAL_TOTAL_REQUESTS=50 \
+			-e STORAGE_FILE_PATH="/app/pastes" \
+			-e RATE_LIMITING_ENABLE=true \
+			-e RATE_LIMITING_LIMIT=100 \
+			-e RATE_LIMITING_WINDOW=300 \
 			-p 7777:7777 \
 			-v "${HASTEBIN_BASE}:/app:rw" \
 			--restart unless-stopped \
-			ghcr.io/armbian/ansi-hastebin:0.0.9
+			ghcr.io/armbian/ansi-hastebin:latest
 			for i in $(seq 1 20); do
 				if docker inspect -f '{{ index .Config.Labels "build_version" }}' hastebin >/dev/null 2>&1 ; then
 					break
