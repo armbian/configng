@@ -137,6 +137,7 @@ update_sub_submenu_data "Software" "DNS" "ADG002" "http://$LOCALIPADD:${module_o
 update_sub_submenu_data "Software" "Monitoring" "UPK002" "http://$LOCALIPADD:${module_options["module_uptimekuma,port"]}"
 update_sub_submenu_data "Software" "Monitoring" "NTD002" "http://$LOCALIPADD:${module_options["module_netdata,port"]}"
 update_sub_submenu_data "Software" "Monitoring" "GRA002" "http://$LOCALIPADD:${module_options["module_grafana,port"]}"
+update_sub_submenu_data "Software" "Monitoring" "NAX002" "http://$LOCALIPADD:${module_options["module_netalertx,port"]}"
 
 # Management
 update_sub_submenu_data "Software" "Management" "CPT001" "http://$LOCALIPADD:${module_options["module_cockpit,port"]}"
