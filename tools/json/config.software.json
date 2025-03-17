@@ -1588,6 +1588,39 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "module_prometheus status"
+                        },
+                        {
+                            "id": "NAX001",
+                            "description": "NetAlertX network scanner & notification framework",
+                            "prompt": "This operation will install NetAlertX.",
+                            "command": [
+                                "module_netalertx install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_netalertx status"
+                        },
+                        {
+                            "id": "NAX002",
+                            "description": "NetAlertX network scanner remove",
+                            "prompt": "This operation will remove NetAlertX.",
+                            "command": [
+                                "module_netalertx remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_netalertx status"
+                        },
+                        {
+                            "id": "NAX003",
+                            "description": "NetAlertX network scanner purge with data folder",
+                            "about": "This operation will purge NetAlertX with data folder",
+                            "command": [
+                                "module_netalertx purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_netalertx status"
                         }
                     ]
                 },
