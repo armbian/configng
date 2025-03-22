@@ -161,8 +161,10 @@ function module_armbian_firmware() {
 			local headers="$6"
 			local linuxfamily="$7"
 
-			# if branch is not defined, we use the one that is currently installed
-			[[ -z $BRANCH && -z $branch ]] && local branch="current"
+			# if branch or linuxfamily are not defined, we derive them from the currently installed kernel
+			local list_of_installed_kernels=$(dpkg -l | grep '^[hi]i' | grep linux-image)
+			[[ -z "${branch}" ]] && branch=$(echo "$list_of_installed_kernels" | awk '{print $2}' | cut -d'-' -f3)
+			[[ -z "${linuxfamily}" ]] && linuxfamily=$(echo "$list_of_installed_kernels" | awk '{print $2}' | cut -d'-' -f4)
 
 			# if repository is not defined, we use stable one
 			[[ -z $repository ]] && local repository="apt.armbian.com"
