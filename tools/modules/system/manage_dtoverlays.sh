@@ -37,7 +37,7 @@ function manage_dtoverlays () {
 		fi
 
 		# Check the branch in case it is not available in /etc/armbian-release
-		update_branch_env
+		update_kernel_env
 
 		# Add support for rk3588 vendor kernel overlays which don't have overlay prefix mostly
 		builtin_overlays=""
