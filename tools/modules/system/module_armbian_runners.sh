@@ -18,11 +18,13 @@ function module_armbian_runners () {
 
 	# read parameters from command install
 	local parameter
-	IFS=' ' read -r -a parameter <<< "${1}"
-	for feature in gh_token runner_name start stop label_primary label_secondary organisation owner repository; do
-	for selected in ${parameter[@]}; do
-		IFS='=' read -r -a split <<< "${selected}"
-		[[ ${split[0]} == $feature ]] && eval "$feature=${split[1]}"
+	for var in "$@"; do
+		IFS=' ' read -r -a parameter <<< "${var}"
+		for feature in gh_token runner_name start stop label_primary label_secondary organisation owner repository; do
+			for selected in ${parameter[@]}; do
+				IFS='=' read -r -a split <<< "${selected}"
+				[[ ${split[0]} == $feature ]] && eval "$feature=${split[1]}"
+			done
 		done
 	done
 
@@ -52,7 +54,7 @@ function module_armbian_runners () {
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_armbian_runners,example"]}"
 
-	case "${parameter[0]}" in
+	case "$1" in
 
 		"${commands[0]}")
 

@@ -22,8 +22,8 @@ function default_network_config() {
 		# remove all configs
 		rm -f /etc/netplan/*.yaml
 		# disable hostapd
-		systemctl stop hostapd 2> /dev/null
-		systemctl disable hostapd 2> /dev/null
+		srv_stop hostapd
+		srv_disable hostapd
 		# reset netplan config
 		netplan set --origin-hint ${yamlfile} renderer=${NETWORK_RENDERER}
 		netplan set --origin-hint ${yamlfile} ethernets.all-eth-interfaces.dhcp4=true

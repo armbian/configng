@@ -110,6 +110,7 @@ update_sub_submenu_data "Software" "Media" "MED011" "http://$LOCALIPADD:${module
 update_sub_submenu_data "Software" "Media" "MED016" "http://$LOCALIPADD:${module_options["module_syncthing,port"]%% *}" # removing second port from url
 update_sub_submenu_data "Software" "Media" "MED021" "https://$LOCALIPADD:${module_options["module_nextcloud,port"]}"
 update_sub_submenu_data "Software" "Media" "MED026" "http://$LOCALIPADD:${module_options["module_owncloud,port"]}"
+update_sub_submenu_data "Software" "Media" "MED031" "http://$LOCALIPADD:${module_options["module_jellyfin,port"]}"
 
 # Containers
 update_sub_submenu_data "Software" "Containers" "CON006" "http://$LOCALIPADD:${module_options["module_portainer,port"]%% *}" # removing second port from url
@@ -117,12 +118,18 @@ update_sub_submenu_data "Software" "Containers" "CON006" "http://$LOCALIPADD:${m
 # Printing
 update_sub_submenu_data "Software" "Printing" "OCT002" "http://$LOCALIPADD:${module_options["module_octoprint,port"]}"
 
+# DevTools
+update_sub_submenu_data "Software" "DevTools" "DEV011" "$(grep -oP '(?<=^\[).*(?=\])' /etc/rsyncd.conf | xargs)"
+
 # Home automation
 update_sub_submenu_data "Software" "HomeAutomation" "HAB002" "http://$LOCALIPADD:${module_options["module_openhab,port"]}"
 update_sub_submenu_data "Software" "HomeAutomation" "HAS002" "http://$LOCALIPADD:${module_options["module_haos,port"]}"
+update_sub_submenu_data "Software" "HomeAutomation" "DOM002" "http://$LOCALIPADD:${module_options["module_domoticz,port"]}"
+update_sub_submenu_data "Software" "HomeAutomation" "EVCC02" "http://$LOCALIPADD:${module_options["module_evcc,port"]}"
 
 # DNS
 update_sub_submenu_data "Software" "DNS" "DNS003" "http://$LOCALIPADD:${module_options["module_pi_hole,port"]%% *}" # removing second port from url
+update_sub_submenu_data "Software" "DNS" "ADG002" "http://$LOCALIPADD:${module_options["module_adguardhome,port"]%% *}" # removing second port from url
 
 # Monitoring
 update_sub_submenu_data "Software" "Monitoring" "MON002" "http://$LOCALIPADD:${module_options["module_uptimekuma,port"]}"

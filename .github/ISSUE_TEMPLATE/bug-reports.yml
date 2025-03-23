@@ -7,7 +7,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thank you for helping us make Armbian better!
+        Thank you for helping us make Armbian config better!
   - type: textarea
     id: what-happened
     attributes:
@@ -31,13 +31,12 @@ body:
   - type: dropdown
     id: host
     attributes:
-      label: On which host OS are you running the build script and observing this problem?
+      label: On which OS are you observing this problem? (for easier diagnosis please provide logs with `armbianmonitor -u`)
       multiple: false
       options:
-        - Ubuntu 24.04 Noble
-        - Ubuntu 22.04 Jammy
-        - Debian 13 Trixie
-        - Debian 12 Bookworm
+        - Armbian Ubuntu 24.04 Noble
+        - Armbian Ubuntu 22.04 Jammy
+        - Armbian Debian 12 Bookworm
         - Other
     validations:
       required: true

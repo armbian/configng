@@ -1,0 +1,1 @@
+GNOME is a modern, user-friendly desktop environment for Linux, offering a clean interface, essential apps, and customization through extensions. It prioritizes simplicity, accessibility, and efficiency.
