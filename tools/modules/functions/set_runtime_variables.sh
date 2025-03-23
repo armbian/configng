@@ -85,3 +85,26 @@ function set_runtime_variables() {
 
 }
 
+#
+# Retrieve info from currently installed kernel, update /etc/armbian-release if required
+# (after switching kernel, but before a reboot, BRANCH can contain an outdated value)
+#
+function update_kernel_env() {
+	local list_of_installed_kernels=$(dpkg -l | grep '^[hi]i' | grep linux-image | head -1)
+	local new_branch=$(echo "$list_of_installed_kernels" | awk '{print $2}' | cut -d'-' -f3)
+	# these don't necessarily match the system-wide values from /etc/armbian-release
+	KERNELPKG_VERSION=$(echo "$list_of_installed_kernels" | awk '{print $3}')
+	KERNELPKG_LINUXFAMILY=$(echo "$list_of_installed_kernels" | awk '{print $2}' | cut -d'-' -f4)
+
+	[[ "$BRANCH" == "$new_branch" ]] && return
+
+	# BRANCH has changed: update required
+	if [[ -f /etc/armbian-release ]]; then
+		if grep -q BRANCH /etc/armbian-release; then
+			sed -i "s/BRANCH=.*/BRANCH=$new_branch/g" /etc/armbian-release
+		else
+			echo "BRANCH=$new_branch" >> /etc/armbian-release
+		fi
+	fi
+	BRANCH=$new_branch
+}

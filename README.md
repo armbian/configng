@@ -39,7 +39,7 @@
 
 ## Compatibility
 
-This tool is tailored to works best with [**Armbian Linux**](https://www.armbian.com) but it has also been automatically tested on:
+This tool is tailored to work best with [**Armbian Linux**](https://www.armbian.com) but it has also been automatically tested on:
 - Debian Bookworm
 - Ubuntu Jammy
 - Ubuntu Noble

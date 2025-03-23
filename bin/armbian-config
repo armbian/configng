@@ -165,4 +165,6 @@ case "$1" in
     ;;
 esac
 
-[[ -n "$DEBUG" && -n $tools_dir ]] && set_checkpoint show
+if [[ -n "$DEBUG" && -n $tools_dir ]]; then
+	set_checkpoint show
+fi

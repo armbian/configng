@@ -526,9 +526,38 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "module_watchtower status && pkg_installed docker-ce"
+                        },
+                        {
+                            "id": "UNAT01",
+                            "description": "Enable automatic package updates.",
+                            "command": [
+                                "module_armbian_upgrades install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_armbian_upgrades status"
+                        },
+                        {
+                            "id": "UNAT02",
+                            "description": "Configure automatic package updates",
+                            "command": [
+                                "module_armbian_upgrades configure"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_armbian_upgrades status"
+                        },
+                        {
+                            "id": "UNAT03",
+                            "description": "Disable automatic package updates",
+                            "command": [
+                                "module_armbian_upgrades remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_armbian_upgrades status"
                         }
-
-
+                        
                     ]
                 }
             ]
