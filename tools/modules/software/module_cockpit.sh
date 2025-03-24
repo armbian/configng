@@ -25,7 +25,7 @@ function module_cockpit() {
 
 			## install cockpit
 			pkg_update
-			pkg_install cockpit cockpit-ws cockpit-system cockpit-storaged cockpit-machines dnsmasq virtinst qemu-kvm qemu-utils
+			pkg_install cockpit cockpit-ws cockpit-system cockpit-storaged cockpit-machines dnsmasq virtinst qemu-kvm qemu-utils qemu-system
 
 			usermod -a -G libvirt libvirtdbus
 			usermod -a -G libvirt libvirt-qemu
@@ -61,7 +61,7 @@ function module_cockpit() {
 				virsh net-destroy ${bridge}
 				virsh net-undefine ${bridge}
 			done
-			pkg_remove cockpit cockpit-ws cockpit-system cockpit-storaged cockpit-machines dnsmasq virtinst qemu-kvm qemu-utils
+			pkg_remove cockpit cockpit-ws cockpit-system cockpit-storaged cockpit-machines dnsmasq virtinst qemu-kvm qemu-utils qemu-system
 
 		;;
 		"${commands[2]}")
