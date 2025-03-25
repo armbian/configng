@@ -60,7 +60,7 @@ source "$lib_dir/config.runtime.sh"
 set_checkpoint mark "Loaded Runtime conditions..."
 
 # usage: sudo DEBUG=1 ./config-time/bin/armbian-config $@
-# place one in a section with a quoted "about message"  
+# place one in a section with a quoted "about message"
 [[ -n "$DEBUG" ]] && set_checkpoint mark "DEBUG Messages on" ;
 
 case "$1" in
@@ -74,11 +74,11 @@ case "$1" in
      --help [category]   Use [category] to filter specific menu options.
      --cmd  [option]     Run a command from the menu (simple)
      --api  [option]     Run a helper command        (advanced)
-     --doc               Generate the README.md file 
+     --doc               Generate the README.md file
 
      Examples:
      armbian-config --help [cmd||System||Software||Network||Localisation]
-     armbian-config --cmd help 
+     armbian-config --cmd help
      armbian-config --api help
 "
         fi
@@ -89,7 +89,7 @@ case "$1" in
     ;;
 
     "--cmd")
-    checkpoint debug "Starting Command line UX option"
+        checkpoint debug "Starting Command line UX option"
         INPUTMODE="cmd"
         case "$2" in
             ""|"help")
@@ -98,13 +98,13 @@ case "$1" in
             *)
                 cmd=$(sanitize "$2") || die
                 execute_command "$cmd"
-		checkpoint debug "Starting Command line options UX"
+                checkpoint debug "Starting Command line options UX"
             ;;
         esac
     ;;
 
     "--api")
-	checkpoint debug "Starting --api options"
+        checkpoint debug "Starting --api options"
         case "$2" in
             ""|"help")
                 see_use
@@ -113,15 +113,15 @@ case "$1" in
                 fn=$(sanitize "$2") || die
                 shift 2
                 "$fn" "$@"
-		checkpoint debug "Exiting --api"
+                checkpoint debug "Exiting --api"
             ;;
         esac
-	;;
+    ;;
 
     "main=help" | "main=Help")
         see_cli_legacy
         echo ""
-	;;
+    ;;
 
     "main="*)
         declare -A main_map
@@ -151,20 +151,19 @@ case "$1" in
 
         echo "$main_value""$select_value"
         execute_command "$main_value""$select_value"
-	;;
+    ;;
 
     *)
         # Generate the top menu with the modified Object data
         set_colors 4
-	checkpoint debug "Starting Text User Interface (TUI)"
+        checkpoint debug "Starting Text User Interface (TUI)"
         generate_top_menu "$json_data"
         checkpoint debug "Exiting TUI"
-	# Show about this tool on exit
+        # Show about this tool on exit
         about_armbian_configng
-
     ;;
 esac
 
 if [[ -n "$DEBUG" && -n $tools_dir ]]; then
-	set_checkpoint show
+    set_checkpoint show
 fi
