@@ -3,7 +3,6 @@
 # internal function
 _pkg_have_stdin() { [[ -t 0 ]]; }
 
-declare -A module_options
 module_options+=(
 	["pkg_configure,author"]="@dimitry-ishenko"
 	["pkg_configure,desc"]="Configure an unconfigured package"
