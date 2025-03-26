@@ -1,33 +1,33 @@
 # checkpoint.sh
 
-my_module="checkpoint"
-
 module_options+=(
-	["$my_module,author"]="@dimitry-ishenko"
-	["$my_module,feature"]="checkpoint"
-	["$my_module,example"]="debug help info reset total"
-	["$my_module,desc"]="Manage checkpoints"
-	["$my_module,status"]="Active"
-	["$my_module,group"]="Development"
+	["checkpoint,author"]="@dimitry-ishenko"
+	["checkpoint,feature"]="checkpoint"
+	["checkpoint,example"]="debug help info reset total"
+	["checkpoint,desc"]="Manage checkpoints"
+	["checkpoint,status"]="Active"
+	["checkpoint,group"]="Development"
 )
 
 _checkpoint_add()
 {
-	local time=$(date +%s)
+	local type="$1" msg="$2"
 
 	if [[ -n "$DEBUG" ]]; then
-		printf "%-30s %4d sec\n" "$1" $((time - _checkpoint_time))
-	else
-		echo "$1"
-	fi
+		local time=$(date +%s)
+		printf "%-30s %4d sec\n" "$msg" $((time - _checkpoint_time))
+		_checkpoint_time=$time
 
-	_checkpoint_time="$time"
+	elif [[ -n "$UXMODE" && "$type" == info ]]; then
+		_checkpoint_time=$(date +%s)
+		echo "$msg"
+	fi
 }
 
 _checkpoint_help()
 {
 	echo "
-Usage: ${module_options[$my_module,feature]} <action> <message>
+Usage: ${module_options[checkpoint,feature]} <action> <message>
 Where <action> is one of:
 	debug      Show message in debug mode (DEBUG non-zero).
 	help       Show this help screen.
@@ -51,7 +51,7 @@ _checkpoint_reset
 _checkpoint_total()
 {
 	_checkpoint_time=$_checkpoint_start
-	_checkpoint_add "TOTAL time elapsed"
+	_checkpoint_add "debug" "TOTAL time elapsed"
 	_checkpoint_reset
 }
 
@@ -60,11 +60,11 @@ checkpoint()
 	local exit_code=$?
 
 	case "$1" in
-		debug) [[ -n "$DEBUG" ]] && _checkpoint_add "$2";;
+		debug) _checkpoint_add "$1" "$2";;
 		help)  _checkpoint_help;;
-		info)  [[ -n "${UXMODE}${DEBUG}" ]] && _checkpoint_add "$2";;
+		info)  _checkpoint_add "$1" "$2";;
 		reset) _checkpoint_reset;;
-		total) [[ -n "$DEBUG" ]] && _checkpoint_total;;
+		total) _checkpoint_total;;
 	esac
 
 	return $exit_code
