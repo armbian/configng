@@ -33,7 +33,11 @@ Where <action> is one of:
 	help       Show this help screen.
 	info       Show message in UI or debug mode.
 	reset      (Re)set starting point.
-	total      Show total elapsed time (and reset).
+	total      Show total time and reset (in debug mode).
+
+The 'debug' command will show time elapsed since the previous checkpoint after
+the <message>. The 'info' command will also show the elapsed time if the debug
+mode is active (the DEBUG env var is non-zero).
 "
 }
 
