@@ -85,20 +85,20 @@ function set_checkpoint() {
 
 # Example usage
 # set_checkpoint aluse with debugging
-checkpoint() {
-	case "$1" in
-		start|stop|mark|show)
-			set_checkpoint "$1" "$2"
-		;;
-		debug)
-			[[ -n "$DEBUG" && -n $tools_dir ]] && set_checkpoint mark "$2"
-		;;
-		help)
-			set_checkpoint help
-			echo "  debug              DEBUG checkpoint message"
-		;;
-		*)
-			echo "Invalid command. Use: help, start, stop, mark, debug, show"
-		;;
-	esac
-}
+#checkpoint() {
+#	case "$1" in
+#		start|stop|mark|show)
+#			set_checkpoint "$1" "$2"
+#		;;
+#		debug)
+#			[[ -n "$DEBUG" && -n $tools_dir ]] && set_checkpoint mark "$2"
+#		;;
+#		help)
+#			set_checkpoint help
+#			echo "  debug              DEBUG checkpoint message"
+#		;;
+#		*)
+#			echo "Invalid command. Use: help, start, stop, mark, debug, show"
+#		;;
+#	esac
+#}
