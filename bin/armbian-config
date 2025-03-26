@@ -18,7 +18,7 @@ source "$script_dir/../lib/armbian-config/config.initialize.sh"
 
 # Start loading messages
 checkpoint reset
-checkpoint info "Initializing script"
+checkpoint mark "Initializing script"
 
 [[ -d "$script_dir/../tools" ]] && tools_dir="$script_dir/../tools"
 [[ ! -d "$script_dir/../lib" && -n "$tools_dir" ]] && die -e "Please run\nbash "$tools_dir/config-assemble.sh" to build the lib directory\n"
@@ -40,24 +40,24 @@ json_data=$(<"$json_file")
 
 source "$lib_dir/config.functions.sh"
 set_runtime_variables
-checkpoint info "Loaded Runtime variables..."
+checkpoint mark "Loaded Runtime variables..."
 # checks for supported os
-checkpoint info "$(check_distro_status)"
+checkpoint mark "$(check_distro_status)"
 
-checkpoint info "Loaded Dialog..."
+checkpoint mark "Loaded Dialog..."
 source "$lib_dir/config.docs.sh"
-checkpoint info "Loaded Docs..."
+checkpoint mark "Loaded Docs..."
 source "$lib_dir/config.system.sh"
-checkpoint info "Loaded System helpers..."
+checkpoint mark "Loaded System helpers..."
 source "$lib_dir/config.network.sh"
-checkpoint info "Loaded Network helpers..."
+checkpoint mark "Loaded Network helpers..."
 source "$lib_dir/config.software.sh"
-checkpoint info "Loaded Software helpers..."
+checkpoint mark "Loaded Software helpers..."
 #
 # Loads the variables from beta armbian-config for runtime handling
 
 source "$lib_dir/config.runtime.sh"
-checkpoint info "Loaded Runtime conditions..."
+checkpoint mark "Loaded Runtime conditions..."
 
 checkpoint debug "DEBUG Messages on"
 
