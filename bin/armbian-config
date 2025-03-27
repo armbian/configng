@@ -87,7 +87,6 @@ case "$1" in
     ;;
 
     "--cmd")
-        checkpoint debug "Starting --cmd call"
         INPUTMODE="cmd"
         case "$2" in
             ""|"help")
@@ -95,14 +94,14 @@ case "$1" in
             ;;
             *)
                 cmd=$(sanitize "$2") || die
+                checkpoint debug "Executing command $cmd"
                 execute_command "$cmd"
-                checkpoint debug "Finished --cmd call"
+                checkpoint debug "Finished executing"
             ;;
         esac
     ;;
 
     "--api")
-        checkpoint debug "Starting --api call"
         case "$2" in
             ""|"help")
                 see_use
@@ -110,8 +109,9 @@ case "$1" in
             *)
                 fn=$(sanitize "$2") || die
                 shift 2
+                checkpoint debug "Calling API $fn $*"
                 "$fn" "$@"
-                checkpoint debug "Finished --api call"
+                checkpoint debug "Finished API call"
             ;;
         esac
     ;;
