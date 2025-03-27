@@ -42,7 +42,8 @@ source "$lib_dir/config.functions.sh"
 set_runtime_variables
 checkpoint mark "Loaded Runtime variables..."
 # checks for supported os
-checkpoint mark "$(check_distro_status)"
+check_distro_status
+checkpoint mark "Check distro"
 
 checkpoint mark "Loaded Dialog..."
 source "$lib_dir/config.docs.sh"
