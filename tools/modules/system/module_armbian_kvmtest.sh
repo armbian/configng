@@ -49,13 +49,13 @@ function module_armbian_kvmtest () {
 	local keyword=$(echo $keyword | sed "s/,/|/g") # convert
 
 	qcowimages=(
-		"https://dl.armbian.com/nightly/uefi-${arch}/Bullseye_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Bookworm_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Trixie_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Focal_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Jammy_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Noble_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Plucky_current_minimal-qcow2"
+		"https://dl.armbian.com/nightly/uefi-${arch}/Bullseye_cloud_minimal-qcow2"
+		"https://dl.armbian.com/nightly/uefi-${arch}/Bookworm_cloud_minimal-qcow2"
+		"https://dl.armbian.com/nightly/uefi-${arch}/Trixie_cloud_minimal-qcow2"
+		"https://dl.armbian.com/nightly/uefi-${arch}/Focal_cloud_minimal-qcow2"
+		"https://dl.armbian.com/nightly/uefi-${arch}/Jammy_cloud_minimal-qcow2"
+		"https://dl.armbian.com/nightly/uefi-${arch}/Noble_cloud_minimal-qcow2"
+		"https://dl.armbian.com/nightly/uefi-${arch}/Plucky_cloud_minimal-qcow2"
 	)
 
 	local commands
@@ -73,16 +73,12 @@ function module_armbian_kvmtest () {
 			virsh net-start default 2>/dev/null
 			virsh net-autostart default
 
-			if ! pkg_installed xz-utils; then
-				pkg_install xz-utils
-			fi
-
 			# download images
 			tempfolder=$(mktemp -d)
 			trap '{ rm -rf -- "$tempfolder"; }' EXIT
 			for qcowimage in ${qcowimages[@]}; do
 				[[ ! $qcowimage =~ ${keyword/,/|} ]] && continue # skip not needed ones
-				curl --progress-bar -L $qcowimage | xz -d > ${tempfolder}/$(basename $qcowimage | sed "s/-qcow2/.qcow2/g")
+				curl --progress-bar -L $qcowimage > ${tempfolder}/$(basename $qcowimage | sed "s/-qcow2/.qcow2/g")
 			done
 
 			# we will mount qcow image
