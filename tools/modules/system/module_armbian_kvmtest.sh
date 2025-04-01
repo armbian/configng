@@ -116,7 +116,7 @@ function module_armbian_kvmtest () {
 			trap '{ rm -rf -- "$tempfolder"; }' EXIT
 			for qcowimage in ${qcowimages[@]}; do
 				[[ ! $qcowimage =~ ${keyword/,/|} ]] && continue # skip not needed ones
-				curl --progress-bar -L $qcowimage > ${tempfolder}/$(basename $qcowimage | sed "s/-qcow2/.qcow2/g")
+				curl --progress-bar -L "$qcowimage" > "${tempfolder}/$(basename "$qcowimage" | sed "s/-qcow2/.qcow2/g")"
 			done
 
 			# we will mount qcow image
