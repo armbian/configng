@@ -9,7 +9,50 @@ module_options+=(
 )
 #
 # Module deploy Armbian QEMU KVM instances
+# module_armbian_kvmtest: Deploys and manages Armbian KVM virtual machine instances.
 #
+# Description:
+#   This function provides a comprehensive workflow for deploying and managing Armbian KVM
+#   instances. It handles installation, removal, snapshot creation, restoration, and listing
+#   of VMs. Based on a command-line argument, it applies corresponding actions such as downloading
+#   QCOW images, setting up network configurations, and provisioning VM disks.
+#
+# Globals:
+#   module_options - Associative array containing module-specific settings.
+#
+# Arguments:
+#   <command>:
+#     One of the following commands:
+#       install - Deploys VMs by downloading, resizing, and configuring Armbian QCOW images.
+#       remove  - Shuts down and undefines all VMs with the specified prefix.
+#       save    - Creates snapshots of all running VMs.
+#       drop    - Deletes snapshots named "initial-state" from all VMs.
+#       restore - Reverts VMs to their initial snapshot state and restarts them.
+#       list    - Displays available QCOW image URLs filtered by an optional keyword.
+#       help    - Shows usage information and available commands and switches.
+#
+#   Additional parameters (as key=value pairs) customize deployment:
+#     instances    - Number of VM instances to deploy (default: "01").
+#     provisioning - File path for a provisioning script executed at the VM's first run.
+#     firstconfig  - File path for initial configuration directives.
+#     startingip   - Starting IP address (underscores '_' are replaced with dots; default: "10.0.60.60").
+#     gateway      - Gateway IP address (formatted similarly to startingip; default: "10.0.60.1").
+#     keyword      - Regex pattern to filter QCOW images (e.g., Focal|Jammy).
+#     arch         - Architecture variant for the image (default: "x86").
+#     kvmprefix    - Prefix for naming VMs (default: "kvmtest").
+#     network      - Network type for VMs (default: "default"; use "bridge=<bridge>" for bridged networking).
+#     bridge       - Specific network bridge to override the default network if provided.
+#     memory       - VM memory allocation in MB (default: 3072).
+#     vcpus        - Number of virtual CPUs per VM (default: 2).
+#     size         - Additional disk size in GB to expand the QCOW image (default: 10).
+#
+# Outputs:
+#   Executes system commands to install packages, configure networks, download and prepare
+#   disk images, and manage virtual machine lifecycles. Errors are directed to /dev/null where appropriate.
+#
+# Example:
+#   module_armbian_kvmtest install instances=03 provisioning=/path/to/provision.sh \
+#     firstconfig=/path/to/firstconfig startingip=10_0_60_60 gateway=10_0_60_1 kvmprefix=myvm
 function module_armbian_kvmtest () {
 
 	local title="kvmtest"
