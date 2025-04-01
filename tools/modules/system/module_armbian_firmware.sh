@@ -47,10 +47,15 @@ function module_armbian_firmware() {
 			local kernel_test_target=$(\
 				for kernel_test_target in ${KERNEL_TEST_TARGET//,/ }
 				do
-					echo "linux-image-${kernel_test_target}-${LINUXFAMILY}"
 					# Exception for Rockchip
-					if [[ -n "${kernel_test_target}" && "${BOARDFAMILY}" == "rockchip-rk3588" && "${kernel_test_target}" =~ ^(current|vendor|edge)$ ]]; then
-						echo "linux-image-${kernel_test_target}-rk35xx"
+					if [[ "${BOARDFAMILY}" == "rockchip-rk3588" ]]; then
+						if [[ "${kernel_test_target}" == "vendor" ]]; then
+							echo "linux-image-${kernel_test_target}-rk35xx"
+						elif [[ "${kernel_test_target}" =~ ^(current|edge)$ ]]; then
+							echo "linux-image-${kernel_test_target}-rockchip64"
+						fi
+					else
+						echo "linux-image-${kernel_test_target}-${LINUXFAMILY}"
 					fi
 				done
 				)
