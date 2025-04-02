@@ -84,11 +84,15 @@ function module_armbianrouter () {
 				docker container rm -f armbianrouter-${routers[$port]} >/dev/null
 			done
 
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+			if [[ "${image}" ]]; then
+				docker image rm "$image" >/dev/null
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_armbianrouter,feature"]} ${commands[1]}
-			[[ -n "${ROUTER_BASE}" && "${ROUTER_BASE}" != "/" ]] && rm -rf "${ROUTER_BASE}"
+			if [[ -n "${ROUTER_BASE}" && "${ROUTER_BASE}" != "/" ]]; then
+			             rm -rf "${ROUTER_BASE}"
+			         fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then
