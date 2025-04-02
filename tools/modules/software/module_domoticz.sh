@@ -57,12 +57,18 @@ function module_domoticz () {
 			done
 		;;
 		"${commands[1]}")
-			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+			if [[ "${container}" ]]; then
+				docker container rm -f "$container" >/dev/null
+			fi
+			if [[ "${image}" ]]; then
+				docker image rm "$image" >/dev/null
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_domoticz,feature"]} ${commands[1]}
-			[[ -n "${DOMOTICZ_BASE}" && "${DOMOTICZ_BASE}" != "/" ]] && rm -rf "${DOMOTICZ_BASE}"
+			if [[ -n "${DOMOTICZ_BASE}" && "${DOMOTICZ_BASE}" != "/" ]]; then
+				rm -rf "${DOMOTICZ_BASE}"
+			fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then
