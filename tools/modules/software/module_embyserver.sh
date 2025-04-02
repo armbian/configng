@@ -66,7 +66,7 @@ function module_embyserver () {
 		"${commands[2]}")
 			${module_options["module_embyserver,feature"]} ${commands[1]}
 			if [[ -n "${EMBY_BASE}" && "${EMBY_BASE}" != "/" ]]; then
-			    rm -rf "${EMBY_BASE}"
+				rm -rf "${EMBY_BASE}"
 			fi
 		;;
 		"${commands[3]}")

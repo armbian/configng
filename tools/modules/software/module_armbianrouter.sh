@@ -91,8 +91,8 @@ function module_armbianrouter () {
 		"${commands[2]}")
 			${module_options["module_armbianrouter,feature"]} ${commands[1]}
 			if [[ -n "${ROUTER_BASE}" && "${ROUTER_BASE}" != "/" ]]; then
-			             rm -rf "${ROUTER_BASE}"
-			         fi
+				rm -rf "${ROUTER_BASE}"
+			fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then
