@@ -143,7 +143,9 @@ function module_haos() {
 		;;
 		"${commands[2]}")
 			${module_options["module_haos,feature"]} ${commands[1]}
-			[[ -n "${HAOS_BASE}" && "${HAOS_BASE}" != "/" ]] && rm -rf "${HAOS_BASE}"
+			if [[ -n "${HAOS_BASE}" && "${HAOS_BASE}" != "/" ]]; then
+				rm -rf "${HAOS_BASE}"
+			fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then

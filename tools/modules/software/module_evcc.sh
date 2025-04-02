@@ -56,12 +56,18 @@ function module_evcc () {
 			done
 		;;
 		"${commands[1]}")
-			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+			if [[ "${container}" ]]; then
+				docker container rm -f "$container" >/dev/null
+			fi
+			if [[ "${image}" ]]; then
+				docker image rm "$image" >/dev/null
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_evcc,feature"]} ${commands[1]}
-			[[ -n "${EVCC_BASE}" && "${EVCC_BASE}" != "/" ]] && rm -rf "${EVCC_BASE}"
+			if [[ -n "${EVCC_BASE}" && "${EVCC_BASE}" != "/" ]]; then
+				rm -rf "${EVCC_BASE}"
+			fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then

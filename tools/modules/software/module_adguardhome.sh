@@ -70,8 +70,12 @@ function module_adguardhome () {
 			fi
 		;;
 		"${commands[1]}")
-			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+			if [[ "${container}" ]]; then
+				docker container rm -f "$container" >/dev/null
+			fi
+			if [[ "${image}" ]]; then
+				docker image rm "$image" >/dev/null
+			fi
 			# restore DNS settings
 			if srv_active systemd-resolved; then
 				mkdir -p /etc/systemd/resolved.conf.d/
@@ -85,7 +89,9 @@ function module_adguardhome () {
 		;;
 		"${commands[2]}")
 			${module_options["module_adguardhome,feature"]} ${commands[1]}
-			[[ -n "${ADGUARDHOME_BASE}" && "${ADGUARDHOME_BASE}" != "/" ]] && rm -rf "${ADGUARDHOME_BASE}"
+			if [[ -n "${ADGUARDHOME_BASE}" && "${ADGUARDHOME_BASE}" != "/" ]]; then
+				rm -rf "${ADGUARDHOME_BASE}"
+			fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then

@@ -44,7 +44,9 @@ function module_docker() {
 					fi
 
 					groupadd docker 2>/dev/null || true
-					[[ -n "${SUDO_USER}" ]] && usermod -aG docker "${SUDO_USER}"
+					if [[ -n "${SUDO_USER}" ]]; then
+						usermod -aG docker "${SUDO_USER}"
+					fi
 					srv_enable docker containerd
 					srv_start docker
 					docker network create lsio 2> /dev/null
