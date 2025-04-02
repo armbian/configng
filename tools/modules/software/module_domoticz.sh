@@ -63,6 +63,12 @@ function module_domoticz () {
 			if [[ "${image}" ]]; then
 				docker image rm "$image" >/dev/null
 			fi
+			fi
+			if [[ "${image}" ]]; then
+				docker image rm "$image" >/dev/null
+			if [[ -n "${DOMOTICZ_BASE}" && "${DOMOTICZ_BASE}" != "/" ]]; then
+				rm -rf "${DOMOTICZ_BASE}"
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_domoticz,feature"]} ${commands[1]}

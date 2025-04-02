@@ -87,8 +87,12 @@ function module_armbianrouter () {
 			if [[ "${image}" ]]; then
 				docker image rm "$image" >/dev/null
 			fi
+				docker image rm "$image" >/dev/null
+			fi
 		;;
-		"${commands[2]}")
+		if [[ -n "${ROUTER_BASE}" && "${ROUTER_BASE}" != "/" ]]; then
+		  rm -rf "${ROUTER_BASE}"
+		fi
 			${module_options["module_armbianrouter,feature"]} ${commands[1]}
 			if [[ -n "${ROUTER_BASE}" && "${ROUTER_BASE}" != "/" ]]; then
 			             rm -rf "${ROUTER_BASE}"
