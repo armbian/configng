@@ -45,6 +45,8 @@ function module_docker() {
 
 					groupadd docker 2>/dev/null || true
 					if [[ -n "${SUDO_USER}" ]]; then
+					                   usermod -aG docker "${SUDO_USER}"
+					               fi
 						usermod -aG docker "${SUDO_USER}"
 					fi
 					srv_enable docker containerd

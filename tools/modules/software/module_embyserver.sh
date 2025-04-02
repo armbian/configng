@@ -62,6 +62,12 @@ function module_embyserver () {
 			if [[ "${image}" ]]; then
 				docker image rm "$image" >/dev/null
 			fi
+			fi
+			if [[ "${image}" ]]; then
+				docker image rm "$image" >/dev/null
+			if [[ -n "${EMBY_BASE}" && "${EMBY_BASE}" != "/" ]]; then
+			    rm -rf "${EMBY_BASE}"
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_embyserver,feature"]} ${commands[1]}

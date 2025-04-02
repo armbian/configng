@@ -55,11 +55,17 @@ function module_grafana () {
 		;;
 		"${commands[1]}")
 			if [[ "${container}" ]]; then
-				docker container rm -f "$container" >/dev/null
+			    docker container rm -f "$container" >/dev/null
+			fi
+				if [[ "${image}" ]]; then
+				   docker image rm "$image" >/dev/null
+				fi
 			fi
 			if [[ "${image}" ]]; then
 			    docker image rm "$image" >/dev/null
-			fi
+			if [[ -n "${GRAFANA_BASE}" && "${GRAFANA_BASE}" != "/" ]]; then
+			     rm -rf "${GRAFANA_BASE}"
+			 fi
 		;;
 		"${commands[2]}")
 			${module_options["module_grafana,feature"]} ${commands[1]}

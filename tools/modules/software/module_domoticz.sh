@@ -57,11 +57,15 @@ function module_domoticz () {
 			done
 		;;
 		"${commands[1]}")
-			if [[ "${container}" ]]; then
+			# Remove the container if it exists
+			if [[ -n "${container}" ]]; then
 				docker container rm -f "$container" >/dev/null
 			fi
-			if [[ "${image}" ]]; then
+			# Remove the image if it exists
+			if [[ -n "${image}" ]]; then
 				docker image rm "$image" >/dev/null
+			fi
+				rm -rf "${DOMOTICZ_BASE}"
 			fi
 		;;
 		"${commands[2]}")
