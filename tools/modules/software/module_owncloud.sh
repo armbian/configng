@@ -56,12 +56,18 @@ function module_owncloud () {
 			done
 		;;
 		"${commands[1]}")
-			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+			if [[ "${container}" ]]; then
+				docker container rm -f "$container" >/dev/null
+			fi
+			if [[ "${image}" ]]; then
+				docker image rm "$image" >/dev/null
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_owncloud,feature"]} ${commands[1]}
-			[[ -n "${OWNCLOUD_BASE}" && "${OWNCLOUD_BASE}" != "/" ]] && rm -rf "${OWNCLOUD_BASE}"
+			if [[ -n "${OWNCLOUD_BASE}" && "${OWNCLOUD_BASE}" != "/" ]]; then
+				rm -rf "${OWNCLOUD_BASE}"
+			fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then

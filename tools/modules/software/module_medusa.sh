@@ -56,12 +56,18 @@ function module_medusa () {
 			done
 		;;
 		"${commands[1]}")
-			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+			if [[ "${container}" ]]; then
+				docker container rm -f "$container" >/dev/null
+			fi
+			if [[ "${image}" ]]; then
+				docker image rm "$image" >/dev/null
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_medusa,feature"]} ${commands[1]}
-			[[ -n "${MEDUSA_BASE}" && "${MEDUSA_BASE}" != "/" ]] && rm -rf "${MEDUSA_BASE}"
+			if [[ -n "${MEDUSA_BASE}" && "${MEDUSA_BASE}" != "/" ]]; then
+				rm -rf "${MEDUSA_BASE}"
+			fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then

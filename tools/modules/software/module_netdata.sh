@@ -65,12 +65,18 @@ function module_netdata () {
 			done
 		;;
 		"${commands[1]}")
-			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+			if [[ "${container}" ]]; then
+				docker container rm -f "$container" >/dev/null
+			fi
+			if [[ "${image}" ]]; then
+				docker image rm "$image" >/dev/null
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_netdata,feature"]} ${commands[1]}
-			[[ -n "${NETDATA_BASE}" && "${NETDATA_BASE}" != "/" ]] && rm -rf "${NETDATA_BASE}"
+			if [[ -n "${NETDATA_BASE}" && "${NETDATA_BASE}" != "/" ]]; then
+				rm -rf "${NETDATA_BASE}"
+			fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then

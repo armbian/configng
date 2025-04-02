@@ -55,12 +55,18 @@ function module_octoprint () {
 			done
 		;;
 		"${commands[1]}")
-			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+			if [[ "${container}" ]]; then
+				docker container rm -f "$container" >/dev/null
+			fi
+			if [[ "${image}" ]]; then
+				docker image rm "$image" >/dev/null
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_octoprint,feature"]} ${commands[1]}
-			[[ -n "${OCTOPRINT_BASE}" && "${OCTOPRINT_BASE}" != "/" ]] && rm -rf "${OCTOPRINT_BASE}"
+			if [[ -n "${OCTOPRINT_BASE}" && "${OCTOPRINT_BASE}" != "/" ]]; then
+				rm -rf "${OCTOPRINT_BASE}"
+			fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then

@@ -31,7 +31,9 @@ function module_adguardhome () {
 		"${commands[0]}")
 			pkg_installed docker-ce || module_docker install
 			[[ -d "$ADGUARDHOME_BASE" ]] || mkdir -p "$ADGUARDHOME_BASE" || { echo "Couldn't create storage directory: $ADGUARDHOME_BASE"; exit 1; }
-			[[ ! -f "/etc/systemd/resolved.conf.d/armbian-defaults.conf" ]] && ${module_options["module_adguardhome,feature"]} ${commands[1]}
+			if [[ ! -f "/etc/systemd/resolved.conf.d/armbian-defaults.conf" ]]; then
+				${module_options["module_adguardhome,feature"]} ${commands[1]}
+			fi
 			docker run -d \
 			--net=lsio \
 			-p 53:53/tcp -p 53:53/udp \
