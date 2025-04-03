@@ -89,9 +89,9 @@ function module_haos() {
 
 			if [[ -f /boot/firmware/cmdline.txt ]]; then
 				# Raspberry Pi
-				sed -i '/./ s/$/ systemd.unified_cgroup_hierarchy=0 apparmor=1 security=apparmor/' /boot/firmware/cmdline.txt
+				sed -i '/./ s/$/ apparmor=1 security=apparmor/' /boot/firmware/cmdline.txt
 			elif [[ -f /boot/armbianEnv.txt ]]; then
-				echo "extraargs=systemd.unified_cgroup_hierarchy=0 apparmor=1 security=apparmor" >> "/boot/armbianEnv.txt"
+				echo "extraargs=apparmor=1 security=apparmor" >> "/boot/armbianEnv.txt"
 			fi
 			sleep 5
 			for s in {1..50};do
@@ -134,9 +134,9 @@ function module_haos() {
 			fi
 			rm -f /usr/local/bin/supervisor_fix.sh
 			rm -f /etc/systemd/system/supervisor-fix.service
-			sed -i "s/ systemd.unified_cgroup_hierarchy=0 apparmor=1 security=apparmor//" /boot/armbianEnv.txt
+			sed -i "s/ apparmor=1 security=apparmor//" /boot/armbianEnv.txt
 			# Raspberry Pi
-			sed -i "s/ systemd.unified_cgroup_hierarchy=0 apparmor=1 security=apparmor//" /boot/firmware/cmdline.txt
+			sed -i "s/ apparmor=1 security=apparmor//" /boot/firmware/cmdline.txt
 			srv_daemon_reload
 			# restore os-release
 			sed -i "s/^PRETTY_NAME=\".*/PRETTY_NAME=\"${VENDOR} ${REVISION} ($VERSION_CODENAME)\"/g" "/etc/os-release"
