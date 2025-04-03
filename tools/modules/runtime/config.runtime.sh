@@ -95,6 +95,8 @@ fi
 #update_sub_submenu_data "Software" "Media" "SW22" "https://localhost:$plex_media_port"
 
 # System
+update_sub_submenu_data "System" "Access" "SSH201" "ssh://$LOCALIPADD:${module_options["module_openssh-server,port"]}"
+#
 update_sub_submenu_data "System" "Storage" "SY220" "$(module_zfs zfs_version)"
 update_sub_submenu_data "System" "Storage" "SY221" "$(module_zfs zfs_installed_version)"
 update_sub_submenu_data "System" "Storage" "NFS04" "$NFS_CLIENTS_NUMBER"
