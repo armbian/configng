@@ -34,7 +34,7 @@ function module_netdata () {
 			docker run -d \
 			--name=netdata \
 			--pid=host \
-			--net=lsio \
+			--network=host \
 			-v "${NETDATA_BASE}/netdataconfig:/etc/netdata" \
 			-v "${NETDATA_BASE}/netdatalib:/var/lib/netdata" \
 			-v "${NETDATA_BASE}/netdatacache:/var/cache/netdata" \
