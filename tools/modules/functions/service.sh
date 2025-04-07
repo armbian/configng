@@ -3,7 +3,6 @@
 # internal function
 _srv_system_running() { [[ $(systemctl is-system-running) =~ ^(running|degraded)$ ]]; }
 
-declare -A module_options
 module_options+=(
 	["srv_active,author"]="@dimitry-ishenko"
 	["srv_active,desc"]="Check if service is active"
@@ -18,7 +17,6 @@ srv_active()
 	_srv_system_running && systemctl is-active --quiet "$@"
 }
 
-declare -A module_options
 module_options+=(
 	["srv_daemon_reload,author"]="@dimitry-ishenko"
 	["srv_daemon_reload,desc"]="Reload systemd configuration"
