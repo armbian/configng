@@ -30,7 +30,7 @@ function _prompt_text_input() {
 	# Consider logging the cancellation event for debugging purposes.
 	if [[ -z "$result" ]]; then
 		echo "Input cancelled by user."
-		exit 1
+		return 1
 	fi
 
 	echo "$result"
