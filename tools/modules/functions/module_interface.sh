@@ -35,34 +35,71 @@ function _prompt_text_input() {
 	echo "$result"
 }
 
+# Main function for the module
+function _edit_playground() {
+	case "$1" in
+		"help")
+			# Help message formatted for see_menu
+			cat <<-EOF
+			workgroup	- Change the workgroup name
+			server_string	- Update the server string
+			netbios_name	- Modify the NetBIOS name
+			share_path	- Adjust the path for the Samba share
+			EOF
+			;;
+		"workgroup")
+			workgroup=$(_prompt_text_input "Enter the workgroup" "WORKGROUP")
+			echo "$workgroup"
+			;;
+		"server_string")
+			server_string=$(_prompt_text_input "Enter the server string" "Samba Server %v")
+			echo "$server_string"
+			;;
+		"netbios_name")
+			netbios_name=$(_prompt_text_input "Enter the NetBIOS name" "ubuntu")
+			echo "$netbios_name"
+			;;
+		"share_path")
+			share_path=$(_prompt_text_input "Enter the path for the Samba share" "/srv/samba/anonymous")
+			echo "$share_path"
+			;;
+		*)
+			echo "Invalid option. Use 'help' for usage information."
+			;;
+	esac
+}
 
 # Use case examples for TUI with case switch
 function module_tui_playground() {
 	case "$1" in
 		"help")
-		echo "Usage: module_tui_playground [option]"
-		echo "Options:"
-		echo "  text  - Prompt for multiple text inputs"
-		#   echo "  menu  - Show a sample menu"
-		echo "  message - Display a message using show_message"
-		#   echo "  info - Display an info box using show_infobox"
+		cat <<-EOF
+		Usage: module_tui_playground [option]"
+		Options:"
+		  text_input   - mulitble prompt in a row.
+		  see_menu     - Prompt for selectable text inputs"
+		  show_message - Display a message using show_message"
+		  dialog       - Same as see_menu and uses dialog if installed"
+		EOF
 		;;
-		"text")
+		"text_input")
 		workgroup=$(_prompt_text_input "Enter the workgroup" "WORKGROUP")
 		server_string=$(_prompt_text_input "Enter the server string" "Samba Server %v")
 		netbios_name=$(_prompt_text_input "Enter the netbios name" "ubuntu")
 		share_path=$(_prompt_text_input "Enter the path for the Samba share" "/srv/samba/anonymous")
 		echo -e "Workgroup: $workgroup\nServer String: $server_string\nNetBIOS Name: $netbios_name\nShare Path: $share_path" | show_message
 		;;
-		"menu")
-		# Placeholder for a sample menu function
-		see_menu "Sample Menu Title" "Option 1" "Option 2" "Option 3"
+		"see_menu")
+			see_menu _edit_playground | show_message
 		;;
-		"message")
+		"show_message")
+			echo -e "This is an Ok dialog that is using $DIALOG" | show_message
+		;;
+		"dialog")
+		DIALOG="dialog"
+
 		echo -e "This is an Ok dialog that is using $DIALOG" | show_message
-		;;
-		"infobox")
-			# Placeholder for a sample
+		see_menu _edit_playground
 		echo "This is an info box using $DIALOG" | show_infobox
 		;;
 		*)
