@@ -1,3 +1,4 @@
+#!/bin/bash
 module_options+=(
 	["_prompt_text_input,author"]="@Tearran"
 	["_prompt_text_input,feature"]="prompt_text_input"
@@ -78,7 +79,7 @@ function module_tui_playground() {
 		echo "
 Usage: module_tui_playground [option]
 Options:
-	text_input   - mulitble prompt in a row.
+	text_input   - multiple prompts in a row.
 	see_menu     - Prompt for selectable text inputs
 	dialog       - Same as see_menu and uses dialog if installed
 		"
