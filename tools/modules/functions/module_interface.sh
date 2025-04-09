@@ -40,12 +40,14 @@ function _edit_playground() {
 	case "$1" in
 		"help")
 			# Help message formatted for see_menu
-			cat <<-EOF
-			workgroup	- Change the workgroup name
-			server_string	- Update the server string
-			netbios_name	- Modify the NetBIOS name
-			share_path	- Adjust the path for the Samba share
-			EOF
+			echo "
+Usage: _edit_playground [option]
+Options:
+	workgroup	- Change the workgroup name
+	server_string	- Update the server string
+	netbios_name	- Modify the NetBIOS name
+	share_path	- Adjust the path for the Samba share
+			"
 			;;
 		"workgroup")
 			workgroup=$(_prompt_text_input "Enter the workgroup" "WORKGROUP")
@@ -73,14 +75,13 @@ function _edit_playground() {
 function module_tui_playground() {
 	case "$1" in
 		"help")
-		cat <<-EOF
-		Usage: module_tui_playground [option]"
-		Options:"
-		  text_input   - mulitble prompt in a row.
-		  see_menu     - Prompt for selectable text inputs"
-		  show_message - Display a message using show_message"
-		  dialog       - Same as see_menu and uses dialog if installed"
-		EOF
+		echo "
+Usage: module_tui_playground [option]
+Options:
+	text_input   - mulitble prompt in a row.
+	see_menu     - Prompt for selectable text inputs
+	dialog       - Same as see_menu and uses dialog if installed
+		"
 		;;
 		"text_input")
 		workgroup=$(_prompt_text_input "Enter the workgroup" "WORKGROUP")
@@ -91,9 +92,6 @@ function module_tui_playground() {
 		;;
 		"see_menu")
 			see_menu _edit_playground | show_message
-		;;
-		"show_message")
-			echo -e "This is an Ok dialog that is using $DIALOG" | show_message
 		;;
 		"dialog")
 		DIALOG="dialog"
