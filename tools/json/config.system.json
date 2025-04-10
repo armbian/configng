@@ -109,24 +109,24 @@
                         {
                             "id": "SY007",
                             "description": "Enable read only filesystem",
-                            "about": "This will enable Armbian read-only filesystem. Reboot is mandatory?\n",
+                            "prompt": "This will enable Armbian read-only filesystem.\n",
                             "command": [
-                                "manage_overlayfs enable"
+                                "module_overlayfs install"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "modinfo overlay > /dev/null 2>&1 && [[ -z $(findmnt -k /media/root-ro | tail -1) ]] && [[ \"${DISTRO}\"=Ubuntu ]]"
+                            "condition": "module_overlayfs status"
                         },
                         {
                             "id": "SY008",
                             "description": "Disable read only filesystem",
-                            "about": "This will disable Armbian read-only filesystem. Reboot is mandatory?\n",
+                            "prompt": "This will disable Armbian read-only filesystem.\n",
                             "command": [
-                                "manage_overlayfs disable"
+                                "module_overlayfs remove"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "command -v overlayroot-chroot > /dev/null 2>&1 && findmnt -k /media/root-ro | tail -1 | grep -w /media/root-ro > /dev/null 2>&1"
+                            "condition": "! module_overlayfs status"
                         },
                         {
                             "id": "NFS01",
@@ -209,6 +209,16 @@
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
                                     "condition": "pkg_installed nfs-common"
+                                },
+                                {
+                                    "id": "NFS22",
+                                    "description": "Show and manage NFS mounts",
+                                    "command": [
+                                        "module_nfs mounts"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "[[ -n $(mount --type=nfs4) ]]"
                                 }
                             ]
                         }
@@ -223,7 +233,7 @@
                             "description": "Disable root login",
                             "command": [
                                 "sed -i \"s|^#\\?PermitRootLogin.*|PermitRootLogin no|\" /etc/ssh/sshd_config",
-                                "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
+                                "srv_restart ssh"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -234,7 +244,7 @@
                             "description": "Enable root login",
                             "command": [
                                 "sed -i \"s/^#\\?PermitRootLogin.*/PermitRootLogin yes/\" /etc/ssh/sshd_config",
-                                "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
+                                "srv_restart ssh"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -245,7 +255,7 @@
                             "description": "Disable password login",
                             "command": [
                                 "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication no/\" /etc/ssh/sshd_config",
-                                "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
+                                "srv_restart ssh"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -256,7 +266,7 @@
                             "description": "Enable password login",
                             "command": [
                                 "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication yes/\" /etc/ssh/sshd_config",
-                                "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
+                                "srv_restart ssh"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -267,7 +277,7 @@
                             "description": "Disable Public key authentication login",
                             "command": [
                                 "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication no/\" /etc/ssh/sshd_config",
-                                "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
+                                "srv_restart ssh"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -278,7 +288,7 @@
                             "description": "Enable Public key authentication login",
                             "command": [
                                 "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication yes/\" /etc/ssh/sshd_config",
-                                "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
+                                "srv_restart ssh"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -292,7 +302,7 @@
                                 "! pkg_installed libpam-google-authenticator && ! pkg_installed qrencode || pkg_remove libpam-google-authenticator qrencode",
                                 "sed -i \"s/^#\\?ChallengeResponseAuthentication.*/ChallengeResponseAuthentication no/\" /etc/ssh/sshd_config || sed -i \"0,/KbdInteractiveAuthentication/s//ChallengeResponseAuthentication yes/\" /etc/ssh/sshd_config",
                                 "sed -i '/^auth required pam_google_authenticator.so nullok/ d' /etc/pam.d/sshd",
-                                "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
+                                "srv_restart ssh"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -307,7 +317,7 @@
                                 "sed -i \"s/^#\\?ChallengeResponseAuthentication.*/ChallengeResponseAuthentication yes/\" /etc/ssh/sshd_config",
                                 "sed -i $'/KbdInteractiveAuthentication/{iChallengeResponseAuthentication yes\\n:a;n;ba}' /etc/ssh/sshd_config || sed -n -i '/password updating/{p;:a;N;/@include common-password/!ba;s/.*\\n/auth required pam_google_authenticator.so nullok\\nauth required pam_permit.so\\n/};p' /etc/pam.d/sshd",
                                 "[ ! -f /root/.google_authenticator ] && qr_code generate",
-                                "systemctl restart sshd.service 2>/dev/null | systemctl restart ssh.service 2>/dev/null"
+                                "srv_restart ssh"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -338,7 +348,7 @@
                             "description": "Disable last login banner",
                             "command": [
                                 "sed -i \"s/^#\\?PrintLastLog.*/PrintLastLog no/\" /etc/ssh/sshd_config",
-                                "systemctl restart ssh.service "
+                                "srv_restart ssh"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -349,7 +359,7 @@
                             "description": "Enable last login banner",
                             "command": [
                                 "sed -i \"s/^#\\?PrintLastLog.*/PrintLastLog yes/\" /etc/ssh/sshd_config",
-                                "systemctl restart ssh.service "
+                                "srv_restart ssh"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -516,9 +526,38 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "module_watchtower status && pkg_installed docker-ce"
+                        },
+                        {
+                            "id": "UNAT01",
+                            "description": "Enable automatic package updates.",
+                            "command": [
+                                "module_armbian_upgrades install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_armbian_upgrades status"
+                        },
+                        {
+                            "id": "UNAT02",
+                            "description": "Configure automatic package updates",
+                            "command": [
+                                "module_armbian_upgrades configure"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_armbian_upgrades status"
+                        },
+                        {
+                            "id": "UNAT03",
+                            "description": "Disable automatic package updates",
+                            "command": [
+                                "module_armbian_upgrades remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_armbian_upgrades status"
                         }
-
-
+                        
                     ]
                 }
             ]

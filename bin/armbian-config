@@ -1,20 +1,27 @@
 #!/bin/bash
 
-tput init
-#
-# Language-based variable assignment for script directory path
-# This serves as a Rosetta Stone for developers,
-# allowing them to use the variable name they are most comfortable with.
-
+# initializes the terminal from TERM if stdin is a terminal
+unset UXMODE
+[[ -t 0 && "$1" =~ ^(|--cmd|--help)$ ]] && UXMODE="true" && tput init
 # allows CTRL c to exit
 trap "exit" INT TERM
+
 [[ $EUID != 0 ]] && exec sudo "$0" "$@"
 #
 # Get the script directory
 script_dir="$(dirname "$0")"
 
+declare -A module_options
+
+# Load the initialize modules
+source "$script_dir/../lib/armbian-config/config.initialize.sh"
+
+# Start loading messages
+checkpoint reset
+checkpoint mark "Initializing script"
+
 [[ -d "$script_dir/../tools" ]] && tools_dir="$script_dir/../tools"
-[[ ! -d "$script_dir/../lib" && -n "$tools_dir" ]] && echo -e "Please run\nbash "$tools_dir/config-assemble.sh" to build the lib directory\n" && exit 1 
+[[ ! -d "$script_dir/../lib" && -n "$tools_dir" ]] && die -e "Please run\nbash "$tools_dir/config-assemble.sh" to build the lib directory\n"
 
 # 'whiptail' is a simple dialog box utility that works well with Bash. It doesn't have all the features of some other dialog box utilities, but it does everything we need for this script.
 [[ -x "$(command -v whiptail)" ]] && DIALOG="whiptail"
@@ -28,145 +35,132 @@ json_file="$lib_dir/config.jobs.json"
 # Load The Bash procedure Objects
 json_data=$(<"$json_file")
 
-#
-# Prepare the module options array
-declare -A module_options
 
-#
 # Load configng core functions and module options array
 
 source "$lib_dir/config.functions.sh"
 set_runtime_variables
+checkpoint mark "Loaded Runtime variables..."
+# checks for supported os
 check_distro_status
-echo "Loaded Runtime variables..." #| show_infobox ;
-#set_newt_colors 2
-echo "Loaded Dialog..." #| show_infobox ;
+checkpoint mark "Check distro"
+
+checkpoint mark "Loaded Dialog..."
 source "$lib_dir/config.docs.sh"
-echo "Loaded Docs..." #| show_infobox ;
+checkpoint mark "Loaded Docs..."
 source "$lib_dir/config.system.sh"
-echo "Loaded System helpers..." #| show_infobox ;
+checkpoint mark "Loaded System helpers..."
 source "$lib_dir/config.network.sh"
-echo "Loaded Network helpers..." #| show_infobox ;
+checkpoint mark "Loaded Network helpers..."
 source "$lib_dir/config.software.sh"
-echo "Loaded Software helpers..." #| show_infobox ;
+checkpoint mark "Loaded Software helpers..."
 #
 # Loads the variables from beta armbian-config for runtime handling
 
 source "$lib_dir/config.runtime.sh"
-echo "Loaded Runtime conditions..." #| show_infobox ;
+checkpoint mark "Loaded Runtime conditions..."
 
-clear
+checkpoint debug "DEBUG Messages on"
 
 case "$1" in
-"--help")
-	if [[ -n "$2" ]]; then
-		see_cmd_list "$2"
-		echo ""
-		exit 0
-	fi
-
-	echo "Usage:  armbian-config --[option]
-     Options:
+    "--help")
+        if [[ -n "$2" ]]; then
+            see_cmd_list "$2"
+            echo ""
+        else
+            echo "Usage:  armbian-config --[option]
+  Options:
      --help [category]   Use [category] to filter specific menu options.
      --cmd  [option]     Run a command from the menu (simple)
      --api  [option]     Run a helper command        (advanced)
-     --doc               Generate the README.md file 
+     --doc               Generate the README.md file
 
      Examples:
      armbian-config --help [cmd||System||Software||Network||Localisation]
-     armbian-config --cmd help 
+     armbian-config --cmd help
      armbian-config --api help
 "
-	exit 0
-	;;
-"--doc")
-	generate_readme
-	exit 0
-	;;
-"--cmd")
-	INPUTMODE="cmd"
-	shift
-	if [[ -z "$1" || "$1" == "help" ]]; then
-		see_cmd_list
-		exit 0
-	fi
+        fi
+    ;;
 
-	args=$(sanitize_input "$@")
-	execute_command "$args"
-	exit 0
-	;;
-"--api")
-	shift
-	if [[ -z "$1" || "$1" == "help" ]]; then
-		see_use
-		exit 0
-	fi
-	option="$1"
-	shift
-	args=$(sanitize_input "$@")
-	# echo -e "\"$option\" \"$args\""
-	"$option" "$args"
-	exit 0
-	;;
-"main=help" | "main=Help")
-	see_cli_legacy
-	echo ""
-	exit 0
-	;;
-"main="*)
-	declare -A main_map
-	main_map=(
-		# map name to menu category
-		["System"]="S"
-		["Software"]="I"
-		["Network"]="N"
-		["Localisation"]="L"
-	)
-	main_value="${1#main=}"
-	main_value="${main_map[$main_value]}"
+    "--doc")
+        generate_readme
+    ;;
 
-	if [ -z "$main_value" ]; then
-		echo "Error: Invalid List $1"
-		exit 1
-	fi
-	declare -A select_map
-	# map name to menu number
-	select_map=(
-		["Headers"]="04"
-		["Headers_install"]="04"
-		["Headers_remove"]="05"
-		["Firmware"]="06"
-		["Nightly"]="07"
-	)
-	select_value="${2#selection=}"
-	select_value="${select_map[$select_value]}"
-	if [ -z "$select_value" ]; then
-		echo "Error: Invalid Option $2"
-		exit 1
-	fi
-	echo "$main_value""$select_value"
-	execute_command "$main_value""$select_value"
-	exit 0
-	;;
-*)
-	if [[ $EUID != 0 ]]; then
-		echo -e "error: Exiting \nTry: 'sudo armbian-config'\n or: 'armbian-config --help' for More info\n\n"
-		exit 0
-	fi
-	;;
+    "--cmd")
+        checkpoint debug "Starting --cmd call"
+        INPUTMODE="cmd"
+        case "$2" in
+            ""|"help")
+                see_cmd_list
+            ;;
+            *)
+                cmd=$(sanitize "$2") || die
+                execute_command "$cmd"
+                checkpoint debug "Finished --cmd call"
+            ;;
+        esac
+    ;;
+
+    "--api")
+        checkpoint debug "Starting --api call"
+        case "$2" in
+            ""|"help")
+                see_use
+            ;;
+            *)
+                fn=$(sanitize "$2") || die
+                shift 2
+                "$fn" "$@"
+                checkpoint debug "Finished --api call"
+            ;;
+        esac
+    ;;
+
+    "main=help" | "main=Help")
+        see_cli_legacy
+        echo ""
+    ;;
+
+    "main="*)
+        declare -A main_map
+        main_map=(
+            # map name to menu category
+            ["System"]="S"
+            ["Software"]="I"
+            ["Network"]="N"
+            ["Localisation"]="L"
+        )
+        main_value="${1#main=}"
+        main_value="${main_map[$main_value]}"
+        [ -z "$main_value" ] && die "Error: Invalid List $1"
+
+        declare -A select_map
+        # map name to menu number
+        select_map=(
+            ["Headers"]="04"
+            ["Headers_install"]="04"
+            ["Headers_remove"]="05"
+            ["Firmware"]="06"
+            ["Nightly"]="07"
+        )
+        select_value="${2#selection=}"
+        select_value="${select_map[$select_value]}"
+        [ -z "$select_value" ] && die "Error: Invalid Option $2"
+
+        echo "$main_value""$select_value"
+        execute_command "$main_value""$select_value"
+    ;;
+
+    *)
+        # Generate the top menu with the modified Object data
+        set_colors 4
+        checkpoint debug "Launching TUI"
+        generate_top_menu "$json_data"
+        checkpoint debug "Exited TUI"
+        # Show about this tool on exit
+        about_armbian_configng
+    ;;
 esac
 
-
-#
-# Generate the top menu with the modified Object data
-set_colors 4
-generate_top_menu "$json_data"
-
-#
-# Exit the script with a success status code
-
-#
-# Show about this tool on exit
-about_armbian_configng
-
-exit 0
+checkpoint total

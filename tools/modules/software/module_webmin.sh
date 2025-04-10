@@ -29,7 +29,7 @@ function module_webmin() {
 				echo -e "  install\t- Install $title."
 			else
 
-			if [[ "$(systemctl is-active webmin 2>/dev/null)" == "active" ]]; then
+			if srv_active webmin; then
 				echo -e "\tstop\t- Stop the $title service."
 				echo -e "\tdisable\t- Disable $title from starting on boot."
 			else
@@ -54,7 +54,7 @@ function module_webmin() {
 		;;
 		"${commands[2]}")
 			## remove webmin
-			systemctl disable webmin
+			srv_disable webmin
 			pkg_remove webmin
 			rm /etc/apt/sources.list.d/webmin.list
 			rm /usr/share/keyrings/webmin-archive-keyring.gpg
@@ -63,40 +63,35 @@ function module_webmin() {
 		;;
 
 		"${commands[3]}")
-			## start webmin
-			sudo systemctl start webmin
+			srv_start webmin
 			echo "Webmin service started."
 			;;
 
 		"${commands[4]}")
-			## stop webmin
-			sudo systemctl stop webmin
+			srv_stop webmin
 			echo "Webmin service stopped."
 			;;
 
 		"${commands[5]}")
-			## enable webmin
-			sudo systemctl enable webmin
+			srv_enable webmin
 			echo "Webmin service enabled."
 			;;
 
 		"${commands[6]}")
-			## disable webmin
-			sudo systemctl disable webmin
+			srv_disable webmin
 			echo "Webmin service disabled."
 			;;
 
 		"${commands[7]}")
-			## status webmin
-			sudo systemctl status webmin
+			srv_status webmin
 			;;
 
 		"${commands[8]}")
 			## check webmin status
-			if [[ $(systemctl is-active webmin) == "active" ]]; then
+			if srv_active webmin; then
 				echo "Webmin service is active."
 				return 0
-			elif [[ $(systemctl is-enabled webmin) == "disabled" ]]; then
+			elif ! srv_enabled webmin ]]; then
 				echo "Webmin service is disabled."
 				return 1
 			else

@@ -64,13 +64,25 @@ sudo armbian-config
     - ### Switch system to stable packages repository
     - ### Enable automating Docker container base images updating
     - ### Disable automating Docker container base images updating
+    - ### Enable automatic package updates.
+    - ### Configure automatic package updates
+    - ### Disable automatic package updates
 
 
 
 
 - ## **Network** 
 
-  - ### Configure network interfaces
+  - ### Basic Network Setup
+
+
+  - ### Remove Fallback DHCP Configuration
+
+
+  - ### View Network Settings
+
+
+  - ### Advanced bridged network configuration
     - ### Add / change interface
     - ### Revert to Armbian defaults
     - ### Show configuration
@@ -123,6 +135,12 @@ sudo armbian-config
     - ### Home Assistant open source home automation
     - ### Home Assistant remove
     - ### Home Assistant purge with data folder
+    - ### Domoticz open source home automation
+    - ### Domoticz remove
+    - ### Domoticz purge with data folder
+    - ### EVCC - solar charging automation
+    - ### EVCC - solar charging automation remove
+    - ### EVCC purge with data folder
 
 
   - ### Network-wide ad blockers servers
@@ -130,6 +148,18 @@ sudo armbian-config
     - ### Pi-hole remove
     - ### Pi-hole change web admin password
     - ### Pi-hole purge with data folder
+    - ### Unbound caching DNS resolver
+    - ### Unbound remove
+    - ### Unbound purge with data folder
+    - ### AdGuardHome DNS sinkhole
+    - ### AdGuardHome remove
+    - ### AdGuardHome purge with data folder
+
+
+  - ### Music servers and streamers
+    - ### Navidrome music server and streamer compatible with Subsonic/Airsonic
+    - ### Navidrome remove
+    - ### Navidrome purge with data folder
 
 
   - ### Download apps for movies, TV shows, music and subtitles
@@ -183,6 +213,10 @@ sudo armbian-config
   - ### Applications and tools for development
     - ### Install tools for cloning and managing repositories (git)
     - ### Remove tools for cloning and managing repositories (git)
+    - ### Armbian router for repository mirror automation
+    - ### Remove Armbian router
+    - ### Armbian rsyncd server
+    - ### Remove Armbian rsyncd server
 
 
   - ### Docker containerization and KVM virtual machines
@@ -211,6 +245,12 @@ sudo armbian-config
     - ### Owncloud share files and folders, easy and secure
     - ### Owncloud remove
     - ### Owncloud purge with data folder
+    - ### Jellyfin Media System
+    - ### Jellyfin remove
+    - ### Jellyfin purge with data folder
+    - ### Hastebin Paste Server
+    - ### Hastebin remove
+    - ### Hastebin purge with data folder
 
 
   - ### Real-time monitoring, collecting metrics, up-time status
@@ -223,6 +263,9 @@ sudo armbian-config
     - ### Grafana data analytics
     - ### Grafana remove
     - ### Grafana purge with data folder
+    - ### Prometheus docker image
+    - ### Prometheus remove
+    - ### Prometheus purge with data folder
 
 
   - ### Remote Management tools
@@ -247,6 +290,10 @@ sudo armbian-config
     - ### avahi-daemon remove
 
 
+  - ### VPN tools
+    - ### ZeroTier connect devices over your own private network in the world.
+
+
 
 
 - ## **Help** 
@@ -265,7 +312,14 @@ sudo apt install armbian-config
 	sudo wget https://apt.armbian.com/armbian.key -O key
 	sudo gpg --dearmor < key | sudo tee /usr/share/keyrings/armbian.gpg > /dev/null
 	sudo chmod go+r /usr/share/keyrings/armbian.gpg
-	sudo echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/armbian.gpg] http://apt.armbian.com $(lsb_release -cs) main  $(lsb_release -cs)-utils  $(lsb_release -cs)-desktop" | sudo tee /etc/apt/sources.list.d/armbian.list
+	echo << EOF | sudo tee /etc/apt/sources.list.d/armbian.sources
+	Types: deb
+	URIs: https://apt.armbian.com
+	Suites: noble
+	Components: main noble-utils noble-desktop
+	Architectures: amd64
+	Signed-By: /usr/share/keyrings/armbian.gpg
+	EOF
 	sudo apt update
 	sudo apt install armbian-config
 }
@@ -307,6 +361,7 @@ Outputs:
 	--cmd NFS09 - Show network filesystem (NFS) daemon clients
       NFS20 - Manage NFS Client
 	--cmd NFS21 - Find NFS servers in subnet and mount shares
+	--cmd NFS22 - Show and manage NFS mounts
     Access - Manage SSH daemon options, enable 2FA
 	--cmd SY101 - Disable root login
 	--cmd SY102 - Enable root login
@@ -321,7 +376,7 @@ Outputs:
 	--cmd SY111 - Disable last login banner
 	--cmd SY112 - Enable last login banner
 	--cmd SSH200 - Sandboxed & containerised SSH server
-	--cmd SSH201 - Remove sandboxed SSH server
+	--cmd SSH201 - Remove sandboxed SSH server (ssh://10.1.0.139:2222)
 	--cmd SSH202 - Purge sandboxed SSH server with data folder
     User - Change shell, adjust MOTD
 	--cmd SY005 - Change shell system wide to BASH
@@ -334,9 +389,15 @@ Outputs:
 	--cmd SY207 - Switch system to stable packages repository
 	--cmd WTC001 - Enable automating Docker container base images updating
 	--cmd WTC002 - Disable automating Docker container base images updating
+	--cmd UNAT01 - Enable automatic package updates.
+	--cmd UNAT02 - Configure automatic package updates
+	--cmd UNAT03 - Disable automatic package updates
 
   Network - Fixed and wireless network settings (eth0)
-    NE001 - Configure network interfaces
+    --cmd BNS001 - Basic Network Setup
+    --cmd BNS002 - Remove Fallback DHCP Configuration
+    --cmd VNS001 - View Network Settings
+    NEA002 - Advanced bridged network configuration
 	--cmd NE002 - Add / change interface
 	--cmd NE003 - Revert to Armbian defaults
 	--cmd NE004 - Show configuration
@@ -360,103 +421,132 @@ Outputs:
 	--cmd SWAG04 - SWAG purge with data folder
     HomeAutomation - Home Automation for control home appliances
 	--cmd HAB001 - openHAB empowering the smart home
-	--cmd HAB002 - openHAB remove (http://10.1.0.38:8080)
+	--cmd HAB002 - openHAB remove (http://10.1.0.139:8080)
 	--cmd HAB003 - openHAB purge with data folder
 	--cmd HAS001 - Home Assistant open source home automation
-	--cmd HAS002 - Home Assistant remove (http://10.1.0.38:8123)
+	--cmd HAS002 - Home Assistant remove (http://10.1.0.139:8123)
 	--cmd HAS003 - Home Assistant purge with data folder
+	--cmd DOM001 - Domoticz open source home automation
+	--cmd DOM002 - Domoticz remove (http://10.1.0.139:8080)
+	--cmd DOM003 - Domoticz purge with data folder
+	--cmd EVCC01 - EVCC - solar charging automation
+	--cmd EVCC02 - EVCC - solar charging automation remove (http://10.1.0.139:7070)
+	--cmd EVCC03 - EVCC purge with data folder
     DNS - Network-wide ad blockers servers
 	--cmd DNS001 - Pi-hole DNS ad blocker
-	--cmd DNS003 - Pi-hole remove (http://10.1.0.38:80)
+	--cmd DNS003 - Pi-hole remove (http://10.1.0.139:80)
 	--cmd DNS002 - Pi-hole change web admin password
 	--cmd DNS004 - Pi-hole purge with data folder
+	--cmd UNB001 - Unbound caching DNS resolver
+	--cmd UNB002 - Unbound remove
+	--cmd UNB003 - Unbound purge with data folder
+	--cmd ADG001 - AdGuardHome DNS sinkhole
+	--cmd ADG002 - AdGuardHome remove (http://10.1.0.139:3000)
+	--cmd ADG003 - AdGuardHome purge with data folder
+    Music - Music servers and streamers
+	--cmd NAV001 - Navidrome music server and streamer compatible with Subsonic/Airsonic
+	--cmd NAV002 - Navidrome remove
+	--cmd NAV003 - Navidrome purge with data folder
     Downloaders - Download apps for movies, TV shows, music and subtitles
 	--cmd DOW001 - qBittorrent BitTorrent client 
-	--cmd DOW002 - qBittorrent remove (http://10.1.0.38:8090)
+	--cmd DOW002 - qBittorrent remove (http://10.1.0.139:8090)
 	--cmd DOW003 - qBittorrent purge with data folder
 	--cmd DEL001 - Deluge BitTorrent client
-	--cmd DEL002 - Deluge remove (http://10.1.0.38:8112)
+	--cmd DEL002 - Deluge remove (http://10.1.0.139:8112)
 	--cmd DEL003 - Deluge purge with data folder
 	--cmd TRA001 - Transmission BitTorrent client
-	--cmd TRA002 - Transmission remove (http://10.1.0.38:9091)
+	--cmd TRA002 - Transmission remove (http://10.1.0.139:9091)
 	--cmd TRA003 - Transmission purge with data folder
 	--cmd SABN01 - SABnzbd newsgroup downloader
-	--cmd SABN02 - SABnzbd remove (http://10.1.0.38:8080)
+	--cmd SABN02 - SABnzbd remove (http://10.1.0.139:8080)
 	--cmd SABN03 - SABnzbd purge with data folder
 	--cmd MDS001 - Medusa automatic downloader for TV shows
-	--cmd MDS002 - Medusa TV shows downloader remove (http://10.1.0.38:8081)
+	--cmd MDS002 - Medusa TV shows downloader remove (http://10.1.0.139:8081)
 	--cmd MDS003 - Medusa TV shows downloader purge
 	--cmd SON001 - Sonarr automatic downloader for TV shows
-	--cmd SON002 - Sonarr remove (http://10.1.0.38:8989)
+	--cmd SON002 - Sonarr remove (http://10.1.0.139:8989)
 	--cmd SON003 - Sonarr purge with data folder
 	--cmd RAD001 - Radarr automatic downloader for movies
-	--cmd RAD002 - Radarr remove (http://10.1.0.38:7878)
+	--cmd RAD002 - Radarr remove (http://10.1.0.139:7878)
 	--cmd RAD003 - Radarr purge with data folder
 	--cmd BAZ001 - Bazarr automatic subtitles downloader for Sonarr and Radarr
-	--cmd BAZ002 - Bazarr remove (http://10.1.0.38:6767)
+	--cmd BAZ002 - Bazarr remove (http://10.1.0.139:6767)
 	--cmd BAZ003 - Bazarr purge with data folder
 	--cmd LID001 - Lidarr automatic music downloader
-	--cmd LID002 - Lidarr remove (http://10.1.0.38:8686)
+	--cmd LID002 - Lidarr remove (http://10.1.0.139:8686)
 	--cmd LID003 - Lidarr purge with data folder
 	--cmd RDR001 - Readarr automatic downloader for Ebooks
-	--cmd RDR002 - Readarr remove (http://10.1.0.38:8787)
+	--cmd RDR002 - Readarr remove (http://10.1.0.139:8787)
 	--cmd RDR003 - Readarr purge with data folder
 	--cmd DOW025 - Prowlarr index manager and proxy for PVR
-	--cmd DOW026 - Prowlarr remove (http://10.1.0.38:9696)
+	--cmd DOW026 - Prowlarr remove (http://10.1.0.139:9696)
 	--cmd DOW027 - Prowlarr purge with data folder
 	--cmd JEL001 - Jellyseerr Jellyfin/Emby/Plex integration install
-	--cmd JEL002 - Jellyseerr remove (http://10.1.0.38:5055)
+	--cmd JEL002 - Jellyseerr remove (http://10.1.0.139:5055)
 	--cmd JEL003 - Jellyseerr purge with data folder
     Database - SQL database servers and web interface managers
 	--cmd DAT001 - Mariadb SQL database server
-	--cmd DAT002 - Mariadb remove (Server: 10.1.0.38)
+	--cmd DAT002 - Mariadb remove (Server: 10.1.0.139)
 	--cmd DAT003 - Mariadb purge with data folder
 	--cmd DAT005 - phpMyAdmin web interface manager
-	--cmd DAT006 - phpMyAdmin remove (http://10.1.0.38:8071)
+	--cmd DAT006 - phpMyAdmin remove (http://10.1.0.139:8071)
 	--cmd DAT007 - phpMyAdmin purge with data folder
     DevTools - Applications and tools for development
 	--cmd DEV001 - Install tools for cloning and managing repositories (git)
 	--cmd DEV002 - Remove tools for cloning and managing repositories (git)
+	--cmd DEV003 - Armbian router for repository mirror automation
+	--cmd DEV004 - Remove Armbian router
+	--cmd DEV010 - Armbian rsyncd server
+	--cmd DEV011 - Remove Armbian rsyncd server
     Containers - Docker containerization and KVM virtual machines
 	--cmd CON001 - Docker minimal
 	--cmd CON002 - Docker engine
 	--cmd CON003 - Docker remove
 	--cmd CON004 - Docker purge with all images, containers, and volumes
 	--cmd CON005 - Portainer container management platform
-	--cmd CON006 - Portainer remove (http://10.1.0.38:9000)
+	--cmd CON006 - Portainer remove (http://10.1.0.139:9000)
 	--cmd CON007 - Portainer purge with with data folder
     Media - Media servers, organizers and editors
 	--cmd MED003 - Emby organizes video, music, live TV, and photos
-	--cmd MED004 - Emby server remove (http://10.1.0.38:8096)
+	--cmd MED004 - Emby server remove (http://10.1.0.139:8096)
 	--cmd MED005 - Emby server purge with data folder
 	--cmd MED010 - Stirling PDF tools for viewing and editing PDF files
-	--cmd MED011 - Stirling PDF remove (http://10.1.0.38:8077)
+	--cmd MED011 - Stirling PDF remove (http://10.1.0.139:8077)
 	--cmd MED012 - Stirling PDF purge with data folder
 	--cmd MED015 - Syncthing continuous file synchronization
-	--cmd MED016 - Syncthing remove (http://10.1.0.38:8884)
+	--cmd MED016 - Syncthing remove (http://10.1.0.139:8884)
 	--cmd MED017 - Syncthing purge with data folder
 	--cmd MED020 - Nextcloud content collaboration platform
-	--cmd MED021 - Nextcloud remove (https://10.1.0.38:443)
+	--cmd MED021 - Nextcloud remove (https://10.1.0.139:443)
 	--cmd MED022 - Nextcloud purge with data folder
 	--cmd MED025 - Owncloud share files and folders, easy and secure
-	--cmd MED026 - Owncloud remove (http://10.1.0.38:7787)
+	--cmd MED026 - Owncloud remove (http://10.1.0.139:7787)
 	--cmd MED027 - Owncloud purge with data folder
+	--cmd MED030 - Jellyfin Media System
+	--cmd MED031 - Jellyfin remove (http://10.1.0.139:8096)
+	--cmd MED032 - Jellyfin purge with data folder
+	--cmd MED033 - Hastebin Paste Server
+	--cmd MED034 - Hastebin remove
+	--cmd MED035 - Hastebin purge with data folder
     Monitoring - Real-time monitoring, collecting metrics, up-time status
 	--cmd MON001 - Uptime Kuma self-hosted monitoring tool
-	--cmd MON002 - Uptime Kuma remove (http://10.1.0.38:3001)
+	--cmd MON002 - Uptime Kuma remove (http://10.1.0.139:3001)
 	--cmd MON003 - Uptime Kuma purge with data folder
 	--cmd MON005 - Netdata - monitoring real-time metrics
-	--cmd MON006 - Netdata remove (http://10.1.0.38:19999)
+	--cmd MON006 - Netdata remove (http://10.1.0.139:19999)
 	--cmd MON007 - Netdata purge with data folder
 	--cmd GRA001 - Grafana data analytics
-	--cmd GRA002 - Grafana remove (http://10.1.0.38:3000)
+	--cmd GRA002 - Grafana remove (http://10.1.0.139:3000)
 	--cmd GRA003 - Grafana purge with data folder
+	--cmd PRO001 - Prometheus docker image
+	--cmd PRO002 - Prometheus remove
+	--cmd PRO003 - Prometheus purge with data folder
     Management - Remote Management tools
-	--cmd MAN001 - Cockpit web-based management tool (http://10.1.0.38:9090)
+	--cmd MAN001 - Cockpit web-based management tool (http://10.1.0.139:9090)
 	--cmd MAN005 - Webmin web-based management tool
     Printing - Tools for printing and 3D printing
 	--cmd OCT001 - OctoPrint web-based 3D printers management tool
-	--cmd OCT002 - OctoPrint remove (http://10.1.0.38:7981)
+	--cmd OCT002 - OctoPrint remove (http://10.1.0.139:7981)
 	--cmd OCT003 - OctoPrint purge with data folder
     Netconfig - Console network tools for measuring load and bandwidth
 	--cmd NET001 - nload -realtime console network usage monitor
@@ -467,6 +557,8 @@ Outputs:
 	--cmd NET006 - iptraf-ng remove
 	--cmd NET007 - avahi-daemon hostname broadcast via mDNS
 	--cmd NET008 - avahi-daemon remove
+    VPN - VPN tools
+	--cmd VPN001 - ZeroTier connect devices over your own private network in the world.
 
   Help - About this tool
     --cmd HE001 - Contribute
@@ -554,9 +646,40 @@ Jobs:
 No commands available
 ~~~
 
-### NE001
+### BNS001
 
-Configure network interfaces
+Basic Network Setup
+
+Jobs:
+
+~~~
+module_simple_network simple
+~~~
+
+### BNS002
+
+Remove Fallback DHCP Configuration
+
+Jobs:
+
+~~~
+rm -f /etc/netplan/10-dhcp-all-interfaces.yaml
+netplan apply
+~~~
+
+### VNS001
+
+View Network Settings
+
+Jobs:
+
+~~~
+show_message <<< "$(netplan get all)"
+~~~
+
+### NEA002
+
+Advanced bridged network configuration
 
 Jobs:
 
@@ -677,6 +800,16 @@ Jobs:
 No commands available
 ~~~
 
+### Music
+
+Music servers and streamers
+
+Jobs:
+
+~~~
+No commands available
+~~~
+
 ### Downloaders
 
 Download apps for movies, TV shows, music and subtitles
@@ -767,6 +900,16 @@ Jobs:
 No commands available
 ~~~
 
+### VPN
+
+VPN tools
+
+Jobs:
+
+~~~
+No commands available
+~~~
+
 ### HE001
 
 Contribute
@@ -791,11 +934,15 @@ These helper functions facilitate various operations related to job management, 
 | Run time variables Migrated procedures from Armbian config. | set_runtime_variables | @igorpecovnik 
 | Check for (Whiptail, DIALOG, READ) tools and set the user interface. |  | Tearran 
 | Toggle SSH lastlog | toggle_ssh_lastlog | @Tearran 
+| Manage checkpoints | debug help mark reset total | @dimitry-ishenko 
 | Generate this markdown table of all module_options | see_function_table_md | @Tearran 
+| Netplan wrapper | simple advanced type stations select store restore dhcp static help | @igorpecovnik 
+| Exit with error code 1, optionally printing a message to stderr | run_critical_function || die 'The world is about to end' | @dimitry-ishenko 
+| Reload service | srv_reload ssh.service | @dimitry-ishenko 
 | Webmin setup and service setting. | help install remove start stop enable disable status check | @Tearran 
 | Install HA supervised container | install remove purge status help | @igorpecovnik 
-| Set Armbian root filesystem to read only | manage_overlayfs enable/disable | @igorpecovnik 
 | Display a menu from pipe | show_menu <<< armbianmonitor -h  ;  | @Tearran 
+| Start service | srv_start ssh.service | @dimitry-ishenko 
 | Install watchtower container | install remove status help | @armbian 
 | Build the main menu from a object | generate_top_menu 'json_data' | @Tearran 
 | Install bazarr container | install remove purge status help | @igorpecovnik 
@@ -806,17 +953,22 @@ These helper functions facilitate various operations related to job management, 
 | Install stirling container | install remove purge status help | @Frooodle 
 | Install sonarr container | install remove purge status help | @armbian 
 | Generate Document files. | generate_readme | @Tearran 
-|  |  | @igorpecovnik 
+| Storing netplan config to tmp | store_netplan_config | @igorpecovnik 
+| Install jellyfin container | install remove purge status help | @armbian 
 | Install jellyseerr container | install remove purge status help | @armbian 
 | Needed by generate_menu | execute_command 'id' | @Tearran 
 | Display a Yes/No dialog box and process continue/exit | get_user_continue 'Do you wish to continue?' process_input | @Tearran 
 | Module for Armbian firmware manipulating. | select install show hold unhold repository headers help | @igorpecovnik 
-| Deploy Armbian KVM instances | install remove save restore list help | @igorpecovnik 
+| Deploy Armbian KVM instances | install remove save drop restore list help | @igorpecovnik 
+| Unmask service | srv_unmask ssh.service | @dimitry-ishenko 
 | Migrated procedures from Armbian config. | connect_bt_interface | @armbian 
 | Display a message box | show_message <<< 'hello world'  | @Tearran 
 | Manage self hosted runners | install remove remove_online purge help | @igorpecovnik 
+| Install domoticz container | install remove purge status help | @armbian 
+| Install and configure automatic updates | install remove configure status defaults help | @igorpecovnik 
 | Menu for armbianmonitor features | see_monitoring | @Tearran 
 | Enable/disable device tree overlays |  | @viraniac 
+| XFCE desktop packages | install remove disable enable status auto manual login help | @igorpecovnik 
 | Show or generate QR code for Google OTP | qr_code generate | @igorpecovnik 
 | Remove package | pkg_remove nmap | @dimitry-ishenko 
 | Check when apt list was last updated and suggest updating or update | see_current_apt or see_current_apt update | @Tearran 
@@ -827,7 +979,7 @@ These helper functions facilitate various operations related to job management, 
 | Install zfs filesystem support | install remove status kernel_max zfs_version zfs_installed_version help | @igorpecovnik 
 | Check if package is installed | pkg_installed mc | @dimitry-ishenko 
 | Update submenu descriptions based on conditions | update_submenu_data | @Tearran 
-| sanitize input cli | sanitize_input | @Tearran 
+| Install evcc container | install remove purge status help | @naltatis 
 | Install openssh-server container | install remove purge status help | @armbian 
 | Upgrade installed packages | pkg_upgrade | @dimitry-ishenko 
 | Install lidarr container | install remove purge status help | @armbian 
@@ -836,58 +988,76 @@ These helper functions facilitate various operations related to job management, 
 | Install wireguard container | install remove purge qrcode status help | @armbian 
 | Secure Web Application Gateway  | install remove purge status password help | @igorpecovnik 
 | Install deluge container | install remove purge status help | @igorpecovnik 
+| Set Armbian root filesystem to read only | install remove status help | @igorpecovnik 
 | Cockpit setup and service setting. | help install remove start stop enable disable status check | @tearran 
 | Generate a submenu from a parent_id | generate_menu 'parent_id' | @Tearran 
 | Generate a markdown list json objects using jq. | see_jq_menu_list | @Tearran 
 | Install octoprint container | install remove purge status help | @armbian 
+| Enable service | srv_enable ssh.service | @dimitry-ishenko 
 | Generate jobs from JSON file. | generate_jobs_from_json | @Tearran 
 | Display a warning with a gauge for 10 seconds then continue |  | @igorpecovnik 
+| Install armbian router container | install remove purge status help | @armbian 
+| Install hastebin container | install remove purge status help | @armbian 
 | Install radarr container | install remove purge status help | @armbian 
 | Toggle IPv6 on or off | toggle_ipv6 | @Tearran 
 | Adjust welcome screen (motd) | adjust_motd clear, header, sysinfo, tips, commands | @igorpecovnik 
 | Install embyserver container | install remove purge status help | @schwar3kat 
 | Install qbittorrent container | install remove purge status help | @qbittorrent 
+| Reload systemd configuration | srv_daemon_reload | @dimitry-ishenko 
 | Generate JSON-like object file. | generate_json | @Tearran 
 | Install transmission container | install remove purge status help | @armbian 
 | Install nextcloud container | install remove purge status help | @igorpecovnik 
-| Wrapper for service manipulation | service install some.service | @dimitry-ishenko 
+| Install navidrome container | install remove purge status help | @armbian 
 | Install Openhab | install remove purge status help | @igorpecovnik 
 | Uses Avalible (Whiptail, DIALOG, READ) for the menu interface | <function_name> | Tearran 
 | Netplan wrapper | network_config | @igorpecovnik 
 | Install medusa container | install remove purge status help | @armbian 
+| Install prometheus container | install remove purge status help | @armbian 
 | Install syncthing container | install remove purge status help | @igorpecovnik 
+| Install Zerotier | help install remove start stop enable disable status check | @jnovos 
 | Install grafana container | install remove purge status help | @armbian 
 | Select optimised Odroid board configuration | select | @GeoffClements 
 | Install owncloud container | install remove purge status help | @armbian 
 | Install netdata container | install remove purge status help | @armbian 
 | Change the background color of the terminal or dialog box | set_colors 0-7 | @Tearran 
 | Show general information about this tool | about_armbian_configng | @igorpecovnik 
+| Install unbound container | install remove purge status help | @igorpecovnik 
 | Serve the edit and debug server. | serve_doc | @Tearran 
 | Update JSON data with system information | update_json_data | @Tearran 
-| Install nfs client | install remove servers help | @igorpecovnik 
+| Check if service is active | srv_active ssh.service | @dimitry-ishenko 
+| Install nfs client | install remove servers mounts help | @igorpecovnik 
 | pipeline strings to an infobox  | show_infobox <<< 'hello world' ;  | @Tearran 
 | Install readarr container | install remove purge status help | @armbian 
 | Install uptimekuma container | install remove purge status help | @armbian 
 | Stop hostapd, clean config | default_wireless_network_config | @igorpecovnik 
+| Generate desktop packages list |  | @igorpecovnik 
 | Update sub-submenu descriptions based on conditions | update_sub_submenu_data MenuID SubID SubSubID CMD | @Tearran 
 | Parse json to get list of desired menu or submenu items | parse_menu_items 'menu_options_array' | @viraniac 
 | Show the usage of the functions. | see_use | @Tearran 
-| Install Desktop environment | manage_desktops xfce install | @igorpecovnik 
+| Check if service is enabled | srv_enabled ssh.service | @dimitry-ishenko 
+| Install adguardhome container | install remove purge status help | @igorpecovnik 
 | Set system shell to BASH | manage_zsh enable|disable | @igorpecovnik 
 | Install sabnzbd container | install remove purge status help | @armbian 
+| Mask service | srv_mask ssh.service | @dimitry-ishenko 
+| Show service status information | srv_status ssh.service | @dimitry-ishenko 
+| Stop service | srv_stop ssh.service | @dimitry-ishenko 
 | Configure an unconfigured package | pkg_configure | @dimitry-ishenko 
 | Install Pi-hole container | install remove purge password status help | @armbian 
 | Generate a Help message for cli commands. | see_cmd_list [category] | @Tearran 
 | Install mariadb container | install remove purge status help | @igorpecovnik 
+| Disable service | srv_disable ssh.service | @dimitry-ishenko 
 | Revert network config back to Armbian defaults | default_network_config | @igorpecovnik 
 | Check if the current OS is supported based on /etc/armbian-distribution-status | help | @Tearran 
 | Install prowlarr container | install remove purge status help | @Prowlarr 
 | Install nfsd server | install remove manage add status clients servers help | @igorpecovnik 
+| Install and configure Armbian rsyncd. | install remove status help | @igorpecovnik 
 | Check the internet connection with fallback DNS | see_ping | @Tearran 
+| Make sure param contains only valid chars | sanitize 'foo_bar_42' | @Tearran 
 | Install docker from a repo using apt | install remove purge status help | @schwar3kat 
 | Upgrade to next stable or rolling release | release_upgrade stable verify | @igorpecovnik 
 | Update the /etc/skel files in users directories | update_skel | @igorpecovnik 
 | change_system_hostname | change_system_hostname | @igorpecovnik 
+| Restart service | srv_restart ssh.service | @dimitry-ishenko 
 | Update package repository | pkg_update | @dimitry-ishenko 
 | Secure version of get_user_continue | get_user_continue_secure 'Do you wish to continue?' process_input | @Tearran 
 

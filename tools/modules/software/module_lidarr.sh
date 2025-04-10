@@ -56,12 +56,18 @@ function module_lidarr () {
 			done
 		;;
 		"${commands[1]}")
-			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+			if [[ "${container}" ]]; then
+				docker container rm -f "$container" >/dev/null
+			fi
+			if [[ "${image}" ]]; then
+				docker image rm "$image" >/dev/null
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_lidarr,feature"]} ${commands[1]}
-			[[ -n "${LIDARR_BASE}" && "${LIDARR_BASE}" != "/" ]] && rm -rf "${LIDARR_BASE}"
+			if [[ -n "${LIDARR_BASE}" && "${LIDARR_BASE}" != "/" ]]; then
+				rm -rf "${LIDARR_BASE}"
+			fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then
