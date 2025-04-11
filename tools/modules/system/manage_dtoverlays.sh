@@ -41,7 +41,7 @@ function manage_dtoverlays () {
 
 		# Add support for rk3588 vendor kernel overlays which don't have overlay prefix mostly
 		builtin_overlays=""
-		if [[ $BOARDFAMILY == "rockchip-rk3588" ]] && [[ $BRANCH == "vendor" ]]; then
+		if [[ $BOARDFAMILY == "rockchip-rk3588" || $BOARDFAMILY == "rk3588" ]] && [[ $BRANCH == "vendor" ]]; then
 			builtin_overlays=$(ls -1 ${overlaydir}/*.dtbo | grep -v ${overlay_prefix} | sed 's#^'${overlaydir}'/##' | sed 's/.dtbo//g')
 		fi
 
