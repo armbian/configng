@@ -1594,13 +1594,23 @@
                 },
                 {
                     "id": "Management",
-                    "description": "Remote Management tools",
+                    "description": "Remote File & Management tools",
                     "sub": [
                         {
                             "id": "MAN001",
                             "description": "Cockpit web-based management tool",
                             "command": [
                                 "see_menu module_cockpit"
+                            ],
+                            "status": "Stable",
+                            "author": "@Tearran",
+                            "condition": ""
+                        },
+                        {
+                            "id": "MAN002",
+                            "description": "SAMBA Remote File share",
+                            "command": [
+                                "see_menu module_samba"
                             ],
                             "status": "Stable",
                             "author": "@Tearran",

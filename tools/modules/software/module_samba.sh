@@ -13,7 +13,8 @@ module_options+=(
 
 function module_samba() {
 	local title="samba"
-	local condition=$(which smbd)
+	local condition
+	condition=$(command -v smbd)
 
 	# Set the interface for dialog tools
 	set_interface
