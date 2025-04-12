@@ -49,8 +49,8 @@ function module_samba() {
 		## install samba
 		pkg_update
 		pkg_install samba
-				# Check if /etc/samba/smb.conf exists
-		if [[ ! -f /etc/samba/smb.conf ]]; then
+		# Check if /etc/samba/smb.conf exists
+		if [[ ! -f "/etc/samba/smb.conf" ]]; then
 			if [[ -f "/usr/share/samba/smb.conf" ]]; then
 				cp "/usr/share/samba/smb.conf" "/etc/samba/smb.conf"
 			else
@@ -61,11 +61,11 @@ function module_samba() {
 		echo "Samba installed successfully."
 		;;
 		"${commands[2]}")
-		## added subshell to prevent exiting befor removing is complete.
-		$(srv_disable smbd) || echo "No service, skipping"
+		## added subshell to prevent srv_disable exiting befor removing is complete.
+		(srv_disable smbd) || echo "No service, skipping"
 		pkg_remove samba
 		[[ -f /etc/samba/smb.conf ]] && rm /etc/samba/smb.conf && echo "Samba conf removed successfully."
-
+		echo "$title remove complete."
 		;;
 		"${commands[3]}")
 		srv_start smbd
