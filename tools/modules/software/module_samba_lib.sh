@@ -2,7 +2,7 @@ module_options+=(
 	["module_samba,author"]="@Tearran"
 	["module_samba,maintainer"]="@Tearran"
 	["module_samba,feature"]="module_samba"
-	["module_samba,example"]="help install remove start stop enable disable configure"
+	["module_samba,example"]="help install remove start stop enable disable configure status"
 	["module_samba,desc"]="Samba setup and service setting."
 	["module_samba,status"]="Active"
 	["module_samba,doc_link"]="https://www.samba.org/samba/docs/"
@@ -41,6 +41,7 @@ function module_samba() {
 			fi
 			echo -e "\tremove\t- Remove $title."
 			echo -e "\tconfigure\t- Configure $title."
+			echo -e "\tstatus\t- Check samba state $title."
 		fi
 		echo
 		;;
@@ -117,13 +118,13 @@ EOL
 		"${commands[8]}")
 		## check samba status
 		if srv_active smbd; then
-			echo "Samba service is active."
+			echo "Samba service is active." | show_message
 			return 0
 		elif ! srv_enabled smbd; then
-			echo "Samba service is disabled."
+			echo "Samba service is disabled." | show_message
 			return 1
 		else
-			echo "Samba service is in an unknown state."
+			echo "Samba service is in an unknown state." | show_message
 			return 1
 		fi
 		;;
