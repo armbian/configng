@@ -51,7 +51,7 @@ function module_samba() {
 		pkg_install samba
 				# Check if /etc/samba/smb.conf exists
 		if [[ ! -f /etc/samba/smb.conf ]]; then
-			if [[ ! -f "/usr/share/samba/smb.conf" ]]; then
+			if [[ -f "/usr/share/samba/smb.conf" ]]; then
 				cp "/usr/share/samba/smb.conf" "/etc/samba/smb.conf"
 			else
 				echo "Warning: Missing configuration file. Use the <configure> option."
