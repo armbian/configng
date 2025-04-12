@@ -40,7 +40,7 @@ function module_samba() {
 			echo -e "\tstart\t- Start the $title service."
 			fi
 			echo -e "\tremove\t- Remove $title."
-			echo -e "\tconfigure\t- Configure $title."
+			# echo -e "\tconfigure\t- Configure $title."
 			echo -e "\tdefault\t- Set $title packed default conf"
 			echo -e "\tstatus\t- Check samba state $title."
 		fi
