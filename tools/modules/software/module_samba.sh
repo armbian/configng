@@ -50,7 +50,7 @@ function module_samba() {
 		pkg_install samba
 
 		# Backup the original Samba configuration file
-		sudo cp /etc/samba/smb.conf /etc/samba/smb.conf.bak
+		cp /etc/samba/smb.conf /etc/samba/smb.conf.bak
 
 		echo "Samba installed successfully."
 		;;
@@ -104,13 +104,13 @@ function module_samba() {
 EOL
 
 		# Create a directory for the Samba share
-		sudo mkdir -p $share_path
-		sudo chown -R nobody:nogroup $share_path
-		sudo chmod -R 0775 $share_path
+		mkdir -p "$share_path"
+		chown -R nobody:nogroup "$share_path"
+		chmod -R 0775 "$share_path"
 
 		# Restart Samba services
-		sudo systemctl restart smbd
-		sudo systemctl restart nmbd
+		systemctl restart smbd
+		systemctl restart nmbd
 
 		echo "Samba configured successfully."
 		;;
