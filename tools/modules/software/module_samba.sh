@@ -122,11 +122,21 @@ EOL
 		echo "Samba configured successfully."
 		;;
 		"${commands[8]}")
-		echo "use package default configuration"
-		if [[ -f  "/usr/share/samba/smb.conf" && -d "/etc/samba" ]] ; then
-			cp "/usr/share/samba/smb.conf" "/etc/samba/etc/samba"
+		echo "Using package default configuration..."
+
+		# Check if the default Samba configuration file and directory exist
+		if [[ -f "/usr/share/samba/smb.conf" && -d "/etc/samba" ]]; then
+			echo "Found default configuration and target directory."
+			cp /usr/share/samba/smb.conf /etc/samba/smb.conf
+			echo "Default configuration copied to /etc/samba/smb.conf."
 		else
-			echo "Error: default configuration not found"
+			# Provide more specific error messages
+			if [[ ! -f "/usr/share/samba/smb.conf" ]]; then
+			echo "Error: Default configuration file /usr/share/samba/smb.conf not found."
+			fi
+			if [[ ! -d "/etc/samba" ]]; then
+			echo "Error: Target directory /etc/samba does not exist."
+			fi
 			return 1
 		fi
 		;;
