@@ -50,31 +50,22 @@ function module_samba() {
 		pkg_update
 		pkg_install samba
 				# Check if /etc/samba/smb.conf exists
-		if [ ! -f /etc/samba/smb.conf ]; then
-		echo "Warning: Missing /etc/samba/smb.conf. Creating a default configuration file."
-
-		cat <<EOL > /etc/samba/smb.conf
-[global]
-	workgroup = WORKGROUP
-	server string = Samba Server
-	netbios name = samba
-	security = user
-	map to guest = bad user
-	dns proxy = no
-EOL
+		if [[ ! -f /etc/samba/smb.conf ]]; then
+			if [[ ! -f "/usr/share/samba/smb.conf" ]]; then
+				cp "/usr/share/samba/smb.conf" "/etc/samba/smb.conf"
+			else
+				echo "Warning: Missing configuration file. Use the <configure> option."
+			fi
 		fi
-
-		# Backup the original Samba configuration file
-		cp /etc/samba/smb.conf /etc/samba/smb.conf.bak
 
 		echo "Samba installed successfully."
 		;;
 		"${commands[2]}")
-		## remove samba
-		srv_disable smbd
+		## added subshell to prevent exiting befor removing is complete.
+		$(srv_disable smbd) || echo "No service, skipping"
 		pkg_remove samba
-		rm /etc/samba/smb.conf
-		echo "Samba removed successfully."
+		[[ -f /etc/samba/smb.conf ]] && rm /etc/samba/smb.conf && echo "Samba conf removed successfully."
+
 		;;
 		"${commands[3]}")
 		srv_start smbd
