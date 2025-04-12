@@ -49,6 +49,20 @@ function module_samba() {
 		## install samba
 		pkg_update
 		pkg_install samba
+				# Check if /etc/samba/smb.conf exists
+		if [ ! -f /etc/samba/smb.conf ]; then
+		echo "Warning: Missing /etc/samba/smb.conf. Creating a default configuration file."
+
+		cat <<EOL > /etc/samba/smb.conf
+[global]
+	workgroup = WORKGROUP
+	server string = Samba Server
+	netbios name = samba
+	security = user
+	map to guest = bad user
+	dns proxy = no
+EOL
+		fi
 
 		# Backup the original Samba configuration file
 		cp /etc/samba/smb.conf /etc/samba/smb.conf.bak
