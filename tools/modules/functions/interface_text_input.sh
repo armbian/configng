@@ -29,7 +29,7 @@ function _prompt_text_input() {
 	# Check if the user cancelled the input (result is empty)
 	# Consider logging the cancellation event for debugging purposes.
 	if [[ -z "$result" ]]; then
-		echo "Input cancelled by user."
+		# Input cancelled by user.
 		return 1
 	fi
 

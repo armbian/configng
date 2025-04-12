@@ -41,6 +41,7 @@ function module_samba() {
 			fi
 			echo -e "\tremove\t- Remove $title."
 			echo -e "\tconfigure\t- Configure $title."
+			echo -e "\tdefault\t- Set $title packed default conf"
 			echo -e "\tstatus\t- Check samba state $title."
 		fi
 		echo
@@ -86,10 +87,10 @@ function module_samba() {
 		"${commands[7]}")
 		## configure samba
 
-		workgroup=$(_prompt_text_input "Enter the workgroup" "WORKGROUP")
-		server_string=$(_prompt_text_input "Enter the server string" "Samba Server %v")
-		netbios_name=$(_prompt_text_input "Enter the netbios name" "armbian")
-		share_path=$(_prompt_text_input "Enter the path for the Samba share" "/srv/samba/anonymous")
+		workgroup=$(_prompt_text_input "Enter the workgroup" "WORKGROUP") || exit 1
+		server_string=$(_prompt_text_input "Enter the server string" "Samba Server %v") || exit 1
+		netbios_name=$(_prompt_text_input "Enter the netbios name" "armbian") || exit 1
+		share_path=$(_prompt_text_input "Enter the path for the Samba share" "/srv/samba/anonymous") || exit 1
 
 		# Create a new Samba configuration file
 		cat <<EOL > /etc/samba/smb.conf
@@ -121,6 +122,15 @@ EOL
 		echo "Samba configured successfully."
 		;;
 		"${commands[8]}")
+		echo "use package default configuration"
+		if [[ -f  "/usr/share/samba/smb.conf" && -d "/etc/samba" ]] ; then
+			cp "/usr/share/samba/smb.conf" "/etc/samba/etc/samba"
+		else
+			echo "Error: default configuration not found"
+			return 1
+		fi
+		;;
+		"${commands[9]}")
 		## check samba status
 		if srv_active smbd; then
 			echo "Samba service is active." | show_message
