@@ -36,6 +36,12 @@ function _prompt_text_input() {
 	echo "$result"
 }
 
+
+################################################################
+# The following is whiptail and dialog useage examples
+# for selective tui text input
+################################################################
+
 # Main function for the module
 function _edit_playground() {
 	case "$1" in
@@ -106,3 +112,7 @@ Options:
 		;;
 	esac
 	}
+
+#######################################################
+# End example
+######################################################

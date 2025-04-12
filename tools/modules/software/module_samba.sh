@@ -1,14 +1,14 @@
 module_options+=(
-    ["module_samba,author"]="@Tearran"
-    ["module_samba,maintainer"]="@Tearran"
-    ["module_samba,feature"]="module_samba"
-    ["module_samba,example"]="help install remove start stop enable disable configure"
-    ["module_samba,desc"]="Samba setup and service setting."
-    ["module_samba,status"]="Active"
-    ["module_samba,doc_link"]="https://www.samba.org/samba/docs/"
-    ["module_samba,group"]="Networking"
-    ["module_samba,port"]="445"
-    ["module_samba,arch"]="x86-64 arm64 armhf"
+	["module_samba,author"]="@Tearran"
+	["module_samba,maintainer"]="@Tearran"
+	["module_samba,feature"]="module_samba"
+	["module_samba,example"]="help install remove start stop enable disable configure"
+	["module_samba,desc"]="Samba setup and service setting."
+	["module_samba,status"]="Active"
+	["module_samba,doc_link"]="https://www.samba.org/samba/docs/"
+	["module_samba,group"]="Networking"
+	["module_samba,port"]="445"
+	["module_samba,arch"]="x86-64 arm64 armhf"
 )
 
 function module_samba() {
