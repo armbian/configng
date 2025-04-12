@@ -5,8 +5,40 @@
             "description": "Fixed and wireless network settings",
             "sub": [
                 {
-                    "id": "NE001",
-                    "description": "Configure network interfaces",
+                    "id": "BNS001",
+                    "description": "Basic Network Setup",
+                    "command": [
+                        "module_simple_network simple"
+                    ],
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
+                    "condition": ""
+                    },
+                    {
+                    "id": "BNS002",
+                    "description": "Remove Fallback DHCP Configuration",
+                    "about": "Drop preinstalled automatic DHCP on all wired interfaces after your configuration is setup.",
+                    "command": [
+                        "rm -f /etc/netplan/10-dhcp-all-interfaces.yaml",
+                        "netplan apply"
+                    ],
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
+                    "condition": "[ -f /etc/netplan/10-dhcp-all-interfaces.yaml ] && [ -f /etc/netplan/armbian.yaml ]"
+                },
+                {
+                    "id": "VNS001",
+                    "description": "View Network Settings",
+                    "command": [
+                        "show_message <<< \"$(netplan get all)\""
+                    ],
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
+                    "condition": "[[ -f /etc/netplan/armbian.yaml ]]"
+                },
+                {
+                    "id": "NEA002",
+                    "description": "Advanced bridged network configuration",
                     "sub": [
                         {
                             "id": "NE002",
@@ -51,29 +83,70 @@
                     ]
                 },
                 {
+                    "id": "WG001",
+                    "description": "WireGuard VPN client / server",
+                    "command": [
+                        "module_wireguard install"
+                    ],
+                    "status": "Enabled",
+                    "author": "@armbian",
+                    "condition": "! module_wireguard status"
+                },
+                {
+                    "id": "WG002",
+                    "description": "WireGuard remove",
+                    "about": "This operation will remove WireGuard",
+                    "command": [
+                        "module_wireguard remove"
+                    ],
+                    "status": "Enabled",
+                    "author": "@armbian",
+                    "condition": "module_wireguard status"
+                },
+                {
+                    "id": "WG003",
+                    "description": "WireGuard clients QR codes",
+                    "command": [
+                        "module_wireguard qrcode"
+                    ],
+                    "status": "Enabled",
+                    "author": "@armbian",
+                    "condition": "module_wireguard status"
+                },
+                {
+                    "id": "WG004",
+                    "description": "WireGuard purge with data folder",
+                    "about": "This operation will purge WireGuard with data folder",
+                    "command": [
+                        "module_wireguard purge"
+                    ],
+                    "status": "Enabled",
+                    "author": "@armbian",
+                    "condition": "module_wireguard status"
+                },
+                {
                     "id": "NE101",
                     "description": "Install Bluetooth support",
                     "command": [
                         "see_current_apt ",
-                        "debconf-apt-progress -- apt-get -y install bluetooth bluez bluez-tools",
-                        "check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y --no-install-recommends install pulseaudio-module-bluetooth blueman"
+                        "pkg_install bluetooth bluez bluez-tools",
+                        "pkg_installed xserver-xorg && pkg_install --no-install-recommends pulseaudio-module-bluetooth blueman"
                     ],
                     "status": "Disabled",
                     "author": "@armbian",
-                    "condition": "! check_if_installed bluetooth && ! check_if_installed bluez && ! check_if_installed bluez-tools"
+                    "condition": "! pkg_installed bluetooth && ! pkg_installed bluez && ! pkg_installed bluez-tools"
                 },
                 {
                     "id": "NE102",
                     "description": "Remove Bluetooth support",
                     "command": [
                         "see_current_apt ",
-                        "debconf-apt-progress -- apt-get -y remove bluetooth bluez bluez-tools",
-                        "check_if_installed xserver-xorg && debconf-apt-progress -- apt-get -y remove pulseaudio-module-bluetooth blueman",
-                        "debconf-apt-progress -- apt -y -qq autoremove"
+                        "pkg_remove bluetooth bluez bluez-tools",
+                        "pkg_installed xserver-xorg && pkg_remove pulseaudio-module-bluetooth blueman"
                     ],
                     "status": "Disabled",
                     "author": "@armbian",
-                    "condition": "check_if_installed bluetooth || check_if_installed bluez || check_if_installed bluez-tools"
+                    "condition": "pkg_installed bluetooth || pkg_installed bluez || pkg_installed bluez-tools"
                 },
                 {
                     "id": "NE103",
@@ -84,7 +157,7 @@
                     ],
                     "status": "Disabled",
                     "author": "@armbian",
-                    "condition": "check_if_installed bluetooth || check_if_installed bluez || check_if_installed bluez-tools"
+                    "condition": "pkg_installed bluetooth || pkg_installed bluez || pkg_installed bluez-tools"
                 },
                 {
                     "id": "NE104",

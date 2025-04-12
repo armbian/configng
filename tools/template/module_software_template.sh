@@ -7,6 +7,7 @@ module_options+=(
 	["module_template,example"]="install remove help"
 	["module_template,desc"]="Example module unattended interface."
 	["module_template,status"]="review"
+	["module_template,arch"]="x86-64 arm64 armhf"
 )
 
 function module_template() {

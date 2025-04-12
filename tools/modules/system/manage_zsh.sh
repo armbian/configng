@@ -19,8 +19,10 @@ function manage_zsh() {
 		sed -i "s|^SHELL=.*|SHELL=/bin/zsh|" /etc/default/useradd
 		sed -i -E "s|(^\|#)DSHELL=.*|DSHELL=/bin/zsh|" /etc/adduser.conf
 
+		pkg_update
+
 		# install
-		apt_install_wrapper apt-get -y install armbian-zsh zsh-common zsh tmux
+		pkg_install armbian-zsh zsh-common zsh tmux
 
 		update_skel
 
@@ -35,7 +37,7 @@ function manage_zsh() {
 		sed -i -E "s|(^\|#)DSHELL=.*|DSHELL=/bin/bash|" /etc/adduser.conf
 
 		# remove
-		apt_install_wrapper apt-get -y remove armbian-zsh zsh-common zsh tmux
+		pkg_remove armbian-zsh zsh-common zsh tmux
 
 		# change shell for root
 		usermod --shell "/bin/bash" root

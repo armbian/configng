@@ -40,7 +40,7 @@ function network_config() {
 		if [[ "$adapter" == w* ]]; then
 
 			LIST=()
-			if systemctl is-active --quiet service hostapd; then
+			if srv_active hostapd; then
 				LIST+=("stop" "Disable access point")
 			else
 				LIST=("sta" "Connect to access point")
@@ -112,7 +112,7 @@ function network_config() {
 				if [[ -f /etc/netplan/armbian.yaml && "$(netplan get bridges)" != "null" ]]; then
 				ip link set ${adapter} up
 				default_wireless_network_config "${yamlfile}" "${adapter}"
-				apt_install_wrapper apt-get -y --no-install-recommends install hostapd networkd-dispatcher bridge-utils
+				pkg_install --no-install-recommends hostapd networkd-dispatcher bridge-utils
 				SELECTED_SSID=$($DIALOG --title "Enter SSID for AP" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
 				if [[ -n "${SELECTED_SSID}" && $? == 0 ]]; then
 					SELECTED_PASSWORD=$($DIALOG --title "Enter new password for $SELECTED_SSID" --passwordbox "\nDefault password: 12345678\n" 9 50 "12345678" 3>&1 1>&2 2>&3)
@@ -142,9 +142,9 @@ function network_config() {
 						EOF
 						netplan apply
 						# Start hostapd services
-						systemctl unmask hostapd 2>/dev/null
-						systemctl enable hostapd 2>/dev/null
-						systemctl start hostapd 2>/dev/null
+						srv_unmask hostapd
+						srv_enable hostapd
+						srv_start hostapd
 						# Sometimes it fails to add to the bridge
 						brctl addif br0 $adapter 2>/dev/null
 						# Add hooks to hack wrong if type
@@ -158,7 +158,7 @@ function network_config() {
 							case "\$status" in
 								up)
 									if [[ "\$interface" == "br0" ]]; then
-										service hostapd restart
+										srv_restart hostapd
 										brctl addif br0 $adapter
 									fi
 								;;
@@ -231,7 +231,7 @@ function network_config() {
 				if [[ $? = 0 ]]; then
 					# apply NetPlan
 					netplan apply
-					[[ "${NETWORK_RENDERER}" == "NetworkManager" ]] && systemctl restart NetworkManager;
+					[[ "${NETWORK_RENDERER}" == "NetworkManager" ]] && srv_restart NetworkManager
 				else
 					restore_netplan_config
 				fi
@@ -280,7 +280,7 @@ function network_config() {
 						if [[ $? = 0 ]]; then
 							# apply NetPlan
 							netplan apply
-							[[ "${NETWORK_RENDERER}" == "NetworkManager" ]] && systemctl restart NetworkManager;
+							[[ "${NETWORK_RENDERER}" == "NetworkManager" ]] && srv_restart NetworkManager
 						else
 							restore_netplan_config
 						fi

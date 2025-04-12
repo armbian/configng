@@ -1,6 +1,6 @@
-# Contributing to Armbian Linux build framework
+# Contributing to Armbian Config
 
-We would love to have you join the Armbian community! Below summarizes the processes that we follow.
+We would love to have you join the Armbian developers community! Below summarizes the processes that we follow.
 
 ## Reporting issues
 
@@ -66,7 +66,7 @@ This section describes how to start contributing to Armbian.
     gh auth login --with-token <<< 'your_token'
 ```
 
-### Fork and clone Armbian
+### Fork and clone Armbian Config
 
 * Fork armbian/configng, clone and add remote
 
@@ -77,8 +77,15 @@ This section describes how to start contributing to Armbian.
 * Create branch
 
 ```bash
-    cd build
+    cd configng
     git checkout -b your_branch_name # change branch name for your patch
+```
+
+### Testing features
+
+```bash
+tools/config-assemble.sh -p # Use -t for testing
+bin/armbian-config
 ```
 
 ## Submitting pull requests

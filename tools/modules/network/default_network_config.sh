@@ -22,8 +22,8 @@ function default_network_config() {
 		# remove all configs
 		rm -f /etc/netplan/*.yaml
 		# disable hostapd
-		systemctl stop hostapd 2> /dev/null
-		systemctl disable hostapd 2> /dev/null
+		srv_stop hostapd
+		srv_disable hostapd
 		# reset netplan config
 		netplan set --origin-hint ${yamlfile} renderer=${NETWORK_RENDERER}
 		netplan set --origin-hint ${yamlfile} ethernets.all-eth-interfaces.dhcp4=true
@@ -33,12 +33,12 @@ function default_network_config() {
 		# exceptions
 		if [[ "${NETWORK_RENDERER}" == "NetworkManager" ]]; then
 			# uninstall packages
-			apt_install_wrapper apt-get -y purge hostapd
+			pkg_remove hostapd
 			netplan apply
 			nmcli con down br0
 		else
 			# uninstall packages
-			apt_install_wrapper apt-get -y purge hostapd networkd-dispatcher
+			pkg_remove hostapd networkd-dispatcher
 			# drop and delete bridge interface in case its there
 			if [[ -n $(ip link show type bridge) ]]; then
 				ip link set br0 down >/dev/null 2>&1

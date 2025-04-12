@@ -14,17 +14,12 @@ function module_headers () {
 	local title="headers"
 	local condition=$(which "$title" 2>/dev/null)
 
+	pkg_update
+
 	if [[ -f /etc/armbian-release ]]; then
 		source /etc/armbian-release
 		# branch information is stored in armbian-release at boot time. When we change kernel branches, we need to re-read this and add it
-		if [[ -z "${BRANCH}" ]]; then
-			BRANCH=$(dpkg -l | grep -E "linux-image" | grep -E "current|vendor|legacy|edge" | awk '{print $2}' | cut -d"-" -f3 | head -1)
-			if grep -q BRANCH /etc/armbian-release; then
-				[[ -n ${BRANCH} ]] && sed -i "s/BRANCH=.*/BRANCH=$BRANCH/g" /etc/armbian-release
-				else
-				[[ -n ${BRANCH} ]] && echo "BRANCH=$BRANCH" >> /etc/armbian-release
-			fi
-		fi
+		update_kernel_env
 		local install_pkg="linux-headers-${BRANCH}-${LINUXFAMILY}"
 	else
 		local install_pkg="linux-headers-$(uname -r | sed 's/'-$(dpkg --print-architecture)'//')"
@@ -35,18 +30,14 @@ function module_headers () {
 
 	case "$1" in
 		"${commands[0]}")
-			apt_install_wrapper apt-get -y install ${install_pkg} build-essential git || exit 1
+			pkg_install ${install_pkg} build-essential git || exit 1
 		;;
 		"${commands[1]}")
-			apt_install_wrapper apt-get -y autopurge ${install_pkg} build-essential || exit 1
+			pkg_remove ${install_pkg} build-essential || exit 1
 			rm -rf /usr/src/linux-headers*
 		;;
 		"${commands[2]}")
-			if check_if_installed ${install_pkg}; then
-				return 0
-			else
-				return 1
-			fi
+			pkg_installed ${install_pkg}
 		;;
 		"${commands[3]}")
 			echo -e "\nUsage: ${module_options["module_headers,feature"]} <command>"
@@ -58,7 +49,7 @@ function module_headers () {
 			echo
 		;;
 		*)
-		${module_options["module_headers,feature"]} ${commands[3]}
+			${module_options["module_headers,feature"]} ${commands[3]}
 		;;
 	esac
 }

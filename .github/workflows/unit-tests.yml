@@ -11,30 +11,28 @@ on:
 env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   PR_NUMBER: ${{ github.event.number }}
+  REPOSITORY: "apt.armbian.com"
 
 concurrency:
   group: pipeline-pr-${{github.event.pull_request.number}}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
 
-  test:
-    name: "Unit tests"
-    runs-on: ubuntu-latest
+  prepare:
+    name: "Armbian configurator unit tests"
+    runs-on: "ubuntu-24.04"
     outputs:
-      matrix:  ${{steps.json.outputs.JSON_CONTENT}}
+      DEPLOYMENT_MATRIX: "${{ steps.json.outputs.DEPLOYMENT_MATRIX }}"
     steps:
 
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          path: 'config'
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v45
+        uses: tj-actions/changed-files@v46
         with:
-          path: config
           files: |
               tests/*.conf
 
@@ -42,20 +40,16 @@ jobs:
         id: json
         run: |
 
-          echo 'JSON_CONTENT<<EOF' >> $GITHUB_OUTPUT
-          # define docker images where we will run test install
-          dockerimages=("debian:bookworm" "ubuntu:jammy" "ubuntu:noble")
-
-          # go to repo folder
-          cd config
-
+          delimiter="$(openssl rand -hex 8)"
+          echo "DEPLOYMENT_MATRIX<<${delimiter}" >> "${GITHUB_OUTPUT}"
+          # define OS variants where we can run test install
+          images=("bookworm" "jammy" "noble")
           # read tests cases
           if [[ -n "${{ steps.changed-files.outputs.all_changed_files }}" ]]; then
               tests=($(grep -rwl ${{ steps.changed-files.outputs.all_changed_files }} -e "ENABLED=true" | cut -d":" -f1))
               else
               tests=($(grep -rwl tests/*.conf -e "ENABLED=true" | cut -d":" -f1))
           fi
-
           # loop enabled test cases
           for i in "${tests[@]}"; do
              unset RELEASE
@@ -63,108 +57,106 @@ jobs:
              if [[ -z "${RELEASE}" ]]; then RELEASE=all; fi
              # if we speficy releases, we need to loop docker images and use if there is a match
              if [[ $RELEASE != all || -z $RELEASE ]]; then
-                for j in ${dockerimages[@]}; do
+                for j in ${images[@]}; do
                     elements=($(echo $RELEASE | tr ':' "\n"))
+                    testid=($(echo $i | cut -d"/" -f2 | cut -d"." -f1))
                     for SELECTED_RELEASE in "${elements[@]}"; do
                         if [[ $j == *"${SELECTED_RELEASE}"* ]]; then
-                           echo "{\"package\":\"${i}\",\"image\":\"$j\"}"
+                           echo "{\"package\":\"${i}\",\"name\":\"${TESTNAME}\",\"os\":\"$j\",\"id\":\"$testid\"}"
                         fi
                     done
                 done
              else
-                for j in ${dockerimages[@]}; do
-                    echo "{\"package\":\"${i}\",\"image\":\"$j\"}"
+                for j in ${images[@]}; do
+                    testid=($(echo $i | cut -d"/" -f2 | cut -d"." -f1))
+                    echo "{\"package\":\"${i}\",\"name\":\"${TESTNAME}\",\"os\":\"$j\",\"id\":\"$testid\"}"
                 done
              fi
-
           done | jq -s >> $GITHUB_OUTPUT
-          echo 'EOF' >> $GITHUB_OUTPUT
+          echo "${delimiter}" >> "${GITHUB_OUTPUT}"
 
   gradle:
-    needs: test
+    needs: prepare
+    if: ${{ needs.prepare.outputs.DEPLOYMENT_MATRIX != '[]' }}
     strategy:
       fail-fast: false
       max-parallel: 32
       matrix:
-        image: ${{ fromJSON(needs.test.outputs.matrix) }}
-
-    name: "I"
-    runs-on: ubuntu-latest
-    timeout-minutes: 7
-    container:
-        image: "${{ matrix.image.image }}"
+        server: ${{ fromJSON(needs.prepare.outputs.DEPLOYMENT_MATRIX) }}
+    name: "${{ matrix.server.name }} (${{ matrix.server.os }})"
+    runs-on: "${{ matrix.server.os }}"
+    timeout-minutes: 15
     steps:
 
-      - name: Checkout
+      - name: "Install dependencies: fastfetch"
+        run: |
+          if lsof /var/lib/dpkg/lock >/dev/null 2>&1; then reboot; fi
+          sudo dpkg --configure -a
+          sudo apt-get -y install fastfetch
+
+      - name: "Checkout Armbian configuration tool"
         uses: actions/checkout@v4
         with:
           path: 'config'
 
-      - name: Install
+      - name: "Run fastfecth"
+        run: |
+          fastfetch
+
+      - name: "Run unit test: ${{ matrix.server.name }} "
         run: |
 
-            # source vars
-            . "config/${{ matrix.image.package }}"
-            echo ${TEST_TITLE}
+          export TERM=linux
+          rm -rf test; mkdir -p test
+          cd config
+          # assemble armbian config
+          bash tools/config-assemble.sh -p
+          # read test
+          source "${{ matrix.server.package }}"
 
-            RELEASE=$(echo "${{ matrix.image.image }}" | cut -d":" -f2)
-            TEST_ID=$(echo "${{ matrix.image.package }}" | cut -d "/" -f2 | cut -d "." -f1)
-            # update index
-            apt update
-            # install basics
-            DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata keyboard-configuration wget gpg netcat-traditional lsof
+          # Test case execution
+          start_time=$(date +%s)
+          figlet  "RUN TEST CASE"
+          testcase # function inside test script
+          finish_time=$(date +%s)
 
-            # add armbian repository
-            URL=beta.armbian.com
-            wget https://${URL}/armbian.key -O key
-            gpg --dearmor < key | tee /usr/share/keyrings/armbian.gpg > /dev/null
-            chmod go+r /usr/share/keyrings/armbian.gpg
-            echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] http://${URL} $RELEASE main ${RELEASE}-utils ${RELEASE}-desktop" | tee /etc/apt/sources.list.d/armbian.list
-            apt update -y
-            apt upgrade -y
-            apt -y -o Dpkg::Options::="--force-confold" install sudo procps systemd whiptail jq lsb-release iproute2 armbian-bsp-cli-wsl2-x86-current-grub
-            sudo -b unshare --pid --fork --mount-proc /lib/systemd/systemd --system-unit=basic.target
-            cat /etc/armbian-distribution-status
+          # Generate table entry
+          echo "|${{ matrix.server.os }}| ${{ matrix.server.name }} | $((finish_time - start_time)) sec |" > ../test/${{ matrix.server.id }}-${{ matrix.server.os }}
 
-            # install packages / except howdy as its too large
-            export DEBIAN_FRONTEND=noninteractive
-            cd config
-            bash tools/config-assemble.sh -p
-            #eval $"( "${PREINSTALL}" )"
-            eval "$PREINSTALL"
-            sudo bash bin/armbian-config --cmd "$TEST_ID"
-            #eval $"( "${CONDITION}" )"
-            eval "$CONDITION"
+      - name: "Run fastfecth"
+        run: |
+          fastfetch
 
-            # stats
-            FILENAME="data-"$(echo ${{ matrix.image.image }} | sed "s/:/-/g")"-${TEST_ID}.teststats"
-            RAWCOMMAND=$(bash bin/armbian-config --cmd | grep "${TEST_ID}" | xargs)
-            COMMAND=$(echo $RAWCOMMAND | cut -d" " -f1,2)
-            DESCRIPTION=$(echo $RAWCOMMAND | cut -d" " -f4-)
-            echo "|${RELEASE}|\`armbian-config ${COMMAND}\`| ${DESCRIPTION} |" > ../${FILENAME}
-
-      - name: Upload test
-        uses: actions/upload-artifact@v3.2.1-node20
+      - name: "Upload test summary"
+        uses: actions/upload-artifact@v4
         with:
-          name: TESTDATA
-          path: data-*.teststats
+          name: test-${{ matrix.server.id }}-${{ matrix.server.os }}
+          path: test
+          if-no-files-found: ignore
 
   stop:
     name: "Merge test artifacts"
     if: always()
     needs: gradle
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
 
-      - name: "Download changes"
-        uses: actions/download-artifact@v3-node20
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
         with:
-          name: TESTDATA
+          path: test
+          pattern: test-*
+          merge-multiple: true
 
       - name: Install
         run: |
 
           echo "# Succesful tests:" >> $GITHUB_STEP_SUMMARY
-          echo "|Release|Command|Description|" >> $GITHUB_STEP_SUMMARY
-          echo "|:---|:---|:---|" >> $GITHUB_STEP_SUMMARY
-          cat ./*.teststats | sed '$ s/.$//' >> $GITHUB_STEP_SUMMARY
+          echo "|Release|Test name|Duration|" >> $GITHUB_STEP_SUMMARY
+          echo "|:---|:---|---:|" >> $GITHUB_STEP_SUMMARY
+          cat test/* | sed '$ s/.$//' >> $GITHUB_STEP_SUMMARY
+
+      - uses: geekyeggo/delete-artifact@v5
+        with:
+          name: |
+            test-*

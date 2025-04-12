@@ -27,9 +27,9 @@ function default_wireless_network_config(){
 	rm -f /etc/NetworkManager/dispatcher.d/armbian-ap
 
 	# hostapd needs more cleaning
-	if systemctl is-active hostapd 1> /dev/null; then
-		systemctl stop hostapd 2> /dev/null
-		systemctl disable hostapd 2> /dev/null
+	if srv_active hostapd; then
+		srv_stop hostapd
+		srv_disable hostapd
 	fi
 
 	# apply config
@@ -37,14 +37,14 @@ function default_wireless_network_config(){
 
 	# exceptions
 	if [[ "${NETWORK_RENDERER}" == "NetworkManager" ]]; then
-			# uninstall packages
-			apt_install_wrapper apt-get -y --no-install-recommends purge hostapd
-			systemctl restart NetworkManager
-		else
-			# uninstall packages
-			apt_install_wrapper apt-get -y --no-install-recommends purge hostapd networkd-dispatcher
-			brctl delif br0 $adapter 2> /dev/null
-			networkctl reconfigure br0
+		# uninstall packages
+		pkg_remove hostapd
+		srv_restart NetworkManager
+	else
+		# uninstall packages
+		pkg_remove hostapd networkd-dispatcher
+		brctl delif br0 $adapter 2> /dev/null
+		networkctl reconfigure br0
 	fi
 
 }
