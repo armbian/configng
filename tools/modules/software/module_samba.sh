@@ -109,13 +109,13 @@ function module_samba() {
 		"${commands[9]}")
 		## check samba status
 		if srv_active smbd; then
-			echo "Samba service is active." | show_message
+			echo "active."
 			return 0
 		elif ! srv_enabled smbd; then
-			echo "Samba service is disabled." | show_message
+			echo "inactive"
 			return 1
 		else
-			echo "Samba service is in an unknown state." | show_message
+			echo "Samba service is in an unknown state."
 			return 1
 		fi
 		;;
