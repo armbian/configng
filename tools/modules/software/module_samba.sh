@@ -27,28 +27,32 @@ function module_samba() {
 		"${commands[0]}"|"")
 		## help/menu options for the module
 		echo -e "\nUsage: ${module_options["module_samba,feature"]} <command>"
+		# Full list of commands to referance is printed
 		echo -e "Commands: ${module_options["module_samba,example"]}"
 		echo "Available commands:"
+		# Unlike the for mentioned `echo -e "Commands: ${module_options["module_samba,example"]}"``
+		# comprehenive referance the Avalible commands are commands considered useable in UI/UX
+		# intened use below.
 		if [[ -z "$condition" ]]; then
-			echo -e "  install\t- Install $title."
+			echo -e "\t${commands[1]}\t- ${commands[1]} $title."
 		else
 			if srv_active smbd; then
-			echo -e "\tstop\t- Stop the $title service."
-			echo -e "\tdisable\t- Disable $title from starting on boot."
+			echo -e "\t${commands[2]}\t- ${commands[2]} $title service."
+			echo -e "\t${commands[3]}\t- ${commands[3]} $title from starting on boot."
 			else
-			echo -e "\tenable\t- Enable $title to start on boot."
-			echo -e "\tstart\t- Start the $title service."
+			echo -e "\t${commands[4]}\t- ${commands[4]} $title to start on boot."
+			echo -e "\t${commands[5]}\t- ${commands[5]} $title.} $title. service."
 			fi
-			echo -e "\tremove\t- Remove $title."
-			# echo -e "\tconfigure\t- Configure $title."
-			echo -e "\tdefault\t- Set $title packed default conf"
-			echo -e "\tstatus\t- Check samba state $title."
+			echo -e "\t${commands[6]}\t- ${commands[6]} $title. $title."
+			# Note: Comment to hide advanced option from menu
+			# while remaining avalible for advance options --api flag
+			echo -e "\t${commands[8]}\t- $title ${commands[8]} conf"
+			echo -e "\t${commands[9]}\t- $title ${commands[9]}."
 		fi
 		echo
 		;;
 		"${commands[1]}")
-		## install samba
-		pkg_update
+		# install samba
 		pkg_install samba
 		# Check if /etc/samba/smb.conf exists
 		if [[ ! -f "/etc/samba/smb.conf" ]]; then
@@ -63,9 +67,8 @@ function module_samba() {
 		;;
 		"${commands[2]}")
 		## added subshell to prevent srv_disable exiting befor removing is complete.
-		(srv_disable smbd) || echo "No service, skipping"
+		srv_disable smbd
 		pkg_remove samba
-		[[ -f /etc/samba/smb.conf ]] && rm /etc/samba/smb.conf && echo "Samba conf removed successfully."
 		echo "$title remove complete."
 		;;
 		"${commands[3]}")
@@ -84,44 +87,7 @@ function module_samba() {
 		srv_disable smbd
 		echo "Samba service disabled."
 		;;
-		"${commands[7]}")
-		## configure samba
-
-		workgroup=$(_prompt_text_input "Enter the workgroup" "WORKGROUP") || exit 1
-		server_string=$(_prompt_text_input "Enter the server string" "Samba Server %v") || exit 1
-		netbios_name=$(_prompt_text_input "Enter the netbios name" "armbian") || exit 1
-		share_path=$(_prompt_text_input "Enter the path for the Samba share" "/srv/samba/anonymous") || exit 1
-
-		# Create a new Samba configuration file
-		cat <<EOL > /etc/samba/smb.conf
-[global]
-	workgroup = $workgroup
-	server string = $server_string
-	netbios name = $netbios_name
-	security = user
-	map to guest = bad user
-	dns proxy = no
-
-[Anonymous]
-	path = $share_path
-	browseable = yes
-	writable = yes
-	guest ok = yes
-	read only = no
-EOL
-
-		# Create a directory for the Samba share
-		mkdir -p "$share_path"
-		chown -R nobody:nogroup "$share_path"
-		chmod -R 0775 "$share_path"
-
-		# Restart Samba services
-		systemctl restart smbd
-		systemctl restart nmbd
-
-		echo "Samba configured successfully."
-		;;
-		"${commands[8]}")
+		"${commands[7]}"|"${commands[8]}")
 		echo "Using package default configuration..."
 
 		# Check if the default Samba configuration file and directory exist
@@ -154,6 +120,7 @@ EOL
 		fi
 		;;
 		*)
+		# Full list of commands to referance is printed
 		echo "Invalid command. Try: '${module_options["module_samba,example"]}'"
 		;;
 	esac
