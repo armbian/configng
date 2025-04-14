@@ -41,7 +41,7 @@ function module_samba() {
 			echo -e "\t${commands[3]}\t- ${commands[3]} $title from starting on boot."
 			else
 			echo -e "\t${commands[4]}\t- ${commands[4]} $title to start on boot."
-			echo -e "\t${commands[5]}\t- ${commands[5]} $title.} $title. service."
+			echo -e "\t${commands[5]}\t- ${commands[5]} $title. service."
 			fi
 			echo -e "\t${commands[6]}\t- ${commands[6]} $title. $title."
 			# Note: Comment to hide advanced option from menu
