@@ -226,7 +226,7 @@ function module_aptwizard() {
 			echo
 		;;
 		"${commands[1]}")
-			_checklist_imaging
+			_checklist_editors
 		;;
 		"${commands[2]}")
 			_checklist_browsers
