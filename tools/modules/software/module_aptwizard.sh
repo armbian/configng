@@ -145,10 +145,59 @@ function _checklist_editors() {
 }
 
 module_options+=(
+	["_checklist_imaging,author"]="@Tearran"
+	["_checklist_imaging,maintainer"]="@Tearran"
+	["_checklist_imaging,feature"]="_checklist_imaging"
+	["_checklist_imaging,example"]="inkscape"
+	["_checklist_imaging,desc"]="Imaging Editor installation and management (gimp inscape)."
+	["_checklist_imaging,status"]="Active"
+	["_checklist_imaging,group"]="Internet"
+	["_checklist_imaging,arch"]="x86-64 arm64 armhf"
+)
+# Scaffold for app with specific single or dummy candidates.
+function _checklist_imaging() {
+	local title="Editors"
+	local self="${module_options["_checklist_imaging,feature"]}"
+	local _packages
+	IFS=' ' read -r -a _packages <<< "${module_options["$self,example"]}"
+
+	# Manage editor installation/removal
+	echo "Fetching $title package details..."
+
+	# Prepare checklist options dynamically with descriptions
+	local checklist_options=()
+	for base_package in "${_packages[@]}"; do
+		# Find the main package and exclude auxiliary or irrelevant ones
+		local main_package
+		main_package=$(apt-cache search "^${base_package}$" | awk -F' - ' '{print $1 " - " $2}')
+
+		# Check if the main package exists and fetch its description
+		if [[ -n "$main_package" ]]; then
+			local package_name package_description
+			package_name=$(echo "$main_package" | awk -F' - ' '{print $1}')
+			package_description=$(echo "$main_package" | awk -F' - ' '{print $2}')
+
+			# Check if the package is installed and set its state
+			if dpkg-query -W -f='${Status}' "$package_name" 2>/dev/null | grep -q "^install ok installed$"; then
+				checklist_options+=("$package_name" "$package_description" "ON")
+			else
+				checklist_options+=("$package_name" "$package_description" "OFF")
+			fi
+		fi
+	done
+	if [[ ${#checklist_options[@]} -eq 0 ]]; then
+		echo "No $title packages found."
+		return 1
+	fi
+
+	process_package_selection "$title" "Select packages to install/remove:" checklist_options[@]
+}
+
+module_options+=(
 	["module_aptwizard,author"]="@Tearran"
 	["module_aptwizard,maintainer"]="@Tearran"
 	["module_aptwizard,feature"]="module_aptwizard"
-	["module_aptwizard,example"]="help editor browser proftpd"
+	["module_aptwizard,example"]="help editor browser proftpd imaging"
 	["module_aptwizard,desc"]="Apt wizard TUI deb packages similar to softy"
 	["module_aptwizard,status"]="Active"
 	["module_aptwizard,doc_link"]=""
@@ -177,7 +226,7 @@ function module_aptwizard() {
 			echo
 		;;
 		"${commands[1]}")
-			_checklist_editors
+			_checklist_imaging
 		;;
 		"${commands[2]}")
 			_checklist_browsers
@@ -185,6 +234,9 @@ function module_aptwizard() {
 
 		"${commands[3]}")
 			_checklist_proftpd
+		;;
+		"${commands[4]}")
+			_checklist_imaging
 		;;
 		*)
 			echo "Invalid command. Try one of: ${module_options["$self,example"]}"
