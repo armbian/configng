@@ -20,7 +20,7 @@ function _checklist_proftpd() {
 	echo "Fetching $title-related packages..."
 	local package_list
 	# get a list of all packages
-	package_list=$(apt-cache search $title | awk '{print $1}')
+	package_list=$(apt-cache search "$title" | awk '{print $1}')
 	if [[ -z "$package_list" ]]; then
 		echo "No $title-related packages found."
 		return 1
