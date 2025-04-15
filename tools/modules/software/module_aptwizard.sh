@@ -99,7 +99,7 @@ module_options+=(
 )
 #
 function _checklist_eitors() {
-	local title="editors"
+	local title="Editors"
 
 	# List of base browser packages to manage
 	local _packages=(
@@ -136,4 +136,53 @@ function _checklist_eitors() {
 
 	process_package_selection "$title" "Select packages to install/remove:" checklist_options[@]
 
+}
+
+module_options+=(
+	["module_aptwizard,author"]="@Tearran"
+	["module_aptwizard,maintainer"]="@Tearran"
+	["module_aptwizard,feature"]="module_aptwizard"
+	["module_aptwizard,example"]="help editor browser proftp"
+	["module_aptwizard,desc"]="Webmin setup and service setting."
+	["module_aptwizard,status"]="Active"
+	["module_aptwizard,doc_link"]="https://webmin.com/docs/"
+	["module_aptwizard,group"]="Management"
+	["module_aptwizard,port"]="10000"
+	["module_aptwizard,arch"]="x86-64 arm64 armhf"
+)
+
+function module_aptwizard() {
+	local title="Packages"
+
+	# Convert the example string to an array
+	local commands
+	IFS=' ' read -r -a commands <<< "${module_options["module_aptwizard,example"]}"
+
+	case "$1" in
+		"${commands[0]}")
+			## help/menu options for the module
+			echo -e "\nUsage: ${module_options["module_aptwizard,feature"]} <command>"
+			echo -e "Commands: ${module_options["module_aptwizard,example"]}"
+			echo "Available commands:"
+			# Loop through all commands (starting from index 1)
+			for ((i = 1; i < ${#commands[@]}; i++)); do
+				echo -e "\t${commands[i]}\t-Manage ${commands[i]} $title."
+			done
+			echo
+		;;
+		"${commands[1]}")
+			_checklist_eitors
+		;;
+		"${commands[2]}")
+			_checklist_browsers
+		;;
+
+		"${commands[3]}")
+			_checklist_proftpd
+		;;
+		*)
+		echo "Invalid command.try: '${module_options["module_aptwizard,example"]}'"
+
+		;;
+	esac
 }
