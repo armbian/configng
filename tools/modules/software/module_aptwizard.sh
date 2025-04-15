@@ -99,7 +99,7 @@ module_options+=(
 	["_checklist_editors,author"]="@Tearran"
 	["_checklist_editors,maintainer"]="@Tearran"
 	["_checklist_editors,feature"]="_checklist_editors"
-	["_checklist_editors,example"]=""
+	["_checklist_editors,example"]="nano code codium notepadqq"
 	["_checklist_editors,desc"]="Editor installation and management (codium notepadqq and more)."
 	["_checklist_editors,status"]="Active"
 	["_checklist_editors,group"]="Internet"
@@ -108,14 +108,9 @@ module_options+=(
 # Scaffold for app with specific single or dummy candidates.
 function _checklist_editors() {
 	local title="Editors"
-
-	# List of base editor packages to manage
-	local _packages=(
-		"nano"
-		"code"
-		"codium"
-		"notepadqq"
-	)
+	local self="${module_options["_checklist_editors,feature"]}"
+	local _packages
+	IFS=' ' read -r -a _packages <<< "${module_options["$self,example"]}"
 
 	# Manage editor installation/removal
 	echo "Fetching $title package details..."
