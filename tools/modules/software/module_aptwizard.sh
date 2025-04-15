@@ -8,7 +8,7 @@ module_options+=(
 	["_checklist_proftpd,group"]="Internet"
 	["_checklist_proftpd,arch"]="x86-64 arm64 armhf"
 )
-#
+# Scaffold for an app that has multiple candidates, such as ProFTPD and modules.
 function _checklist_proftpd() {
 	local title="proftpd"
 
@@ -50,7 +50,7 @@ module_options+=(
 	["_checklist_browsers,group"]="Internet"
 	["_checklist_browsers,arch"]="x86-64 arm64 armhf"
 )
-
+# Scaffold for app with specific single or dummy candidates.
 function _checklist_browsers() {
 	local title="Browsers"
 
@@ -105,7 +105,7 @@ module_options+=(
 	["_checklist_editors,group"]="Internet"
 	["_checklist_editors,arch"]="x86-64 arm64 armhf"
 )
-#
+# Scaffold for app with specific single or dummy candidates.
 function _checklist_editors() {
 	local title="Editors"
 
@@ -161,7 +161,7 @@ module_options+=(
 	["module_aptwizard,port"]="10000"
 	["module_aptwizard,arch"]="x86-64 arm64 armhf"
 )
-
+# Scafold for software module tites
 function module_aptwizard() {
 	local title="Packages"
 	local self="${module_options["module_aptwizard,feature"]}"
