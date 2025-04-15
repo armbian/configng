@@ -102,11 +102,15 @@ function process_package_selection() {
 		if [[ "$is_selected" == "ON" && "$current_state" == "OFF" ]]; then
 			# Package is selected but not installed, install it
 			echo "Installing $package..."
-			pkg_install "$package"
+			if ! pkg_install "$package"; then
+				echo "Failed to install $package." >&2
+			fi
 		elif [[ "$is_selected" == "OFF" && "$current_state" == "ON" ]]; then
 			# Package is deselected but installed, remove it
 			echo "Removing $package..."
-			pkg_remove "$package"
+			if ! pkg_remove "$package"; then
+				echo "Failed to remove $package." >&2
+			fi
 		fi
 	done
 
