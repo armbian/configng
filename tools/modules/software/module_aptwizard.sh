@@ -154,11 +154,11 @@ module_options+=(
 	["module_aptwizard,maintainer"]="@Tearran"
 	["module_aptwizard,feature"]="module_aptwizard"
 	["module_aptwizard,example"]="help editor browser proftpd"
-	["module_aptwizard,desc"]="Webmin setup and service setting."
+	["module_aptwizard,desc"]="Apt wizerd TUI deb packages simaer to softy"
 	["module_aptwizard,status"]="Active"
-	["module_aptwizard,doc_link"]="https://webmin.com/docs/"
-	["module_aptwizard,group"]="Management"
-	["module_aptwizard,port"]="10000"
+	["module_aptwizard,doc_link"]=""
+	["module_aptwizard,group"]="aptwizard"
+	["module_aptwizard,port"]=""
 	["module_aptwizard,arch"]="x86-64 arm64 armhf"
 )
 # Scafold for software module tites
