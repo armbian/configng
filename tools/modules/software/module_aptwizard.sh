@@ -156,7 +156,7 @@ module_options+=(
 )
 # Scaffold for app with specific single or dummy candidates.
 function _checklist_imaging() {
-	local title="Editors"
+	local title="Imaging"
 	local self="${module_options["_checklist_imaging,feature"]}"
 	local _packages
 	IFS=' ' read -r -a _packages <<< "${module_options["$self,example"]}"
