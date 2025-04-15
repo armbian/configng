@@ -8,21 +8,21 @@ module_options+=(
 	["_checklist_proftpd,group"]="Internet"
 	["_checklist_proftpd,arch"]="x86-64 arm64 armhf"
 )
-
+#
 function _checklist_proftpd() {
-	local title="ProFTPD"
+	local title="proftpd"
 
 	# Convert the example string to an array
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["_checklist_proftpd,example"]}"
 
 	## Dynamically manage ProFTPD packages
-	echo "Fetching ProFTPD-related packages..."
+	echo "Fetching $title-related packages..."
 	local package_list
 	# get a list of all packages
-	package_list=$(apt-cache search proftpd | awk '{print $1}')
+	package_list=$(apt-cache search $title | awk '{print $1}')
 	if [[ -z "$package_list" ]]; then
-		echo "No ProFTPD-related packages found."
+		echo "No $title-related packages found."
 		return 1
 	fi
 
@@ -36,7 +36,7 @@ function _checklist_proftpd() {
 		fi
 	done
 
-	process_package_selection "$title" "Select packages to install/remove:" checklist_options[@]
+	process_package_selection "$title" "Select $title packages to install/remove:" checklist_options[@]
 
 }
 
