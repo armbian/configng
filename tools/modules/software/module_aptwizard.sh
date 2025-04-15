@@ -56,10 +56,12 @@ function _checklist_browsers() {
 	local title="Browsers"
 
 	# List of base browser packages to manage
+	#
 	local browser_packages=(
 		"firefox-esr"
 		"chromium"
 		"lynx"
+		"google-chrome"
 	)
 
 	# Manage browser installation/removal
@@ -86,6 +88,10 @@ function _checklist_browsers() {
 			fi
 		fi
 	done
+	if [[ ${#checklist_options[@]} -eq 0 ]]; then
+		echo "No $title packages found."
+		return 1
+	fi
 
 	process_package_selection "$title" "Select packages to install/remove:" checklist_options[@]
 
@@ -137,6 +143,10 @@ function _checklist_editors() {
 			fi
 		fi
 	done
+	if [[ ${#checklist_options[@]} -eq 0 ]]; then
+		echo "No $title packages found."
+		return 1
+	fi
 
 	process_package_selection "$title" "Select packages to install/remove:" checklist_options[@]
 }
