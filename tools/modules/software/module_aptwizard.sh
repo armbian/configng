@@ -21,6 +21,10 @@ function _checklist_proftpd() {
 	local package_list
 	# get a list of all packages
 	package_list=$(apt-cache search proftpd | awk '{print $1}')
+	if [[ -z "$package_list" ]]; then
+		echo "No ProFTPD-related packages found."
+		return 1
+	fi
 
 	# Prepare checklist options dynamically
 	local checklist_options=()
