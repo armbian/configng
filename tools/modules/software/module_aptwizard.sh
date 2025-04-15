@@ -98,7 +98,7 @@ module_options+=(
 	["_checklist_editors,arch"]="x86-64 arm64 armhf"
 )
 #
-function _checklist_eitors() {
+function _checklist_editors() {
 	local title="Editors"
 
 	# List of base browser packages to manage
@@ -135,7 +135,6 @@ function _checklist_eitors() {
 	done
 
 	process_package_selection "$title" "Select packages to install/remove:" checklist_options[@]
-
 }
 
 module_options+=(
