@@ -148,7 +148,7 @@ module_options+=(
 	["_checklist_imaging,author"]="@Tearran"
 	["_checklist_imaging,maintainer"]="@Tearran"
 	["_checklist_imaging,feature"]="_checklist_imaging"
-	["_checklist_imaging,example"]="inkscape"
+	["_checklist_imaging,example"]="inkscape gimp"
 	["_checklist_imaging,desc"]="Imaging Editor installation and management (gimp inkscape)."
 	["_checklist_imaging,status"]="Active"
 	["_checklist_imaging,group"]="Internet"
@@ -197,7 +197,7 @@ module_options+=(
 	["module_aptwizard,author"]="@Tearran"
 	["module_aptwizard,maintainer"]="@Tearran"
 	["module_aptwizard,feature"]="module_aptwizard"
-	["module_aptwizard,example"]="help editor browser proftpd imaging"
+	["module_aptwizard,example"]="help Editors Browsers Proftpd Imaging"
 	["module_aptwizard,desc"]="Apt wizard TUI deb packages similar to softy"
 	["module_aptwizard,status"]="Active"
 	["module_aptwizard,doc_link"]=""
@@ -221,7 +221,8 @@ function module_aptwizard() {
 			echo "Available commands:"
 			# Loop through all commands (starting from index 1)
 			for ((i = 1; i < ${#commands[@]}; i++)); do
-				echo -e "\t${commands[i]}\t-Manage ${commands[i]} $title."
+				printf "\t%-10s - Manage %s %s\n" "${commands[i]}" "${commands[i]}" "$title"
+				#echo -e "\t${commands[i]}\t- Manage ${commands[i]} $title."
 			done
 			echo
 		;;

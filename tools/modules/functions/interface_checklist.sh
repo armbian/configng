@@ -76,30 +76,39 @@ function process_package_selection() {
 	local prompt="$2"
 	local -a checklist_options=("${!3}") # Accept checklist array as reference
 
-	# Display checklist to user
+	# Display checklist to user and get selected packages
 	local selected_packages
 	selected_packages=$(interface_checklist "$title Management" "$prompt" checklist_options)
 
 	# Check if user canceled or made no selection
-	if [[ $? -ne 0 || -z $selected_packages ]]; then
+	if [[ $? -ne 0 ]]; then
 		echo "No changes made."
 		return 1
 	fi
 
-	# Process user selections
-	echo "Processing selected packages..."
-	for package in ${selected_packages//\"/}; do
-		if dpkg -l | grep -q "^ii.*$package"; then
-			# Package is installed, remove it
-			echo "Removing $package..."
-			pkg_remove "$package"
-		else
-			# Package is not installed, install it
+	# Processing all packages from the checklist
+	echo "Processing package selections..."
+	for ((i = 0; i < ${#checklist_options[@]}; i += 3)); do
+		local package="${checklist_options[i]}"
+		local current_state="${checklist_options[i+2]}" # Current state in checklist (ON/OFF)
+		local is_selected="OFF" # Default to OFF
+
+		# Check if the package is in the selected list
+		if [[ "$selected_packages" == *"$package"* ]]; then
+			is_selected="ON"
+		fi
+
+		# Compare current state with selected state and act accordingly
+		if [[ "$is_selected" == "ON" && "$current_state" == "OFF" ]]; then
+			# Package is selected but not installed, install it
 			echo "Installing $package..."
 			pkg_install "$package"
+		elif [[ "$is_selected" == "OFF" && "$current_state" == "ON" ]]; then
+			# Package is deselected but installed, remove it
+			echo "Removing $package..."
+			pkg_remove "$package"
 		fi
 	done
 
 	echo "Package management complete."
 }
-
