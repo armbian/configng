@@ -164,16 +164,16 @@ module_options+=(
 
 function module_aptwizard() {
 	local title="Packages"
-
+	local self="${module_options["module_aptwizard,feature"]}"
 	# Convert the example string to an array
 	local commands
-	IFS=' ' read -r -a commands <<< "${module_options["module_aptwizard,example"]}"
+	IFS=' ' read -r -a commands <<< "${module_options["$self,example"]}"
 
 	case "$1" in
 		"${commands[0]}")
 			## help/menu options for the module
-			echo -e "\nUsage: ${module_options["module_aptwizard,feature"]} <command>"
-			echo -e "Commands: ${module_options["module_aptwizard,example"]}"
+			echo -e "\nUsage: $self <command>"
+			echo -e "Commands: ${module_options["$self,example"]}"
 			echo "Available commands:"
 			# Loop through all commands (starting from index 1)
 			for ((i = 1; i < ${#commands[@]}; i++)); do
@@ -192,7 +192,7 @@ function module_aptwizard() {
 			_checklist_proftpd
 		;;
 		*)
-		echo "Invalid command.try: '${module_options["module_aptwizard,example"]}'"
+			echo "Invalid command. Try one of: ${module_options["$self,example"]}"
 
 		;;
 	esac
