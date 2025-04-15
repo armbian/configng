@@ -29,7 +29,7 @@ function _checklist_proftpd() {
 	# Prepare checklist options dynamically
 	local checklist_options=()
 	for package in $package_list; do
-		if dpkg -l | grep -q "^ii.*$package"; then
+		if dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q "^install ok installed$"; then
 			checklist_options+=("$package" "Installed" "ON")
 		else
 			checklist_options+=("$package" "Not installed" "OFF")
@@ -37,7 +37,6 @@ function _checklist_proftpd() {
 	done
 
 	process_package_selection "$title" "Select $title packages to install/remove:" checklist_options[@]
-
 }
 
 
@@ -81,7 +80,7 @@ function _checklist_browsers() {
 			package_description=$(echo "$main_package" | awk -F' - ' '{print $2}')
 
 			# Check if the package is installed and set its state
-			if dpkg -l | grep -q "^ii.*$package_name"; then
+			if dpkg-query -W -f='${Status}' "$package_name" 2>/dev/null | grep -q "^install ok installed$"; then
 				checklist_options+=("$package_name" "$package_description" "ON")
 			else
 				checklist_options+=("$package_name" "$package_description" "OFF")
@@ -94,7 +93,6 @@ function _checklist_browsers() {
 	fi
 
 	process_package_selection "$title" "Select packages to install/remove:" checklist_options[@]
-
 }
 
 module_options+=(
@@ -111,7 +109,7 @@ module_options+=(
 function _checklist_editors() {
 	local title="Editors"
 
-	# List of base browser packages to manage
+	# List of base editor packages to manage
 	local _packages=(
 		"nano"
 		"code"
@@ -119,7 +117,7 @@ function _checklist_editors() {
 		"notepadqq"
 	)
 
-	# Manage browser installation/removal
+	# Manage editor installation/removal
 	echo "Fetching $title package details..."
 
 	# Prepare checklist options dynamically with descriptions
@@ -136,7 +134,7 @@ function _checklist_editors() {
 			package_description=$(echo "$main_package" | awk -F' - ' '{print $2}')
 
 			# Check if the package is installed and set its state
-			if dpkg -l | grep -q "^ii.*$package_name"; then
+			if dpkg-query -W -f='${Status}' "$package_name" 2>/dev/null | grep -q "^install ok installed$"; then
 				checklist_options+=("$package_name" "$package_description" "ON")
 			else
 				checklist_options+=("$package_name" "$package_description" "OFF")
