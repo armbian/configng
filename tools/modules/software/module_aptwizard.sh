@@ -8,7 +8,20 @@ module_options+=(
 	["_checklist_proftpd,group"]="Internet"
 	["_checklist_proftpd,arch"]="x86-64 arm64 armhf"
 )
-# Scaffold for an app that has multiple candidates, such as ProFTPD and modules.
+# Presents an interactive checklist for installing or removing ProFTPD-related packages.
+#
+# Dynamically retrieves all available ProFTPD packages, checks their installation status, and builds a checklist for user selection. Invokes the package selection handler to allow users to install or remove selected packages.
+#
+# Returns:
+#
+# * 0 if packages are found and the checklist is presented.
+# * 1 if no ProFTPD-related packages are found.
+#
+# Example:
+#
+# ```bash
+# _checklist_proftpd
+# ```
 function _checklist_proftpd() {
 	local title="proftpd"
 
@@ -50,7 +63,21 @@ module_options+=(
 	["_checklist_browsers,group"]="Internet"
 	["_checklist_browsers,arch"]="x86-64 arm64 armhf"
 )
-# Scaffold for app with specific single or dummy candidates.
+# Presents an interactive checklist for managing installation or removal of common browser packages.
+#
+# Fetches a predefined list of browser packages, retrieves their descriptions and installation status,
+# and builds a checklist for user selection. If no browser packages are found, prints a message and returns an error.
+#
+# Returns:
+#
+# * 0 if the checklist is presented successfully.
+# * 1 if no browser packages are found.
+#
+# Example:
+#
+# ```bash
+# _checklist_browsers
+# ```
 function _checklist_browsers() {
 	local title="Browsers"
 
@@ -105,7 +132,19 @@ module_options+=(
 	["_checklist_editors,group"]="Internet"
 	["_checklist_editors,arch"]="x86-64 arm64 armhf"
 )
-# Scaffold for app with specific single or dummy candidates.
+# Presents an interactive checklist for installing or removing editor packages such as nano, code, codium, and notepadqq.
+#
+# Fetches a predefined list of editor package names, retrieves their descriptions and installation status, and builds a checklist for user selection. If no matching packages are found, prints a message and returns an error.
+#
+# Returns:
+#
+# * 0 if at least one package is found and the checklist is displayed.
+# * 1 if no editor packages are found.
+#
+# Example:
+#
+#   _checklist_editors
+#   # Displays a checklist of available editor packages for installation or removal.
 function _checklist_editors() {
 	local title="Editors"
 	local self="${module_options["_checklist_editors,feature"]}"
@@ -154,7 +193,20 @@ module_options+=(
 	["_checklist_imaging,group"]="Internet"
 	["_checklist_imaging,arch"]="x86-64 arm64 armhf"
 )
-# Scaffold for app with specific single or dummy candidates.
+# Presents an interactive checklist for installing or removing imaging editor packages (e.g., Inkscape, GIMP).
+#
+# Fetches a predefined list of imaging editor package names from module metadata, retrieves their descriptions and installation status, and builds a checklist for user selection. If no relevant packages are found, prints a message and returns an error.
+#
+# Returns:
+#
+# * 0 if at least one package is found and the checklist is presented.
+# * 1 if no imaging editor packages are found.
+#
+# Example:
+#
+# ```bash
+# _checklist_imaging
+# ```
 function _checklist_imaging() {
 	local title="Imaging"
 	local self="${module_options["_checklist_imaging,feature"]}"
@@ -205,7 +257,23 @@ module_options+=(
 	["module_aptwizard,port"]=""
 	["module_aptwizard,arch"]="x86-64 arm64 armhf"
 )
-# Scafold for software module tites
+# Dispatches aptwizard module commands to manage software packages by category.
+#
+# Acts as the main entry point for the aptwizard module, routing user commands to interactive checklists for managing editors, browsers, ProFTPD, or imaging packages. Also provides usage information and available commands.
+#
+# Arguments:
+#
+# * The command to execute (e.g., help, Editors, Browsers, Proftpd, Imaging).
+#
+# Outputs:
+#
+# * Prints usage information, available commands, or error messages to STDOUT.
+#
+# Example:
+#
+#   module_aptwizard help
+#   module_aptwizard Editors
+#   module_aptwizard Browsers
 function module_aptwizard() {
 	local title="Packages"
 	local self="${module_options["module_aptwizard,feature"]}"
