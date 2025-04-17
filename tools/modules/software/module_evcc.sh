@@ -50,7 +50,7 @@ function module_evcc () {
 					sleep 3
 				fi
 				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs stirling-pdf\`)"
+					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs evcc\`)"
 					exit 1
 				fi
 			done
