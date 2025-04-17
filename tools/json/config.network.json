@@ -5,8 +5,40 @@
             "description": "Fixed and wireless network settings",
             "sub": [
                 {
-                    "id": "NE001",
-                    "description": "Configure network interfaces",
+                    "id": "BNS001",
+                    "description": "Basic Network Setup",
+                    "command": [
+                        "module_simple_network simple"
+                    ],
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
+                    "condition": ""
+                    },
+                    {
+                    "id": "BNS002",
+                    "description": "Remove Fallback DHCP Configuration",
+                    "about": "Drop preinstalled automatic DHCP on all wired interfaces after your configuration is setup.",
+                    "command": [
+                        "rm -f /etc/netplan/10-dhcp-all-interfaces.yaml",
+                        "netplan apply"
+                    ],
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
+                    "condition": "[ -f /etc/netplan/10-dhcp-all-interfaces.yaml ] && [ -f /etc/netplan/armbian.yaml ]"
+                },
+                {
+                    "id": "VNS001",
+                    "description": "View Network Settings",
+                    "command": [
+                        "show_message <<< \"$(netplan get all)\""
+                    ],
+                    "status": "Stable",
+                    "author": "@igorpecovnik",
+                    "condition": "[[ -f /etc/netplan/armbian.yaml ]]"
+                },
+                {
+                    "id": "NEA002",
+                    "description": "Advanced bridged network configuration",
                     "sub": [
                         {
                             "id": "NE002",
