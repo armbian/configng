@@ -15,7 +15,7 @@ _software_help_module(){
 	local title="$1"
 	local self="$2"
 
-    # Check if title or self is missing
+	# Check if title or self is missing
 	if [[ -z "$title" || "$self" == "" ]]; then
 		echo "Error: Missing inputs for function. Provide both <Title> and <Module Name>."
 		echo -e "Example: ./bin/armbian-config --api _software_help_module \"Samba services\" module_samba"
