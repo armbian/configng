@@ -1,15 +1,15 @@
 module_options+=(
-	["_help_module,author"]="@Tearran"
-	["_help_module,maintainer"]="@Tearran"
-	["_help_module,feature"]="_help_module"
-	["_help_module,example"]="<Title> <Module Name> <For Invalid command (true)>"
-	["_help_module,desc"]="Imaging Editor installation and management (gimp inkscape)."
-	["_help_module,status"]="Active"
-	["_help_module,group"]="Internet"
-	["_help_module,arch"]="x86-64 arm64 armhf"
+	["_software_help_module,author"]="@Tearran"
+	["_software_help_module,maintainer"]="@Tearran"
+	["_software_help_module,feature"]="_software_help_module"
+	["_software_help_module,example"]="<Title> <Module Name> <For Invalid command (true)>"
+	["_software_help_module,desc"]="Imaging Editor installation and management (gimp inkscape)."
+	["_software_help_module,status"]="Active"
+	["_software_help_module,group"]="Internet"
+	["_software_help_module,arch"]="x86-64 arm64 armhf"
 )
 #
-_help_module(){
+_software_help_module(){
 
 
 	local title="$1"
@@ -18,7 +18,7 @@ _help_module(){
     # Check if title or self is missing
 	if [[ -z "$title" || "$self" == "" ]]; then
 		echo "Error: Missing inputs for function. Provide both <Title> and <Module Name>."
-		echo -e "Example: ./bin/armbian-config --api _help_module \"Samba services\" module_samba"
+		echo -e "Example: ./bin/armbian-config --api _software_help_module \"Samba services\" module_samba"
 		return 1
 	fi
 	# Convert the example string to an array
