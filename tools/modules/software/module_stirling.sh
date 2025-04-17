@@ -42,6 +42,7 @@ function module_stirling () {
 			-e INSTALL_BOOK_AND_ADVANCED_HTML_OPS=false \
 			-e LANGS=en_GB \
 			--name stirling-pdf \
+			--restart unless-stopped \
 			stirlingtools/stirling-pdf:latest
 			for i in $(seq 1 20); do
 				if docker inspect -f '{{ index .Config.Labels "build_version" }}' stirling-pdf >/dev/null 2>&1 ; then
