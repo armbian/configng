@@ -105,6 +105,7 @@ module_options+=(
 	["_checklist_editors,group"]="Internet"
 	["_checklist_editors,arch"]="x86-64 arm64 armhf"
 )
+
 # Scaffold for app with specific single or dummy candidates.
 function _checklist_editors() {
 	local title="Editors"
