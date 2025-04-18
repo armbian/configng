@@ -62,12 +62,12 @@ module_default_help()
 Usage: module_$module <action> [options...]
 
 Where <action> is one of:
-    disable     Disable service(s) for $module.
-    enable      Enable service(s) for $module.
-    help        Show this help screen.
-    install     Install package(s) for $module.
-    remove      Remove package(s) for $module.
-    status      Check $module status (installed and/or enabled)."
+	disable     Disable service(s) for $module.
+	enable      Enable service(s) for $module.
+	help        Show this help screen.
+	install     Install package(s) for $module.
+	remove      Remove package(s) for $module.
+	status      Check $module status (installed and/or enabled)."
 
 	# remove "install" and "remove" lines, if the module doesn't install anything (eg, service-only module)
 	[[ -n "$packages" ]] || text=`grep -Pve " (install|remove) " <<< "$text"`
