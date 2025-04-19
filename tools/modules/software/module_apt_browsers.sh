@@ -22,8 +22,6 @@ function _checklist_browsers() {
 		"google-chrome"
 	)
 
-	[[ "$1" == "test" ]] && echo "${browser_packages[@]}" && exit ;
-
 	if [[ -n "$1" && "$1" != "test" ]]; then
 		# Clear the browser_packages array
 		browser_packages=("$@")
@@ -57,4 +55,5 @@ function _checklist_browsers() {
 		return 1
 	fi
 
-	process_package_selection "$title" "Select packages to install/remove:" "${checklist_options[@]}"
+	process_package_selection "$title" "Select packages to install/remove:" checklist_options[@]
+}
