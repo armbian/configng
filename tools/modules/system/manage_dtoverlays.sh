@@ -35,7 +35,7 @@ function manage_dtoverlays () {
 		j=0
 
 		# read overlays
-		if [[ "${LINUXFAMILY}" == bcm2711 ]]; then
+		if [[ "${LINUXFAMILY}" == "bcm2711" ]]; then
 			available_overlays=$(ls -1 ${overlaydir}/*.dtbo | sed 's/.dtbo//g' | awk -F'/' '{print $NF}')
 			overlayconf="/boot/firmware/config.txt"
 		elif [[ -n "${BOOT_SOC}" ]]; then
