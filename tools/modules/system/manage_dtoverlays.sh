@@ -24,7 +24,6 @@ function manage_dtoverlays () {
 	\( -name "overlay" -o -name "overlays" \) | head -n1)
 	local overlay_prefix
 	overlay_prefix=$(awk -F= '/^overlay_prefix=/ {print $2}' "$overlayconf")
-	local overlay_prefix=$(awk -F"=" '/overlay_prefix/ {print $2}' $overlayconf)
 	if [[ -z $(find "$overlaydir" -name "*$overlay_prefix*" 2>/dev/null) && "$LINUXFAMILY" != "bcm2711" ]]; then
 		echo "Invalid overlay_prefix $overlay_prefix"; exit 1
 	fi
