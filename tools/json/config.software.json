@@ -6,59 +6,13 @@
             "sub": [
                 {
                     "id": "Browsers",
-                    "description": "Web Browsers",
-                    "sub": [
-                        {
-                            "id": "BRS001",
-                            "description": "Install Mozilla Firefox web browser (ESR)",
-                            "command": [
-                                "pkg_install firefox-esr"
-                            ],
-                            "status": "Stable",
-                            "author": "@Tearran",
-                            "condition": "! pkg_installed firefox-esr"
-                        },
-                        {
-                            "id": "BRS002",
-                            "description": "Remove Mozilla Firefox web browser (ESR)",
-                            "command": [
-                                "pkg_remove firefox-esr"
-                            ],
-                            "status": "Stable",
-                            "author": "@Tearran",
-                            "condition": "pkg_installed firefox-esr"
-                        },
-                        {
-                            "id": "BRS003",
-                            "description": "Install Chromium web browser",
-                            "command": [
-                                "pkg_install chromium"
-                            ],
-                            "status": "Stable",
-                            "author": "@Tearran",
-                            "condition": "! pkg_installed chromium"
-                        },
-                        {
-                            "id": "BRS004",
-                            "description": "Remove Chromium web browser",
-                            "command": [
-                                "pkg_remove chromium "
-                            ],
-                            "status": "Stable",
-                            "author": "@Tearran",
-                            "condition": "pkg_installed chromium"
-                        },
-                        {
-                            "id": "BRS005",
-                            "description": "Add/Remove multible web browsers",
-                            "command": [
-                                "_checklist_browsers"
-                            ],
-                            "status": "Stable",
-                            "author": "@Tearran",
-                            "condition": ""
-                        }
-                    ]
+                    "description": "Install Mozilla Firefox web browser (ESR)",
+                    "command": [
+                        "_checklist_browsers"
+                    ],
+                    "status": "Stable",
+                    "author": "@Tearran",
+                    "condition": ""
                 },
                 {
                     "id": "WebHosting",
