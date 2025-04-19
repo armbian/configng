@@ -39,7 +39,7 @@
                             "condition": "! pkg_installed chromium"
                         },
                         {
-                            "id": "BRS003",
+                            "id": "BRS004",
                             "description": "Remove Chromium web browser",
                             "command": [
                                 "pkg_remove chromium "
@@ -49,7 +49,7 @@
                             "condition": "pkg_installed chromium"
                         },
                         {
-                            "id": "BRS004",
+                            "id": "BRS005",
                             "description": "Add/Remove multible web browsers",
                             "command": [
                                 "_checklist_browsers"
