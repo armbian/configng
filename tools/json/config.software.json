@@ -6,7 +6,7 @@
             "sub": [
                 {
                     "id": "Browsers",
-                    "description": "Install Mozilla Firefox web browser (ESR)",
+                    "description": "Add/Remove Web Browsers",
                     "command": [
                         "_checklist_browsers"
                     ],
