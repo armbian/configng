@@ -22,6 +22,7 @@ function _checklist_browsers() {
 		"google-chrome"
 	)
 
+
 	if [[ -n "$1" && "$1" != "test" ]]; then
 		# Clear the browser_packages array
 		browser_packages=("$@")
