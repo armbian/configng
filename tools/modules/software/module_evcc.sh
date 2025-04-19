@@ -50,18 +50,24 @@ function module_evcc () {
 					sleep 3
 				fi
 				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs stirling-pdf\`)"
+					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs evcc\`)"
 					exit 1
 				fi
 			done
 		;;
 		"${commands[1]}")
-			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+			if [[ "${container}" ]]; then
+				docker container rm -f "$container" >/dev/null
+			fi
+			if [[ "${image}" ]]; then
+				docker image rm "$image" >/dev/null
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_evcc,feature"]} ${commands[1]}
-			[[ -n "${EVCC_BASE}" && "${EVCC_BASE}" != "/" ]] && rm -rf "${EVCC_BASE}"
+			if [[ -n "${EVCC_BASE}" && "${EVCC_BASE}" != "/" ]]; then
+				rm -rf "${EVCC_BASE}"
+			fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then

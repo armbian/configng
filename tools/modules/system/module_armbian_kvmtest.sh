@@ -9,7 +9,45 @@ module_options+=(
 )
 #
 # Module deploy Armbian QEMU KVM instances
+# module_armbian_kvmtest - Manage the lifecycle of Armbian KVM virtual machines.
 #
+# This function deploys, configures, and manages Armbian-based KVM instances. It supports a suite of
+# commands (install, remove, save, drop, restore, list, help) to handle the entire virtual machine lifecycle.
+# Depending on the command, the function performs operations such as downloading cloud-based Armbian images,
+# resizing and mounting VM disk images, customizing network settings, and executing provisioning scripts.
+#
+# Globals:
+#   module_options - An associative array with module metadata (author, features, command examples, etc.).
+#
+# Arguments:
+#   The first argument specifies the command to execute (e.g., install, remove, save, drop, restore, list, help).
+#   Additional arguments should be provided as key=value pairs to customize the operation. Supported keys include:
+#     instances     - Number of VM instances to deploy (default: "01").
+#     provisioning  - Path to a provisioning script to be run on the first boot of each VM.
+#     firstconfig   - File with initial configuration commands for the VMs.
+#     startingip    - Starting IP address (with underscores replacing dots, e.g., 192_168_1_100).
+#     gateway       - Gateway IP address (with underscores replacing dots, e.g., 192_168_1_1).
+#     keyword       - Image filter keyword; supports comma-separated values (converted internally to a regex).
+#     arch          - Architecture of the VM image (default: "x86").
+#     kvmprefix     - Prefix used for naming VMs (default: "kvmtest").
+#     network       - Network configuration (default: "default", or set to "bridge=[bridge]" if a bridge is specified).
+#     bridge        - Overrides the default network by specifying a network bridge.
+#     memory        - Memory allocation for each VM, in MB (default: "3072").
+#     vcpus         - Number of virtual CPUs allocated per VM (default: "2").
+#     size          - Additional disk space in GB to allocate to each VM (default: "10").
+#
+# Outputs:
+#   The function prints deployment progress, image URLs (when listing), and usage instructions to STDOUT.
+#
+# Returns:
+#   This function does not return a value; it executes commands with side effects.
+#
+# Example:
+#   To deploy three VMs using a custom provisioning script, increased memory, and specific IP settings:
+#     module_armbian_kvmtest install instances=03 memory=4096 vcpus=4 startingip=192_168_1_100 gateway=192_168_1_1 provisioning=/path/to/script keyword=Focal
+#
+#   To remove all deployed VMs:
+#     module_armbian_kvmtest remove
 function module_armbian_kvmtest () {
 
 	local title="kvmtest"
@@ -49,13 +87,13 @@ function module_armbian_kvmtest () {
 	local keyword=$(echo $keyword | sed "s/,/|/g") # convert
 
 	qcowimages=(
-		"https://dl.armbian.com/nightly/uefi-${arch}/Bullseye_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Bookworm_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Trixie_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Focal_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Jammy_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Noble_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Plucky_current_minimal-qcow2"
+		"https://dl.armbian.com/nightly/uefi-${arch}/Bullseye_cloud_minimal-qcow2"
+		"https://dl.armbian.com/nightly/uefi-${arch}/Bookworm_cloud_minimal-qcow2"
+		"https://dl.armbian.com/nightly/uefi-${arch}/Trixie_cloud_minimal-qcow2"
+		"https://dl.armbian.com/nightly/uefi-${arch}/Focal_cloud_minimal-qcow2"
+		"https://dl.armbian.com/nightly/uefi-${arch}/Jammy_cloud_minimal-qcow2"
+		"https://dl.armbian.com/nightly/uefi-${arch}/Noble_cloud_minimal-qcow2"
+		"https://dl.armbian.com/nightly/uefi-${arch}/Plucky_cloud_minimal-qcow2"
 	)
 
 	local commands
@@ -73,16 +111,12 @@ function module_armbian_kvmtest () {
 			virsh net-start default 2>/dev/null
 			virsh net-autostart default
 
-			if ! pkg_installed xz-utils; then
-				pkg_install xz-utils
-			fi
-
 			# download images
 			tempfolder=$(mktemp -d)
 			trap '{ rm -rf -- "$tempfolder"; }' EXIT
 			for qcowimage in ${qcowimages[@]}; do
 				[[ ! $qcowimage =~ ${keyword/,/|} ]] && continue # skip not needed ones
-				curl --progress-bar -L $qcowimage | xz -d > ${tempfolder}/$(basename $qcowimage | sed "s/-qcow2/.qcow2/g")
+				curl --progress-bar -L "$qcowimage" > "${tempfolder}/$(basename "$qcowimage" | sed "s/-qcow2/.qcow2/g")"
 			done
 
 			# we will mount qcow image

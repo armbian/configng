@@ -95,6 +95,8 @@ fi
 #update_sub_submenu_data "Software" "Media" "SW22" "https://localhost:$plex_media_port"
 
 # System
+update_sub_submenu_data "System" "Access" "SSH201" "ssh://$LOCALIPADD:${module_options["module_openssh-server,port"]}"
+#
 update_sub_submenu_data "System" "Storage" "SY220" "$(module_zfs zfs_version)"
 update_sub_submenu_data "System" "Storage" "SY221" "$(module_zfs zfs_installed_version)"
 update_sub_submenu_data "System" "Storage" "NFS04" "$NFS_CLIENTS_NUMBER"
@@ -117,6 +119,9 @@ update_sub_submenu_data "Software" "Containers" "CON006" "http://$LOCALIPADD:${m
 
 # Printing
 update_sub_submenu_data "Software" "Printing" "OCT002" "http://$LOCALIPADD:${module_options["module_octoprint,port"]}"
+
+# DevTools
+[[ -f /etc/rsyncd.conf ]] && update_sub_submenu_data "Software" "DevTools" "DEV011" "$(grep -oP '(?<=^\[).*(?=\])' /etc/rsyncd.conf | xargs)"
 
 # Home automation
 update_sub_submenu_data "Software" "HomeAutomation" "HAB002" "http://$LOCALIPADD:${module_options["module_openhab,port"]}"

@@ -31,9 +31,11 @@ function module_adguardhome () {
 		"${commands[0]}")
 			pkg_installed docker-ce || module_docker install
 			[[ -d "$ADGUARDHOME_BASE" ]] || mkdir -p "$ADGUARDHOME_BASE" || { echo "Couldn't create storage directory: $ADGUARDHOME_BASE"; exit 1; }
-			[[ ! -f "/etc/systemd/resolved.conf.d/armbian-defaults.conf" ]] && ${module_options["module_adguardhome,feature"]} ${commands[1]}
+			if [[ ! -f "/etc/systemd/resolved.conf.d/armbian-defaults.conf" ]]; then
+				${module_options["module_adguardhome,feature"]} ${commands[1]}
+			fi
 			docker run -d \
-			--net=lsio \
+			--net=host \
 			-p 53:53/tcp -p 53:53/udp \
 			-p 80:80/tcp -p 443:443/tcp -p 443:443/udp -p 3000:3000/tcp \
 			-p 784:784/udp -p 853:853/udp -p 8853:8853/udp \
@@ -70,8 +72,12 @@ function module_adguardhome () {
 			fi
 		;;
 		"${commands[1]}")
-			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+			if [[ "${container}" ]]; then
+				docker container rm -f "$container" >/dev/null
+			fi
+			if [[ "${image}" ]]; then
+				docker image rm "$image" >/dev/null
+			fi
 			# restore DNS settings
 			if srv_active systemd-resolved; then
 				mkdir -p /etc/systemd/resolved.conf.d/
@@ -85,7 +91,9 @@ function module_adguardhome () {
 		;;
 		"${commands[2]}")
 			${module_options["module_adguardhome,feature"]} ${commands[1]}
-			[[ -n "${ADGUARDHOME_BASE}" && "${ADGUARDHOME_BASE}" != "/" ]] && rm -rf "${ADGUARDHOME_BASE}"
+			if [[ -n "${ADGUARDHOME_BASE}" && "${ADGUARDHOME_BASE}" != "/" ]]; then
+				rm -rf "${ADGUARDHOME_BASE}"
+			fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then

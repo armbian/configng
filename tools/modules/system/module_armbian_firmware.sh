@@ -14,6 +14,9 @@ function module_armbian_firmware() {
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_armbian_firmware,example"]}"
 
+	# BRANCH, KERNELPKG_VERSION, KERNELPKG_LINUXFAMILY may require being updated after kernel switch
+	update_kernel_env
+
 	case "$1" in
 
 		# choose kernel from the list
@@ -44,10 +47,15 @@ function module_armbian_firmware() {
 			local kernel_test_target=$(\
 				for kernel_test_target in ${KERNEL_TEST_TARGET//,/ }
 				do
-					echo "linux-image-${kernel_test_target}-${LINUXFAMILY}"
 					# Exception for Rockchip
-					if [[ -n "${kernel_test_target}" && "${LINUXFAMILY}" == "rk35xx" && "${kernel_test_target}" =~ ^(current|edge)$ ]]; then
-						echo "linux-image-${kernel_test_target}-rockchip64"
+					if [[ "${BOARDFAMILY}" == "rockchip-rk3588" ]]; then
+						if [[ "${kernel_test_target}" == "vendor" ]]; then
+							echo "linux-image-${kernel_test_target}-rk35xx"
+						elif [[ "${kernel_test_target}" =~ ^(current|edge)$ ]]; then
+							echo "linux-image-${kernel_test_target}-rockchip64"
+						fi
+					else
+						echo "linux-image-${kernel_test_target}-${LINUXFAMILY}"
 					fi
 				done
 				)
@@ -154,15 +162,12 @@ function module_armbian_firmware() {
 		"${commands[2]}")
 
 			# input parameters
-			local branch="$2"
+			local branch="${2:-$BRANCH}"
 			local version="$( echo $3 | tr -d '\011\012\013\014\015\040')" # remove tabs and spaces from version
 			local hide="$4"
 			local repository="$5"
 			local headers="$6"
-			local linuxfamily="$7"
-
-			# if branch is not defined, we use the one that is currently installed
-			[[ -z $BRANCH && -z $branch ]] && local branch="current"
+			local linuxfamily="${7:-$KERNELPKG_LINUXFAMILY}"
 
 			# if repository is not defined, we use stable one
 			[[ -z $repository ]] && local repository="apt.armbian.com"
@@ -259,15 +264,11 @@ function module_armbian_firmware() {
 		"${commands[5]}")
 
 			# input parameters
-
 			local repository=$2
 			local status=$3
 
-			local list_of_installed_kernels=$(dpkg -l | grep '^ii' | grep linux-image)
-			# determine version, branch and linuxfamily
-			[[ -z "${version}" ]] && version=$(echo "$list_of_installed_kernels" | awk '{print $3}')
-			[[ -z "${branch}" ]] && branch=$(echo "$list_of_installed_kernels" | awk '{print $2}' | cut -d'-' -f3)
-			[[ -z "${linuxfamily}" ]] && linuxfamily=$(echo "$list_of_installed_kernels" | awk '{print $2}' | cut -d'-' -f4)
+			local branch=${BRANCH}
+			local linuxfamily=${LINUXFAMILY:-$KERNELPKG_LINUXFAMILY}
 
 			local sources_files=()
 			for file in "/etc/apt/sources.list.d/armbian.list" "/etc/apt/sources.list.d/armbian.sources"; do
@@ -307,26 +308,19 @@ function module_armbian_firmware() {
 
 			# input parameters
 			local command=$2
-			local version=$3
+			local version=${3:-$KERNELPKG_VERSION}
 
-			local list_of_installed_kernels=$(dpkg -l | grep '^ii' | grep linux-image)
-			# determine version, branch and linuxfamily
-			[[ -z "${version}" ]] && version=$(echo "$list_of_installed_kernels" | awk '{print $3}')
-			[[ -z "${branch}" ]] && branch=$(echo "$list_of_installed_kernels" | awk '{print $2}' | cut -d'-' -f3)
-			[[ -z "${linuxfamily}" ]] && linuxfamily=$(echo "$list_of_installed_kernels" | awk '{print $2}' | cut -d'-' -f4)
-
-			# if version is not set, use the one from installed kernel
 			if [[ "${command}" == "install" ]]; then
 				if [[ -f /etc/armbian-image-release ]]; then
 					# for armbian OS
-					${module_options["module_armbian_firmware,feature"]} ${commands[1]} "${branch}" "${version}" "" "true" "${linuxfamily}"
+					${module_options["module_armbian_firmware,feature"]} ${commands[1]} "${BRANCH}" "${version}" "" "true" "${KERNELPKG_LINUXFAMILY}"
 				else
 					# for non armbian builds
 					pkg_install "linux-headers-$(uname -r | sed 's/'-$(dpkg --print-architecture)'//')"
 				fi
 			elif [[ "${command}" == "remove" ]]; then
 				# remove headers packages
-				${module_options["module_armbian_firmware,feature"]} ${commands[2]} "${branch}" "${version}" "hide" "" "true" "${linuxfamily}"
+				${module_options["module_armbian_firmware,feature"]} ${commands[2]} "${BRANCH}" "${version}" "hide" "" "true" "${KERNELPKG_LINUXFAMILY}"
 				if [ "${#packages[@]}" -gt 0 ]; then
 					if dpkg -l | grep -qw ${packages[@]/=*/}; then
 						pkg_remove ${packages[@]/=*/}
@@ -334,7 +328,7 @@ function module_armbian_firmware() {
 				fi
 			else
 				# return 0 if packages are installed else 1
-				${module_options["module_armbian_firmware,feature"]} ${commands[2]} "${branch}" "${version}" "hide" "" "true" "${linuxfamily}"
+				${module_options["module_armbian_firmware,feature"]} ${commands[2]} "${BRANCH}" "${version}" "hide" "" "true" "${KERNELPKG_LINUXFAMILY}"
 				if pkg_installed ${packages[@]/=*/}; then
 					return 0
 				else

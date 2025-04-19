@@ -17,8 +17,8 @@ declare -A module_options
 source "$script_dir/../lib/armbian-config/config.initialize.sh"
 
 # Start loading messages
-set_checkpoint start
-set_checkpoint mark "Initializing script"
+checkpoint reset
+checkpoint mark "Initializing script"
 
 [[ -d "$script_dir/../tools" ]] && tools_dir="$script_dir/../tools"
 [[ ! -d "$script_dir/../lib" && -n "$tools_dir" ]] && die -e "Please run\nbash "$tools_dir/config-assemble.sh" to build the lib directory\n"
@@ -40,28 +40,27 @@ json_data=$(<"$json_file")
 
 source "$lib_dir/config.functions.sh"
 set_runtime_variables
-set_checkpoint mark "Loaded Runtime variables..."
+checkpoint mark "Loaded Runtime variables..."
 # checks for supported os
-set_checkpoint mark "$(check_distro_status)"
+check_distro_status
+checkpoint mark "Check distro"
 
-set_checkpoint mark "Loaded Dialog..."
+checkpoint mark "Loaded Dialog..."
 source "$lib_dir/config.docs.sh"
-set_checkpoint mark "Loaded Docs..."
+checkpoint mark "Loaded Docs..."
 source "$lib_dir/config.system.sh"
-set_checkpoint mark "Loaded System helpers..."
+checkpoint mark "Loaded System helpers..."
 source "$lib_dir/config.network.sh"
-set_checkpoint mark "Loaded Network helpers..."
+checkpoint mark "Loaded Network helpers..."
 source "$lib_dir/config.software.sh"
-set_checkpoint mark "Loaded Software helpers..."
+checkpoint mark "Loaded Software helpers..."
 #
 # Loads the variables from beta armbian-config for runtime handling
 
 source "$lib_dir/config.runtime.sh"
-set_checkpoint mark "Loaded Runtime conditions..."
+checkpoint mark "Loaded Runtime conditions..."
 
-# usage: sudo DEBUG=1 ./config-time/bin/armbian-config $@
-# place one in a section with a quoted "about message"  
-[[ -n "$DEBUG" ]] && set_checkpoint mark "DEBUG Messages on" ;
+checkpoint debug "DEBUG Messages on"
 
 case "$1" in
     "--help")
@@ -74,11 +73,11 @@ case "$1" in
      --help [category]   Use [category] to filter specific menu options.
      --cmd  [option]     Run a command from the menu (simple)
      --api  [option]     Run a helper command        (advanced)
-     --doc               Generate the README.md file 
+     --doc               Generate the README.md file
 
      Examples:
      armbian-config --help [cmd||System||Software||Network||Localisation]
-     armbian-config --cmd help 
+     armbian-config --cmd help
      armbian-config --api help
 "
         fi
@@ -89,7 +88,7 @@ case "$1" in
     ;;
 
     "--cmd")
-    checkpoint debug "Starting Command line UX option"
+        checkpoint debug "Starting --cmd call"
         INPUTMODE="cmd"
         case "$2" in
             ""|"help")
@@ -98,13 +97,13 @@ case "$1" in
             *)
                 cmd=$(sanitize "$2") || die
                 execute_command "$cmd"
-		checkpoint debug "Starting Command line options UX"
+                checkpoint debug "Finished --cmd call"
             ;;
         esac
     ;;
 
     "--api")
-	checkpoint debug "Starting --api options"
+        checkpoint debug "Starting --api call"
         case "$2" in
             ""|"help")
                 see_use
@@ -113,15 +112,15 @@ case "$1" in
                 fn=$(sanitize "$2") || die
                 shift 2
                 "$fn" "$@"
-		checkpoint debug "Exiting --api"
+                checkpoint debug "Finished --api call"
             ;;
         esac
-	;;
+    ;;
 
     "main=help" | "main=Help")
         see_cli_legacy
         echo ""
-	;;
+    ;;
 
     "main="*)
         declare -A main_map
@@ -151,20 +150,17 @@ case "$1" in
 
         echo "$main_value""$select_value"
         execute_command "$main_value""$select_value"
-	;;
+    ;;
 
     *)
         # Generate the top menu with the modified Object data
         set_colors 4
-	checkpoint debug "Starting Text User Interface (TUI)"
+        checkpoint debug "Launching TUI"
         generate_top_menu "$json_data"
-        checkpoint debug "Exiting TUI"
-	# Show about this tool on exit
+        checkpoint debug "Exited TUI"
+        # Show about this tool on exit
         about_armbian_configng
-
     ;;
 esac
 
-if [[ -n "$DEBUG" && -n $tools_dir ]]; then
-	set_checkpoint show
-fi
+checkpoint total

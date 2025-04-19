@@ -1,15 +1,25 @@
-Network configuration is simple and easy to follow:
+1. **Select Interface:**
+   - Launch the `armbian-config` utility:
+     ```bash
+     sudo armbian-config
+     ```
+   - Navigate to `Network` and choose the desired network interface (e.g., `eth0` for wired or `wlan0` for wireless).
 
-1. Choose the interface. If it's a wireless interface, you'll be prompted to select an access point (AP) and enter its password. Leave empty for open network.
+2. **Wireless Interface Configuration:**
+   - If configuring a wireless interface:
+     - A list of available Access Points (APs) will be displayed.
+     - Select your preferred AP and enter the password when prompted. Leave the password field empty for open networks.
 
-2. Choose between DHCP (Dynamic Host Configuration Protocol) or static IP configuration. 
+3. **IP Address Configuration:**
+   - Choose between:
+     - **DHCP (Dynamic Host Configuration Protocol):** Automatically assigns an IP address.
+     - **Static IP:** Manually enter details:
+       - **MAC Address (optional):** Specify if you want spoofing MAC address.
+       - **IP Address:** Use CIDR notation (e.g., `192.168.1.10/24`).
+       - **Route:** Default is `0.0.0.0/0`.
+       - **Gateway:** Typically the router's IP, e.g., `192.168.1.1`.
+       - **DNS:** Default is `9.9.9.9`, but can be changed.
 
-- If you select DHCP, the setup is complete. Optionally, you can change the MAC address.
-
-3. If you choose a static configuration, you'll need to provide:
-
-- An optional MAC address change
-- A fixed IP address (e.g., x.x.x.x/y)
-- A route (default: 0.0.0.0/0)
-- A gateway (usually x.x.x.1/24)
-- DNS (default: 9.9.9.9)
+4. **Finalize Configuration:**
+   - Review and confirm your settings.
+   - The system applies the configurations, and your network should be set up.

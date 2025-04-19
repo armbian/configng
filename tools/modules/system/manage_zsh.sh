@@ -19,6 +19,8 @@ function manage_zsh() {
 		sed -i "s|^SHELL=.*|SHELL=/bin/zsh|" /etc/default/useradd
 		sed -i -E "s|(^\|#)DSHELL=.*|DSHELL=/bin/zsh|" /etc/adduser.conf
 
+		pkg_update
+
 		# install
 		pkg_install armbian-zsh zsh-common zsh tmux
 

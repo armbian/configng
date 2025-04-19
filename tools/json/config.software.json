@@ -334,6 +334,7 @@
                 {
                     "id": "Desktops",
                     "description": "Desktop Environments",
+                    "status": "Disabled",
                     "sub": [
                         {
                             "id": "XFCE",
@@ -365,7 +366,7 @@
                                     "description": "Enable autologin",
                                     "command": [
                                         "module_desktop auto de=xfce"
-                                    ],  
+                                    ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
                                     "condition": "module_desktop status de=xfce && ! module_desktop login"
@@ -411,7 +412,7 @@
                                     "description": "Enable autologin",
                                     "command": [
                                         "module_desktop auto de=gnome"
-                                    ],  
+                                    ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
                                     "condition": "module_desktop status de=gnome && ! module_desktop login"
@@ -1074,6 +1075,46 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "pkg_installed git"
+                        },
+                        {
+                            "id": "DEV003",
+                            "description": "Armbian router for repository mirror automation",
+                            "command": [
+                                "module_armbianrouter install"
+                            ],
+                            "status": "Stable",
+                            "author": "@efectn",
+                            "condition": "! module_armbianrouter status"
+                        },
+                        {
+                            "id": "DEV004",
+                            "description": "Remove Armbian router",
+                            "command": [
+                                "module_armbianrouter remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@efectn",
+                            "condition": "module_armbianrouter status"
+                        },
+                        {
+                            "id": "DEV010",
+                            "description": "Armbian rsyncd server",
+                            "command": [
+                                "module_armbian_rsyncd install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_armbian_rsyncd status"
+                        },
+                        {
+                            "id": "DEV011",
+                            "description": "Remove Armbian rsyncd server",
+                            "command": [
+                                "module_armbian_rsyncd remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_armbian_rsyncd status"
                         }
                     ]
                 },
@@ -1380,6 +1421,36 @@
                             "status": "Preview",
                             "author": "@igorpecovnik",
                             "condition": "module_jellyfin status"
+                        },
+                        {
+                            "id": "MED033",
+                            "description": "Hastebin Paste Server",
+                            "command": [
+                                "module_hastebin install"
+                            ],
+                            "status": "Stable",
+                            "author": "@efectn",
+                            "condition": "! module_hastebin status"
+                        },
+                        {
+                            "id": "MED034",
+                            "description": "Hastebin remove",
+                            "command": [
+                                "module_hastebin remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@efectn",
+                            "condition": "module_hastebin status"
+                        },
+                        {
+                            "id": "MED035",
+                            "description": "Hastebin purge with data folder",
+                            "command": [
+                                "module_hastebin purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@efectn",
+                            "condition": "module_hastebin status"
                         }
                     ]
                 },
@@ -1485,18 +1556,61 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "module_grafana status"
+                        },
+                        {
+                            "id": "PRO001",
+                            "description": "Prometheus docker image",
+                            "prompt": "This operation will install Prometheus.",
+                            "command": [
+                                "module_prometheus install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_prometheus status"
+                        },
+                        {
+                            "id": "PRO002",
+                            "description": "Prometheus remove",
+                            "prompt": "This operation will remove Prometheus.",
+                            "command": [
+                                "module_prometheus remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_prometheus status"
+                        },
+                        {
+                            "id": "PRO003",
+                            "description": "Prometheus purge with data folder",
+                            "about": "This operation will purge Prometheus with data folder",
+                            "command": [
+                                "module_prometheus purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_prometheus status"
                         }
                     ]
                 },
                 {
                     "id": "Management",
-                    "description": "Remote Management tools",
+                    "description": "Remote File & Management tools",
                     "sub": [
                         {
                             "id": "MAN001",
                             "description": "Cockpit web-based management tool",
                             "command": [
                                 "see_menu module_cockpit"
+                            ],
+                            "status": "Stable",
+                            "author": "@Tearran",
+                            "condition": ""
+                        },
+                        {
+                            "id": "MAN002",
+                            "description": "SAMBA Remote File share",
+                            "command": [
+                                "see_menu module_samba"
                             ],
                             "status": "Stable",
                             "author": "@Tearran",
@@ -1648,6 +1762,22 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "pkg_installed avahi-daemon"
+                        }
+                    ]
+                },
+                {
+                    "id": "VPN",
+                    "description": "VPN tools",
+                    "sub": [
+                        {
+                            "id": "VPN001",
+                            "description": "ZeroTier connect devices over your own private network in the world.",
+                            "command": [
+                                "see_menu module_zerotier"
+                            ],
+                            "status": "Stable",
+                            "author": "@jnovos",
+                            "condition": ""
                         }
                     ]
                 }
