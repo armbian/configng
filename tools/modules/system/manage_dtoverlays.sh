@@ -70,18 +70,18 @@ function manage_dtoverlays () {
 				changes="true"
 				newoverlays=$(echo $selection | sed 's/"//g')
 				# Raspberry Pi
-				if [[ "${LINUXFAMILY}" == bcm2711 ]]; then
-					# Ensure a single marker, remove old block
+				if [[ "${LINUXFAMILY}" == "bcm2711" ]]; then
+					# Remove any existing Armbian config block
 					if grep -q '^# Armbian config$' "$overlayconf"; then
-						# Delete marker & following lines
 						sed -i '/^# Armbian config$/,$d' "$overlayconf"
 					fi
-					# Append fresh marker
-					echo "# Armbian config" >> "$overlayconf"
-					# Append one dtoverlay line per selected overlay
-					while IFS= read -r overlay; do
-						printf 'dtoverlay=%s\n' "$overlay" >> "$overlayconf"
-					done <<< "$newoverlays"
+					# Append fresh marker and overlays atomically
+					{
+						echo "# Armbian config"
+						while IFS= read -r ov; do
+							printf 'dtoverlay=%s\n' "$ov"
+						done <<< "$newoverlays"
+					} >> "$overlayconf"
 				else
 					sed -i "s/^overlays=.*/overlays=$newoverlays/" ${overlayconf}
 					if ! grep -q "^overlays" ${overlayconf}; then echo "overlays=$newoverlays" >> ${overlayconf}; fi
