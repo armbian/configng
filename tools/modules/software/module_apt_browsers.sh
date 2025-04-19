@@ -57,5 +57,4 @@ function _checklist_browsers() {
 		return 1
 	fi
 
-	process_package_selection "$title" "Select packages to install/remove:" checklist_options[@]
-}
+	process_package_selection "$title" "Select packages to install/remove:" "${checklist_options[@]}"
