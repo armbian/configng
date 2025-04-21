@@ -18,12 +18,14 @@ function manage_dtoverlays () {
 	# check if user agree to enter this area
 	local changes="false"
 	local overlayconf="/boot/armbianEnv.txt"
-	# Raspberry Pi has different name
-	local overlaydir
-	overlaydir=$(find /boot/dtb/ -maxdepth 1 -type d \
-	\( -name "overlay" -o -name "overlays" \) | head -n1)
-	local overlay_prefix
-	overlay_prefix=$(awk -F= '/^overlay_prefix=/ {print $2}' "$overlayconf")
+	if [[ "${LINUXFAMILY}" == "bcm2711" ]]; then
+		# Raspberry Pi has different name
+		local overlaydir=$(find /boot/dtb/ -maxdepth 1 -type d \( -name "overlay" -o -name "overlays" \) | head -n1)
+		local overlay_prefix=$(awk -F= '/^overlay_prefix=/ {print $2}' "$overlayconf")
+	else
+		local overlaydir="$(find /boot/dtb/ -name overlay -and -type d)"
+		local overlay_prefix=$(awk -F"=" '/overlay_prefix/ {print $2}' $overlayconf)
+	fi
 	if [[ -z $(find "$overlaydir" -name "*$overlay_prefix*" 2>/dev/null) && "$LINUXFAMILY" != "bcm2711" ]]; then
 		echo "Invalid overlay_prefix $overlay_prefix"; exit 1
 	fi
@@ -38,10 +40,14 @@ function manage_dtoverlays () {
 		if [[ "${LINUXFAMILY}" == "bcm2711" ]]; then
 			available_overlays=$(ls -1 ${overlaydir}/*.dtbo | sed 's/.dtbo//g' | awk -F'/' '{print $NF}')
 			overlayconf="/boot/firmware/config.txt"
-		elif [[ -n "${BOOT_SOC}" ]]; then
-			available_overlays=$(ls -1 ${overlaydir}/${overlay_prefix}*.dtbo | sed 's/^.*\('${overlay_prefix}'.*\)/\1/g' | grep -E "$BOOT_SOC|$BOARD" | sed 's/'${overlay_prefix}'-//g' | sed 's/.dtbo//g')
+		#elif [[ -n "${BOOT_SOC}" ]]; then
+		#	available_overlays=$(ls -1 ${overlaydir}/${overlay_prefix}*.dtbo | sed 's/^.*\('${overlay_prefix}'.*\)/\1/g' | grep -E "$BOOT_SOC|$BOARD" | sed 's/'${overlay_prefix}'-//g' | sed 's/.dtbo//g')
 		else
-			available_overlays=$(ls -1 ${overlaydir}/${overlay_prefix}*.dtbo | sed 's/^.*\('${overlay_prefix}'.*\)/\1/g' | sed 's/'${overlay_prefix}'-//g' | sed 's/.dtbo//g')
+			#	available_overlays=$(ls -1 ${overlaydir}/${overlay_prefix}*.dtbo | sed 's/^.*\('${overlay_prefix}'.*\)/\1/g' | sed 's/'${overlay_prefix}'-//g' | sed 's/.dtbo//g')
+			#
+			# We don't have consistent naming in overlays, so we have to display them all
+			#
+			available_overlays=$(ls -1 ${overlaydir}/*.dtbo | sed 's/.dtbo//g' | awk -F'/' '{print $NF}')
 		fi
 
 		# Check the branch in case it is not available in /etc/armbian-release
