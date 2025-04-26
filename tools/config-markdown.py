@@ -24,7 +24,11 @@ with open(CONFIG_PATH, 'r') as f:
 
 # Functions
 def generate_anchor_links(item, level=0, parent_path=""):
-    """Generate Markdown anchor links for an item with hierarchical structure."""
+    """
+    Generates a list of Markdown anchor links for a hierarchical item and its sub-items.
+    
+    Each link corresponds to an item's description linked to its lowercase ID anchor, with indentation reflecting the item's depth in the hierarchy.
+    """
     links = []
     current_id = item['id'].lower()
     current_path = f"{parent_path}-{current_id}" if parent_path else current_id
@@ -36,7 +40,18 @@ def generate_anchor_links(item, level=0, parent_path=""):
     return links
 
 def create_markdown_technical(item, level=1):
-    """Recursively create Markdown content for technical documentation."""
+    """
+    Recursively generates technical Markdown documentation for a configuration item and its sub-items.
+    
+    Each item's section includes its ID, description, optional about text, commands, author, status, and condition. Sub-items are documented as nested sections with incremented header levels.
+    
+    Args:
+        item: A dictionary representing a configuration item.
+        level: The Markdown header level to use for this item.
+    
+    Returns:
+        A string containing the generated Markdown content for the item and its sub-items.
+    """
     md = [f"{'#' * level} {item['id']}\n"]
     md.append(f"**description:** {item.get('description', '')}\n")
 
@@ -62,7 +77,19 @@ def create_markdown_technical(item, level=1):
     return '\n'.join(md)
 
 def create_markdown_user(item, level=1, show_meta=True):
-    """Create Markdown content for user documentation from JSON."""
+    """
+    Generates user-oriented Markdown documentation for a configuration item and its sub-items.
+    
+    Recursively builds Markdown content for the given item, including headers, optional metadata (status, author, maintainer), embedded images if available, optional header markdown, and command usage examples. Sub-items are processed recursively, displaying metadata only for the first sub-item.
+    
+    Args:
+        item: Dictionary representing a configuration item.
+        level: Header level for Markdown formatting.
+        show_meta: Whether to display metadata for this item and the first sub-item.
+    
+    Returns:
+        A string containing the generated Markdown content.
+    """
     md = []
 
     # Title
@@ -112,7 +139,11 @@ def create_markdown_user(item, level=1, show_meta=True):
     return '\n'.join(md)
 
 def write_technical_markdown_files(data):
-    """Write technical Markdown files."""
+    """
+    Generates and writes technical Markdown documentation files for each menu item and its sub-items.
+    
+    For each top-level menu item in the data, creates a subdirectory and writes a technical Markdown file containing anchor links and detailed technical content. Also generates separate technical Markdown files for each sub-item within the corresponding directory.
+    """
     DOCS_DIR.mkdir(exist_ok=True)
 
     for item in data['menu']:
@@ -131,7 +162,11 @@ def write_technical_markdown_files(data):
                 (item_dir / f"{sub_item['id']}.technical.md").write_text('---\ncomments: true\n---\n\n' + sub_anchors + sub_technical_md)
 
 def write_user_markdown_files(data):
-    """Write user Markdown files."""
+    """
+    Generates user-oriented Markdown documentation files for each menu item and its sub-items.
+    
+    For each top-level item in the configuration data, creates a directory and writes a user Markdown file with embedded metadata. Also generates separate user Markdown files for each sub-item.
+    """
     DOCS_DIR.mkdir(exist_ok=True)
 
     for item in data['menu']:
@@ -147,6 +182,12 @@ def write_user_markdown_files(data):
                 (item_dir / f"{sub_item['id']}.user.md").write_text('---\ncomments: true\n---\n\n' + sub_user_md)
 
 def main():
+    """
+    Parses command-line arguments to generate user or technical Markdown documentation.
+    
+    Depending on the provided flags, generates either user-oriented or technical documentation
+    files in the 'docs' directory. Prints usage instructions if no valid option is specified.
+    """
     parser = argparse.ArgumentParser(description="Generate Markdown documentation.")
     parser.add_argument('-u', '--user', action='store_true', help="Generate user documentation")
     parser.add_argument('-t', '--technical', action='store_true', help="Generate technical documentation")
