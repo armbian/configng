@@ -174,12 +174,12 @@ def write_user_markdown_files(data):
         item_dir.mkdir(exist_ok=True)
 
         user_md = create_markdown_user(item)
-        (item_dir / f"{item['id']}.user.md").write_text('---\ncomments: true\n---\n\n' + user_md)
+        (item_dir / f"{item['id']}.md").write_text('---\ncomments: true\n---\n\n' + user_md)
 
         if 'sub' in item:
             for sub_item in item['sub']:
                 sub_user_md = create_markdown_user(sub_item)
-                (item_dir / f"{sub_item['id']}.user.md").write_text('---\ncomments: true\n---\n\n' + sub_user_md)
+                (item_dir / f"{sub_item['id']}.md").write_text('---\ncomments: true\n---\n\n' + sub_user_md)
 
 def main():
     """
