@@ -1459,7 +1459,7 @@
                     "description": "Real-time monitoring, collecting metrics, up-time status",
                     "sub": [
                         {
-                            "id": "MON001",
+                            "id": "UPK001",
                             "description": "Uptime Kuma self-hosted monitoring tool",
                             "about": "This operation will install Uptime Kuma",
                             "command": [
@@ -1470,7 +1470,7 @@
                             "condition": "! module_uptimekuma status"
                         },
                         {
-                            "id": "MON002",
+                            "id": "UPK002",
                             "description": "Uptime Kuma remove",
                             "about": "This operation will remove Uptime Kuma",
                             "command": [
@@ -1481,7 +1481,7 @@
                             "condition": "module_uptimekuma status"
                         },
                         {
-                            "id": "MON003",
+                            "id": "UPK003",
                             "description": "Uptime Kuma purge with data folder",
                             "about": "This operation will remove Uptime Kuma with data folder",
                             "command": [

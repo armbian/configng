@@ -90,7 +90,14 @@ def create_markdown_user(item, level=1, show_meta=True, force_title=False):
 
     if item.get('command'):
         for cmd in item['command']:
-            md.append(f"\n~~~ bash title=\"{item.get('description', '')}:\"\narmbian-config --cmd {item['id']}\n~~~\n")
+            md.append(f"\n~~~ custombash title=\"{item.get('description', '')}:\"\narmbian-config --cmd {item['id']}\n~~~\n")
+
+        footer_file = Path(__file__).parent / 'include' / 'markdown' / f"{item['id']}-footer.md"
+        if footer_file.is_file():
+            rel_path = f"tools/include/markdown/{item['id']}-footer.md"
+            md.append(f"\n<!--- footer START from {rel_path} --->")
+            md.append(footer_file.read_text())
+            md.append(f"<!--- footer STOP from {rel_path} --->\n")
 
     if 'sub' in item:
         seen_prefixes = set()
