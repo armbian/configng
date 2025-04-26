@@ -1,207 +1,151 @@
 #!/usr/bin/env python3
 
-import json
 import os
 import sys
-import os.path
+import json
 import argparse
-
 from pathlib import Path
 
-# Get the absolute path of the script's directory
-script_dir = os.path.dirname(os.path.abspath(__file__))
+# Setup paths
+SCRIPT_DIR = Path(__file__).resolve().parent
+CONFIG_PATH = SCRIPT_DIR.parent / 'lib' / 'armbian-config' / 'config.jobs.json'
+IMAGES_DIR = SCRIPT_DIR / 'include' / 'images'
+MARKDOWN_DIR = SCRIPT_DIR / 'include' / 'markdown'
+DOCS_DIR = Path('docs')
 
-# Construct the path to the external JSON file (e.g., 'config.ng.jobs.json')
-json_path = os.path.join(script_dir, '..', 'lib', 'armbian-config', 'config.jobs.json')
-# Check if the JSON file exists
-if not os.path.exists(json_path):
+# Load JSON
+if not CONFIG_PATH.exists():
     print("Error: The configuration file 'config.jobs.json' was not found.")
-    print("Please run 'config_assemble.sh` `-p` or `-t' first.")
+    print("Please run 'config_assemble.sh -p' or '-t' first.")
     sys.exit(1)
 
-# Load the JSON data from the external file
-with open(json_path, 'r') as json_file:
-    data = json.load(json_file)
+with open(CONFIG_PATH, 'r') as f:
+    data = json.load(f)
 
+# Functions
 def generate_anchor_links(item, level=0, parent_path=""):
-    """Generate Markdown anchor links for an item with hierarchical structure and indentation."""
+    """Generate Markdown anchor links for an item with hierarchical structure."""
     links = []
-    # Construct the current path for the link
     current_id = item['id'].lower()
     current_path = f"{parent_path}-{current_id}" if parent_path else current_id
-    
-    # Add indentation based on the current level
-    indent = '  ' * level  # Two spaces for each level
-    # Append the current item link with indentation
-    links.append(f"{indent}- [{item['description']}](#{item['id'].lower()})")
-
-    # Recursively create links for sub-items if they exist
+    indent = '  ' * level
+    links.append(f"{indent}- [{item['description']}](#{current_id})")
     if 'sub' in item:
         for sub_item in item['sub']:
             links.extend(generate_anchor_links(sub_item, level + 1, current_path))
-
     return links
 
-
 def create_markdown_technical(item, level=1):
-    """Recursively create Markdown content for technical documentation from JSON."""
-    md_content = f"{'#' * level} {item['id']}\n\n"
-    md_content += f"**description:** {item.get('description', '')}\n\n"
-    
-    if 'about' in item and item['about']:
-        md_content += f"**about:** \n{item['about']}\n\n"
-    
-    if 'command' in item:
-        md_content += f"**Command:** \n~~~\n{', '.join(item['command'])}\n~~~\n\n"
-    
-    if 'author' in item:
-        md_content += f"**Author:** {item['author']}\n\n"
-    
-    if 'status' in item:
-        md_content += f"**Status:** {item['status']}\n\n"
-    
-    if 'condition' in item:
-        md_content += f"**Condition:**\n~~~\n{item['condition']}\n~~~\n"
-    
-    md_content += '\n'  # Add extra line for spacing
-    
-    # Recursively add sub-items if they exist
+    """Recursively create Markdown content for technical documentation."""
+    md = [f"{'#' * level} {item['id']}\n"]
+    md.append(f"**description:** {item.get('description', '')}\n")
+
+    if item.get('about'):
+        md.append(f"**about:**\n{item['about']}\n")
+
+    if item.get('command'):
+        md.append(f"**Command:**\n~~~\n{', '.join(item['command'])}\n~~~\n")
+
+    if item.get('author'):
+        md.append(f"**Author:** {item['author']}\n")
+
+    if item.get('status'):
+        md.append(f"**Status:** {item['status']}\n")
+
+    if item.get('condition'):
+        md.append(f"**Condition:**\n~~~\n{item['condition']}\n~~~\n")
+
     if 'sub' in item:
         for sub_item in item['sub']:
-            md_content += create_markdown_technical(sub_item, level + 1)
-    
-    return md_content
+            md.append(create_markdown_technical(sub_item, level + 1))
 
-def create_markdown_user(item, level=1):
+    return '\n'.join(md)
 
-    """Recursively create Markdown content for user documentation from JSON."""
-    #user_content = f"<a id=\"{item['id'].lower()}\" style=\"display:none;\"></a>\n"
-    # if above A link is not working, use below line
-    #user_content += f"{'#' * level} {item['id']}\n"
-    #user_content = f"# {item.get('description', '')}\n"
+def create_markdown_user(item, level=1, show_meta=True):
+    """Create Markdown content for user documentation from JSON."""
+    md = []
 
-    # verify if header or footer exists
-    image_png_include = Path(os.path.dirname(os.path.abspath(__file__))+'/include/images/'+item['id']+'.png')
-    image_webp_include = Path(os.path.dirname(os.path.abspath(__file__))+'/include/images/'+item['id']+'.webp')
-    header_include = Path(os.path.dirname(os.path.abspath(__file__))+'/include/markdown/'+item['id']+'-header.md')
-    footer_include = Path(os.path.dirname(os.path.abspath(__file__))+'/include/markdown/'+item['id']+'-footer.md')
+    # Title
+    header_prefix = "#" * level
+    md.append(f"{header_prefix} {item.get('description', '')}\n")
 
-    user_content = f"{'#' * level} {item.get('description', '')}\n"
+    # Only show meta if it has 'command' or 'sub' but not for "category" level
+    if show_meta and item.get('command'):
+        if item.get('status'):
+            md.append(f"**Status:** {item['status']}\n")
+        if item.get('author'):
+            md.append(f"**Author:** {item['author']}\n")
+        if item.get('maintainer'):
+            md.append(f"**Maintainer:** {item['maintainer']}\n")
 
-    # include png image for section if exists
-    if image_png_include.is_file():
-        user_content +="\n<!--- section image START from tools/include/images/"+item['id']+".png --->\n"
-        with open(image_png_include, 'r') as file:
-            user_content += "[!["+ item.get('description', '') + "](/images/"+item['id']+".png)](#)\n"
-            user_content +="<!--- section image STOP from tools/include/images/"+item['id']+".png --->\n\n"
-    elif image_webp_include.is_file():
-        user_content +="\n<!--- section image START from tools/include/images/"+item['id']+".webp --->\n"
-        with open(image_webp_include, 'r') as file:
-            user_content += "[!["+ item.get('description', '') + "](/images/"+item['id']+".webp)](#)\n"
-            user_content +="<!--- section image STOP from tools/include/images/"+item['id']+".webp --->\n\n"
+    # Image if exists
+    for ext in ('png', 'webp'):
+        image_file = Path(__file__).parent / 'include' / 'images' / f"{item['id']}.{ext}"
+        if image_file.is_file():
+            rel_path = f"tools/include/images/{item['id']}.{ext}"
+            md.append(f"\n<!--- section image START from {rel_path} --->")
+            md.append(f"[![{item['description']}](/images/{item['id']}.{ext})](#)")
+            md.append(f"<!--- section image STOP from {rel_path} --->\n")
+            break
 
-    # include markdown header for section if exists
-    if header_include.is_file():
-        user_content +="\n<!--- header START from tools/include/markdown/"+item['id']+"-header.md --->\n"
-        with open(header_include, 'r') as file:
-            user_content += f""+file.read()+"\n"
-            user_content +="<!--- header STOP from tools/include/markdown/"+item['id']+"-header.md --->\n\n"
+    # Header if exists
+    header_file = Path(__file__).parent / 'include' / 'markdown' / f"{item['id']}-header.md"
+    if header_file.is_file():
+        rel_path = f"tools/include/markdown/{item['id']}-header.md"
+        md.append(f"\n<!--- header START from {rel_path} --->")
+        md.append(header_file.read_text())
+        md.append(f"<!--- header STOP from {rel_path} --->\n")
 
-    if 'about' in item and item['about']:
-        user_content += f"{item['about']}\n\n"
-    
-    if 'command' in item:
-        user_content += f"**Command:** \n~~~\narmbian-config --cmd {item['id']}\n~~~\n\n"
-    
-    if 'author' in item:
-        user_content += f"**Author:** {item['author']}\n\n"
-    
-    if 'status' in item:
-        user_content += f"**Status:** {item['status']}\n\n"
-    
-    # include footer for section if exists
-    if footer_include.is_file():
-        user_content +="\n<!--- footer START from tools/include/markdown/"+item['id']+"-footer.md --->\n"
-        with open(footer_include, 'r') as file:
-            user_content += f""+file.read()+"\n"
-            user_content +="<!--- footer STOP from tools/include/markdown/"+item['id']+"-footer.md --->\n\n"
+    # Commands
+    if item.get('command'):
+        for cmd in item['command']:
+            md.append(f"\n~~~ bash title=\"{item.get('description', '')}:\"\narmbian-config --cmd {item['id']}\n~~~\n")
 
-    user_content += '\n\n***\n\n'  # Add extra line for spacing
-    
-    # Recursively add sub-items if they exist
+    # Sub-items
     if 'sub' in item:
+        first = True
         for sub_item in item['sub']:
-            user_content += create_markdown_user(sub_item, level + 1)
-    
-    return user_content
+            # Only the first subitem shows meta info
+            md.append(create_markdown_user(sub_item, level + 1, show_meta=first))
+            first = False
+
+    return '\n'.join(md)
+
 
 def write_technical_markdown_files(data):
-    """Write Markdown files for technical documentation."""
-    if not os.path.exists('docs'):
-        os.makedirs('docs')
+    """Write technical Markdown files."""
+    DOCS_DIR.mkdir(exist_ok=True)
 
     for item in data['menu']:
-        item_dir = os.path.join('docs', item['id'])
-        if not os.path.exists(item_dir):
-            os.makedirs(item_dir)
+        item_dir = DOCS_DIR / item['id']
+        item_dir.mkdir(exist_ok=True)
 
-        anchor_links = generate_anchor_links(item)
-        anchor_links_content = "\n".join(anchor_links) + "\n\n"
+        anchors = "\n".join(generate_anchor_links(item)) + "\n\n"
+        technical_md = create_markdown_technical(item)
 
-        file_name_technical = f"{item['id']}.technical.md"
-        file_path_technical = os.path.join(item_dir, file_name_technical)
-        markdown_content_technical = create_markdown_technical(item)
-        full_content_technical = anchor_links_content + markdown_content_technical
-
-        with open(file_path_technical, 'w') as f:
-            f.write(full_content_technical)
+        (item_dir / f"{item['id']}.technical.md").write_text(anchors + technical_md)
 
         if 'sub' in item:
             for sub_item in item['sub']:
-                file_name_sub_technical = f"{sub_item['id']}.technical.md"
-                file_path_sub_technical = os.path.join(item_dir, file_name_sub_technical)
-                markdown_content_sub_technical = create_markdown_technical(sub_item)
-                sub_anchor_links = generate_anchor_links(sub_item)
-                sub_anchor_links_content = "\n".join(sub_anchor_links) + "\n\n"
-                full_content_sub_technical = sub_anchor_links_content + markdown_content_sub_technical
-
-                with open(file_path_sub_technical, 'w') as f:
-                    f.write(full_content_sub_technical)
+                sub_anchors = "\n".join(generate_anchor_links(sub_item)) + "\n\n"
+                sub_technical_md = create_markdown_technical(sub_item)
+                (item_dir / f"{sub_item['id']}.technical.md").write_text(sub_anchors + sub_technical_md)
 
 def write_user_markdown_files(data):
-    """Write Markdown files for user documentation."""
-    if not os.path.exists('docs'):
-        os.makedirs('docs')
+    """Write user Markdown files."""
+    DOCS_DIR.mkdir(exist_ok=True)
 
     for item in data['menu']:
-        item_dir = os.path.join('docs', item['id'])
-        if not os.path.exists(item_dir):
-            os.makedirs(item_dir)
+        item_dir = DOCS_DIR / item['id']
+        item_dir.mkdir(exist_ok=True)
 
- #       anchor_links = generate_anchor_links(item)
- #       anchor_links_content = "\n".join(anchor_links) + "\n\n"
-
-        file_name_user = f"{item['id']}.user.md"
-        file_path_user = os.path.join(item_dir, file_name_user)
-        markdown_content_user = create_markdown_user(item)
-        #full_content_user = anchor_links_content + markdown_content_user
-        full_content_user = markdown_content_user
-        with open(file_path_user, 'w') as f:
-            f.write(full_content_user)
+        user_md = create_markdown_user(item)
+        (item_dir / f"{item['id']}.user.md").write_text(user_md)
 
         if 'sub' in item:
             for sub_item in item['sub']:
-                file_name_sub_user = f"{sub_item['id']}.user.md"
-                file_path_sub_user = os.path.join(item_dir, file_name_sub_user)
-                markdown_content_sub_user = create_markdown_user(sub_item)
-                #sub_anchor_links = generate_anchor_links(sub_item)
-                #sub_anchor_links_content = "\n".join(sub_anchor_links) + "\n\n"
-                #full_content_sub_user = sub_anchor_links_content + markdown_content_sub_user
-                full_content_sub_user = markdown_content_sub_user
-                with open(file_path_sub_user, 'w') as f:
-                    f.write(full_content_sub_user)
-
-
+                sub_user_md = create_markdown_user(sub_item)
+                (item_dir / f"{sub_item['id']}.user.md").write_text(sub_user_md)
 
 def main():
     parser = argparse.ArgumentParser(description="Generate Markdown documentation.")
@@ -211,14 +155,13 @@ def main():
 
     if args.user:
         write_user_markdown_files(data)
-        print("Markdown files created in 'docs' directory, organized by top-level folders for both technical and user documentation.")
+        print("User Markdown files created in 'docs' directory.")
     elif args.technical:
         write_technical_markdown_files(data)
-        print("Markdown files created in 'docs' directory, organized by top-level folders for both technical and user documentation.")
+        print("Technical Markdown files created in 'docs' directory.")
     else:
-        print("Usage: config-markdown [-u|-t]\nOptions:\n  -u  Generate user documentation\n  -t  Generate technical documentation")
-    
-    
+        print("Usage: config-markdown [-u|-t]")
+        print("Options:\n  -u  Generate user documentation\n  -t  Generate technical documentation")
 
 if __name__ == "__main__":
     main()
