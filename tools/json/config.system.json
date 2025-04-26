@@ -9,7 +9,7 @@
                     "description": "Alternative kernels, headers, rolling updates, overlays",
                     "sub": [
                         {
-                            "id": "SY201",
+                            "id": "KER001",
                             "description": "Install alternative kernels",
                             "about": "Switching between kernels might change functionality of your device. \n\nIt might fail to boot!",
                             "command": [
@@ -20,7 +20,7 @@
                             "condition": ""
                         },
                         {
-                            "id": "SY204",
+                            "id": "KER002",
                             "description": "Install Linux headers",
                             "command": [
                                 "module_armbian_firmware headers install"
@@ -30,7 +30,7 @@
                             "condition": "! module_armbian_firmware headers status"
                         },
                         {
-                            "id": "SY205",
+                            "id": "KER003",
                             "description": "Remove Linux headers",
                             "command": [
                                 "module_armbian_firmware headers remove"
@@ -40,7 +40,7 @@
                             "condition": "module_armbian_firmware headers status"
                         },
                         {
-                            "id": "SY210",
+                            "id": "KER004",
                             "description": "Manage device tree overlays",
                             "command": [
                                 "manage_dtoverlays"
@@ -50,7 +50,7 @@
                             "condition": "[ -d /boot/dtb/ ] && [ -f /boot/armbianEnv.txt ]"
                         },
                         {
-                            "id": "SY300",
+                            "id": "KER005",
                             "description": "Select Odroid board configuration",
                             "command": [
                                 "manage_odroid_board select"
@@ -60,7 +60,7 @@
                             "condition": "[ $BOARDFAMILY == odroidxu4 ]"
                         },
                         {
-                            "id": "SY010",
+                            "id": "KER006",
                             "description": "Edit the boot environment",
                             "about": "This will open /boot/armbianEnv.txt file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?",
                             "command": [
@@ -77,7 +77,7 @@
                     "description": "Install to internal media, ZFS, NFS, read-only rootfs",
                     "sub": [
                         {
-                            "id": "SY001",
+                            "id": "STOR001",
                             "description": "Install to internal storage",
                             "command": [
                                 "armbian-install"
@@ -87,7 +87,7 @@
                             "condition": "[[ -f /sbin/armbian-install || -f /usr/bin/armbian-install ]]"
                         },
                         {
-                            "id": "SY220",
+                            "id": "STOR002",
                             "description": "ZFS filesystem - enable support",
                             "command": [
                                 "module_zfs install"
@@ -97,7 +97,7 @@
                             "condition": "! module_zfs status && linux-version compare \"${KERNELID}\" le \"$(module_zfs kernel_max)\""
                         },
                         {
-                            "id": "SY221",
+                            "id": "STOR003",
                             "description": "ZFS filesystem - remove support",
                             "command": [
                                 "module_zfs remove"
@@ -107,7 +107,7 @@
                             "condition": "module_zfs status"
                         },
                         {
-                            "id": "SY007",
+                            "id": "STOR004",
                             "description": "Enable read only filesystem",
                             "prompt": "This will enable Armbian read-only filesystem.\n",
                             "command": [
@@ -118,7 +118,7 @@
                             "condition": "module_overlayfs status"
                         },
                         {
-                            "id": "SY008",
+                            "id": "STOR005",
                             "description": "Disable read only filesystem",
                             "prompt": "This will disable Armbian read-only filesystem.\n",
                             "command": [
@@ -129,7 +129,7 @@
                             "condition": "! module_overlayfs status"
                         },
                         {
-                            "id": "NFS01",
+                            "id": "NFS006",
                             "description": "Enable Network filesystem (NFS) support",
                             "command": [
                                 "module_nfs install"
@@ -139,7 +139,7 @@
                             "condition": "! pkg_installed nfs-common"
                         },
                         {
-                            "id": "NFS02",
+                            "id": "NFS007",
                             "description": "Disable Network filesystem (NFS) support",
                             "command": [
                                 "module_nfs remove"
@@ -149,59 +149,59 @@
                             "condition": "pkg_installed nfs-common"
                         },
                         {
-                            "id": "NFS05",
+                            "id": "NFS100",
                             "description": "Manage NFS Server",
                             "condition": "pkg_installed nfs-common",
                             "sub": [
-                                    {
-                                        "id": "NFS06",
-                                        "description": "Enable network filesystem (NFS) daemon",
-                                        "command": [
-                                            "module_nfsd install"
-                                        ],
-                                        "status": "Stable",
-                                        "author": "@igorpecovnik",
-                                        "condition": "! module_nfsd status"
-                                    },
-                                    {
-                                        "id": "NFS07",
-                                        "description": "Configure network filesystem (NFS) daemon",
-                                        "command": [
-                                            "module_nfsd manage"
-                                        ],
-                                        "status": "Stable",
-                                        "author": "@igorpecovnik",
-                                        "condition": "module_nfsd status"
-                                    },
-                                    {
-                                        "id": "NFS08",
-                                        "description": "Remove network filesystem (NFS) daemon",
-                                        "command": [
-                                            "module_nfsd remove"
-                                        ],
-                                        "status": "Stable",
-                                        "author": "@igorpecovnik",
-                                        "condition": "module_nfsd status"
-                                    },
-                                    {
-                                        "id": "NFS09",
-                                        "description": "Show network filesystem (NFS) daemon clients",
-                                        "command": [
-                                            "module_nfsd clients"
-                                        ],
-                                        "status": "Stable",
-                                        "author": "@igorpecovnik",
-                                        "condition": "module_nfsd status && [[ ${NFS_CLIENTS_NUMBER} -gt 0 ]]"
-                                    }
-                                ]
+                                {
+                                    "id": "NFS008",
+                                    "description": "Enable network filesystem (NFS) daemon",
+                                    "command": [
+                                        "module_nfsd install"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "! module_nfsd status"
+                                },
+                                {
+                                    "id": "NFS009",
+                                    "description": "Configure network filesystem (NFS) daemon",
+                                    "command": [
+                                        "module_nfsd manage"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "module_nfsd status"
+                                },
+                                {
+                                    "id": "NFS010",
+                                    "description": "Remove network filesystem (NFS) daemon",
+                                    "command": [
+                                        "module_nfsd remove"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "module_nfsd status"
+                                },
+                                {
+                                    "id": "NFS011",
+                                    "description": "Show network filesystem (NFS) daemon clients",
+                                    "command": [
+                                        "module_nfsd clients"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "module_nfsd status && [[ ${NFS_CLIENTS_NUMBER} -gt 0 ]]"
+                                }
+                            ]
                         },
                         {
-                            "id": "NFS20",
+                            "id": "NFS200",
                             "description": "Manage NFS Client",
                             "condition": "pkg_installed nfs-common",
                             "sub": [
                                 {
-                                    "id": "NFS21",
+                                    "id": "NFS012",
                                     "description": "Find NFS servers in subnet and mount shares",
                                     "command": [
                                         "module_nfs servers"
@@ -211,7 +211,7 @@
                                     "condition": "pkg_installed nfs-common"
                                 },
                                 {
-                                    "id": "NFS22",
+                                    "id": "NFS013",
                                     "description": "Show and manage NFS mounts",
                                     "command": [
                                         "module_nfs mounts"
@@ -229,7 +229,7 @@
                     "description": "Manage SSH daemon options, enable 2FA",
                     "sub": [
                         {
-                            "id": "SY101",
+                            "id": "ACC001",
                             "description": "Disable root login",
                             "command": [
                                 "sed -i \"s|^#\\?PermitRootLogin.*|PermitRootLogin no|\" /etc/ssh/sshd_config",
@@ -240,7 +240,7 @@
                             "condition": "grep -q '^PermitRootLogin yes'  /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "SY102",
+                            "id": "ACC002",
                             "description": "Enable root login",
                             "command": [
                                 "sed -i \"s/^#\\?PermitRootLogin.*/PermitRootLogin yes/\" /etc/ssh/sshd_config",
@@ -251,7 +251,7 @@
                             "condition": "grep -q '^PermitRootLogin no' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "SY103",
+                            "id": "ACC003",
                             "description": "Disable password login",
                             "command": [
                                 "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication no/\" /etc/ssh/sshd_config",
@@ -262,7 +262,7 @@
                             "condition": "grep -q 'PasswordAuthentication yes' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "SY104",
+                            "id": "ACC004",
                             "description": "Enable password login",
                             "command": [
                                 "sed -i \"s/^#\\?PasswordAuthentication.*/PasswordAuthentication yes/\" /etc/ssh/sshd_config",
@@ -273,7 +273,7 @@
                             "condition": "grep -q 'PasswordAuthentication no' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "SY105",
+                            "id": "ACC005",
                             "description": "Disable Public key authentication login",
                             "command": [
                                 "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication no/\" /etc/ssh/sshd_config",
@@ -284,7 +284,7 @@
                             "condition": "grep -q 'PubkeyAuthentication yes' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "SY106",
+                            "id": "ACC006",
                             "description": "Enable Public key authentication login",
                             "command": [
                                 "sed -i \"s/^#\\?PubkeyAuthentication.*/PubkeyAuthentication yes/\" /etc/ssh/sshd_config",
@@ -295,7 +295,7 @@
                             "condition": "grep -q 'PubkeyAuthentication no' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "SY107",
+                            "id": "ACC007",
                             "description": "Disable OTP authentication",
                             "command": [
                                 "clear",
@@ -309,7 +309,7 @@
                             "condition": "grep -q 'ChallengeResponseAuthentication yes' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "SY108",
+                            "id": "ACC008",
                             "description": "Enable OTP authentication",
                             "command": [
                                 "pkg_installed libpam-google-authenticator || pkg_install libpam-google-authenticator",
@@ -324,7 +324,7 @@
                             "condition": "! pkg_installed libpam-google-authenticator || ! pkg_installed qrencode || grep -q '^ChallengeResponseAuthentication no' /etc/ssh/sshd_config || ! grep -q 'ChallengeResponseAuthentication' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "SY109",
+                            "id": "ACC009",
                             "description": "Generate new OTP authentication QR code",
                             "command": [
                                 "qr_code generate"
@@ -334,7 +334,7 @@
                             "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "SY110",
+                            "id": "ACC010",
                             "description": "Show OTP authentication QR code",
                             "command": [
                                 "qr_code"
@@ -344,7 +344,7 @@
                             "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config && [ -f /root/.google_authenticator ]"
                         },
                         {
-                            "id": "SY111",
+                            "id": "ACC011",
                             "description": "Disable last login banner",
                             "command": [
                                 "sed -i \"s/^#\\?PrintLastLog.*/PrintLastLog no/\" /etc/ssh/sshd_config",
@@ -355,7 +355,7 @@
                             "condition": "grep -q '^PrintLastLog yes' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "SY112",
+                            "id": "ACC012",
                             "description": "Enable last login banner",
                             "command": [
                                 "sed -i \"s/^#\\?PrintLastLog.*/PrintLastLog yes/\" /etc/ssh/sshd_config",
@@ -366,7 +366,7 @@
                             "condition": "grep -q '^PrintLastLog no' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "SSH200",
+                            "id": "ACC013",
                             "description": "Sandboxed & containerised SSH server",
                             "about": "This operation will install SSH server.",
                             "command": [
@@ -377,7 +377,7 @@
                             "condition": "! module_openssh-server status"
                         },
                         {
-                            "id": "SSH201",
+                            "id": "ACC014",
                             "description": "Remove sandboxed SSH server",
                             "about": "This operation will remove SSH server.",
                             "command": [
@@ -388,7 +388,7 @@
                             "condition": "module_openssh-server status"
                         },
                         {
-                            "id": "SSH202",
+                            "id": "ACC015",
                             "description": "Purge sandboxed SSH server with data folder",
                             "about": "This operation will purge SSH server with data folder.",
                             "command": [
@@ -398,7 +398,6 @@
                             "author": "@igorpecovnik",
                             "condition": "module_openssh-server status"
                         }
-
                     ]
                 },
                 {
@@ -406,25 +405,29 @@
                     "description": "Change shell, adjust MOTD",
                     "sub": [
                         {
-                            "id": "SY005",
+                            "id": "USR001",
                             "description": "Change shell system wide to BASH",
                             "about": "This will switch system wide shell to BASH",
-                            "command": [ "manage_zsh disable" ],
+                            "command": [
+                                "manage_zsh disable"
+                            ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"zsh\" ]]"
                         },
                         {
-                            "id": "SY006",
+                            "id": "USR002",
                             "description": "Change shell system wide to ZSH",
                             "about": "This will switch system wide shell to ZSH",
-                            "command": [ "manage_zsh enable" ],
+                            "command": [
+                                "manage_zsh enable"
+                            ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"bash\" ]]"
                         },
                         {
-                            "id": "SY009",
+                            "id": "USR003",
                             "description": "Adjust welcome screen (motd)",
                             "command": [
                                 "adjust_motd"
@@ -442,7 +445,7 @@
                     "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade rolling verify || release_upgrade stable verify",
                     "sub": [
                         {
-                            "id": "SY202",
+                            "id": "UPD001",
                             "description": "Enable Armbian firmware upgrades",
                             "about": "This will enable Armbian kernel upgrades that are currently put on hold.",
                             "command": [
@@ -453,7 +456,7 @@
                             "condition": "module_armbian_firmware hold status"
                         },
                         {
-                            "id": "SY203",
+                            "id": "UPD002",
                             "description": "Disable Armbian kernel upgrades",
                             "about": "Disable Armbian kernel/firmware upgrades",
                             "command": [
@@ -464,7 +467,7 @@
                             "condition": "! module_armbian_firmware hold status"
                         },
                         {
-                            "id": "SY206",
+                            "id": "UPD003",
                             "description": "Switch system to rolling packages repository",
                             "about": "This will switch OS to rolling releases.",
                             "command": [
@@ -475,7 +478,7 @@
                             "condition": "module_armbian_firmware repository stable status"
                         },
                         {
-                            "id": "SY207",
+                            "id": "UPD004",
                             "description": "Switch system to stable packages repository",
                             "about": "This will switch OS to stable releases",
                             "command": [
@@ -486,7 +489,7 @@
                             "condition": "module_armbian_firmware repository rolling status"
                         },
                         {
-                            "id": "SY101",
+                            "id": "UPD005",
                             "description": "Distribution upgrade to latest stable / LTS",
                             "about": "Release upgrade is irriversible operation which upgrades all packages. \n\nResoulted upgrade might break your build beyond repair!",
                             "command": [
@@ -497,7 +500,7 @@
                             "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade stable verify"
                         },
                         {
-                            "id": "SY102",
+                            "id": "UPD006",
                             "description": "Distribution upgrade to rolling unstable",
                             "about": "Release upgrade is irriversible operation which upgrades all packages. \n\nResoulted upgrade might break your build beyond repair!",
                             "command": [
@@ -508,7 +511,7 @@
                             "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade rolling verify"
                         },
                         {
-                            "id": "WTC001",
+                            "id": "UPD007",
                             "description": "Enable automating Docker container base images updating",
                             "command": [
                                 "module_watchtower install"
@@ -518,7 +521,7 @@
                             "condition": "! module_watchtower status && pkg_installed docker-ce"
                         },
                         {
-                            "id": "WTC002",
+                            "id": "UPD008",
                             "description": "Disable automating Docker container base images updating",
                             "command": [
                                 "module_watchtower remove"
@@ -528,7 +531,7 @@
                             "condition": "module_watchtower status && pkg_installed docker-ce"
                         },
                         {
-                            "id": "UNAT01",
+                            "id": "UPD009",
                             "description": "Enable automatic package updates.",
                             "command": [
                                 "module_armbian_upgrades install"
@@ -538,7 +541,7 @@
                             "condition": "! module_armbian_upgrades status"
                         },
                         {
-                            "id": "UNAT02",
+                            "id": "UPD010",
                             "description": "Configure automatic package updates",
                             "command": [
                                 "module_armbian_upgrades configure"
@@ -548,7 +551,7 @@
                             "condition": "module_armbian_upgrades status"
                         },
                         {
-                            "id": "UNAT03",
+                            "id": "UPD011",
                             "description": "Disable automatic package updates",
                             "command": [
                                 "module_armbian_upgrades remove"
@@ -557,7 +560,6 @@
                             "author": "@armbian",
                             "condition": "module_armbian_upgrades status"
                         }
-                        
                     ]
                 }
             ]

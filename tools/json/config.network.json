@@ -5,7 +5,7 @@
             "description": "Fixed and wireless network settings",
             "sub": [
                 {
-                    "id": "BNS001",
+                    "id": "NET001",
                     "description": "Basic Network Setup",
                     "command": [
                         "module_simple_network simple"
@@ -13,9 +13,9 @@
                     "status": "Stable",
                     "author": "@igorpecovnik",
                     "condition": ""
-                    },
-                    {
-                    "id": "BNS002",
+                },
+                {
+                    "id": "NET002",
                     "description": "Remove Fallback DHCP Configuration",
                     "about": "Drop preinstalled automatic DHCP on all wired interfaces after your configuration is setup.",
                     "command": [
@@ -41,7 +41,7 @@
                     "description": "Advanced bridged network configuration",
                     "sub": [
                         {
-                            "id": "NE002",
+                            "id": "NEA001",
                             "description": "Add / change interface",
                             "command": [
                                 "network_config armbian"
@@ -51,7 +51,7 @@
                             "condition": ""
                         },
                         {
-                            "id": "NE003",
+                            "id": "NEA002",
                             "description": "Revert to Armbian defaults",
                             "command": [
                                 "default_network_config"
@@ -61,7 +61,7 @@
                             "condition": ""
                         },
                         {
-                            "id": "NE004",
+                            "id": "NEA003",
                             "description": "Show configuration",
                             "command": [
                                 "show_message <<< \"$(netplan get all)\""
@@ -71,7 +71,7 @@
                             "condition": "[[ -f /etc/netplan/armbian.yaml ]]"
                         },
                         {
-                            "id": "NE005",
+                            "id": "NEA004",
                             "description": "Show active status",
                             "command": [
                                 "show_message <<< \"$(netplan status --all)\""
@@ -125,7 +125,7 @@
                     "condition": "module_wireguard status"
                 },
                 {
-                    "id": "NE101",
+                    "id": "BT001",
                     "description": "Install Bluetooth support",
                     "command": [
                         "see_current_apt ",
@@ -137,7 +137,7 @@
                     "condition": "! pkg_installed bluetooth && ! pkg_installed bluez && ! pkg_installed bluez-tools"
                 },
                 {
-                    "id": "NE102",
+                    "id": "BT002",
                     "description": "Remove Bluetooth support",
                     "command": [
                         "see_current_apt ",
@@ -149,7 +149,7 @@
                     "condition": "pkg_installed bluetooth || pkg_installed bluez || pkg_installed bluez-tools"
                 },
                 {
-                    "id": "NE103",
+                    "id": "BT003",
                     "description": "Bluetooth Discover",
                     "about": "This will enable bluetooth and discover devices\n",
                     "command": [
@@ -160,7 +160,7 @@
                     "condition": "pkg_installed bluetooth || pkg_installed bluez || pkg_installed bluez-tools"
                 },
                 {
-                    "id": "NE104",
+                    "id": "IPV001",
                     "description": "Toggle system IPv6/IPv4 internet protocol",
                     "about": "This will toggle your internet protocol",
                     "command": [
