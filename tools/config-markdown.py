@@ -111,7 +111,6 @@ def create_markdown_user(item, level=1, show_meta=True):
 
     return '\n'.join(md)
 
-
 def write_technical_markdown_files(data):
     """Write technical Markdown files."""
     DOCS_DIR.mkdir(exist_ok=True)
@@ -123,13 +122,13 @@ def write_technical_markdown_files(data):
         anchors = "\n".join(generate_anchor_links(item)) + "\n\n"
         technical_md = create_markdown_technical(item)
 
-        (item_dir / f"{item['id']}.technical.md").write_text(anchors + technical_md)
+        (item_dir / f"{item['id']}.technical.md").write_text('---\ncomments: true\n---\n\n' + anchors + technical_md)
 
         if 'sub' in item:
             for sub_item in item['sub']:
                 sub_anchors = "\n".join(generate_anchor_links(sub_item)) + "\n\n"
                 sub_technical_md = create_markdown_technical(sub_item)
-                (item_dir / f"{sub_item['id']}.technical.md").write_text(sub_anchors + sub_technical_md)
+                (item_dir / f"{sub_item['id']}.technical.md").write_text('---\ncomments: true\n---\n\n' + sub_anchors + sub_technical_md)
 
 def write_user_markdown_files(data):
     """Write user Markdown files."""
@@ -140,12 +139,12 @@ def write_user_markdown_files(data):
         item_dir.mkdir(exist_ok=True)
 
         user_md = create_markdown_user(item)
-        (item_dir / f"{item['id']}.user.md").write_text(user_md)
+        (item_dir / f"{item['id']}.user.md").write_text('---\ncomments: true\n---\n\n' + user_md)
 
         if 'sub' in item:
             for sub_item in item['sub']:
                 sub_user_md = create_markdown_user(sub_item)
-                (item_dir / f"{sub_item['id']}.user.md").write_text(sub_user_md)
+                (item_dir / f"{sub_item['id']}.user.md").write_text('---\ncomments: true\n---\n\n' + sub_user_md)
 
 def main():
     parser = argparse.ArgumentParser(description="Generate Markdown documentation.")
