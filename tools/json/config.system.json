@@ -129,7 +129,7 @@
                             "condition": "! module_overlayfs status"
                         },
                         {
-                            "id": "NFS006",
+                            "id": "NETFS01",
                             "description": "Enable Network filesystem (NFS) support",
                             "command": [
                                 "module_nfs install"
@@ -139,7 +139,7 @@
                             "condition": "! pkg_installed nfs-common"
                         },
                         {
-                            "id": "NFS007",
+                            "id": "NETFS02",
                             "description": "Disable Network filesystem (NFS) support",
                             "command": [
                                 "module_nfs remove"
@@ -149,12 +149,12 @@
                             "condition": "pkg_installed nfs-common"
                         },
                         {
-                            "id": "NFS100",
+                            "id": "NETFS03",
                             "description": "Manage NFS Server",
                             "condition": "pkg_installed nfs-common",
                             "sub": [
                                 {
-                                    "id": "NFS008",
+                                    "id": "NETFS04",
                                     "description": "Enable network filesystem (NFS) daemon",
                                     "command": [
                                         "module_nfsd install"
@@ -164,7 +164,7 @@
                                     "condition": "! module_nfsd status"
                                 },
                                 {
-                                    "id": "NFS009",
+                                    "id": "NETFS05",
                                     "description": "Configure network filesystem (NFS) daemon",
                                     "command": [
                                         "module_nfsd manage"
@@ -174,7 +174,7 @@
                                     "condition": "module_nfsd status"
                                 },
                                 {
-                                    "id": "NFS010",
+                                    "id": "NETFS06",
                                     "description": "Remove network filesystem (NFS) daemon",
                                     "command": [
                                         "module_nfsd remove"
@@ -184,7 +184,7 @@
                                     "condition": "module_nfsd status"
                                 },
                                 {
-                                    "id": "NFS011",
+                                    "id": "NETFS07",
                                     "description": "Show network filesystem (NFS) daemon clients",
                                     "command": [
                                         "module_nfsd clients"
@@ -196,12 +196,12 @@
                             ]
                         },
                         {
-                            "id": "NFS200",
+                            "id": "NETFS08",
                             "description": "Manage NFS Client",
                             "condition": "pkg_installed nfs-common",
                             "sub": [
                                 {
-                                    "id": "NFS012",
+                                    "id": "NETFS09",
                                     "description": "Find NFS servers in subnet and mount shares",
                                     "command": [
                                         "module_nfs servers"
@@ -211,7 +211,7 @@
                                     "condition": "pkg_installed nfs-common"
                                 },
                                 {
-                                    "id": "NFS013",
+                                    "id": "NETFS10",
                                     "description": "Show and manage NFS mounts",
                                     "command": [
                                         "module_nfs mounts"
