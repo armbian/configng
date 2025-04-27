@@ -5,8 +5,9 @@
             "description": "Fixed and wireless network settings",
             "sub": [
                 {
-                    "id": "NET001",
-                    "description": "Basic Network Setup",
+                    "id": "BNS001",
+                    "description": "Basic network setup",
+                    "short": "Basic setup",
                     "command": [
                         "module_simple_network simple"
                     ],
@@ -15,7 +16,7 @@
                     "condition": ""
                 },
                 {
-                    "id": "NET002",
+                    "id": "BNS002",
                     "description": "Remove Fallback DHCP Configuration",
                     "about": "Drop preinstalled automatic DHCP on all wired interfaces after your configuration is setup.",
                     "command": [
@@ -28,7 +29,8 @@
                 },
                 {
                     "id": "VNS001",
-                    "description": "View Network Settings",
+                    "description": "View Network Configuration",
+                    "short": "View configuration",
                     "command": [
                         "show_message <<< \"$(netplan get all)\""
                     ],
@@ -39,10 +41,12 @@
                 {
                     "id": "NEA002",
                     "description": "Advanced bridged network configuration",
+                    "short": "Advanced",
                     "sub": [
                         {
                             "id": "NEA001",
                             "description": "Add / change interface",
+                            "short": "Add or Change",
                             "command": [
                                 "network_config armbian"
                             ],
@@ -85,6 +89,7 @@
                 {
                     "id": "WG001",
                     "description": "WireGuard VPN client / server",
+                    "short": "WireGuard",
                     "command": [
                         "module_wireguard install"
                     ],

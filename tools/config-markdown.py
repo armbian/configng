@@ -71,12 +71,10 @@ def create_markdown_user(item, level=1, show_meta=True, force_title=False, skip_
             md.append(f"**Status:** {item['status']}\n")
 
     if item.get('command') and not skip_commands:
-        first_command = True
-        for cmd in item['command']:
-            fence = "custombash" if first_command else "bash"
-            title = "" if fence == "custombash" else f" title=\"{item.get('short', item.get('description', ''))}:\""
-            md.append(f"\n~~~ {fence}{title}\narmbian-config --cmd {item['id']}\n~~~\n")
-            first_command = False
+        cmd = item['command'][0] if isinstance(item['command'], list) else item['command']
+        fence = "custombash"
+        title = ""
+        md.append(f"\n~~~ {fence}{title}\narmbian-config --cmd {item['id']}\n~~~\n")
 
         footer_file = Path(__file__).parent / 'include' / 'markdown' / f"{item['id']}-footer.md"
         if footer_file.is_file():
@@ -108,10 +106,10 @@ def create_markdown_user(item, level=1, show_meta=True, force_title=False, skip_
                     first_sub = False
 
                 if sub_item.get('command'):
+                    cmd = sub_item['command'][0] if isinstance(sub_item['command'], list) else sub_item['command']
                     fence = "custombash" if first_command else "bash"
                     title = "" if fence == "custombash" else f" title=\"{sub_item.get('short', sub_item.get('description', ''))}:\""
-                    for cmd in sub_item['command']:
-                        md.append(f"\n~~~ {fence}{title}\narmbian-config --cmd {sub_item['id']}\n~~~\n")
+                    md.append(f"\n~~~ {fence}{title}\narmbian-config --cmd {sub_item['id']}\n~~~\n")
                     first_command = False
 
                     footer_file = Path(__file__).parent / 'include' / 'markdown' / f"{sub_item['id']}-footer.md"
@@ -125,6 +123,8 @@ def create_markdown_user(item, level=1, show_meta=True, force_title=False, skip_
                 md.append(create_markdown_user(sub_item, level + 2, show_meta=False, force_title=False, skip_commands=True))
 
     return '\n'.join(md)
+
+# Rest of the code unchanged for writing files and main()
 
 def write_technical_markdown_files(data):
     DOCS_DIR.mkdir(exist_ok=True)
@@ -142,7 +142,7 @@ def write_technical_markdown_files(data):
             for sub_item in item['sub']:
                 sub_anchors = "\n".join(generate_anchor_links(sub_item)) + "\n\n"
                 sub_technical_md = create_markdown_technical(sub_item)
-                (item_dir / f"{sub_item['id']}.technical.md").write_text('---\ncomments: true\n---\n\n' + sub_anchors + sub_technical_md)
+                (item_dir / f"{sub_item['id']}.technical.md").write_text('---\ncomments: true\n---\n\n' + sub_technical_md)
 
 def write_user_markdown_files(data):
     DOCS_DIR.mkdir(exist_ok=True)

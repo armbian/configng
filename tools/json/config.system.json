@@ -7,10 +7,11 @@
                 {
                     "id": "Kernel",
                     "description": "Alternative kernels, headers, rolling updates, overlays",
+                    "short": "Hardware config",
                     "sub": [
                         {
                             "id": "KER001",
-                            "description": "Install alternative kernels",
+                            "description": "Run alternative kernels",
                             "about": "Switching between kernels might change functionality of your device. \n\nIt might fail to boot!",
                             "command": [
                                 "module_armbian_firmware select"
@@ -75,6 +76,7 @@
                 {
                     "id": "Storage",
                     "description": "Install to internal media, ZFS, NFS, read-only rootfs",
+                    "short": "Install",
                     "sub": [
                         {
                             "id": "STOR001",
@@ -131,6 +133,7 @@
                         {
                             "id": "NETFS01",
                             "description": "Enable Network filesystem (NFS) support",
+                            "short": "NFS enable",
                             "command": [
                                 "module_nfs install"
                             ],
@@ -151,11 +154,13 @@
                         {
                             "id": "NETFS03",
                             "description": "Manage NFS Server",
+                            "short": "NFS server",
                             "condition": "pkg_installed nfs-common",
                             "sub": [
                                 {
                                     "id": "NETFS04",
                                     "description": "Enable network filesystem (NFS) daemon",
+                                    "short": "Manage NFS server",
                                     "command": [
                                         "module_nfsd install"
                                     ],
@@ -198,11 +203,13 @@
                         {
                             "id": "NETFS08",
                             "description": "Manage NFS Client",
+                            "short": "NFS client",
                             "condition": "pkg_installed nfs-common",
                             "sub": [
                                 {
                                     "id": "NETFS09",
                                     "description": "Find NFS servers in subnet and mount shares",
+                                    "short": "Find NFS servers",
                                     "command": [
                                         "module_nfs servers"
                                     ],
@@ -227,10 +234,12 @@
                 {
                     "id": "Access",
                     "description": "Manage SSH daemon options, enable 2FA",
+                    "short": "Manage SSH daemon",
                     "sub": [
                         {
                             "id": "ACC001",
                             "description": "Disable root login",
+                            "short": "Manage SSHD",
                             "command": [
                                 "sed -i \"s|^#\\?PermitRootLogin.*|PermitRootLogin no|\" /etc/ssh/sshd_config",
                                 "srv_restart ssh"
@@ -405,19 +414,9 @@
                     "description": "Change shell, adjust MOTD",
                     "sub": [
                         {
-                            "id": "USR001",
-                            "description": "Change shell system wide to BASH",
-                            "about": "This will switch system wide shell to BASH",
-                            "command": [
-                                "manage_zsh disable"
-                            ],
-                            "status": "Stable",
-                            "author": "@igorpecovnik",
-                            "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"zsh\" ]]"
-                        },
-                        {
-                            "id": "USR002",
+                            "id": "SHELL1",
                             "description": "Change shell system wide to ZSH",
+                            "short": "Change shell",
                             "about": "This will switch system wide shell to ZSH",
                             "command": [
                                 "manage_zsh enable"
@@ -427,8 +426,20 @@
                             "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"bash\" ]]"
                         },
                         {
-                            "id": "USR003",
+                            "id": "SHELL2",
+                            "description": "Change shell system wide to BASH",                            
+                            "about": "This will switch system wide shell to BASH",
+                            "command": [
+                                "manage_zsh disable"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"zsh\" ]]"
+                        },
+                        {
+                            "id": "MOTD01",
                             "description": "Adjust welcome screen (motd)",
+                            "short": "Adjust MOTD",
                             "command": [
                                 "adjust_motd"
                             ],
@@ -441,12 +452,13 @@
                 {
                     "id": "Updates",
                     "description": "OS updates and distribution upgrades",
-                    "status": "Active",
+                    "short": "Updates",
                     "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade rolling verify || release_upgrade stable verify",
                     "sub": [
                         {
                             "id": "UPD001",
                             "description": "Enable Armbian firmware upgrades",
+                            "short": "Firmware",
                             "about": "This will enable Armbian kernel upgrades that are currently put on hold.",
                             "command": [
                                 "module_armbian_firmware unhold"
@@ -511,8 +523,9 @@
                             "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade rolling verify"
                         },
                         {
-                            "id": "UPD007",
+                            "id": "WTC001",
                             "description": "Enable automating Docker container base images updating",
+                            "short": "Docker images",
                             "command": [
                                 "module_watchtower install"
                             ],
@@ -521,7 +534,7 @@
                             "condition": "! module_watchtower status && pkg_installed docker-ce"
                         },
                         {
-                            "id": "UPD008",
+                            "id": "WTC002",
                             "description": "Disable automating Docker container base images updating",
                             "command": [
                                 "module_watchtower remove"
@@ -531,8 +544,9 @@
                             "condition": "module_watchtower status && pkg_installed docker-ce"
                         },
                         {
-                            "id": "UPD009",
+                            "id": "UNAT01",
                             "description": "Enable automatic package updates.",
+                            "short": "Packages",
                             "command": [
                                 "module_armbian_upgrades install"
                             ],
@@ -541,7 +555,7 @@
                             "condition": "! module_armbian_upgrades status"
                         },
                         {
-                            "id": "UPD010",
+                            "id": "UNAT02",
                             "description": "Configure automatic package updates",
                             "command": [
                                 "module_armbian_upgrades configure"
@@ -551,7 +565,7 @@
                             "condition": "module_armbian_upgrades status"
                         },
                         {
-                            "id": "UPD011",
+                            "id": "UNAT03",
                             "description": "Disable automatic package updates",
                             "command": [
                                 "module_armbian_upgrades remove"

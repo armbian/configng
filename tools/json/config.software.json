@@ -1121,7 +1121,7 @@
                             "condition": "module_armbianrouter status"
                         },
                         {
-                            "id": "DEV010",
+                            "id": "RSD001",
                             "description": "Armbian rsyncd server",
                             "command": [
                                 "module_armbian_rsyncd install"
@@ -1131,7 +1131,7 @@
                             "condition": "! module_armbian_rsyncd status"
                         },
                         {
-                            "id": "DEV011",
+                            "id": "RSD002",
                             "description": "Remove Armbian rsyncd server",
                             "command": [
                                 "module_armbian_rsyncd remove"
