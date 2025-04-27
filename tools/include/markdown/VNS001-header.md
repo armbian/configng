@@ -1,0 +1,1 @@
+View Network Configuration allows you to display the system’s active network settings as a Netplan YAML configuration. This shows interfaces, IP addresses, gateways, DNS servers, and other networking details in a clean, human-readable format. Useful for verifying, troubleshooting, or manually editing network setup on systems that use Netplan for managing network interfaces.

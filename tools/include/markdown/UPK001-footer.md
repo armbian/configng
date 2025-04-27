@@ -5,7 +5,7 @@
     - URL: `https://<your.IP>:3001`
     - Username/Password: Are set at first web interface login
 
-???+ "Uptime Kuma features"
+=== "Features"
 
     - Monitoring uptime for HTTP(s) / TCP / HTTP(s) Keyword / HTTP(s) Json Query / Ping / DNS Record / Push / Steam Game Server / Docker Containers
     - Fancy, Reactive, Fast UI/UX

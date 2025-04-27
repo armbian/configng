@@ -1,0 +1,1 @@
+Unattended upgrades automatically install security updates and important package updates on your system without requiring manual intervention. It helps keep your system secure, stable, and up-to-date by silently applying patches. The behavior is fully configurable — you can control which packages are upgraded, set reboot options, and customize notifications or logging.
