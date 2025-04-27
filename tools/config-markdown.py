@@ -58,7 +58,7 @@ def create_markdown_user(item, level=1, show_meta=True, force_title=False, skip_
     md = []
 
     if level == 1 or force_title:
-        header_prefix = "#" if level == 1 else "##"
+        header_prefix = "#" * level
         md.append(f"{header_prefix} {item.get('short', item.get('description', ''))}\n")
         if item.get('short') and item.get('description') and item.get('short') != item.get('description'):
             md.append(f"\n{item.get('description')}\n")
@@ -94,7 +94,7 @@ def create_markdown_user(item, level=1, show_meta=True, force_title=False, skip_
             first_command = True
             for sub_item in sub_items:
                 if first_sub:
-                    header_prefix = "##"
+                    header_prefix = "#" * (level + 1)
                     md.append(f"{header_prefix} {sub_item.get('short', sub_item.get('description', ''))}\n")
                     if sub_item.get('short') and sub_item.get('description') and sub_item.get('short') != sub_item.get('description'):
                         md.append(f"\n{sub_item.get('description')}\n")
@@ -124,7 +124,7 @@ def create_markdown_user(item, level=1, show_meta=True, force_title=False, skip_
 
     return '\n'.join(md)
 
-# Rest of the code unchanged for writing files and main()
+# Rest of the code unchanged
 
 def write_technical_markdown_files(data):
     DOCS_DIR.mkdir(exist_ok=True)

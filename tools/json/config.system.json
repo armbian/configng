@@ -6,12 +6,13 @@
             "sub": [
                 {
                     "id": "Kernel",
-                    "description": "Alternative kernels, headers, rolling updates, overlays",
-                    "short": "Hardware config",
+                    "description": "Alternative kernels, headers, overlays, bootenv",
+                    "short": "Hardware",
                     "sub": [
                         {
                             "id": "KER001",
-                            "description": "Run alternative kernels",
+                            "description": "Use alternative kernels",
+                            "short": "Alternative kernels",
                             "about": "Switching between kernels might change functionality of your device. \n\nIt might fail to boot!",
                             "command": [
                                 "module_armbian_firmware select"
@@ -21,8 +22,9 @@
                             "condition": ""
                         },
                         {
-                            "id": "KER002",
+                            "id": "HEAD01",
                             "description": "Install Linux headers",
+                            "short": "Kernel Headers",
                             "command": [
                                 "module_armbian_firmware headers install"
                             ],
@@ -31,7 +33,7 @@
                             "condition": "! module_armbian_firmware headers status"
                         },
                         {
-                            "id": "KER003",
+                            "id": "HEAD02",
                             "description": "Remove Linux headers",
                             "command": [
                                 "module_armbian_firmware headers remove"
@@ -41,8 +43,9 @@
                             "condition": "module_armbian_firmware headers status"
                         },
                         {
-                            "id": "KER004",
+                            "id": "DTO001",
                             "description": "Manage device tree overlays",
+                            "short": "Device Tree Overlays",
                             "command": [
                                 "manage_dtoverlays"
                             ],
@@ -51,8 +54,9 @@
                             "condition": "[ -d /boot/dtb/ ] && [ -f /boot/armbianEnv.txt ]"
                         },
                         {
-                            "id": "KER005",
+                            "id": "ODR001",
                             "description": "Select Odroid board configuration",
+                            "short": "Odroid Boards Config",
                             "command": [
                                 "manage_odroid_board select"
                             ],
@@ -61,8 +65,9 @@
                             "condition": "[ $BOARDFAMILY == odroidxu4 ]"
                         },
                         {
-                            "id": "KER006",
+                            "id": "BOOT01",
                             "description": "Edit the boot environment",
+                            "short": "Boot Environment",
                             "about": "This will open /boot/armbianEnv.txt file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?",
                             "command": [
                                 "nano /boot/armbianEnv.txt"
@@ -76,11 +81,11 @@
                 {
                     "id": "Storage",
                     "description": "Install to internal media, ZFS, NFS, read-only rootfs",
-                    "short": "Install",
+                    "short": "Storage",
                     "sub": [
                         {
-                            "id": "STOR001",
-                            "description": "Install to internal storage",
+                            "id": "STO001",
+                            "description": "Install",
                             "command": [
                                 "armbian-install"
                             ],
@@ -89,28 +94,9 @@
                             "condition": "[[ -f /sbin/armbian-install || -f /usr/bin/armbian-install ]]"
                         },
                         {
-                            "id": "STOR002",
-                            "description": "ZFS filesystem - enable support",
-                            "command": [
-                                "module_zfs install"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "! module_zfs status && linux-version compare \"${KERNELID}\" le \"$(module_zfs kernel_max)\""
-                        },
-                        {
-                            "id": "STOR003",
-                            "description": "ZFS filesystem - remove support",
-                            "command": [
-                                "module_zfs remove"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "module_zfs status"
-                        },
-                        {
-                            "id": "STOR004",
+                            "id": "ROO001",
                             "description": "Enable read only filesystem",
+                            "short": "Read Only FS",
                             "prompt": "This will enable Armbian read-only filesystem.\n",
                             "command": [
                                 "module_overlayfs install"
@@ -120,7 +106,7 @@
                             "condition": "module_overlayfs status"
                         },
                         {
-                            "id": "STOR005",
+                            "id": "ROO002",
                             "description": "Disable read only filesystem",
                             "prompt": "This will disable Armbian read-only filesystem.\n",
                             "command": [
@@ -131,9 +117,9 @@
                             "condition": "! module_overlayfs status"
                         },
                         {
-                            "id": "NETFS01",
+                            "id": "NETF01",
                             "description": "Enable Network filesystem (NFS) support",
-                            "short": "NFS enable",
+                            "short": "NFS",
                             "command": [
                                 "module_nfs install"
                             ],
@@ -142,7 +128,7 @@
                             "condition": "! pkg_installed nfs-common"
                         },
                         {
-                            "id": "NETFS02",
+                            "id": "NETF02",
                             "description": "Disable Network filesystem (NFS) support",
                             "command": [
                                 "module_nfs remove"
@@ -152,15 +138,15 @@
                             "condition": "pkg_installed nfs-common"
                         },
                         {
-                            "id": "NETFS03",
+                            "id": "NETF03",
                             "description": "Manage NFS Server",
                             "short": "NFS server",
                             "condition": "pkg_installed nfs-common",
                             "sub": [
                                 {
-                                    "id": "NETFS04",
+                                    "id": "NETF04",
                                     "description": "Enable network filesystem (NFS) daemon",
-                                    "short": "Manage NFS server",
+                                    "short": "NFS server",
                                     "command": [
                                         "module_nfsd install"
                                     ],
@@ -169,7 +155,7 @@
                                     "condition": "! module_nfsd status"
                                 },
                                 {
-                                    "id": "NETFS05",
+                                    "id": "NETF05",
                                     "description": "Configure network filesystem (NFS) daemon",
                                     "command": [
                                         "module_nfsd manage"
@@ -179,7 +165,7 @@
                                     "condition": "module_nfsd status"
                                 },
                                 {
-                                    "id": "NETFS06",
+                                    "id": "NETF06",
                                     "description": "Remove network filesystem (NFS) daemon",
                                     "command": [
                                         "module_nfsd remove"
@@ -189,7 +175,7 @@
                                     "condition": "module_nfsd status"
                                 },
                                 {
-                                    "id": "NETFS07",
+                                    "id": "NETF07",
                                     "description": "Show network filesystem (NFS) daemon clients",
                                     "command": [
                                         "module_nfsd clients"
@@ -201,13 +187,13 @@
                             ]
                         },
                         {
-                            "id": "NETFS08",
+                            "id": "NETF08",
                             "description": "Manage NFS Client",
                             "short": "NFS client",
                             "condition": "pkg_installed nfs-common",
                             "sub": [
                                 {
-                                    "id": "NETFS09",
+                                    "id": "NETF09",
                                     "description": "Find NFS servers in subnet and mount shares",
                                     "short": "Find NFS servers",
                                     "command": [
@@ -218,7 +204,7 @@
                                     "condition": "pkg_installed nfs-common"
                                 },
                                 {
-                                    "id": "NETFS10",
+                                    "id": "NETF10",
                                     "description": "Show and manage NFS mounts",
                                     "command": [
                                         "module_nfs mounts"
@@ -228,18 +214,39 @@
                                     "condition": "[[ -n $(mount --type=nfs4) ]]"
                                 }
                             ]
+                        },
+                        {
+                            "id": "ZFS001",
+                            "description": "ZFS filesystem - enable support",
+                            "short": "ZFS",
+                            "command": [
+                                "module_zfs install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_zfs status && linux-version compare \"${KERNELID}\" le \"$(module_zfs kernel_max)\""
+                        },
+                        {
+                            "id": "ZFS002",
+                            "description": "ZFS filesystem - remove support",
+                            "command": [
+                                "module_zfs remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_zfs status"
                         }
                     ]
                 },
                 {
                     "id": "Access",
                     "description": "Manage SSH daemon options, enable 2FA",
-                    "short": "Manage SSH daemon",
+                    "short": "SSH daemon",
                     "sub": [
                         {
                             "id": "ACC001",
-                            "description": "Disable root login",
-                            "short": "Manage SSHD",
+                            "description": "Disable root login",                            
+                            "short": "Native",
                             "command": [
                                 "sed -i \"s|^#\\?PermitRootLogin.*|PermitRootLogin no|\" /etc/ssh/sshd_config",
                                 "srv_restart ssh"
@@ -375,8 +382,9 @@
                             "condition": "grep -q '^PrintLastLog no' /etc/ssh/sshd_config"
                         },
                         {
-                            "id": "ACC013",
+                            "id": "SSH001",
                             "description": "Sandboxed & containerised SSH server",
+                            "short": "Containerised",
                             "about": "This operation will install SSH server.",
                             "command": [
                                 "module_openssh-server install"
@@ -386,7 +394,7 @@
                             "condition": "! module_openssh-server status"
                         },
                         {
-                            "id": "ACC014",
+                            "id": "SSH002",
                             "description": "Remove sandboxed SSH server",
                             "about": "This operation will remove SSH server.",
                             "command": [
@@ -397,7 +405,7 @@
                             "condition": "module_openssh-server status"
                         },
                         {
-                            "id": "ACC015",
+                            "id": "SSH003",
                             "description": "Purge sandboxed SSH server with data folder",
                             "about": "This operation will purge SSH server with data folder.",
                             "command": [
@@ -412,6 +420,7 @@
                 {
                     "id": "User",
                     "description": "Change shell, adjust MOTD",
+                    "short": "Shell and MOTD",
                     "sub": [
                         {
                             "id": "SHELL1",
@@ -452,7 +461,7 @@
                 {
                     "id": "Updates",
                     "description": "OS updates and distribution upgrades",
-                    "short": "Updates",
+                    "short": "Update",
                     "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade rolling verify || release_upgrade stable verify",
                     "sub": [
                         {
@@ -479,8 +488,9 @@
                             "condition": "! module_armbian_firmware hold status"
                         },
                         {
-                            "id": "UPD003",
+                            "id": "ROLLIN",
                             "description": "Switch system to rolling packages repository",
+                            "short": "Rolling",
                             "about": "This will switch OS to rolling releases.",
                             "command": [
                                 "module_armbian_firmware repository rolling"
@@ -490,8 +500,9 @@
                             "condition": "module_armbian_firmware repository stable status"
                         },
                         {
-                            "id": "UPD004",
+                            "id": "STABLE",
                             "description": "Switch system to stable packages repository",
+                            "short": "Stable",
                             "about": "This will switch OS to stable releases",
                             "command": [
                                 "module_armbian_firmware repository stable"

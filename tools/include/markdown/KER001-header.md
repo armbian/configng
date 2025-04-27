@@ -1,7 +1,6 @@
-!!! danger "Kernel Switching Warning"
-    Switching between different kernel versions can significantly impact the functionality of your device. A newer or older kernel may introduce changes to hardware compatibility, drivers, and system stability. Some features may stop working, while others may improve or be reintroduced.  
+Switching between different kernel versions can significantly impact the functionality of your device. A newer or older kernel may introduce changes to hardware compatibility, drivers, and system stability. Some features may stop working, while others may improve or be reintroduced.
 
-    Important Warning: Kernel changes carry inherent risks!
+!!! danger "Kernel changes carry inherent risks!"
 
     - A mismatched or incompatible kernel may result in **boot failures**, rendering the system unresponsive.
     - Certain peripherals or hardware components (e.g., Wi-Fi, GPU acceleration, or power management) may no longer function correctly.

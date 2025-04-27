@@ -1,0 +1,1 @@
+Network Filesystem (NFS) support allows your system to share directories over the network or mount remote file shares as if they were local folders. It installs and configures the necessary client and server components, making it easy to access files across different machines securely and efficiently.
