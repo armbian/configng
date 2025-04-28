@@ -1875,6 +1875,40 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "module_homepage status"
+                        },
+                        {
+                            "id": "NBOX01",
+                            "description": "NetBox infrastructure resource modeling install",
+                            "short": "NetBox",
+                            "about": "This operation will install NetBox, an infrastructure resource modeling (IPAM/DCIM) tool",
+                            "command": [
+                                "module_netbox install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_netbox status"
+                        },
+                        {
+                            "id": "NBOX02",
+                            "description": "NetBox remove",
+                            "about": "This operation will remove NetBox container",
+                            "command": [
+                                "module_netbox remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_netbox status"
+                        },
+                        {
+                            "id": "NBOX03",
+                            "description": "NetBox purge with data folder",
+                            "about": "This operation will purge NetBox data and remove the container",
+                            "command": [
+                                "module_netbox purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_netbox status"
                         }
                     ]
                 },
