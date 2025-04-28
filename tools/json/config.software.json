@@ -1086,6 +1086,40 @@
                     "description": "SQL database servers and web interface managers",
                     "sub": [
                         {
+                            "id": "PGSQL1",
+                            "description": "PostgreSQL install",
+                            "short": "PostgreSQL",
+                            "about": "This operation will install PostgreSQL, an advanced relational database server",
+                            "command": [
+                                "module_postgres install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_postgres status"
+                        },
+                        {
+                            "id": "PGSQL2",
+                            "description": "PostgreSQL remove",
+                            "about": "This operation will remove the PostgreSQL container",
+                            "command": [
+                                "module_postgres remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_postgres status"
+                        },
+                        {
+                            "id": "PGSQL3",
+                            "description": "PostgreSQL purge with data folder",
+                            "about": "This operation will purge PostgreSQL data and remove the container",
+                            "command": [
+                                "module_postgres purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_postgres status"
+                        },
+                        {
                             "id": "DAT001",
                             "description": "Mariadb SQL database server",
                             "short": "Mariadb",
