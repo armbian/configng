@@ -120,6 +120,9 @@ update_sub_submenu_data "Software" "Media" "JMS002" "http://$LOCALIPADD:${module
 # Containers
 update_sub_submenu_data "Software" "Containers" "POR002" "http://$LOCALIPADD:${module_options["module_portainer,port"]%% *}" # removing second port from url
 
+# Backup
+update_sub_submenu_data "Software" "Backup" "DUP002" "http://$LOCALIPADD:${module_options["module_duplicati,port"]%% *}" # removing second port from url
+
 # Printing
 update_sub_submenu_data "Software" "Printing" "OCT002" "http://$LOCALIPADD:${module_options["module_octoprint,port"]}"
 
