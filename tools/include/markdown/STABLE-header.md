@@ -1,0 +1,1 @@
+The stable repository provides thoroughly tested packages intended for production use. Updates from this channel prioritize stability, long-term reliability, and minimal risk, ensuring systems remain secure and operational without unexpected changes. Only critical bug fixes and essential improvements are introduced after extensive testing.

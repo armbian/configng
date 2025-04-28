@@ -18,9 +18,15 @@ function manage_dtoverlays () {
 	# check if user agree to enter this area
 	local changes="false"
 	local overlayconf="/boot/armbianEnv.txt"
-	local overlaydir="$(find /boot/dtb/ -name overlay -and -type d)"
-	local overlay_prefix=$(awk -F"=" '/overlay_prefix/ {print $2}' $overlayconf)
-	if [[ -z $(find ${overlaydir} -name *$overlay_prefix* 2> /dev/null) ]] ; then
+	if [[ "${LINUXFAMILY}" == "bcm2711" ]]; then
+		# Raspberry Pi has different name
+		local overlaydir=$(find /boot/dtb/ -maxdepth 1 -type d \( -name "overlay" -o -name "overlays" \) | head -n1)
+		local overlay_prefix=$(awk -F= '/^overlay_prefix=/ {print $2}' "$overlayconf")
+	else
+		local overlaydir="$(find /boot/dtb/ -name overlay -and -type d)"
+		local overlay_prefix=$(awk -F"=" '/overlay_prefix/ {print $2}' $overlayconf)
+	fi
+	if [[ -z $(find "$overlaydir" -name "*$overlay_prefix*" 2>/dev/null) && "$LINUXFAMILY" != "bcm2711" ]]; then
 		echo "Invalid overlay_prefix $overlay_prefix"; exit 1
 	fi
 
@@ -30,14 +36,34 @@ function manage_dtoverlays () {
 		local options=()
 		j=0
 
-		if [[ -n "${BOOT_SOC}" ]]; then
-			available_overlays=$(ls -1 ${overlaydir}/${overlay_prefix}*.dtbo | sed 's/^.*\('${overlay_prefix}'.*\)/\1/g' | grep -E "$BOOT_SOC|$BOARD" | sed 's/'${overlay_prefix}'-//g' | sed 's/.dtbo//g')
+		# read overlays
+		if [[ "${LINUXFAMILY}" == "bcm2711" ]]; then
+			available_overlays=$(ls -1 ${overlaydir}/*.dtbo | sed 's/.dtbo//g' | awk -F'/' '{print $NF}')
+			overlayconf="/boot/firmware/config.txt"
+		#elif [[ -n "${BOOT_SOC}" ]]; then
+		#	available_overlays=$(ls -1 ${overlaydir}/${overlay_prefix}*.dtbo | sed 's/^.*\('${overlay_prefix}'.*\)/\1/g' | grep -E "$BOOT_SOC|$BOARD" | sed 's/'${overlay_prefix}'-//g' | sed 's/.dtbo//g')
 		else
-			available_overlays=$(ls -1 ${overlaydir}/${overlay_prefix}*.dtbo | sed 's/^.*\('${overlay_prefix}'.*\)/\1/g' | sed 's/'${overlay_prefix}'-//g' | sed 's/.dtbo//g')
+			#	available_overlays=$(ls -1 ${overlaydir}/${overlay_prefix}*.dtbo | sed 's/^.*\('${overlay_prefix}'.*\)/\1/g' | sed 's/'${overlay_prefix}'-//g' | sed 's/.dtbo//g')
+			#
+			# We don't have consistent naming in overlays, so we have to display them all
+			#
+			available_overlays=$(ls -1 ${overlaydir}/*.dtbo | sed 's/.dtbo//g' | awk -F'/' '{print $NF}')
 		fi
+
+		# Check the branch in case it is not available in /etc/armbian-release
+		update_kernel_env
+
+		# Add support for rk3588 vendor kernel overlays which don't have overlay prefix mostly
+		builtin_overlays=""
+		if [[ $BOARDFAMILY == "rockchip-rk3588" ]] && [[ $BRANCH == "vendor" ]]; then
+			builtin_overlays=$(ls -1 ${overlaydir}/*.dtbo | grep -v ${overlay_prefix} | sed 's#^'${overlaydir}'/##' | sed 's/.dtbo//g')
+		fi
+
 		for overlay in ${available_overlays}; do
 			local status="OFF"
 			grep '^overlays' ${overlayconf} | grep -qw ${overlay} && status=ON
+			# Raspberry Pi
+			grep '^dtoverlay' ${overlayconf} | grep -qw ${overlay} && status=ON
 			options+=( "$overlay" "" "$status")
 		done
 		selection=$($DIALOG --title "Manage devicetree overlays" --cancel-button "Back" \
@@ -48,9 +74,23 @@ function manage_dtoverlays () {
 			0)
 				changes="true"
 				newoverlays=$(echo $selection | sed 's/"//g')
-				sed -i "s/^overlays=.*/overlays=$newoverlays/" ${overlayconf}
-				if ! grep -q "^overlays" ${overlayconf}; then echo "overlays=$newoverlays" >> ${overlayconf}; fi
-				sync
+				# Raspberry Pi
+				if [[ "${LINUXFAMILY}" == "bcm2711" ]]; then
+					# Remove any existing Armbian config block
+					if grep -q '^# Armbian config$' "$overlayconf"; then
+						sed -i '/^# Armbian config$/,$d' "$overlayconf"
+					fi
+					# Append fresh marker and overlays atomically
+					{
+						echo "# Armbian config"
+						while IFS= read -r ov; do
+							printf 'dtoverlay=%s\n' "$ov"
+						done <<< "$newoverlays"
+					} >> "$overlayconf"
+				else
+					sed -i "s/^overlays=.*/overlays=$newoverlays/" ${overlayconf}
+					if ! grep -q "^overlays" ${overlayconf}; then echo "overlays=$newoverlays" >> ${overlayconf}; fi
+				fi
 				;;
 			1)
 				if [[ "$changes" == "true" ]]; then

@@ -235,31 +235,9 @@ function module_simple_network() {
 			$((${#list[@]}/2 + 10 )) 50 $((${#list[@]}/2 + 1)) "${list[@]}" 3>&1 1>&2 2>&3)
 			if [[ $? -eq 0 ]]; then
 				if $DIALOG --title "Action for ${adapter}" --yes-button "Configure" --no-button "Drop" --yesno "$1" 5 60; then
-					:
+					ip link set ${adapter} up
 				else
-					sed -i -e 'H;x;/^\(  *\)\n\1/{s/\n.*//;x;d;}' \
-					-e 's/.*//;x;/'${adapter}'/{s/^\( *\).*/ \1/;x;d;}' /etc/netplan/${yamlfile}.yaml
-					# awk solution to cleanout empty wifis or ethernets section
-					# which doesn't need additional dependencies
-					cat /etc/netplan/${yamlfile}.yaml | awk 'BEGIN {
-					re = "[^[:space:]-]"
-					if (getline != 1)
-						exit
-					while (1) {
-						last = $0
-						last_nf = NF
-						if (getline != 1) {
-							if (last_nf != 1)
-								print last
-							exit
-						}
-						if (last_nf == 1 && match(last, re) == match($0, re))
-							continue
-						print last
-						}
-					} $1' > /etc/netplan/${yamlfile}.yaml.tmp
-					mv /etc/netplan/${yamlfile}.yaml.tmp /etc/netplan/${yamlfile}.yaml
-					chmod 600 /etc/netplan/${yamlfile}.yaml
+					${module_options["module_simple_network,feature"]} ${commands[9]} "${adapter}"
 					netplan apply
 					${module_options["module_simple_network,feature"]} ${commands[4]} "$2"
 				fi
@@ -279,6 +257,8 @@ function module_simple_network() {
 			fi
 		;;
 		"${commands[7]}")
+			# drop current settings
+			${module_options["module_simple_network,feature"]} ${commands[9]} "${adapter}"
 			# dhcp
 			netplan set --origin-hint ${yamlfile} renderer=${NETWORK_RENDERER}
 			# wifi needs ap
@@ -295,6 +275,8 @@ function module_simple_network() {
 			netplan apply
 		;;
 		"${commands[8]}")
+			# drop current settings
+			${module_options["module_simple_network,feature"]} ${commands[9]} "${adapter}"
 			# static
 			netplan set --origin-hint ${yamlfile} renderer=${NETWORK_RENDERER}
 			# wifi needs ap
@@ -312,6 +294,32 @@ function module_simple_network() {
 			netplan set --origin-hint ${yamlfile} $3.$adapter.routes='[{"to":"'$route_to'", "via": "'$route_via'","metric":200}]'
 			netplan set --origin-hint ${yamlfile} $3.$adapter.nameservers.addresses='['$nameservers']'
 			netplan apply
+		;;
+		"${commands[9]}")
+			# remove adapter from yaml file
+			sed -i -e 'H;x;/^\(  *\)\n\1/{s/\n.*//;x;d;}' \
+			-e 's/.*//;x;/'${2}'/{s/^\( *\).*/ \1/;x;d;}' /etc/netplan/${yamlfile}.yaml
+			# awk solution to cleanout empty wifis or ethernets section
+			# which doesn't need additional dependencies
+			cat /etc/netplan/${yamlfile}.yaml | awk 'BEGIN {
+			re = "[^[:space:]-]"
+			if (getline != 1)
+				exit
+			while (1) {
+				last = $0
+				last_nf = NF
+				if (getline != 1) {
+					if (last_nf != 1)
+						print last
+					exit
+				}
+				if (last_nf == 1 && match(last, re) == match($0, re))
+					continue
+				print last
+				}
+			} $1' > /etc/netplan/${yamlfile}.yaml.tmp
+			mv /etc/netplan/${yamlfile}.yaml.tmp /etc/netplan/${yamlfile}.yaml
+			chmod 600 /etc/netplan/${yamlfile}.yaml
 		;;
 		"${commands[20]}")
 			echo -e "\nUsage: ${module_options["module_simple_network,feature"]} <command>"

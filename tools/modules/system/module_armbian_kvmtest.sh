@@ -2,14 +2,52 @@ module_options+=(
 	["module_armbian_kvmtest,author"]="@igorpecovnik"
 	["module_armbian_kvmtest,feature"]="module_armbian_kvmtest"
 	["module_armbian_kvmtest,desc"]="Deploy Armbian KVM instances"
-	["module_armbian_kvmtest,example"]="install remove save restore list help"
+	["module_armbian_kvmtest,example"]="install remove save drop restore list help"
 	["module_armbian_kvmtest,port"]=""
 	["module_armbian_kvmtest,status"]="Active"
 	["module_armbian_kvmtest,arch"]="x86-64"
 )
 #
 # Module deploy Armbian QEMU KVM instances
+# module_armbian_kvmtest - Manage the lifecycle of Armbian KVM virtual machines.
 #
+# This function deploys, configures, and manages Armbian-based KVM instances. It supports a suite of
+# commands (install, remove, save, drop, restore, list, help) to handle the entire virtual machine lifecycle.
+# Depending on the command, the function performs operations such as downloading cloud-based Armbian images,
+# resizing and mounting VM disk images, customizing network settings, and executing provisioning scripts.
+#
+# Globals:
+#   module_options - An associative array with module metadata (author, features, command examples, etc.).
+#
+# Arguments:
+#   The first argument specifies the command to execute (e.g., install, remove, save, drop, restore, list, help).
+#   Additional arguments should be provided as key=value pairs to customize the operation. Supported keys include:
+#     instances     - Number of VM instances to deploy (default: "01").
+#     provisioning  - Path to a provisioning script to be run on the first boot of each VM.
+#     firstconfig   - File with initial configuration commands for the VMs.
+#     startingip    - Starting IP address (with underscores replacing dots, e.g., 192_168_1_100).
+#     gateway       - Gateway IP address (with underscores replacing dots, e.g., 192_168_1_1).
+#     keyword       - Image filter keyword; supports comma-separated values (converted internally to a regex).
+#     arch          - Architecture of the VM image (default: "x86").
+#     kvmprefix     - Prefix used for naming VMs (default: "kvmtest").
+#     network       - Network configuration (default: "default", or set to "bridge=[bridge]" if a bridge is specified).
+#     bridge        - Overrides the default network by specifying a network bridge.
+#     memory        - Memory allocation for each VM, in MB (default: "3072").
+#     vcpus         - Number of virtual CPUs allocated per VM (default: "2").
+#     size          - Additional disk space in GB to allocate to each VM (default: "10").
+#
+# Outputs:
+#   The function prints deployment progress, image URLs (when listing), and usage instructions to STDOUT.
+#
+# Returns:
+#   This function does not return a value; it executes commands with side effects.
+#
+# Example:
+#   To deploy three VMs using a custom provisioning script, increased memory, and specific IP settings:
+#     module_armbian_kvmtest install instances=03 memory=4096 vcpus=4 startingip=192_168_1_100 gateway=192_168_1_1 provisioning=/path/to/script keyword=Focal
+#
+#   To remove all deployed VMs:
+#     module_armbian_kvmtest remove
 function module_armbian_kvmtest () {
 
 	local title="kvmtest"
@@ -17,11 +55,13 @@ function module_armbian_kvmtest () {
 
 	# read additional parameters from command line
 	local parameter
-	IFS=' ' read -r -a parameter <<< "${1}"
-	for feature in instances provisioning firstconfig startingip gateway keyword arch kvmprefix network bridge memory vcpus; do
-	for selected in ${parameter[@]}; do
-		IFS='=' read -r -a split <<< "${selected}"
-		[[ ${split[0]} == $feature ]] && eval "$feature=${split[1]}"
+	for var in "$@"; do
+		IFS=' ' read -r -a parameter <<< "${var}"
+		for feature in instances provisioning firstconfig startingip gateway keyword arch kvmprefix network bridge memory vcpus size; do
+			for selected in ${parameter[@]}; do
+				IFS='=' read -r -a split <<< "${selected}"
+				[[ ${split[0]} == $feature ]] && eval "$feature=${split[1]}"
+			done
 		done
 	done
 
@@ -37,28 +77,29 @@ function module_armbian_kvmtest () {
 	local network="${network:-default}"
 	if [[ -n "${bridge}" ]]; then network="bridge=${bridge}"; fi
 	local instances="${instances:-01}" # number of instances
+	local size="${size:-10}" # number of instances
 	local destination="${destination:-/var/lib/libvirt/images}"
 	local kvmprefix="${kvmprefix:-kvmtest}"
 	local memory="${memory:-3072}"
 	local vcpus="${vcpus:-2}"
 	local startingip="${startingip:-10.0.60.60}"
 	local gateway="${gateway:-10.0.60.1}"
-	local keyword=$(echo $keyword | sed "s/_/|/g") # convert
+	local keyword=$(echo $keyword | sed "s/,/|/g") # convert
 
 	qcowimages=(
-		"https://dl.armbian.com/nightly/uefi-${arch}/Bullseye_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Bookworm_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Trixie_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Focal_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Jammy_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Noble_current_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Plucky_current_minimal-qcow2"
+		"https://dl.armbian.com/nightly/uefi-${arch}/Bullseye_cloud_minimal-qcow2"
+		"https://dl.armbian.com/nightly/uefi-${arch}/Bookworm_cloud_minimal-qcow2"
+		"https://dl.armbian.com/nightly/uefi-${arch}/Trixie_cloud_minimal-qcow2"
+		"https://dl.armbian.com/nightly/uefi-${arch}/Focal_cloud_minimal-qcow2"
+		"https://dl.armbian.com/nightly/uefi-${arch}/Jammy_cloud_minimal-qcow2"
+		"https://dl.armbian.com/nightly/uefi-${arch}/Noble_cloud_minimal-qcow2"
+		"https://dl.armbian.com/nightly/uefi-${arch}/Plucky_cloud_minimal-qcow2"
 	)
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_armbian_kvmtest,example"]}"
 
-	case "${parameter[0]}" in
+	case "$1" in
 
 		"${commands[0]}")
 
@@ -70,16 +111,12 @@ function module_armbian_kvmtest () {
 			virsh net-start default 2>/dev/null
 			virsh net-autostart default
 
-			if ! pkg_installed xz-utils; then
-				pkg_install xz-utils
-			fi
-
 			# download images
 			tempfolder=$(mktemp -d)
 			trap '{ rm -rf -- "$tempfolder"; }' EXIT
 			for qcowimage in ${qcowimages[@]}; do
 				[[ ! $qcowimage =~ ${keyword/,/|} ]] && continue # skip not needed ones
-				curl --progress-bar -L $qcowimage | xz -d > ${tempfolder}/$(basename $qcowimage | sed "s/-qcow2/.qcow2/g")
+				curl --progress-bar -L "$qcowimage" > "${tempfolder}/$(basename "$qcowimage" | sed "s/-qcow2/.qcow2/g")"
 			done
 
 			# we will mount qcow image
@@ -96,7 +133,7 @@ function module_armbian_kvmtest () {
 					local image="$i"-"${kvmprefix}"-"${filename}" # get image name
 					cp ${tempfolder}/${filename} ${destination}/${image} # make a copy under different number
 					sync
-					qemu-img resize ${destination}/${image} +10G # expand
+					qemu-img resize ${destination}/${image} +"${size}G" # expand
 					qemu-nbd --connect=/dev/nbd0 ${destination}/${image} # connect to qemu image
 					printf "fix\n" | sudo parted ---pretend-input-tty /dev/nbd0 print >/dev/null # fix resize
 					mount /dev/nbd0p3 ${mounttempfolder} # 3rd partition on uefi images is rootfs
@@ -173,11 +210,17 @@ function module_armbian_kvmtest () {
 		;;
 		"${commands[2]}")
 			for j in $(virsh list --all --name | grep ${kvmprefix}); do
-				# create snapshot
+				# create snapshots
 				virsh snapshot-create-as --domain ${j} --name "initial-state"
 			done
 		;;
 		"${commands[3]}")
+			for j in $(virsh list --all --name | grep ${kvmprefix}); do
+				# drop snapshots
+				virsh snapshot-delete "${j}" "initial-state"
+			done
+		;;
+		"${commands[4]}")
 			for j in $(virsh list --all --name | grep ${kvmprefix}); do
 				virsh shutdown $j 2>/dev/null
 				virsh snapshot-revert --domain $j --snapshotname "initial-state" --running
@@ -189,13 +232,13 @@ function module_armbian_kvmtest () {
 				virsh start $j 2>/dev/null
 			done
 		;;
-		"${commands[4]}")
+		"${commands[5]}")
 			for qcowimage in ${qcowimages[@]}; do
 				[[ ! $qcowimage =~ ${keyword/,/|} ]] && continue # skip not needed ones
 				echo $qcowimage
 			done
 		;;
-		"${commands[5]}")
+		"${commands[6]}")
 			echo -e "\nUsage: ${module_options["module_armbian_kvmtest,feature"]} <command> [switches]"
 			echo -e "Commands:  ${module_options["module_armbian_kvmtest,example"]}"
 			echo -e "Available commands:\n"
@@ -203,6 +246,7 @@ function module_armbian_kvmtest () {
 			echo -e "\tremove\t- Remove all virtual machines $title."
 			echo -e "\tsave\t- Save state of all VM $title."
 			echo -e "\trestore\t- Restore all saved state of VM $title."
+			echo -e "\tdrop\t- Drop all saved states of VM $title."
 			echo -e "\tlist\t- Show available VM machines $title."
 			echo -e "\nAvailable switches:\n"
 			echo -e "\tkvmprefix\t- Name prefix (default = kvmtest)"
@@ -217,7 +261,7 @@ function module_armbian_kvmtest () {
 			echo
 		;;
 		*)
-			${module_options["module_armbian_kvmtest,feature"]} ${commands[5]}
+			${module_options["module_armbian_kvmtest,feature"]} ${commands[6]}
 		;;
 	esac
 }

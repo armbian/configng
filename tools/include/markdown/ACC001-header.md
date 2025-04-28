@@ -1,0 +1,1 @@
+Manage native SSH daemon allows you to configure SSH server settings such as login security, authentication methods, and connection restrictions. It also enables setting up Two-Factor Authentication (2FA) to further secure SSH access using time-based codes (TOTP), adding an extra layer of protection beyond passwords.

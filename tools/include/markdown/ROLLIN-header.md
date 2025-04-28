@@ -1,0 +1,1 @@
+The daily rolling repository offers frequently updated packages directly from development branches. It provides access to the latest features, bug fixes, and hardware support improvements but may introduce instability or regressions. This channel is intended for testing, development, and users who need the newest updates at the cost of reduced stability.

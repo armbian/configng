@@ -1,0 +1,1 @@
+Edit the boot environment allows you to modify critical boot settings stored in `/boot/armbianEnv.txt`. You can adjust options such as root filesystem location, kernel parameters, overlays, boot targets, or enable advanced features like early serial console. This is essential for fine-tuning hardware support, troubleshooting, or optimizing system startup behavior.
