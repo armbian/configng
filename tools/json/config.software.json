@@ -1630,6 +1630,7 @@
                         {
                             "id": "NAX001",
                             "description": "NetAlertX network scanner & notification framework",
+                            "short": "NetAlertX",
                             "prompt": "This operation will install NetAlertX.",
                             "command": [
                                 "module_netalertx install"

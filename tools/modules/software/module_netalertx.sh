@@ -13,13 +13,44 @@ module_options+=(
 #
 # Module netalertx
 #
+# module_netalertx - Manage the lifecycle of the 'netalertx' Docker container.
+#
+# This function processes a command argument to perform one of several operations on
+# the netalertx container, including installation, removal, purging, status checking,
+# and help display. It verifies that Docker is installed (and installs it if necessary),
+# prepares the storage environment, and handles container startup with a timeout mechanism.
+#
+# Globals:
+#   module_options  - Associative array containing module metadata and example command strings.
+#   SOFTWARE_FOLDER - Base directory path for software installations.
+#   NETALERTX_BASE  - Set to the storage directory for netalertx configuration and database.
+#
+# Arguments:
+#   $1  The command to execute. Recognized commands (as defined in module_options) include:
+#         install  - Installs and starts the netalertx container.
+#         remove   - Stops and removes the netalertx container and its image.
+#         purge    - Removes the container and image, then deletes the storage directory.
+#         status   - Checks if both the container and image exist; returns success (0) if true, failure (1) otherwise.
+#         help     - Displays usage instructions and available commands.
+#
+# Outputs:
+#   Prints messages to STDOUT/STDERR regarding operation progress, usage instructions, or error notifications.
+#
+# Returns:
+#   Exits with status 0 on success (e.g., container running, valid status check)
+#   or with status 1 on errors (e.g., failure to create the storage directory or container startup timeout).
+#
+# Example:
+#   module_netalertx install   # Installs and runs the netalertx container.
+#   module_netalertx status    # Checks the installation status of netalertx.
+#
 function module_netalertx () {
 	local title="netalertx"
 	local condition=$(which "$title" 2>/dev/null)
 
 	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/netalertx?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/netalertx?( |$)/{print $3}')
+		local container=$(docker container ls -a | mawk '/netalertx( |$)/{print $1}')
+		local image=$(docker image ls -a | mawk '/netalertx( |$)/{print $3}')
 	fi
 
 	local commands
@@ -74,8 +105,10 @@ function module_netalertx () {
 			echo -e "Commands:  ${module_options["module_netalertx,example"]}"
 			echo "Available commands:"
 			echo -e "\tinstall\t- Install $title."
-			echo -e "\tstatus\t- Installation status $title."
 			echo -e "\tremove\t- Remove $title."
+			echo -e "\tpurge\t- Purge $title."
+			echo -e "\tstatus\t- Installation status $title."
+			echo -e "\thelp\t- Show this help message."
 			echo
 		;;
 		*)
