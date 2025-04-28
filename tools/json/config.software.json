@@ -1117,6 +1117,40 @@
                             "condition": "module_mariadb status"
                         },
                         {
+                            "id": "REDIS1",
+                            "description": "Redis install",
+                            "short": "Redis",
+                            "about": "This operation will install Redis, a powerful in-memory key-value database",
+                            "command": [
+                                "module_redis install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_redis status"
+                        },
+                        {
+                            "id": "REDIS2",
+                            "description": "Redis remove",
+                            "about": "This operation will remove Redis container",
+                            "command": [
+                                "module_redis remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_redis status"
+                        },
+                        {
+                            "id": "REDIS3",
+                            "description": "Redis purge with data folder",
+                            "about": "This operation will purge Redis data and remove the container",
+                            "command": [
+                                "module_redis purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_redis status"
+                        },
+                        {
                             "id": "MYA001",
                             "description": "phpMyAdmin web interface manager",
                             "short": "phpMyAdmin",
