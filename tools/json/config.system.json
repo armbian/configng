@@ -461,8 +461,8 @@
                 {
                     "id": "Updates",
                     "description": "OS updates and distribution upgrades",
-                    "short": "Update",
-                    "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade rolling verify || release_upgrade stable verify",
+                    "status": "Active",
+                    "condition": "[ -f /etc/armbian-distribution-status ]",
                     "sub": [
                         {
                             "id": "UPD001",
