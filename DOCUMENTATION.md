@@ -12,8 +12,8 @@ sudo armbian-config
 
 - ## **System** 
 
-  - ### Alternative kernels, headers, rolling updates, overlays
-    - ### Install alternative kernels
+  - ### Alternative kernels, headers, overlays, bootenv
+    - ### Use alternative kernels
     - ### Install Linux headers
     - ### Remove Linux headers
     - ### Manage device tree overlays
@@ -22,15 +22,15 @@ sudo armbian-config
 
 
   - ### Install to internal media, ZFS, NFS, read-only rootfs
-    - ### Install to internal storage
-    - ### ZFS filesystem - enable support
-    - ### ZFS filesystem - remove support
+    - ### Install
     - ### Enable read only filesystem
     - ### Disable read only filesystem
     - ### Enable Network filesystem (NFS) support
     - ### Disable Network filesystem (NFS) support
     - ### Manage NFS Server
     - ### Manage NFS Client
+    - ### ZFS filesystem - enable support
+    - ### ZFS filesystem - remove support
 
 
   - ### Manage SSH daemon options, enable 2FA
@@ -52,8 +52,8 @@ sudo armbian-config
 
 
   - ### Change shell, adjust MOTD
-    - ### Change shell system wide to BASH
     - ### Change shell system wide to ZSH
+    - ### Change shell system wide to BASH
     - ### Adjust welcome screen (motd)
 
 
@@ -73,13 +73,13 @@ sudo armbian-config
 
 - ## **Network** 
 
-  - ### Basic Network Setup
+  - ### Basic network setup
 
 
   - ### Remove Fallback DHCP Configuration
 
 
-  - ### View Network Settings
+  - ### View Network Configuration
 
 
   - ### Advanced bridged network configuration
@@ -281,7 +281,7 @@ sudo armbian-config
 
 
   - ### Console network tools for measuring load and bandwidth
-    - ### nload -realtime console network usage monitor
+    - ### nload - realtime console network usage monitor
     - ### nload - remove
     - ### iperf3 bandwidth measuring tool
     - ### iperf3 remove
@@ -340,54 +340,54 @@ Outputs:
 ~~~
 
   System - System wide and admin settings (x86_64)
-    Kernel - Alternative kernels, headers, rolling updates, overlays
-	--cmd SY201 - Install alternative kernels
-	--cmd SY204 - Install Linux headers
-	--cmd SY205 - Remove Linux headers
-	--cmd SY210 - Manage device tree overlays
-	--cmd SY300 - Select Odroid board configuration
-	--cmd SY010 - Edit the boot environment
+    Kernel - Alternative kernels, headers, overlays, bootenv
+	--cmd KER001 - Use alternative kernels
+	--cmd HEAD01 - Install Linux headers
+	--cmd HEAD02 - Remove Linux headers
+	--cmd DTO001 - Manage device tree overlays
+	--cmd ODR001 - Select Odroid board configuration
+	--cmd BOOT01 - Edit the boot environment
     Storage - Install to internal media, ZFS, NFS, read-only rootfs
-	--cmd SY001 - Install to internal storage
-	--cmd SY220 - ZFS filesystem - enable support (v2.2.2)
-	--cmd SY221 - ZFS filesystem - remove support ()
-	--cmd SY007 - Enable read only filesystem
-	--cmd SY008 - Disable read only filesystem
-	--cmd NFS01 - Enable Network filesystem (NFS) support
-	--cmd NFS02 - Disable Network filesystem (NFS) support
-      NFS05 - Manage NFS Server
-	--cmd NFS06 - Enable network filesystem (NFS) daemon
-	--cmd NFS07 - Configure network filesystem (NFS) daemon
-	--cmd NFS08 - Remove network filesystem (NFS) daemon
-	--cmd NFS09 - Show network filesystem (NFS) daemon clients
-      NFS20 - Manage NFS Client
-	--cmd NFS21 - Find NFS servers in subnet and mount shares
-	--cmd NFS22 - Show and manage NFS mounts
+	--cmd STO001 - Install
+	--cmd ROO001 - Enable read only filesystem
+	--cmd ROO002 - Disable read only filesystem
+	--cmd NETF01 - Enable Network filesystem (NFS) support
+	--cmd NETF02 - Disable Network filesystem (NFS) support
+      NETF03 - Manage NFS Server
+	--cmd NETF04 - Enable network filesystem (NFS) daemon
+	--cmd NETF05 - Configure network filesystem (NFS) daemon
+	--cmd NETF06 - Remove network filesystem (NFS) daemon
+	--cmd NETF07 - Show network filesystem (NFS) daemon clients
+      NETF08 - Manage NFS Client
+	--cmd NETF09 - Find NFS servers in subnet and mount shares
+	--cmd NETF10 - Show and manage NFS mounts
+	--cmd ZFS001 - ZFS filesystem - enable support (v2.2.2)
+	--cmd ZFS002 - ZFS filesystem - remove support ()
     Access - Manage SSH daemon options, enable 2FA
-	--cmd SY101 - Disable root login
-	--cmd SY102 - Enable root login
-	--cmd SY103 - Disable password login
-	--cmd SY104 - Enable password login
-	--cmd SY105 - Disable Public key authentication login
-	--cmd SY106 - Enable Public key authentication login
-	--cmd SY107 - Disable OTP authentication
-	--cmd SY108 - Enable OTP authentication
-	--cmd SY109 - Generate new OTP authentication QR code
-	--cmd SY110 - Show OTP authentication QR code
-	--cmd SY111 - Disable last login banner
-	--cmd SY112 - Enable last login banner
-	--cmd SSH200 - Sandboxed & containerised SSH server
-	--cmd SSH201 - Remove sandboxed SSH server (ssh://10.1.0.126:2222)
-	--cmd SSH202 - Purge sandboxed SSH server with data folder
+	--cmd ACC001 - Disable root login
+	--cmd ACC002 - Enable root login
+	--cmd ACC003 - Disable password login
+	--cmd ACC004 - Enable password login
+	--cmd ACC005 - Disable Public key authentication login
+	--cmd ACC006 - Enable Public key authentication login
+	--cmd ACC007 - Disable OTP authentication
+	--cmd ACC008 - Enable OTP authentication
+	--cmd ACC009 - Generate new OTP authentication QR code
+	--cmd ACC010 - Show OTP authentication QR code
+	--cmd ACC011 - Disable last login banner
+	--cmd ACC012 - Enable last login banner
+	--cmd SSH001 - Sandboxed & containerised SSH server
+	--cmd SSH002 - Remove sandboxed SSH server (ssh://10.1.0.152:2222)
+	--cmd SSH003 - Purge sandboxed SSH server with data folder
     User - Change shell, adjust MOTD
-	--cmd SY005 - Change shell system wide to BASH
-	--cmd SY006 - Change shell system wide to ZSH
-	--cmd SY009 - Adjust welcome screen (motd)
+	--cmd SHELL1 - Change shell system wide to ZSH
+	--cmd SHELL2 - Change shell system wide to BASH
+	--cmd MOTD01 - Adjust welcome screen (motd)
     Updates - OS updates and distribution upgrades
-	--cmd SY202 - Enable Armbian firmware upgrades
-	--cmd SY203 - Disable Armbian kernel upgrades
-	--cmd SY206 - Switch system to rolling packages repository
-	--cmd SY207 - Switch system to stable packages repository
+	--cmd UPD001 - Enable Armbian firmware upgrades
+	--cmd UPD002 - Disable Armbian kernel upgrades
+	--cmd ROLLIN - Switch system to rolling packages repository
+	--cmd STABLE - Switch system to stable packages repository
 	--cmd WTC001 - Enable automating Docker container base images updating
 	--cmd WTC002 - Disable automating Docker container base images updating
 	--cmd UNAT01 - Enable automatic package updates.
@@ -395,14 +395,14 @@ Outputs:
 	--cmd UNAT03 - Disable automatic package updates
 
   Network - Fixed and wireless network settings (eth0)
-    --cmd BNS001 - Basic Network Setup
+    --cmd BNS001 - Basic network setup
     --cmd BNS002 - Remove Fallback DHCP Configuration
-    --cmd VNS001 - View Network Settings
+    --cmd VNS001 - View Network Configuration
     NEA002 - Advanced bridged network configuration
-	--cmd NE002 - Add / change interface
-	--cmd NE003 - Revert to Armbian defaults
-	--cmd NE004 - Show configuration
-	--cmd NE005 - Show active status
+	--cmd NEA001 - Add / change interface
+	--cmd NEA002 - Revert to Armbian defaults
+	--cmd NEA003 - Show configuration
+	--cmd NEA004 - Show active status
     --cmd WG001 - WireGuard VPN client / server
     --cmd WG002 - WireGuard remove
     --cmd WG003 - WireGuard clients QR codes
@@ -422,27 +422,27 @@ Outputs:
 	--cmd SWAG04 - SWAG purge with data folder
     HomeAutomation - Home Automation for control home appliances
 	--cmd HAB001 - openHAB empowering the smart home
-	--cmd HAB002 - openHAB remove (http://10.1.0.126:8080)
+	--cmd HAB002 - openHAB remove (http://10.1.0.152:8080)
 	--cmd HAB003 - openHAB purge with data folder
 	--cmd HAS001 - Home Assistant open source home automation
-	--cmd HAS002 - Home Assistant remove (http://10.1.0.126:8123)
+	--cmd HAS002 - Home Assistant remove (http://10.1.0.152:8123)
 	--cmd HAS003 - Home Assistant purge with data folder
 	--cmd DOM001 - Domoticz open source home automation
-	--cmd DOM002 - Domoticz remove (http://10.1.0.126:8080)
+	--cmd DOM002 - Domoticz remove (http://10.1.0.152:8080)
 	--cmd DOM003 - Domoticz purge with data folder
 	--cmd EVCC01 - EVCC - solar charging automation
-	--cmd EVCC02 - EVCC - solar charging automation remove (http://10.1.0.126:7070)
+	--cmd EVCC02 - EVCC - solar charging automation remove (http://10.1.0.152:7070)
 	--cmd EVCC03 - EVCC purge with data folder
     DNS - Network-wide ad blockers servers
-	--cmd DNS001 - Pi-hole DNS ad blocker
-	--cmd DNS003 - Pi-hole remove (http://10.1.0.126:80)
-	--cmd DNS002 - Pi-hole change web admin password
-	--cmd DNS004 - Pi-hole purge with data folder
+	--cmd PIH001 - Pi-hole DNS ad blocker
+	--cmd PIH003 - Pi-hole remove (http://10.1.0.152:80)
+	--cmd PIH002 - Pi-hole change web admin password
+	--cmd PIH004 - Pi-hole purge with data folder
 	--cmd UNB001 - Unbound caching DNS resolver
 	--cmd UNB002 - Unbound remove
 	--cmd UNB003 - Unbound purge with data folder
 	--cmd ADG001 - AdGuardHome DNS sinkhole
-	--cmd ADG002 - AdGuardHome remove (http://10.1.0.126:3000)
+	--cmd ADG002 - AdGuardHome remove (http://10.1.0.152:3000)
 	--cmd ADG003 - AdGuardHome purge with data folder
     Music - Music servers and streamers
 	--cmd NAV001 - Navidrome music server and streamer compatible with Subsonic/Airsonic
@@ -450,115 +450,115 @@ Outputs:
 	--cmd NAV003 - Navidrome purge with data folder
     Downloaders - Download apps for movies, TV shows, music and subtitles
 	--cmd DOW001 - qBittorrent BitTorrent client 
-	--cmd DOW002 - qBittorrent remove (http://10.1.0.126:8090)
+	--cmd DOW002 - qBittorrent remove (http://10.1.0.152:8090)
 	--cmd DOW003 - qBittorrent purge with data folder
 	--cmd DEL001 - Deluge BitTorrent client
-	--cmd DEL002 - Deluge remove (http://10.1.0.126:8112)
+	--cmd DEL002 - Deluge remove (http://10.1.0.152:8112)
 	--cmd DEL003 - Deluge purge with data folder
 	--cmd TRA001 - Transmission BitTorrent client
-	--cmd TRA002 - Transmission remove (http://10.1.0.126:9091)
+	--cmd TRA002 - Transmission remove (http://10.1.0.152:9091)
 	--cmd TRA003 - Transmission purge with data folder
 	--cmd SABN01 - SABnzbd newsgroup downloader
-	--cmd SABN02 - SABnzbd remove (http://10.1.0.126:8080)
+	--cmd SABN02 - SABnzbd remove (http://10.1.0.152:8080)
 	--cmd SABN03 - SABnzbd purge with data folder
 	--cmd MDS001 - Medusa automatic downloader for TV shows
-	--cmd MDS002 - Medusa TV shows downloader remove (http://10.1.0.126:8081)
+	--cmd MDS002 - Medusa TV shows downloader remove (http://10.1.0.152:8081)
 	--cmd MDS003 - Medusa TV shows downloader purge
 	--cmd SON001 - Sonarr automatic downloader for TV shows
-	--cmd SON002 - Sonarr remove (http://10.1.0.126:8989)
+	--cmd SON002 - Sonarr remove (http://10.1.0.152:8989)
 	--cmd SON003 - Sonarr purge with data folder
 	--cmd RAD001 - Radarr automatic downloader for movies
-	--cmd RAD002 - Radarr remove (http://10.1.0.126:7878)
+	--cmd RAD002 - Radarr remove (http://10.1.0.152:7878)
 	--cmd RAD003 - Radarr purge with data folder
 	--cmd BAZ001 - Bazarr automatic subtitles downloader for Sonarr and Radarr
-	--cmd BAZ002 - Bazarr remove (http://10.1.0.126:6767)
+	--cmd BAZ002 - Bazarr remove (http://10.1.0.152:6767)
 	--cmd BAZ003 - Bazarr purge with data folder
 	--cmd LID001 - Lidarr automatic music downloader
-	--cmd LID002 - Lidarr remove (http://10.1.0.126:8686)
+	--cmd LID002 - Lidarr remove (http://10.1.0.152:8686)
 	--cmd LID003 - Lidarr purge with data folder
 	--cmd RDR001 - Readarr automatic downloader for Ebooks
-	--cmd RDR002 - Readarr remove (http://10.1.0.126:8787)
+	--cmd RDR002 - Readarr remove (http://10.1.0.152:8787)
 	--cmd RDR003 - Readarr purge with data folder
 	--cmd DOW025 - Prowlarr index manager and proxy for PVR
-	--cmd DOW026 - Prowlarr remove (http://10.1.0.126:9696)
+	--cmd DOW026 - Prowlarr remove (http://10.1.0.152:9696)
 	--cmd DOW027 - Prowlarr purge with data folder
 	--cmd JEL001 - Jellyseerr Jellyfin/Emby/Plex integration install
-	--cmd JEL002 - Jellyseerr remove (http://10.1.0.126:5055)
+	--cmd JEL002 - Jellyseerr remove (http://10.1.0.152:5055)
 	--cmd JEL003 - Jellyseerr purge with data folder
     Database - SQL database servers and web interface managers
 	--cmd DAT001 - Mariadb SQL database server
-	--cmd DAT002 - Mariadb remove (Server: 10.1.0.126)
+	--cmd DAT002 - Mariadb remove (Server: 10.1.0.152)
 	--cmd DAT003 - Mariadb purge with data folder
-	--cmd DAT005 - phpMyAdmin web interface manager
-	--cmd DAT006 - phpMyAdmin remove (http://10.1.0.126:8071)
-	--cmd DAT007 - phpMyAdmin purge with data folder
+	--cmd MYA001 - phpMyAdmin web interface manager
+	--cmd MYA002 - phpMyAdmin remove (http://10.1.0.152:8071)
+	--cmd MYA003 - phpMyAdmin purge with data folder
     DevTools - Applications and tools for development
-	--cmd DEV001 - Install tools for cloning and managing repositories (git)
-	--cmd DEV002 - Remove tools for cloning and managing repositories (git)
-	--cmd DEV003 - Armbian router for repository mirror automation
-	--cmd DEV004 - Remove Armbian router
-	--cmd DEV010 - Armbian rsyncd server
-	--cmd DEV011 - Remove Armbian rsyncd server
+	--cmd GIT001 - Install tools for cloning and managing repositories (git)
+	--cmd GIT002 - Remove tools for cloning and managing repositories (git)
+	--cmd ART001 - Armbian router for repository mirror automation
+	--cmd ART002 - Remove Armbian router
+	--cmd RSD001 - Armbian rsyncd server
+	--cmd RSD002 - Remove Armbian rsyncd server
     Containers - Docker containerization and KVM virtual machines
 	--cmd CON001 - Docker minimal
 	--cmd CON002 - Docker engine
 	--cmd CON003 - Docker remove
 	--cmd CON004 - Docker purge with all images, containers, and volumes
-	--cmd CON005 - Portainer container management platform
-	--cmd CON006 - Portainer remove (http://10.1.0.126:9000)
-	--cmd CON007 - Portainer purge with with data folder
+	--cmd POR001 - Portainer container management platform
+	--cmd POR002 - Portainer remove (http://10.1.0.152:9000)
+	--cmd POR003 - Portainer purge with with data folder
     Media - Media servers, organizers and editors
-	--cmd MED003 - Emby organizes video, music, live TV, and photos
-	--cmd MED004 - Emby server remove (http://10.1.0.126:8096)
-	--cmd MED005 - Emby server purge with data folder
-	--cmd MED010 - Stirling PDF tools for viewing and editing PDF files
-	--cmd MED011 - Stirling PDF remove (http://10.1.0.126:8077)
-	--cmd MED012 - Stirling PDF purge with data folder
-	--cmd MED015 - Syncthing continuous file synchronization
-	--cmd MED016 - Syncthing remove (http://10.1.0.126:8884)
-	--cmd MED017 - Syncthing purge with data folder
-	--cmd MED020 - Nextcloud content collaboration platform
-	--cmd MED021 - Nextcloud remove (https://10.1.0.126:443)
-	--cmd MED022 - Nextcloud purge with data folder
-	--cmd MED025 - Owncloud share files and folders, easy and secure
-	--cmd MED026 - Owncloud remove (http://10.1.0.126:7787)
-	--cmd MED027 - Owncloud purge with data folder
-	--cmd MED030 - Jellyfin Media System
-	--cmd MED031 - Jellyfin remove (http://10.1.0.126:8096)
-	--cmd MED032 - Jellyfin purge with data folder
-	--cmd MED033 - Hastebin Paste Server
-	--cmd MED034 - Hastebin remove
-	--cmd MED035 - Hastebin purge with data folder
+	--cmd EMB001 - Emby organizes video, music, live TV, and photos
+	--cmd EMB002 - Emby server remove (http://10.1.0.152:8096)
+	--cmd EMB003 - Emby server purge with data folder
+	--cmd STR001 - Stirling PDF tools for viewing and editing PDF files
+	--cmd STR002 - Stirling PDF remove (http://10.1.0.152:8077)
+	--cmd STR003 - Stirling PDF purge with data folder
+	--cmd STC001 - Syncthing continuous file synchronization
+	--cmd STC002 - Syncthing remove (http://10.1.0.152:8884)
+	--cmd STC003 - Syncthing purge with data folder
+	--cmd NCT001 - Nextcloud content collaboration platform
+	--cmd NCT002 - Nextcloud remove (https://10.1.0.152:443)
+	--cmd NCT003 - Nextcloud purge with data folder
+	--cmd OWC001 - Owncloud share files and folders, easy and secure
+	--cmd OWC002 - Owncloud remove (http://10.1.0.152:7787)
+	--cmd OWC003 - Owncloud purge with data folder
+	--cmd JMS001 - Jellyfin Media System
+	--cmd JMS002 - Jellyfin remove (http://10.1.0.152:8096)
+	--cmd JMS003 - Jellyfin purge with data folder
+	--cmd HPS001 - Hastebin Paste Server
+	--cmd HPS002 - Hastebin remove
+	--cmd HPS003 - Hastebin purge with data folder
     Monitoring - Real-time monitoring, collecting metrics, up-time status
-	--cmd MON001 - Uptime Kuma self-hosted monitoring tool
-	--cmd MON002 - Uptime Kuma remove (http://10.1.0.126:3001)
-	--cmd MON003 - Uptime Kuma purge with data folder
-	--cmd MON005 - Netdata - monitoring real-time metrics
-	--cmd MON006 - Netdata remove (http://10.1.0.126:19999)
-	--cmd MON007 - Netdata purge with data folder
+	--cmd UPK001 - Uptime Kuma self-hosted monitoring tool
+	--cmd UPK002 - Uptime Kuma remove (http://10.1.0.152:3001)
+	--cmd UPK003 - Uptime Kuma purge with data folder
+	--cmd NTD001 - Netdata - monitoring real-time metrics
+	--cmd NTD002 - Netdata remove (http://10.1.0.152:19999)
+	--cmd NTD003 - Netdata purge with data folder
 	--cmd GRA001 - Grafana data analytics
-	--cmd GRA002 - Grafana remove (http://10.1.0.126:3000)
+	--cmd GRA002 - Grafana remove (http://10.1.0.152:3000)
 	--cmd GRA003 - Grafana purge with data folder
 	--cmd PRO001 - Prometheus docker image
 	--cmd PRO002 - Prometheus remove
 	--cmd PRO003 - Prometheus purge with data folder
     Management - Remote File & Management tools
-	--cmd MAN001 - Cockpit web-based management tool (http://10.1.0.126:9090)
-	--cmd MAN002 - SAMBA Remote File share
-	--cmd MAN005 - Webmin web-based management tool
+	--cmd CPT001 - Cockpit web-based management tool (http://10.1.0.152:9090)
+	--cmd SMB001 - SAMBA Remote File share
+	--cmd WBM001 - Webmin web-based management tool
     Printing - Tools for printing and 3D printing
 	--cmd OCT001 - OctoPrint web-based 3D printers management tool
-	--cmd OCT002 - OctoPrint remove (http://10.1.0.126:7981)
+	--cmd OCT002 - OctoPrint remove (http://10.1.0.152:7981)
 	--cmd OCT003 - OctoPrint purge with data folder
     Netconfig - Console network tools for measuring load and bandwidth
-	--cmd NET001 - nload -realtime console network usage monitor
-	--cmd NET002 - nload - remove
-	--cmd NET003 - iperf3 bandwidth measuring tool
-	--cmd NET004 - iperf3 remove
-	--cmd NET005 - iptraf-ng IP LAN monitor
-	--cmd NET006 - iptraf-ng remove
-	--cmd NET007 - avahi-daemon hostname broadcast via mDNS
-	--cmd NET008 - avahi-daemon remove
+	--cmd NLD001 - nload - realtime console network usage monitor
+	--cmd NLD002 - nload - remove
+	--cmd IPR001 - iperf3 bandwidth measuring tool
+	--cmd IPR002 - iperf3 remove
+	--cmd IPT001 - iptraf-ng IP LAN monitor
+	--cmd IPT002 - iptraf-ng remove
+	--cmd AVH001 - avahi-daemon hostname broadcast via mDNS
+	--cmd AVH002 - avahi-daemon remove
     VPN - VPN tools
 	--cmd VPN001 - ZeroTier connect devices over your own private network in the world.
 
@@ -600,7 +600,7 @@ A list of the jobs defined in the Jobs file.
 ~~~
 ### Kernel
 
-Alternative kernels, headers, rolling updates, overlays
+Alternative kernels, headers, overlays, bootenv
 
 Jobs:
 
@@ -650,7 +650,7 @@ No commands available
 
 ### BNS001
 
-Basic Network Setup
+Basic network setup
 
 Jobs:
 
@@ -671,7 +671,7 @@ netplan apply
 
 ### VNS001
 
-View Network Settings
+View Network Configuration
 
 Jobs:
 
@@ -1059,6 +1059,7 @@ These helper functions facilitate various operations related to job management, 
 | Install docker from a repo using apt | install remove purge status help | @schwar3kat 
 | Upgrade to next stable or rolling release | release_upgrade stable verify | @igorpecovnik 
 | Update the /etc/skel files in users directories | update_skel | @igorpecovnik 
+| Default module implementation | disable enable help install remove status | @dimitry-ishenko 
 | change_system_hostname | change_system_hostname | @igorpecovnik 
 | Restart service | srv_restart ssh.service | @dimitry-ishenko 
 | Update package repository | pkg_update | @dimitry-ishenko 
