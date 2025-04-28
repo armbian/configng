@@ -340,6 +340,43 @@
                     ]
                 },
                 {
+                    "id": "Finance",
+                    "description": "Manage your finances",
+                    "sub": [
+                        {
+                            "id": "ABU001",
+                            "description": "Do your finances with Actual Budget",
+                            "short": "Actual Budget",
+                            "command": [
+                                "module_actualbudget install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_actualbudget status"
+                        },
+                        {
+                            "id": "ABU002",
+                            "description": "Actual Budget remove",
+                            "command": [
+                                "module_actualbudget remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_actualbudget status"
+                        },
+                        {
+                            "id": "ABU003",
+                            "description": "Actual Budget purge with data folder",
+                            "command": [
+                                "module_actualbudget purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_actualbudget status"
+                        }
+                    ]
+                },
+                {
                     "id": "Desktops",
                     "description": "Desktop Environments",
                     "status": "Disabled",
