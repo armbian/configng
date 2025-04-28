@@ -632,7 +632,7 @@
                     "description": "Backup solutions for your data",
                     "sub": [
                         {
-                            "id": "DUP001",
+                            "id": "DPL001",
                             "description": "Duplicati install",
                             "short": "Duplicati",
                             "about": "This operation will install Duplicati backup software",
@@ -640,29 +640,29 @@
                                 "module_duplicati install"
                             ],
                             "status": "Stable",
-                            "author": "@yourname",
+                            "author": "@igorpecovnik",
                             "condition": "! module_duplicati status"
                         },
                         {
-                            "id": "DUP002",
+                            "id": "DPL002",
                             "description": "Duplicati remove",
                             "about": "This operation will remove Duplicati backup software",
                             "command": [
                                 "module_duplicati remove"
                             ],
                             "status": "Stable",
-                            "author": "@yourname",
+                            "author": "@igorpecovnik",
                             "condition": "module_duplicati status"
                         },
                         {
-                            "id": "DUP003",
+                            "id": "DPL003",
                             "description": "Duplicati purge with data folder",
                             "about": "This operation will purge Duplicati data and remove the software",
                             "command": [
                                 "module_duplicati purge"
                             ],
                             "status": "Stable",
-                            "author": "@yourname",
+                            "author": "@igorpecovnik",
                             "condition": "module_duplicati status"
                             }
                     ]
