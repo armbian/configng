@@ -11,7 +11,9 @@ module_options+=(
 	["module_actualbudget,arch"]=""
 )
 #
-# Module stirling-PDF
+# Manages the lifecycle of the ActualBudget Docker container module.
+#
+# Supports installing, removing, purging, checking status, and displaying help for the ActualBudget containerized application.
 #
 function module_actualbudget () {
 	local title="actualbudget"
