@@ -86,12 +86,20 @@ function module_duplicati () {
 			done
 		;;
 		"${commands[1]}")
-			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+			if [[ -n "${container}" ]]; then
+				docker container rm -f "${container}" >/dev/null
+			fi
+
+			if [[ -n "${image}" ]]; then
+				docker image rm "${image}" >/dev/null
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_duplicati,feature"]} ${commands[1]}
-			[[ -n "${DUPLICATI_BASE}" && "${DUPLICATI_BASE}" != "/" ]] && rm -rf "${DUPLICATI_BASE}"
+			if [[ -n "${DUPLICATI_BASE}" && "${DUPLICATI_BASE}" != "/" ]]; then
+				rm -rf "${DUPLICATI_BASE}"
+			fi
+
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then
