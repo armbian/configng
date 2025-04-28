@@ -29,7 +29,7 @@ function module_nfsd () {
 			pkg_install nfs-common nfs-kernel-server
 			# add some exports
 			${module_options["module_nfsd,feature"]} ${commands[2]}
-			service restart $service_name
+			srv_restart $service_name
 		;;
 		"${commands[1]}")
 			pkg_remove nfs-kernel-server
@@ -67,7 +67,7 @@ function module_nfsd () {
 					break
 				fi
 			done
-			service restart $service_name
+			srv_restart $service_name
 		;;
 		"${commands[3]}")
 			# choose between most common options
@@ -81,7 +81,7 @@ function module_nfsd () {
 			if add_folder=$(dialog --title \
 							"Which folder do you want to export?" \
 							--inputbox "" \
-							6 80 "/armbian" 3>&1 1>&2 2>&3); then
+							6 80 "${SOFTWARE_FOLDER}" 3>&1 1>&2 2>&3); then
 				if add_ip=$(dialog --title \
 							"Which IP or range can access this folder?" \
 							--inputbox "\nExamples: 192.168.1.1, 192.168.1.0/24" \
@@ -93,6 +93,7 @@ function module_nfsd () {
 							$((${LIST_LENGTH} + 6)) 80 ${LIST_LENGTH} "${LIST[@]}" 3>&1 1>&2 2>&3); then
 							echo "$add_folder $add_ip($(echo $add_options | tr ' ' ','))" \
 							>> /etc/exports.d/armbian.exports
+							[[ -n "${add_folder}" ]] && mkdir -p "${add_folder}"
 					fi
 				fi
 			fi
@@ -153,7 +154,7 @@ function module_nfsd () {
 								read
 								sed -i '\?^'$nfs_server:$shares'?d' /etc/fstab
 								echo "${nfs_server}:${shares} ${mount_folder} nfs ${mount_options}" >> /etc/fstab
-								systemctl daemon-reload
+								srv_daemon_reload
 								mount ${mount_options}
 							fi
 							fi

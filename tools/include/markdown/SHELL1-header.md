@@ -1,0 +1,1 @@
+ZSH is a powerful and customizable shell designed to be an enhanced replacement for BASH. When combined with Oh My Zsh, which is integrated in `armbian-zsh`, it offers an extensive plugin system, beautiful themes, and productivity features like autosuggestions, syntax highlighting, and easier navigation.

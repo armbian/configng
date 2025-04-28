@@ -352,6 +352,30 @@ function get_user_continue() {
 	fi
 }
 
+
+#
+# Functions to display warning for 10 seconds with a gauge
+#
+module_options+=(
+	["info_wait_autocontinue,author"]="@igorpecovnik"
+	["info_wait_autocontinue,ref_link"]=""
+	["info_wait_autocontinue,feature"]="info_wait_autocontinue"
+	["info_wait_autocontinue,desc"]="Display a warning with a gauge for 10 seconds then continue"
+	["info_wait_autocontinue,example"]=""
+	["info_wait_autocontinue,doc_link"]=""
+	["info_wait_autocontinue,status"]="Active"
+)
+function info_wait_continue() {
+	local message="$1"
+	local next_action="$2"
+	{
+	for ((i=0; i<=100; i+=10)); do
+		sleep 1
+		echo $i
+	done
+	} | $DIALOG --gauge "$message" 15 80 0
+}
+
 menu_options+=(
 	["get_user_continue,author"]="@Tearran"
 	["get_user_continue,ref_link"]=""
@@ -465,27 +489,27 @@ see_current_apt() {
 	fi
 }
 
+module_options+=(
+	["sanitize,author"]="@Tearran"
+	["sanitize,desc"]="Make sure param contains only valid chars"
+	["sanitize,example"]="sanitize 'foo_bar_42'"
+	["sanitize,feature"]="sanitize"
+	["sanitize,status"]="Interface"
+)
+
+sanitize() {
+	[[ "$1" =~ ^[a-zA-Z0-9_=]+$ ]] && echo "$1" || die "Invalid argument: $1"
+}
 
 module_options+=(
-	["sanitize_input,author"]="@Tearran"
-	["sanitize_input,ref_link"]=""
-	["sanitize_input,feature"]="sanitize_input"
-	["sanitize_input,desc"]="sanitize input cli"
-	["sanitize_input,example"]="sanitize_input"
-	["sanitize_input,status"]="Review"
+	["die,author"]="@dimitry-ishenko"
+	["die,desc"]="Exit with error code 1, optionally printing a message to stderr"
+	["die,example"]="run_critical_function || die 'The world is about to end'"
+	["die,feature"]="die"
+	["die,status"]="Interface"
 )
-#
-# sanitize input cli
-#
-sanitize_input() {
-	local sanitized_input=()
-	for arg in "$@"; do
-		if [[ $arg =~ ^[a-zA-Z0-9_=]+$ ]]; then
-			sanitized_input+=("$arg")
-		else
-			echo "Invalid argument: $arg"
-			exit 1
-		fi
-	done
-	echo "${sanitized_input[@]}"
+
+die() {
+	(( $# )) && echo "$@" >&2
+	exit 1
 }

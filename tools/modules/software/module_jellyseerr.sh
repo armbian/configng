@@ -54,12 +54,18 @@ function module_jellyseerr () {
 			done
 		;;
 		"${commands[1]}")
-			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+			if [[ "${container}" ]]; then
+				docker container rm -f "$container" >/dev/null
+			fi
+			if [[ "${image}" ]]; then
+				docker image rm "$image" >/dev/null
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_jellyseerr,feature"]} ${commands[1]}
-			[[ -n "${JELLYSEERR_BASE}" && "${JELLYSEERR_BASE}" != "/" ]] && rm -rf "${JELLYSEERR_BASE}"
+			if [[ -n "${JELLYSEERR_BASE}" && "${JELLYSEERR_BASE}" != "/" ]]; then
+				rm -rf "${JELLYSEERR_BASE}"
+			fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then
