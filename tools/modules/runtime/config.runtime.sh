@@ -144,6 +144,7 @@ update_sub_submenu_data "Software" "Monitoring" "NAX002" "http://$LOCALIPADD:${m
 
 # Management
 update_sub_submenu_data "Software" "Management" "CPT001" "http://$LOCALIPADD:${module_options["module_cockpit,port"]}"
+update_sub_submenu_data "Software" "Management" "HPG002" "http://$LOCALIPADD:${module_options["module_homepage,port"]}"
 
 # Downloaders
 update_sub_submenu_data "Software" "Downloaders" "DOW002" "http://$LOCALIPADD:${module_options["module_qbittorrent,port"]%% *}" # removing second port from url

@@ -1738,8 +1738,9 @@
                             "condition": ""
                         },
                         {
-                            "id": "MAN009",
-                            "description": "Install Homepage",
+                            "id": "HPG001",
+                            "description": "Install Homepage startpage / application dashboard",
+                            "short": "Homepage",
                             "command": [
                                 "module_homepage install"
                             ],
@@ -1748,10 +1749,20 @@
                             "condition": "! module_homepage status"
                         },
                         {
-                            "id": "MAN010",
+                            "id": "HPG002",
                             "description": "Remove Homepage",
                             "command": [
                                 "module_homepage remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_homepage status"
+                        },
+                        {
+                            "id": "HPG003",
+                            "description": "Purge Homepage with data folder",
+                            "command": [
+                                "module_homepage purge"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
