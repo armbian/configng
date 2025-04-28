@@ -12,7 +12,31 @@ module_options+=(
 )
 #
 # Module stirling-PDF
+# Manages the lifecycle of the ActualBudget Docker container module.
 #
+# Supports installing, removing, purging, checking status, and displaying help for the ActualBudget containerized application.
+#
+# Arguments:
+#
+# * Command to execute: one of "install", "remove", "purge", "status", or "help".
+#
+# Outputs:
+#
+# * Prints status messages, errors, or usage instructions to STDOUT/STDERR.
+#
+# Returns:
+#
+# * 0 on success for status check; 1 on failure or error conditions.
+#
+# Example:
+#
+# ```bash
+# module_actualbudget install
+# module_actualbudget remove
+# module_actualbudget purge
+# module_actualbudget status
+# module_actualbudget help
+# ```
 function module_actualbudget () {
 	local title="actualbudget"
 	local condition=$(which "$title" 2>/dev/null)
