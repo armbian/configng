@@ -628,6 +628,46 @@
                     ]
                 },
                 {
+                    "id": "Backup",
+                    "description": "Backup solutions for your data",
+                    "sub": [
+                        {
+                            "id": "DUP001",
+                            "description": "Duplicati install",
+                            "short": "Duplicati",
+                            "about": "This operation will install Duplicati backup software",
+                            "command": [
+                                "module_duplicati install"
+                            ],
+                            "status": "Stable",
+                            "author": "@yourname",
+                            "condition": "! module_duplicati status"
+                        },
+                        {
+                            "id": "DUP002",
+                            "description": "Duplicati remove",
+                            "about": "This operation will remove Duplicati backup software",
+                            "command": [
+                                "module_duplicati remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@yourname",
+                            "condition": "module_duplicati status"
+                        },
+                        {
+                            "id": "DUP003",
+                            "description": "Duplicati purge with data folder",
+                            "about": "This operation will purge Duplicati data and remove the software",
+                            "command": [
+                                "module_duplicati purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@yourname",
+                            "condition": "module_duplicati status"
+                            }
+                    ]
+                },
+                {
                     "id": "Downloaders",
                     "description": "Download apps for movies, TV shows, music and subtitles",
                     "sub": [
