@@ -382,7 +382,7 @@
                     "status": "Disabled",
                     "sub": [
                         {
-                            "id": "XFCE",
+                            "id": "XFCEDE",
                             "description": "XFCE desktop",
                             "sub": [
                                 {
@@ -429,11 +429,11 @@
                             ]
                         },
                         {
-                            "id": "Gnome",
+                            "id": "GNOMDE",
                             "description": "Gnome desktop",
                             "sub": [
                                 {
-                                    "id": "GNOME01",
+                                    "id": "GNME01",
                                     "description": "Gnome desktop Install",
                                     "command": [
                                         "module_desktop 'install' 'de=gnome'"
@@ -443,7 +443,7 @@
                                     "condition": "! module_desktop status de=gnome"
                                 },
                                 {
-                                    "id": "GNOME02",
+                                    "id": "GNME02",
                                     "description": "Uninstall",
                                     "command": [
                                         "module_desktop 'remove' 'de=gnome'"
@@ -453,7 +453,7 @@
                                     "condition": "module_desktop status de=gnome"
                                 },
                                 {
-                                    "id": "GNOME03",
+                                    "id": "GNME03",
                                     "description": "Enable autologin",
                                     "command": [
                                         "module_desktop auto de=gnome"
@@ -463,7 +463,7 @@
                                     "condition": "module_desktop status de=gnome && ! module_desktop login"
                                 },
                                 {
-                                    "id": "GNOME04",
+                                    "id": "GNME04",
                                     "description": "Disable autologin",
                                     "command": [
                                         "module_desktop manual de=gnome"
@@ -475,7 +475,7 @@
                             ]
                         },
                         {
-                            "id": "I3WM",
+                            "id": "I3WMDE",
                             "description": "i3-wm desktop",
                             "status": "Disabled",
                             "sub": [
@@ -522,12 +522,12 @@
                             ]
                         },
                         {
-                            "id": "Cinnamon",
+                            "id": "CINMDE",
                             "description": "Cinnamon desktop",
                             "status": "Disabled",
                             "sub": [
                                 {
-                                    "id": "CINNAMON01",
+                                    "id": "CINM01",
                                     "description": "Cinnamon desktop Install",
                                     "command": [
                                         "manage_desktops 'cinnamon' 'install'"
@@ -537,7 +537,7 @@
                                     "condition": "[ ! -f /usr/share/xsessions/cinnamon.desktop ] && [ ! -f /usr/share/xsessions/cinnamon2d.desktop ]"
                                 },
                                 {
-                                    "id": "CINNAMON02",
+                                    "id": "CINM02",
                                     "description": "Cinnamon desktop uninstall",
                                     "command": [
                                         "manage_desktops 'cinnamon' 'uninstall'"
@@ -547,7 +547,7 @@
                                     "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] || [ -f /usr/share/xsessions/cinnamon2d.desktop ]"
                                 },
                                 {
-                                    "id": "CINNAMON03",
+                                    "id": "CINM03",
                                     "description": "Enable autologin",
                                     "command": [
                                         "manage_desktops 'cinnamon' 'auto'"
@@ -557,7 +557,7 @@
                                     "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
                                 },
                                 {
-                                    "id": "CINNAMON04",
+                                    "id": "CINM04",
                                     "description": "Disable autologin",
                                     "command": [
                                         "manage_desktops 'cinnamon' 'manual'"
@@ -569,12 +569,12 @@
                             ]
                         },
                         {
-                            "id": "KDEN",
+                            "id": "KDENEO",
                             "description": "Kde-neon desktop",
                             "status": "Disabled",
                             "sub": [
                                 {
-                                    "id": "KDENEON01",
+                                    "id": "KDEN01",
                                     "description": "Kde-neon desktop Install",
                                     "command": [
                                         "manage_desktops 'kde-neon' 'install'"
@@ -584,7 +584,7 @@
                                     "condition": "[ ! -f /usr/share/xsessions/gnome.desktop ]"
                                 },
                                 {
-                                    "id": "KDENEON02",
+                                    "id": "KDEN02",
                                     "description": "Uninstall",
                                     "command": [
                                         "manage_desktops 'kde-neon' 'uninstall'"
@@ -594,7 +594,7 @@
                                     "condition": "[ -f /usr/share/xsessions/gnome.desktop ]"
                                 },
                                 {
-                                    "id": "KDENEON03",
+                                    "id": "KDEN03",
                                     "description": "Enable autologin",
                                     "command": [
                                         "manage_desktops 'kde-neon' 'auto'"
@@ -604,7 +604,7 @@
                                     "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
                                 },
                                 {
-                                    "id": "KDENEON04",
+                                    "id": "KDEN04",
                                     "description": "Disable autologin",
                                     "command": [
                                         "manage_desktops 'kde-neon' 'manual'"

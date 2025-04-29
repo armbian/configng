@@ -36,8 +36,6 @@ jobs:
       - name: Check for empty "author" fields
         run: |
           found_empty=0
-          echo "## ⚠️ Empty 'author' fields found:" >> $GITHUB_STEP_SUMMARY
-
           for file in config/tools/json/*.json; do
             matches=$(jq -r '
               paths(scalars) as $p

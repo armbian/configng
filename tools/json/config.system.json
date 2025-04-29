@@ -61,7 +61,7 @@
                                 "manage_odroid_board select"
                             ],
                             "status": "Preview",
-                            "author": "",
+                            "author": "@GeoffClements",
                             "condition": "[ $BOARDFAMILY == odroidxu4 ]"
                         },
                         {
