@@ -5,7 +5,7 @@
             "description": "About this tool",
             "sub": [
                 {
-                    "id": "HE001",
+                    "id": "HLP001",
                     "description": "Contribute",
                     "command": [
                         "show_message <<< $(about_armbian_configng)"
@@ -14,7 +14,7 @@
                     "author": "@armbian"
                 },
                 {
-                    "id": "HE002",
+                    "id": "HLP002",
                     "description": "List of Config function(WIP)",
                     "command": [
                         "show_message <<< see_use"

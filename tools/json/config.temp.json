@@ -5,12 +5,12 @@
             "description": "Description ... ",
             "sub": [
                 {
-                    "id": "UID01",
+                    "id": "UID001",
                     "description": "Description ... ",
                     "prompt": "",
                     "sub": [
                         {
-                            "id": "SUB02",
+                            "id": "SUB002",
                             "description": "Description ... ",
                             "command": [
                                 "show_message <<< \" Message ... \""
@@ -22,7 +22,7 @@
                     ]
                 },
                 {
-                    "id": "UID03",
+                    "id": "UID003",
                     "description": "Description ... ",
                     "command": [
                         "show_message <<< \" Message ... \""
@@ -32,7 +32,7 @@
                     "condition": ""
                 },
                 {
-                    "id": "UID04",
+                    "id": "UID004",
                     "description": "Description  ... ",
                     "prompt": "Prompt\nContinue?",
                     "command": [
