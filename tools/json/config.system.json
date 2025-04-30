@@ -468,7 +468,7 @@
                             "id": "UPD001",
                             "description": "Enable Armbian firmware upgrades",
                             "short": "Firmware",
-                            "about": "This will enable Armbian kernel upgrades that are currently put on hold.",
+                            "about": "This will enable Armbian kernel/firmware upgrades that are currently put on hold.",
                             "command": [
                                 "module_armbian_firmware unhold"
                             ],
@@ -478,7 +478,7 @@
                         },
                         {
                             "id": "UPD002",
-                            "description": "Disable Armbian kernel upgrades",
+                            "description": "Disable Armbian firmware upgrades",
                             "about": "Disable Armbian kernel/firmware upgrades",
                             "command": [
                                 "module_armbian_firmware hold"
