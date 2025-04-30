@@ -69,13 +69,13 @@ armbian-config --cmd help
 armbian-config --api help
 \`\`\`
 
-# EXAMPLES
-Directly open run menu item
+
+# Directly open run menu item
 \`\`\`
 $(see_cmd_list)
 \`\`\`
 
-Directly access modules and helpers
+# Directly access modules and helpers
 
 \`\`\`
 $(see_use)
@@ -90,9 +90,6 @@ For more information, visit:
 - [GitHub Repository](https://github.com/armbian/configng)
 
 ---
-
-# AUTHOR
-script team
 
 # COPYRIGHT
 © 2025 Armbian Team. Distributed under the GPL 3.0 license.
