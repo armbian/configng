@@ -59,7 +59,7 @@ sudo armbian-config
 
   - ### OS updates and distribution upgrades
     - ### Enable Armbian firmware upgrades
-    - ### Disable Armbian kernel upgrades
+    - ### Disable Armbian firmware upgrades
     - ### Switch system to rolling packages repository
     - ### Switch system to stable packages repository
     - ### Enable automating Docker container base images updating
@@ -412,7 +412,7 @@ Outputs:
 	--cmd MOTD01 - Adjust welcome screen (motd)
     Updates - OS updates and distribution upgrades
 	--cmd UPD001 - Enable Armbian firmware upgrades
-	--cmd UPD002 - Disable Armbian kernel upgrades
+	--cmd UPD002 - Disable Armbian firmware upgrades
 	--cmd ROLLIN - Switch system to rolling packages repository
 	--cmd STABLE - Switch system to stable packages repository
 	--cmd WTC001 - Enable automating Docker container base images updating
