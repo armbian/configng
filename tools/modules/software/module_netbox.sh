@@ -49,13 +49,9 @@ function module_netbox () {
 			pkg_installed docker-ce || module_docker install
 			[[ -d "$NETBOX_BASE" ]] || mkdir -p "$NETBOX_BASE" || { echo "Couldn't create storage directory: $NETBOX_BASE"; exit 1; }
 
-			# install redis
-			module_redis remove
-			module_redis install
-
-			# install postgres
-			module_postgres remove
-			module_postgres install
+			# Install armbian-config dependencies
+			if ! docker container ls -a --format '{{.Names}}' | grep -q '^redis$'; then module_redis install; fi
+			if ! docker container ls -a --format '{{.Names}}' | grep -q '^postgres$'; then module_postgres install; fi
 
 			# Generate a random secret key (50+ chars)
 			NETBOX_SECRET_KEY=$(tr -dc 'A-Za-z0-9!@#$%^&*()-_=+' </dev/urandom | head -c 64)
