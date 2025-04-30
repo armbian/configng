@@ -35,15 +35,13 @@ function module_immich () {
 				module_docker install
 			fi
 
-			if [ ! -d "$IMMICH_BASE" ]; then
-				mkdir -p "$IMMICH_BASE" || { echo "❌ Couldn't create storage directory: $IMMICH_BASE"; exit 1; }                
-			fi
-
 			# workaround if we re-install
-			mkdir -p "$IMMICH_BASE"/photos/{backups,encoded-video,library,profile,thumbs,upload}
+			mkdir -p \
+			"$IMMICH_BASE"/photos/{backups,encoded-video,library,profile,thumbs,upload} \
+			"$IMMICH_BASE"/config \
+			"$IMMICH_BASE"/libraries
 			touch "$IMMICH_BASE"/photos/{backups,thumbs,profile,upload,library,encoded-video}/.immich
 			sudo chown -R 1000:1000 "$IMMICH_BASE"/
-
 			# Install armbian-config dependencies
 			if ! docker container ls -a --format '{{.Names}}' | grep -q '^redis$'; then module_redis install; fi
 			if ! docker container ls -a --format '{{.Names}}' | grep -q '^postgres$'; then module_postgres install; fi
