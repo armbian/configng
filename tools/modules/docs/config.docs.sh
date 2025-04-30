@@ -7,7 +7,7 @@ module_options+=(
 	["generate_readme,ref_link"]=""
 	["generate_readme,feature"]="generate_readme"
 	["generate_readme,desc"]="Generate Document files."
-	["generate_readme,example"]="generate_readme"
+	["generate_readme,example"]=""
 	["generate_readme,status"]="review"
 )
 #
@@ -15,159 +15,97 @@ module_options+=(
 #
 function generate_readme() {
 
-	# Get the current date
-	local current_date=$(date)
-	# setup doc folders
-	#mkdir -p "$script_dir/../share/doc/armbian-config"
+    # Get the current date
+    local current_date=$(date)
 
-	echo -e "Sorting data\nUpdating documentation" # current_date ;
+    # Setup the documentation and man-page directories
+    local doc_dir="$script_dir/../"
+    local man_dir="$script_dir/../share/man1"
 
-	cat << EOF_DOC > "$script_dir/../DOCUMENTATION.md"
+    # Ensure the directories exist
+    mkdir -p "$doc_dir"
+    mkdir -p "$man_dir"
 
-# Armbian Configuration Utility
+    echo -e "Sorting data\nUpdating documentation" # Log the process
+
+    # Generate the Markdown documentation
+    cat << EOF_DOC > "$doc_dir/DOCUMENTATION.md"
+---
+title: "armbian-config(1)"
+author: "Armbian Team"
+date: "$current_date"
+---
 
 <img src="https://raw.githubusercontent.com/armbian/configng/main/share/icons/hicolor/scalable/configng-tux.svg">
 
-Utility for configuring your board, adjusting services, and installing applications. It comes with Armbian by default.
+# NAME
+**Armbian Config** - The Next Generation
 
-To start the Armbian configuration utility, use the following command:
-~~~
-sudo armbian-config
-~~~
+# SYNOPSIS
+\`armbian-config\` [option] [arguments] [@]
 
-$(see_full_list)
+# DESCRIPTION
+\`armbian-config\` provides configuration and installation routines for customizing and automating tasks within the Armbian Linux environment. These utilities help streamline setup processes for various use cases, such as managing software, network settings, localization, and system optimizations.
 
-## Install
-Armbian installation
-~~~
-sudo apt install armbian-config
-~~~
+# COMMAND-LINE OPTIONS
+\`armbian-config\` can also be used directly from the command line with the following options:
 
-3rd party Debian based distributions
-~~~
-{
-	sudo wget https://apt.armbian.com/armbian.key -O key
-	sudo gpg --dearmor < key | sudo tee /usr/share/keyrings/armbian.gpg > /dev/null
-	sudo chmod go+r /usr/share/keyrings/armbian.gpg
-	echo << EOF | sudo tee /etc/apt/sources.list.d/armbian.sources
-	Types: deb
-	URIs: https://apt.armbian.com
-	Suites: $(lsb_release -cs)
-	Components: main $(lsb_release -cs)-utils $(lsb_release -cs)-desktop
-	Architectures: $(dpkg --print-architecture)
-	Signed-By: /usr/share/keyrings/armbian.gpg
-	EOF
-	sudo apt update
-	sudo apt install armbian-config
-}
-~~~
+## General Options
+- Display help for specific categories or overall usage.
 
-***
+\`\`\`bash
+armbian-config --help [cmd|System|Software|Network|Localisation]
+\`\`\`
 
-## CLI options
-Command line options.
+- Navigate directly to a specific menu location or ID.
 
-Use:
-~~~
-armbian-config --help
-~~~
+\`\`\`bash
+armbian-config --cmd help
+\`\`\`
 
-Outputs:
-~~~
+- Programmatically interact with an application module or its helper functions.
+(applications parsing interface)
+\`\`\`bash
+armbian-config --api help
+\`\`\`
+
+# EXAMPLES
+Directly open run menu item
+\`\`\`
 $(see_cmd_list)
-~~~
+\`\`\`
 
-## Legacy options
-Backward Compatible options.
+Directly access modules and helpers
 
-Use:
-~~~
-armbian-config main=Help
-~~~
-
-Outputs:
-~~~
-$(see_cli_legacy)
-~~~
-
-***
-
-## Development
-
-Development is divided into three sections:
-
-Click for more info:
-
-<details>
-<summary><b>Jobs / JSON Object</b></summary>
-
-A list of the jobs defined in the Jobs file.
-~~~
-$(see_jq_menu_list)
-~~~
-</details>
+\`\`\`
+$(see_use)
+\`\`\`
 
 
-<details>
-<summary><b>Jobs API / Helper Functions</b></summary>
+---
 
-These helper functions facilitate various operations related to job management, such as creation, updating, deletion, and listing of jobs, acting as a practical API for developers.
+# SEE ALSO
+For more information, visit:
+- [Armbian Documentation](https://docs.armbian.com/User-Guide_Armbian-Config/)
+- [GitHub Repository](https://github.com/armbian/configng)
 
-$(see_function_table_md)
+---
 
+# AUTHOR
+script team
 
-</details>
-
-
-<details>
-<summary><b>Runtime / Board Statuses</b></summary>
-
-(WIP)
-
-This section outlines the runtime environment to check configurations and statuses for dynamically managing jobs based on JSON data.
-
-(WIP)
-
-</details>
-
-
-## Testing and contributing
-
-<details>
-<summary><b>Get Development</b></summary>
-
-Install the dependencies:
-~~~
-sudo apt install git jq whiptail
-~~~
-
-Get Development and contribute:
-~~~
-{
-git clone https://github.com/armbian/configng
-cd configng
-./armbian-config --help
-}
-~~~
-
-Install and test Development deb:
-~~~
-{
-	sudo apt install whiptail
-	latest_release=\$(curl -s https://api.github.com/repos/armbian/configng/releases/latest)
-	deb_url=\$(echo "\$latest_release" | jq -r '.assets[] | select(.name | endswith(".deb")) | .browser_download_url')
-	curl -LO "\$deb_url"
-	deb_file=\$(echo "\$deb_url" | awk -F"/" '{print \$NF}')
-	sudo dpkg -i "\$deb_file"
-	sudo dpkg --configure -a
-	sudo apt --fix-broken install
-}
-~~~
-
-</details>
-
+# COPYRIGHT
+© 2025 Armbian Team. Distributed under the GPL 3.0 license.
 EOF_DOC
+    # Convert the Markdown documentation to a man page
+    if pandoc -s -t man "$doc_dir/DOCUMENTATION.md" -o "$man_dir/armbian-config.1" && gzip -f "$script_dir/../share/man1/armbian-config.1"; then
+        echo "Man page successfully generated at: $man_dir/armbian-config.1"
+    else
+        echo "An error occurred while generating the man page."
+        return 1
+    fi
 
+    echo "Documentation and man page update completed."
 }
 
 module_options+=(
@@ -221,16 +159,23 @@ module_options+=(
 # Function to parse the key-pairs  (WIP)
 #
 function see_use() {
-	mod_message="Usage: \n\n"
+	mod_message="Usage: ${0} --api [module] [options]\n\n"
 	# Iterate over the options
 	for key in "${!module_options[@]}"; do
 		# Split the key into function_name and type
 		IFS=',' read -r function_name type <<< "$key"
-		# If the type is 'long', append the option to the help message
+
 		if [[ "$type" == "feature" ]]; then
-			mod_message+="${module_options["$function_name,feature"]} - ${module_options["$function_name,desc"]}\n"
-			mod_message+="  ${module_options["$function_name,example"]}\n\n"
+			mod_message+="--api ${module_options["$function_name,feature"]} - ${module_options["$function_name,desc"]}\n"
+
+			example="${module_options["$function_name,example"]}"
+			if [[ -z "$example" || "$example" == "none" || "$example" == "${module_options["$function_name,feature"]}" ]]; then
+				mod_message+="\t[options] - None\n\n"
+			else
+				mod_message+="\t[options] - $example\n\n"
+			fi
 		fi
+
 	done
 
 	echo -e "$mod_message"
