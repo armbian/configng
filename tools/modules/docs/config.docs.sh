@@ -95,7 +95,7 @@ For more information, visit:
 © 2025 Armbian Team. Distributed under the GPL 3.0 license.
 EOF_DOC
 	# Convert the Markdown documentation to a man page
-	if pandoc -s -t man "$doc_dir/DOCUMENTATION.md" -o "$man_dir/armbian-config.1" && gzip -f "$script_dir/../share/man1/armbian-config.1"; then
+	if pandoc -s -t man "$doc_dir/DOCUMENTATION.md" -o "$man_dir/armbian-config.1" && gzip -f "$man_dir/armbian-config.1"; then
 		echo "Man page successfully generated at: $man_dir/armbian-config.1"
 	else
 		echo "An error occurred while generating the man page."
