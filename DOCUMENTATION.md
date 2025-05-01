@@ -1,7 +1,7 @@
 ---
 title: "armbian-config(1)"
 author: "Armbian Team"
-date: "Wed Apr 30 09:33:28 PM UTC 2025"
+date: "Thu May  1 02:21:41 AM UTC 2025"
 ---
 
 <img src="https://raw.githubusercontent.com/armbian/configng/main/share/icons/hicolor/scalable/configng-tux.svg">
@@ -10,7 +10,7 @@ date: "Wed Apr 30 09:33:28 PM UTC 2025"
 **Armbian Config** - The Next Generation
 
 # SYNOPSIS
-`armbian-config` [option] [arguments] [@]
+`armbian-config[option] [arguments] [@]`
 
 # DESCRIPTION
 `armbian-config` provides configuration and installation routines for customizing and automating tasks within the Armbian Linux environment. These utilities help streamline setup processes for various use cases, such as managing software, network settings, localization, and system optimizations.
@@ -39,7 +39,7 @@ armbian-config --api help
 
 
 # Directly open run menu item
-```
+```bash
 
   System - System wide and admin settings (aarch64)
     Kernel - Alternative kernels, headers, overlays, bootenv
@@ -293,7 +293,7 @@ armbian-config --api help
 
 # Directly access modules and helpers
 
-```
+```bash
 Usage: ./bin/armbian-config --api [module] [options]
 
 --api see_cli_legacy - Generate a Help message legacy cli commands.

@@ -42,7 +42,7 @@ date: "$current_date"
 **Armbian Config** - The Next Generation
 
 # SYNOPSIS
-\`armbian-config\` [option] [arguments] [@]
+\`armbian-config[option] [arguments] [@]\`
 
 # DESCRIPTION
 \`armbian-config\` provides configuration and installation routines for customizing and automating tasks within the Armbian Linux environment. These utilities help streamline setup processes for various use cases, such as managing software, network settings, localization, and system optimizations.
@@ -71,13 +71,13 @@ armbian-config --api help
 
 
 # Directly open run menu item
-\`\`\`
+\`\`\`bash
 $(see_cmd_list)
 \`\`\`
 
 # Directly access modules and helpers
 
-\`\`\`
+\`\`\`bash
 $(see_use)
 \`\`\`
 
