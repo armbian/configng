@@ -15,21 +15,21 @@ module_options+=(
 #
 function generate_readme() {
 
-    # Get the current date
-    local current_date=$(date)
+	# Get the current date
+	local current_date=$(date)
 
-    # Setup the documentation and man-page directories
-    local doc_dir="$script_dir/../"
-    local man_dir="$script_dir/../share/man1"
+	# Setup the documentation and man-page directories
+	local doc_dir="$script_dir/../"
+	local man_dir="$script_dir/../share/man1"
 
-    # Ensure the directories exist
-    mkdir -p "$doc_dir"
-    mkdir -p "$man_dir"
+	# Ensure the directories exist
+	mkdir -p "$doc_dir"
+	mkdir -p "$man_dir"
 
-    echo -e "Sorting data\nUpdating documentation" # Log the process
+	echo -e "Sorting data\nUpdating documentation" # Log the process
 
-    # Generate the Markdown documentation
-    cat << EOF_DOC > "$doc_dir/DOCUMENTATION.md"
+	# Generate the Markdown documentation
+	cat << EOF_DOC > "$doc_dir/DOCUMENTATION.md"
 ---
 title: "armbian-config(1)"
 author: "Armbian Team"
@@ -94,13 +94,13 @@ For more information, visit:
 # COPYRIGHT
 © 2025 Armbian Team. Distributed under the GPL 3.0 license.
 EOF_DOC
-    # Convert the Markdown documentation to a man page
-    if pandoc -s -t man "$doc_dir/DOCUMENTATION.md" -o "$man_dir/armbian-config.1" && gzip -f "$script_dir/../share/man1/armbian-config.1"; then
-        echo "Man page successfully generated at: $man_dir/armbian-config.1"
-    else
-        echo "An error occurred while generating the man page."
-        return 1
-    fi
+	# Convert the Markdown documentation to a man page
+	if pandoc -s -t man "$doc_dir/DOCUMENTATION.md" -o "$man_dir/armbian-config.1" && gzip -f "$script_dir/../share/man1/armbian-config.1"; then
+		echo "Man page successfully generated at: $man_dir/armbian-config.1"
+	else
+		echo "An error occurred while generating the man page."
+		return 1
+	fi
 
     echo "Documentation and man page update completed."
 }

@@ -1,7 +1,7 @@
 ---
 title: "armbian-config(1)"
 author: "Armbian Team"
-date: "Thu May  1 02:21:41 AM UTC 2025"
+date: "Thu May  1 02:31:23 AM UTC 2025"
 ---
 
 <img src="https://raw.githubusercontent.com/armbian/configng/main/share/icons/hicolor/scalable/configng-tux.svg">
@@ -87,7 +87,7 @@ armbian-config --api help
 	--cmd MOTD01 - Adjust welcome screen (motd)
     Updates - OS updates and distribution upgrades
 	--cmd UPD001 - Enable Armbian firmware upgrades
-	--cmd UPD002 - Disable Armbian kernel upgrades
+	--cmd UPD002 - Disable Armbian firmware upgrades
 	--cmd ROLLIN - Switch system to rolling packages repository
 	--cmd STABLE - Switch system to stable packages repository
 	--cmd WTC001 - Enable automating Docker container base images updating
@@ -245,6 +245,9 @@ armbian-config --api help
 	--cmd HPS001 - Hastebin Paste Server
 	--cmd HPS002 - Hastebin remove
 	--cmd HPS003 - Hastebin purge with data folder
+	--cmd IMM001 - Immich - high-performance self-hosted photo and video backup solution
+	--cmd IMM002 - Immich remove (http://192.168.43.68:8077)
+	--cmd IMM003 - Immich purge with data folder
     Monitoring - Real-time monitoring, collecting metrics, up-time status
 	--cmd UPK001 - Uptime Kuma self-hosted monitoring tool
 	--cmd UPK002 - Uptime Kuma remove (http://192.168.43.68:3001)
@@ -421,6 +424,9 @@ Usage: ./bin/armbian-config --api [module] [options]
 
 --api pkg_remove - Remove package
 	[options] - pkg_remove nmap
+
+--api module_immich - Install Immich (photo and video backup solution)
+	[options] - install remove purge status help
 
 --api module_samba - Samba setup and service setting.
 	[options] - help install remove start stop enable disable configure default status
