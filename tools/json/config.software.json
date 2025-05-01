@@ -1629,6 +1629,40 @@
                             "status": "Stable",
                             "author": "@efectn",
                             "condition": "module_hastebin status"
+                        },
+                        {
+                            "id": "IMM001",
+                            "description": "Immich - high-performance self-hosted photo and video backup solution",
+                            "short": "Immich",
+                            "about": "This operation will install Immich server with dependencies (PostgreSQL and Redis).",
+                            "command": [
+                                "module_immich install"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_immich status"
+                        },
+                        {
+                            "id": "IMM002",
+                            "description": "Immich remove",
+                            "about": "This operation will remove the Immich container.",
+                            "command": [
+                                "module_immich remove"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_immich status"
+                        },
+                        {
+                            "id": "IMM003",
+                            "description": "Immich purge with data folder",
+                            "about": "This operation will remove Immich container and delete all its data.",
+                            "command": [
+                                "module_immich purge"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_immich status"
                         }
                     ]
                 },

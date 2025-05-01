@@ -116,6 +116,7 @@ update_sub_submenu_data "Software" "Media" "STC002" "http://$LOCALIPADD:${module
 update_sub_submenu_data "Software" "Media" "NCT002" "https://$LOCALIPADD:${module_options["module_nextcloud,port"]}"
 update_sub_submenu_data "Software" "Media" "OWC002" "http://$LOCALIPADD:${module_options["module_owncloud,port"]}"
 update_sub_submenu_data "Software" "Media" "JMS002" "http://$LOCALIPADD:${module_options["module_jellyfin,port"]}"
+update_sub_submenu_data "Software" "Media" "IMM002" "http://$LOCALIPADD:${module_options["module_immich,port"]}"
 
 # Containers
 update_sub_submenu_data "Software" "Containers" "POR002" "http://$LOCALIPADD:${module_options["module_portainer,port"]%% *}" # removing second port from url

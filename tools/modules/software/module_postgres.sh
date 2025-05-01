@@ -20,7 +20,7 @@ function module_postgres () {
 
 	if pkg_installed docker-ce; then
 		local container=$(docker container ls -a | mawk '/postgres?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/postgres?( |$)/{print $3}')
+		local image=$(docker image ls -a | mawk '/pg14-v0.2.0?( |$)/{print $3}')
 	fi
 
 	local commands
@@ -51,7 +51,7 @@ function module_postgres () {
 			-p 5432:5432 \
 			-v "${POSTGRES_BASE}/data:/var/lib/postgresql/data" \
 			--restart unless-stopped \
-			postgres:16-alpine
+			tensorchord/pgvecto-rs:pg14-v0.2.0
 			for i in $(seq 1 20); do
 				if docker inspect -f '{{ index .Config.Labels "org.opencontainers.image.version" }}' postgres >/dev/null 2>&1 ; then
 					break
