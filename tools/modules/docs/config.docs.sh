@@ -36,7 +36,7 @@ author: "Armbian Team"
 date: "$current_date"
 ---
 
-<img src="https://raw.githubusercontent.com/armbian/configng/main/share/icons/hicolor/scalable/configng-tux.svg">
+<img alt="Armbian Config Logo" src="https://raw.githubusercontent.com/armbian/configng/main/share/icons/hicolor/scalable/configng-tux.svg">
 
 # NAME
 **Armbian Config** - The Next Generation
@@ -102,7 +102,7 @@ EOF_DOC
 		return 1
 	fi
 
-    echo "Documentation and man page update completed."
+	echo "Documentation and man page update completed."
 }
 
 module_options+=(
