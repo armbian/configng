@@ -1,0 +1,1 @@
+This module automates the installation, removal, and status checking of GitHub self-hosted runners for the Armbian project. It supports batch operations and user input through dialog prompts when running interactively.

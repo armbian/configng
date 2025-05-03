@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  EXCLUDED_IDS: '["Help", "Localisation", "Network" ,"Software" ,"WebHosting", "HomeAutomation", "DNS", "Music", "Finance", "Desktops" , "Downloaders", "Database", "DevTools", "Containers", "Media", "Monitoring", "Management", "Printing", "Netconfig", "Storage", "Updates", "User", "VPN", "Template"]'
+  EXCLUDED_IDS: '["Help", "Armbian", "Localisation", "Network" ,"Software" ,"WebHosting", "HomeAutomation", "DNS", "Music", "Finance", "Desktops" , "Downloaders", "Database", "DevTools", "Containers", "Media", "Monitoring", "Management", "Printing", "Netconfig", "Storage", "Updates", "User", "VPN", "Template"]'
 
 jobs:
   checkout:
