@@ -8,7 +8,7 @@ module_options+=(
 	["module_simple_network,doc_link"]=""
 	["module_simple_network,group"]="Network"
 	["module_simple_network,port"]=""
-	["module_simple_network,arch"]=""
+	["module_simple_network,arch"]="x86-64 arm64 armhf riscv64"
 )
 #
 # Function to select network adapter

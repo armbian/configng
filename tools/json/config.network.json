@@ -8,6 +8,7 @@
                     "id": "BNS001",
                     "description": "Basic network setup",
                     "short": "Basic setup",
+                    "module": "module_generic",
                     "command": [
                         "module_simple_network simple"
                     ],
@@ -31,6 +32,7 @@
                     "id": "VNS001",
                     "description": "View Network Configuration",
                     "short": "View configuration",
+                    "module": "module_generic",
                     "command": [
                         "show_message <<< \"$(netplan get all)\""
                     ],
@@ -42,11 +44,13 @@
                     "id": "NEA001",
                     "description": "Advanced bridged network configuration",
                     "short": "Advanced",
+                    "module": "module_generic",
                     "sub": [
                         {
                             "id": "NEA002",
                             "description": "Add / change interface",
                             "short": "Add or Change",
+                            "module": "module_generic",
                             "command": [
                                 "network_config armbian"
                             ],
