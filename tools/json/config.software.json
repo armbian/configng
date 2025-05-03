@@ -1470,6 +1470,30 @@
                             "condition": "module_plexmediaserver status"
                         },
                         {
+                            "id": "OMV001",
+                            "description": "Deploy NAS using OpenMediaVault",
+                            "short": "OMV",
+                            "module": "module_omv",
+                            "about": "This operation will install OpenMediaVault on your system.",
+                            "command": [
+                                "module_omv install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_omv status"
+                        },
+                        {
+                            "id": "OMV002",
+                            "description": "OpenMediaVault remove",
+                            "about": "This operation will completely remove OpenMediaVault from your system.",
+                            "command": [
+                                "module_omv remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_omv status"
+                        },
+                        {
                             "id": "EMB001",
                             "description": "Emby organizes video, music, live TV, and photos",
                             "short": "Emby",                            
