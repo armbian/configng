@@ -2138,6 +2138,7 @@
                         {
                             "id": "ZTR001",
                             "description": "ZeroTier connect devices over your own private network in the world.",
+                            "short": "ZeroTier",
                             "command": [
                                 "see_menu module_zerotier"
                             ],
