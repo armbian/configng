@@ -109,6 +109,7 @@ update_sub_submenu_data "Software" "Database" "MYA002" "http://$LOCALIPADD:${mod
 update_sub_submenu_data "Software" "Finance" "ABU002" "http://$LOCALIPADD:${module_options["module_actualbudget,port"]}"
 
 # Media
+update_sub_submenu_data "Software" "Media" "OMV002" "http://$LOCALIPADD:${module_options["module_omv,port"]}"
 update_sub_submenu_data "Software" "Media" "MED002" "http://$LOCALIPADD:${module_options["module_plexmediaserver,port"]}"
 update_sub_submenu_data "Software" "Media" "EMB002" "http://$LOCALIPADD:${module_options["module_embyserver,port"]}"
 update_sub_submenu_data "Software" "Media" "STR002" "http://$LOCALIPADD:${module_options["module_stirling,port"]}"
