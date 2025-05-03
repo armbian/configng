@@ -5,6 +5,7 @@ module_options+=(
 	["manage_odroid_board,desc"]="Select optimised Odroid board configuration"
 	["manage_odroid_board,example"]="select"
 	["manage_odroid_board,status"]="Stable"
+	["manage_odroid_board,arch"]="armhf"
 )
 #
 # @description Select optimised board configuration

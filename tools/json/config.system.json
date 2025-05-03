@@ -13,6 +13,7 @@
                             "id": "KER001",
                             "description": "Use alternative kernels",
                             "short": "Alternative kernels",
+                            "module": "module_generic",
                             "about": "Switching between kernels might change functionality of your device. \n\nIt might fail to boot!",
                             "command": [
                                 "module_armbian_firmware select"
@@ -25,6 +26,7 @@
                             "id": "HEAD01",
                             "description": "Install Linux headers",
                             "short": "Kernel Headers",
+                            "module": "module_generic",
                             "command": [
                                 "module_armbian_firmware headers install"
                             ],
@@ -46,6 +48,7 @@
                             "id": "DTO001",
                             "description": "Manage device tree overlays",
                             "short": "Device Tree Overlays",
+                            "module": "module_generic",
                             "command": [
                                 "manage_dtoverlays"
                             ],
@@ -57,6 +60,7 @@
                             "id": "ODR001",
                             "description": "Select Odroid board configuration",
                             "short": "Odroid Boards Config",
+                            "module": "manage_odroid_board",
                             "command": [
                                 "manage_odroid_board select"
                             ],
@@ -68,6 +72,7 @@
                             "id": "BOOT01",
                             "description": "Edit the boot environment",
                             "short": "Boot Environment",
+                            "module": "module_generic",
                             "about": "This will open /boot/armbianEnv.txt file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?",
                             "command": [
                                 "nano /boot/armbianEnv.txt"
@@ -82,10 +87,12 @@
                     "id": "Storage",
                     "description": "Install to internal media, ZFS, NFS, read-only rootfs",
                     "short": "Storage",
+                    "module": "module_generic",
                     "sub": [
                         {
                             "id": "STO001",
                             "description": "Install",
+                            "module": "module_generic",
                             "command": [
                                 "armbian-install"
                             ],
@@ -97,6 +104,7 @@
                             "id": "ROO001",
                             "description": "Enable read only filesystem",
                             "short": "Read Only FS",
+                            "module": "module_generic",
                             "prompt": "This will enable Armbian read-only filesystem.\n",
                             "command": [
                                 "module_overlayfs install"
@@ -120,6 +128,7 @@
                             "id": "NETF01",
                             "description": "Enable Network filesystem (NFS) support",
                             "short": "NFS",
+                            "module": "module_generic",
                             "command": [
                                 "module_nfs install"
                             ],
@@ -141,12 +150,14 @@
                             "id": "NETF03",
                             "description": "Manage NFS Server",
                             "short": "NFS server",
+                            "module": "module_generic",
                             "condition": "pkg_installed nfs-common",
                             "sub": [
                                 {
                                     "id": "NETF04",
                                     "description": "Enable network filesystem (NFS) daemon",
                                     "short": "NFS server",
+                                    "module": "module_generic",
                                     "command": [
                                         "module_nfsd install"
                                     ],
@@ -177,6 +188,7 @@
                                 {
                                     "id": "NETF07",
                                     "description": "Show network filesystem (NFS) daemon clients",
+                                    "module": "module_generic",
                                     "command": [
                                         "module_nfsd clients"
                                     ],
@@ -190,12 +202,14 @@
                             "id": "NETF08",
                             "description": "Manage NFS Client",
                             "short": "NFS client",
+                            "module": "module_generic",
                             "condition": "pkg_installed nfs-common",
                             "sub": [
                                 {
                                     "id": "NETF09",
                                     "description": "Find NFS servers in subnet and mount shares",
                                     "short": "Find NFS servers",
+                                    "module": "module_generic",
                                     "command": [
                                         "module_nfs servers"
                                     ],
@@ -219,6 +233,7 @@
                             "id": "ZFS001",
                             "description": "ZFS filesystem - enable support",
                             "short": "ZFS",
+                            "module": "module_generic",
                             "command": [
                                 "module_zfs install"
                             ],
@@ -247,6 +262,7 @@
                             "id": "ACC001",
                             "description": "Disable root login",                            
                             "short": "Native",
+                            "module": "module_generic",
                             "command": [
                                 "sed -i \"s|^#\\?PermitRootLogin.*|PermitRootLogin no|\" /etc/ssh/sshd_config",
                                 "srv_restart ssh"
@@ -385,6 +401,7 @@
                             "id": "SSH001",
                             "description": "Sandboxed & containerised SSH server",
                             "short": "Containerised",
+                            "module": "module_openssh-server",
                             "about": "This operation will install SSH server.",
                             "command": [
                                 "module_openssh-server install"
@@ -426,6 +443,7 @@
                             "id": "SHELL1",
                             "description": "Change shell system wide to ZSH",
                             "short": "Change shell",
+                            "module": "module_generic",
                             "about": "This will switch system wide shell to ZSH",
                             "command": [
                                 "manage_zsh enable"
@@ -449,6 +467,7 @@
                             "id": "MOTD01",
                             "description": "Adjust welcome screen (motd)",
                             "short": "Adjust MOTD",
+                            "module": "module_generic",
                             "command": [
                                 "adjust_motd"
                             ],
@@ -468,6 +487,7 @@
                             "id": "UPD001",
                             "description": "Enable Armbian firmware upgrades",
                             "short": "Firmware",
+                            "module": "module_generic",
                             "about": "This will enable Armbian kernel/firmware upgrades that are currently put on hold.",
                             "command": [
                                 "module_armbian_firmware unhold"
@@ -491,6 +511,7 @@
                             "id": "ROLLIN",
                             "description": "Switch system to rolling packages repository",
                             "short": "Rolling",
+                            "module": "module_generic",
                             "about": "This will switch OS to rolling releases.",
                             "command": [
                                 "module_armbian_firmware repository rolling"
@@ -503,6 +524,7 @@
                             "id": "STABLE",
                             "description": "Switch system to stable packages repository",
                             "short": "Stable",
+                            "module": "module_generic",
                             "about": "This will switch OS to stable releases",
                             "command": [
                                 "module_armbian_firmware repository stable"
@@ -536,7 +558,8 @@
                         {
                             "id": "WTC001",
                             "description": "Enable automating Docker container base images updating",
-                            "short": "Docker images",
+                            "short": "Docker images",                            
+                            "module": "module_watchtower",
                             "command": [
                                 "module_watchtower install"
                             ],
@@ -558,6 +581,7 @@
                             "id": "UNAT01",
                             "description": "Enable automatic package updates.",
                             "short": "Packages",
+                            "module": "module_generic",
                             "command": [
                                 "module_armbian_upgrades install"
                             ],

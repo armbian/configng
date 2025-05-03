@@ -7,6 +7,8 @@
                 {
                     "id": "LOC001",
                     "description": "Change Global timezone",
+                    "short": "Change Global timezone",
+                    "module": "module_generic",
                     "command": [
                         "dpkg-reconfigure tzdata"
                     ],
