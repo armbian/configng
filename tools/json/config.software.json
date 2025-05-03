@@ -12,6 +12,7 @@
                             "id": "SWAG01",
                             "description": "SWAG reverse proxy",
                             "short": "SWAG",
+                            "module": "module_swag",
                             "command": [
                                 "module_swag install"
                             ],
@@ -59,6 +60,7 @@
                             "id": "HAB001",
                             "description": "openHAB empowering the smart home",
                             "short": "openHAB",
+                            "module": "module_openhab",
                             "about": "This operation will install openHAB.",
                             "command": [
                                 "module_openhab install"
@@ -127,6 +129,7 @@
                             "id": "DOM001",
                             "description": "Domoticz open source home automation",
                             "short": "Domoticz",
+                            "module": "module_domoticz",
                             "about": "This operation will install Domoticz.",
                             "command": [
                                 "module_domoticz install"
@@ -161,6 +164,7 @@
                             "id": "EVCC01",
                             "description": "EVCC - solar charging automation",
                             "short": "EVCC",
+                            "module": "module_evcc",
                             "about": "This operation will install solar charging automation.",
                             "command": [
                                 "module_evcc install"
@@ -201,6 +205,7 @@
                             "id": "PIH001",
                             "description": "Pi-hole DNS ad blocker",
                             "short": "Pi-hole",
+                            "module": "module_pi_hole",
                             "command": [
                                 "module_pi_hole install"
                             ],
@@ -242,6 +247,7 @@
                             "id": "UNB001",
                             "description": "Unbound caching DNS resolver",
                             "short": "Unbound",
+                            "module": "module_unbound",
                             "command": [
                                 "module_unbound install"
                             ],
@@ -273,6 +279,7 @@
                             "id": "ADG001",
                             "description": "AdGuardHome DNS sinkhole",
                             "short": "AdGuardHome",
+                            "module": "module_adguardhome",
                             "command": [
                                 "module_adguardhome install"
                             ],
@@ -310,6 +317,7 @@
                             "id": "NAV001",
                             "description": "Navidrome music server and streamer compatible with Subsonic/Airsonic",
                             "short": "Navidrome",
+                            "module": "module_navidrome",
                             "command": [
                                 "module_navidrome install"
                             ],
@@ -347,6 +355,7 @@
                             "id": "ABU001",
                             "description": "Do your finances with Actual Budget",
                             "short": "Actual Budget",
+                            "module": "module_actualbudget",
                             "command": [
                                 "module_actualbudget install"
                             ],
@@ -635,6 +644,7 @@
                             "id": "DPL001",
                             "description": "Duplicati install",
                             "short": "Duplicati",
+                            "module": "module_duplicati",
                             "about": "This operation will install Duplicati backup software",
                             "command": [
                                 "module_duplicati install"
@@ -1089,6 +1099,7 @@
                             "id": "PGSQL1",
                             "description": "PostgreSQL install",
                             "short": "PostgreSQL",
+                            "module": "module_postgres",
                             "about": "This operation will install PostgreSQL, an advanced relational database server",
                             "command": [
                                 "module_postgres install"
@@ -1123,6 +1134,7 @@
                             "id": "DAT001",
                             "description": "Mariadb SQL database server",
                             "short": "Mariadb",
+                            "module": "module_mariadb",
                             "command": [
                                 "module_mariadb install"
                             ],
@@ -1154,6 +1166,7 @@
                             "id": "REDIS1",
                             "description": "Redis install",
                             "short": "Redis",
+                            "module": "module_redis",
                             "about": "This operation will install Redis, a powerful in-memory key-value database",
                             "command": [
                                 "module_redis install"
@@ -1188,6 +1201,7 @@
                             "id": "MYA001",
                             "description": "phpMyAdmin web interface manager",
                             "short": "phpMyAdmin",
+                            "module": "module_phpmyadmin",
                             "command": [
                                 "module_phpmyadmin install"
                             ],
@@ -1333,6 +1347,7 @@
                             "id": "CON001",
                             "description": "Docker minimal",
                             "short": "Docker",
+                            "module": "module_docker",
                             "about": "This operation will install Docker Minimal.",
                             "command": [
                                 "module_docker install minimal"
@@ -1378,6 +1393,7 @@
                             "id": "POR001",
                             "description": "Portainer container management platform",
                             "short": "Portainer",
+                            "module": "module_portainer",
                             "prompt": "This operation will install Portainer container management platform.",
                             "command": [
                                 "module_portainer install"
@@ -1440,6 +1456,7 @@
                             "id": "EMB001",
                             "description": "Emby organizes video, music, live TV, and photos",
                             "short": "Emby",
+                            "module": "module_embyserver",
                             "about": "This operation will install Emby server.",
                             "command": [
                                 "module_embyserver install"
@@ -1702,6 +1719,7 @@
                             "id": "UPK001",
                             "description": "Uptime Kuma self-hosted monitoring tool",
                             "short": "Uptime Kuma",
+                            "module": "module_uptimekuma",
                             "about": "This operation will install Uptime Kuma",
                             "command": [
                                 "module_uptimekuma install"
