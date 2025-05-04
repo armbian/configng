@@ -9,6 +9,14 @@
 
 **armbian-config** provides configuration and installation routines for customizing and automating tasks within Armbian Linux environment. These utilities help streamline setup processes for various use cases.
 
+## Getting Started
+
+**Armbian-config** comes preinstalled with Armbian. To get started, open a terminal or log in via SSH, then run:
+
+```bash
+armbian-config
+```
+
 <a href=#><img src=.github/images/common.png></a>
 
 ## Key Advantages
@@ -39,25 +47,9 @@
 
 ## Compatibility
 
-This tool is tailored to work best with [**Armbian Linux**](https://www.armbian.com) but it has also been automatically tested on:
-- Debian Bookworm
-- Ubuntu Jammy
-- Ubuntu Noble
-
-In theory it should work on all systemd APT based Linux distributions: Linux Mint, Elementary OS, Kali Linux, MX Linux, Parrot OS, Proxmox, Raspberry Pi OS, ...
-
-## Getting Started
-
-Armbian config is preinstalled on Armbian. Open or login into your terminal and run:
-
-```bash
-armbian-config
-```
-
-#### Compatible distributions
-
-Add Armbian key + repository and install the tool:
-
+This tool is optimized for use with [**Armbian Linux**](https://www.armbian.com), but in theory, it should also work on any systemd-based, APT-compatible Linux distribution — including Linux Mint, Elementary OS, Kali Linux, MX Linux, Parrot OS, Proxmox, Raspberry Pi OS, and others.
+<details><summary>Add Armbian key + repository and install the tool:</summary>
+  
 ```bash
 wget -qO - https://apt.armbian.com/armbian.key | gpg --dearmor | \
 sudo tee /usr/share/keyrings/armbian.gpg > /dev/null
@@ -75,14 +67,48 @@ sudo apt -y install armbian-config
 ```bash
 armbian-config
 ```
+</details>
 
 ## Contributing
 
-Please refer to general [CONTRIBUTING.md](CONTRIBUTING.md) and specific guidelines for [adding a new feature](https://docs.armbian.com/Contribute/Armbian-config/).
+<a href="https://github.com/armbian/configng/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=armbian/configng" />
+</a>
+<br>
+<br>
 
-## Donations
+Thank you to everyone who has contributed to **Armbian-config** — your efforts are deeply appreciated!
 
-Sustainability of Armbian development relies on [donations](https://www.armbian.com/donate/) and [sponsorships](https://github.com/sponsors/armbian).
+#### General
+
+Contributions are welcome in many forms:
+
+- 🐞 [Report bugs](https://github.com/armbian/configng/issues)
+- 📚 [Improve documentation](https://docs.armbian.com/)
+- 🛠️ [Fix or enhance code](https://github.com/armbian/configng/pulls)
+
+Please read our [CONTRIBUTING.md](./CONTRIBUTING.md) before getting started.
+
+#### Adding or configuring functionality
+
+Want to expand Armbian-config with new features or tools? Whether you're adding a new software title, enhancing an existing configuration module, or introducing entirely new functionality, we welcome your ideas and code.
+
+To get started:
+
+- Review how similar features are implemented in the current codebase.
+- Follow the structure and coding style used in existing modules.
+- Ensure your additions are well-tested and don’t break existing functionality.
+- Document any new options clearly so users understand how to use them.
+
+<https://docs.armbian.com/Contribute/Armbian-config>
+
+> 📌 Tip: Keep your changes modular and easy to maintain — this helps us review and merge your contribution faster.
+
+#### 💖 Donating
+
+Not a developer? You can still make a big impact! Your donations help us maintain infrastructure, test hardware, and improve development workflows.
+
+[Support the project here](https://github.com/sponsors/armbian)
 
 ## License
 
