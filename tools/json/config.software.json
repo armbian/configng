@@ -1494,6 +1494,40 @@
                             "condition": "module_omv status"
                         },
                         {
+                            "id": "FIL001",
+                            "description": "Filebrowser provides a web-based file manager accessible via a browser",
+                            "short": "Filebrowser",
+                            "module": "module_filebrowser",
+                            "about": "This operation will install Filebrowser container.",
+                            "command": [
+                                "module_filebrowser install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_filebrowser status"
+                        },
+                        {
+                            "id": "FIL002",
+                            "description": "Filebrowser container remove",
+                            "about": "This operation will remove Filebrowser container.",
+                            "command": [
+                                "module_filebrowser remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_filebrowser status"
+                        },
+                        {
+                            "id": "FIL003",
+                            "description": "Filebrowser container purge with data folder",
+                            "command": [
+                                "module_filebrowser purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_filebrowser status"
+                        },
+                        {
                             "id": "EMB001",
                             "description": "Emby organizes video, music, live TV, and photos",
                             "short": "Emby",                            
