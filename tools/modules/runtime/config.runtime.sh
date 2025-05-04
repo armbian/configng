@@ -112,6 +112,7 @@ update_sub_submenu_data "Software" "Finance" "ABU002" "http://$LOCALIPADD:${modu
 update_sub_submenu_data "Software" "Media" "OMV002" "http://$LOCALIPADD:${module_options["module_omv,port"]}"
 update_sub_submenu_data "Software" "Media" "MED002" "http://$LOCALIPADD:${module_options["module_plexmediaserver,port"]}"
 update_sub_submenu_data "Software" "Media" "EMB002" "http://$LOCALIPADD:${module_options["module_embyserver,port"]}"
+update_sub_submenu_data "Software" "Media" "FIL002" "http://$LOCALIPADD:${module_options["module_filebrowser,port"]}"
 update_sub_submenu_data "Software" "Media" "STR002" "http://$LOCALIPADD:${module_options["module_stirling,port"]}"
 update_sub_submenu_data "Software" "Media" "STC002" "http://$LOCALIPADD:${module_options["module_syncthing,port"]%% *}" # removing second port from url
 update_sub_submenu_data "Software" "Media" "NCT002" "https://$LOCALIPADD:${module_options["module_nextcloud,port"]}"
