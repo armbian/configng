@@ -5,7 +5,7 @@ module_options+=(
 	["module_armbian_rsyncd,example"]="install remove status help"
 	["module_armbian_rsyncd,desc"]="Install and configure Armbian rsyncd."
 	["module_armbian_rsyncd,doc_link"]=""
-	["module_armbian_rsyncd,group"]="DevTools"
+	["module_armbian_rsyncd,group"]="Armbian"
 	["module_armbian_rsyncd,status"]="Active"
 	["module_armbian_rsyncd,port"]="873"
 	["module_armbian_rsyncd,arch"]=""
@@ -63,9 +63,9 @@ function module_armbian_rsyncd() {
 			rm -f /etc/rsyncd.conf
 		;;
 		"${commands[2]}")
-			if srv_active rsync; then
+			if srv_active rsyncd; then
 				return 0
-			elif ! srv_enabled rsync ]]; then
+			elif ! srv_enabled rsync; then
 				return 1
 			else
 				return 1

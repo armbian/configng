@@ -12,6 +12,7 @@
                             "id": "SWAG01",
                             "description": "SWAG reverse proxy",
                             "short": "SWAG",
+                            "module": "module_swag",
                             "command": [
                                 "module_swag install"
                             ],
@@ -59,6 +60,7 @@
                             "id": "HAB001",
                             "description": "openHAB empowering the smart home",
                             "short": "openHAB",
+                            "module": "module_openhab",
                             "about": "This operation will install openHAB.",
                             "command": [
                                 "module_openhab install"
@@ -93,6 +95,7 @@
                             "id": "HAS001",
                             "description": "Home Assistant open source home automation",
                             "short": "Home Assistant",
+                            "module": "module_haos",
                             "about": "This operation will install Home Assistant.",
                             "command": [
                                 "module_haos install"
@@ -127,6 +130,7 @@
                             "id": "DOM001",
                             "description": "Domoticz open source home automation",
                             "short": "Domoticz",
+                            "module": "module_domoticz",
                             "about": "This operation will install Domoticz.",
                             "command": [
                                 "module_domoticz install"
@@ -161,6 +165,7 @@
                             "id": "EVCC01",
                             "description": "EVCC - solar charging automation",
                             "short": "EVCC",
+                            "module": "module_evcc",
                             "about": "This operation will install solar charging automation.",
                             "command": [
                                 "module_evcc install"
@@ -201,6 +206,7 @@
                             "id": "PIH001",
                             "description": "Pi-hole DNS ad blocker",
                             "short": "Pi-hole",
+                            "module": "module_pi_hole",
                             "command": [
                                 "module_pi_hole install"
                             ],
@@ -242,6 +248,7 @@
                             "id": "UNB001",
                             "description": "Unbound caching DNS resolver",
                             "short": "Unbound",
+                            "module": "module_unbound",
                             "command": [
                                 "module_unbound install"
                             ],
@@ -273,6 +280,7 @@
                             "id": "ADG001",
                             "description": "AdGuardHome DNS sinkhole",
                             "short": "AdGuardHome",
+                            "module": "module_adguardhome",
                             "command": [
                                 "module_adguardhome install"
                             ],
@@ -310,6 +318,7 @@
                             "id": "NAV001",
                             "description": "Navidrome music server and streamer compatible with Subsonic/Airsonic",
                             "short": "Navidrome",
+                            "module": "module_navidrome",
                             "command": [
                                 "module_navidrome install"
                             ],
@@ -347,6 +356,7 @@
                             "id": "ABU001",
                             "description": "Do your finances with Actual Budget",
                             "short": "Actual Budget",
+                            "module": "module_actualbudget",
                             "command": [
                                 "module_actualbudget install"
                             ],
@@ -635,6 +645,7 @@
                             "id": "DPL001",
                             "description": "Duplicati install",
                             "short": "Duplicati",
+                            "module": "module_duplicati",
                             "about": "This operation will install Duplicati backup software",
                             "command": [
                                 "module_duplicati install"
@@ -675,6 +686,7 @@
                             "id": "DOW001",
                             "description": "qBittorrent BitTorrent client ",
                             "short": "qBittorrent",
+                            "module": "module_qbittorrent",
                             "about": "This operation will install qBittorrent BitTorrent client",
                             "command": [
                                 "module_qbittorrent install"
@@ -709,6 +721,7 @@
                             "id": "DEL001",
                             "description": "Deluge BitTorrent client",
                             "short": "Deluge",
+                            "module": "module_deluge",
                             "about": "This operation will install BitTorrent client",
                             "command": [
                                 "module_deluge install"
@@ -743,6 +756,7 @@
                             "id": "TRA001",
                             "description": "Transmission BitTorrent client",
                             "short": "Transmission",
+                            "module": "module_transmission",
                             "about": "This operation will install Transmission BitTorrent client",
                             "command": [
                                 "module_transmission install"
@@ -777,6 +791,7 @@
                             "id": "SABN01",
                             "description": "SABnzbd newsgroup downloader",
                             "short": "SABnzbd",
+                            "module": "module_sabnzbd",
                             "about": "This operation will install SABnzbd newsgroup downloader",
                             "command": [
                                 "module_sabnzbd install"
@@ -811,6 +826,7 @@
                             "id": "MDS001",
                             "description": "Medusa automatic downloader for TV shows",
                             "short": "Medusa",
+                            "module": "module_medusa",
                             "about": "This operation will install Medusa TV shows downloader",
                             "command": [
                                 "module_medusa install"
@@ -845,6 +861,7 @@
                             "id": "SON001",
                             "description": "Sonarr automatic downloader for TV shows",
                             "short": "Sonarr",
+                            "module": "module_sonarr",
                             "about": "This operation will install Sonarr PVR for Usenet and BitTorrent",
                             "command": [
                                 "module_sonarr install"
@@ -879,6 +896,7 @@
                             "id": "RAD001",
                             "description": "Radarr automatic downloader for movies",
                             "short": "Radarr",
+                            "module": "module_radarr",
                             "about": "This operation will install Radarr movie collection manager",
                             "command": [
                                 "module_radarr install"
@@ -913,6 +931,7 @@
                             "id": "BAZ001",
                             "description": "Bazarr automatic subtitles downloader for Sonarr and Radarr",
                             "short": "Bazarr",
+                            "module": "module_bazarr",
                             "about": "This operation will install Bazarr subtitles manager for Sonarr and Radarr",
                             "command": [
                                 "module_bazarr install"
@@ -947,6 +966,7 @@
                             "id": "LID001",
                             "description": "Lidarr automatic music downloader",
                             "short": "Lidarr",
+                            "module": "module_lidarr",
                             "about": "This operation will install Lidarr music collection manager for Usenet and BitTorrent users",
                             "command": [
                                 "module_lidarr install"
@@ -981,6 +1001,7 @@
                             "id": "RDR001",
                             "description": "Readarr automatic downloader for Ebooks",
                             "short": "Readarr",
+                            "module": "module_readarr",
                             "about": "This operation will install Readarr",
                             "command": [
                                 "module_readarr install"
@@ -1015,6 +1036,7 @@
                             "id": "DOW025",
                             "description": "Prowlarr index manager and proxy for PVR",
                             "short": "Prowlarr",
+                            "module": "module_prowlarr",
                             "about": "This operation will install Prowlarr",
                             "command": [
                                 "module_prowlarr install"
@@ -1049,6 +1071,7 @@
                             "id": "JEL001",
                             "description": "Jellyseerr Jellyfin/Emby/Plex integration install",
                             "short": "Jellyseerr",
+                            "module": "module_jellyseerr",
                             "about": "This operation will install Jellyseerr",
                             "command": [
                                 "module_jellyseerr install"
@@ -1089,6 +1112,7 @@
                             "id": "PGSQL1",
                             "description": "PostgreSQL install",
                             "short": "PostgreSQL",
+                            "module": "module_postgres",
                             "about": "This operation will install PostgreSQL, an advanced relational database server",
                             "command": [
                                 "module_postgres install"
@@ -1123,6 +1147,7 @@
                             "id": "DAT001",
                             "description": "Mariadb SQL database server",
                             "short": "Mariadb",
+                            "module": "module_mariadb",
                             "command": [
                                 "module_mariadb install"
                             ],
@@ -1154,6 +1179,7 @@
                             "id": "REDIS1",
                             "description": "Redis install",
                             "short": "Redis",
+                            "module": "module_redis",
                             "about": "This operation will install Redis, a powerful in-memory key-value database",
                             "command": [
                                 "module_redis install"
@@ -1188,6 +1214,7 @@
                             "id": "MYA001",
                             "description": "phpMyAdmin web interface manager",
                             "short": "phpMyAdmin",
+                            "module": "module_phpmyadmin",
                             "command": [
                                 "module_phpmyadmin install"
                             ],
@@ -1218,6 +1245,78 @@
                     ]
                 },
                 {
+                    "id": "Armbian",
+                    "description": "Armbian infrastructure services",
+                    "sub": [
+                        {
+                            "id": "ART001",
+                            "description": "Router for repository mirror automation",
+                            "short": "CDN router",
+                            "module": "module_generic",
+                            "command": [
+                                "module_armbianrouter install"
+                            ],
+                            "status": "Stable",
+                            "author": "@efectn",
+                            "condition": "! module_armbianrouter status"
+                        },
+                        {
+                            "id": "ART002",
+                            "description": "Remove CDN router",
+                            "command": [
+                                "module_armbianrouter remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@efectn",
+                            "condition": "module_armbianrouter status"
+                        },
+                        {
+                            "id": "GHR001",
+                            "description": "GitHub runners for Armbian automation",
+                            "short": "GH runners",
+                            "module": "module_generic",
+                            "command": [
+                                "module_armbian_runners install"
+                            ],
+                            "status": "Stable",
+                            "author": "@efectn",
+                            "condition": "! module_armbian_runners status"
+                        },
+                        {
+                            "id": "GHR002",
+                            "description": "Remove GitHub runners for Armbian automation",
+                            "command": [
+                                "module_armbian_runners remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@efectn",
+                            "condition": "module_armbian_runners status"
+                        },
+                        {
+                            "id": "RSD001",
+                            "description": "Rsyncd server",
+                            "short": "Rsyncd server",
+                            "module": "module_generic",
+                            "command": [
+                                "module_armbian_rsyncd install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_armbian_rsyncd status"
+                        },
+                        {
+                            "id": "RSD002",
+                            "description": "Remove Armbian rsyncd server",
+                            "command": [
+                                "module_armbian_rsyncd remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_armbian_rsyncd status"
+                        }
+                    ]
+                },
+                {
                     "id": "DevTools",
                     "description": "Applications and tools for development",
                     "sub": [
@@ -1225,6 +1324,7 @@
                             "id": "GIT001",
                             "description": "Install tools for cloning and managing repositories (git)",
                             "short": "Git CLI",
+                            "module": "module_generic",
                             "command": [
                                 "get_user_continue \"This operation will install git.\n\nDo you wish to continue?\" process_input",
                                 "pkg_install git"
@@ -1243,47 +1343,6 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "pkg_installed git"
-                        },
-                        {
-                            "id": "ART001",
-                            "description": "Armbian router for repository mirror automation",
-                            "short": "Armbian CDN router",
-                            "command": [
-                                "module_armbianrouter install"
-                            ],
-                            "status": "Stable",
-                            "author": "@efectn",
-                            "condition": "! module_armbianrouter status"
-                        },
-                        {
-                            "id": "ART002",
-                            "description": "Remove Armbian router",
-                            "command": [
-                                "module_armbianrouter remove"
-                            ],
-                            "status": "Stable",
-                            "author": "@efectn",
-                            "condition": "module_armbianrouter status"
-                        },
-                        {
-                            "id": "RSD001",
-                            "description": "Armbian rsyncd server",
-                            "command": [
-                                "module_armbian_rsyncd install"
-                            ],
-                            "status": "Stable",
-                            "author": "@igorpecovnik",
-                            "condition": "! module_armbian_rsyncd status"
-                        },
-                        {
-                            "id": "RSD002",
-                            "description": "Remove Armbian rsyncd server",
-                            "command": [
-                                "module_armbian_rsyncd remove"
-                            ],
-                            "status": "Stable",
-                            "author": "@igorpecovnik",
-                            "condition": "module_armbian_rsyncd status"
                         }
                     ]
                 },
@@ -1305,6 +1364,7 @@
                             "id": "CON001",
                             "description": "Docker minimal",
                             "short": "Docker",
+                            "module": "module_docker",
                             "about": "This operation will install Docker Minimal.",
                             "command": [
                                 "module_docker install minimal"
@@ -1350,6 +1410,7 @@
                             "id": "POR001",
                             "description": "Portainer container management platform",
                             "short": "Portainer",
+                            "module": "module_portainer",
                             "prompt": "This operation will install Portainer container management platform.",
                             "command": [
                                 "module_portainer install"
@@ -1409,9 +1470,68 @@
                             "condition": "module_plexmediaserver status"
                         },
                         {
+                            "id": "OMV001",
+                            "description": "Deploy NAS using OpenMediaVault",
+                            "short": "OMV",
+                            "module": "module_omv",
+                            "about": "This operation will install OpenMediaVault on your system.",
+                            "command": [
+                                "module_omv install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_omv status"
+                        },
+                        {
+                            "id": "OMV002",
+                            "description": "OpenMediaVault remove",
+                            "about": "This operation will completely remove OpenMediaVault from your system.",
+                            "command": [
+                                "module_omv remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_omv status"
+                        },
+                        {
+                            "id": "FIL001",
+                            "description": "Filebrowser provides a web-based file manager accessible via a browser",
+                            "short": "Filebrowser",
+                            "module": "module_filebrowser",
+                            "about": "This operation will install Filebrowser container.",
+                            "command": [
+                                "module_filebrowser install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_filebrowser status"
+                        },
+                        {
+                            "id": "FIL002",
+                            "description": "Filebrowser container remove",
+                            "about": "This operation will remove Filebrowser container.",
+                            "command": [
+                                "module_filebrowser remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_filebrowser status"
+                        },
+                        {
+                            "id": "FIL003",
+                            "description": "Filebrowser container purge with data folder",
+                            "command": [
+                                "module_filebrowser purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_filebrowser status"
+                        },
+                        {
                             "id": "EMB001",
                             "description": "Emby organizes video, music, live TV, and photos",
-                            "short": "Emby",
+                            "short": "Emby",                            
+                            "module": "module_embyserver",
                             "about": "This operation will install Emby server.",
                             "command": [
                                 "module_embyserver install"
@@ -1445,6 +1565,7 @@
                             "id": "STR001",
                             "description": "Stirling PDF tools for viewing and editing PDF files",
                             "short": "Stirling",
+                            "module": "module_stirling",
                             "about": "This operation will install Stirling-PDF tools.",
                             "command": [
                                 "module_stirling install"
@@ -1479,6 +1600,7 @@
                             "id": "STC001",
                             "description": "Syncthing continuous file synchronization",
                             "short": "Syncthing",
+                            "module": "module_syncthing",
                             "command": [
                                 "module_syncthing install"
                             ],
@@ -1510,6 +1632,7 @@
                             "id": "NCT001",
                             "description": "Nextcloud content collaboration platform",
                             "short": "Nextcloud",
+                            "module": "module_nextcloud",
                             "command": [
                                 "module_nextcloud install"
                             ],
@@ -1541,6 +1664,7 @@
                             "id": "OWC001",
                             "description": "Owncloud share files and folders, easy and secure",
                             "short": "Owncloud",
+                            "module": "module_owncloud",
                             "command": [
                                 "module_owncloud install"
                             ],
@@ -1572,6 +1696,7 @@
                             "id": "JMS001",
                             "description": "Jellyfin Media System",
                             "short": "Jellyfin",
+                            "module": "module_jellyfin",
                             "command": [
                                 "module_jellyfin install"
                             ],
@@ -1603,6 +1728,7 @@
                             "id": "HPS001",
                             "description": "Hastebin Paste Server",
                             "short": "Hastebin",
+                            "module": "module_hastebin",
                             "command": [
                                 "module_hastebin install"
                             ],
@@ -1634,6 +1760,7 @@
                             "id": "IMM001",
                             "description": "Immich - high-performance self-hosted photo and video backup solution",
                             "short": "Immich",
+                            "module": "module_immich",
                             "about": "This operation will install Immich server with dependencies (PostgreSQL and Redis).",
                             "command": [
                                 "module_immich install"
@@ -1674,6 +1801,7 @@
                             "id": "UPK001",
                             "description": "Uptime Kuma self-hosted monitoring tool",
                             "short": "Uptime Kuma",
+                            "module": "module_uptimekuma",
                             "about": "This operation will install Uptime Kuma",
                             "command": [
                                 "module_uptimekuma install"
@@ -1708,6 +1836,7 @@
                             "id": "NTD001",
                             "description": "Netdata - monitoring real-time metrics",
                             "short": "Netdata",
+                            "module": "module_netdata",
                             "about": "This operation will install Netdata",
                             "command": [
                                 "module_netdata install"
@@ -1742,6 +1871,7 @@
                             "id": "GRA001",
                             "description": "Grafana data analytics",
                             "short": "Grafana",
+                            "module": "module_grafana",
                             "prompt": "This operation will install Grafana.",
                             "command": [
                                 "module_grafana install"
@@ -1776,6 +1906,7 @@
                             "id": "PRO001",
                             "description": "Prometheus docker image",
                             "short": "Prometheus",
+                            "module": "module_prometheus",
                             "prompt": "This operation will install Prometheus.",
                             "command": [
                                 "module_prometheus install"
@@ -1810,6 +1941,7 @@
                             "id": "NAX001",
                             "description": "NetAlertX network scanner & notification framework",
                             "short": "NetAlertX",
+                            "module": "module_netalertx",
                             "prompt": "This operation will install NetAlertX.",
                             "command": [
                                 "module_netalertx install"
@@ -1850,6 +1982,7 @@
                             "id": "CPT001",
                             "description": "Cockpit web-based management tool",
                             "short": "Cockpit",
+                            "module": "module_generic",
                             "command": [
                                 "see_menu module_cockpit"
                             ],
@@ -1861,6 +1994,7 @@
                             "id": "SMB001",
                             "description": "SAMBA Remote File share",
                             "short": "Samba",
+                            "module": "module_generic",
                             "command": [
                                 "see_menu module_samba"
                             ],
@@ -1872,6 +2006,7 @@
                             "id": "WBM001",
                             "description": "Webmin web-based management tool",
                             "short": "Webmin",
+                            "module": "module_generic",
                             "command": [
                                 "see_menu module_webmin"
                             ],
@@ -1883,6 +2018,7 @@
                             "id": "HPG001",
                             "description": "Install Homepage startpage / application dashboard",
                             "short": "Homepage",
+                            "module": "module_homepage",
                             "command": [
                                 "module_homepage install"
                             ],
@@ -1914,6 +2050,7 @@
                             "id": "NBOX01",
                             "description": "NetBox infrastructure resource modeling install",
                             "short": "NetBox",
+                            "module": "module_netbox",
                             "about": "This operation will install NetBox, an infrastructure resource modeling (IPAM/DCIM) tool",
                             "command": [
                                 "module_netbox install"
@@ -1952,8 +2089,9 @@
                     "sub": [
                         {
                             "id": "OCT001",
-                            "description": "OctoPrint web-based 3D printers management tool",
+                            "description": "OctoPrint web-based 3D printers management tool",                            
                             "short": "OctoPrint",
+                            "module": "module_octoprint",
                             "about": "This operation will install OctoPrint",
                             "command": [
                                 "module_octoprint install"
@@ -1994,6 +2132,7 @@
                             "id": "NLD001",
                             "description": "nload - realtime console network usage monitor",
                             "short": "nload",
+                            "module": "module_netbox",
                             "prompt": "This operation will install nload.",
                             "command": [
                                 "pkg_install nload"
@@ -2017,6 +2156,7 @@
                             "id": "IPR001",
                             "description": "iperf3 bandwidth measuring tool",
                             "short": "iperf3",
+                            "module": "module_netbox",
                             "prompt": "This operation will install iperf3.",
                             "command": [
                                 "pkg_install iperf3"
@@ -2040,6 +2180,7 @@
                             "id": "IPT001",
                             "description": "iptraf-ng IP LAN monitor",
                             "short": "iptraf-ng",
+                            "module": "module_netbox",
                             "prompt": "This operation will install iptraf-ng.",
                             "command": [
                                 "pkg_install iptraf-ng"
@@ -2063,6 +2204,7 @@
                             "id": "AVH001",
                             "description": "avahi-daemon hostname broadcast via mDNS",
                             "short": "avahi-daemon",
+                            "module": "module_netbox",
                             "prompt": "This operation will install avahi-daemon.",
                             "command": [
                                 "pkg_install avahi-daemon libnss-mdns",
@@ -2090,11 +2232,56 @@
                 },
                 {
                     "id": "VPN",
-                    "description": "VPN tools",
+                    "description": "Virtual Private Network tools",
                     "sub": [
                         {
-                            "id": "VPN001",
+                            "id": "WRG001",
+                            "description": "WireGuard VPN client / server",
+                            "short": "WireGuard",
+                            "module": "module_wireguard",
+                            "command": [
+                                "module_wireguard install"
+                            ],
+                            "status": "Enabled",
+                            "author": "@armbian",
+                            "condition": "! module_wireguard status"
+                        },
+                        {
+                            "id": "WRG002",
+                            "description": "WireGuard remove",
+                            "about": "This operation will remove WireGuard",
+                            "command": [
+                                "module_wireguard remove"
+                            ],
+                            "status": "Enabled",
+                            "author": "@armbian",
+                            "condition": "module_wireguard status"
+                        },
+                        {
+                            "id": "WRG003",
+                            "description": "WireGuard clients QR codes",
+                            "command": [
+                                "module_wireguard qrcode"
+                            ],
+                            "status": "Enabled",
+                            "author": "@armbian",
+                            "condition": "module_wireguard status"
+                        },
+                        {
+                            "id": "WRG004",
+                            "description": "WireGuard purge with data folder",
+                            "about": "This operation will purge WireGuard with data folder",
+                            "command": [
+                                "module_wireguard purge"
+                            ],
+                            "status": "Enabled",
+                            "author": "@armbian",
+                            "condition": "module_wireguard status"
+                        },
+                        {
+                            "id": "ZTR001",
                             "description": "ZeroTier connect devices over your own private network in the world.",
+                            "short": "ZeroTier",
                             "command": [
                                 "see_menu module_zerotier"
                             ],

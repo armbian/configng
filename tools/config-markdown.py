@@ -4,7 +4,28 @@ import os
 import sys
 import json
 import argparse
+import re
 from pathlib import Path
+
+def extract_module_options_from_sh_files(directory):
+    module_options = {}
+
+    sh_files = Path(directory).glob("*.sh")
+    pattern = re.compile(r'\[\s*"(?P<module>[^"]+?),(?P<key>[^"]+?)"\s*\]\s*=\s*"(?P<value>[^"]*?)"')
+
+    for sh_file in sh_files:
+        with open(sh_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+            for match in pattern.finditer(content):
+                module = match.group("module")
+                key = match.group("key")
+                value = match.group("value")
+
+                if module not in module_options:
+                    module_options[module] = {}
+                module_options[module][key] = value
+
+    return module_options
 
 # Setup paths
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -12,6 +33,9 @@ CONFIG_PATH = SCRIPT_DIR.parent / 'lib' / 'armbian-config' / 'config.jobs.json'
 IMAGES_DIR = SCRIPT_DIR / 'include' / 'images'
 MARKDOWN_DIR = SCRIPT_DIR / 'include' / 'markdown'
 DOCS_DIR = Path('docs')
+
+# Add this line to load it at runtime
+module_options = extract_module_options_from_sh_files(str(SCRIPT_DIR.parent / 'lib' / 'armbian-config'))
 
 # Load JSON
 if not CONFIG_PATH.exists():
@@ -23,6 +47,25 @@ with open(CONFIG_PATH, 'r') as f:
     data = json.load(f)
 
 # Functions
+def format_arch_labels(arch_string):
+    colors = {
+        "x86-amd64": ("#d0ebff", "#003865"),  # blue
+        "arm64":     ("#d3f9d8", "#1b5e20"),  # green
+        "armhf":     ("#fff3bf", "#7c4d00"),  # yellow
+        "riscv64":   ("#f3d9fa", "#6a1b9a"),  # purple
+    }
+
+    label_template = '<span style="background-color:{bg}; color:{fg}; padding:3px 6px; border-radius:4px; font-size:90%;">{arch}</span>'
+    
+    arches = arch_string.strip().split()
+    html_labels = []
+
+    for arch in arches:
+        bg, fg = colors.get(arch, ("#e0e0e0", "#333333"))  # fallback to gray
+        html_labels.append(label_template.format(bg=bg, fg=fg, arch=arch))
+
+    return " ".join(html_labels)
+
 def generate_anchor_links(item, level=0, parent_path=""):
     links = []
     current_id = item['id'].lower()
@@ -65,10 +108,24 @@ def create_markdown_user(item, level=1, show_meta=True, force_title=False, skip_
         md.extend(insert_images_and_header(item))
 
     if show_meta and level == 1:
-        if item.get('author'):
-            md.append(f"**Author:** {item['author']}\n")
-        if item.get('status'):
-            md.append(f"**Status:** {item['status']}\n")
+        if item.get('status'):            
+            md.append(f"__Status:__ {item['status']}  ")
+        if item.get('module'):
+            module=item['module']
+            if module:
+                if module in module_options:
+                    architecture = module_options[module].get('arch')
+                    #formatted_arch = format_arch_labels(arch_list)
+                    formatted_arch = format_arch_labels(architecture)
+                    #formatted_arch = ' '.join(f"`{arch}`" for arch in architecture.split())
+                    if formatted_arch:
+                        md.append(f"__Architecture:__ {formatted_arch}  ")
+                    maintainer = module_options[module].get('maintainer')
+                    if maintainer:
+                        md.append(f"__Maintainer:__ {maintainer}  ")
+                    doc_link = module_options[module].get('doc_link')
+                    if doc_link:
+                        md.append(f"__Documentation:__ [Link]({doc_link})  ")
 
     if item.get('command') and not skip_commands:
         cmd = item['command'][0] if isinstance(item['command'], list) else item['command']
@@ -99,10 +156,28 @@ def create_markdown_user(item, level=1, show_meta=True, force_title=False, skip_
                     if sub_item.get('short') and sub_item.get('description') and sub_item.get('short') != sub_item.get('description'):
                         md.append(f"\n{sub_item.get('description')}\n")
                     md.extend(insert_images_and_header(sub_item))
-                    if sub_item.get('author'):
-                        md.append(f"**Author:** {sub_item['author']}\n")
                     if sub_item.get('status'):
-                        md.append(f"**Status:** {sub_item['status']}\n")
+                        md.append(f"__Status:__ {sub_item['status']}  ")
+                    if sub_item.get('module'):
+                        module = sub_item['module']
+                        if module in module_options:
+                            architecture = module_options[module].get('arch')
+                            formatted_arch = format_arch_labels(architecture)
+                            #formatted_arch = ' '.join(f"`{arch}`" for arch in architecture.split())
+                            if formatted_arch:
+                                md.append(f"__Architecture:__ {formatted_arch}  ")
+                    if sub_item.get('module'):
+                        module = sub_item['module']
+                        if module in module_options:
+                            maintainer = module_options[module].get('maintainer')
+                            if maintainer:
+                                md.append(f"__Maintainer:__ {maintainer}  ")
+                    if sub_item.get('module'):
+                        module = sub_item['module']
+                        if module in module_options:
+                            doc_link = module_options[module].get('doc_link')
+                            if doc_link:
+                                md.append(f"__Documentation:__ [Link]({doc_link})  ")
                     first_sub = False
 
                 if sub_item.get('command'):
