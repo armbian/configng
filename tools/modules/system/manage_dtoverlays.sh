@@ -18,6 +18,34 @@ function manage_dtoverlays () {
 	# check if user agree to enter this area
 	local changes="false"
 	local overlayconf="/boot/armbianEnv.txt"
+	newoverlays=$(echo $selection | sed 's/"//g')
+
+	# Add this code:
+	# Strip overlay_prefix from each overlay name if it's already present
+	if [[ -n "$overlay_prefix" ]]; then
+		# Convert space-separated list to array
+		IFS=' ' read -r -a overlay_array <<< "$newoverlays"
+		processed_overlays=()
+		
+		for overlay in "${overlay_array[@]}"; do
+			# Check if overlay starts with the prefix
+			if [[ "$overlay" == "$overlay_prefix"* ]]; then
+				# Strip the prefix plus any separator (- or _)
+				processed_overlay="${overlay#"$overlay_prefix"}"
+				processed_overlay="${processed_overlay#[-_]}"
+				processed_overlays+=("$processed_overlay")
+			else
+				# Keep as is if no prefix
+				processed_overlays+=("$overlay")
+			fi
+		done
+		
+		# Convert back to space-separated list
+		newoverlays=$(IFS=' '; echo "${processed_overlays[*]}")
+	fi
+
+# Then continue with the existing code:
+
 	if [[ "${LINUXFAMILY}" == "bcm2711" ]]; then
 		# Raspberry Pi has different name
 		local overlaydir=$(find /boot/dtb/ -maxdepth 1 -type d \( -name "overlay" -o -name "overlays" \) | head -n1)
