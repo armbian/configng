@@ -79,21 +79,25 @@ def generate_anchor_links(item, level=0, parent_path=""):
 
 def insert_images_and_header(item):
     parts = []
+    item_id = item['id']
     for ext in ('png', 'webp'):
-        image_file = Path(__file__).parent / 'include' / 'images' / f"{item['id']}.{ext}"
+        image_file = Path(__file__).parent / 'include' / 'images' / f"{item_id}.{ext}"
         if image_file.is_file():
-            rel_path = f"tools/include/images/{item['id']}.{ext}"
+            rel_path = f"tools/include/images/{item_id}.{ext}"
             parts.append(f"\n<!--- section image START from {rel_path} --->")
-            parts.append(f"[![{item.get('short', item.get('description', ''))}](/images/{item['id']}.{ext})](#)")
+            parts.append(f"[![{item.get('short', item.get('description', ''))}](/images/{item_id}.{ext})](#)")
             parts.append(f"<!--- section image STOP from {rel_path} --->\n")
             break
 
-    header_file = Path(__file__).parent / 'include' / 'markdown' / f"{item['id']}-header.md"
+    header_file = Path(__file__).parent / 'include' / 'markdown' / f"{item_id}-header.md"
     if header_file.is_file():
-        rel_path = f"tools/include/markdown/{item['id']}-header.md"
+        rel_path = f"tools/include/markdown/{item_id}-header.md"
         parts.append(f"\n<!--- header START from {rel_path} --->")
         parts.append(header_file.read_text())
         parts.append(f"<!--- header STOP from {rel_path} --->\n")
+        parts.append(
+            f'\n[✏️ Edit header](https://github.com/armbian/configng/edit/main/tools/include/markdown/{item_id}-header.md)\n'
+        )
 
     return parts
 
@@ -132,13 +136,23 @@ def create_markdown_user(item, level=1, show_meta=True, force_title=False, skip_
         fence = "custombash"
         title = ""
         md.append(f"\n~~~ {fence}{title}\narmbian-config --cmd {item['id']}\n~~~\n")
+        
+        if level == 1:
+            footer_filename = f"{item['id']}-footer.md"
+            footer_file = Path(__file__).parent / 'include' / 'markdown' / footer_filename
+            rel_path = f"tools/include/markdown/{footer_filename}"
+            edit_mode = "edit" if footer_file.is_file() else "new"
+            footer_url = f"https://github.com/armbian/configng/{edit_mode}/main/{rel_path}"
 
-        footer_file = Path(__file__).parent / 'include' / 'markdown' / f"{item['id']}-footer.md"
-        if footer_file.is_file():
-            rel_path = f"tools/include/markdown/{item['id']}-footer.md"
-            md.append(f"\n<!--- footer START from {rel_path} --->")
-            md.append(footer_file.read_text())
-            md.append(f"<!--- footer STOP from {rel_path} --->\n")
+            if footer_file.is_file():
+                md.append(f"\n<!--- footer START from {rel_path} --->")
+                md.append(footer_file.read_text())
+                md.append(f'\n[✏️ Edit footer]({footer_url})')
+                md.append(f"\n<!--- footer STOP from {rel_path} --->\n")
+            else:
+                md.append(f"\n<!--- footer START from {rel_path} --->")
+                md.append(f'[✏️ Create footer]({footer_url})')
+                md.append(f"\n<!--- footer STOP from {rel_path} --->\n")
 
     if 'sub' in item:
         grouped_subs = {}
@@ -186,13 +200,20 @@ def create_markdown_user(item, level=1, show_meta=True, force_title=False, skip_
                     title = "" if fence == "custombash" else f" title=\"{sub_item.get('short', sub_item.get('description', ''))}:\""
                     md.append(f"\n~~~ {fence}{title}\narmbian-config --cmd {sub_item['id']}\n~~~\n")
                     first_command = False
+                
+                    footer_filename = f"{sub_item['id']}-footer.md"
+                    footer_file = Path(__file__).parent / 'include' / 'markdown' / footer_filename
+                    rel_path = f"tools/include/markdown/{footer_filename}"
+                    edit_mode = "edit" if footer_file.is_file() else "new"
+                    footer_url = f"https://github.com/armbian/configng/{edit_mode}/main/{rel_path}"
 
-                    footer_file = Path(__file__).parent / 'include' / 'markdown' / f"{sub_item['id']}-footer.md"
+                    md.append(f"\n<!--- footer START from {rel_path} --->")
                     if footer_file.is_file():
-                        rel_path = f"tools/include/markdown/{sub_item['id']}-footer.md"
-                        md.append(f"\n<!--- footer START from {rel_path} --->")
                         md.append(footer_file.read_text())
-                        md.append(f"<!--- footer STOP from {rel_path} --->\n")
+                        md.append(f'\n[✏️ Edit footer]({footer_url})')
+                    else:
+                        md.append(f'[✏️ Create footer]({footer_url})')
+                        md.append(f"\n<!--- footer STOP from {rel_path} --->\n")
 
             for sub_item in sub_items:
                 md.append(create_markdown_user(sub_item, level + 2, show_meta=False, force_title=False, skip_commands=True))
