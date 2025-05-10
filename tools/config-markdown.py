@@ -7,6 +7,20 @@ import argparse
 import re
 from pathlib import Path
 
+def find_module_source(module_name, base_path):
+    """
+    Finds the GitHub edit URL for the .sh file that defines the given shell function.
+    """
+    for sh_file in Path(base_path).rglob("*.sh"):
+        try:
+            content = sh_file.read_text(encoding="utf-8")
+            if re.search(rf"^\s*{re.escape(module_name)}\s*\(\)", content, re.MULTILINE):
+                rel_path = sh_file.relative_to(SCRIPT_DIR.parent)
+                return f"https://github.com/armbian/configng/edit/main/{rel_path.as_posix()}"
+        except Exception:
+            continue
+    return None
+
 def extract_module_options_from_sh_files(directory):
     module_options = {}
 
@@ -112,6 +126,25 @@ def create_markdown_user(item, level=1, show_meta=True, force_title=False, skip_
         md.extend(insert_images_and_header(item))
 
     if show_meta and level == 1:
+        module = item.get('module')
+        if module:
+            if module in module_options:
+                architecture = module_options[module].get('arch')
+                formatted_arch = format_arch_labels(architecture)
+                if formatted_arch:
+                    md.append(f"__Architecture:__ {formatted_arch}  ")
+
+                maintainer = module_options[module].get('maintainer')
+                if maintainer:
+                    md.append(f"__Maintainer:__ {maintainer}  ")
+
+                doc_link = module_options[module].get('doc_link')
+                if doc_link:
+                    md.append(f"__Documentation:__ [Link]({doc_link})  ")
+
+                source_link = find_module_source(module, SCRIPT_DIR.parent / 'lib' / 'armbian-config')
+                if source_link:
+                    md.append(f"__Source:__ [✏️ Edit module]({source_link})  ")
         if item.get('status'):            
             md.append(f"__Status:__ {item['status']}  ")
         if item.get('module'):
