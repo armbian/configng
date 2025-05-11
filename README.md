@@ -7,11 +7,11 @@
 <a href=https://github.com/armbian/configng/actions/workflows/debian.yml><img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/armbian/configng/debian.yml?logo=githubactions&label=Packaging&style=for-the-badge&branch=main"></a> <a href=https://github.com/armbian/configng/actions/workflows/unit-tests.yml><img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/armbian/configng/unit-tests.yml?logo=githubactions&label=Unit%20tests&style=for-the-badge&branch=main"></a> <a href=https://github.com/armbian/configng/actions/workflows/docs.yml><img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/armbian/configng/docs.yml?logo=githubactions&label=Documentation&style=for-the-badge&branch=main"></a>
 </p>
 
-**Armbian Config** provides configuration and installation routines for customizing and automating tasks within Armbian Linux environment. These utilities help streamline setup processes for various use cases.
+Armbian Config provides configuration and installation routines for customizing and automating tasks within Armbian Linux environment. These utilities help streamline setup processes for various use cases.
 
 ## Getting Started
 
-**Armbian-config** comes preinstalled with Armbian. To get started, open a terminal or log in via SSH, then run:
+Armbian-config comes preinstalled with Armbian. To get started, open a terminal or log in via SSH, then run:
 
 ```bash
 armbian-config
