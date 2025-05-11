@@ -36,9 +36,6 @@ function module_haos() {
 			# this hack will allow running it on minimal image, but this has to be done properly in the network section, to allow easy switching
 			srv_disable systemd-networkd
 
-			# hack to force install
-			# sed -i 's/^PRETTY_NAME=".*/PRETTY_NAME="Debian GNU\/Linux 12 (bookworm)"/g' "${SDCARD}/etc/os-release"
-
 			# we host packages at our repository and version for both is determined:
 			# https://github.com/armbian/os/blob/main/external/haos-agent.conf
 			# https://github.com/armbian/os/blob/main/external/haos-supervised-installer.conf
@@ -122,9 +119,6 @@ function module_haos() {
 			srv_enable supervisor-fix
 			srv_start supervisor-fix
 
-			# restore os-release
-			sed -i "s/^PRETTY_NAME=\".*/PRETTY_NAME=\"${VENDOR} ${REVISION} ($VERSION_CODENAME)\"/g" "/etc/os-release"
-
 			# reboot is mandatory
 			if [[ -t 1 ]]; then
 				if $DIALOG --title " Reboot required " --yes-button "Reboot" --no-button "Cancel" --yesno \
@@ -155,8 +149,6 @@ function module_haos() {
 			# Raspberry Pi
 			sed -i "s/ apparmor=1 security=apparmor//" /boot/firmware/cmdline.txt
 			srv_daemon_reload
-			# restore os-release
-			sed -i "s/^PRETTY_NAME=\".*/PRETTY_NAME=\"${VENDOR} ${REVISION} ($VERSION_CODENAME)\"/g" "/etc/os-release"
 		;;
 		"${commands[2]}")
 			${module_options["module_haos,feature"]} ${commands[1]}
