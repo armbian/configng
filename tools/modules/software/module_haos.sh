@@ -119,14 +119,12 @@ function module_haos() {
 			srv_enable supervisor-fix
 			srv_start supervisor-fix
 
-			# reboot is mandatory
+			# reboot related to apparmor install
 			if [[ -t 1 ]]; then
 				if $DIALOG --title " Reboot required " --yes-button "Reboot" --no-button "Cancel" --yesno \
 					"A reboot is required to enable AppArmor. Shall we reboot now?" 7 68; then
 					reboot
 				fi
-			else
-				reboot
 			fi
 
 		;;
