@@ -36,9 +36,6 @@ function module_haos() {
 			# this hack will allow running it on minimal image, but this has to be done properly in the network section, to allow easy switching
 			srv_disable systemd-networkd
 
-			# hack to force install
-			sed -i 's/^PRETTY_NAME=".*/PRETTY_NAME="Debian GNU\/Linux 12 (bookworm)"/g' "${SDCARD}/etc/os-release"
-
 			# we host packages at our repository and version for both is determined:
 			# https://github.com/armbian/os/blob/main/external/haos-agent.conf
 			# https://github.com/armbian/os/blob/main/external/haos-supervised-installer.conf
@@ -48,7 +45,7 @@ function module_haos() {
 			# determine machine type
 			case "${ARCH}" in
 				armhf) MACHINE="tinker";;
-				amd64) MACHINE="generic-x86-64";;
+				x86_64) MACHINE="generic-x86-64";;
 				arm64) MACHINE="odroid-n2";;
 				*) exit 1;;
 			esac
@@ -94,28 +91,40 @@ function module_haos() {
 				echo "extraargs=apparmor=1 security=apparmor" >> "/boot/armbianEnv.txt"
 			fi
 			sleep 5
-			for s in {1..50};do
-				for i in {0..100..10}; do
-					j=$i
-					echo "$i"
-					sleep 2
+
+			if [[ -t 1 ]]; then
+				# We have a terminal, use dialog
+				for s in {1..30}; do
+					for i in {0..100..10}; do
+						echo "$i"
+						sleep 1
+					done
+					if curl -sf http://localhost:${module_options["module_haos,port"]}/ > /dev/null; then
+						break
+					fi
+				done | $DIALOG --gauge "Preparing Home Assistant Supervised\n\nPlease wait! (can take a few minutes) " 10 50 0
+			else
+				# No terminal, fallback to echoing progress
+				echo "Waiting for Home Assistant Supervised to become available..."
+				for s in {1..30}; do
+					sleep 10
+					if curl -sf http://localhost:${module_options["module_haos,port"]}/ > /dev/null; then
+						echo "✅ Home Assistant Supervised is responding."
+						break
+					fi
 				done
-				if [[ -n "$(ss | grep ${module_options["module_haos,port"]})" ]]; then
-						break;
-				fi
-			done | $DIALOG --gauge "Preparing Home Assistant Supervised\n\nPlease wait! (can take 15 minutes) " 10 50 0
+			fi
 
 			# enable service
 			srv_enable supervisor-fix
 			srv_start supervisor-fix
 
-			# restore os-release
-			sed -i "s/^PRETTY_NAME=\".*/PRETTY_NAME=\"${VENDOR} ${REVISION} ($VERSION_CODENAME)\"/g" "/etc/os-release"
-
-			# reboot is mandatory
-			if $DIALOG --title " Reboot required " --yes-button "Reboot" --no-button "Cancel" --yesno \
-			"A reboot is required to enable AppArmor. Shall we reboot now?" 7 68; then
-			reboot
+			# reboot related to apparmor install
+			if [[ -t 1 ]]; then
+				if $DIALOG --title " Reboot required " --yes-button "Reboot" --no-button "Cancel" --yesno \
+					"A reboot is required to enable AppArmor. Shall we reboot now?" 7 68; then
+					reboot
+				fi
 			fi
 
 		;;
@@ -138,8 +147,6 @@ function module_haos() {
 			# Raspberry Pi
 			sed -i "s/ apparmor=1 security=apparmor//" /boot/firmware/cmdline.txt
 			srv_daemon_reload
-			# restore os-release
-			sed -i "s/^PRETTY_NAME=\".*/PRETTY_NAME=\"${VENDOR} ${REVISION} ($VERSION_CODENAME)\"/g" "/etc/os-release"
 		;;
 		"${commands[2]}")
 			${module_options["module_haos,feature"]} ${commands[1]}
