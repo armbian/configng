@@ -7,11 +7,12 @@
                 {
                     "id": "WebHosting",
                     "description": "Web server, LEMP, reverse proxy, Let's Encrypt SSL",
-                    "status": "Stable",
                     "sub": [
                         {
                             "id": "SWAG01",
                             "description": "SWAG reverse proxy",
+                            "short": "SWAG",
+                            "module": "module_swag",
                             "command": [
                                 "module_swag install"
                             ],
@@ -58,6 +59,8 @@
                         {
                             "id": "HAB001",
                             "description": "openHAB empowering the smart home",
+                            "short": "openHAB",
+                            "module": "module_openhab",
                             "about": "This operation will install openHAB.",
                             "command": [
                                 "module_openhab install"
@@ -91,6 +94,8 @@
                         {
                             "id": "HAS001",
                             "description": "Home Assistant open source home automation",
+                            "short": "Home Assistant",
+                            "module": "module_haos",
                             "about": "This operation will install Home Assistant.",
                             "command": [
                                 "module_haos install"
@@ -124,6 +129,8 @@
                         {
                             "id": "DOM001",
                             "description": "Domoticz open source home automation",
+                            "short": "Domoticz",
+                            "module": "module_domoticz",
                             "about": "This operation will install Domoticz.",
                             "command": [
                                 "module_domoticz install"
@@ -157,6 +164,8 @@
                         {
                             "id": "EVCC01",
                             "description": "EVCC - solar charging automation",
+                            "short": "EVCC",
+                            "module": "module_evcc",
                             "about": "This operation will install solar charging automation.",
                             "command": [
                                 "module_evcc install"
@@ -194,8 +203,10 @@
                     "description": "Network-wide ad blockers servers",
                     "sub": [
                         {
-                            "id": "DNS001",
+                            "id": "PIH001",
                             "description": "Pi-hole DNS ad blocker",
+                            "short": "Pi-hole",
+                            "module": "module_pi_hole",
                             "command": [
                                 "module_pi_hole install"
                             ],
@@ -204,7 +215,7 @@
                             "condition": "! module_pi_hole status"
                         },
                         {
-                            "id": "DNS003",
+                            "id": "PIH003",
                             "description": "Pi-hole remove",
                             "command": [
                                 "module_pi_hole remove"
@@ -214,7 +225,7 @@
                             "condition": "module_pi_hole status"
                         },
                         {
-                            "id": "DNS002",
+                            "id": "PIH002",
                             "description": "Pi-hole change web admin password",
                             "command": [
                                 "module_pi_hole password"
@@ -224,7 +235,7 @@
                             "condition": "module_pi_hole status"
                         },
                         {
-                            "id": "DNS004",
+                            "id": "PIH004",
                             "description": "Pi-hole purge with data folder",
                             "command": [
                                 "module_pi_hole remove"
@@ -236,6 +247,8 @@
                         {
                             "id": "UNB001",
                             "description": "Unbound caching DNS resolver",
+                            "short": "Unbound",
+                            "module": "module_unbound",
                             "command": [
                                 "module_unbound install"
                             ],
@@ -266,6 +279,8 @@
                         {
                             "id": "ADG001",
                             "description": "AdGuardHome DNS sinkhole",
+                            "short": "AdGuardHome",
+                            "module": "module_adguardhome",
                             "command": [
                                 "module_adguardhome install"
                             ],
@@ -302,6 +317,8 @@
                         {
                             "id": "NAV001",
                             "description": "Navidrome music server and streamer compatible with Subsonic/Airsonic",
+                            "short": "Navidrome",
+                            "module": "module_navidrome",
                             "command": [
                                 "module_navidrome install"
                             ],
@@ -332,12 +349,50 @@
                     ]
                 },
                 {
+                    "id": "Finance",
+                    "description": "Manage your finances",
+                    "sub": [
+                        {
+                            "id": "ABU001",
+                            "description": "Do your finances with Actual Budget",
+                            "short": "Actual Budget",
+                            "module": "module_actualbudget",
+                            "command": [
+                                "module_actualbudget install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_actualbudget status"
+                        },
+                        {
+                            "id": "ABU002",
+                            "description": "Actual Budget remove",
+                            "command": [
+                                "module_actualbudget remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_actualbudget status"
+                        },
+                        {
+                            "id": "ABU003",
+                            "description": "Actual Budget purge with data folder",
+                            "command": [
+                                "module_actualbudget purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_actualbudget status"
+                        }
+                    ]
+                },
+                {
                     "id": "Desktops",
                     "description": "Desktop Environments",
                     "status": "Disabled",
                     "sub": [
                         {
-                            "id": "XFCE",
+                            "id": "XFCEDE",
                             "description": "XFCE desktop",
                             "sub": [
                                 {
@@ -384,11 +439,11 @@
                             ]
                         },
                         {
-                            "id": "Gnome",
+                            "id": "GNOMDE",
                             "description": "Gnome desktop",
                             "sub": [
                                 {
-                                    "id": "GNOME01",
+                                    "id": "GNME01",
                                     "description": "Gnome desktop Install",
                                     "command": [
                                         "module_desktop 'install' 'de=gnome'"
@@ -398,7 +453,7 @@
                                     "condition": "! module_desktop status de=gnome"
                                 },
                                 {
-                                    "id": "GNOME02",
+                                    "id": "GNME02",
                                     "description": "Uninstall",
                                     "command": [
                                         "module_desktop 'remove' 'de=gnome'"
@@ -408,7 +463,7 @@
                                     "condition": "module_desktop status de=gnome"
                                 },
                                 {
-                                    "id": "GNOME03",
+                                    "id": "GNME03",
                                     "description": "Enable autologin",
                                     "command": [
                                         "module_desktop auto de=gnome"
@@ -418,7 +473,7 @@
                                     "condition": "module_desktop status de=gnome && ! module_desktop login"
                                 },
                                 {
-                                    "id": "GNOME04",
+                                    "id": "GNME04",
                                     "description": "Disable autologin",
                                     "command": [
                                         "module_desktop manual de=gnome"
@@ -430,7 +485,7 @@
                             ]
                         },
                         {
-                            "id": "I3WM",
+                            "id": "I3WMDE",
                             "description": "i3-wm desktop",
                             "status": "Disabled",
                             "sub": [
@@ -477,12 +532,12 @@
                             ]
                         },
                         {
-                            "id": "Cinnamon",
+                            "id": "CINMDE",
                             "description": "Cinnamon desktop",
                             "status": "Disabled",
                             "sub": [
                                 {
-                                    "id": "CINNAMON01",
+                                    "id": "CINM01",
                                     "description": "Cinnamon desktop Install",
                                     "command": [
                                         "manage_desktops 'cinnamon' 'install'"
@@ -492,7 +547,7 @@
                                     "condition": "[ ! -f /usr/share/xsessions/cinnamon.desktop ] && [ ! -f /usr/share/xsessions/cinnamon2d.desktop ]"
                                 },
                                 {
-                                    "id": "CINNAMON02",
+                                    "id": "CINM02",
                                     "description": "Cinnamon desktop uninstall",
                                     "command": [
                                         "manage_desktops 'cinnamon' 'uninstall'"
@@ -502,7 +557,7 @@
                                     "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] || [ -f /usr/share/xsessions/cinnamon2d.desktop ]"
                                 },
                                 {
-                                    "id": "CINNAMON03",
+                                    "id": "CINM03",
                                     "description": "Enable autologin",
                                     "command": [
                                         "manage_desktops 'cinnamon' 'auto'"
@@ -512,7 +567,7 @@
                                     "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
                                 },
                                 {
-                                    "id": "CINNAMON04",
+                                    "id": "CINM04",
                                     "description": "Disable autologin",
                                     "command": [
                                         "manage_desktops 'cinnamon' 'manual'"
@@ -524,12 +579,12 @@
                             ]
                         },
                         {
-                            "id": "KDEN",
+                            "id": "KDENEO",
                             "description": "Kde-neon desktop",
                             "status": "Disabled",
                             "sub": [
                                 {
-                                    "id": "KDENEON01",
+                                    "id": "KDEN01",
                                     "description": "Kde-neon desktop Install",
                                     "command": [
                                         "manage_desktops 'kde-neon' 'install'"
@@ -539,7 +594,7 @@
                                     "condition": "[ ! -f /usr/share/xsessions/gnome.desktop ]"
                                 },
                                 {
-                                    "id": "KDENEON02",
+                                    "id": "KDEN02",
                                     "description": "Uninstall",
                                     "command": [
                                         "manage_desktops 'kde-neon' 'uninstall'"
@@ -549,7 +604,7 @@
                                     "condition": "[ -f /usr/share/xsessions/gnome.desktop ]"
                                 },
                                 {
-                                    "id": "KDENEON03",
+                                    "id": "KDEN03",
                                     "description": "Enable autologin",
                                     "command": [
                                         "manage_desktops 'kde-neon' 'auto'"
@@ -559,7 +614,7 @@
                                     "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
                                 },
                                 {
-                                    "id": "KDENEON04",
+                                    "id": "KDEN04",
                                     "description": "Disable autologin",
                                     "command": [
                                         "manage_desktops 'kde-neon' 'manual'"
@@ -583,12 +638,55 @@
                     ]
                 },
                 {
+                    "id": "Backup",
+                    "description": "Backup solutions for your data",
+                    "sub": [
+                        {
+                            "id": "DPL001",
+                            "description": "Duplicati install",
+                            "short": "Duplicati",
+                            "module": "module_duplicati",
+                            "about": "This operation will install Duplicati backup software",
+                            "command": [
+                                "module_duplicati install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_duplicati status"
+                        },
+                        {
+                            "id": "DPL002",
+                            "description": "Duplicati remove",
+                            "about": "This operation will remove Duplicati backup software",
+                            "command": [
+                                "module_duplicati remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_duplicati status"
+                        },
+                        {
+                            "id": "DPL003",
+                            "description": "Duplicati purge with data folder",
+                            "about": "This operation will purge Duplicati data and remove the software",
+                            "command": [
+                                "module_duplicati purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_duplicati status"
+                            }
+                    ]
+                },
+                {
                     "id": "Downloaders",
                     "description": "Download apps for movies, TV shows, music and subtitles",
                     "sub": [
                         {
                             "id": "DOW001",
                             "description": "qBittorrent BitTorrent client ",
+                            "short": "qBittorrent",
+                            "module": "module_qbittorrent",
                             "about": "This operation will install qBittorrent BitTorrent client",
                             "command": [
                                 "module_qbittorrent install"
@@ -622,6 +720,8 @@
                         {
                             "id": "DEL001",
                             "description": "Deluge BitTorrent client",
+                            "short": "Deluge",
+                            "module": "module_deluge",
                             "about": "This operation will install BitTorrent client",
                             "command": [
                                 "module_deluge install"
@@ -655,6 +755,8 @@
                         {
                             "id": "TRA001",
                             "description": "Transmission BitTorrent client",
+                            "short": "Transmission",
+                            "module": "module_transmission",
                             "about": "This operation will install Transmission BitTorrent client",
                             "command": [
                                 "module_transmission install"
@@ -688,6 +790,8 @@
                         {
                             "id": "SABN01",
                             "description": "SABnzbd newsgroup downloader",
+                            "short": "SABnzbd",
+                            "module": "module_sabnzbd",
                             "about": "This operation will install SABnzbd newsgroup downloader",
                             "command": [
                                 "module_sabnzbd install"
@@ -721,6 +825,8 @@
                         {
                             "id": "MDS001",
                             "description": "Medusa automatic downloader for TV shows",
+                            "short": "Medusa",
+                            "module": "module_medusa",
                             "about": "This operation will install Medusa TV shows downloader",
                             "command": [
                                 "module_medusa install"
@@ -754,6 +860,8 @@
                         {
                             "id": "SON001",
                             "description": "Sonarr automatic downloader for TV shows",
+                            "short": "Sonarr",
+                            "module": "module_sonarr",
                             "about": "This operation will install Sonarr PVR for Usenet and BitTorrent",
                             "command": [
                                 "module_sonarr install"
@@ -787,6 +895,8 @@
                         {
                             "id": "RAD001",
                             "description": "Radarr automatic downloader for movies",
+                            "short": "Radarr",
+                            "module": "module_radarr",
                             "about": "This operation will install Radarr movie collection manager",
                             "command": [
                                 "module_radarr install"
@@ -820,6 +930,8 @@
                         {
                             "id": "BAZ001",
                             "description": "Bazarr automatic subtitles downloader for Sonarr and Radarr",
+                            "short": "Bazarr",
+                            "module": "module_bazarr",
                             "about": "This operation will install Bazarr subtitles manager for Sonarr and Radarr",
                             "command": [
                                 "module_bazarr install"
@@ -853,6 +965,8 @@
                         {
                             "id": "LID001",
                             "description": "Lidarr automatic music downloader",
+                            "short": "Lidarr",
+                            "module": "module_lidarr",
                             "about": "This operation will install Lidarr music collection manager for Usenet and BitTorrent users",
                             "command": [
                                 "module_lidarr install"
@@ -886,6 +1000,8 @@
                         {
                             "id": "RDR001",
                             "description": "Readarr automatic downloader for Ebooks",
+                            "short": "Readarr",
+                            "module": "module_readarr",
                             "about": "This operation will install Readarr",
                             "command": [
                                 "module_readarr install"
@@ -919,6 +1035,8 @@
                         {
                             "id": "DOW025",
                             "description": "Prowlarr index manager and proxy for PVR",
+                            "short": "Prowlarr",
+                            "module": "module_prowlarr",
                             "about": "This operation will install Prowlarr",
                             "command": [
                                 "module_prowlarr install"
@@ -952,6 +1070,8 @@
                         {
                             "id": "JEL001",
                             "description": "Jellyseerr Jellyfin/Emby/Plex integration install",
+                            "short": "Jellyseerr",
+                            "module": "module_jellyseerr",
                             "about": "This operation will install Jellyseerr",
                             "command": [
                                 "module_jellyseerr install"
@@ -989,8 +1109,45 @@
                     "description": "SQL database servers and web interface managers",
                     "sub": [
                         {
+                            "id": "PGSQL1",
+                            "description": "PostgreSQL install",
+                            "short": "PostgreSQL",
+                            "module": "module_postgres",
+                            "about": "This operation will install PostgreSQL, an advanced relational database server",
+                            "command": [
+                                "module_postgres install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_postgres status"
+                        },
+                        {
+                            "id": "PGSQL2",
+                            "description": "PostgreSQL remove",
+                            "about": "This operation will remove the PostgreSQL container",
+                            "command": [
+                                "module_postgres remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_postgres status"
+                        },
+                        {
+                            "id": "PGSQL3",
+                            "description": "PostgreSQL purge with data folder",
+                            "about": "This operation will purge PostgreSQL data and remove the container",
+                            "command": [
+                                "module_postgres purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_postgres status"
+                        },
+                        {
                             "id": "DAT001",
                             "description": "Mariadb SQL database server",
+                            "short": "Mariadb",
+                            "module": "module_mariadb",
                             "command": [
                                 "module_mariadb install"
                             ],
@@ -1019,8 +1176,45 @@
                             "condition": "module_mariadb status"
                         },
                         {
-                            "id": "DAT005",
+                            "id": "REDIS1",
+                            "description": "Redis install",
+                            "short": "Redis",
+                            "module": "module_redis",
+                            "about": "This operation will install Redis, a powerful in-memory key-value database",
+                            "command": [
+                                "module_redis install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_redis status"
+                        },
+                        {
+                            "id": "REDIS2",
+                            "description": "Redis remove",
+                            "about": "This operation will remove Redis container",
+                            "command": [
+                                "module_redis remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_redis status"
+                        },
+                        {
+                            "id": "REDIS3",
+                            "description": "Redis purge with data folder",
+                            "about": "This operation will purge Redis data and remove the container",
+                            "command": [
+                                "module_redis purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_redis status"
+                        },
+                        {
+                            "id": "MYA001",
                             "description": "phpMyAdmin web interface manager",
+                            "short": "phpMyAdmin",
+                            "module": "module_phpmyadmin",
                             "command": [
                                 "module_phpmyadmin install"
                             ],
@@ -1029,7 +1223,7 @@
                             "condition": "! module_phpmyadmin status"
                         },
                         {
-                            "id": "DAT006",
+                            "id": "MYA002",
                             "description": "phpMyAdmin remove",
                             "command": [
                                 "module_phpmyadmin remove"
@@ -1039,7 +1233,7 @@
                             "condition": "module_phpmyadmin status"
                         },
                         {
-                            "id": "DAT007",
+                            "id": "MYA003",
                             "description": "phpMyAdmin purge with data folder",
                             "command": [
                                 "module_phpmyadmin purge"
@@ -1051,12 +1245,86 @@
                     ]
                 },
                 {
+                    "id": "Armbian",
+                    "description": "Armbian infrastructure services",
+                    "sub": [
+                        {
+                            "id": "ART001",
+                            "description": "Router for repository mirror automation",
+                            "short": "CDN router",
+                            "module": "module_generic",
+                            "command": [
+                                "module_armbianrouter install"
+                            ],
+                            "status": "Stable",
+                            "author": "@efectn",
+                            "condition": "! module_armbianrouter status"
+                        },
+                        {
+                            "id": "ART002",
+                            "description": "Remove CDN router",
+                            "command": [
+                                "module_armbianrouter remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@efectn",
+                            "condition": "module_armbianrouter status"
+                        },
+                        {
+                            "id": "GHR001",
+                            "description": "GitHub runners for Armbian automation",
+                            "short": "GH runners",
+                            "module": "module_generic",
+                            "command": [
+                                "module_armbian_runners install"
+                            ],
+                            "status": "Stable",
+                            "author": "@efectn",
+                            "condition": "! module_armbian_runners status"
+                        },
+                        {
+                            "id": "GHR002",
+                            "description": "Remove GitHub runners for Armbian automation",
+                            "command": [
+                                "module_armbian_runners remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@efectn",
+                            "condition": "module_armbian_runners status"
+                        },
+                        {
+                            "id": "RSD001",
+                            "description": "Rsyncd server",
+                            "short": "Rsyncd server",
+                            "module": "module_generic",
+                            "command": [
+                                "module_armbian_rsyncd install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_armbian_rsyncd status"
+                        },
+                        {
+                            "id": "RSD002",
+                            "description": "Remove Armbian rsyncd server",
+                            "command": [
+                                "module_armbian_rsyncd remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_armbian_rsyncd status"
+                        }
+                    ]
+                },
+                {
                     "id": "DevTools",
                     "description": "Applications and tools for development",
                     "sub": [
                         {
-                            "id": "DEV001",
+                            "id": "GIT001",
                             "description": "Install tools for cloning and managing repositories (git)",
+                            "short": "Git CLI",
+                            "module": "module_generic",
                             "command": [
                                 "get_user_continue \"This operation will install git.\n\nDo you wish to continue?\" process_input",
                                 "pkg_install git"
@@ -1066,7 +1334,7 @@
                             "condition": "! pkg_installed git"
                         },
                         {
-                            "id": "DEV002",
+                            "id": "GIT002",
                             "description": "Remove tools for cloning and managing repositories (git)",
                             "command": [
                                 "get_user_continue \"This operation will remove git.\n\nDo you wish to continue?\" process_input",
@@ -1075,46 +1343,6 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "pkg_installed git"
-                        },
-                        {
-                            "id": "DEV003",
-                            "description": "Armbian router for repository mirror automation",
-                            "command": [
-                                "module_armbianrouter install"
-                            ],
-                            "status": "Stable",
-                            "author": "@efectn",
-                            "condition": "! module_armbianrouter status"
-                        },
-                        {
-                            "id": "DEV004",
-                            "description": "Remove Armbian router",
-                            "command": [
-                                "module_armbianrouter remove"
-                            ],
-                            "status": "Stable",
-                            "author": "@efectn",
-                            "condition": "module_armbianrouter status"
-                        },
-                        {
-                            "id": "DEV010",
-                            "description": "Armbian rsyncd server",
-                            "command": [
-                                "module_armbian_rsyncd install"
-                            ],
-                            "status": "Stable",
-                            "author": "@igorpecovnik",
-                            "condition": "! module_armbian_rsyncd status"
-                        },
-                        {
-                            "id": "DEV011",
-                            "description": "Remove Armbian rsyncd server",
-                            "command": [
-                                "module_armbian_rsyncd remove"
-                            ],
-                            "status": "Stable",
-                            "author": "@igorpecovnik",
-                            "condition": "module_armbian_rsyncd status"
                         }
                     ]
                 },
@@ -1135,6 +1363,8 @@
                         {
                             "id": "CON001",
                             "description": "Docker minimal",
+                            "short": "Docker",
+                            "module": "module_docker",
                             "about": "This operation will install Docker Minimal.",
                             "command": [
                                 "module_docker install minimal"
@@ -1177,8 +1407,10 @@
                             "condition": "module_docker status docker-ce"
                         },
                         {
-                            "id": "CON005",
+                            "id": "POR001",
                             "description": "Portainer container management platform",
+                            "short": "Portainer",
+                            "module": "module_portainer",
                             "prompt": "This operation will install Portainer container management platform.",
                             "command": [
                                 "module_portainer install"
@@ -1188,7 +1420,7 @@
                             "condition": "! module_portainer status"
                         },
                         {
-                            "id": "CON006",
+                            "id": "POR002",
                             "description": "Portainer remove",
                             "prompt": "This operation will remove Portainer container management platform.",
                             "command": [
@@ -1199,7 +1431,7 @@
                             "condition": "module_portainer status"
                         },
                         {
-                            "id": "CON007",
+                            "id": "POR003",
                             "description": "Portainer purge with with data folder",
                             "prompt": "This operation will remove Portainer container management platform.",
                             "command": [
@@ -1238,8 +1470,68 @@
                             "condition": "module_plexmediaserver status"
                         },
                         {
-                            "id": "MED003",
+                            "id": "OMV001",
+                            "description": "Deploy NAS using OpenMediaVault",
+                            "short": "OMV",
+                            "module": "module_omv",
+                            "about": "This operation will install OpenMediaVault on your system.",
+                            "command": [
+                                "module_omv install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_omv status"
+                        },
+                        {
+                            "id": "OMV002",
+                            "description": "OpenMediaVault remove",
+                            "about": "This operation will completely remove OpenMediaVault from your system.",
+                            "command": [
+                                "module_omv remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_omv status"
+                        },
+                        {
+                            "id": "FIL001",
+                            "description": "Filebrowser provides a web-based file manager accessible via a browser",
+                            "short": "Filebrowser",
+                            "module": "module_filebrowser",
+                            "about": "This operation will install Filebrowser container.",
+                            "command": [
+                                "module_filebrowser install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_filebrowser status"
+                        },
+                        {
+                            "id": "FIL002",
+                            "description": "Filebrowser container remove",
+                            "about": "This operation will remove Filebrowser container.",
+                            "command": [
+                                "module_filebrowser remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_filebrowser status"
+                        },
+                        {
+                            "id": "FIL003",
+                            "description": "Filebrowser container purge with data folder",
+                            "command": [
+                                "module_filebrowser purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_filebrowser status"
+                        },
+                        {
+                            "id": "EMB001",
                             "description": "Emby organizes video, music, live TV, and photos",
+                            "short": "Emby",                            
+                            "module": "module_embyserver",
                             "about": "This operation will install Emby server.",
                             "command": [
                                 "module_embyserver install"
@@ -1249,7 +1541,7 @@
                             "condition": "! module_embyserver status"
                         },
                         {
-                            "id": "MED004",
+                            "id": "EMB002",
                             "description": "Emby server remove",
                             "about": "This operation will remove Emby server",
                             "command": [
@@ -1260,7 +1552,7 @@
                             "condition": "module_embyserver status"
                         },
                         {
-                            "id": "MED005",
+                            "id": "EMB003",
                             "description": "Emby server purge with data folder",
                             "command": [
                                 "module_embyserver purge"
@@ -1270,8 +1562,10 @@
                             "condition": "module_embyserver status"
                         },
                         {
-                            "id": "MED010",
+                            "id": "STR001",
                             "description": "Stirling PDF tools for viewing and editing PDF files",
+                            "short": "Stirling",
+                            "module": "module_stirling",
                             "about": "This operation will install Stirling-PDF tools.",
                             "command": [
                                 "module_stirling install"
@@ -1281,7 +1575,7 @@
                             "condition": "! module_stirling status"
                         },
                         {
-                            "id": "MED011",
+                            "id": "STR002",
                             "description": "Stirling PDF remove",
                             "about": "This operation will remove Stirling-PDF tools.",
                             "command": [
@@ -1292,7 +1586,7 @@
                             "condition": "module_stirling status"
                         },
                         {
-                            "id": "MED012",
+                            "id": "STR003",
                             "description": "Stirling PDF purge with data folder",
                             "about": "This operation will purge Stirling-PDF tools with data folder.",
                             "command": [
@@ -1303,8 +1597,10 @@
                             "condition": "module_stirling status"
                         },
                         {
-                            "id": "MED015",
+                            "id": "STC001",
                             "description": "Syncthing continuous file synchronization",
+                            "short": "Syncthing",
+                            "module": "module_syncthing",
                             "command": [
                                 "module_syncthing install"
                             ],
@@ -1313,7 +1609,7 @@
                             "condition": "! module_syncthing status"
                         },
                         {
-                            "id": "MED016",
+                            "id": "STC002",
                             "description": "Syncthing remove",
                             "command": [
                                 "module_syncthing remove"
@@ -1323,7 +1619,7 @@
                             "condition": "module_syncthing status"
                         },
                         {
-                            "id": "MED017",
+                            "id": "STC003",
                             "description": "Syncthing purge with data folder",
                             "command": [
                                 "module_syncthing purge"
@@ -1333,8 +1629,10 @@
                             "condition": "module_syncthing status"
                         },
                         {
-                            "id": "MED020",
+                            "id": "NCT001",
                             "description": "Nextcloud content collaboration platform",
+                            "short": "Nextcloud",
+                            "module": "module_nextcloud",
                             "command": [
                                 "module_nextcloud install"
                             ],
@@ -1343,7 +1641,7 @@
                             "condition": "! module_nextcloud status"
                         },
                         {
-                            "id": "MED021",
+                            "id": "NCT002",
                             "description": "Nextcloud remove",
                             "command": [
                                 "module_nextcloud remove"
@@ -1353,7 +1651,7 @@
                             "condition": "module_nextcloud status"
                         },
                         {
-                            "id": "MED022",
+                            "id": "NCT003",
                             "description": "Nextcloud purge with data folder",
                             "command": [
                                 "module_nextcloud purge"
@@ -1363,8 +1661,10 @@
                             "condition": "module_nextcloud status"
                         },
                         {
-                            "id": "MED025",
+                            "id": "OWC001",
                             "description": "Owncloud share files and folders, easy and secure",
+                            "short": "Owncloud",
+                            "module": "module_owncloud",
                             "command": [
                                 "module_owncloud install"
                             ],
@@ -1373,7 +1673,7 @@
                             "condition": "! module_owncloud status"
                         },
                         {
-                            "id": "MED026",
+                            "id": "OWC002",
                             "description": "Owncloud remove",
                             "command": [
                                 "module_owncloud remove"
@@ -1383,7 +1683,7 @@
                             "condition": "module_owncloud status"
                         },
                         {
-                            "id": "MED027",
+                            "id": "OWC003",
                             "description": "Owncloud purge with data folder",
                             "command": [
                                 "module_owncloud purge"
@@ -1393,8 +1693,10 @@
                             "condition": "module_owncloud status"
                         },
                         {
-                            "id": "MED030",
+                            "id": "JMS001",
                             "description": "Jellyfin Media System",
+                            "short": "Jellyfin",
+                            "module": "module_jellyfin",
                             "command": [
                                 "module_jellyfin install"
                             ],
@@ -1403,7 +1705,7 @@
                             "condition": "! module_jellyfin status"
                         },
                         {
-                            "id": "MED031",
+                            "id": "JMS002",
                             "description": "Jellyfin remove",
                             "command": [
                                 "module_jellyfin remove"
@@ -1413,7 +1715,7 @@
                             "condition": "module_jellyfin status"
                         },
                         {
-                            "id": "MED032",
+                            "id": "JMS003",
                             "description": "Jellyfin purge with data folder",
                             "command": [
                                 "module_jellyfin purge"
@@ -1423,8 +1725,10 @@
                             "condition": "module_jellyfin status"
                         },
                         {
-                            "id": "MED033",
+                            "id": "HPS001",
                             "description": "Hastebin Paste Server",
+                            "short": "Hastebin",
+                            "module": "module_hastebin",
                             "command": [
                                 "module_hastebin install"
                             ],
@@ -1433,7 +1737,7 @@
                             "condition": "! module_hastebin status"
                         },
                         {
-                            "id": "MED034",
+                            "id": "HPS002",
                             "description": "Hastebin remove",
                             "command": [
                                 "module_hastebin remove"
@@ -1443,7 +1747,7 @@
                             "condition": "module_hastebin status"
                         },
                         {
-                            "id": "MED035",
+                            "id": "HPS003",
                             "description": "Hastebin purge with data folder",
                             "command": [
                                 "module_hastebin purge"
@@ -1451,6 +1755,41 @@
                             "status": "Stable",
                             "author": "@efectn",
                             "condition": "module_hastebin status"
+                        },
+                        {
+                            "id": "IMM001",
+                            "description": "Immich - high-performance self-hosted photo and video backup solution",
+                            "short": "Immich",
+                            "module": "module_immich",
+                            "about": "This operation will install Immich server with dependencies (PostgreSQL and Redis).",
+                            "command": [
+                                "module_immich install"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_immich status"
+                        },
+                        {
+                            "id": "IMM002",
+                            "description": "Immich remove",
+                            "about": "This operation will remove the Immich container.",
+                            "command": [
+                                "module_immich remove"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_immich status"
+                        },
+                        {
+                            "id": "IMM003",
+                            "description": "Immich purge with data folder",
+                            "about": "This operation will remove Immich container and delete all its data.",
+                            "command": [
+                                "module_immich purge"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_immich status"
                         }
                     ]
                 },
@@ -1459,8 +1798,10 @@
                     "description": "Real-time monitoring, collecting metrics, up-time status",
                     "sub": [
                         {
-                            "id": "MON001",
+                            "id": "UPK001",
                             "description": "Uptime Kuma self-hosted monitoring tool",
+                            "short": "Uptime Kuma",
+                            "module": "module_uptimekuma",
                             "about": "This operation will install Uptime Kuma",
                             "command": [
                                 "module_uptimekuma install"
@@ -1470,7 +1811,7 @@
                             "condition": "! module_uptimekuma status"
                         },
                         {
-                            "id": "MON002",
+                            "id": "UPK002",
                             "description": "Uptime Kuma remove",
                             "about": "This operation will remove Uptime Kuma",
                             "command": [
@@ -1481,7 +1822,7 @@
                             "condition": "module_uptimekuma status"
                         },
                         {
-                            "id": "MON003",
+                            "id": "UPK003",
                             "description": "Uptime Kuma purge with data folder",
                             "about": "This operation will remove Uptime Kuma with data folder",
                             "command": [
@@ -1492,8 +1833,10 @@
                             "condition": "module_uptimekuma status"
                         },
                         {
-                            "id": "MON005",
+                            "id": "NTD001",
                             "description": "Netdata - monitoring real-time metrics",
+                            "short": "Netdata",
+                            "module": "module_netdata",
                             "about": "This operation will install Netdata",
                             "command": [
                                 "module_netdata install"
@@ -1503,7 +1846,7 @@
                             "condition": "! module_netdata status"
                         },
                         {
-                            "id": "MON006",
+                            "id": "NTD002",
                             "description": "Netdata remove",
                             "about": "This operation will remove Netdata",
                             "command": [
@@ -1514,7 +1857,7 @@
                             "condition": "module_netdata status"
                         },
                         {
-                            "id": "MON007",
+                            "id": "NTD003",
                             "description": "Netdata purge with data folder",
                             "about": "This operation will purge Netdata with data folder",
                             "command": [
@@ -1527,6 +1870,8 @@
                         {
                             "id": "GRA001",
                             "description": "Grafana data analytics",
+                            "short": "Grafana",
+                            "module": "module_grafana",
                             "prompt": "This operation will install Grafana.",
                             "command": [
                                 "module_grafana install"
@@ -1560,6 +1905,8 @@
                         {
                             "id": "PRO001",
                             "description": "Prometheus docker image",
+                            "short": "Prometheus",
+                            "module": "module_prometheus",
                             "prompt": "This operation will install Prometheus.",
                             "command": [
                                 "module_prometheus install"
@@ -1589,16 +1936,53 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "module_prometheus status"
+                        },
+                        {
+                            "id": "NAX001",
+                            "description": "NetAlertX network scanner & notification framework",
+                            "short": "NetAlertX",
+                            "module": "module_netalertx",
+                            "prompt": "This operation will install NetAlertX.",
+                            "command": [
+                                "module_netalertx install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_netalertx status"
+                        },
+                        {
+                            "id": "NAX002",
+                            "description": "NetAlertX network scanner remove",
+                            "prompt": "This operation will remove NetAlertX.",
+                            "command": [
+                                "module_netalertx remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_netalertx status"
+                        },
+                        {
+                            "id": "NAX003",
+                            "description": "NetAlertX network scanner purge with data folder",
+                            "about": "This operation will purge NetAlertX with data folder",
+                            "command": [
+                                "module_netalertx purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_netalertx status"
                         }
                     ]
                 },
                 {
                     "id": "Management",
-                    "description": "Remote Management tools",
+                    "description": "Remote File & Management tools",
                     "sub": [
                         {
-                            "id": "MAN001",
+                            "id": "CPT001",
                             "description": "Cockpit web-based management tool",
+                            "short": "Cockpit",
+                            "module": "module_generic",
                             "command": [
                                 "see_menu module_cockpit"
                             ],
@@ -1607,14 +1991,95 @@
                             "condition": ""
                         },
                         {
-                            "id": "MAN005",
+                            "id": "SMB001",
+                            "description": "SAMBA Remote File share",
+                            "short": "Samba",
+                            "module": "module_generic",
+                            "command": [
+                                "see_menu module_samba"
+                            ],
+                            "status": "Stable",
+                            "author": "@Tearran",
+                            "condition": ""
+                        },
+                        {
+                            "id": "WBM001",
                             "description": "Webmin web-based management tool",
+                            "short": "Webmin",
+                            "module": "module_generic",
                             "command": [
                                 "see_menu module_webmin"
                             ],
                             "status": "Stable",
                             "author": "@Tearran",
                             "condition": ""
+                        },
+                        {
+                            "id": "HPG001",
+                            "description": "Install Homepage startpage / application dashboard",
+                            "short": "Homepage",
+                            "module": "module_homepage",
+                            "command": [
+                                "module_homepage install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_homepage status"
+                        },
+                        {
+                            "id": "HPG002",
+                            "description": "Remove Homepage",
+                            "command": [
+                                "module_homepage remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_homepage status"
+                        },
+                        {
+                            "id": "HPG003",
+                            "description": "Purge Homepage with data folder",
+                            "command": [
+                                "module_homepage purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_homepage status"
+                        },
+                        {
+                            "id": "NBOX01",
+                            "description": "NetBox infrastructure resource modeling install",
+                            "short": "NetBox",
+                            "module": "module_netbox",
+                            "about": "This operation will install NetBox, an infrastructure resource modeling (IPAM/DCIM) tool",
+                            "command": [
+                                "module_netbox install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_netbox status"
+                        },
+                        {
+                            "id": "NBOX02",
+                            "description": "NetBox remove",
+                            "about": "This operation will remove NetBox container",
+                            "command": [
+                                "module_netbox remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_netbox status"
+                        },
+                        {
+                            "id": "NBOX03",
+                            "description": "NetBox purge with data folder",
+                            "about": "This operation will purge NetBox data and remove the container",
+                            "command": [
+                                "module_netbox purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_netbox status"
                         }
                     ]
                 },
@@ -1624,7 +2089,9 @@
                     "sub": [
                         {
                             "id": "OCT001",
-                            "description": "OctoPrint web-based 3D printers management tool",
+                            "description": "OctoPrint web-based 3D printers management tool",                            
+                            "short": "OctoPrint",
+                            "module": "module_octoprint",
                             "about": "This operation will install OctoPrint",
                             "command": [
                                 "module_octoprint install"
@@ -1662,8 +2129,10 @@
                     "description": "Console network tools for measuring load and bandwidth",
                     "sub": [
                         {
-                            "id": "NET001",
-                            "description": "nload -realtime console network usage monitor",
+                            "id": "NLD001",
+                            "description": "nload - realtime console network usage monitor",
+                            "short": "nload",
+                            "module": "module_netbox",
                             "prompt": "This operation will install nload.",
                             "command": [
                                 "pkg_install nload"
@@ -1673,7 +2142,7 @@
                             "condition": "! pkg_installed nload"
                         },
                         {
-                            "id": "NET002",
+                            "id": "NLD002",
                             "description": "nload - remove",
                             "prompt": "This operation will remove nload.",
                             "command": [
@@ -1684,8 +2153,10 @@
                             "condition": "pkg_installed nload"
                         },
                         {
-                            "id": "NET003",
+                            "id": "IPR001",
                             "description": "iperf3 bandwidth measuring tool",
+                            "short": "iperf3",
+                            "module": "module_netbox",
                             "prompt": "This operation will install iperf3.",
                             "command": [
                                 "pkg_install iperf3"
@@ -1695,7 +2166,7 @@
                             "condition": "! pkg_installed iperf3"
                         },
                         {
-                            "id": "NET004",
+                            "id": "IPR002",
                             "description": "iperf3 remove",
                             "prompt": "This operation will remove iperf3.",
                             "command": [
@@ -1706,8 +2177,10 @@
                             "condition": "pkg_installed iperf3"
                         },
                         {
-                            "id": "NET005",
+                            "id": "IPT001",
                             "description": "iptraf-ng IP LAN monitor",
+                            "short": "iptraf-ng",
+                            "module": "module_netbox",
                             "prompt": "This operation will install iptraf-ng.",
                             "command": [
                                 "pkg_install iptraf-ng"
@@ -1717,7 +2190,7 @@
                             "condition": "! pkg_installed iptraf-ng"
                         },
                         {
-                            "id": "NET006",
+                            "id": "IPT002",
                             "description": "iptraf-ng remove",
                             "prompt": "This operation will remove iptraf-ng.",
                             "command": [
@@ -1728,8 +2201,10 @@
                             "condition": "pkg_installed iptraf-ng"
                         },
                         {
-                            "id": "NET007",
+                            "id": "AVH001",
                             "description": "avahi-daemon hostname broadcast via mDNS",
+                            "short": "avahi-daemon",
+                            "module": "module_netbox",
                             "prompt": "This operation will install avahi-daemon.",
                             "command": [
                                 "pkg_install avahi-daemon libnss-mdns",
@@ -1742,7 +2217,7 @@
                             "condition": "! pkg_installed avahi-daemon"
                         },
                         {
-                            "id": "NET008",
+                            "id": "AVH002",
                             "description": "avahi-daemon remove",
                             "prompt": "This operation will remove avahi-daemon.",
                             "command": [
@@ -1757,11 +2232,56 @@
                 },
                 {
                     "id": "VPN",
-                    "description": "VPN tools",
+                    "description": "Virtual Private Network tools",
                     "sub": [
                         {
-                            "id": "VPN001",
+                            "id": "WRG001",
+                            "description": "WireGuard VPN client / server",
+                            "short": "WireGuard",
+                            "module": "module_wireguard",
+                            "command": [
+                                "module_wireguard install"
+                            ],
+                            "status": "Enabled",
+                            "author": "@armbian",
+                            "condition": "! module_wireguard status"
+                        },
+                        {
+                            "id": "WRG002",
+                            "description": "WireGuard remove",
+                            "about": "This operation will remove WireGuard",
+                            "command": [
+                                "module_wireguard remove"
+                            ],
+                            "status": "Enabled",
+                            "author": "@armbian",
+                            "condition": "module_wireguard status"
+                        },
+                        {
+                            "id": "WRG003",
+                            "description": "WireGuard clients QR codes",
+                            "command": [
+                                "module_wireguard qrcode"
+                            ],
+                            "status": "Enabled",
+                            "author": "@armbian",
+                            "condition": "module_wireguard status"
+                        },
+                        {
+                            "id": "WRG004",
+                            "description": "WireGuard purge with data folder",
+                            "about": "This operation will purge WireGuard with data folder",
+                            "command": [
+                                "module_wireguard purge"
+                            ],
+                            "status": "Enabled",
+                            "author": "@armbian",
+                            "condition": "module_wireguard status"
+                        },
+                        {
+                            "id": "ZTR001",
                             "description": "ZeroTier connect devices over your own private network in the world.",
+                            "short": "ZeroTier",
                             "command": [
                                 "see_menu module_zerotier"
                             ],

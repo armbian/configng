@@ -6,15 +6,17 @@
             "sub": [
                 {
                     "id": "BNS001",
-                    "description": "Basic Network Setup",
+                    "description": "Basic network setup",
+                    "short": "Basic setup",
+                    "module": "module_generic",
                     "command": [
                         "module_simple_network simple"
                     ],
                     "status": "Stable",
                     "author": "@igorpecovnik",
                     "condition": ""
-                    },
-                    {
+                },
+                {
                     "id": "BNS002",
                     "description": "Remove Fallback DHCP Configuration",
                     "about": "Drop preinstalled automatic DHCP on all wired interfaces after your configuration is setup.",
@@ -28,7 +30,9 @@
                 },
                 {
                     "id": "VNS001",
-                    "description": "View Network Settings",
+                    "description": "View Network Configuration",
+                    "short": "View configuration",
+                    "module": "module_generic",
                     "command": [
                         "show_message <<< \"$(netplan get all)\""
                     ],
@@ -37,12 +41,16 @@
                     "condition": "[[ -f /etc/netplan/armbian.yaml ]]"
                 },
                 {
-                    "id": "NEA002",
+                    "id": "NEA001",
                     "description": "Advanced bridged network configuration",
+                    "short": "Advanced",
+                    "module": "module_generic",
                     "sub": [
                         {
-                            "id": "NE002",
+                            "id": "NEA002",
                             "description": "Add / change interface",
+                            "short": "Add or Change",
+                            "module": "module_generic",
                             "command": [
                                 "network_config armbian"
                             ],
@@ -51,7 +59,7 @@
                             "condition": ""
                         },
                         {
-                            "id": "NE003",
+                            "id": "NEA003",
                             "description": "Revert to Armbian defaults",
                             "command": [
                                 "default_network_config"
@@ -61,7 +69,7 @@
                             "condition": ""
                         },
                         {
-                            "id": "NE004",
+                            "id": "NEA004",
                             "description": "Show configuration",
                             "command": [
                                 "show_message <<< \"$(netplan get all)\""
@@ -71,7 +79,7 @@
                             "condition": "[[ -f /etc/netplan/armbian.yaml ]]"
                         },
                         {
-                            "id": "NE005",
+                            "id": "NEA005",
                             "description": "Show active status",
                             "command": [
                                 "show_message <<< \"$(netplan status --all)\""
@@ -83,49 +91,7 @@
                     ]
                 },
                 {
-                    "id": "WG001",
-                    "description": "WireGuard VPN client / server",
-                    "command": [
-                        "module_wireguard install"
-                    ],
-                    "status": "Enabled",
-                    "author": "@armbian",
-                    "condition": "! module_wireguard status"
-                },
-                {
-                    "id": "WG002",
-                    "description": "WireGuard remove",
-                    "about": "This operation will remove WireGuard",
-                    "command": [
-                        "module_wireguard remove"
-                    ],
-                    "status": "Enabled",
-                    "author": "@armbian",
-                    "condition": "module_wireguard status"
-                },
-                {
-                    "id": "WG003",
-                    "description": "WireGuard clients QR codes",
-                    "command": [
-                        "module_wireguard qrcode"
-                    ],
-                    "status": "Enabled",
-                    "author": "@armbian",
-                    "condition": "module_wireguard status"
-                },
-                {
-                    "id": "WG004",
-                    "description": "WireGuard purge with data folder",
-                    "about": "This operation will purge WireGuard with data folder",
-                    "command": [
-                        "module_wireguard purge"
-                    ],
-                    "status": "Enabled",
-                    "author": "@armbian",
-                    "condition": "module_wireguard status"
-                },
-                {
-                    "id": "NE101",
+                    "id": "BLU001",
                     "description": "Install Bluetooth support",
                     "command": [
                         "see_current_apt ",
@@ -137,7 +103,7 @@
                     "condition": "! pkg_installed bluetooth && ! pkg_installed bluez && ! pkg_installed bluez-tools"
                 },
                 {
-                    "id": "NE102",
+                    "id": "BLU002",
                     "description": "Remove Bluetooth support",
                     "command": [
                         "see_current_apt ",
@@ -149,7 +115,7 @@
                     "condition": "pkg_installed bluetooth || pkg_installed bluez || pkg_installed bluez-tools"
                 },
                 {
-                    "id": "NE103",
+                    "id": "BLU003",
                     "description": "Bluetooth Discover",
                     "about": "This will enable bluetooth and discover devices\n",
                     "command": [
@@ -160,7 +126,7 @@
                     "condition": "pkg_installed bluetooth || pkg_installed bluez || pkg_installed bluez-tools"
                 },
                 {
-                    "id": "NE104",
+                    "id": "IPV001",
                     "description": "Toggle system IPv6/IPv4 internet protocol",
                     "about": "This will toggle your internet protocol",
                     "command": [

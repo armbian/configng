@@ -8,25 +8,139 @@ concurrency:
   group: validate-json-${{github.event.pull_request.number}}
   cancel-in-progress: true
 
-jobs:
-  editorconfig:
-    name: "Validate JSON"
-    runs-on: ubuntu-latest
-    steps:
+env:
+  EXCLUDED_IDS: '["Help", "Armbian", "Localisation", "Network" ,"Software" ,"WebHosting", "HomeAutomation", "DNS", "Music", "Finance", "Desktops" , "Downloaders", "Database", "DevTools", "Containers", "Media", "Monitoring", "Management", "Printing", "Netconfig", "Storage", "Updates", "User", "VPN", "Template"]'
 
+jobs:
+  checkout:
+    name: Checkout Code
+    runs-on: ubuntu-latest
+    outputs:
+      path: config
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: config
+
+  check-empty-authors:
+    name: Check Empty Authors
+    runs-on: ubuntu-latest
+    needs: checkout
+    steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          path: 'config'
+          path: config
 
-      - name: Check JSON
+      - name: Check for empty "author" fields
         run: |
+          found_empty=0
           for file in config/tools/json/*.json; do
-            JSON=$(cat "$file" | jq)
-            EMPTY=$(cat "$file" | jq | nl | grep '"author": ""' | awk '{print $1}' | paste -s -d, -)
-            if [ -n "$EMPTY" ]; then
-              echo "## Warning: Empty author field in $file at lines:" >> $GITHUB_STEP_SUMMARY
-              echo $EMPTY >> $GITHUB_STEP_SUMMARY
+            matches=$(jq -r '
+              paths(scalars) as $p
+              | select(getpath($p) == "")
+              | select($p[-1] == "author")
+              | [$p | join("."), $p[-2]]
+              | @tsv
+            ' "$file")
+
+            if [ -n "$matches" ]; then
+              found_empty=1
+              while IFS=$'\t' read -r path parent; do
+                echo "- In \`$file\`, empty author in object: \`$parent\`" >> $GITHUB_STEP_SUMMARY
+              done <<< "$matches"
             fi
           done
 
+          if [[ $found_empty -eq 0 ]]; then
+            echo "✅ No empty 'author' fields found." >> $GITHUB_STEP_SUMMARY
+          else
+            exit 1
+          fi
+
+  check-id-length:
+    name: Check ID Lengths
+    runs-on: ubuntu-latest
+    needs: checkout
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: config
+
+      - name: Check for ID length != 6 (excluding specified)
+        run: |
+          EXCLUDED_IDS_LIST=$(echo "$EXCLUDED_IDS" | jq -r '.[]')
+          invalid_ids=()
+          declare -A id_files
+
+          for file in config/tools/json/*.json; do
+            ids=$(jq -r '.. | objects | select(has("id")) | .id' "$file")
+            for id in $ids; do
+              if echo "$EXCLUDED_IDS_LIST" | grep -qx "$id"; then
+                continue
+              fi
+              if [[ ${#id} -ne 6 ]]; then
+                invalid_ids+=("$id")
+                id_files["$id"]+="$file "
+              fi
+            done
+          done
+
+          if [[ ${#invalid_ids[@]} -gt 0 ]]; then
+            echo "## ❌ IDs not 6 characters long (excluding specified IDs):" >> $GITHUB_STEP_SUMMARY
+            for id in "${invalid_ids[@]}"; do
+              echo "- \`$id\` in: ${id_files[$id]}" >> $GITHUB_STEP_SUMMARY
+            done
+            exit 1
+          else
+            echo "✅ All IDs are 6 characters long." >> $GITHUB_STEP_SUMMARY
+          fi
+
+  check-duplicate-ids:
+    name: Check Duplicate IDs
+    runs-on: ubuntu-latest
+    needs: checkout
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: config
+
+      - name: Check for duplicate IDs (excluding specified)
+        run: |
+          EXCLUDED_IDS_LIST=$(echo "$EXCLUDED_IDS" | jq -r '.[]')
+          declare -A id_map
+          declare -A id_locations
+          has_duplicates=0
+
+          for file in config/tools/json/*.json; do
+            ids=$(jq -r '.. | objects | select(has("id")) | .id' "$file")
+            for id in $ids; do
+              if echo "$EXCLUDED_IDS_LIST" | grep -qx "$id"; then
+                continue
+              fi
+
+              if [[ -n "${id_map[$id]}" ]]; then
+                has_duplicates=1
+                id_map[$id]=$((id_map[$id]+1))
+                id_locations[$id]="${id_locations[$id]}, $file"
+              else
+                id_map[$id]=1
+                id_locations[$id]="$file"
+              fi
+            done
+          done
+
+          if [[ $has_duplicates -eq 1 ]]; then
+            echo "## ❌ Duplicate IDs found (excluding specified IDs):" >> $GITHUB_STEP_SUMMARY
+            for id in "${!id_map[@]}"; do
+              if [[ ${id_map[$id]} -gt 1 ]]; then
+                echo "- \`$id\` appears ${id_map[$id]} times in: ${id_locations[$id]}" >> $GITHUB_STEP_SUMMARY
+              fi
+            done
+            exit 1
+          else
+            echo "✅ No duplicate IDs found." >> $GITHUB_STEP_SUMMARY
+          fi

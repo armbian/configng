@@ -2,15 +2,10 @@ Home Assistant is an open source smart home platform that allows you to connect 
 
 Perfect to run on any single board computer with 4 cores and at least 512Mb of memory. Armbian installation is optimised to run from SD/eMMC media, but it is recommended to use SSD.
 
-=== "Access to the web interface"
+!!! danger "Limited support"
 
-    The web interface is accessible via port **8123**:
+    The supervised installation method on Armbian is not officially supported by the [Home Assistant project](https://www.home-assistant.io/installation/alternative#install-home-assistant-supervised). Additionally, installation on hardware that is not officially supported is also outside the scope of support provided by the Armbian team.
 
-    - URL: `https://<your.IP>:8123`
-    - Username/Password: Are set at first web interface login
+    You are welcome to report high-level application issues that are reproducible on the official Home Assistant Operating System (HAOS) within the [Home Assistant Community](https://community.home-assistant.io/). For any topics related to single-board computer hardware, you may use the [Armbian Community Forums](https://forum.armbian.com); however, please be aware that official support from the Armbian team is not guaranteed.
 
-=== "Directories"
-
-    Home Assistant on Armbian runs supervised in a Docker container. This secures same functionality as stock HAOS.
-
-    - Config directory: `/armbian/haos`
+    While the Home Assistant team is [planning to deprecate the Supervised installation method](https://community.home-assistant.io/t/feedback-requested-deprecating-core-supervised-i386-armhf-armv7/880968/312), the Armbian team will continue to provide and maintain the supervised installation method as long as automated installation tests remain successful and the maintenance effort remains reasonable.

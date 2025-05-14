@@ -40,7 +40,7 @@ function network_config() {
 		if [[ "$adapter" == w* ]]; then
 
 			LIST=()
-			if srv_active hostapd; then
+			if srv_active hostapd && grep -q "^interface=$adapter" "/etc/hostapd/hostapd.conf"; then
 				LIST+=("stop" "Disable access point")
 			else
 				LIST=("sta" "Connect to access point")

@@ -1,0 +1,1 @@
+This section provides an option to transfer the live running Armbian system from an SD card to internal storage devices such as eMMC, SATA, NVMe, or USB drives. It prepares the target storage, copies the active system, adjusts bootloader settings, and ensures the system can boot independently without requiring reinstallation.

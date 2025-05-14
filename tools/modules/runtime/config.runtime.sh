@@ -95,27 +95,36 @@ fi
 #update_sub_submenu_data "Software" "Media" "SW22" "https://localhost:$plex_media_port"
 
 # System
-update_sub_submenu_data "System" "Access" "SSH201" "ssh://$LOCALIPADD:${module_options["module_openssh-server,port"]}"
+update_sub_submenu_data "System" "Access" "SSH002" "ssh://$LOCALIPADD:${module_options["module_openssh-server,port"]}"
 #
-update_sub_submenu_data "System" "Storage" "SY220" "$(module_zfs zfs_version)"
-update_sub_submenu_data "System" "Storage" "SY221" "$(module_zfs zfs_installed_version)"
+update_sub_submenu_data "System" "Storage" "ZFS001" "$(module_zfs zfs_version)"
+update_sub_submenu_data "System" "Storage" "ZFS002" "$(module_zfs zfs_installed_version)"
 update_sub_submenu_data "System" "Storage" "NFS04" "$NFS_CLIENTS_NUMBER"
 
 # Database
 update_sub_submenu_data "Software" "Database" "DAT002" "Server: $LOCALIPADD"
-update_sub_submenu_data "Software" "Database" "DAT006" "http://$LOCALIPADD:${module_options["module_phpmyadmin,port"]}"
+update_sub_submenu_data "Software" "Database" "MYA002" "http://$LOCALIPADD:${module_options["module_phpmyadmin,port"]}"
+
+# Finance
+update_sub_submenu_data "Software" "Finance" "ABU002" "http://$LOCALIPADD:${module_options["module_actualbudget,port"]}"
 
 # Media
+update_sub_submenu_data "Software" "Media" "OMV002" "http://$LOCALIPADD:${module_options["module_omv,port"]}"
 update_sub_submenu_data "Software" "Media" "MED002" "http://$LOCALIPADD:${module_options["module_plexmediaserver,port"]}"
-update_sub_submenu_data "Software" "Media" "MED004" "http://$LOCALIPADD:${module_options["module_embyserver,port"]}"
-update_sub_submenu_data "Software" "Media" "MED011" "http://$LOCALIPADD:${module_options["module_stirling,port"]}"
-update_sub_submenu_data "Software" "Media" "MED016" "http://$LOCALIPADD:${module_options["module_syncthing,port"]%% *}" # removing second port from url
-update_sub_submenu_data "Software" "Media" "MED021" "https://$LOCALIPADD:${module_options["module_nextcloud,port"]}"
-update_sub_submenu_data "Software" "Media" "MED026" "http://$LOCALIPADD:${module_options["module_owncloud,port"]}"
-update_sub_submenu_data "Software" "Media" "MED031" "http://$LOCALIPADD:${module_options["module_jellyfin,port"]}"
+update_sub_submenu_data "Software" "Media" "EMB002" "http://$LOCALIPADD:${module_options["module_embyserver,port"]}"
+update_sub_submenu_data "Software" "Media" "FIL002" "http://$LOCALIPADD:${module_options["module_filebrowser,port"]}"
+update_sub_submenu_data "Software" "Media" "STR002" "http://$LOCALIPADD:${module_options["module_stirling,port"]}"
+update_sub_submenu_data "Software" "Media" "STC002" "http://$LOCALIPADD:${module_options["module_syncthing,port"]%% *}" # removing second port from url
+update_sub_submenu_data "Software" "Media" "NCT002" "https://$LOCALIPADD:${module_options["module_nextcloud,port"]}"
+update_sub_submenu_data "Software" "Media" "OWC002" "http://$LOCALIPADD:${module_options["module_owncloud,port"]}"
+update_sub_submenu_data "Software" "Media" "JMS002" "http://$LOCALIPADD:${module_options["module_jellyfin,port"]}"
+update_sub_submenu_data "Software" "Media" "IMM002" "http://$LOCALIPADD:${module_options["module_immich,port"]}"
 
 # Containers
-update_sub_submenu_data "Software" "Containers" "CON006" "http://$LOCALIPADD:${module_options["module_portainer,port"]%% *}" # removing second port from url
+update_sub_submenu_data "Software" "Containers" "POR002" "http://$LOCALIPADD:${module_options["module_portainer,port"]%% *}" # removing second port from url
+
+# Backup
+update_sub_submenu_data "Software" "Backup" "DPL002" "http://$LOCALIPADD:${module_options["module_duplicati,port"]%% *}" # removing second port from url
 
 # Printing
 update_sub_submenu_data "Software" "Printing" "OCT002" "http://$LOCALIPADD:${module_options["module_octoprint,port"]}"
@@ -130,16 +139,19 @@ update_sub_submenu_data "Software" "HomeAutomation" "DOM002" "http://$LOCALIPADD
 update_sub_submenu_data "Software" "HomeAutomation" "EVCC02" "http://$LOCALIPADD:${module_options["module_evcc,port"]}"
 
 # DNS
-update_sub_submenu_data "Software" "DNS" "DNS003" "http://$LOCALIPADD:${module_options["module_pi_hole,port"]%% *}" # removing second port from url
+update_sub_submenu_data "Software" "DNS" "PIH003" "http://$LOCALIPADD:${module_options["module_pi_hole,port"]%% *}" # removing second port from url
 update_sub_submenu_data "Software" "DNS" "ADG002" "http://$LOCALIPADD:${module_options["module_adguardhome,port"]%% *}" # removing second port from url
 
 # Monitoring
-update_sub_submenu_data "Software" "Monitoring" "MON002" "http://$LOCALIPADD:${module_options["module_uptimekuma,port"]}"
-update_sub_submenu_data "Software" "Monitoring" "MON006" "http://$LOCALIPADD:${module_options["module_netdata,port"]}"
+update_sub_submenu_data "Software" "Monitoring" "UPK002" "http://$LOCALIPADD:${module_options["module_uptimekuma,port"]}"
+update_sub_submenu_data "Software" "Monitoring" "NTD002" "http://$LOCALIPADD:${module_options["module_netdata,port"]}"
 update_sub_submenu_data "Software" "Monitoring" "GRA002" "http://$LOCALIPADD:${module_options["module_grafana,port"]}"
+update_sub_submenu_data "Software" "Monitoring" "NAX002" "http://$LOCALIPADD:${module_options["module_netalertx,port"]}"
 
 # Management
-update_sub_submenu_data "Software" "Management" "MAN001" "http://$LOCALIPADD:${module_options["module_cockpit,port"]}"
+update_sub_submenu_data "Software" "Management" "CPT001" "http://$LOCALIPADD:${module_options["module_cockpit,port"]}"
+update_sub_submenu_data "Software" "Management" "HPG002" "http://$LOCALIPADD:${module_options["module_homepage,port"]}"
+update_sub_submenu_data "Software" "Management" "NBOX02" "http://$LOCALIPADD:${module_options["module_netbox,port"]}"
 
 # Downloaders
 update_sub_submenu_data "Software" "Downloaders" "DOW002" "http://$LOCALIPADD:${module_options["module_qbittorrent,port"]%% *}" # removing second port from url
