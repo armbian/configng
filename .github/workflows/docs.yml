@@ -16,6 +16,9 @@ jobs:
 
       - name: Checkout build repo
         uses: actions/checkout@v4
+      
+      - name: Install pandoc
+        run: sudo apt-get update && sudo apt-get install -y pandoc
 
       - name: Assemble module and jobs for production
         run: |
