@@ -32,39 +32,24 @@ function module_desktop() {
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_desktop,example"]}"
 
-	# generate and install packages
-	module_desktop_packages "$de" "$DISTROID"
-
 	case "$1" in
 		"${commands[0]}")
+
+			# Add APA development repository - this will be moved to main repo once it gets out of testing phase
+			rm /etc/apt/sources.list.d/armbian-apa.list
+			tee /etc/apt/sources.list.d/armbian-apa.sources > /dev/null <<- 'EOT'
+			Types: deb
+			URIs: https://github.armbian.com/apa
+			Suites: current
+			Components: main
+			Signed-By: /usr/share/keyrings/armbian.gpg
+			EOT
 
 			# update package list
 			pkg_update
 
-			# desktops has different default login managers
-			case "$de" in
-				gnome)
-					echo "/usr/sbin/gdm3" > /etc/X11/default-display-manager
-					pkg_install -o Dpkg::Options::="--force-confold" ${PACKAGES}
-					pkg_install -o Dpkg::Options::="--force-confold" ${PACKAGES_UNINSTALL}
-					pkg_install -o Dpkg::Options::="--force-confold" gdm3
-				;;
-				kde-neon)
-					echo "/usr/sbin/sddm" > /etc/X11/default-display-manager
-					pkg_install -o Dpkg::Options::="--force-confold" ${PACKAGES}
-					pkg_install -o Dpkg::Options::="--force-confold" ${PACKAGES_UNINSTALL}
-					pkg_install -o Dpkg::Options::="--force-confold" kde-standard
-				;;
-				*)
-					echo "/usr/sbin/lightdm" > /etc/X11/default-display-manager
-					pkg_install -o Dpkg::Options::="--force-confold" ${PACKAGES}
-					pkg_install -o Dpkg::Options::="--force-confold" ${PACKAGES_UNINSTALL}
-					pkg_install -o Dpkg::Options::="--force-confold" lightdm
-				;;
-			esac
-
-			# install desktop
-			pkg_install -o Dpkg::Options::="--force-confold" armbian-${DISTROID}-desktop-${de}
+			# Install desktop package
+			pkg_install armbian-desktop-${de}
 
 			# add user to groups
 			for additionalgroup in sudo netdev audio video dialout plugdev input bluetooth systemd-journal ssh; do
