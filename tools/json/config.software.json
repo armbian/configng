@@ -5,6 +5,16 @@
             "description": "Run/Install 3rd party applications",
             "sub": [
                 {
+                    "id": "AptWizard",
+                    "description": "Manage popular Debian packages with AptWizard",
+                    "command": [
+                        "see_menu module_aptwizard"
+                    ],
+                    "status": "",
+                    "author": "Github Username",
+                    "condition": ""
+                },
+                {
                     "id": "WebHosting",
                     "description": "Web server, LEMP, reverse proxy, Let's Encrypt SSL",
                     "sub": [
