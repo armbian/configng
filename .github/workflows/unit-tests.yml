@@ -91,6 +91,7 @@ jobs:
       - name: "Install dependencies: fastfetch"
         run: |
           if lsof /var/lib/dpkg/lock >/dev/null 2>&1; then reboot; fi
+          sudo apt update
           sudo dpkg --configure -a
           sudo apt-get -y install fastfetch
 
