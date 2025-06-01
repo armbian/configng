@@ -38,12 +38,7 @@ function manage_dtoverlays () {
 		j=0
 
 		# read overlays
-		if [[ "${LINUXFAMILY}" == "bcm2711" ]]; then
-			available_overlays=$(ls -1 ${overlaydir}/*.dtbo | sed 's/.dtbo//g' | awk -F'/' '{print $NF}')
-
-		else
-			available_overlays=$(ls -1 ${overlaydir}/*.dtbo | sed 's/.dtbo//g' | awk -F'/' '{print $NF}')
-		fi
+		available_overlays=$(ls -1 ${overlaydir}/*.dtbo | sed 's/.dtbo//g' | awk -F'/' '{print $NF}')
 
 		# Check the branch in case it is not available in /etc/armbian-release
 		update_kernel_env
