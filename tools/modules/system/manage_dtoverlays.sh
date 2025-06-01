@@ -20,6 +20,7 @@ function manage_dtoverlays () {
 	local overlayconf="/boot/armbianEnv.txt"
 	if [[ "${LINUXFAMILY}" == "bcm2711" ]]; then
 		# Raspberry Pi has different name
+		overlayconf="/boot/firmware/config.txt"
 		local overlaydir=$(find /boot/dtb/ -maxdepth 1 -type d \( -name "overlay" -o -name "overlays" \) | head -n1)
 		local overlay_prefix=$(awk -F= '/^overlay_prefix=/ {print $2}' "$overlayconf")
 	else
@@ -39,7 +40,7 @@ function manage_dtoverlays () {
 		# read overlays
 		if [[ "${LINUXFAMILY}" == "bcm2711" ]]; then
 			available_overlays=$(ls -1 ${overlaydir}/*.dtbo | sed 's/.dtbo//g' | awk -F'/' '{print $NF}')
-			overlayconf="/boot/firmware/config.txt"
+
 		else
 			available_overlays=$(ls -1 ${overlaydir}/*.dtbo | sed 's/.dtbo//g' | awk -F'/' '{print $NF}')
 		fi
