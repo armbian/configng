@@ -38,7 +38,17 @@ function manage_dtoverlays () {
 		j=0
 
 		# read overlays
-		available_overlays=$(ls -1 ${overlaydir}/*.dtbo | sed 's/.dtbo//g' | awk -F'/' '{print $NF}')
+		available_overlays=$(
+			# Find the files that match the overlay prefix pattern.
+			# Remove the overlay prefix, file extension, and path
+			# in one pass. Sort it out.
+			find ${overlaydir}/ -name "$overlay_prefix"'*.dtbo' 2>/dev/null | \
+			awk -F'/' -v p="${overlay_prefix}-" '{
+				gsub(p, "", $0)
+				gsub(".dtbo", "", $0)
+				print $NF
+			}' | sort
+		)
 
 		# Check the branch in case it is not available in /etc/armbian-release
 		update_kernel_env
