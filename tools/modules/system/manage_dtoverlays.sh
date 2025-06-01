@@ -67,7 +67,7 @@ function manage_dtoverlays () {
 			options+=( "$overlay" "" "$status")
 		done
 		selection=$($DIALOG --title "Manage devicetree overlays" --cancel-button "Back" \
-			--ok-button "Save" --checklist "\nUse <space> to toggle functions and save them.\nExit when you are done.\n " \
+			--ok-button "Save" --checklist "\nUse <space> to toggle functions and save them.\nExit when you are done.\n\n    overlay_prefix=$overlay_prefix\n " \
 			0 0 0 "${options[@]}" 3>&1 1>&2 2>&3)
 		exit_status=$?
 		case $exit_status in
