@@ -40,13 +40,7 @@ function manage_dtoverlays () {
 		if [[ "${LINUXFAMILY}" == "bcm2711" ]]; then
 			available_overlays=$(ls -1 ${overlaydir}/*.dtbo | sed 's/.dtbo//g' | awk -F'/' '{print $NF}')
 			overlayconf="/boot/firmware/config.txt"
-		#elif [[ -n "${BOOT_SOC}" ]]; then
-		#	available_overlays=$(ls -1 ${overlaydir}/${overlay_prefix}*.dtbo | sed 's/^.*\('${overlay_prefix}'.*\)/\1/g' | grep -E "$BOOT_SOC|$BOARD" | sed 's/'${overlay_prefix}'-//g' | sed 's/.dtbo//g')
 		else
-			#	available_overlays=$(ls -1 ${overlaydir}/${overlay_prefix}*.dtbo | sed 's/^.*\('${overlay_prefix}'.*\)/\1/g' | sed 's/'${overlay_prefix}'-//g' | sed 's/.dtbo//g')
-			#
-			# We don't have consistent naming in overlays, so we have to display them all
-			#
 			available_overlays=$(ls -1 ${overlaydir}/*.dtbo | sed 's/.dtbo//g' | awk -F'/' '{print $NF}')
 		fi
 
