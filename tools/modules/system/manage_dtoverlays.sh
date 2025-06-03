@@ -20,6 +20,7 @@ function manage_dtoverlays () {
 	local overlayconf="/boot/armbianEnv.txt"
 	if [[ "${LINUXFAMILY}" == "bcm2711" ]]; then
 		# Raspberry Pi has different name
+		overlayconf="/boot/firmware/config.txt"
 		local overlaydir=$(find /boot/dtb/ -maxdepth 1 -type d \( -name "overlay" -o -name "overlays" \) | head -n1)
 		local overlay_prefix=$(awk -F= '/^overlay_prefix=/ {print $2}' "$overlayconf")
 	else
@@ -37,18 +38,17 @@ function manage_dtoverlays () {
 		j=0
 
 		# read overlays
-		if [[ "${LINUXFAMILY}" == "bcm2711" ]]; then
-			available_overlays=$(ls -1 ${overlaydir}/*.dtbo | sed 's/.dtbo//g' | awk -F'/' '{print $NF}')
-			overlayconf="/boot/firmware/config.txt"
-		#elif [[ -n "${BOOT_SOC}" ]]; then
-		#	available_overlays=$(ls -1 ${overlaydir}/${overlay_prefix}*.dtbo | sed 's/^.*\('${overlay_prefix}'.*\)/\1/g' | grep -E "$BOOT_SOC|$BOARD" | sed 's/'${overlay_prefix}'-//g' | sed 's/.dtbo//g')
-		else
-			#	available_overlays=$(ls -1 ${overlaydir}/${overlay_prefix}*.dtbo | sed 's/^.*\('${overlay_prefix}'.*\)/\1/g' | sed 's/'${overlay_prefix}'-//g' | sed 's/.dtbo//g')
-			#
-			# We don't have consistent naming in overlays, so we have to display them all
-			#
-			available_overlays=$(ls -1 ${overlaydir}/*.dtbo | sed 's/.dtbo//g' | awk -F'/' '{print $NF}')
-		fi
+		available_overlays=$(
+			# Find the files that match the overlay prefix pattern.
+			# Remove the overlay prefix, file extension, and path
+			# in one pass. Sort it out.
+			find ${overlaydir}/ -name "$overlay_prefix"'*.dtbo' 2>/dev/null | \
+			awk -F'/' -v p="${overlay_prefix}-" '{
+				gsub(p, "", $0)
+				gsub(".dtbo", "", $0)
+				print $NF
+			}' | sort
+		)
 
 		# Check the branch in case it is not available in /etc/armbian-release
 		update_kernel_env
@@ -67,7 +67,7 @@ function manage_dtoverlays () {
 			options+=( "$overlay" "" "$status")
 		done
 		selection=$($DIALOG --title "Manage devicetree overlays" --cancel-button "Back" \
-			--ok-button "Save" --checklist "\nUse <space> to toggle functions and save them.\nExit when you are done.\n " \
+			--ok-button "Save" --checklist "\nUse <space> to toggle functions and save them.\nExit when you are done.\n\n    overlay_prefix=$overlay_prefix\n " \
 			0 0 0 "${options[@]}" 3>&1 1>&2 2>&3)
 		exit_status=$?
 		case $exit_status in
