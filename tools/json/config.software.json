@@ -311,44 +311,6 @@
                     ]
                 },
                 {
-                    "id": "Music",
-                    "description": "Music servers and streamers",
-                    "sub": [
-                        {
-                            "id": "NAV001",
-                            "description": "Navidrome music server and streamer compatible with Subsonic/Airsonic",
-                            "short": "Navidrome",
-                            "module": "module_navidrome",
-                            "command": [
-                                "module_navidrome install"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "! module_navidrome status"
-                        },
-                        {
-                            "id": "NAV002",
-                            "description": "Navidrome remove",
-                            "command": [
-                                "module_navidrome install"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "module_navidrome status"
-                        },
-                        {
-                            "id": "NAV003",
-                            "description": "Navidrome purge with data folder",
-                            "command": [
-                                "module_navidrome purge"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "module_navidrome status"
-                        }
-                    ]
-                },
-                {
                     "id": "Finance",
                     "description": "Manage your finances",
                     "sub": [
@@ -1790,6 +1752,38 @@
                             "status": "Preview",
                             "author": "@igorpecovnik",
                             "condition": "module_immich status"
+                        },
+                        {
+                            "id": "NAV001",
+                            "description": "Navidrome music server and streamer compatible with Subsonic/Airsonic",
+                            "short": "Navidrome",
+                            "module": "module_navidrome",
+                            "command": [
+                                "module_navidrome install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_navidrome status"
+                        },
+                        {
+                            "id": "NAV002",
+                            "description": "Navidrome remove",
+                            "command": [
+                                "module_navidrome remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_navidrome status"
+                        },
+                        {
+                            "id": "NAV003",
+                            "description": "Navidrome purge with data folder",
+                            "command": [
+                                "module_navidrome purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_navidrome status"
                         }
                     ]
                 },

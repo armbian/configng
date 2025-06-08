@@ -30,7 +30,8 @@ function module_navidrome () {
 	case "$1" in
 		"${commands[0]}")
 			pkg_installed docker-ce || module_docker install
-			[[ -d "$NAVIDROME_BASE" ]] || mkdir -p "$NAVIDROME_BASE" || { echo "Couldn't create storage directory: $NAVIDROME_BASE"; exit 1; }
+			[[ -d "$NAVIDROME_BASE" ]] || mkdir -p "$NAVIDROME_BASE"/{music,data} || { echo "Couldn't create storage directory: $NAVIDROME_BASE"; exit 1; }
+			sudo chown -R 1000:1000 "$NAVIDROME_BASE"/
 			docker run -d \
 			--name=navidrome \
 			--net=lsio \
