@@ -480,6 +480,7 @@
                 {
                     "id": "Updates",
                     "description": "OS updates and distribution upgrades",
+                    "short": "OS Updates",
                     "status": "Active",
                     "condition": "[ -f /etc/armbian-distribution-status ]",
                     "sub": [
@@ -558,7 +559,7 @@
                         {
                             "id": "WTC001",
                             "description": "Enable automating Docker container base images updating",
-                            "short": "Docker images",                            
+                            "short": "Docker images",
                             "module": "module_watchtower",
                             "command": [
                                 "module_watchtower install"
