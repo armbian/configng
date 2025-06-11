@@ -65,7 +65,11 @@ function manage_dtoverlays () {
 			# Raspberry Pi
 			grep '^dtoverlay' ${overlayconf} | grep -qw ${overlay} && status=ON
    			# handle case where overlay_prefix is part of overlay name
-	  		candidate=$(echo $overlay | sed "s/^$overlay_prefix"-"//g")
+	 		if [[ -n $overlay_prefix ]]; then
+				candidate="${overlay#$overlay_prefix}"
+			else
+				candidate="$overlay"
+			fi
 			grep '^overlays' ${overlayconf} | grep -qw ${candidate} && status=ON
 			options+=( "$overlay" "" "$status")
 		done
@@ -78,9 +82,18 @@ function manage_dtoverlays () {
 				changes="true"
 				newoverlays=$(echo $selection | sed 's/"//g')
 				# handle case where overlay_prefix is part of overlay name
-				newoverlays=$(echo $newoverlays | sed "s/^$overlay_prefix"-"//" \
-						| sed "s/ $overlay_prefix"-"/ /g")
-				newoverlays=$(echo $newoverlays | tr -s ' ') #trim extra spaces, if any
+				IFS=' ' read -r -a ovs <<< "$newoverlays"
+				newoverlays=""
+				# remove prefix, if any
+				for ov in "${ovs[@]}"; do
+					if [[ -n $overlay_prefix && $ov == "$overlay_prefix"* ]]; then
+						ov="${ov#$overlay_prefix}"
+					fi
+	 				# remove '-' from beginning of ov, if any
+	  				ov="${ov#-}"
+					newoverlays+="$ov "
+				done
+				newoverlays="${newoverlays% }"
 				# Raspberry Pi
 				if [[ "${LINUXFAMILY}" == "bcm2711" ]]; then
 					# Remove any existing Armbian config block
