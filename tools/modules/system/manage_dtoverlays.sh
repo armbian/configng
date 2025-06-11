@@ -66,7 +66,8 @@ function manage_dtoverlays () {
 			grep '^dtoverlay' ${overlayconf} | grep -qw ${overlay} && status=ON
    			# handle case where overlay_prefix is part of overlay name
 	 		if [[ -n $overlay_prefix ]]; then
-				candidate="${overlay#$overlay_prefix}"
+				candidate="${overlay#$overlay_prefix}" 
+    				candidate="${candidate#'-'}" # remove any trailing hyphen 
 			else
 				candidate="$overlay"
 			fi
@@ -89,7 +90,7 @@ function manage_dtoverlays () {
 					if [[ -n $overlay_prefix && $ov == "$overlay_prefix"* ]]; then
 						ov="${ov#$overlay_prefix}"
 					fi
-	 				# remove '-' from beginning of ov, if any
+	 				# remove '-' hyphen from beginning of ov, if any
 	  				ov="${ov#-}"
 					newoverlays+="$ov "
 				done
