@@ -1,7 +1,7 @@
 
 module_options+=(
 ["manage_dtoverlays,author"]="@viraniac"
-["manage_dtoverlays,maintainer"]="@igorpecovnik,@The-Going"
+["manage_dtoverlays,maintainer"]="@igorpecovnik,@The-going"
 ["manage_dtoverlays,ref_link"]=""
 ["manage_dtoverlays,feature"]="manage_dtoverlays"
 ["manage_dtoverlays,desc"]="Enable/disable device tree overlays"
@@ -33,8 +33,8 @@ function manage_dtoverlays () {
 
 	[[ ! -f "${overlayconf}" || ! -d "${overlaydir}" ]] && echo -e "Incompatible OS configuration\nArmbian device tree configuration files not found" | show_message && return 1
 
-	# check /boot/boot.scr scenario ${overlay_prefix}-${overlay_name}.dtbo
-	# or ${overlay_name}.dtbo only
+	# check /boot/boot.scr scenario overlay(s)/${overlay_prefix}-${overlay_name}.dtbo
+	# or overlay(s)/${overlay_name}.dtbo.
 	# scenario:
 	# 00 - The /boot/boot.scr script cannot load the overlays provided by Armbian.
 	# 01 - It is possible to load only if the full name of the overlay is written.
@@ -42,39 +42,64 @@ function manage_dtoverlays () {
 	# 11 - Both spellings will be loaded.
 	scenario=$(
 		awk 'BEGIN{p=0;s=0}
-		    /load.*overlay\/\${overlay_prefix}-\${overlay_file}.dtbo/{p=1}
-		    /load.*overlay\/\${overlay_file}.dtbo/{s=1}
-		    END{print p s}
-		    ' /boot/boot.scr
+			/load.*overlays?\/\${overlay_prefix}-\${overlay_file}.dtbo/{p=1}
+			/load.*overlays?\/\${overlay_file}.dtbo/{s=1}
+			END{print p s}
+		' /boot/boot.scr
 	)
 
 	while true; do
 		local options=()
 		j=0
 
-		# read overlays
-		available_overlays=$(
-			# Find the files that match the overlay prefix pattern.
-			# Remove the overlay prefix, file extension, and path
-			# in one pass. Sort it out.
-			find ${overlaydir}/ -name "$overlay_prefix"'*.dtbo' 2>/dev/null | \
-			awk -F'/' -v p="${overlay_prefix}-" '{
-				gsub(p, "", $0)
-				gsub(".dtbo", "", $0)
-				print $NF
-			}' | sort
-		)
+		if [[ "${scenario}" == "10" ]] || [[ "${scenario}" == "11" ]]; then
+			# read overlays
+			available_overlays=$(
+				# Find the files that match the overlay prefix pattern.
+				# Remove the overlay prefix, file extension, and path
+				# in one pass. Sort it out.
+				find "${overlaydir}"/ -name "$overlay_prefix"'*.dtbo' 2>/dev/null | \
+				awk -F'/' -v p="${overlay_prefix}-" '{
+					gsub(p, "", $NF)
+					gsub(".dtbo", "", $NF)
+					print $NF
+				}' | sort
+			)
+		fi
 
 		# Check the branch in case it is not available in /etc/armbian-release
 		update_kernel_env
 
 		# Add support for rk3588 vendor kernel overlays which don't have overlay prefix mostly
 		builtin_overlays=""
-		if [[ $BOARDFAMILY == "rockchip-rk3588" ]] && [[ $BRANCH == "vendor" ]]; then
-			builtin_overlays=$(ls -1 ${overlaydir}/*.dtbo | grep -v ${overlay_prefix} | sed 's#^'${overlaydir}'/##' | sed 's/.dtbo//g')
+		if [[ "${scenario}" == "01" ]] || [[ "${scenario}" == "11" ]]; then
+
+			if [[ $BOARDFAMILY == "rockchip-rk3588" ]] && [[ $BRANCH == "vendor" ]]; then
+				builtin_overlays=$(
+					find "${overlaydir}"/ -name '*.dtbo' ! -name "$overlay_prefix"'*.dtbo' 2>/dev/null | \
+					awk -F'/' -v p="${overlay_prefix}" '{
+						if ($0 !~ p) {
+							gsub(".dtbo", "", $NF)
+							print $NF
+						}
+					}' | sort
+				)
+			fi
 		fi
 
-		for overlay in ${available_overlays}; do
+		if [[ "${scenario}" == "00" ]]; then
+			$DIALOG --title " Manage devicetree overlays " \
+				--no-button "Cancel" \
+				--yes-button "Exit" \
+				--yesno "    The overlays provided by Armbian cannot be loaded\n    by /boot/boot.scr script.\n" 11 44
+				exit_status=$?
+			if [ $exit_status == 0 ]; then
+				exit 0
+			fi
+			break
+		fi
+
+		for overlay in ${available_overlays} ${builtin_overlays}; do
 			local status="OFF"
 			grep '^overlays' ${overlayconf} | grep -qw ${overlay} && status=ON
 			# Raspberry Pi
