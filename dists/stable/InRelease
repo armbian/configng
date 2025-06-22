@@ -1,3 +1,6 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
 Origin: armbian.github.io/configurator
 Label: armbian.github.io/configurator
 Codename: stable
@@ -44,3 +47,19 @@ SHA256:
  f0f9d5527163a0408152ad82479a17a770ec284419086a5f3145dfa2808dc667 604 main/binary-riscv64/Packages
  a17fb941e8727fe32d87fe530ed6aebe4a2341ad993e07c0b58a1519d6b7cdc1 424 main/binary-riscv64/Packages.gz
  8452ee62bb746a7dd9fac1def4a13e90c7e68d0d9259a9970649e28e8c01ff07 153 main/binary-riscv64/Release
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEEjPqD0T6yGB7vWEPkHrMPryNgmf4FAmhYEnkACgkQHrMPryNg
+mf6UnQ/+OM/gEB4Gt9WS9Ikkvw3aDozVytezmF1/lHW6yB2wa6E9bq57RBz66jS4
+YaRXMb6lZt9vD0zpZ1kd8x40wAe273ZsW18Ez3R1QBwTSaiI8u2NIjCtgq34cI5p
+WMtOnx6TvyJI0FNK3kqKdx+7oSgumcZAGOiRdprdU8gqLHrYkr0eIZxyso43B3T7
+V6Uwk6MYbYViiLPN75tLX6mVVLsGZsUTcFi6BmbhLW+KITXkJoNHTGiAE54e1Z8r
+tAKnJXoAa7nwneRBfJdwI6YJJslLIt6OFnlzrRmujbzmYUlS5M7EkYba8qDce500
+WD+BnoG9IjxTHNQzdUGgee2wtJjH916Y24I3z1AJ4lYWOhrYY5Nb8Xyv84BwtchF
+00G52Sp/deIkACxOa/tBIaK2ULc2OsheroUrS7b3riadGYskA9GVrhqDFuBPSdHt
+HzlKs5cETIf0JOVlKyVzmdVYqGLLWheKrbEBF5qOsAZZX+o9VdWRTyndR/vJTVDZ
+89Lu7HroqonlF32jJZwYe2z5tEhbQM9hbwzisCEX8xvIUsElXy9soR4QCfAlQHzo
+H7vVp8eH5iCVsKO88TIdZK1GmJ7bpqA1ZPhhgdMiXmaaLp7Wt5hcrPRkzIXPlohJ
+HES/zD3/iJcdRdbn5oZcEHUFftecvQgrFRWIXDiMkS7SJua7W34=
+=pS9x
+-----END PGP SIGNATURE-----
