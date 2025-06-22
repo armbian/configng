@@ -4,3 +4,4 @@ Codename: stable
 Architectures: amd64 arm64 armhf riscv64
 Components: main
 Description: Armbian development repo
+SignWith: DF00FAF1C577104B50BF1D0093D6889F9F0E78D5
