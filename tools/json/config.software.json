@@ -331,6 +331,38 @@
                     "description": "SQL database servers and web interface managers",
                     "sub": [
                         {
+                            "id": "MYSQL1",
+                            "description": "MySQL SQL database server",
+                            "short": "MySQL",
+                            "module": "module_mysql",
+                            "command": [
+                                "module_mysql install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_mysql status"
+                        },
+                        {
+                            "id": "MYSQL2",
+                            "description": "MySQL remove",
+                            "command": [
+                                "module_mysql remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_mysql status"
+                        },
+                        {
+                            "id": "MYSQL3",
+                            "description": "MySQL purge with data folder",
+                            "command": [
+                                "module_mysql purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_mysql status"
+                        },
+                        {
                             "id": "DAT001",
                             "description": "Mariadb SQL database server",
                             "short": "Mariadb",
