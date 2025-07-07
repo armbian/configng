@@ -51,6 +51,11 @@ function set_runtime_variables() {
 	[[ -f /etc/armbian-release ]] && source /etc/armbian-release && ARMBIAN="Armbian $VERSION $IMAGE_TYPE"
 	[[ -f /etc/armbian-distribution-status ]] && DISTRO_STATUS="/etc/armbian-distribution-status"
 
+	# Docker installatons read timezone and they will fail if this doesn't exist. This is often the case with some minimal Debian/Ubuntu installations.
+	if [[ ! -f /etc/timezone ]]; then
+		echo "America/New_York" | sudo tee /etc/timezone
+	fi
+
 	DISTRO=$(lsb_release -is)
 	DISTROID=$(lsb_release -sc 2> /dev/null || grep "VERSION=" /etc/os-release | grep -oP '(?<=\().*(?=\))')
 	KERNELID=$(uname -r)
