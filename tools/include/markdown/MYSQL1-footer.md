@@ -1,6 +1,7 @@
 === "Configuration"
 
     Database access configuration is done at first install:
+
     - create root password
     - create database
     - create normal user
