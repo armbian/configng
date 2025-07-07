@@ -1,0 +1,1 @@
+Ghost is a powerful open-source publishing platform designed for professional publishing, newsletters, and modern blogs. It’s built on Node.js and provides a clean, fast, and customizable CMS experience.

@@ -2325,6 +2325,38 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "module_swag status"
+                        },
+                        {
+                            "id": "GHOST1",
+                            "description": "Ghost CMS install",
+                            "short": "Ghost",
+                            "module": "module_ghost",
+                            "command": [
+                                "module_ghost install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_ghost status"
+                        },
+                        {
+                            "id": "GHOST2",
+                            "description": "Ghost CMS remove",
+                            "command": [
+                                "module_ghost remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_ghost status"
+                        },
+                        {
+                            "id": "GHOST3",
+                            "description": "Ghost CMS purge with data folder",
+                            "command": [
+                                "module_ghost purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_ghost status"
                         }
                     ]
                 }

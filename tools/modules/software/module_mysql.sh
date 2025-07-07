@@ -29,25 +29,18 @@ function module_mysql () {
 
 	case $1 in
 		"${commands[0]}")
+
+			if module_mysql status; then
+			echo "deb"
+			exit 0
+			fi
+
 			pkg_installed docker-ce || module_docker install
 			# get parameters or fallback to dialog
-			MYSQL_ROOT_PASSWORD="${2:-}"
-			MYSQL_DATABASE="${3:-}"
-			MYSQL_USER="${4:-}"
-			MYSQL_PASSWORD="${5:-}"
-
-			if [[ -z "$MYSQL_ROOT_PASSWORD" ]]; then
-				MYSQL_ROOT_PASSWORD=$($DIALOG --title "Enter root password for MySQL server" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
-			fi
-			if [[ -z "$MYSQL_DATABASE" ]]; then
-				MYSQL_DATABASE=$($DIALOG --title "Enter database name for MySQL server" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
-			fi
-			if [[ -z "$MYSQL_USER" ]]; then
-				MYSQL_USER=$($DIALOG --title "Enter user name for MySQL server" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
-			fi
-			if [[ -z "$MYSQL_PASSWORD" ]]; then
-				MYSQL_PASSWORD=$($DIALOG --title "Enter new password for ${MYSQL_USER}" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
-			fi
+			MYSQL_ROOT_PASSWORD="${2:-armbian}"
+			MYSQL_DATABASE="${3:-armbian}"
+			MYSQL_USER="${4:-armbian}"
+			MYSQL_PASSWORD="${5:-armbian}"
 
 			[[ -d "$MYSQL_BASE" ]] || mkdir -p "$MYSQL_BASE" || { echo "Couldn't create storage directory: $MYSQL_BASE"; exit 1; }
 
@@ -55,15 +48,34 @@ function module_mysql () {
 			docker run -d \
 				--name mysql \
 				--net=lsio \
-				-e TZ="$(cat /etc/timezone)" \
 				-e MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD:-armbian}" \
 				-e MYSQL_DATABASE="${MYSQL_DATABASE:-armbian}" \
 				-e MYSQL_USER="${MYSQL_USER:-armbian}" \
 				-e MYSQL_PASSWORD="${MYSQL_PASSWORD:-armbian}" \
+				-v "${MYSQL_BASE}:/var/lib/mysql" \
 				-p 3306:3306 \
-				-v "${MYSQL_BASE}/data:/var/lib/mysql" \
 				--restart unless-stopped \
 				mysql:lts
+
+			until docker exec mysql \
+				env MYSQL_PWD="$MYSQL_ROOT_PASSWORD" \
+				mysql -uroot -e "SELECT 1;" &>/dev/null; do
+				echo "⏳ Waiting for MySQL to accept connections..."
+				sleep 2
+			done
+
+			MYSQL_DATABASES=("ghost") # Add any additional databases you want to create here
+			for MYSQL_DATABASE in "${MYSQL_DATABASES[@]}"; do
+				echo "⏳ Creating database: $MYSQL_DATABASE and granting privileges..."
+
+				docker exec -i mysql \
+				env MYSQL_PWD="$MYSQL_ROOT_PASSWORD" \
+				mysql -uroot <<-EOF
+					CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\`;
+					GRANT ALL PRIVILEGES ON \`$MYSQL_DATABASE\`.* TO '$MYSQL_USER'@'%';
+					FLUSH PRIVILEGES;
+				EOF
+			done
 		;;
 		"${commands[1]}")
 			if [[ "${container}" ]]; then
