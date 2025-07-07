@@ -1,6 +1,7 @@
 === "Configuration"
 
     Initial setup includes:
+
     - automatic database schema setup on first run
     - admin account created via web interface
     - Default port: `9190`
