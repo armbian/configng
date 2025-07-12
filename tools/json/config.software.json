@@ -1991,7 +1991,7 @@
                         },
                         {
                             "id": "PRO001",
-                            "description": "Prometheus docker image",
+                            "description": "Prometheus monitoring and alerting toolkit",
                             "short": "Prometheus",
                             "module": "module_prometheus",
                             "prompt": "This operation will install Prometheus.",
