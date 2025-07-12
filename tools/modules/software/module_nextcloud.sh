@@ -7,7 +7,7 @@ module_options+=(
 	["module_nextcloud,status"]="Active"
 	["module_nextcloud,doc_link"]="https://nextcloud.com/support/"
 	["module_nextcloud,group"]="Downloaders"
-	["module_nextcloud,port"]="443"
+	["module_nextcloud,port"]="1443"
 	["module_nextcloud,arch"]="x86-64 arm64"
 )
 #
@@ -37,7 +37,7 @@ function module_nextcloud () {
 			-e PUID=1000 \
 			-e PGID=1000 \
 			-e TZ="$(cat /etc/timezone)" \
-			-p 443:443 \
+			-p ${module_options["module_nextcloud,port"]}:443 \
 			-v "${NEXTCLOUD_BASE}/config:/config" \
 			-v "${NEXTCLOUD_BASE}/data:/data" \
 			--restart unless-stopped \

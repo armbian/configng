@@ -7,7 +7,7 @@ module_options+=(
 	["module_prometheus,status"]="Active"
 	["module_prometheus,doc_link"]="https://prometheus.io/docs/"
 	["module_prometheus,group"]="Monitoring"
-	["module_prometheus,port"]="9090"
+	["module_prometheus,port"]="9191"
 	["module_prometheus,arch"]="x86-64 arm64"
 )
 #
@@ -51,7 +51,7 @@ function module_prometheus () {
 			docker run -d \
 			--name=prometheus \
 			--net=lsio \
-			-p 9090:9090 \
+			-p ${module_options["module_prometheus,port"]}:9090 \
 			-v "${PROMETHEUS_BASE}:/etc/prometheus" \
 			--restart unless-stopped \
 			prom/prometheus

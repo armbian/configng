@@ -7,7 +7,7 @@ module_options+=(
 	["module_embyserver,status"]="Active"
 	["module_embyserver,doc_link"]="https://emby.media"
 	["module_embyserver,group"]="Media"
-	["module_embyserver,port"]="8096"
+	["module_embyserver,port"]="8091"
 	["module_embyserver,arch"]="x86-64 arm64"
 )
 #
@@ -37,7 +37,7 @@ function module_embyserver () {
 			-e PUID=1000 \
 			-e PGID=1000 \
 			-e TZ="$(cat /etc/timezone)" \
-			-p 8096:8096 \
+			-p ${module_options["module_embyserver,port"]}:8096 \
 			-v "${EMBY_BASE}/emby/library:/config" \
 			-v "${EMBY_BASE}/movies:/movies" \
 			-v "${EMBY_BASE}/tvshows:/tvshows" \

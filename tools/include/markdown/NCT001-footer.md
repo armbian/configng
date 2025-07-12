@@ -1,8 +1,8 @@
 === "Access to the web interface"
 
-    The web interface is accessible via port **443**:
+    The web interface is accessible via port **1443**:
 
-    - URL: `https://<your.IP>:443`
+    - URL: `https://<your.IP>:1443`
     - Username/Password: admin / generate at first web interface login
 
 === "Directories"
