@@ -1,8 +1,8 @@
 === "Access to the web interface"
 
-    The web interface is accessible via port **3000**:
+    The web interface is accessible via port **3022**:
 
-    - URL: `https://<your.IP>:3000`
+    - URL: `https://<your.IP>:3022`
 
 === "Directories"
 

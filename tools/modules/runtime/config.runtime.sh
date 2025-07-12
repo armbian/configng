@@ -148,6 +148,7 @@ update_sub_submenu_data "Software" "Monitoring" "UPK002" "http://$LOCALIPADD:${m
 update_sub_submenu_data "Software" "Monitoring" "NTD002" "http://$LOCALIPADD:${module_options["module_netdata,port"]}"
 update_sub_submenu_data "Software" "Monitoring" "GRA002" "http://$LOCALIPADD:${module_options["module_grafana,port"]}"
 update_sub_submenu_data "Software" "Monitoring" "NAX002" "http://$LOCALIPADD:${module_options["module_netalertx,port"]}"
+update_sub_submenu_data "Software" "Monitoring" "PRO002" "http://$LOCALIPADD:${module_options["module_prometheus,port"]}"
 
 # Management
 update_sub_submenu_data "Software" "Management" "CPT001" "http://$LOCALIPADD:${module_options["module_cockpit,port"]}"

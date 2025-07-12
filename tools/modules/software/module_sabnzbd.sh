@@ -7,7 +7,7 @@ module_options+=(
 	["module_sabnzbd,status"]="Active"
 	["module_sabnzbd,doc_link"]="https://sabnzbd.org/wiki/faq"
 	["module_sabnzbd,group"]="Downloaders"
-	["module_sabnzbd,port"]="8080"
+	["module_sabnzbd,port"]="8380"
 	["module_sabnzbd,arch"]="x86-64 arm64"
 )
 #
@@ -37,7 +37,7 @@ function module_sabnzbd () {
 			-e PUID=1000 \
 			-e PGID=1000 \
 			-e TZ="$(cat /etc/timezone)" \
-			-p 8080:8080 \
+			-p ${module_options["module_sabnzbd,port"]}:8080 \
 			-v "${SABNZBD_BASE}/config:/config" \
 			-v "${SABNZBD_BASE}/downloads:/downloads" `#optional` \
 			-v "${SABNZBD_BASE}/incomplete:/incomplete-downloads" `#optional` \

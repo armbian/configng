@@ -7,7 +7,7 @@ module_options+=(
 	["module_domoticz,status"]="Active"
 	["module_domoticz,doc_link"]="https://wiki.domoticz.com"
 	["module_domoticz,group"]="Monitoring"
-	["module_domoticz,port"]="8080"
+	["module_domoticz,port"]="8780"
 	["module_domoticz,arch"]=""
 )
 #
@@ -39,7 +39,7 @@ function module_domoticz () {
 			-e PUID=1000 \
 			-e PGID=1000 \
 			-e TZ="$(cat /etc/timezone)" \
-			-p 8080:8080 \
+			-p ${module_options["module_domoticz,port"]}:8080 \
 			-p 8443:443 \
 			-v "${DOMOTICZ_BASE}:/opt/domoticz/userdata" \
 			--restart unless-stopped \

@@ -7,7 +7,7 @@ module_options+=(
 	["module_stirling,status"]="Active"
 	["module_stirling,doc_link"]="https://docs.stirlingpdf.com"
 	["module_stirling,group"]="Media"
-	["module_stirling,port"]="8077"
+	["module_stirling,port"]="8075"
 	["module_stirling,arch"]="x86-64 arm64"
 )
 #
@@ -33,7 +33,7 @@ function module_stirling () {
 			[[ -d "$STIRLING_BASE" ]] || mkdir -p "$STIRLING_BASE" || { echo "Couldn't create storage directory: $STIRLING_BASE"; exit 1; }
 			docker run -d \
 			--net=lsio \
-			-p 8077:8080 \
+			-p ${module_options["module_stirling,port"]}:8080 \
 			-v "${STIRLING_BASE}/trainingData:/usr/share/tessdata" \
 			-v "${STIRLING_BASE}/extraConfigs:/configs" \
 			-v "${STIRLING_BASE}/logs:/logs" \
