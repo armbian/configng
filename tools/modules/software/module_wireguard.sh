@@ -257,7 +257,9 @@ function module_wireguard () {
 			fi
 		;;
 		"${commands[6]}")
-			local image=$(docker image ls -a | mawk '/wireguard?( |$)/{print $3}')
+			if pkg_installed docker-ce; then
+				local image=$(docker image ls -a | mawk '/wireguard?( |$)/{print $3}')
+			fi
 			if [[ "${image}" ]]; then
 				return 0
 			else
@@ -265,7 +267,9 @@ function module_wireguard () {
 			fi
 		;;
 		"${commands[7]}")
-			local container=$(docker container ls -a | mawk '/wireguard?( |$)/{print $1}')
+			if pkg_installed docker-ce; then
+				local container=$(docker container ls -a | mawk '/wireguard?( |$)/{print $1}')
+			fi
 			if [[ "${container}" ]]; then
 				return 0
 			else
@@ -273,8 +277,10 @@ function module_wireguard () {
 			fi
 		;;
 		"${commands[8]}")
-			local container=$(docker container ls -a | mawk '/wireguard?( |$)/{print $1}')
-			local image=$(docker image ls -a | mawk '/wireguard?( |$)/{print $3}')
+			if pkg_installed docker-ce; then
+				local container=$(docker container ls -a | mawk '/wireguard?( |$)/{print $1}')
+				local image=$(docker image ls -a | mawk '/wireguard?( |$)/{print $3}')
+			fi
 			if [[ "${container}" && "${image}" && -f "${WIREGUARD_BASE}/config/wg_confs/wg0.conf" ]]; then
 				return 0
 			else
