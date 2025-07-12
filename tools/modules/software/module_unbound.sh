@@ -7,7 +7,7 @@ module_options+=(
 	["module_unbound,status"]="Active"
 	["module_unbound,doc_link"]="https://unbound.docs.nlnetlabs.nl/en/latest/"
 	["module_unbound,group"]="DNS"
-	["module_unbound,port"]=""
+	["module_unbound,port"]="8053"
 	["module_unbound,arch"]="x86-64"
 )
 #
@@ -33,8 +33,10 @@ function module_unbound () {
 			[[ -d "$UNBOUND_BASE" ]] || mkdir -p "$UNBOUND_BASE" || { echo "Couldn't create storage directory: $UNBOUND_BASE"; exit 1; }
 			docker run -d \
 			--net=lsio \
-			-p 53:53 \
-			-v "${UNBOUND_BASE}:/opt/unbound/etc/unbound/" \
+			-e PUID=1000 \
+			-e PGID=1000 \
+			-p ${module_options["module_unbound,port"]}:53/tcp \
+			-p ${module_options["module_unbound,port"]}:53/udp \
 			--name unbound \
 			--restart=unless-stopped \
 			mvance/unbound:latest

@@ -140,7 +140,7 @@ update_sub_submenu_data "Software" "HomeAutomation" "DOM002" "http://$LOCALIPADD
 update_sub_submenu_data "Software" "HomeAutomation" "EVCC02" "http://$LOCALIPADD:${module_options["module_evcc,port"]}"
 
 # DNS
-update_sub_submenu_data "Software" "DNS" "PIH003" "http://$LOCALIPADD:${module_options["module_pi_hole,port"]%% *}" # removing second port from url
+update_sub_submenu_data "Software" "DNS" "PIH003" "http://$LOCALIPADD:${module_options["module_pi_hole,port"]%% *}/admin" # removing second port from url
 update_sub_submenu_data "Software" "DNS" "ADG002" "http://$LOCALIPADD:${module_options["module_adguardhome,port"]%% *}" # removing second port from url
 
 # Monitoring
