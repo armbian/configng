@@ -252,7 +252,7 @@
                         },
                         {
                             "id": "PIH001",
-                            "description": "Pi-hole DNS ad blocker",
+                            "description": "Pi-hole DNS ad blocker with Unbound support",
                             "short": "Pi-hole",
                             "module": "module_pi_hole",
                             "command": [
@@ -286,7 +286,7 @@
                             "id": "PIH004",
                             "description": "Pi-hole purge with data folder",
                             "command": [
-                                "module_pi_hole remove"
+                                "module_pi_hole purge"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
@@ -318,7 +318,7 @@
                             "id": "UNB003",
                             "description": "Unbound purge with data folder",
                             "command": [
-                                "module_unbound remove"
+                                "module_unbound purge"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
