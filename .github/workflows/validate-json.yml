@@ -146,7 +146,7 @@ jobs:
           fi
 
   check-duplicate-module-ports:
-    name: Check Duplicate Ports modules/**/*.sh
+    name: Check Duplicate Ports
     runs-on: ubuntu-latest
     needs: checkout
     steps:
