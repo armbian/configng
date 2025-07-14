@@ -44,7 +44,52 @@ function module_ghost () {
 		MYSQL_USER="${2:-armbian}"
 		MYSQL_PASSWORD="${3:-armbian}"
 
-		[[ -d "$GHOST_BASE" ]] || mkdir -p "$GHOST_BASE" || { echo "Couldn't create storage directory: $GHOST_BASE"; exit 1; }
+		SMTP_SERVER="${4:-smtp.eu.mailgun.org}"
+		SMTP_PORT="${5:-465}"
+		SMTP_SECURE="${6:-true}"
+
+		GHOST_URL=$($DIALOG --title "Enter Ghost URL" --inputbox "\nHit enter for defaults" 9 50 "http://$LOCALIPADD:${module_options["module_ghost,port"]}" 3>&1 1>&2 2>&3)
+		SMTP_USER=$($DIALOG --title "Enter Mailgun SMTP user name" --inputbox "\nHit enter for defaults" 9 50 "postmaster@yourdomain.com" 3>&1 1>&2 2>&3)
+		SMTP_PASS=$($DIALOG --title "Enter Mailgun SMTP password" --inputbox "\nHit enter for defaults" 9 50 "your-mailgun-smtp-password" 3>&1 1>&2 2>&3)
+		SMTP_FROM=$($DIALOG --title "Enter Mailgun SMTP from" --inputbox "\nHit enter for defaults" 9 50 "Ghost <noreply@yourdomain.com>" 3>&1 1>&2 2>&3)
+
+		[[ -d "$GHOST_BASE"/settings ]] || mkdir -p "$GHOST_BASE"/settings || { echo "Couldn't create storage directory: $GHOST_BASE/settings"; exit 1; }
+
+		# Prepare config
+		cat <<- EOF > "$GHOST_BASE/settings/config.production.json"
+		{
+		  "url": "${GHOST_URL}",
+		  "server": {
+		    "port": 2368,
+		    "host": "::"
+			  },
+		  "mail": {
+		    "transport": "SMTP",
+		    "options": {
+	      "service": "Mailgun",
+		      "host": "${SMTP_SERVER}",
+		      "port": ${SMTP_PORT},
+	      "secure": ${SMTP_SECURE},
+	      "auth": {
+	        "user": "${SMTP_USER}",
+	        "pass": "${SMTP_PASS}"
+		      }
+		    },
+		    "from": "${SMTP_FROM}"
+		  },
+		  "logging": {
+		    "transports": [
+		      "file",
+		      "stdout"
+		    ]
+		  },
+		  "process": "systemd",
+		  "paths": {
+		    "contentPath": "/var/lib/ghost/content"
+		  }
+		}
+		EOF
+
 		docker pull ghost:5-alpine
 		docker run -d \
 			--name ghost \
@@ -55,9 +100,10 @@ function module_ghost () {
 			-e database__connection__user="${MYSQL_USER}" \
 			-e database__connection__password="${MYSQL_PASSWORD}" \
 			-e database__connection__database="ghost" \
+			-e url="${GHOST_URL}" \
 			-p ${module_options["module_ghost,port"]}:2368 \
-			-e url=http://$LOCALIPADD:${module_options["module_ghost,port"]} \
-			-v "$GHOST_BASE:/var/lib/ghost/content" \
+			-v "$GHOST_BASE/content:/var/lib/ghost/content" \
+			-v "$GHOST_BASE/settings/config.production.json:/var/lib/ghost/config.production.json:ro" \
 			ghost:5-alpine
 		;;
 	"${commands[1]}")
