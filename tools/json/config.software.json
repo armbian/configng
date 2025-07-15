@@ -1395,15 +1395,35 @@
                     "sub": [
                         {
                             "id": "CPT001",
-                            "description": "Cockpit web-based management tool",
+                            "description": "Cockpit OS and VM management tool",
                             "short": "Cockpit",
-                            "module": "module_generic",
+                            "module": "module_cockpit",
                             "command": [
-                                "see_menu module_cockpit"
+                                "module_cockpit install"
                             ],
                             "status": "Stable",
                             "author": "@Tearran",
-                            "condition": ""
+                            "condition": "! module_cockpit status"
+                        },
+                        {
+                            "id": "CPT002",
+                            "description": "Remove Cockpit",
+                            "command": [
+                                "module_cockpit remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_cockpit status"
+                        },
+                        {
+                            "id": "CPT003",
+                            "description": "Purge Cockpit with virtual machines",
+                            "command": [
+                                "module_cockpit purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_cockpit status"
                         },
                         {
                             "id": "HPG001",

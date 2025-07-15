@@ -1,8 +1,8 @@
 === "Access to the web interface"
 
-    The web interface is accessible via port **9090**:
+    The web interface is accessible via port **9890**:
 
-    - URL: `https://<your.IP>:9090`
+    - URL: `https://<your.IP>:9890`
     - Username/Password: your system login credentials
 
 === "Video instructions"
