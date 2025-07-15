@@ -47,7 +47,8 @@ function module_jellyfin () {
 			[[ -d "$JELLYFIN_BASE" ]] || mkdir -p "$JELLYFIN_BASE" || { echo "Couldn't create storage directory: $JELLYFIN_BASE"; exit 1; }
 			docker run -d \
 			--name=jellyfin \
-			--net=lsio "${hwacc}" \
+			--net=lsio \
+   			${hwacc} \
 			-e PUID=1000 \
 			-e PGID=1000 \
 			-e TZ="$(cat /etc/timezone)" \
