@@ -7,7 +7,7 @@ module_options+=(
 	["module_openhab,status"]="Active"
 	["module_openhab,doc_link"]="https://www.openhab.org/docs/tutorial"
 	["module_openhab,group"]="HomeAutomation"
-	["module_openhab,port"]="8080"
+	["module_openhab,port"]="2080 2443 5007 9123"
 	["module_openhab,arch"]="x86-64 arm64 armhf"
 )
 #
@@ -18,32 +18,53 @@ function module_openhab() {
 	local title="openhab"
 	local condition=$(which "$title" 2>/dev/null)
 
+	if pkg_installed docker-ce; then
+		local container=$(docker container ls -a | mawk '/openhab?( |$)/{print $1}')
+		local image=$(docker image ls -a | mawk '/openhab?( |$)/{print $3}')
+	fi
+
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_openhab,example"]}"
 
+	OPENHAB_BASE="${SOFTWARE_FOLDER}/openhab"
+
 	case "$1" in
 		"${commands[0]}")
-			wget -qO - https://repos.azul.com/azul-repo.key | gpg --dearmor > "/usr/share/keyrings/azul.gpg"
-			wget -qO - https://openhab.jfrog.io/artifactory/api/gpg/key/public | gpg --dearmor > "/usr/share/keyrings/openhab.gpg"
-			echo "deb [signed-by=/usr/share/keyrings/azul.gpg] https://repos.azul.com/zulu/deb stable main" > "/etc/apt/sources.list.d/zulu.list"
-			echo "deb [signed-by=/usr/share/keyrings/openhab.gpg] https://openhab.jfrog.io/artifactory/openhab-linuxpkg stable main" > "/etc/apt/sources.list.d/openhab.list"
-			pkg_update
-			pkg_install zulu17-jdk
-			pkg_install openhab openhab-addons
-			srv_daemon_reload
-			srv_enable openhab
-			srv_start openhab
+			pkg_installed docker-ce || module_docker install
+			docker run -d \
+			--name openhab \
+			--net=lsio \
+			-p $(echo "${module_options[module_openhab,port]}" | awk '{print $1}'):8080 \
+			-p $(echo "${module_options[module_openhab,port]}" | awk '{print $2}'):8443 \
+			-p $(echo "${module_options[module_openhab,port]}" | awk '{print $3}'):5007 \
+			-p $(echo "${module_options[module_openhab,port]}" | awk '{print $4}'):9123 \
+			-v /etc/localtime:/etc/localtime:ro \
+			-v /etc/timezone:/etc/timezone:ro \
+			-v ${OPENHAB_BASE}/conf:/openhab/conf \
+			-v ${OPENHAB_BASE}/userdata:/openhab/userdata \
+			-v ${OPENHAB_BASE}/addons:/openhab/addons \
+			-e USER_ID=1000 \
+			-e GROUP_ID=1000 \
+			-e CRYPTO_POLICY=unlimited \
+			--restart=unless-stopped \
+			openhab/openhab:latest
 			;;
 		"${commands[1]}")
-			pkg_remove zulu17-jdk openhab openhab-addons
-			rm -f /usr/share/keyrings/openhab.gpg /usr/share/keyrings/azul.gpg
-			rm -f /etc/apt/sources.list.d/zulu.list /etc/apt/sources.list.d/openhab.list
+			if [[ -n "${container}" ]]; then
+				docker container rm -f "$container" >/dev/null
+			fi
+			if [[ -n "${image}" ]]; then
+				docker image rm "$image" >/dev/null
+			fi
 			;;
 		"${commands[2]}")
 			${module_options["module_openhab,feature"]} ${commands[1]}
+			if [[ -n "${OPENHAB_BASE}" && "${OPENHAB_BASE}" != "/" ]]; then
+				rm -rf "${OPENHAB_BASE}"
+			fi
 		;;
 		"${commands[3]}")
-			if pkg_installed openhab; then
+			if [[ "${container}" && "${image}" ]]; then
 				return 0
 			else
 				return 1
