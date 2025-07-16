@@ -6,7 +6,7 @@
     - create normal user
     - create password for normal user
 
-    - Database host: `<your.IP>`
+    - Database host: `<your.IP>:3307`
 
 === "Directories"
 

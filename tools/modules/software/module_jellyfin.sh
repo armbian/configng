@@ -48,7 +48,7 @@ function module_jellyfin () {
 			docker run -d \
 			--name=jellyfin \
 			--net=lsio \
-   			${hwacc} \
+			${hwacc} \
 			-e PUID=1000 \
 			-e PGID=1000 \
 			-e TZ="$(cat /etc/timezone)" \
