@@ -17,7 +17,7 @@ Armbian Config provides interactive and scriptable routines for:
 
 It is especially useful for single board computers (SBCs), helping users quickly prepare a ready-to-use system without manual intervention.
 
-## Quick Start
+### Quick Start
 
 Armbian Config comes **preinstalled** with Armbian images.
 
@@ -32,7 +32,7 @@ armbian-config
 
 <a href=#><img src=.github/images/common.png></a>
 
-## Compatibility
+### Compatibility
 
 This tool is optimized for use with [**Armbian Linux**](https://www.armbian.com), but in theory, it should also work on any systemd-based, APT-compatible Linux distribution — including Linux Mint, Elementary OS, Kali Linux, MX Linux, Parrot OS, Proxmox, Raspberry Pi OS, and others.
 <details><summary>Add Armbian key + repository and install the tool:</summary>
@@ -53,7 +53,7 @@ armbian-config
 ```
 </details>
 
-## Contribute
+### Contribute
 
 Want to expand **Armbian Config** with new features or tools? Whether you're adding a new software title, enhancing an existing configuration module, or introducing entirely new functionality, we welcome your ideas and code.
 
@@ -61,7 +61,7 @@ Want to expand **Armbian Config** with new features or tools? Whether you're add
 
 > 📌 Tip: Keep your changes modular and easy to maintain — this helps us review and merge your contribution faster.
 
-## Support
+### Support
 
 Armbian offers multiple support channels, depending on your needs:
 
@@ -77,7 +77,7 @@ Armbian offers multiple support channels, depending on your needs:
   For advanced needs, commercial projects, or guaranteed response times, paid support is available directly from Armbian maintainers.  
   👉 [Contact us](https://www.armbian.com/contact) to discuss consulting options.
 
-## Contributors
+### Contributors
 
 Thanks to all who have contributed to Armbian Config!
 
@@ -87,6 +87,6 @@ Thanks to all who have contributed to Armbian Config!
 <br>
 <br>
 
-## Armbian Partners
+### Armbian Partners
 
 Armbian's [partnership program](https://forum.armbian.com/subscriptions) helps to support Armbian and the Armbian community! Please take a moment to familiarize yourself with [our Partners](https://armbian.com/partners).
