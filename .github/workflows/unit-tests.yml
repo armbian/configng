@@ -104,6 +104,16 @@ jobs:
         run: |
           fastfetch
 
+      - name: "Clean up Docker containers and images (if Docker is installed)"
+        run: |
+          if command -v docker >/dev/null 2>&1; then
+            docker ps -aq | xargs -r docker stop
+            docker ps -aq | xargs -r docker rm
+            docker images -aq | xargs -r docker rmi -f
+          else
+            echo "Docker not installed, skipping cleanup."
+          fi
+
       - name: "Run unit test: ${{ matrix.server.name }} "
         run: |
 
