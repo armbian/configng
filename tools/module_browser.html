@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+        <meta charset="UTF-8">
+        <title>Configng Modules metadata browser </title>
+        <style>
+                :root {
+                        --bg-main: #205090;
+                        /* Blue behind dialog */
+                        --box-bg: #e2ecf7;
+                        /* Light blue-gray for dialog */
+                        --box-border: #3973b8;
+                        /* Blue border */
+                        --text: #223046;
+                        /* Dark text inside box */
+                        --desc: #5a7694;
+                        /* Muted blue for secondary text */
+                        --accent: #3973b8;
+                        /* Blue for highlights */
+                        --btn-bg: #f4f8fb;
+                        /* Button bg (whitish) */
+                        --btn-text: #223046;
+                        /* Button text */
+                        --btn-border: #3973b8;
+                        --btn-outline: #3fc1ff;
+                        --radius: 8px;
+                        --font-main: 'Fira Mono', 'Menlo', 'Consolas', monospace;
+                }
+
+                body,
+                html {
+                        height: 100%;
+                        margin: 0;
+                        padding: 0;
+                }
+
+                .whiptail-bg {
+                        background: var(--bg-main);
+                        width: 100vw;
+                        height: 100vh;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                }
+
+                .whiptail-dialog {
+                        background: var(--box-bg);
+                        color: var(--text);
+                        border: 2px solid var(--box-border);
+                        border-radius: var(--radius);
+                        box-shadow: 0 0 40px #3973b880;
+                        padding: 2.5em 2.2em 2em 2.2em;
+                        min-width: 340px;
+                        max-width: 98vw;
+                        max-height: 94vh;
+                        overflow-y: auto;
+                        font-family: var(--font-main);
+                        display: flex;
+                        flex-direction: column;
+                        align-items: stretch;
+                }
+
+                h1 {
+                        text-align: center;
+                        color: var(--accent);
+                        font-size: 1.4em;
+                        font-weight: 700;
+                        margin: 0 0 1em 0;
+                        letter-spacing: 0.03em;
+                }
+
+                #breadcrumbs {
+                        display: flex;
+                        gap: 0.6em;
+                        flex-wrap: wrap;
+                        margin: 0 0 1em 0;
+                        font-size: 1em;
+                }
+
+                .breadcrumb {
+                        background: var(--btn-bg);
+                        color: var(--btn-text);
+                        border: 2px solid var(--btn-border);
+                        border-radius: var(--radius);
+                        padding: 0.4em 1em;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: border-color .16s, box-shadow .16s, background .16s, color .16s;
+                        font-family: var(--font-main);
+                }
+
+                .breadcrumb:hover,
+                .breadcrumb:focus {
+                        border-color: var(--btn-outline);
+                        box-shadow: 0 0 0 2px var(--btn-outline);
+                        background: var(--btn-outline);
+                        color: #fff;
+                }
+
+                #menu {
+                        margin: 0 0 1.3em 0;
+                }
+
+                .menu-btn,
+                .feature-btn,
+                .option-btn {
+                        background: var(--btn-bg);
+                        color: var(--btn-text);
+                        border: 2px solid var(--btn-border);
+                        border-radius: var(--radius);
+                        font-size: 1em;
+                        font-weight: 600;
+                        padding: 0.7em 1.2em;
+                        margin: 0.2em 0;
+                        cursor: pointer;
+                        transition: border-color .16s, box-shadow .16s, background .16s, color .16s;
+                        outline: none;
+                        display: flex;
+                        align-items: center;
+                        width: 100%;
+                        text-align: left;
+                        gap: 0.6em;
+                        font-family: var(--font-main);
+                }
+
+                .menu-btn:hover,
+                .feature-btn:hover,
+                .option-btn:hover,
+                .menu-btn:focus,
+                .feature-btn:focus,
+                .option-btn:focus {
+                        border-color: var(--btn-outline);
+                        box-shadow: 0 0 0 2px var(--btn-outline);
+                        background: var(--btn-outline);
+                        color: #fff;
+                }
+
+                .feature-label {
+                        font-weight: 700;
+                        color: var(--accent);
+                        margin-right: 0.7em;
+                        min-width: 100px;
+                        font-family: var(--font-main);
+                }
+
+                .feature-desc {
+                        color: var(--desc);
+                        font-weight: 400;
+                        opacity: 0.98;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                        font-family: var(--font-main);
+                }
+
+                .module-card {
+                        background: #eaf2fa;
+                        border: 2px solid var(--box-border);
+                        border-radius: var(--radius);
+                        margin: 1.1em 0;
+                        padding: 1em 1.2em;
+                }
+
+                .module-card h2 {
+                        margin: 0 0 0.4em 0;
+                        font-size: 1.08em;
+                        font-weight: 700;
+                        color: var(--accent);
+                }
+
+                .module-card .desc {
+                        color: var(--desc);
+                        margin-bottom: 0.5em;
+                        font-size: 1em;
+                        line-height: 1.5;
+                }
+
+                .options-block {
+                        margin: 1em 0 0.7em 0;
+                }
+
+                .option-desc {
+                        color: var(--desc);
+                        font-size: 0.97em;
+                        margin-left: 1.1em;
+                        margin-bottom: 0.3em;
+                        min-height: 1.1em;
+                }
+
+                .module-card details {
+                        margin-top: 0.5em;
+                        background: #dde8f5;
+                        border-radius: var(--radius);
+                        padding: 0.4em 0.9em;
+                        border: 1px solid var(--box-border);
+                        color: var(--desc);
+                }
+
+                .module-card details summary {
+                        cursor: pointer;
+                        font-weight: 600;
+                        color: var(--accent);
+                        font-size: 1em;
+                        margin-bottom: 0.2em;
+                        outline: none;
+                }
+
+                .module-card pre {
+                        background: #e2ecf7;
+                        color: #3973b8;
+                        border-radius: var(--radius);
+                        padding: 0.7em;
+                        margin: 0.5em 0 0 0;
+                        font-size: 0.97em;
+                        overflow-x: auto;
+                        font-family: var(--font-main);
+                }
+
+                .module-card ul {
+                        margin-left: 1.1em;
+                        color: var(--desc);
+                }
+
+                #command-output {
+                        color: var(--accent);
+                        font-size: 1em;
+                        word-break: break-all;
+                        font-family: var(--font-main);
+                        margin-top: 0.2em;
+                }
+
+                @media (max-width: 600px) {
+                        .whiptail-dialog {
+                                padding: 0.7em 0.2em;
+                                min-width: 0;
+                        }
+
+                        h1 {
+                                font-size: 1.05em;
+                        }
+                }
+
+                #breadcrumbs {
+                        text-align: center;
+                        margin-bottom: 1em;
+                        font-family: var(--font-main);
+                }
+
+                .breadcrumb {
+                        display: inline-block;
+                        color: var(--accent);
+                        font-weight: bold;
+                        font-size: 1.05em;
+                        padding: 0.1em 0.9em;
+                        background: none;
+                        border: none;
+                }
+
+                .breadcrumb::before {
+                        content: "-| ";
+                        color: var(--btn-border);
+                }
+
+                .breadcrumb::after {
+                        content: " |-";
+                        color: var(--btn-border);
+                }
+        </style>
+</head>
+
+<body>
+        <div class="whiptail-bg">
+                <div class="whiptail-dialog">
+                        <h1>Configng Modules metadata browser</h1>
+                        <div id="breadcrumbs">
+                                <span class="breadcrumb current">Modules</span>
+                        </div>
+                        <div id="menu"></div>
+                        <div id="command-output"></div>
+                </div>
+        </div>
+        <script>
+                const JSON_URL =
+                        "https://raw.githubusercontent.com/armbian/configng/refs/heads/main/tools/json/config.software.json";
+                let data = {};
+                let state = { cat: null, group: null, feature: null };
+
+                (function () {
+                        if (typeof JSON_URL === "object") {
+                                data = JSON_URL;
+                                navTo();
+                        } else if (typeof JSON_URL === "string" && JSON_URL.startsWith("http")) {
+                                fetch(JSON_URL)
+                                        .then((r) => r.json())
+                                        .then((json) => {
+                                                data = json;
+                                                navTo();
+                                        })
+                                        .catch(() => {
+                                                document.getElementById("menu").innerHTML =
+                                                        "<b>Failed to load menu data.</b>";
+                                        });
+                        } else {
+                                document.getElementById("menu").innerHTML = "<b>No JSON data found</b>";
+                        }
+                })();
+
+                function setBreadcrumbs() {
+                        const bc = [];
+                        if (state.cat) bc.push({ label: "Categories", action: () => navTo() });
+                        if (state.cat && state.group)
+                                bc.push({ label: state.cat, action: () => navTo(state.cat) });
+                        if (state.cat && state.group && state.feature)
+                                bc.push({ label: state.group, action: () => navTo(state.cat, state.group) });
+                        if (state.cat && state.group && state.feature)
+                                bc.push({ label: state.feature });
+                        const el = document.getElementById("breadcrumbs");
+                        el.innerHTML = bc
+                                .map((b) =>
+                                        b.action
+                                                ? `<div tabindex="0" class="breadcrumb" onclick="(${b.action})()" onkeydown="if(event.key==='Enter'){(${b.action})()}">${b.label}</div>`
+                                                : `<div class="breadcrumb" style="pointer-events:none;opacity:.7">${b.label}</div>`
+                                )
+                                .join(' <span style="color:var(--desc)">›</span> ');
+                }
+
+                function navTo(cat = null, group = null, feature = null) {
+                        state.cat = cat;
+                        state.group = group;
+                        state.feature = feature;
+                        setBreadcrumbs();
+                        renderMenu();
+                        clearOutput();
+                }
+
+                // UNCHANGED: renderMenu now always shows all categories (including "core")
+                function renderMenu() {
+                        const menu = document.getElementById("menu");
+                        let html = "";
+                        let menuArr = data.menu;
+
+                        if (!state.cat) {
+                                html += "<ul>";
+                                for (const cat of menuArr) {
+                                        html += `<li>
+						<button class="menu-btn" id="menu-btn-${escapeHTML(
+                                                cat.id.toLowerCase()
+                                        )}" onclick="navTo('${escapeHTML(cat.id)}')">
+							<span>${escapeHTML(cat.id)}</span>
+							${cat.description
+                                                        ? `<span class="feature-desc">&nbsp;–&nbsp;${escapeHTML(
+                                                                cat.description
+                                                        )}</span>`
+                                                        : ""
+                                                }
+						</button>
+					</li>`;
+                                }
+                                html += "</ul>";
+                        } else {
+                                const catObj = menuArr.find((c) => c.id === state.cat);
+                                if (!catObj) {
+                                        menu.innerHTML = "<b>Category not found</b>";
+                                        return;
+                                }
+                                const entries = catObj.sub || [];
+                                if (!state.group && !state.feature) {
+                                        html += `<h2>Category: ${escapeHTML(catObj.id)}</h2>`;
+                                        if (catObj.description)
+                                                html += `<div class="desc">${escapeHTML(catObj.description)}</div>`;
+                                        html += "<ul>";
+                                        for (const entry of entries) {
+                                                if ("feature" in entry) {
+                                                        html += `<li>
+								<button class="feature-btn" onclick="navTo('${escapeHTML(
+                                                                catObj.id
+                                                        )}', null, '${escapeHTML(entry.id)}')">
+									<span class="feature-label">${escapeHTML(entry.id)}</span>
+									<span class="feature-desc">&nbsp;–&nbsp;${escapeHTML(
+                                                                entry.description || ""
+                                                        )}</span>
+								</button>
+							</li>`;
+                                                } else if ("sub" in entry && Array.isArray(entry.sub)) {
+                                                        html += `<li>
+								<button class="menu-btn" id="menu-btn-${escapeHTML(
+                                                                entry.id.toLowerCase()
+                                                        )}" onclick="navTo('${escapeHTML(catObj.id)}','${escapeHTML(
+                                                                entry.id
+                                                        )}')">
+									<span>${escapeHTML(entry.id)}</span>
+									${entry.description
+                                                                        ? `<span class="feature-desc">&nbsp;–&nbsp;${escapeHTML(
+                                                                                entry.description
+                                                                        )}</span>`
+                                                                        : ""
+                                                                }
+								</button>
+							</li>`;
+                                                }
+                                        }
+                                        html += "</ul>";
+                                } else if (state.group && !state.feature) {
+                                        const groupObj = entries.find((g) => g.id === state.group);
+                                        if (!groupObj) {
+                                                menu.innerHTML = `<b>Group not found</b>`;
+                                                return;
+                                        }
+                                        html += `<h2>${escapeHTML(catObj.id)} &gt; ${escapeHTML(groupObj.id)}</h2>`;
+                                        if (groupObj.description)
+                                                html += `<div class="desc">${escapeHTML(groupObj.description)}</div>`;
+                                        html += "<ul>";
+                                        for (const mod of groupObj.sub || []) {
+                                                html += `<li>
+							<button class="feature-btn" onclick="navTo('${escapeHTML(
+                                                        catObj.id
+                                                )}','${escapeHTML(groupObj.id)}','${escapeHTML(mod.id)}')">
+								<span class="feature-label">${escapeHTML(mod.id)}</span>
+								<span class="feature-desc">&nbsp;–&nbsp;${escapeHTML(
+                                                        mod.description || ""
+                                                )}</span>
+							</button>
+						</li>`;
+                                        }
+                                        html += "</ul>";
+                                } else {
+                                        let mod = null;
+                                        if (state.group) {
+                                                const groupObj = entries.find((g) => g.id === state.group);
+                                                if (groupObj && groupObj.sub) {
+                                                        mod = groupObj.sub.find((m) => m.id === state.feature);
+                                                }
+                                        } else {
+                                                mod = entries.find((m) => m.id === state.feature);
+                                        }
+                                        if (!mod) {
+                                                menu.innerHTML = `<b>Module not found</b>`;
+                                                return;
+                                        }
+                                        html += `<div class="module-card">`;
+                                        html += `<h2>${escapeHTML(mod.id)}</h2>`;
+                                        if (mod.description)
+                                                html += `<div class="desc">${escapeHTML(mod.description)}</div>`;
+                                        if (mod.about)
+                                                html += `<div class="desc"><small>${escapeHTML(mod.about)}</small></div>`;
+                                        if (mod.options) {
+                                                html += `<div class="options-block"><b>Options:</b>`;
+                                                for (const opt of mod.options.split(",")) {
+                                                        const trimmed = opt.trim();
+                                                        if (!trimmed) continue;
+                                                        html += `<button class="option-btn" onclick="sendOption('${escapeHTML(
+                                                                mod.id
+                                                        )}','${escapeHTML(trimmed)}')">${escapeHTML(trimmed)}</button>`;
+                                                        html += `<div class="option-desc" id="desc-${escapeHTML(
+                                                                trimmed.replace(/[^a-zA-Z0-9_-]/g, "_")
+                                                        )}"></div>`;
+                                                }
+                                                html += `</div>`;
+                                        }
+                                        html += `<details><summary>Raw details</summary><pre>${escapeHTML(
+                                                JSON.stringify(mod, null, 2)
+                                        )}</pre></details>`;
+                                        html += `</div>`;
+                                }
+                        }
+                        menu.innerHTML = html;
+                }
+
+                function escapeHTML(str) {
+                        return (str || "").replace(
+                                /[<>&"']/g,
+                                (c) =>
+                                        ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;", "'": "&#39;" }[c])
+                        );
+                }
+                function sendOption(id, option) {
+                        const out = document.getElementById("command-output");
+                        out.textContent = `Would send: ${id} ${option}`;
+                }
+                function clearOutput() {
+                        document.getElementById("command-output").textContent = "";
+                }
+                // REMOVED: toggleDev and updateDevToggleBtn
+                window.navTo = navTo;
+                window.sendOption = sendOption;
+
+        </script>
+</body>
+
+</html>
