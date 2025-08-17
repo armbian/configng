@@ -98,7 +98,7 @@ function module_armbian_runners () {
 			# Docker preinstall is needed for our build framework
 			pkg_installed docker-ce || module_docker install
 			pkg_update
-			pkg_install jq curl libicu-dev
+			pkg_install jq curl libicu-dev mktorrent rsync
 
 			# download latest runner package
 			local temp_dir=$(mktemp -d)

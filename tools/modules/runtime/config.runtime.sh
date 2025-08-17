@@ -119,6 +119,7 @@ update_sub_submenu_data "Software" "Media" "NCT002" "https://$LOCALIPADD:${modul
 update_sub_submenu_data "Software" "Media" "OWC002" "http://$LOCALIPADD:${module_options["module_owncloud,port"]}"
 update_sub_submenu_data "Software" "Media" "JMS002" "http://$LOCALIPADD:${module_options["module_jellyfin,port"]}"
 update_sub_submenu_data "Software" "Media" "IMM002" "http://$LOCALIPADD:${module_options["module_immich,port"]}"
+update_sub_submenu_data "Software" "Media" "NAV002" "http://$LOCALIPADD:${module_options["module_navidrome,port"]}"
 
 # Containers
 update_sub_submenu_data "Software" "Containers" "POR002" "http://$LOCALIPADD:${module_options["module_portainer,port"]%% *}" # removing second port from url
@@ -139,7 +140,7 @@ update_sub_submenu_data "Software" "HomeAutomation" "DOM002" "http://$LOCALIPADD
 update_sub_submenu_data "Software" "HomeAutomation" "EVCC02" "http://$LOCALIPADD:${module_options["module_evcc,port"]}"
 
 # DNS
-update_sub_submenu_data "Software" "DNS" "PIH003" "http://$LOCALIPADD:${module_options["module_pi_hole,port"]%% *}" # removing second port from url
+update_sub_submenu_data "Software" "DNS" "PIH003" "http://$LOCALIPADD:${module_options["module_pi_hole,port"]%% *}/admin" # removing second port from url
 update_sub_submenu_data "Software" "DNS" "ADG002" "http://$LOCALIPADD:${module_options["module_adguardhome,port"]%% *}" # removing second port from url
 
 # Monitoring
@@ -147,9 +148,10 @@ update_sub_submenu_data "Software" "Monitoring" "UPK002" "http://$LOCALIPADD:${m
 update_sub_submenu_data "Software" "Monitoring" "NTD002" "http://$LOCALIPADD:${module_options["module_netdata,port"]}"
 update_sub_submenu_data "Software" "Monitoring" "GRA002" "http://$LOCALIPADD:${module_options["module_grafana,port"]}"
 update_sub_submenu_data "Software" "Monitoring" "NAX002" "http://$LOCALIPADD:${module_options["module_netalertx,port"]}"
+update_sub_submenu_data "Software" "Monitoring" "PRO002" "http://$LOCALIPADD:${module_options["module_prometheus,port"]}"
 
 # Management
-update_sub_submenu_data "Software" "Management" "CPT001" "http://$LOCALIPADD:${module_options["module_cockpit,port"]}"
+update_sub_submenu_data "Software" "Management" "CPT002" "https://$LOCALIPADD:${module_options["module_cockpit,port"]}"
 update_sub_submenu_data "Software" "Management" "HPG002" "http://$LOCALIPADD:${module_options["module_homepage,port"]}"
 update_sub_submenu_data "Software" "Management" "NBOX02" "http://$LOCALIPADD:${module_options["module_netbox,port"]}"
 
@@ -167,3 +169,5 @@ update_sub_submenu_data "Software" "Downloaders" "RDR002" "http://$LOCALIPADD:${
 update_sub_submenu_data "Software" "Downloaders" "DOW026" "http://$LOCALIPADD:${module_options["module_prowlarr,port"]}"
 update_sub_submenu_data "Software" "Downloaders" "JEL002" "http://$LOCALIPADD:${module_options["module_jellyseerr,port"]}"
 
+# web
+update_sub_submenu_data "Software" "WebHosting" "GHOST2" "http://$LOCALIPADD:${module_options["module_ghost,port"]}/ghost"

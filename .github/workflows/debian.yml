@@ -26,8 +26,8 @@ jobs:
       description: "Armbian config: The Next Generation"
 
     secrets:
-      GPG_PRIVATE_KEY: ${{ secrets.GPG_KEY1 }}
-      PASSPHRASE: ${{ secrets.GPG_PASSPHRASE1 }}
+      PRIMARY_KEY: ${{ secrets.GPG_KEY4 }}
+      TERTIARY_KEY: ${{ secrets.GPG_KEY3 }}
 
   Tests:
     name: "Execute unit tests"

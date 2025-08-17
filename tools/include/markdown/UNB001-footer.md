@@ -1,6 +1,6 @@
 === "Default DNS port"
 
-    - Default DNS port: 53
+    - Default DNS port: 8053
 
 === "Directories"
 

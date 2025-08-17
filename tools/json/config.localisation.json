@@ -5,7 +5,7 @@
             "description": "Localisation",
             "sub": [
                 {
-                    "id": "LOC001",
+                    "id": "GTZ001",
                     "description": "Change Global timezone",
                     "short": "Change Global timezone",
                     "module": "module_generic",
@@ -16,7 +16,7 @@
                     "author": "@armbian"
                 },
                 {
-                    "id": "LOC002",
+                    "id": "LOC001",
                     "description": "Change Locales reconfigure the language and character set",
                     "command": [
                         "dpkg-reconfigure locales",
@@ -27,7 +27,7 @@
                     "author": "@armbian"
                 },
                 {
-                    "id": "LOC003",
+                    "id": "KEY001",
                     "description": "Change Keyboard layout",
                     "command": [
                         "dpkg-reconfigure keyboard-configuration ; setupcon ",
@@ -36,7 +36,7 @@
                     "status": "Stable",
                     "author": "@armbian"                },
                 {
-                    "id": "LOC004",
+                    "id": "APT001",
                     "description": "Change APT mirrors",
                     "about": "This will change the APT mirrors",
                     "command": [
@@ -46,7 +46,7 @@
                     "author": "@armbian"
                 },
                 {
-                    "id": "LOC005",
+                    "id": "HOS001",
                     "description": "Change System Hostname",
                     "command": [
                         "change_system_hostname"

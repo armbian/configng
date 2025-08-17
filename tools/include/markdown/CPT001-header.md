@@ -1,11 +1,16 @@
-Introducing Cockpit
-Cockpit is a web-based graphical interface for servers, intended for everyone, especially those who are:
+Cockpit is a web-based graphical interface for servers, intended for everyone.
 
-- new to Linux
-(including Windows admins)
-- familiar with Linux
-and want an easy, graphical way to administer servers
-- expert admins
-who mainly use other tools but want an overview on individual systems
+Here’s a subset of tasks you can perform on each host running Cockpit
 
-Thanks to Cockpit intentionally using system APIs and commands, a whole team of admins can manage a system in the way they prefer, including the command line and utilities right alongside Cockpit.
+- inspect and change network settings
+- configure a firewall
+- manage storage (including RAID and LUKS partitions)
+- create and manage virtual machines
+- download and run containers
+- browse and search system logs
+- inspect a system’s hardware
+- upgrade software
+- manage user accounts
+- inspect and interact with systemd-based services
+- use a terminal on a remote server in your local web browser
+- switch between multiple Cockpit servers

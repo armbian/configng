@@ -7,7 +7,7 @@ module_options+=(
 	["module_homepage,status"]="Active"
 	["module_homepage,doc_link"]="https://gethomepage.dev/configs/"
 	["module_homepage,group"]="Management"
-	["module_homepage,port"]="3000"
+	["module_homepage,port"]="3021"
 	["module_homepage,arch"]=""
 )
 #
@@ -38,7 +38,7 @@ function module_homepage () {
 			-e PUID=1000 \
 			-e PGID=1000 \
 			-e HOMEPAGE_ALLOWED_HOSTS=${LOCALIPADD}:${module_options["module_homepage,port"]},homepage.local:${module_options["module_homepage,port"]},localhost:${module_options["module_homepage,port"]} \
-			-p 3000:3000 \
+			-p ${module_options["module_homepage,port"]}:3000 \
 			-v "${HOMEPAGE_BASE}/config:/app/config" \
 			-v /var/run/docker.sock:/var/run/docker.sock:ro \
 			--restart unless-stopped \

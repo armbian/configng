@@ -2,9 +2,9 @@ Domoticz is an open-source home automation platform that allows you to control a
 
 === "Access to the web interface"
 
-    The web interface is accessible via port **8080**:
+    The web interface is accessible via port **8780**:
 
-    - URL: `https://<your.IP>:8080`
+    - URL: `https://<your.IP>:8780`
     - Username/Password: admin / domoticz
 
 === "Directories"

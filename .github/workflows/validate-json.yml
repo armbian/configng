@@ -144,3 +144,50 @@ jobs:
           else
             echo "✅ No duplicate IDs found." >> $GITHUB_STEP_SUMMARY
           fi
+
+  check-duplicate-module-ports:
+    name: Check Duplicate Ports
+    runs-on: ubuntu-latest
+    needs: checkout
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: config
+
+      - name: Check for duplicate port values in module_options
+        shell: bash
+        run: |
+          declare -A port_map
+          declare -A port_locations
+          has_duplicates=0
+
+          mapfile -t files < <(find config/tools/modules/ -type f -name '*.sh')
+          for file in "${files[@]}"; do
+            while IFS= read -r line; do
+              if [[ "$line" =~ \[\"([^,]+),port\"\]=[\"\']?([0-9]+)[\"\']? ]]; then
+                module="${BASH_REMATCH[1]}"
+                port="${BASH_REMATCH[2]}"
+                if [[ -n "${port_map[$port]}" ]]; then
+                  has_duplicates=1
+                  port_map[$port]=$((port_map[$port]+1))
+                  port_locations[$port]="${port_locations[$port]}, $file"
+                else
+                  port_map[$port]=1
+                  port_locations[$port]="$file"
+                fi
+              fi
+            done < "$file"
+          done
+
+          if [[ $has_duplicates -eq 1 ]]; then
+            echo "## ❌ Duplicate ports found in tools/modules/*.sh:" >> $GITHUB_STEP_SUMMARY
+            for port in "${!port_map[@]}"; do
+              if [[ ${port_map[$port]} -gt 1 ]]; then
+                echo "- Port \`$port\` appears ${port_map[$port]} times in: ${port_locations[$port]}" >> $GITHUB_STEP_SUMMARY
+              fi
+            done
+            exit 1
+          else
+            echo "✅ No duplicate port values found in module_options." >> $GITHUB_STEP_SUMMARY
+          fi

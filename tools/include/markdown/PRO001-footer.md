@@ -1,8 +1,8 @@
 === "Access to the web interface"
 
-    The web interface is accessible via port **9090**:
+    The web interface is accessible via port **9191**:
 
-    - URL: `https://<your.IP>:9090`
+    - URL: `http://<your.IP>:9191`
 
 === "Directories"
 

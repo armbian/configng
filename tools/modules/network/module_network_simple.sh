@@ -228,7 +228,7 @@ function module_simple_network() {
 				else
 					[[ $interface == w* && $interface != wa* ]] && devicetype="wifi" || devicetype="wired"
 					local query=$(ip -4 -br addr show dev $interface | awk '{print $3}')
-					list+=("${interface}" "$(printf "%-16s%18s%9s" ${interface} ${query:-unasigned} ${devicetype})")
+					list+=("${interface}" "$(printf "%-16s%18s%9s" ${interface} ${query:-unassigned} ${devicetype})")
 				fi
 			done
 			adapter=$($DIALOG --notags --title "Select interface" --menu "\n Adaptor                 IP address     Type"  \

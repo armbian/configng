@@ -7,7 +7,7 @@ module_options+=(
 	["module_grafana,status"]="Active"
 	["module_grafana,doc_link"]="https://grafana.com/docs/"
 	["module_grafana,group"]="Monitoring"
-	["module_grafana,port"]="3000"
+	["module_grafana,port"]="3022"
 	["module_grafana,arch"]="x86-64 arm64"
 )
 #
@@ -37,7 +37,7 @@ function module_grafana () {
 			--net=lsio \
 			--user 0 \
 			-e TZ="$(cat /etc/timezone)" \
-			-p 3000:3000 \
+			-p ${module_options["module_grafana,port"]}:3000 \
 			-v "${GRAFANA_BASE}:/var/lib/grafana" \
 			--restart unless-stopped \
 			grafana/grafana-enterprise

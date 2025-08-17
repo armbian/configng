@@ -109,113 +109,6 @@ sudo armbian-config
 
 - ## **Software** 
 
-  - ### Web server, LEMP, reverse proxy, Let's Encrypt SSL
-    - ### SWAG reverse proxy
-    - ### SWAG reverse proxy .htpasswd set
-    - ### SWAG remove
-    - ### SWAG purge with data folder
-
-
-  - ### Home Automation for control home appliances
-    - ### openHAB empowering the smart home
-    - ### openHAB remove
-    - ### openHAB purge with data folder
-    - ### Home Assistant open source home automation
-    - ### Home Assistant remove
-    - ### Home Assistant purge with data folder
-    - ### Domoticz open source home automation
-    - ### Domoticz remove
-    - ### Domoticz purge with data folder
-    - ### EVCC - solar charging automation
-    - ### EVCC - solar charging automation remove
-    - ### EVCC purge with data folder
-
-
-  - ### Network-wide ad blockers servers
-    - ### Pi-hole DNS ad blocker
-    - ### Pi-hole remove
-    - ### Pi-hole change web admin password
-    - ### Pi-hole purge with data folder
-    - ### Unbound caching DNS resolver
-    - ### Unbound remove
-    - ### Unbound purge with data folder
-    - ### AdGuardHome DNS sinkhole
-    - ### AdGuardHome remove
-    - ### AdGuardHome purge with data folder
-
-
-  - ### Music servers and streamers
-    - ### Navidrome music server and streamer compatible with Subsonic/Airsonic
-    - ### Navidrome remove
-    - ### Navidrome purge with data folder
-
-
-  - ### Manage your finances
-    - ### Do your finances with Actual Budget
-    - ### Actual Budget remove
-    - ### Actual Budget purge with data folder
-
-
-  - ### Backup solutions for your data
-    - ### Duplicati install
-    - ### Duplicati remove
-    - ### Duplicati purge with data folder
-
-
-  - ### Download apps for movies, TV shows, music and subtitles
-    - ### qBittorrent BitTorrent client 
-    - ### qBittorrent remove
-    - ### qBittorrent purge with data folder
-    - ### Deluge BitTorrent client
-    - ### Deluge remove
-    - ### Deluge purge with data folder
-    - ### Transmission BitTorrent client
-    - ### Transmission remove
-    - ### Transmission purge with data folder
-    - ### SABnzbd newsgroup downloader
-    - ### SABnzbd remove
-    - ### SABnzbd purge with data folder
-    - ### Medusa automatic downloader for TV shows
-    - ### Medusa TV shows downloader remove
-    - ### Medusa TV shows downloader purge
-    - ### Sonarr automatic downloader for TV shows
-    - ### Sonarr remove
-    - ### Sonarr purge with data folder
-    - ### Radarr automatic downloader for movies
-    - ### Radarr remove
-    - ### Radarr purge with data folder
-    - ### Bazarr automatic subtitles downloader for Sonarr and Radarr
-    - ### Bazarr remove
-    - ### Bazarr purge with data folder
-    - ### Lidarr automatic music downloader
-    - ### Lidarr remove
-    - ### Lidarr purge with data folder
-    - ### Readarr automatic downloader for Ebooks
-    - ### Readarr remove
-    - ### Readarr purge with data folder
-    - ### Prowlarr index manager and proxy for PVR
-    - ### Prowlarr remove
-    - ### Prowlarr purge with data folder
-    - ### Jellyseerr Jellyfin/Emby/Plex integration install
-    - ### Jellyseerr remove
-    - ### Jellyseerr purge with data folder
-
-
-  - ### SQL database servers and web interface managers
-    - ### PostgreSQL install
-    - ### PostgreSQL remove
-    - ### PostgreSQL purge with data folder
-    - ### Mariadb SQL database server
-    - ### Mariadb remove
-    - ### Mariadb purge with data folder
-    - ### Redis install
-    - ### Redis remove
-    - ### Redis purge with data folder
-    - ### phpMyAdmin web interface manager
-    - ### phpMyAdmin remove
-    - ### phpMyAdmin purge with data folder
-
-
   - ### Armbian infrastructure services
     - ### Router for repository mirror automation
     - ### Remove CDN router
@@ -225,9 +118,10 @@ sudo armbian-config
     - ### Remove Armbian rsyncd server
 
 
-  - ### Applications and tools for development
-    - ### Install tools for cloning and managing repositories (git)
-    - ### Remove tools for cloning and managing repositories (git)
+  - ### Backup solutions for your data
+    - ### Duplicati install
+    - ### Duplicati remove
+    - ### Duplicati purge with data folder
 
 
   - ### Docker containerization and KVM virtual machines
@@ -240,66 +134,178 @@ sudo armbian-config
     - ### Portainer purge with with data folder
 
 
-  - ### Media servers, organizers and editors
-    - ### Deploy NAS using OpenMediaVault
-    - ### OpenMediaVault remove
-    - ### Filebrowser provides a web-based file manager accessible via a browser
-    - ### Filebrowser container remove
-    - ### Filebrowser container purge with data folder
-    - ### Emby organizes video, music, live TV, and photos
-    - ### Emby server remove
-    - ### Emby server purge with data folder
-    - ### Stirling PDF tools for viewing and editing PDF files
-    - ### Stirling PDF remove
-    - ### Stirling PDF purge with data folder
-    - ### Syncthing continuous file synchronization
-    - ### Syncthing remove
-    - ### Syncthing purge with data folder
-    - ### Nextcloud content collaboration platform
-    - ### Nextcloud remove
-    - ### Nextcloud purge with data folder
-    - ### Owncloud share files and folders, easy and secure
-    - ### Owncloud remove
-    - ### Owncloud purge with data folder
-    - ### Jellyfin Media System
-    - ### Jellyfin remove
-    - ### Jellyfin purge with data folder
-    - ### Hastebin Paste Server
-    - ### Hastebin remove
-    - ### Hastebin purge with data folder
-    - ### Immich - high-performance self-hosted photo and video backup solution
-    - ### Immich remove
-    - ### Immich purge with data folder
+  - ### Network-wide ad blockers servers
+    - ### AdGuardHome DNS sinkhole
+    - ### AdGuardHome remove
+    - ### AdGuardHome purge with data folder
+    - ### Pi-hole DNS ad blocker with Unbound support
+    - ### Pi-hole change web admin password
+    - ### Pi-hole remove
+    - ### Pi-hole purge with data folder
+    - ### Unbound caching DNS resolver
+    - ### Unbound remove
+    - ### Unbound purge with data folder
 
 
-  - ### Real-time monitoring, collecting metrics, up-time status
-    - ### Uptime Kuma self-hosted monitoring tool
-    - ### Uptime Kuma remove
-    - ### Uptime Kuma purge with data folder
-    - ### Netdata - monitoring real-time metrics
-    - ### Netdata remove
-    - ### Netdata purge with data folder
-    - ### Grafana data analytics
-    - ### Grafana remove
-    - ### Grafana purge with data folder
-    - ### Prometheus docker image
-    - ### Prometheus remove
-    - ### Prometheus purge with data folder
-    - ### NetAlertX network scanner & notification framework
-    - ### NetAlertX network scanner remove
-    - ### NetAlertX network scanner purge with data folder
+  - ### SQL database servers and web interface managers
+    - ### MySQL SQL database server
+    - ### MySQL remove
+    - ### MySQL purge with data folder
+    - ### Mariadb SQL database server
+    - ### Mariadb remove
+    - ### Mariadb purge with data folder
+    - ### phpMyAdmin web interface manager
+    - ### phpMyAdmin remove
+    - ### phpMyAdmin purge with data folder
+    - ### PostgreSQL install
+    - ### PostgreSQL remove
+    - ### PostgreSQL purge with data folder
+    - ### Redis install
+    - ### Redis remove
+    - ### Redis purge with data folder
+
+
+  - ### Applications and tools for development
+    - ### Install tools for cloning and managing repositories (git)
+    - ### Remove tools for cloning and managing repositories (git)
+
+
+  - ### Download apps for movies, TV shows, music and subtitles
+    - ### Bazarr automatic subtitles downloader for Sonarr and Radarr
+    - ### Bazarr remove
+    - ### Bazarr purge with data folder
+    - ### Deluge BitTorrent client
+    - ### Deluge remove
+    - ### Deluge purge with data folder
+    - ### qBittorrent BitTorrent client 
+    - ### qBittorrent remove
+    - ### qBittorrent purge with data folder
+    - ### Prowlarr index manager and proxy for PVR
+    - ### Prowlarr remove
+    - ### Prowlarr purge with data folder
+    - ### Jellyseerr Jellyfin/Emby/Plex integration install
+    - ### Jellyseerr remove
+    - ### Jellyseerr purge with data folder
+    - ### Lidarr automatic music downloader
+    - ### Lidarr remove
+    - ### Lidarr purge with data folder
+    - ### Medusa automatic downloader for TV shows
+    - ### Medusa TV shows downloader remove
+    - ### Medusa TV shows downloader purge
+    - ### Radarr automatic downloader for movies
+    - ### Radarr remove
+    - ### Radarr purge with data folder
+    - ### Readarr automatic downloader for Ebooks
+    - ### Readarr remove
+    - ### Readarr purge with data folder
+    - ### SABnzbd newsgroup downloader
+    - ### SABnzbd remove
+    - ### SABnzbd purge with data folder
+    - ### Sonarr automatic downloader for TV shows
+    - ### Sonarr remove
+    - ### Sonarr purge with data folder
+    - ### Transmission BitTorrent client
+    - ### Transmission remove
+    - ### Transmission purge with data folder
+
+
+  - ### Manage your finances
+    - ### Do your finances with Actual Budget
+    - ### Actual Budget remove
+    - ### Actual Budget purge with data folder
+
+
+  - ### Home Automation for control home appliances
+    - ### Domoticz open source home automation
+    - ### Domoticz remove
+    - ### Domoticz purge with data folder
+    - ### EVCC - solar charging automation
+    - ### EVCC - solar charging automation remove
+    - ### EVCC purge with data folder
+    - ### openHAB empowering the smart home
+    - ### openHAB remove
+    - ### openHAB purge with data folder
+    - ### Home Assistant open source home automation
+    - ### Home Assistant remove
+    - ### Home Assistant purge with data folder
 
 
   - ### Remote File & Management tools
-    - ### Cockpit web-based management tool
-    - ### SAMBA Remote File share
-    - ### Webmin web-based management tool
+    - ### Cockpit OS and VM management tool
+    - ### Remove Cockpit
+    - ### Purge Cockpit with virtual machines
     - ### Install Homepage startpage / application dashboard
     - ### Remove Homepage
     - ### Purge Homepage with data folder
     - ### NetBox infrastructure resource modeling install
     - ### NetBox remove
     - ### NetBox purge with data folder
+    - ### SAMBA Remote File share
+    - ### Webmin web-based management tool
+
+
+  - ### Media servers, organizers and editors
+    - ### Emby organizes video, music, live TV, and photos
+    - ### Emby server remove
+    - ### Emby server purge with data folder
+    - ### Filebrowser provides a web-based file manager accessible via a browser
+    - ### Filebrowser container remove
+    - ### Filebrowser container purge with data folder
+    - ### Hastebin Paste Server
+    - ### Hastebin remove
+    - ### Hastebin purge with data folder
+    - ### Immich - high-performance self-hosted photo and video backup solution
+    - ### Immich remove
+    - ### Immich purge with data folder
+    - ### Jellyfin Media System
+    - ### Jellyfin remove
+    - ### Jellyfin purge with data folder
+    - ### Navidrome music server and streamer compatible with Subsonic/Airsonic
+    - ### Navidrome remove
+    - ### Navidrome purge with data folder
+    - ### Nextcloud content collaboration platform
+    - ### Nextcloud remove
+    - ### Nextcloud purge with data folder
+    - ### Deploy NAS using OpenMediaVault
+    - ### OpenMediaVault remove
+    - ### Owncloud share files and folders, easy and secure
+    - ### Owncloud remove
+    - ### Owncloud purge with data folder
+    - ### Syncthing continuous file synchronization
+    - ### Syncthing remove
+    - ### Syncthing purge with data folder
+    - ### Stirling PDF tools for viewing and editing PDF files
+    - ### Stirling PDF remove
+    - ### Stirling PDF purge with data folder
+
+
+  - ### Real-time monitoring, collecting metrics, up-time status
+    - ### Grafana data analytics
+    - ### Grafana remove
+    - ### Grafana purge with data folder
+    - ### NetAlertX network scanner & notification framework
+    - ### NetAlertX network scanner remove
+    - ### NetAlertX network scanner purge with data folder
+    - ### Netdata - monitoring real-time metrics
+    - ### Netdata remove
+    - ### Netdata purge with data folder
+    - ### Prometheus monitoring and alerting toolkit
+    - ### Prometheus remove
+    - ### Prometheus purge with data folder
+    - ### Uptime Kuma self-hosted monitoring tool
+    - ### Uptime Kuma remove
+    - ### Uptime Kuma purge with data folder
+
+
+  - ### Console network tools for measuring load and bandwidth
+    - ### avahi-daemon hostname broadcast via mDNS
+    - ### avahi-daemon remove
+    - ### iperf3 bandwidth measuring tool
+    - ### iperf3 remove
+    - ### iptraf-ng IP LAN monitor
+    - ### iptraf-ng remove
+    - ### nload - realtime console network usage monitor
+    - ### nload - remove
 
 
   - ### Tools for printing and 3D printing
@@ -308,23 +314,23 @@ sudo armbian-config
     - ### OctoPrint purge with data folder
 
 
-  - ### Console network tools for measuring load and bandwidth
-    - ### nload - realtime console network usage monitor
-    - ### nload - remove
-    - ### iperf3 bandwidth measuring tool
-    - ### iperf3 remove
-    - ### iptraf-ng IP LAN monitor
-    - ### iptraf-ng remove
-    - ### avahi-daemon hostname broadcast via mDNS
-    - ### avahi-daemon remove
-
-
   - ### Virtual Private Network tools
-    - ### WireGuard VPN client / server
+    - ### WireGuard VPN server
+    - ### WireGuard VPN client
     - ### WireGuard remove
-    - ### WireGuard clients QR codes
+    - ### WireGuard VPN server QR codes for clients
     - ### WireGuard purge with data folder
     - ### ZeroTier connect devices over your own private network in the world.
+
+
+  - ### Web server, LEMP, reverse proxy, Let's Encrypt SSL
+    - ### SWAG reverse proxy
+    - ### SWAG reverse proxy .htpasswd set
+    - ### SWAG remove
+    - ### SWAG purge with data folder
+    - ### Ghost CMS install
+    - ### Ghost CMS remove
+    - ### Ghost CMS purge with data folder
 
 
 
@@ -409,7 +415,7 @@ Outputs:
 	--cmd ACC011 - Disable last login banner
 	--cmd ACC012 - Enable last login banner
 	--cmd SSH001 - Sandboxed & containerised SSH server
-	--cmd SSH002 - Remove sandboxed SSH server (ssh://10.1.0.118:2222)
+	--cmd SSH002 - Remove sandboxed SSH server (ssh://10.1.0.126:2222)
 	--cmd SSH003 - Purge sandboxed SSH server with data folder
     User - Change shell, adjust MOTD
 	--cmd SHELL1 - Change shell system wide to ZSH
@@ -437,103 +443,12 @@ Outputs:
 	--cmd NEA005 - Show active status
 
   Localisation - Localisation (C.UTF-8)
-    --cmd LOC001 - Change Global timezone
-    --cmd LOC002 - Change Locales reconfigure the language and character set
-    --cmd LOC003 - Change Keyboard layout
-    --cmd LOC005 - Change System Hostname
+    --cmd GTZ001 - Change Global timezone
+    --cmd LOC001 - Change Locales reconfigure the language and character set
+    --cmd KEY001 - Change Keyboard layout
+    --cmd HOS001 - Change System Hostname
 
   Software - Run/Install 3rd party applications (Update the package lists.)
-    WebHosting - Web server, LEMP, reverse proxy, Let's Encrypt SSL
-	--cmd SWAG01 - SWAG reverse proxy
-	--cmd SWAG02 - SWAG reverse proxy .htpasswd set
-	--cmd SWAG03 - SWAG remove
-	--cmd SWAG04 - SWAG purge with data folder
-    HomeAutomation - Home Automation for control home appliances
-	--cmd HAB001 - openHAB empowering the smart home
-	--cmd HAB002 - openHAB remove (http://10.1.0.118:8080)
-	--cmd HAB003 - openHAB purge with data folder
-	--cmd HAS001 - Home Assistant open source home automation
-	--cmd HAS002 - Home Assistant remove (http://10.1.0.118:8123)
-	--cmd HAS003 - Home Assistant purge with data folder
-	--cmd DOM001 - Domoticz open source home automation
-	--cmd DOM002 - Domoticz remove (http://10.1.0.118:8080)
-	--cmd DOM003 - Domoticz purge with data folder
-	--cmd EVCC01 - EVCC - solar charging automation
-	--cmd EVCC02 - EVCC - solar charging automation remove (http://10.1.0.118:7070)
-	--cmd EVCC03 - EVCC purge with data folder
-    DNS - Network-wide ad blockers servers
-	--cmd PIH001 - Pi-hole DNS ad blocker
-	--cmd PIH003 - Pi-hole remove (http://10.1.0.118:80)
-	--cmd PIH002 - Pi-hole change web admin password
-	--cmd PIH004 - Pi-hole purge with data folder
-	--cmd UNB001 - Unbound caching DNS resolver
-	--cmd UNB002 - Unbound remove
-	--cmd UNB003 - Unbound purge with data folder
-	--cmd ADG001 - AdGuardHome DNS sinkhole
-	--cmd ADG002 - AdGuardHome remove (http://10.1.0.118:3000)
-	--cmd ADG003 - AdGuardHome purge with data folder
-    Music - Music servers and streamers
-	--cmd NAV001 - Navidrome music server and streamer compatible with Subsonic/Airsonic
-	--cmd NAV002 - Navidrome remove
-	--cmd NAV003 - Navidrome purge with data folder
-    Finance - Manage your finances
-	--cmd ABU001 - Do your finances with Actual Budget
-	--cmd ABU002 - Actual Budget remove (http://10.1.0.118:5006)
-	--cmd ABU003 - Actual Budget purge with data folder
-    Backup - Backup solutions for your data
-	--cmd DPL001 - Duplicati install
-	--cmd DPL002 - Duplicati remove (http://10.1.0.118:8200)
-	--cmd DPL003 - Duplicati purge with data folder
-    Downloaders - Download apps for movies, TV shows, music and subtitles
-	--cmd DOW001 - qBittorrent BitTorrent client 
-	--cmd DOW002 - qBittorrent remove (http://10.1.0.118:8090)
-	--cmd DOW003 - qBittorrent purge with data folder
-	--cmd DEL001 - Deluge BitTorrent client
-	--cmd DEL002 - Deluge remove (http://10.1.0.118:8112)
-	--cmd DEL003 - Deluge purge with data folder
-	--cmd TRA001 - Transmission BitTorrent client
-	--cmd TRA002 - Transmission remove (http://10.1.0.118:9091)
-	--cmd TRA003 - Transmission purge with data folder
-	--cmd SABN01 - SABnzbd newsgroup downloader
-	--cmd SABN02 - SABnzbd remove (http://10.1.0.118:8080)
-	--cmd SABN03 - SABnzbd purge with data folder
-	--cmd MDS001 - Medusa automatic downloader for TV shows
-	--cmd MDS002 - Medusa TV shows downloader remove (http://10.1.0.118:8081)
-	--cmd MDS003 - Medusa TV shows downloader purge
-	--cmd SON001 - Sonarr automatic downloader for TV shows
-	--cmd SON002 - Sonarr remove (http://10.1.0.118:8989)
-	--cmd SON003 - Sonarr purge with data folder
-	--cmd RAD001 - Radarr automatic downloader for movies
-	--cmd RAD002 - Radarr remove (http://10.1.0.118:7878)
-	--cmd RAD003 - Radarr purge with data folder
-	--cmd BAZ001 - Bazarr automatic subtitles downloader for Sonarr and Radarr
-	--cmd BAZ002 - Bazarr remove (http://10.1.0.118:6767)
-	--cmd BAZ003 - Bazarr purge with data folder
-	--cmd LID001 - Lidarr automatic music downloader
-	--cmd LID002 - Lidarr remove (http://10.1.0.118:8686)
-	--cmd LID003 - Lidarr purge with data folder
-	--cmd RDR001 - Readarr automatic downloader for Ebooks
-	--cmd RDR002 - Readarr remove (http://10.1.0.118:8787)
-	--cmd RDR003 - Readarr purge with data folder
-	--cmd DOW025 - Prowlarr index manager and proxy for PVR
-	--cmd DOW026 - Prowlarr remove (http://10.1.0.118:9696)
-	--cmd DOW027 - Prowlarr purge with data folder
-	--cmd JEL001 - Jellyseerr Jellyfin/Emby/Plex integration install
-	--cmd JEL002 - Jellyseerr remove (http://10.1.0.118:5055)
-	--cmd JEL003 - Jellyseerr purge with data folder
-    Database - SQL database servers and web interface managers
-	--cmd PGSQL1 - PostgreSQL install
-	--cmd PGSQL2 - PostgreSQL remove
-	--cmd PGSQL3 - PostgreSQL purge with data folder
-	--cmd DAT001 - Mariadb SQL database server
-	--cmd DAT002 - Mariadb remove (Server: 10.1.0.118)
-	--cmd DAT003 - Mariadb purge with data folder
-	--cmd REDIS1 - Redis install
-	--cmd REDIS2 - Redis remove
-	--cmd REDIS3 - Redis purge with data folder
-	--cmd MYA001 - phpMyAdmin web interface manager
-	--cmd MYA002 - phpMyAdmin remove (http://10.1.0.118:8071)
-	--cmd MYA003 - phpMyAdmin purge with data folder
     Armbian - Armbian infrastructure services
 	--cmd ART001 - Router for repository mirror automation
 	--cmd ART002 - Remove CDN router
@@ -541,92 +456,191 @@ Outputs:
 	--cmd GHR002 - Remove GitHub runners for Armbian automation
 	--cmd RSD001 - Rsyncd server
 	--cmd RSD002 - Remove Armbian rsyncd server
-    DevTools - Applications and tools for development
-	--cmd GIT001 - Install tools for cloning and managing repositories (git)
-	--cmd GIT002 - Remove tools for cloning and managing repositories (git)
+    Backup - Backup solutions for your data
+	--cmd DPL001 - Duplicati install
+	--cmd DPL002 - Duplicati remove (http://10.1.0.126:8200)
+	--cmd DPL003 - Duplicati purge with data folder
     Containers - Docker containerization and KVM virtual machines
 	--cmd CON001 - Docker minimal
 	--cmd CON002 - Docker engine
 	--cmd CON003 - Docker remove
 	--cmd CON004 - Docker purge with all images, containers, and volumes
 	--cmd POR001 - Portainer container management platform
-	--cmd POR002 - Portainer remove (http://10.1.0.118:9000)
+	--cmd POR002 - Portainer remove (http://10.1.0.126:9000)
 	--cmd POR003 - Portainer purge with with data folder
+    DNS - Network-wide ad blockers servers
+	--cmd ADG001 - AdGuardHome DNS sinkhole
+	--cmd ADG002 - AdGuardHome remove (http://10.1.0.126:3000)
+	--cmd ADG003 - AdGuardHome purge with data folder
+	--cmd PIH001 - Pi-hole DNS ad blocker with Unbound support
+	--cmd PIH002 - Pi-hole change web admin password
+	--cmd PIH003 - Pi-hole remove (http://10.1.0.126:8811/admin)
+	--cmd PIH004 - Pi-hole purge with data folder
+	--cmd UNB001 - Unbound caching DNS resolver
+	--cmd UNB002 - Unbound remove
+	--cmd UNB003 - Unbound purge with data folder
+    Database - SQL database servers and web interface managers
+	--cmd MYSQL1 - MySQL SQL database server
+	--cmd MYSQL2 - MySQL remove
+	--cmd MYSQL3 - MySQL purge with data folder
+	--cmd DAT001 - Mariadb SQL database server
+	--cmd DAT002 - Mariadb remove (Server: 10.1.0.126)
+	--cmd DAT003 - Mariadb purge with data folder
+	--cmd MYA001 - phpMyAdmin web interface manager
+	--cmd MYA002 - phpMyAdmin remove (http://10.1.0.126:8071)
+	--cmd MYA003 - phpMyAdmin purge with data folder
+	--cmd PGSQL1 - PostgreSQL install
+	--cmd PGSQL2 - PostgreSQL remove
+	--cmd PGSQL3 - PostgreSQL purge with data folder
+	--cmd REDIS1 - Redis install
+	--cmd REDIS2 - Redis remove
+	--cmd REDIS3 - Redis purge with data folder
+    DevTools - Applications and tools for development
+	--cmd GIT001 - Install tools for cloning and managing repositories (git)
+	--cmd GIT002 - Remove tools for cloning and managing repositories (git)
+    Downloaders - Download apps for movies, TV shows, music and subtitles
+	--cmd BAZ001 - Bazarr automatic subtitles downloader for Sonarr and Radarr
+	--cmd BAZ002 - Bazarr remove (http://10.1.0.126:6767)
+	--cmd BAZ003 - Bazarr purge with data folder
+	--cmd DEL001 - Deluge BitTorrent client
+	--cmd DEL002 - Deluge remove (http://10.1.0.126:8112)
+	--cmd DEL003 - Deluge purge with data folder
+	--cmd DOW001 - qBittorrent BitTorrent client 
+	--cmd DOW002 - qBittorrent remove (http://10.1.0.126:8090)
+	--cmd DOW003 - qBittorrent purge with data folder
+	--cmd DOW025 - Prowlarr index manager and proxy for PVR
+	--cmd DOW026 - Prowlarr remove (http://10.1.0.126:9696)
+	--cmd DOW027 - Prowlarr purge with data folder
+	--cmd JEL001 - Jellyseerr Jellyfin/Emby/Plex integration install
+	--cmd JEL002 - Jellyseerr remove (http://10.1.0.126:5055)
+	--cmd JEL003 - Jellyseerr purge with data folder
+	--cmd LID001 - Lidarr automatic music downloader
+	--cmd LID002 - Lidarr remove (http://10.1.0.126:8686)
+	--cmd LID003 - Lidarr purge with data folder
+	--cmd MDS001 - Medusa automatic downloader for TV shows
+	--cmd MDS002 - Medusa TV shows downloader remove (http://10.1.0.126:8081)
+	--cmd MDS003 - Medusa TV shows downloader purge
+	--cmd RAD001 - Radarr automatic downloader for movies
+	--cmd RAD002 - Radarr remove (http://10.1.0.126:7878)
+	--cmd RAD003 - Radarr purge with data folder
+	--cmd RDR001 - Readarr automatic downloader for Ebooks
+	--cmd RDR002 - Readarr remove (http://10.1.0.126:8787)
+	--cmd RDR003 - Readarr purge with data folder
+	--cmd SABN01 - SABnzbd newsgroup downloader
+	--cmd SABN02 - SABnzbd remove (http://10.1.0.126:8380)
+	--cmd SABN03 - SABnzbd purge with data folder
+	--cmd SON001 - Sonarr automatic downloader for TV shows
+	--cmd SON002 - Sonarr remove (http://10.1.0.126:8989)
+	--cmd SON003 - Sonarr purge with data folder
+	--cmd TRA001 - Transmission BitTorrent client
+	--cmd TRA002 - Transmission remove (http://10.1.0.126:9091)
+	--cmd TRA003 - Transmission purge with data folder
+    Finance - Manage your finances
+	--cmd ABU001 - Do your finances with Actual Budget
+	--cmd ABU002 - Actual Budget remove (http://10.1.0.126:5006)
+	--cmd ABU003 - Actual Budget purge with data folder
+    HomeAutomation - Home Automation for control home appliances
+	--cmd DOM001 - Domoticz open source home automation
+	--cmd DOM002 - Domoticz remove (http://10.1.0.126:8780)
+	--cmd DOM003 - Domoticz purge with data folder
+	--cmd EVCC01 - EVCC - solar charging automation
+	--cmd EVCC02 - EVCC - solar charging automation remove (http://10.1.0.126:7070)
+	--cmd EVCC03 - EVCC purge with data folder
+	--cmd HAB001 - openHAB empowering the smart home
+	--cmd HAB002 - openHAB remove (http://10.1.0.126:8080)
+	--cmd HAB003 - openHAB purge with data folder
+	--cmd HAS001 - Home Assistant open source home automation
+	--cmd HAS002 - Home Assistant remove (http://10.1.0.126:8123)
+	--cmd HAS003 - Home Assistant purge with data folder
+    Management - Remote File & Management tools
+	--cmd CPT001 - Cockpit OS and VM management tool
+	--cmd CPT002 - Remove Cockpit (https://10.1.0.126:9890)
+	--cmd CPT003 - Purge Cockpit with virtual machines
+	--cmd HPG001 - Install Homepage startpage / application dashboard
+	--cmd HPG002 - Remove Homepage (http://10.1.0.126:3021)
+	--cmd HPG003 - Purge Homepage with data folder
+	--cmd NBOX01 - NetBox infrastructure resource modeling install
+	--cmd NBOX02 - NetBox remove (http://10.1.0.126:8222)
+	--cmd NBOX03 - NetBox purge with data folder
+	--cmd SMB001 - SAMBA Remote File share
+	--cmd WBM001 - Webmin web-based management tool
     Media - Media servers, organizers and editors
-	--cmd OMV001 - Deploy NAS using OpenMediaVault
-	--cmd OMV002 - OpenMediaVault remove (http://10.1.0.118:80)
-	--cmd FIL001 - Filebrowser provides a web-based file manager accessible via a browser
-	--cmd FIL002 - Filebrowser container remove (http://10.1.0.118:8095)
-	--cmd FIL003 - Filebrowser container purge with data folder
 	--cmd EMB001 - Emby organizes video, music, live TV, and photos
-	--cmd EMB002 - Emby server remove (http://10.1.0.118:8096)
+	--cmd EMB002 - Emby server remove (http://10.1.0.126:8091)
 	--cmd EMB003 - Emby server purge with data folder
-	--cmd STR001 - Stirling PDF tools for viewing and editing PDF files
-	--cmd STR002 - Stirling PDF remove (http://10.1.0.118:8077)
-	--cmd STR003 - Stirling PDF purge with data folder
-	--cmd STC001 - Syncthing continuous file synchronization
-	--cmd STC002 - Syncthing remove (http://10.1.0.118:8884)
-	--cmd STC003 - Syncthing purge with data folder
-	--cmd NCT001 - Nextcloud content collaboration platform
-	--cmd NCT002 - Nextcloud remove (https://10.1.0.118:443)
-	--cmd NCT003 - Nextcloud purge with data folder
-	--cmd OWC001 - Owncloud share files and folders, easy and secure
-	--cmd OWC002 - Owncloud remove (http://10.1.0.118:7787)
-	--cmd OWC003 - Owncloud purge with data folder
-	--cmd JMS001 - Jellyfin Media System
-	--cmd JMS002 - Jellyfin remove (http://10.1.0.118:8096)
-	--cmd JMS003 - Jellyfin purge with data folder
+	--cmd FIL001 - Filebrowser provides a web-based file manager accessible via a browser
+	--cmd FIL002 - Filebrowser container remove (http://10.1.0.126:8095)
+	--cmd FIL003 - Filebrowser container purge with data folder
 	--cmd HPS001 - Hastebin Paste Server
 	--cmd HPS002 - Hastebin remove
 	--cmd HPS003 - Hastebin purge with data folder
 	--cmd IMM001 - Immich - high-performance self-hosted photo and video backup solution
-	--cmd IMM002 - Immich remove (http://10.1.0.118:8077)
+	--cmd IMM002 - Immich remove (http://10.1.0.126:8077)
 	--cmd IMM003 - Immich purge with data folder
+	--cmd JMS001 - Jellyfin Media System
+	--cmd JMS002 - Jellyfin remove (http://10.1.0.126:8096)
+	--cmd JMS003 - Jellyfin purge with data folder
+	--cmd NAV001 - Navidrome music server and streamer compatible with Subsonic/Airsonic
+	--cmd NAV002 - Navidrome remove (http://10.1.0.126:4533)
+	--cmd NAV003 - Navidrome purge with data folder
+	--cmd NCT001 - Nextcloud content collaboration platform
+	--cmd NCT002 - Nextcloud remove (https://10.1.0.126:1443)
+	--cmd NCT003 - Nextcloud purge with data folder
+	--cmd OMV001 - Deploy NAS using OpenMediaVault
+	--cmd OMV002 - OpenMediaVault remove (http://10.1.0.126:80)
+	--cmd OWC001 - Owncloud share files and folders, easy and secure
+	--cmd OWC002 - Owncloud remove (http://10.1.0.126:7787)
+	--cmd OWC003 - Owncloud purge with data folder
+	--cmd STC001 - Syncthing continuous file synchronization
+	--cmd STC002 - Syncthing remove (http://10.1.0.126:8884)
+	--cmd STC003 - Syncthing purge with data folder
+	--cmd STR001 - Stirling PDF tools for viewing and editing PDF files
+	--cmd STR002 - Stirling PDF remove (http://10.1.0.126:8075)
+	--cmd STR003 - Stirling PDF purge with data folder
     Monitoring - Real-time monitoring, collecting metrics, up-time status
-	--cmd UPK001 - Uptime Kuma self-hosted monitoring tool
-	--cmd UPK002 - Uptime Kuma remove (http://10.1.0.118:3001)
-	--cmd UPK003 - Uptime Kuma purge with data folder
-	--cmd NTD001 - Netdata - monitoring real-time metrics
-	--cmd NTD002 - Netdata remove (http://10.1.0.118:19999)
-	--cmd NTD003 - Netdata purge with data folder
 	--cmd GRA001 - Grafana data analytics
-	--cmd GRA002 - Grafana remove (http://10.1.0.118:3000)
+	--cmd GRA002 - Grafana remove (http://10.1.0.126:3022)
 	--cmd GRA003 - Grafana purge with data folder
-	--cmd PRO001 - Prometheus docker image
-	--cmd PRO002 - Prometheus remove
-	--cmd PRO003 - Prometheus purge with data folder
 	--cmd NAX001 - NetAlertX network scanner & notification framework
-	--cmd NAX002 - NetAlertX network scanner remove (http://10.1.0.118:20211)
+	--cmd NAX002 - NetAlertX network scanner remove (http://10.1.0.126:20211)
 	--cmd NAX003 - NetAlertX network scanner purge with data folder
-    Management - Remote File & Management tools
-	--cmd CPT001 - Cockpit web-based management tool (http://10.1.0.118:9090)
-	--cmd SMB001 - SAMBA Remote File share
-	--cmd WBM001 - Webmin web-based management tool
-	--cmd HPG001 - Install Homepage startpage / application dashboard
-	--cmd HPG002 - Remove Homepage (http://10.1.0.118:3000)
-	--cmd HPG003 - Purge Homepage with data folder
-	--cmd NBOX01 - NetBox infrastructure resource modeling install
-	--cmd NBOX02 - NetBox remove (http://10.1.0.118:8222)
-	--cmd NBOX03 - NetBox purge with data folder
-    Printing - Tools for printing and 3D printing
-	--cmd OCT001 - OctoPrint web-based 3D printers management tool
-	--cmd OCT002 - OctoPrint remove (http://10.1.0.118:7981)
-	--cmd OCT003 - OctoPrint purge with data folder
+	--cmd NTD001 - Netdata - monitoring real-time metrics
+	--cmd NTD002 - Netdata remove (http://10.1.0.126:19999)
+	--cmd NTD003 - Netdata purge with data folder
+	--cmd PRO001 - Prometheus monitoring and alerting toolkit
+	--cmd PRO002 - Prometheus remove (http://10.1.0.126:9191)
+	--cmd PRO003 - Prometheus purge with data folder
+	--cmd UPK001 - Uptime Kuma self-hosted monitoring tool
+	--cmd UPK002 - Uptime Kuma remove (http://10.1.0.126:3001)
+	--cmd UPK003 - Uptime Kuma purge with data folder
     Netconfig - Console network tools for measuring load and bandwidth
-	--cmd NLD001 - nload - realtime console network usage monitor
-	--cmd NLD002 - nload - remove
+	--cmd AVH001 - avahi-daemon hostname broadcast via mDNS
+	--cmd AVH002 - avahi-daemon remove
 	--cmd IPR001 - iperf3 bandwidth measuring tool
 	--cmd IPR002 - iperf3 remove
 	--cmd IPT001 - iptraf-ng IP LAN monitor
 	--cmd IPT002 - iptraf-ng remove
-	--cmd AVH001 - avahi-daemon hostname broadcast via mDNS
-	--cmd AVH002 - avahi-daemon remove
+	--cmd NLD001 - nload - realtime console network usage monitor
+	--cmd NLD002 - nload - remove
+    Printing - Tools for printing and 3D printing
+	--cmd OCT001 - OctoPrint web-based 3D printers management tool
+	--cmd OCT002 - OctoPrint remove (http://10.1.0.126:7981)
+	--cmd OCT003 - OctoPrint purge with data folder
     VPN - Virtual Private Network tools
-	--cmd WRG001 - WireGuard VPN client / server
-	--cmd WRG002 - WireGuard remove
-	--cmd WRG003 - WireGuard clients QR codes
-	--cmd WRG004 - WireGuard purge with data folder
+	--cmd WRG001 - WireGuard VPN server
+	--cmd WRG002 - WireGuard VPN client
+	--cmd WRG003 - WireGuard remove
+	--cmd WRG004 - WireGuard VPN server QR codes for clients
+	--cmd WRG005 - WireGuard purge with data folder
 	--cmd ZTR001 - ZeroTier connect devices over your own private network in the world.
+    WebHosting - Web server, LEMP, reverse proxy, Let's Encrypt SSL
+	--cmd SWAG01 - SWAG reverse proxy
+	--cmd SWAG02 - SWAG reverse proxy .htpasswd set
+	--cmd SWAG03 - SWAG remove
+	--cmd SWAG04 - SWAG purge with data folder
+	--cmd GHOST1 - Ghost CMS install
+	--cmd GHOST2 - Ghost CMS remove (http://10.1.0.126:9190/ghost)
+	--cmd GHOST3 - Ghost CMS purge with data folder
 
   Help - About this tool
     --cmd HLP001 - Contribute
@@ -755,7 +769,7 @@ Jobs:
 No commands available
 ~~~
 
-### LOC001
+### GTZ001
 
 Change Global timezone
 
@@ -765,7 +779,7 @@ Jobs:
 dpkg-reconfigure tzdata
 ~~~
 
-### LOC002
+### LOC001
 
 Change Locales reconfigure the language and character set
 
@@ -777,7 +791,7 @@ source /etc/default/locale ; sed -i "s/^LANGUAGE=.*/LANGUAGE=$LANG/" /etc/defaul
 export LANGUAGE=$LANG
 ~~~
 
-### LOC003
+### KEY001
 
 Change Keyboard layout
 
@@ -788,7 +802,7 @@ dpkg-reconfigure keyboard-configuration ; setupcon
 update-initramfs -u
 ~~~
 
-### LOC005
+### HOS001
 
 Change System Hostname
 
@@ -798,49 +812,9 @@ Jobs:
 change_system_hostname
 ~~~
 
-### WebHosting
+### Armbian
 
-Web server, LEMP, reverse proxy, Let's Encrypt SSL
-
-Jobs:
-
-~~~
-No commands available
-~~~
-
-### HomeAutomation
-
-Home Automation for control home appliances
-
-Jobs:
-
-~~~
-No commands available
-~~~
-
-### DNS
-
-Network-wide ad blockers servers
-
-Jobs:
-
-~~~
-No commands available
-~~~
-
-### Music
-
-Music servers and streamers
-
-Jobs:
-
-~~~
-No commands available
-~~~
-
-### Finance
-
-Manage your finances
+Armbian infrastructure services
 
 Jobs:
 
@@ -858,9 +832,19 @@ Jobs:
 No commands available
 ~~~
 
-### Downloaders
+### Containers
 
-Download apps for movies, TV shows, music and subtitles
+Docker containerization and KVM virtual machines
+
+Jobs:
+
+~~~
+No commands available
+~~~
+
+### DNS
+
+Network-wide ad blockers servers
 
 Jobs:
 
@@ -878,16 +862,6 @@ Jobs:
 No commands available
 ~~~
 
-### Armbian
-
-Armbian infrastructure services
-
-Jobs:
-
-~~~
-No commands available
-~~~
-
 ### DevTools
 
 Applications and tools for development
@@ -898,9 +872,39 @@ Jobs:
 No commands available
 ~~~
 
-### Containers
+### Downloaders
 
-Docker containerization and KVM virtual machines
+Download apps for movies, TV shows, music and subtitles
+
+Jobs:
+
+~~~
+No commands available
+~~~
+
+### Finance
+
+Manage your finances
+
+Jobs:
+
+~~~
+No commands available
+~~~
+
+### HomeAutomation
+
+Home Automation for control home appliances
+
+Jobs:
+
+~~~
+No commands available
+~~~
+
+### Management
+
+Remote File & Management tools
 
 Jobs:
 
@@ -928,9 +932,9 @@ Jobs:
 No commands available
 ~~~
 
-### Management
+### Netconfig
 
-Remote File & Management tools
+Console network tools for measuring load and bandwidth
 
 Jobs:
 
@@ -948,9 +952,9 @@ Jobs:
 No commands available
 ~~~
 
-### Netconfig
+### VPN
 
-Console network tools for measuring load and bandwidth
+Virtual Private Network tools
 
 Jobs:
 
@@ -958,9 +962,9 @@ Jobs:
 No commands available
 ~~~
 
-### VPN
+### WebHosting
 
-Virtual Private Network tools
+Web server, LEMP, reverse proxy, Let's Encrypt SSL
 
 Jobs:
 
@@ -990,6 +994,7 @@ These helper functions facilitate various operations related to job management, 
 |:----------- | ------- |:------:|
 | Generate a Help message legacy cli commands. | see_cli_legacy | @Tearran 
 | Run time variables Migrated procedures from Armbian config. | set_runtime_variables | @igorpecovnik 
+| Install Ghost CMS container | install remove purge status help | @igorpecovnik 
 | Check for (Whiptail, DIALOG, READ) tools and set the user interface. |  | Tearran 
 | Toggle SSH lastlog | toggle_ssh_lastlog | @Tearran 
 | Manage checkpoints | debug help mark reset total | @dimitry-ishenko 
@@ -1011,7 +1016,7 @@ These helper functions facilitate various operations related to job management, 
 | Install stirling container | install remove purge status help | @Frooodle 
 | Install sonarr container | install remove purge status help | @armbian 
 | Generate Document files. | generate_readme | @Tearran 
-| Storing netplan config to tmp | store_netplan_config | @igorpecovnik 
+|  |  | @igorpecovnik 
 | Install PostgreSQL container (advanced relational database) | install remove purge status help |  
 | Install jellyfin container | install remove purge status help | @armbian 
 | Install jellyseerr container | install remove purge status help | @armbian 
@@ -1047,11 +1052,11 @@ These helper functions facilitate various operations related to job management, 
 | Install lidarr container | install remove purge status help | @armbian 
 | Check if a domain is reachable via IPv4 and IPv6 | check_ip_version google.com | @Tearran 
 | Install package | pkg_install neovim | @dimitry-ishenko 
-| Install wireguard container | install remove purge qrcode status help | @armbian 
+| Install wireguard container | pull client server remove purge qrcode image container servermode help | @armbian 
 | Secure Web Application Gateway  | install remove purge status password help | @igorpecovnik 
 | Install deluge container | install remove purge status help | @igorpecovnik 
 | Set Armbian root filesystem to read only | install remove status help | @igorpecovnik 
-| Cockpit setup and service setting. | help install remove start stop enable disable status check | @tearran 
+| Cockpit setup and service setting. | install remove purge status help | @tearran 
 | Generate a submenu from a parent_id | generate_menu 'parent_id' | @Tearran 
 | Generate a markdown list json objects using jq. | see_jq_menu_list | @Tearran 
 | Install octoprint container | install remove purge status help | @armbian 
@@ -1062,6 +1067,7 @@ These helper functions facilitate various operations related to job management, 
 | Install armbian router container | install remove purge status help | @armbian 
 | Install hastebin container | install remove purge status help | @armbian 
 | Install radarr container | install remove purge status help | @armbian 
+| Install mysql container | install remove purge status help | @igorpecovnik 
 | Toggle IPv6 on or off | toggle_ipv6 | @Tearran 
 | Adjust welcome screen (motd) | adjust_motd clear, header, sysinfo, tips, commands | @igorpecovnik 
 | Install embyserver container | install remove purge status help | @schwar3kat 
