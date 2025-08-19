@@ -57,6 +57,9 @@ checkpoint mark "Loaded Software helpers..."
 #
 # Loads the variables from beta armbian-config for runtime handling
 
+# Override LOCALIPADD to use localhost for documentation
+[[ "$1" == "--doc" ]] && LOCALIPADD="localhost"
+
 source "$lib_dir/config.runtime.sh"
 checkpoint mark "Loaded Runtime conditions..."
 
