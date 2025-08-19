@@ -448,7 +448,7 @@ Outputs:
     --cmd KEY001 - Change Keyboard layout
     --cmd HOS001 - Change System Hostname
 
-  Software - Run/Install 3rd party applications (The package lists are up-to-date.)
+  Software - Run/Install 3rd party applications (Update the package lists.)
     Armbian - Armbian infrastructure services
 	--cmd ART001 - Router for repository mirror automation
 	--cmd ART002 - Remove CDN router
