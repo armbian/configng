@@ -59,7 +59,7 @@ function module_haos() {
 			while true; do
 			if ha supervisor info 2>&1 | grep -q "healthy: false"; then
 				echo "Unhealthy detected, restarting" | systemd-cat -t $(basename "$0") -p debug
-				srv_restart hassio-supervisor
+				systemctl restart hassio-supervisor
 				sleep 600
 			else
 				sleep 5
