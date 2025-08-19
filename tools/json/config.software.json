@@ -1363,7 +1363,7 @@
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "! module_haos status && grep -q bookworm /etc/os-release"
+                            "condition": "! module_haos status && grep -q Debian /etc/os-release"
                         },
                         {
                             "id": "HAS002",
