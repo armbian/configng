@@ -24,7 +24,7 @@ function module_jellyfin () {
 
 	# Hardware acceleration
 	unset hwacc
-	if [[ "${LINUXFAMILY}" == "rockchip64" && "${BOOT_SOC}" == "rk3588" ]]; then
+	if [[ "${LINUXFAMILY}" == "rk35xx" && "${BOOT_SOC}" == "rk3588" ]]; then
 		for dev in dri dma_heap mali0 rga mpp_service \
 			iep mpp-service vpu_service vpu-service \
 			hevc_service hevc-service rkvdec rkvenc vepu h265e ; do \
