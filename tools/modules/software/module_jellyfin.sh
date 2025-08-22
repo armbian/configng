@@ -91,7 +91,7 @@ EOT
 		;;
 		"${commands[2]}")
 			${module_options["module_jellyfin,feature"]} ${commands[1]}
-			if [[ -n "${NAVIDROME_BASE}" && "${NAVIDROME_BASE}" != "/" ]]; then rm -rf "${NAVIDROME_BASE}"; fi
+			if [[ -n "${JELLYFIN_BASE}" && "${JELLYFIN_BASE}" != "/" ]]; then rm -rf "${JELLYFIN_BASE}"; fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then
