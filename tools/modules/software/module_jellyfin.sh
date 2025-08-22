@@ -25,15 +25,15 @@ function module_jellyfin () {
 	# Hardware acceleration
 	unset hwacc
 	if [[ "${LINUXFAMILY}" == "rk35xx" && "${BOOT_SOC}" == "rk3588" ]]; then
-  		# Add udev rules according to Jellyfin's recommendations for RKMPP
-		cat >/etc/udev/rules.d/50-rk3588-mpp.rules <<'EOF'
+		# Add udev rules according to Jellyfin's recommendations for RKMPP
+		cat >/etc/udev/rules.d/50-rk3588-mpp.rules <<'EOT'
 KERNEL=="mpp_service", MODE="0660", GROUP="video"
 KERNEL=="rga", MODE="0660", GROUP="video"
 KERNEL=="system", MODE="0666", GROUP="video"
 KERNEL=="system-dma32", MODE="0666", GROUP="video"
 KERNEL=="system-uncached", MODE="0666", GROUP="video"
 KERNEL=="system-uncached-dma32", MODE="0666", GROUP="video" RUN+="/usr/bin/chmod a+rw /dev/dma_heap"
-EOF
+EOT
 		udevadm control --reload-rules && udevadm trigger
 
 		# Pack `hwacc` to expose MPP/VPU hardware to the container
