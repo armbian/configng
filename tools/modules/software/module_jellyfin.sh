@@ -88,6 +88,9 @@ function module_jellyfin () {
 		"${commands[1]}")
 			if [[ "${container}" ]]; then docker container rm -f "$container" >/dev/null; fi
 			if [[ "${image}" ]]; then docker image rm "$image" >/dev/null; fi
+			# Drop udev rules upon app removal
+			rm -f "/etc/udev/rules.d/50-rk3588-mpp.rules"
+			udevadm control --reload-rules && udevadm trigger
 		;;
 		"${commands[2]}")
 			${module_options["module_jellyfin,feature"]} ${commands[1]}
