@@ -40,6 +40,11 @@ function set_runtime_variables() {
 	DIALOG_CANCEL=1
 	DIALOG_ESC=255
 
+	# use armbian-config configuration file
+	CONFIG_FILE="/etc/armbian-config"
+	touch "$CONFIG_FILE"
+	[[ -f /etc/armbian-config ]] && source "$CONFIG_FILE"
+
 	# we have our own lsb_release which does not use Python. Others shell install it here
 	if [[ ! -f /usr/bin/lsb_release ]]; then
 		if is_package_manager_running; then
@@ -112,4 +117,25 @@ function update_kernel_env() {
 		fi
 	fi
 	BRANCH=$new_branch
+}
+
+# Function to set or update a variable
+#
+# Example of usage:
+#
+# set_config_var "DOMAIN" "www.test.org" "$CONFIG_FILE"
+# set_config_var "STORAGE" "/armbian" "$CONFIG_FILE"
+#
+set_config_var() {
+    local key="$1"
+    local value="$2"
+    local file="$3"
+
+    if grep -qE "^${key}=" "$file"; then
+        # Update existing key
+        sed -i "s|^${key}=.*|${key}=${value}|" "$file"
+    else
+        # Append new key
+        echo "${key}=${value}" >> "$file"
+    fi
 }
