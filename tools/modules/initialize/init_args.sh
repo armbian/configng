@@ -1,7 +1,7 @@
 module_options+=(
 	["init_vars,author"]="@tearran"
 	["init_vars,feature"]="init_vars"
-	["init_vars,example"]="debug help mark reset total"
+	["init_vars,example"]="help show"
 	["init_vars,desc"]="Gther systme info store varibles"
 	["init_vars,status"]="Active"
 	["init_vars,group"]="Development"
@@ -30,7 +30,7 @@ init_vars() {
 _init_vars_main() {
 	# ==== PROJECT IDENTITY ====
 	PROJECT_NAME="configng-tools"
-	PROJECT_VERSION="2.0.0"
+	PROJECT_VERSION="0.0.0"
 	DIALOG="${DIALOG:-whiptail}"
 	# ==== OS INFORMATION ====
 	OS_RELEASE="/etc/armbian-release"
@@ -44,19 +44,6 @@ _init_vars_main() {
 
 	# Read version from file if available (overrides hardcoded version)
 	[[ -f "${PROJECT_ROOT}/VERSION" ]] && PROJECT_VERSION="$(cat "${PROJECT_ROOT}/VERSION")"
-
-	# ==== PROJECT PATHS ====
-	# Core paths (with backward compatibility)
-	SRC_ROOT="${PROJECT_ROOT}/src"
-	LIB_ROOT="${LIB_ROOT:-${PROJECT_ROOT}/lib}"
-	WEB_ROOT="${WEB_ROOT:-${PROJECT_ROOT}/web}"
-	DOCS_ROOT="${DOCS_ROOT:-${PROJECT_ROOT}/docs}"
-	DOC_ROOT="${DOC_ROOT:-${DOCS_ROOT}}"  # Alias for compatibility
-	PUBLIC_HTML="${PUBLIC_HTML:-${PROJECT_ROOT}/public_html}"
-	ASSETS_ROOT="${ASSETS_ROOT:-${PROJECT_ROOT}/assets}"
-	SHARE_ROOT="${SHARE_ROOT:-${PROJECT_ROOT}/share}"
-	TOOLS_ROOT="${TOOLS_ROOT:-${PROJECT_ROOT}/tools}"
-	STAGING_ROOT="${STAGING_ROOT:-${PROJECT_ROOT}/staging}"
 
 	# ==== TUI VARIABLES ====
 	BACKTITLE="${BACKTITLE:-"Contribute: https://github.com/${PROJECT_NAME}"}"
@@ -80,7 +67,7 @@ _init_vars_main() {
 	# Get IPv4 address for the adapter (if present)
 	LOCALIPADD=""
 	[[ -n "${DEFAULT_ADAPTER:-}" ]] && LOCALIPADD="$(ip -4 addr show dev "${DEFAULT_ADAPTER}" 2>/dev/null | 
-				 awk '/inet/ {print $2}' | cut -d'/' -f1 | head -n 1 || echo "")"
+				awk '/inet/ {print $2}' | cut -d'/' -f1 | head -n 1 || echo "")"
 
 	# Derive local subnet (best-effort)
 	LOCALSUBNET=""
@@ -88,7 +75,7 @@ _init_vars_main() {
 
 	# Get default gateway
 	DEFAULT_GATEWAY="$(ip -4 route list exact 0.0.0.0/0 2>/dev/null | 
-					  awk '{print $3}' || echo "")"
+					awk '{print $3}' || echo "")"
 
 	# Check internet connectivity with timeout
 	HAS_INTERNET="no"
@@ -96,20 +83,8 @@ _init_vars_main() {
 
 	# Get DNS servers as a string
 	DNS_SERVERS="$(grep -v '^#' /etc/resolv.conf 2>/dev/null | 
-				  grep nameserver | awk '{print $2}' | paste -sd "," || echo "")"
+				grep nameserver | awk '{print $2}' | paste -sd "," || echo "")"
 
-	# ==== VALIDATE DIRECTORIES ====
-	# Check if directories exist - set to empty if missing
-	[[ -d "${SRC_ROOT}" ]] || SRC_ROOT="Not available"
-	[[ -d "${LIB_ROOT}" ]] || LIB_ROOT="Not available"
-	[[ -d "${WEB_ROOT}" ]] || WEB_ROOT="Not available"
-	[[ -d "${DOCS_ROOT}" ]] || DOCS_ROOT="Not available"
-	[[ -d "${DOC_ROOT}" ]] || DOC_ROOT="Not available"
-	[[ -d "${PUBLIC_HTML}" ]] || PUBLIC_HTML="Not available"
-	[[ -d "${ASSETS_ROOT}" ]] || ASSETS_ROOT="Not available"
-	[[ -d "${SHARE_ROOT}" ]] || SHARE_ROOT="Not available"
-	[[ -d "${TOOLS_ROOT}" ]] || TOOLS_ROOT="Not available"
-	[[ -d "${STAGING_ROOT}" ]] || STAGING_ROOT="Not available"
 }
 
 _show_vars() {
@@ -117,17 +92,6 @@ _show_vars() {
 	echo "# Generated environment variables - $(date)"
 	echo "PROJECT_NAME=\"${PROJECT_NAME}\""
 	echo "PROJECT_VERSION=\"${PROJECT_VERSION}\""
-	echo "PROJECT_ROOT=\"${PROJECT_ROOT}\""
-	echo "SRC_ROOT=\"${SRC_ROOT}\""
-	echo "LIB_ROOT=\"${LIB_ROOT}\""
-	echo "WEB_ROOT=\"${WEB_ROOT}\""
-	echo "DOCS_ROOT=\"${DOCS_ROOT}\""
-	echo "DOC_ROOT=\"${DOC_ROOT}\""
-	echo "PUBLIC_HTML=\"${PUBLIC_HTML}\""
-	echo "ASSETS_ROOT=\"${ASSETS_ROOT}\""
-	echo "SHARE_ROOT=\"${SHARE_ROOT}\""
-	echo "TOOLS_ROOT=\"${TOOLS_ROOT}\""
-	echo "STAGING_ROOT=\"${STAGING_ROOT}\""
 	echo "BACKTITLE=\"${BACKTITLE}\""
 	echo "TITLE=\"${TITLE}\""
 	echo "DISTRO=\"${DISTRO}\""
