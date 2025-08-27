@@ -42,9 +42,6 @@ _init_vars_main() {
 	# shellcheck disable=SC1091
 	[[ -r "$OS_RELEASE" ]] && source "$OS_RELEASE" || true
 
-	# Read version from file if available (overrides hardcoded version)
-	[[ -f "${PROJECT_ROOT}/VERSION" ]] && PROJECT_VERSION="$(cat "${PROJECT_ROOT}/VERSION")"
-
 	# ==== TUI VARIABLES ====
 	BACKTITLE="${BACKTITLE:-"Contribute: https://github.com/${PROJECT_NAME}"}"
 	TITLE="${TITLE:-"${VENDOR:-${PROJECT_NAME}} configuration utility"}"
