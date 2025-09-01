@@ -535,7 +535,7 @@
                             "condition": "module_armbian_firmware repository rolling status"
                         },
                         {
-                            "id": "LTSREL",
+                            "id": "STD001",
                             "description": "Distribution upgrade to latest stable / LTS",
                             "short": "Stable LTS Distribution Upgrade",
                             "about": "Release upgrade is irriversible operation which upgrades all packages. \n\nResoulted upgrade might break your build beyond repair!",
@@ -547,7 +547,7 @@
                             "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade stable verify"
                         },
                         {
-                            "id": "ROLREL",
+                            "id": "UNS001",
                             "description": "Distribution upgrade to rolling unstable",
                             "short": "Unstable Testing Distribution Upgrade",
                             "about": "Release upgrade is irriversible operation which upgrades all packages. \n\nResoulted upgrade might break your build beyond repair!",
