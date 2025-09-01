@@ -95,3 +95,16 @@ pkg_upgrade()
 {
 	_pkg_have_stdin && debconf-apt-progress -- apt-get -y upgrade "$@" || apt-get -y upgrade "$@"
 }
+
+module_options+=(
+	["pkg_fix,author"]="@igorpecovnik"
+	["pkg_fix,desc"]="Fix dependency issues"
+	["pkg_fix,example"]="pkg_fix"
+	["pkg_fix,feature"]="pkg_fix"
+	["pkg_fix,status"]="Interface"
+)
+
+pkg_fix()
+{
+	_pkg_have_stdin && debconf-apt-progress -- apt-get -y --fix-broken install "$@" || apt-get -y --fix-broken install "$@"
+}
