@@ -18,11 +18,11 @@ release_upgrade(){
 	local distroid=${DISTROID}
 
 	if [[ "${upgrade_type}" == stable ]]; then
-		local filter=$(grep "supported" /etc/armbian-distribution-status | cut -d"=" -f1)
+		local filter=$(grep "supported" /etc/armbian-distribution-status | cut -d"=" -f1 | grep -v "^${distroid}")
 	elif [[ "${upgrade_type}" == rolling ]]; then
-		local filter=$(grep "eos\|csc" /etc/armbian-distribution-status | cut -d"=" -f1 | sed "s/sid/testing/g")
+		local filter=$(grep "eos\|csc" /etc/armbian-distribution-status | cut -d"=" -f1 | sed "s/sid/testing/g" | grep -v "^${distroid}")
 	else
-		local filter=$(cat /etc/armbian-distribution-status | cut -d"=" -f1)
+		local filter=$(cat /etc/armbian-distribution-status | cut -d"=" -f1 | grep -v "^${distroid}")
 	fi
 
 	local upgrade=$(for j in $filter; do
@@ -41,9 +41,13 @@ release_upgrade(){
 		[[ -f /etc/apt/sources.list ]] && sed -i "s/$distroid/$upgrade/g" /etc/apt/sources.list
 		[[ "${upgrade}" == "testing" ]] && upgrade="sid" # our repo and everything is tied to sid
 		[[ -f /etc/apt/sources.list.d/armbian.sources ]] && sed -i "s/$distroid/$upgrade/g" /etc/apt/sources.list.d/armbian.sources
+		[[ -f /etc/apt/sources.list.d/armbian.list ]] && sed -i "s/$distroid/$upgrade/g" /etc/apt/sources.list.d/armbian.list
 		pkg_update
-		apt_upgrade -o Dpkg::Options::="--force-confold" --without-new-pkgs
-		apt_full_upgrade -o Dpkg::Options::="--force-confold"
+		pkg_upgrade -o Dpkg::Options::="--force-confold" --without-new-pkgs
+		pkg_fix
+		pkg_full_upgrade -o Dpkg::Options::="--force-confold"
+		pkg_fix
+		pkg_full_upgrade -o Dpkg::Options::="--force-confold"
 		pkg_remove # remove all auto-installed packages
 	fi
 }

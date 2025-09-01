@@ -535,24 +535,26 @@
                             "condition": "module_armbian_firmware repository rolling status"
                         },
                         {
-                            "id": "UPD005",
+                            "id": "LTSREL",
                             "description": "Distribution upgrade to latest stable / LTS",
+                            "short": "Stable LTS Distribution Upgrade",
                             "about": "Release upgrade is irriversible operation which upgrades all packages. \n\nResoulted upgrade might break your build beyond repair!",
                             "command": [
                                 "release_upgrade stable"
                             ],
-                            "status": "Disabled",
+                            "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade stable verify"
                         },
                         {
-                            "id": "UPD006",
+                            "id": "ROLREL",
                             "description": "Distribution upgrade to rolling unstable",
+                            "short": "Unstable Testing Distribution Upgrade",
                             "about": "Release upgrade is irriversible operation which upgrades all packages. \n\nResoulted upgrade might break your build beyond repair!",
                             "command": [
                                 "release_upgrade rolling"
                             ],
-                            "status": "Disabled",
+                            "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade rolling verify"
                         },
