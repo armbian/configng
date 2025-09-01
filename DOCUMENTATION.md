@@ -428,8 +428,8 @@ Outputs:
 	--cmd UPD002 - Disable Armbian firmware upgrades
 	--cmd ROLLIN - Switch system to rolling packages repository
 	--cmd STABLE - Switch system to stable packages repository
-	--cmd LTSREL - Distribution upgrade to latest stable / LTS
-	--cmd ROLREL - Distribution upgrade to rolling unstable
+	--cmd STD001 - Distribution upgrade to latest stable / LTS
+	--cmd UNS001 - Distribution upgrade to rolling unstable
 	--cmd WTC001 - Enable automating Docker container base images updating
 	--cmd WTC002 - Disable automating Docker container base images updating
 	--cmd UNAT01 - Enable automatic package updates.
