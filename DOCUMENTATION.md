@@ -62,6 +62,8 @@ sudo armbian-config
     - ### Disable Armbian firmware upgrades
     - ### Switch system to rolling packages repository
     - ### Switch system to stable packages repository
+    - ### Distribution upgrade to latest stable / LTS
+    - ### Distribution upgrade to rolling unstable
     - ### Enable automating Docker container base images updating
     - ### Disable automating Docker container base images updating
     - ### Enable automatic package updates.
@@ -426,6 +428,8 @@ Outputs:
 	--cmd UPD002 - Disable Armbian firmware upgrades
 	--cmd ROLLIN - Switch system to rolling packages repository
 	--cmd STABLE - Switch system to stable packages repository
+	--cmd LTSREL - Distribution upgrade to latest stable / LTS
+	--cmd ROLREL - Distribution upgrade to rolling unstable
 	--cmd WTC001 - Enable automating Docker container base images updating
 	--cmd WTC002 - Disable automating Docker container base images updating
 	--cmd UNAT01 - Enable automatic package updates.
@@ -1066,6 +1070,7 @@ These helper functions facilitate various operations related to job management, 
 | Display a warning with a gauge for 10 seconds then continue |  | @igorpecovnik 
 | Install armbian router container | install remove purge status help | @armbian 
 | Install hastebin container | install remove purge status help | @armbian 
+| Fix dependency issues | pkg_fix | @igorpecovnik 
 | Install radarr container | install remove purge status help | @armbian 
 | Install mysql container | install remove purge status help | @igorpecovnik 
 | Toggle IPv6 on or off | toggle_ipv6 | @Tearran 
