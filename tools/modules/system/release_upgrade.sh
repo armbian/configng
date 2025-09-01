@@ -43,11 +43,12 @@ release_upgrade(){
 		[[ -f /etc/apt/sources.list.d/armbian.sources ]] && sed -i "s/$distroid/$upgrade/g" /etc/apt/sources.list.d/armbian.sources
 		[[ -f /etc/apt/sources.list.d/armbian.list ]] && sed -i "s/$distroid/$upgrade/g" /etc/apt/sources.list.d/armbian.list
 		pkg_update
-		pkg_upgrade -o Dpkg::Options::="--force-confold" --without-new-pkgs || return 1
-		pkg_fix || return 1
-		pkg_full_upgrade -o Dpkg::Options::="--force-confold" || return 1
-		pkg_fix || return 1
-		pkg_full_upgrade -o Dpkg::Options::="--force-confold" || return 1
+		pkg_upgrade -o Dpkg::Options::="--force-confold" --without-new-pkgs
+		pkg_fix || return 1 # Hacks for Ubuntu
+		pkg_full_upgrade -o Dpkg::Options::="--force-confold"
+		pkg_fix || return 1 # Hacks for Ubuntu
+		pkg_full_upgrade -o Dpkg::Options::="--force-confold"
+		pkg_fix || return 1 # Hacks for Ubuntu
 		pkg_remove # remove all auto-installed packages
 	fi
 }
