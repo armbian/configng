@@ -537,7 +537,7 @@
                         {
                             "id": "STD001",
                             "description": "Distribution upgrade to latest stable / LTS",
-                            "short": "Stable LTS Distribution Upgrade",
+                            "short": "Stable Distro Upgrade",
                             "about": "Release upgrade is irriversible operation which upgrades all packages. \n\nResoulted upgrade might break your build beyond repair!",
                             "command": [
                                 "release_upgrade stable"
@@ -549,7 +549,7 @@
                         {
                             "id": "UNS001",
                             "description": "Distribution upgrade to rolling unstable",
-                            "short": "Unstable Testing Distribution Upgrade",
+                            "short": "Unstable Distro Upgrade",
                             "about": "Release upgrade is irriversible operation which upgrades all packages. \n\nResoulted upgrade might break your build beyond repair!",
                             "command": [
                                 "release_upgrade rolling"
