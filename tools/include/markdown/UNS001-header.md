@@ -1,5 +1,3 @@
-**Unstable Distro Upgrade**
-
 Non-LTS or interim releases include **newer libraries, and software stacks**, but they have a **shorter support window** and often carry a **higher risk of regressions**. These releases are intended for **developers, testers, and enthusiasts** who want the latest features — **not for production systems**.  
 
 !!! Warning "Risks of Unstable Upgrades"
