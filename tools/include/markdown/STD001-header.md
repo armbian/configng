@@ -1,5 +1,13 @@
-Long-Term Support (LTS) upgrades provide a **well-tested and stable release** of the underlying Linux distribution (Debian or Ubuntu). These versions receive **security patches and critical bug fixes** for an extended period, making them the recommended choice for production systems and users who prioritize stability over new features.
+Stable / LTS upgrades move your system to a newer release of Debian or Ubuntu, bringing updated system packages along with long-term security fixes and bug patches. This makes them the safest choice for reliable, everyday use.
 
-!!! Note
+!!! Warning "Risks of Stable Upgrades"
 
-    While LTS upgrades are considered safe, always back up your data before proceeding with a distribution upgrade.
+    Distribution upgrades are experimental and **not supported by Armbian**. Use at your own risk.
+
+    Even LTS → LTS upgrades (e.g., **Debian Bookworm → Trixie**, **Ubuntu Jammy → Noble**) carry some risks:
+
+    - **Broken dependencies** – some packages may fail to upgrade or be removed.  
+    - **Configuration overrides** – local changes may be replaced by defaults.  
+    - **Downtime** – failed upgrades may require console access, manual recovery, or a full reinstall.  
+
+    Because Armbian integrates upstream Debian/Ubuntu with custom board support packages, upgrades may still trigger **unexpected breakage** on some devices.  
