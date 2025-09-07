@@ -23,3 +23,7 @@ Long-Term Support (LTS) upgrades provide a **well-tested and stable release** of
        - [Ubuntu release upgrade guide](https://documentation.ubuntu.com/server/how-to/software/upgrade-your-release/)  
     4. **Ensure you have console access** (serial, HDMI + keyboard, SSH).  
     5. **Consider fresh installs** if uptime and stability matter more than keeping the old environment.  
+
+!!! Warning
+
+    Distribution upgrades are experimental and **not supported by Armbian**. Use at your own risk.
