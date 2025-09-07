@@ -1,10 +1,8 @@
-**Stable Distro Upgrade**
-
-Long-Term Support (LTS) upgrades provide a **well-tested and stable release** of the underlying Linux distribution (Debian or Ubuntu). These versions receive **security patches and critical bug fixes** for an extended period, making them the recommended choice for production systems and for users who prioritize stability over new features.  
+Long-Term Support (LTS) upgrades provide a well-tested and stable release of the underlying Linux distribution (Debian or Ubuntu). These versions receive security patches and critical bug fixes for an extended period, making them the recommended choice for production systems and for users who prioritize stability over new features.  
 
 !!! Warning "Risks of Stable Upgrades"
 
-    Even LTS → LTS upgrades (e.g., **Debian Bullseye → Bookworm**, **Ubuntu Jammy → Noble**) carry some risks:
+    Even LTS → LTS upgrades (e.g., **Debian Bookworm → Trixie**, **Ubuntu Jammy → Noble**) carry some risks:
 
     - **Broken dependencies** – some packages may fail to upgrade or be removed.  
     - **Configuration overrides** – local changes may be replaced by defaults.  
