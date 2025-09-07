@@ -8,7 +8,6 @@ Stable / LTS upgrades move your system to a newer release of Debian or Ubuntu, b
 
     - **Broken dependencies** – some packages may fail to upgrade or be removed.  
     - **Configuration overrides** – local changes may be replaced by defaults.  
-    - **Hardware regressions** – drivers and firmware support can change.  
     - **Downtime** – failed upgrades may require console access, manual recovery, or a full reinstall.  
 
     Because Armbian integrates upstream Debian/Ubuntu with custom board support packages, upgrades may still trigger **unexpected breakage** on some devices.  
