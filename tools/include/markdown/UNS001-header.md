@@ -1,6 +1,8 @@
-Non-LTS or interim releases include **newer libraries, and software stacks**, but they have a **shorter support window** and often carry a **higher risk of regressions**. These releases are intended for **developers, testers, and enthusiasts** who want the latest features — **not for production systems**.  
+Non-LTS releases are intended for **developers, testers, and enthusiasts** who want the latest features — **not for production systems**.  
 
 !!! Warning "Risks of Unstable Upgrades"
+
+    Distribution upgrades are experimental and **not supported by Armbian**. Use at your own risk.
 
     - **High chance of breakage** – dependencies, bootloader, or kernel may fail.  
     - **Short lifecycle** – requires frequent re-upgrades (every ~6–9 months).  
@@ -16,7 +18,3 @@ Non-LTS or interim releases include **newer libraries, and software stacks**, bu
     3. **Have serial console access** in case recovery is needed.  
     4. **Expect reinstallations** – unstable paths often break beyond repair.  
     5. **Use containers or chroots** for testing instead of upgrading the whole OS.
-
-!!! Warning
-
-    Distribution upgrades are experimental and **not supported by Armbian**. Use at your own risk.
