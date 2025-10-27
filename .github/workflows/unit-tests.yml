@@ -153,7 +153,7 @@ jobs:
     steps:
 
       - name: Download All Artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           path: test
           pattern: test-*
