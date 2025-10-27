@@ -58,7 +58,7 @@ function module_ghost () {
 			-p ${module_options["module_ghost,port"]}:2368 \
 			-e url=http://$LOCALIPADD:${module_options["module_ghost,port"]} \
 			-v "$GHOST_BASE:/var/lib/ghost/content" \
-			ghost:5-alpine
+			ghost:6
 		;;
 	"${commands[1]}")
 			if pkg_installed docker-ce; then
