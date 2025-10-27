@@ -139,7 +139,7 @@ jobs:
           fastfetch
 
       - name: "Upload test summary"
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: test-${{ matrix.server.id }}-${{ matrix.server.os }}
           path: test
