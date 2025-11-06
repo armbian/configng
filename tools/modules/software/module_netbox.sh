@@ -63,7 +63,7 @@ function module_netbox () {
 				cat > "$NETBOX_BASE/config/configuration.py" <<- EOT
 				ALLOWED_HOSTS = ['*']
 				DATABASE = {
-					'NAME': 'armbian',
+					'NAME': 'netbox',
 					'USER': 'armbian',
 					'PASSWORD': 'armbian',
 					'HOST': 'postgres',
