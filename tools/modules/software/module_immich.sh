@@ -17,9 +17,17 @@ function module_immich () {
 	local title="immich"
 	local condition=$(which "$title" 2>/dev/null)
 
+	# Database
+	local DATABASE_USER="immich"
+	local DATABASE_PASSWORD="immich"
+	local DATABASE_NAME="immich"
+	local DATABASE_HOST="postgres-immich"
+	local DATABASE_IMAGE="tensorchord/pgvecto-rs:pg14-v0.2.0"
+	local DATABASE_PORT="5432"
+
 	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/immich?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/immich?( |$)/{print $3}')
+		local container=$(docker ps -q -f "name=^immich$")
+		local image=$(docker images -q ghcr.io/imagegenius/immich)
 	fi
 
 	local commands
@@ -30,6 +38,7 @@ function module_immich () {
 	case "$1" in
 		"${commands[0]}")
 			shift
+
 
 			if ! pkg_installed docker-ce; then
 				module_docker install
@@ -42,24 +51,30 @@ function module_immich () {
 			"$IMMICH_BASE"/libraries
 			touch "$IMMICH_BASE"/photos/{backups,thumbs,profile,upload,library,encoded-video}/.immich
 			sudo chown -R 1000:1000 "$IMMICH_BASE"/
+
 			# Install armbian-config dependencies
 			if ! docker container ls -a --format '{{.Names}}' | grep -q '^redis$'; then module_redis install; fi
-			if ! docker container ls -a --format '{{.Names}}' | grep -q '^postgres$'; then module_postgres install; fi
+			if ! docker container ls -a --format '{{.Names}}' | grep "^$DATABASE_HOST$"; then
+				module_postgres install $DATABASE_USER $DATABASE_PASSWORD $DATABASE_NAME $DATABASE_IMAGE $DATABASE_HOST
+			fi
 
-			until docker exec -i postgres psql -U armbian -c '\q' 2>/dev/null; do
+			until docker exec -i $DATABASE_HOST psql -U $DATABASE_USER -c '\q' 2>/dev/null; do
 				echo "⏳ Waiting for PostgreSQL to be ready..."
 				sleep 2
 			done
 			echo "✅ PostgreSQL is ready. Creating Immich DB..."
 
-			if docker exec -i postgres psql -U armbian -tAc "SELECT 1 FROM pg_database WHERE datname='immich';" | grep -q 1; then
-				echo "✅ Database 'immich' exists."
+			if docker exec -i $DATABASE_HOST psql -U $DATABASE_USER -tAc "SELECT 1 FROM pg_database WHERE datname='$DATABASE_NAME';" | grep -q 1; then
+				echo "✅ Database '$DATABASE_NAME' exists."
 			else
-				docker exec -i postgres psql -U armbian <<-EOT
-				CREATE DATABASE immich;
-				GRANT ALL PRIVILEGES ON DATABASE immich TO armbian;
+				docker exec -i $DATABASE_HOST psql -U $DATABASE_USER <<-EOT
+				CREATE DATABASE $DATABASE_NAME;
+				GRANT ALL PRIVILEGES ON DATABASE $DATABASE_NAME TO $DATABASE_USER;
 				EOT
 			fi
+
+			# Download or update image
+			docker pull ghcr.io/imagegenius/immich:latest
 
 			# Run Immich container
 			if ! docker run -d \
@@ -68,12 +83,12 @@ function module_immich () {
 				-e PUID=1000 \
 				-e PGID=1000 \
 				-e TZ="$(cat /etc/timezone)" \
-				-e DB_HOSTNAME=postgres \
-				-e DB_USERNAME=armbian \
-				-e DB_PASSWORD=armbian \
-				-e DB_DATABASE_NAME=immich \
+				-e DB_HOSTNAME=$DATABASE_HOST \
+				-e DB_USERNAME=$DATABASE_USER \
+				-e DB_PASSWORD=$DATABASE_PASSWORD \
+				-e DB_DATABASE_NAME=$DATABASE_NAME \
 				-e REDIS_HOSTNAME=redis \
-				-e DB_PORT=5432 \
+				-e DB_PORT=$DATABASE_PORT \
 				-e REDIS_PORT=6379 \
 				-e REDIS_PASSWORD= \
 				-e SERVER_HOST=0.0.0.0 \
@@ -115,13 +130,13 @@ function module_immich () {
 			if [ -n "$container" ]; then
 				docker container rm -f "$container" >/dev/null
 			fi
-
-			if [ -n "$image" ]; then
-				docker image rm "$image" >/dev/null
-			fi
 		;;
 		"${commands[2]}")
 			module_immich "${commands[1]}"
+			if [ -n "$image" ]; then
+				docker image rm -f "$image"
+			fi
+			module_postgres purge $DATABASE_USER $DATABASE_PASSWORD $DATABASE_NAME $DATABASE_IMAGE $DATABASE_HOST
 			if [ -n "$IMMICH_BASE" ] && [ "$IMMICH_BASE" != "/" ]; then
 				rm -rf "$IMMICH_BASE"
 			fi
