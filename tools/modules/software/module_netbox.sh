@@ -18,9 +18,21 @@ function module_netbox () {
 	local title="netbox"
 	local condition=$(which "$title" 2>/dev/null)
 
+	# Accept optional parameters
+	local SUPERUSER_EMAIL="$2"
+	local SUPERUSER_PASSWORD="$3"
+
+	# Database
+	local DATABASE_USER="netbox"
+	local DATABASE_PASSWORD="netbox"
+	local DATABASE_NAME="netbox"
+	local DATABASE_HOST="postgres-netbox"
+	local DATABASE_IMAGE="postgres:17-alpine"
+	local DATABASE_PORT="5432"
+
 	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/netbox?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/netbox?( |$)/{print $3}')
+		local container=$(docker ps -q -f "name=^netbox$")
+		local image=$(docker images -q netboxcommunity/netbox)
 	fi
 
 	local commands
@@ -30,18 +42,12 @@ function module_netbox () {
 
 	case "$1" in
 		"${commands[0]}")
-			shift
-			# Accept optional parameters
-			local SUPERUSER_EMAIL="$1"
-			local SUPERUSER_PASSWORD="$2"
-
 			# Prompt for email and password using dialog
 			[[ -z "$SUPERUSER_EMAIL" ]] && \
-			SUPERUSER_EMAIL=$($DIALOG --title "Enter superuser email" --inputbox "" 8 50 3>&1 1>&2 2>&3)
+			SUPERUSER_EMAIL=$($DIALOG --title "Enter NetBox superuser email" --inputbox "" 8 50 3>&1 1>&2 2>&3)
 			[[ -z "$SUPERUSER_EMAIL" ]] && SUPERUSER_EMAIL="info@armbian.com"
-
 			[[ -z "$SUPERUSER_PASSWORD" ]] && \
-			SUPERUSER_PASSWORD=$($DIALOG --title "Enter admin password" --passwordbox "" 8 50 3>&1 1>&2 2>&3)
+			SUPERUSER_PASSWORD=$($DIALOG --title "Enter NetBox admin password" --passwordbox "" 8 50 3>&1 1>&2 2>&3)
 			[[ -z "$SUPERUSER_PASSWORD" ]] && SUPERUSER_PASSWORD="armbian"
 
 			clear  # Clean up dialog artifacts
@@ -51,7 +57,9 @@ function module_netbox () {
 
 			# Install armbian-config dependencies
 			if ! docker container ls -a --format '{{.Names}}' | grep -q '^redis$'; then module_redis install; fi
-			if ! docker container ls -a --format '{{.Names}}' | grep -q '^postgres$'; then module_postgres install; fi
+			if ! docker container ls -a --format '{{.Names}}' | grep -q "^$DATABASE_HOST$"; then
+				module_postgres install $DATABASE_USER $DATABASE_PASSWORD $DATABASE_NAME $DATABASE_IMAGE $DATABASE_HOST
+			fi
 
 			# Generate a random secret key (50+ chars)
 			NETBOX_SECRET_KEY=$(tr -dc 'A-Za-z0-9!@#$%^&*()-_=+' </dev/urandom | head -c 64)
@@ -63,11 +71,11 @@ function module_netbox () {
 				cat > "$NETBOX_BASE/config/configuration.py" <<- EOT
 				ALLOWED_HOSTS = ['*']
 				DATABASE = {
-					'NAME': 'netbox',
-					'USER': 'armbian',
-					'PASSWORD': 'armbian',
-					'HOST': 'postgres',
-					'PORT': '5432',
+					'NAME': '$DATABASE_NAME',
+					'USER': '$DATABASE_USER',
+					'PASSWORD': '$DATABASE_PASSWORD',
+					'HOST': '$DATABASE_HOST',
+					'PORT': '$DATABASE_PORT',
 				}
 
 				REDIS = {
@@ -89,6 +97,9 @@ function module_netbox () {
 				SECRET_KEY = '${NETBOX_SECRET_KEY}'
 			EOT
 			fi
+
+			# Download or update image
+			docker pull netboxcommunity/netbox:latest
 
 			if ! docker run -d \
 			--name=netbox \
@@ -140,13 +151,13 @@ function module_netbox () {
 			if [[ -n "${container}" ]]; then
 				docker container rm -f "$container" >/dev/null
 			fi
-
-			if [[ -n "${image}" ]]; then
-				docker image rm "$image" >/dev/null
-			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_netbox,feature"]} ${commands[1]}
+			if [[ -n "${image}" ]]; then
+				docker image rm "$image" >/dev/null
+			fi
+			module_postgres purge $DATABASE_USER $DATABASE_PASSWORD $DATABASE_NAME $DATABASE_IMAGE $DATABASE_HOST
 			if [[ -n "${NETBOX_BASE}" && "${NETBOX_BASE}" != "/" ]]; then
 				rm -rf "${NETBOX_BASE}"
 			fi

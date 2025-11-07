@@ -18,48 +18,54 @@ function module_postgres () {
 	local title="postgres"
 	local condition=$(which "$title" 2>/dev/null)
 
+	# Accept optional parameters
+	local POSTGRES_USER="$2"
+	local POSTGRES_PASSWORD="$3"
+	local POSTGRES_DB="$4"
+	local POSTGRES_IMAGE="$5"
+	local POSTGRES_CONTAINER="$6"
+
+	# Defaults if nothing is set
+	POSTGRES_USER="${POSTGRES_USER:-armbian}"
+	POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-armbian}"
+	POSTGRES_DB="${POSTGRES_DB:-armbian}"
+	POSTGRES_IMAGE="${POSTGRES_IMAGE:-tensorchord/pgvecto-rs:pg14-v0.2.0}"
+	POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-postgres}"
+
 	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/postgres?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/pg14-v0.2.0?( |$)/{print $3}')
+		local container=$(docker ps -q -f "name=^${POSTGRES_CONTAINER}$")
+		local image=$(docker images -q $POSTGRES_IMAGE)
 	fi
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_postgres,example"]}"
 
-	POSTGRES_BASE="${SOFTWARE_FOLDER}/postgres"
+	POSTGRES_BASE="${SOFTWARE_FOLDER}/${POSTGRES_CONTAINER}"
 
 	case "$1" in
 		"${commands[0]}")
-			shift
-			# Accept optional parameters
-			local POSTGRES_USER="$1"
-			local POSTGRES_PASSWORD="$2"
-			local POSTGRES_DB="$3"
 			pkg_installed docker-ce || module_docker install
 			[[ -d "$POSTGRES_BASE" ]] || mkdir -p "$POSTGRES_BASE" || { echo "Couldn't create storage directory: $POSTGRES_BASE"; exit 1; }
-			# Set defaults if empty
-			POSTGRES_USER="${POSTGRES_USER:-armbian}"
-			POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-armbian}"
-			POSTGRES_DB="${POSTGRES_DB:-armbian}"
+			# Download or update image
+			docker pull $POSTGRES_IMAGE
 			docker run -d \
-			--name=postgres \
+			--name=${POSTGRES_CONTAINER} \
 			--net=lsio \
 			-e POSTGRES_USER=${POSTGRES_USER} \
 			-e POSTGRES_PASSWORD=${POSTGRES_PASSWORD} \
 			-e POSTGRES_DB=${POSTGRES_DB} \
 			-e TZ="$(cat /etc/timezone)" \
-			-p 5432:5432 \
-			-v "${POSTGRES_BASE}/data:/var/lib/postgresql/data" \
+			-v "${POSTGRES_BASE}/${POSTGRES_CONTAINER}/data:/var/lib/postgresql/data" \
 			--restart unless-stopped \
-			tensorchord/pgvecto-rs:pg14-v0.2.0
+			${POSTGRES_IMAGE}
 			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "org.opencontainers.image.version" }}' postgres >/dev/null 2>&1 ; then
+				if docker inspect -f '{{ index .Config.Labels "org.opencontainers.image.version" }}' ${POSTGRES_CONTAINER} >/dev/null 2>&1 ; then
 					break
 				else
 					sleep 3
 				fi
 				if [ $i -eq 20 ]; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs postgres\`)"
+					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs ${POSTGRES_CONTAINER}\`)"
 					exit 1
 				fi
 			done
@@ -68,13 +74,12 @@ function module_postgres () {
 			if [[ -n "${container}" ]]; then
 				docker container rm -f "${container}" >/dev/null
 			fi
-
 			if [[ -n "${image}" ]]; then
 				docker image rm "${image}" >/dev/null
 			fi
 		;;
 		"${commands[2]}")
-			${module_options["module_postgres,feature"]} ${commands[1]}
+			${module_options["module_postgres,feature"]} ${commands[1]} $POSTGRES_USER $POSTGRES_PASSWORD $POSTGRES_DB $POSTGRES_IMAGE $POSTGRES_CONTAINER
 			if [[ -n "${POSTGRES_BASE}" && "${POSTGRES_BASE}" != "/" ]]; then
 				rm -rf "${POSTGRES_BASE}"
 			fi
