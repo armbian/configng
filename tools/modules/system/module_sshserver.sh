@@ -33,7 +33,7 @@ function module_openssh-server () {
 			[[ -d "${OPENSSHSERVER_BASE}" ]] || mkdir -p "${OPENSSHSERVER_BASE}" || { echo "Couldn't create storage directory: ${OPENSSHSERVER_BASE}"; exit 1; }
 			USER_NAME=$($DIALOG --title "Enter username" --inputbox "\nHit enter for defaults" 9 50 "upload" 3>&1 1>&2 2>&3)
 			PUBLIC_KEY=$($DIALOG --title "Enter public key" --inputbox "" 9 50 "" 3>&1 1>&2 2>&3)
-			MOUNT_POINT=$($DIALOG --title "Enter shared folder path" --inputbox "" 9 50 "${OPENSSHSERVER_BASE}/storage" 3>&1 1>&2 2>&3)
+			MOUNT_POINT=$($DIALOG --title "Enter shared folder path" --inputbox "" 9 50 "${SOFTWARE_FOLDER}/swag/config/www" 3>&1 1>&2 2>&3)
 			docker run -d \
 			--name=openssh-server \
 			--net=lsio \
@@ -62,15 +62,22 @@ function module_openssh-server () {
 					exit 1
 				fi
 			done
+			# read container version
+			container_version=$(docker exec openssh-server /bin/bash -c "grep ^PRETTY_NAME= /etc/os-release | sed -E 's/PRETTY_NAME=\"([^\"]*) v[0-9].*/\\1/'")
 			# install rsync
-			docker exec -it openssh-server /bin/bash -c "apk update; apk add rsync"
+			docker exec openssh-server /bin/bash -c "
+			apk update; apk add rsync;
+			echo '' > /etc/motd;
+			echo \"Welcome to your sandboxed Armbian SSH environment running $container_version\" >> /etc/motd;
+			echo '' >> /etc/motd;
+			"
 		;;
 		"${commands[1]}")
 			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
 		;;
 		"${commands[2]}")
 			${module_options["module_openssh-server,feature"]} ${commands[1]}
+			[[ "${image}" ]] && docker image rm "$image" >/dev/null
 			[[ -n "${OPENSSHSERVER_BASE}" && "${OPENSSHSERVER_BASE}" != "/" ]] && rm -rf "${OPENSSHSERVER_BASE}"
 		;;
 		"${commands[3]}")
