@@ -16,23 +16,35 @@ function adjust_motd() {
 	# show motd description
 	motd_desc() {
 		case $1 in
-			clear)
+			clear|00-clear)
 				echo "Clear screen on login"
 				;;
-			header)
-				echo "Show header with logo"
+			header|10-armbian-header)
+				echo "Show header with logo and version info"
 				;;
-			sysinfo)
-				echo "Display system information"
+			ap-info|15-ap-info)
+				echo "Display active Wi-Fi access point (SSID, channel)"
 				;;
-			tips)
-				echo "Show Armbian team tips"
+			ip-info|20-ip-info)
+				echo "Show LAN/WAN IPv4 and IPv6 addresses"
 				;;
-			commands)
+			containers-info|25-containers-info)
+				echo "List running Docker containers"
+				;;
+			sysinfo|30-armbian-sysinfo)
+				echo "Display performance and system information"
+				;;
+			tips|35-armbian-tips)
+				echo "Show helpful tips and Armbian resources"
+				;;
+			commands|41-commands)
 				echo "Show recommended commands"
 				;;
+			autoreboot-warn|98-armbian-autoreboot-warn)
+				echo "Warn about pending automatic reboot after update"
+				;;
 			*)
-				echo "No description"
+				echo "No description available"
 				;;
 		esac
 	}
@@ -53,7 +65,7 @@ function adjust_motd() {
 	done
 
 	INLIST=($(grep THIS_SCRIPT= /etc/update-motd.d/* | cut -d"=" -f2 | sed "s/\"//g"))
-	CHOICES=$($DIALOG --separate-output --nocancel --title "Adjust welcome screen" --checklist "" 11 50 5 "${LIST[@]}" 3>&1 1>&2 2>&3)
+	CHOICES=$($DIALOG --separate-output --nocancel --title "Adjust welcome screen" --checklist "" 14 76 8 "${LIST[@]}" 3>&1 1>&2 2>&3)
 	INSERT="$(echo "${INLIST[@]}" "${CHOICES[@]}" | tr ' ' '\n' | sort | uniq -u | tr '\n' ' ' | sed 's/ *$//')"
 	# adjust motd config
 	sed -i "s/^MOTD_DISABLE=.*/MOTD_DISABLE=\"$INSERT\"/g" /etc/default/armbian-motd
