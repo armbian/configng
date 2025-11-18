@@ -27,13 +27,15 @@ function module_swag() {
 
 	case "$1" in
 		"${commands[0]}")
-			SWAG_URL=$(dialog --title \
+			SWAG_URL=$($DIALOG --title \
 			"Secure Web Application Gateway URL?" \
 			--inputbox "\nExamples: myhome.domain.org (port 80 and 443 must be exposed to internet)" \
-			8 80 "" 3>&1 1>&2 2>&3);
+			8 80 "${DOMAIN}" 3>&1 1>&2 2>&3);
 
 			if [[ ${SWAG_URL} && $? -eq 0 ]]; then
 
+				# save to configuration file
+				set_config_var "DOMAIN" "${SWAG_URL}" "$CONFIG_FILE"
 				# adjust hostname
 				hostnamectl set-hostname $(echo ${SWAG_URL} | sed -E 's/^\s*.*:\/\///g')
 				# install docker
