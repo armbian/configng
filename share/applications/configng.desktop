@@ -1,11 +1,10 @@
 [Desktop Entry]
 Version=1.0
-Name=Armbian ConfigNG
-Comment=Next Generation GUI for Armbian Configurations
+Name=Armbian Config
+Comment=Armbian System Configurations
 Exec=sh -c "sudo armbian-config"
-Icon=configng
+Icon=/usr/share/icons/armbian/armbian-config.png
 Terminal=true
 Type=Application
 Categories=System;Settings;
-Path=/usr/bin
 StartupNotify=true
