@@ -1,0 +1,1 @@
+This module provides a simple way to download and flash any Armbian OS image from our servers. It lets you prepare a bootable SD card or, when running from live media, flash a fresh OS directly onto the device’s internal storage. All flashed images are automatically verified to ensure data integrity and reliable installation.
