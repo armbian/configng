@@ -21,7 +21,8 @@
                     "command": [
                         "dpkg-reconfigure locales",
                         "source /etc/default/locale ; sed -i \"s/^LANGUAGE=.*/LANGUAGE=$LANG/\" /etc/default/locale",
-                        "export LANGUAGE=$LANG"
+                        "export LANGUAGE=$LANG",
+                        "show_message <<< 'Global locale updated.  Please log out and back in for changes to take effect.\n\nDesktop users may also need to change locale in desktop settings.'"
                     ],
                     "status": "Stable",
                     "author": "@armbian"
@@ -31,10 +32,12 @@
                     "description": "Change Keyboard layout",
                     "command": [
                         "dpkg-reconfigure keyboard-configuration ; setupcon ",
-                        "update-initramfs -u"
+                        "update-initramfs -u",
+                        "show_message <<< 'Keyboard layout updated.\n\nDesktop users may also need to change keyboard layout in desktop settings.'"
                     ],
                     "status": "Stable",
-                    "author": "@armbian"                },
+                    "author": "@armbian"
+                },
                 {
                     "id": "APT001",
                     "description": "Change APT mirrors",
