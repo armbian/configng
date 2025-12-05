@@ -1,1 +1,5 @@
-This section provides an option to transfer the live running Armbian system from an SD card to internal storage devices such as eMMC, SATA, NVMe, or USB drives. It prepares the target storage, copies the active system, adjusts bootloader settings, and ensures the system can boot independently without requiring reinstallation.
+- Clones your current live OS installation
+- Keeps your settings, configuration, installed packages, and user data
+- Essentially “transfer my existing system to internal/external storage”
+
+Use this option to **transfer your current live Armbian system** to another storage device (eMMC, SSD, USB, etc.).  This copies your existing installation exactly as it is — including settings, installed packages, and user data.
