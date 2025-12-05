@@ -793,6 +793,9 @@ Jobs:
 dpkg-reconfigure locales
 source /etc/default/locale ; sed -i "s/^LANGUAGE=.*/LANGUAGE=$LANG/" /etc/default/locale
 export LANGUAGE=$LANG
+show_message <<< 'Global locale updated.  Please log out and back in for changes to take effect.
+
+Desktop users may also need to change locale in desktop settings.'
 ~~~
 
 ### KEY001
