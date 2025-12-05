@@ -123,7 +123,7 @@ function module_images () {
 
 		if [[ -n "$DIALOG" ]]; then
 			selected_idx=$($DIALOG --title "Select board" \
-				--menu "\nNo images found for the current board.\n\nSelect a different board to flash:" 24 76 12 \
+				--menu "No images found for the current board.\n\nSelect a different board to flash:" 20 76 12 \
 				"${options[@]}" \
 				3>&1 1>&2 2>&3)
 		else
@@ -165,7 +165,7 @@ function module_images () {
 		if [[ -n "$DIALOG" ]]; then
 			local choice
 			choice=$($DIALOG --title "Confirm board" \
-				--menu "\nDetected board: ${BOARD_SLUG}\n\nWhat would you like to do?" 15 76 3 \
+				--menu "Detected board:\n\n  ${BOARD_SLUG}\n\nWhat would you like to do?" 13 76 3 \
 				"CURRENT" "Use this board" \
 				"OTHER"   "Choose another board from images index" \
 				3>&1 1>&2 2>&3)
@@ -823,6 +823,9 @@ function module_images () {
 
 		local rc=0
 
+					(s // "") as $s |
+					($s | length) as $l |
+					if $l >= n then $s
 		if command -v pv >/dev/null 2>&1 && [[ -n "$DIALOG" ]] && (( content_length > 0 )); then
 			local gauge_dir
 			gauge_dir=$(mktemp -d) || { echo "Failed to create temp dir"; return 1; }

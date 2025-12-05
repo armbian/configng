@@ -1,1 +1,7 @@
-This module provides a simple way to download and flash any Armbian OS image from our servers. It lets you prepare a bootable SD card or, when running from live media, flash a fresh OS directly onto the device’s internal storage. All flashed images are automatically verified to ensure data integrity and reliable installation.
+What can this tool do?
+
+- Install Armbian onto internal **eMMC, SSD, or other storage**
+- Create **bootable SD cards or USB drives** for any supported board
+- Recover a system by **re-flashing a clean image**
+- Switch between different **OS variants, kernel branches, or preinstalled applications**
+- Accelerate development with **fast, repeatable deployments** for testing and automation

@@ -91,7 +91,7 @@
                     "sub": [
                         {
                             "id": "STO001",
-                            "description": "Copy live OS to internal media",
+                            "description": "Copy the running Armbian system to another device",
                             "short": "Install",
                             "module": "module_generic",
                             "command": [
@@ -103,7 +103,7 @@
                         },
                         {
                             "id": "FLASH1",
-                            "description": "Download and flash to internal media",
+                            "description": "Download a fresh, official Armbian OS image and write it to a device",
                             "short": "Download and flash",
                             "module": "module_images",
                             "command": [
@@ -112,6 +112,18 @@
                             "status": "Preview",
                             "author": "@igorpecovnik",
                             "condition": "module_images status >/dev/null"
+                        },
+                        {
+                            "id": "FLASH2",
+                            "description": "Remove all downloaded Armbian images",
+                            "short": "Remove cached images",
+                            "module": "module_images",
+                            "command": [
+                                "module_images remove"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_images cache-status"
                         },
                         {
                             "id": "ROO001",
