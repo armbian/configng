@@ -32,8 +32,7 @@
                     "description": "Change Keyboard layout",
                     "command": [
                         "dpkg-reconfigure keyboard-configuration ; setupcon ",
-                        "update-initramfs -u",
-                        "show_message <<< 'Keyboard layout updated.\n\nDesktop users may also need to change keyboard layout in desktop settings.'"
+                        "update-initramfs -u"
                     ],
                     "status": "Stable",
                     "author": "@armbian"
