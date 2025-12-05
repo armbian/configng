@@ -22,7 +22,9 @@ sudo armbian-config
 
 
   - ### Install to internal media, ZFS, NFS, read-only rootfs
-    - ### Install
+    - ### Copy the running Armbian system to another device
+    - ### Download a fresh, official Armbian OS image and write it to a device
+    - ### Remove all downloaded Armbian images
     - ### Enable read only filesystem
     - ### Disable read only filesystem
     - ### Enable Network filesystem (NFS) support
@@ -388,7 +390,9 @@ Outputs:
 	--cmd ODR001 - Select Odroid board configuration
 	--cmd BOOT01 - Edit the boot environment
     Storage - Install to internal media, ZFS, NFS, read-only rootfs
-	--cmd STO001 - Install
+	--cmd STO001 - Copy the running Armbian system to another device
+	--cmd FLASH1 - Download a fresh, official Armbian OS image and write it to a device
+	--cmd FLASH2 - Remove all downloaded Armbian images
 	--cmd ROO001 - Enable read only filesystem
 	--cmd ROO002 - Disable read only filesystem
 	--cmd NETF01 - Enable Network filesystem (NFS) support
@@ -1115,6 +1119,7 @@ These helper functions facilitate various operations related to job management, 
 | Parse json to get list of desired menu or submenu items | parse_menu_items 'menu_options_array' | @viraniac 
 | Show the usage of the functions. | see_use | @Tearran 
 | Check if service is enabled | srv_enabled ssh.service | @dimitry-ishenko 
+| Download and flash Armbian OS images for selected hardware | install remove purge status help |  
 | Install adguardhome container | install remove purge status help | @igorpecovnik 
 | Set system shell to BASH | manage_zsh enable|disable | @igorpecovnik 
 | Install NetBox container (IPAM/DCIM tool) | install remove purge status help |  
