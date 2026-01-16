@@ -1,4 +1,4 @@
-name: PR review listener
+name: "Maintenance: PR listen review"
 on:
   pull_request_review:
     types: [submitted]

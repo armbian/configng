@@ -1,4 +1,4 @@
-name: "Regenerate docs and JSON"
+name: "Maintenance: Build docs"
 
 on:
   push:

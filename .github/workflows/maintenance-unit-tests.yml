@@ -1,4 +1,4 @@
-name: "Unit tests"
+name: "Maintenance: Unit tests"
 on:
   workflow_dispatch:
   repository_dispatch:

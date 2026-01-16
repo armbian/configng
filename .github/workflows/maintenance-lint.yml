@@ -1,4 +1,4 @@
-name: Lint scripts
+name: "Maintenance: Lint"
 
 on:
   workflow_dispatch:

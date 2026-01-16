@@ -1,4 +1,4 @@
-name: Sync Labels from YAML
+name: "Maintenance: Sync labels"
 run-name: Sync Labels from YML on ${{ github.event_name }}
 
 on:
