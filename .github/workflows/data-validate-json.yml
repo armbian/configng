@@ -1,4 +1,4 @@
-name: Validate JSON
+name: "Data: Validate JSON"
 
 on:
   pull_request:

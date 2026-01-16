@@ -1,4 +1,4 @@
-name: Coding style check
+name: "Maintenance: Check coding style"
 
 on:
   pull_request:
