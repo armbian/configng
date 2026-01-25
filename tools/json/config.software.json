@@ -133,38 +133,27 @@
                     "sub": [
                         {
                             "id": "CON001",
-                            "description": "Docker minimal",
+                            "description": "Docker",
                             "short": "Docker",
                             "module": "module_docker",
-                            "about": "This operation will install Docker Minimal.",
+                            "about": "This operation will install Docker from distribution maintained packages.",
                             "command": [
-                                "module_docker install minimal"
+                                "module_docker install"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! module_docker status docker-ce"
-                        },
-                        {
-                            "id": "CON002",
-                            "description": "Docker engine",
-                            "about": "This operation will install Docker Engine.",
-                            "command": [
-                                "module_docker install engine"
-                            ],
-                            "status": "Stable",
-                            "author": "@schwar3kat",
-                            "condition": "! module_docker status docker-compose-plugin"
+                            "condition": "! module_docker status"
                         },
                         {
                             "id": "CON003",
                             "description": "Docker remove",
-                            "about": "This operation will purge Docker.",
+                            "about": "This operation will remove Docker packages.",
                             "command": [
                                 "module_docker remove"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "module_docker status docker-ce"
+                            "condition": "module_docker status"
                         },
                         {
                             "id": "CON004",
@@ -175,7 +164,7 @@
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "module_docker status docker-ce"
+                            "condition": "module_docker status"
                         },
                         {
                             "id": "POR001",

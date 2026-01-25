@@ -8,7 +8,7 @@ module_options+=(
 	["module_docker,doc_link"]="https://docs.docker.com"
 	["module_docker,group"]="Containers"
 	["module_docker,port"]=""
-	["module_docker,arch"]="x86-64 arm64 armhf"
+	["module_docker,arch"]="x86-64 arm64 armhf riscv64"
 )
 #
 # Install Docker from repo using apt
@@ -23,73 +23,58 @@ function module_docker() {
 
 	case "$1" in
 		"${commands[0]}")
-			# Check if repo for distribution exists.
-			URL="https://download.docker.com/linux/${DISTRO,,}/dists/$DISTROID"
-			if wget --spider "${URL}" 2> /dev/null; then
-				# Add Docker's official GPG key:
-				wget -qO - https://download.docker.com/linux/${DISTRO,,}/gpg \
-				| gpg --dearmor | sudo tee /usr/share/keyrings/docker.gpg > /dev/null
-				if [[ $? -eq 0 ]]; then
-					# Add the repository to Apt sources:
-					cat <<- EOF > "/etc/apt/sources.list.d/docker.list"
-					deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker.gpg] \
-					https://download.docker.com/linux/${DISTRO,,} $DISTROID stable
-					EOF
-					pkg_update
-					# Install docker
-					if [ "$2" = "engine" ]; then
-						pkg_install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-					else
-						pkg_install docker-ce docker-ce-cli containerd.io
-					fi
+			# Install docker from distribution maintained packages
+			pkg_update
+			pkg_install docker.io docker-cli docker-compose
 
-					groupadd docker 2>/dev/null || true
-					if [[ -n "${SUDO_USER}" ]]; then
-						usermod -aG docker "${SUDO_USER}"
-					fi
-					srv_enable docker containerd
-					srv_start docker
-					docker network create lsio 2> /dev/null
-				fi
-			else
-				$DIALOG --msgbox "ERROR ! ${DISTRO} $DISTROID distribution not found in repository!" 7 70
+			groupadd docker 2>/dev/null || true
+			if [[ -n "${SUDO_USER}" ]]; then
+				usermod -aG docker "${SUDO_USER}"
 			fi
+			srv_enable docker containerd
+			srv_start docker
+			docker network create lsio 2> /dev/null
 		;;
 		"${commands[1]}")
-			pkg_remove docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras
+			pkg_remove docker.io docker-cli docker-compose containerd
 		;;
 		"${commands[2]}")
+			${module_options["module_docker,feature"]} ${commands[1]}
 			rm -rf /var/lib/docker
 			rm -rf /var/lib/containerd
 		;;
 		"${commands[3]}")
-			if [ "$2" = "docker-ce" ]; then
-				if pkg_installed docker-ce; then
-					return 0
-				else
-					return 1
-				fi
+			# Check if Docker is installed and lsio network exists
+			if ! pkg_installed docker.io; then
+				echo "Docker not installed"
+				return 1
 			fi
-			if [ "$2" = "docker-compose-plugin" ]; then
-				if pkg_installed docker-compose-plugin; then
-					return 0
-				else
-					return 1
-				fi
+
+			if ! command -v docker >/dev/null 2>&1; then
+				echo "Docker command not found"
+				return 1
 			fi
+
+			if ! docker network ls --format "{{.Name}}" | grep -q "^lsio$"; then
+				echo "lsio network not found"
+				return 1
+			fi
+
+			echo "Docker installed and lsio network exists"
+			return 0
 		;;
 		"${commands[4]}")
 			echo -e "\nUsage: ${module_options["module_docker,feature"]} <command>"
 			echo -e "Commands:  ${module_options["module_docker,example"]}"
 			echo "Available commands:"
-			echo -e "\tinstall\t- Install $title."
-			echo -e "\tstatus\t- Installation status $title."
+			echo -e "\tinstall\t- Install $title from distro maintained packages."
+			echo -e "\tstatus\t- Check if Docker is installed and lsio network exists"
 			echo -e "\tremove\t- Remove $title."
-			echo -e "\tremove\t- Purge $title."
+			echo -e "\tpurge\t- Purge $title."
 			echo
 		;;
 		*)
-		${module_options["module_docker,feature"]} ${commands[4]}
+			${module_options["module_docker,feature"]} ${commands[4]}
 		;;
 	esac
 }
