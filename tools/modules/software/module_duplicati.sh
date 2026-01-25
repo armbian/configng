@@ -1,5 +1,5 @@
 module_options+=(
-	["module_duplicati,author"]=""
+	["module_duplicati,author"]="@armbian"
 	["module_duplicati,maintainer"]="@igorpecovnik"
 	["module_duplicati,feature"]="module_duplicati"
 	["module_duplicati,example"]="install remove purge status help"
@@ -17,10 +17,9 @@ function module_duplicati () {
 	local title="duplicati"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/duplicati?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/duplicati?( |$)/{print $3}')
-	fi
+	pkg_installed docker.io || module_docker install
+	local container=$(docker container ls -a --filter "name=duplicati" --format '{{.ID}}')
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'duplicati' | awk '{print $2}')
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_duplicati,example"]}"
@@ -34,7 +33,6 @@ function module_duplicati () {
 			local DUPLICATI_ENCRYPTION_KEY="$1"
 			local DUPLICATI_WEBUI_PASSWORD="$2"
 
-			pkg_installed docker-ce || module_docker install
 			[[ -d "$DUPLICATI_BASE" ]] || mkdir -p "$DUPLICATI_BASE" || { echo "Couldn't create storage directory: $DUPLICATI_BASE"; exit 1; }
 
 			# If no encryption key provided, prompt for it
@@ -60,8 +58,9 @@ function module_duplicati () {
 			fi
 
 			docker run -d \
-			--name=duplicati \
 			--net=lsio \
+			--name duplicati \
+			--restart=always \
 			-e PUID=1000 \
 			-e PGID=1000 \
 			-e TZ="$(cat /etc/timezone)" \
@@ -71,30 +70,30 @@ function module_duplicati () {
 			-v "${DUPLICATI_BASE}/config:/config" \
 			-v "${DUPLICATI_BASE}/backups:/backups" \
 			-v /:/source:ro \
-			--restart unless-stopped \
 			lscr.io/linuxserver/duplicati:latest
 			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' duplicati >/dev/null 2>&1 ; then
-					break
-				else
-					sleep 3
+				state="$(docker inspect -f '{{.State.Status}}' duplicati 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
+				break
 				fi
-				if [ $i -eq 20 ]; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs duplicati\`)"
+				sleep 3
+				if [[ $i -eq 20 ]]; then
+					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs duplicati\`)"
 					exit 1
 				fi
 			done
 		;;
 		"${commands[1]}")
-			if [[ -n "${container}" ]]; then
-				docker container rm -f "${container}" >/dev/null
-			fi
-
-			if [[ -n "${image}" ]]; then
-				docker image rm "${image}" >/dev/null
+			if [[ "${container}" ]]; then
+				echo "Removing container: $container"
+				docker container rm -f "$container"
 			fi
 		;;
 		"${commands[2]}")
+			${module_options["module_duplicati,feature"]} ${commands[1]}
+			if [[ "${image}" ]]; then
+				docker image rm "$image"
+			fi
 			${module_options["module_duplicati,feature"]} ${commands[1]}
 			if [[ -n "${DUPLICATI_BASE}" && "${DUPLICATI_BASE}" != "/" ]]; then
 				rm -rf "${DUPLICATI_BASE}"

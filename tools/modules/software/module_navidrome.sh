@@ -17,10 +17,9 @@ function module_navidrome () {
 	local title="navidrome"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/navidrome?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/navidrome?( |$)/{print $3}')
-	fi
+	pkg_installed docker.io || module_docker install
+	local container=$(docker container ls -a --filter "name=navidrome" --format '{{.ID}}')
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'navidrome' | awk '{print $2}')
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_navidrome,example"]}"
@@ -29,38 +28,45 @@ function module_navidrome () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
 			[[ -d "$NAVIDROME_BASE" ]] || mkdir -p "$NAVIDROME_BASE"/{music,data} || { echo "Couldn't create storage directory: $NAVIDROME_BASE"; exit 1; }
 			sudo chown -R 1000:1000 "$NAVIDROME_BASE"/
 			docker run -d \
-			--name=navidrome \
 			--net=lsio \
+			--name navidrome \
+			--restart=always \
 			--user 1000:1000 \
 			-e TZ="$(cat /etc/timezone)" \
 			-p 4533:4533 \
 			-v "${NAVIDROME_BASE}/music:/music" \
 			-v "${NAVIDROME_BASE}/data:/data" \
-			--restart unless-stopped \
 			deluan/navidrome:latest
 			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' navidrome >/dev/null 2>&1 ; then
-					break
-				else
-					sleep 3
+				state="$(docker inspect -f '{{.State.Status}}' navidrome 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
+				break
 				fi
-				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs navidrome\`)"
+				sleep 3
+				if [[ $i -eq 20 ]]; then
+					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs navidrome\`)"
 					exit 1
 				fi
 			done
 		;;
 		"${commands[1]}")
-			if [[ "${container}" ]]; then docker container rm -f "$container" >/dev/null; fi
-			if [[ "${image}" ]]; then docker image rm "$image" >/dev/null; fi
+			if [[ "${container}" ]]; then
+				echo "Removing container: $container"
+				docker container rm -f "$container"
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_navidrome,feature"]} ${commands[1]}
-			if [[ -n "${NAVIDROME_BASE}" && "${NAVIDROME_BASE}" != "/" ]]; then rm -rf "${NAVIDROME_BASE}"; fi
+			if [[ "${image}" ]]; then
+				docker image rm "$image"
+			fi
+			${module_options["module_navidrome,feature"]} ${commands[1]}
+			if [[ -n "${NAVIDROME_BASE}" && "${NAVIDROME_BASE}" != "/" ]]; then
+				rm -rf "${NAVIDROME_BASE}"
+			fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then
