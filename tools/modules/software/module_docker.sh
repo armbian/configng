@@ -26,7 +26,12 @@ function module_docker() {
 			# Install docker from distribution maintained packages
 			pkg_update
 			pkg_install docker.io docker-cli docker-compose
-
+			if pkg_installed docker-ce; then pkg_remove docker-ce; fi
+			if pkg_installed docker-ce-cli; then pkg_remove docker-ce-cli; fi
+			if pkg_installed containerd.io; then pkg_remove containerd.io; fi
+			if pkg_installed docker-buildx-plugin; then pkg_remove docker-buildx-plugin; fi
+			if pkg_installed docker-compose-plugin; then pkg_remove docker-compose-plugin; fi
+			rm -f /etc/apt/sources.list.d/docker.list
 			groupadd docker 2>/dev/null || true
 			if [[ -n "${SUDO_USER}" ]]; then
 				usermod -aG docker "${SUDO_USER}"
