@@ -110,6 +110,7 @@ jobs:
             docker ps -aq | xargs -r docker stop
             docker ps -aq | xargs -r docker rm
             docker images -aq | xargs -r docker rmi -f
+            docker network ls -q | xargs -r docker network rm
           else
             echo "Docker not installed, skipping cleanup."
           fi
