@@ -129,8 +129,7 @@ sudo armbian-config
 
 
   - ### Docker containerization and KVM virtual machines
-    - ### Docker minimal
-    - ### Docker engine
+    - ### Docker
     - ### Docker remove
     - ### Docker purge with all images, containers, and volumes
     - ### Portainer container management platform
@@ -469,8 +468,7 @@ Outputs:
 	--cmd DPL002 - Duplicati remove (http://localhost:8200)
 	--cmd DPL003 - Duplicati purge with data folder
     Containers - Docker containerization and KVM virtual machines
-	--cmd CON001 - Docker minimal
-	--cmd CON002 - Docker engine
+	--cmd CON001 - Docker
 	--cmd CON003 - Docker remove
 	--cmd CON004 - Docker purge with all images, containers, and volumes
 	--cmd POR001 - Portainer container management platform
