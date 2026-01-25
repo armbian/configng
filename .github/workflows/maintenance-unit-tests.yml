@@ -104,18 +104,12 @@ jobs:
 
       - name: "Initialize systemd"
         run: |
-          apt-get update
-          apt-get install -y systemd-sysv wget
           # Start systemd in the container
           /sbin/init &
           sleep 5
           # Make the container appear as if systemd is PID 1
           export SYSTEMD_IGNORE_CHROOT=1
           export container=docker
-
-      - name: "Install dependencies"
-        run: |
-          apt-get install -y jq figlet curl ca-certificates tree procps lsb-release dialog sudo iproute2 whiptail debconf libtext-iconv-perl gpg xz-utils pv systemd
 
       - name: "Checkout Armbian configuration tool"
         uses: actions/checkout@v6
