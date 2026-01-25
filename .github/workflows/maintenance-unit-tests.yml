@@ -35,6 +35,7 @@ jobs:
         with:
           files: |
               tests/*.conf
+          separator: "\n"
 
       - name: "Make JSON ${{ steps.changed-files.outputs.all_changed_files }}"
         id: json
@@ -54,8 +55,9 @@ jobs:
           images=("bookworm" "trixie" "forky" "jammy" "noble" "resolute")
           # read tests cases
           if [[ -n "${{ steps.changed-files.outputs.all_changed_files }}" ]]; then
-              tests=($(grep -rwl ${{ steps.changed-files.outputs.all_changed_files }} -e "ENABLED=true" | cut -d":" -f1))
-              else
+              mapfile -t changed_files <<< "${{ steps.changed-files.outputs.all_changed_files }}"
+              tests=($(grep -rwl -e "ENABLED=true" -- "${changed_files[@]}" | cut -d":" -f1))
+           else
               tests=($(grep -rwl tests/*.conf -e "ENABLED=true" | cut -d":" -f1))
           fi
           # loop enabled test cases
@@ -63,7 +65,7 @@ jobs:
              unset RELEASE
              source "${i}"
              if [[ -z "${RELEASE}" || "${RELEASE}" == "all" ]]; then RELEASE=all; fi
-             # if we speficy releases, we need to loop docker images and use if there is a match
+             # if we specify releases, we need to loop docker images and use if there is a match
              if [[ $RELEASE != "all" ]]; then
                 for j in ${images[@]}; do
                     elements=($(echo $RELEASE | tr ':' "\n"))
