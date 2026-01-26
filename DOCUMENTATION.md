@@ -1012,7 +1012,7 @@ These helper functions facilitate various operations related to job management, 
 | Exit with error code 1, optionally printing a message to stderr | run_critical_function || die 'The world is about to end' | @dimitry-ishenko 
 | Reload service | srv_reload ssh.service | @dimitry-ishenko 
 | Webmin setup and service setting. | help install remove start stop enable disable status check | @Tearran 
-| Install HA supervised container | install remove purge status help | @igorpecovnik 
+| Install HA supervised container | install remove purge status help | @armbian 
 | Display a menu from pipe | show_menu <<< armbianmonitor -h  ;  | @Tearran 
 | Start service | srv_start ssh.service | @dimitry-ishenko 
 | Install watchtower container | install remove status help | @armbian 
@@ -1026,7 +1026,7 @@ These helper functions facilitate various operations related to job management, 
 | Install sonarr container | install remove purge status help | @armbian 
 | Generate Document files. | generate_readme | @Tearran 
 | Storing netplan config to tmp | store_netplan_config | @igorpecovnik 
-| Install PostgreSQL container (advanced relational database) | install remove purge status help |  
+| Install PostgreSQL container (advanced relational database) | install remove purge status help | @armbian 
 | Install jellyfin container | install remove purge status help | @armbian 
 | Install jellyseerr container | install remove purge status help | @armbian 
 | Needed by generate_menu | execute_command 'id' | @Tearran 
@@ -1081,7 +1081,7 @@ These helper functions facilitate various operations related to job management, 
 | Toggle IPv6 on or off | toggle_ipv6 | @Tearran 
 | Adjust welcome screen (motd) | adjust_motd clear, header, sysinfo, tips, commands | @igorpecovnik 
 | Install embyserver container | install remove purge status help | @schwar3kat 
-| Install duplicati container | install remove purge status help |  
+| Install duplicati container | install remove purge status help | @armbian 
 | Install qbittorrent container | install remove purge status help | @qbittorrent 
 | Reload systemd configuration | srv_daemon_reload | @dimitry-ishenko 
 | Generate JSON-like object file. | generate_json | @Tearran 
@@ -1124,7 +1124,7 @@ These helper functions facilitate various operations related to job management, 
 | Install sabnzbd container | install remove purge status help | @armbian 
 | Mask service | srv_mask ssh.service | @dimitry-ishenko 
 | Show service status information | srv_status ssh.service | @dimitry-ishenko 
-| Install Redis in a container (In-Memory Data Store) | install remove purge status help |  
+| Install Redis in a container (In-Memory Data Store) | install remove purge status help | @armbian 
 | Stop service | srv_stop ssh.service | @dimitry-ishenko 
 | Configure an unconfigured package | pkg_configure | @dimitry-ishenko 
 | Install Pi-hole container | install remove purge password status help | @armbian 
