@@ -33,7 +33,7 @@ function module_immich () {
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_immich,example"]}"
 
-	IMMICH_BASE="${SOFTWARE_FOLDER}/immich"
+	IMMICH_BASE="${2:-"${SOFTWARE_FOLDER}/immich"}" # optional argument = immich storage location
 
 	case "$1" in
 		"${commands[0]}")
