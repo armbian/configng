@@ -54,10 +54,10 @@ jobs:
           )
           images=("bookworm" "trixie" "forky" "jammy" "noble" "resolute")
           # read tests cases
-          if [[ -n "${{ steps.changed-files.outputs.all_changed_files }}" ]]; then
+          if [[ "${{ steps.changed-files.outputs.any_changed }}" == "true" ]]; then
               mapfile -t changed_files <<< "${{ steps.changed-files.outputs.all_changed_files }}"
               tests=($(grep -rwl -e "ENABLED=true" -- "${changed_files[@]}" | cut -d":" -f1))
-           else
+          else
               tests=($(grep -rwl tests/*.conf -e "ENABLED=true" | cut -d":" -f1))
           fi
           # loop enabled test cases

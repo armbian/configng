@@ -11,16 +11,15 @@ module_options+=(
 	["module_mariadb,arch"]="x86-64 arm64"
 )
 #
-# Module mariadb-PDF
+# Module mariadb
 #
 function module_mariadb () {
 	local title="mariadb"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/mariadb?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/mariadb?( |$)/{print $3}')
-	fi
+	pkg_installed docker.io || module_docker install
+	local container=$(docker container ls -a --filter "name=mariadb" --format '{{.ID}}')
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'mariadb '| awk '{print $2}')
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_mariadb,example"]}"
@@ -29,49 +28,44 @@ function module_mariadb () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
 			[[ -d "$MARIADB_BASE" ]] || mkdir -p "$MARIADB_BASE" || { echo "Couldn't create storage directory: $MARIADB_BASE"; exit 1; }
-
-			# get parameters
-			MYSQL_ROOT_PASSWORD=$($DIALOG --title "Enter root password for Mariadb SQL server" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
-			MYSQL_DATABASE=$($DIALOG --title "Enter database name for Mariadb SQL server" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
-			MYSQL_USER=$($DIALOG --title "Enter user name for Mariadb SQL server" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
-			MYSQL_PASSWORD=$($DIALOG --title "Enter new password for ${MYSQL_USER}" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
 			docker run -d \
-			--name=mariadb \
 			--net=lsio \
+			--name mariadb \
+			--restart=always \
+			-p ${module_options["module_mariadb,port"]}:3306 \
+			-v "${MARIADB_BASE}:/config" \
 			-e PUID=1000 \
 			-e PGID=1000 \
 			-e TZ="$(cat /etc/timezone)" \
-			-e "MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}" \
-			-e "MYSQL_DATABASE=${MYSQL_DATABASE}" \
-			-e "MYSQL_USER=${MYSQL_USER}" \
-			-e "MYSQL_PASSWORD=${MYSQL_PASSWORD}" \
-			-p ${module_options["module_mariadb,port"]}:3306 \
-			-v "${MARIADB_BASE}/config:/config" \
-			--restart unless-stopped \
+			-e "MYSQL_ROOT_PASSWORD=armbian" \
+			-e "MYSQL_DATABASE=armbian" \
+			-e "MYSQL_USER=armbian" \
+			-e "MYSQL_PASSWORD=armbian" \
 			lscr.io/linuxserver/mariadb:latest
 			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' mariadb >/dev/null 2>&1 ; then
+				state="$(docker inspect -f '{{.State.Status}}' mariadb 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
 					break
-				else
-					sleep 3
 				fi
-				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs mariadb\`)"
+				sleep 3
+				if [[ $i -eq 20 ]]; then
+					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs mariadb\`)"
 					exit 1
 				fi
 			done
 		;;
 		"${commands[1]}")
 			if [[ "${container}" ]]; then
-				docker container rm -f "$container" >/dev/null
-			fi
-			if [[ "${image}" ]]; then
-				docker image rm "$image" >/dev/null
+				echo "Removing container: $container"
+				docker container rm -f "$container"
 			fi
 		;;
 		"${commands[2]}")
+			${module_options["module_mariadb,feature"]} ${commands[1]}
+			if [[ "${image}" ]]; then
+				docker image rm "$image"
+			fi
 			${module_options["module_mariadb,feature"]} ${commands[1]}
 			if [[ -n "${MARIADB_BASE}" && "${MARIADB_BASE}" != "/" ]]; then
 				rm -rf "${MARIADB_BASE}"
