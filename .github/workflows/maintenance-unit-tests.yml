@@ -63,15 +63,11 @@ jobs:
           if [[ "$run_all_tests" == "true" ]]; then
               tests=($(grep -rwl tests/*.conf -e "ENABLED=true" | cut -d":" -f1))
           else
-              # Create temp file with changed files output for proper parsing
-              tmpfile=$(mktemp)
-              echo "${{ steps.changed-files.outputs.all_changed_files }}" > "$tmpfile"
-              # Read into array, filtering empty lines
-              mapfile -t changed_files < <(grep -v '^$' "$tmpfile")
-              rm -f "$tmpfile"
-              # Only grep if we have files
-              if [[ ${#changed_files[@]} -gt 0 ]]; then
-                  tests=($(grep -rwl -e "ENABLED=true" -- "${changed_files[@]}" 2>/dev/null | cut -d":" -f1))
+              # Get changed test files using git to avoid parsing issues
+              changed_tests=($(cd "${GITHUB_WORKSPACE}" && git diff --name-only origin/main...HEAD | grep '^tests/.*\.conf$' || true))
+              if [[ ${#changed_tests[@]} -gt 0 ]]; then
+                  # Filter for ENABLED=true
+                  tests=($(grep -rwl -e "ENABLED=true" -- "${changed_tests[@]}" 2>/dev/null | cut -d":" -f1))
               else
                   tests=()
               fi
