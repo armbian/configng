@@ -60,8 +60,16 @@ function module_netalertx () {
 	case "$1" in
 		"${commands[0]}")
 			[[ -d "$NETALERTX_BASE" ]] || mkdir -p "$NETALERTX_BASE" || { echo "Couldn't create storage directory: $NETALERTX_BASE"; exit 1; }
+
+			# Check if /dev/tty exists, only add --device if it does
+			local device_params=""
+			if [[ -e /dev/tty ]]; then
+				device_params="--device /dev/tty"
+			fi
+
 			docker run -d --rm --network=host \
 			--name=netalertx \
+			$device_params \
 			-e PUID=200 \
 			-e PGID=300 \
 			-e TZ="$(cat /etc/timezone)" \

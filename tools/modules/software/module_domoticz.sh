@@ -29,11 +29,20 @@ function module_domoticz () {
 	case "$1" in
 		"${commands[0]}")
 			[[ -d "$DOMOTICZ_BASE" ]] || mkdir -p "$DOMOTICZ_BASE" || { echo "Couldn't create storage directory: $DOMOTICZ_BASE"; exit 1; }
+
+			# Check if USB serial device exists, only add --device if it does
+			local device_params=""
+			if [[ -e /dev/ttyUSB0 ]]; then
+				device_params="--device /dev/ttyUSB0:/dev/ttyUSB0"
+			else
+				echo "Warning: /dev/ttyUSB0 not found. USB serial device support will not be available."
+			fi
+
 			docker run -d \
 			--name=domoticz \
 			--pid=host \
 			--net=lsio \
-			--device /dev/ttyUSB0:/dev/ttyUSB0 \
+			$device_params \
 			-e PUID=1000 \
 			-e PGID=1000 \
 			-e TZ="$(cat /etc/timezone)" \

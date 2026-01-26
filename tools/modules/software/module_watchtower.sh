@@ -2,7 +2,7 @@ module_options+=(
 	["module_watchtower,author"]="@armbian"
 	["module_watchtower,maintainer"]="@igorpecovnik"
 	["module_watchtower,feature"]="module_watchtower"
-	["module_watchtower,example"]="install remove status help"
+	["module_watchtower,example"]="install remove purge status help"
 	["module_watchtower,desc"]="Install watchtower container"
 	["module_watchtower,status"]="Active"
 	["module_watchtower,doc_link"]="https://containrrr.dev/watchtower/"
@@ -24,18 +24,22 @@ function module_watchtower () {
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_watchtower,example"]}"
 
+	WATCHTOWER_BASE="${SOFTWARE_FOLDER}/watchtower"
+
 	case "$1" in
 		"${commands[0]}")
+			[[ -d "$WATCHTOWER_BASE" ]] || mkdir -p "$WATCHTOWER_BASE" || { echo "Couldn't create storage directory: $WATCHTOWER_BASE"; exit 1; }
 			docker run -d \
 			--net=lsio \
 			--name=watchtower \
 			-v /var/run/docker.sock:/var/run/docker.sock \
+			-v "${WATCHTOWER_BASE}:/config" \
 			--restart=always \
 			containrrr/watchtower
 			for i in $(seq 1 20); do
 				state="$(docker inspect -f '{{.State.Status}}' watchtower 2>/dev/null || true)"
 				if [[ "$state" == "running" ]]; then
-				break
+					break
 				fi
 				sleep 3
 				if [[ $i -eq 20 ]]; then
@@ -51,23 +55,35 @@ function module_watchtower () {
 			fi
 		;;
 		"${commands[2]}")
+			${module_options["module_watchtower,feature"]} ${commands[1]}
+			if [[ "${image}" ]]; then
+				docker image rm "$image"
+			fi
+			${module_options["module_watchtower,feature"]} ${commands[1]}
+			if [[ -n "${WATCHTOWER_BASE}" && "${WATCHTOWER_BASE}" != "/" ]]; then
+				rm -rf "${WATCHTOWER_BASE}"
+			fi
+		;;
+		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then
 				return 0
 			else
 				return 1
 			fi
 		;;
-		"${commands[3]}")
+		"${commands[4]}")
 			echo -e "\nUsage: ${module_options["module_watchtower,feature"]} <command>"
 			echo -e "Commands:  ${module_options["module_watchtower,example"]}"
 			echo "Available commands:"
 			echo -e "\tinstall\t- Install $title."
-			echo -e "\tstatus\t- Installation status $title."
 			echo -e "\tremove\t- Remove $title."
+			echo -e "\tpurge\t- Purge $title data folder."
+			echo -e "\tstatus\t- Installation status $title."
+			echo -e "\thelp\t- Show this help message."
 			echo
 		;;
 		*)
-			${module_options["module_watchtower,feature"]} ${commands[3]}
+			${module_options["module_watchtower,feature"]} ${commands[4]}
 		;;
 	esac
 }

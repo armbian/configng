@@ -30,10 +30,19 @@ function module_octoprint () {
 		"${commands[0]}")
 			[[ -d "$OCTOPRINT_BASE" ]] || mkdir -p "$OCTOPRINT_BASE" || { echo "Couldn't create storage directory: $OCTOPRINT_BASE"; exit 1; }
 			docker volume create octoprint
+
+			# Check if camera device exists, only add --device if it does
+			local device_params=""
+			if [[ -e /dev/video0 ]]; then
+				device_params="--device /dev/video0:/dev/video0"
+			else
+				echo "Warning: /dev/video0 not found. Camera support will not be available."
+			fi
+
 			docker run -d \
 			--name=octoprint \
 			-v "${OCTOPRINT_BASE}:/octoprint/octoprint" \
-			--device /dev/video0:/dev/video0 \
+			$device_params \
 			-e TZ="$(cat /etc/timezone)" \
 			-e ENABLE_MJPG_STREAMER=true \
 			-p 7981:80 \
