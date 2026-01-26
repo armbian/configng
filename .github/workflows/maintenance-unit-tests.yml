@@ -63,8 +63,18 @@ jobs:
           if [[ "$run_all_tests" == "true" ]]; then
               tests=($(grep -rwl tests/*.conf -e "ENABLED=true" | cut -d":" -f1))
           else
-              mapfile -t changed_files < <(printf '%s\n' "${{ steps.changed-files.outputs.all_changed_files }}")
-              tests=($(grep -rwl -e "ENABLED=true" -- "${changed_files[@]}" | cut -d":" -f1))
+              # Create temp file with changed files output for proper parsing
+              tmpfile=$(mktemp)
+              echo "${{ steps.changed-files.outputs.all_changed_files }}" > "$tmpfile"
+              # Read into array, filtering empty lines
+              mapfile -t changed_files < <(grep -v '^$' "$tmpfile")
+              rm -f "$tmpfile"
+              # Only grep if we have files
+              if [[ ${#changed_files[@]} -gt 0 ]]; then
+                  tests=($(grep -rwl -e "ENABLED=true" -- "${changed_files[@]}" 2>/dev/null | cut -d":" -f1))
+              else
+                  tests=()
+              fi
           fi
           # loop enabled test cases
           for i in "${tests[@]}"; do
