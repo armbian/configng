@@ -17,10 +17,9 @@ function module_deluge () {
 	local title="deluge"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/deluge?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/deluge?( |$)/{print $3}')
-	fi
+	pkg_installed docker.io || module_docker install
+	local container=$(docker container ls -a --filter "name=deluge" --format '{{.ID}}')
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'deluge' | awk '{print $2}')
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_deluge,example"]}"
@@ -29,7 +28,6 @@ function module_deluge () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
 			[[ -d "$DELUGE_BASE" ]] || mkdir -p "$DELUGE_BASE" || { echo "Couldn't create storage directory: $DELUGE_BASE"; exit 1; }
 			docker run -d \
 			--name=deluge \
@@ -44,29 +42,31 @@ function module_deluge () {
 			-p 58846:58846 `#optional` \
 			-v "${DELUGE_BASE}/config:/config" \
 			-v "${DELUGE_BASE}/downloads:/downloads" \
-			--restart unless-stopped \
+			--restart=always \
 			lscr.io/linuxserver/deluge:latest
 			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' deluge >/dev/null 2>&1 ; then
-					break
-				else
-					sleep 3
+				state="$(docker inspect -f '{{.State.Status}}' deluge 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
+				break
 				fi
-				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs deluge\`)"
+				sleep 3
+				if [[ $i -eq 20 ]]; then
+					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs deluge\`)"
 					exit 1
 				fi
 			done
 		;;
 		"${commands[1]}")
 			if [[ "${container}" ]]; then
-				docker container rm -f "$container" >/dev/null
-			fi
-			if [[ "${image}" ]]; then
-				docker image rm "$image" >/dev/null
+				echo "Removing container: $container"
+				docker container rm -f "$container"
 			fi
 		;;
 		"${commands[2]}")
+			${module_options["module_deluge,feature"]} ${commands[1]}
+			if [[ "${image}" ]]; then
+				docker image rm "$image"
+			fi
 			${module_options["module_deluge,feature"]} ${commands[1]}
 			if [[ -n "${DELUGE_BASE}" && "${DELUGE_BASE}" != "/" ]]; then
 				rm -rf "${DELUGE_BASE}"
@@ -86,6 +86,7 @@ function module_deluge () {
 			echo -e "\tinstall\t- Install $title."
 			echo -e "\tstatus\t- Installation status $title."
 			echo -e "\tremove\t- Remove $title."
+			echo -e "\tpurge\t- Purge $title."
 			echo
 		;;
 		*)

@@ -18,10 +18,9 @@ function module_openhab() {
 	local title="openhab"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/openhab?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/openhab?( |$)/{print $3}')
-	fi
+	pkg_installed docker.io || module_docker install
+	local container=$(docker container ls -a --filter "name=openhab" --format '{{.ID}}')
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'openhab' | awk '{print $2}')
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_openhab,example"]}"
@@ -30,7 +29,6 @@ function module_openhab() {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
 			docker run -d \
 			--name openhab \
 			--net=lsio \
@@ -46,18 +44,31 @@ function module_openhab() {
 			-e USER_ID=1000 \
 			-e GROUP_ID=1000 \
 			-e CRYPTO_POLICY=unlimited \
-			--restart=unless-stopped \
+			--restart=always \
 			openhab/openhab:latest
+			for i in $(seq 1 20); do
+				state="$(docker inspect -f '{{.State.Status}}' openhab 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
+					break
+				fi
+				sleep 3
+				if [[ $i -eq 20 ]]; then
+					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs openhab\`)"
+					exit 1
+				fi
+			done
 			;;
 		"${commands[1]}")
-			if [[ -n "${container}" ]]; then
-				docker container rm -f "$container" >/dev/null
+			if [[ "${container}" ]]; then
+				echo "Removing container: $container"
+				docker container rm -f "$container"
 			fi
-			if [[ -n "${image}" ]]; then
-				docker image rm "$image" >/dev/null
-			fi
-			;;
+		;;
 		"${commands[2]}")
+			${module_options["module_openhab,feature"]} ${commands[1]}
+			if [[ "${image}" ]]; then
+				docker image rm "$image"
+			fi
 			${module_options["module_openhab,feature"]} ${commands[1]}
 			if [[ -n "${OPENHAB_BASE}" && "${OPENHAB_BASE}" != "/" ]]; then
 				rm -rf "${OPENHAB_BASE}"
@@ -81,7 +92,7 @@ function module_openhab() {
 			echo
 		;;
 		*)
-			${module_options["module_haos,feature"]} ${commands[4]}
+			${module_options["module_openhab,feature"]} ${commands[4]}
 		;;
 	esac
 }

@@ -17,10 +17,9 @@ function module_jellyfin () {
 	local title="jellyfin"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/jellyfin?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/jellyfin?( |$)/{print $3}')
-	fi
+	pkg_installed docker.io || module_docker install
+	local container=$(docker container ls -a --filter "name=jellyfin" --format '{{.ID}}')
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'jellyfin' | awk '{print $2}')
 
 	# Hardware acceleration
 	unset hwacc
@@ -55,7 +54,6 @@ function module_jellyfin () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
 			[[ -d "$JELLYFIN_BASE" ]] || mkdir -p "$JELLYFIN_BASE" || { echo "Couldn't create storage directory: $JELLYFIN_BASE"; exit 1; }
 			docker run -d \
 			--name=jellyfin \
@@ -71,23 +69,28 @@ function module_jellyfin () {
 			-v "${JELLYFIN_BASE}/config:/config" \
 			-v "${JELLYFIN_BASE}/tvseries:/data/tvshows" \
 			-v "${JELLYFIN_BASE}/movies:/data/movies" \
-			--restart unless-stopped \
+			--restart=always \
 			lscr.io/linuxserver/jellyfin:latest
 			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' jellyfin >/dev/null 2>&1 ; then
-					break
-				else
-					sleep 3
+				state="$(docker inspect -f '{{.State.Status}}' jellyfin 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
+				break
 				fi
-				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs jellyfin\`)"
+				sleep 3
+				if [[ $i -eq 20 ]]; then
+					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs jellyfin\`)"
 					exit 1
 				fi
 			done
 		;;
 		"${commands[1]}")
-			if [[ "${container}" ]]; then docker container rm -f "$container" >/dev/null; fi
-			if [[ "${image}" ]]; then docker image rm "$image" >/dev/null; fi
+			if [[ "${container}" ]]; then
+				echo "Removing container: $container"
+				docker container rm -f "$container"
+			fi
+			if [[ "${image}" ]]; then
+				docker image rm "$image"
+			fi
 			# Drop udev rules upon app removal
 			rm -f "/etc/udev/rules.d/50-rk3588-mpp.rules"
 			udevadm control --reload-rules && udevadm trigger
@@ -110,6 +113,7 @@ function module_jellyfin () {
 			echo -e "\tinstall\t- Install $title."
 			echo -e "\tstatus\t- Installation status $title."
 			echo -e "\tremove\t- Remove $title."
+			echo -e "\tpurge\t- Purge $title."
 			echo
 		;;
 		*)

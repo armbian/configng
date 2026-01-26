@@ -17,10 +17,9 @@ function module_prometheus () {
 	local title="prometheus"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/prometheus?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/prometheus?( |$)/{print $3}')
-	fi
+	pkg_installed docker.io || module_docker install
+	local container=$(docker container ls -a --filter "name=prometheus" --format '{{.ID}}')
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'prom' | awk '{print $2}')
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_prometheus,example"]}"
@@ -29,7 +28,6 @@ function module_prometheus () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
 			[[ -d "$PROMETHEUS_BASE" ]] || mkdir -p "$PROMETHEUS_BASE" || { echo "Couldn't create storage directory: $PROMETHEUS_BASE"; exit 1; }
 
 			# Create dummy prometheus config file if it is not exist
@@ -53,27 +51,35 @@ function module_prometheus () {
 			--net=lsio \
 			-p ${module_options["module_prometheus,port"]}:9090 \
 			-v "${PROMETHEUS_BASE}:/etc/prometheus" \
-			--restart unless-stopped \
+			--restart=always \
 			prom/prometheus
 			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' prometheus >/dev/null 2>&1 ; then
+				state="$(docker inspect -f '{{.State.Status}}' prometheus 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
 					break
-				else
-					sleep 3
 				fi
-				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs prometheus\`)"
+				sleep 3
+				if [[ $i -eq 20 ]]; then
+					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs prometheus\`)"
 					exit 1
 				fi
 			done
 		;;
 		"${commands[1]}")
-			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+			if [[ "${container}" ]]; then
+				echo "Removing container: $container"
+				docker container rm -f "$container"
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_prometheus,feature"]} ${commands[1]}
-			[[ -n "${PROMETHEUS_BASE}" && "${PROMETHEUS_BASE}" != "/" ]] && rm -rf "${PROMETHEUS_BASE}"
+			if [[ "${image}" ]]; then
+				docker image rm "$image"
+			fi
+			${module_options["module_prometheus,feature"]} ${commands[1]}
+			if [[ -n "${PROMETHEUS_BASE}" && "${PROMETHEUS_BASE}" != "/" ]]; then
+				rm -rf "${PROMETHEUS_BASE}"
+			fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then

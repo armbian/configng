@@ -48,10 +48,9 @@ function module_netalertx () {
 	local title="netalertx"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/netalertx( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/netalertx( |$)/{print $3}')
-	fi
+	pkg_installed docker.io || module_docker install
+	local container=$(docker container ls -a --filter "name=netalertx" --format '{{.ID}}')
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'netalertx' | awk '{print $2}')
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_netalertx,example"]}"
@@ -60,7 +59,6 @@ function module_netalertx () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
 			[[ -d "$NETALERTX_BASE" ]] || mkdir -p "$NETALERTX_BASE" || { echo "Couldn't create storage directory: $NETALERTX_BASE"; exit 1; }
 			docker run -d --rm --network=host \
 			--name=netalertx \
@@ -72,26 +70,33 @@ function module_netalertx () {
 			-v "${NETALERTX_BASE}/db:/app/db" \
 			--mount type=tmpfs,target=/app/api \
 			ghcr.io/jokob-sk/netalertx:latest
-
 			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' netalertx >/dev/null 2>&1 ; then
+				state="$(docker inspect -f '{{.State.Status}}' netalertx 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
 					break
-				else
-					sleep 3
 				fi
-				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs netalertx\`)"
+				sleep 3
+				if [[ $i -eq 20 ]]; then
+					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs netalertx\`)"
 					exit 1
 				fi
 			done
 		;;
 		"${commands[1]}")
-			if [[ "${container}" ]]; then docker container rm -f "$container" >/dev/null; fi
-			if [[ "${image}" ]]; then docker image rm "$image" >/dev/null; fi
+			if [[ "${container}" ]]; then
+				echo "Removing container: $container"
+				docker container rm -f "$container"
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_netalertx,feature"]} ${commands[1]}
-			if [[ -n "${NETALERTX_BASE}" && "${NETALERTX_BASE}" != "/" ]]; then rm -rf "${NETALERTX_BASE}"; fi
+			if [[ "${image}" ]]; then
+				docker image rm "$image"
+			fi
+			${module_options["module_netalertx,feature"]} ${commands[1]}
+			if [[ -n "${NETALERTX_BASE}" && "${NETALERTX_BASE}" != "/" ]]; then
+				rm -rf "${NETALERTX_BASE}"
+			fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then

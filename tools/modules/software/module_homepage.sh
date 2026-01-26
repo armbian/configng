@@ -17,10 +17,9 @@ function module_homepage () {
 	local title="homepage"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/homepage?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/homepage( |$ )/{print $3}')
-	fi
+	pkg_installed docker.io || module_docker install
+	local container=$(docker container ls -a --filter "name=homepage" --format '{{.ID}}')
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'homepage' | awk '{print $2}')
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_homepage,example"]}"
@@ -29,9 +28,7 @@ function module_homepage () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || install_docker
 			[[ -d "$HOMEPAGE_BASE" ]] || mkdir -p "$HOMEPAGE_BASE" || { echo "Couldn't create storage directory: $HOMEPAGE_BASE"; exit 1; }
-
 			docker run -d \
 			--net=lsio \
 			--name homepage \
@@ -41,27 +38,35 @@ function module_homepage () {
 			-p ${module_options["module_homepage,port"]}:3000 \
 			-v "${HOMEPAGE_BASE}/config:/app/config" \
 			-v /var/run/docker.sock:/var/run/docker.sock:ro \
-			--restart unless-stopped \
+			--restart=always \
 			ghcr.io/gethomepage/homepage:latest
 			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' homepage >/dev/null 2>&1 ; then
+				state="$(docker inspect -f '{{.State.Status}}' homepage 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
 					break
-				else
-					sleep 3
 				fi
-				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs homepage\`)"
+				sleep 3
+				if [[ $i -eq 20 ]]; then
+					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs homepage\`)"
 					exit 1
 				fi
 			done
 		;;
 		"${commands[1]}")
-			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+			if [[ "${container}" ]]; then
+				echo "Removing container: $container"
+				docker container rm -f "$container"
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_homepage,feature"]} ${commands[1]}
-			[[ -n "${HOMEPAGE_BASE}" && "${HOMEPAGE_BASE}" != "/" ]] && rm -rf "${HOMEPAGE_BASE}"
+			if [[ "${image}" ]]; then
+				docker image rm "$image"
+			fi
+			${module_options["module_homepage,feature"]} ${commands[1]}
+			if [[ -n "${HOMEPAGE_BASE}" && "${HOMEPAGE_BASE}" != "/" ]]; then
+				rm -rf "${HOMEPAGE_BASE}"
+			fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then

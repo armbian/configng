@@ -14,11 +14,12 @@ module_options+=(
 # Module qbittorrent
 #
 function module_qbittorrent () {
+	local title="qbittorrent"
+	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/qbittorrent?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/qbittorrent?( |$)/{print $3}')
-	fi
+	pkg_installed docker.io || module_docker install
+	local container=$(docker container ls -a --filter "name=qbittorrent" --format '{{.ID}}')
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'qbittorrent' | awk '{print $2}')
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_qbittorrent,example"]}"
@@ -27,7 +28,6 @@ function module_qbittorrent () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
 			[[ -d "$QBITTORRENT_BASE" ]] || mkdir -p "$QBITTORRENT_BASE" || { echo "Couldn't create storage directory: $QBITTORRENT_BASE"; exit 1; }
 			docker run -d \
 			--name=qbittorrent \
@@ -42,16 +42,16 @@ function module_qbittorrent () {
 			-p 6881:6881/udp \
 			-v "${QBITTORRENT_BASE}/config:/config" \
 			-v "${QBITTORRENT_BASE}/downloads:/downloads" `#optional` \
-			--restart unless-stopped \
+			--restart=always \
 			lscr.io/linuxserver/qbittorrent:latest
 			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' qbittorrent >/dev/null 2>&1 ; then
-					break
-				else
-					sleep 3
+				state="$(docker inspect -f '{{.State.Status}}' qbittorrent 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
+				break
 				fi
-				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs qbittorrent\`)"
+				sleep 3
+				if [[ $i -eq 20 ]]; then
+					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs qbittorrent\`)"
 					exit 1
 				fi
 			done
@@ -60,12 +60,20 @@ function module_qbittorrent () {
 			dialog --msgbox "Qbittorrent is listening at http://$LOCALIPADD:${module_options["module_qbittorrent,port"]% *}\n\nLogin as: admin\n\nTemporally password: ${TEMP_PASSWORD} " 9 70
 		;;
 		"${commands[1]}")
-			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+			if [[ "${container}" ]]; then
+				echo "Removing container: $container"
+				docker container rm -f "$container"
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_qbittorrent,feature"]} ${commands[1]}
-			[[ -n "${QBITTORRENT_BASE}" && "${QBITTORRENT_BASE}" != "/" ]] && rm -rf "${QBITTORRENT_BASE}"
+			if [[ "${image}" ]]; then
+				docker image rm "$image"
+			fi
+			${module_options["module_qbittorrent,feature"]} ${commands[1]}
+			if [[ -n "${QBITTORRENT_BASE}" && "${QBITTORRENT_BASE}" != "/" ]]; then
+				rm -rf "${QBITTORRENT_BASE}"
+			fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then
@@ -81,7 +89,7 @@ function module_qbittorrent () {
 			echo -e "\tinstall\t- Install $title."
 			echo -e "\tstatus\t- Installation status $title."
 			echo -e "\tremove\t- Remove $title."
-			echo -e "\tpurge\t- Remove $title."
+			echo -e "\tpurge\t- Purge $title."
 			echo
 		;;
 		*)

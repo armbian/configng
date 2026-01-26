@@ -17,10 +17,9 @@ function module_domoticz () {
 	local title="domoticz"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/domoticz?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/domoticz?( |$)/{print $3}')
-	fi
+	pkg_installed docker.io || module_docker install
+	local container=$(docker container ls -a --filter "name=domoticz" --format '{{.ID}}')
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'domoticz' | awk '{print $2}')
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_domoticz,example"]}"
@@ -29,7 +28,6 @@ function module_domoticz () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
 			[[ -d "$DOMOTICZ_BASE" ]] || mkdir -p "$DOMOTICZ_BASE" || { echo "Couldn't create storage directory: $DOMOTICZ_BASE"; exit 1; }
 			docker run -d \
 			--name=domoticz \
@@ -42,29 +40,31 @@ function module_domoticz () {
 			-p ${module_options["module_domoticz,port"]}:8080 \
 			-p 8443:443 \
 			-v "${DOMOTICZ_BASE}:/opt/domoticz/userdata" \
-			--restart unless-stopped \
+			--restart=always \
 			domoticz/domoticz:stable
 			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' domoticz >/dev/null 2>&1 ; then
+				state="$(docker inspect -f '{{.State.Status}}' domoticz 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
 					break
-				else
-					sleep 3
 				fi
-				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs domoticz\`)"
+				sleep 3
+				if [[ $i -eq 20 ]]; then
+					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs domoticz\`)"
 					exit 1
 				fi
 			done
 		;;
 		"${commands[1]}")
 			if [[ "${container}" ]]; then
-				docker container rm -f "$container" >/dev/null
-			fi
-			if [[ "${image}" ]]; then
-				docker image rm "$image" >/dev/null
+				echo "Removing container: $container"
+				docker container rm -f "$container"
 			fi
 		;;
 		"${commands[2]}")
+			${module_options["module_domoticz,feature"]} ${commands[1]}
+			if [[ "${image}" ]]; then
+				docker image rm "$image"
+			fi
 			${module_options["module_domoticz,feature"]} ${commands[1]}
 			if [[ -n "${DOMOTICZ_BASE}" && "${DOMOTICZ_BASE}" != "/" ]]; then
 				rm -rf "${DOMOTICZ_BASE}"

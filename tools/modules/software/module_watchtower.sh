@@ -17,37 +17,38 @@ function module_watchtower () {
 	local title="watchtower"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/watchtower?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/watchtower?( |$)/{print $3}')
-	fi
+	pkg_installed docker.io || module_docker install
+	local container=$(docker container ls -a --filter "name=watchtower" --format '{{.ID}}')
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'watchtower' | awk '{print $2}')
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_watchtower,example"]}"
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
 			docker run -d \
 			--net=lsio \
-			--name watchtower \
+			--name=watchtower \
 			-v /var/run/docker.sock:/var/run/docker.sock \
+			--restart=always \
 			containrrr/watchtower
 			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' watchtower >/dev/null 2>&1 ; then
-					break
-				else
-					sleep 3
+				state="$(docker inspect -f '{{.State.Status}}' watchtower 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
+				break
 				fi
-				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs watchtower\`)"
+				sleep 3
+				if [[ $i -eq 20 ]]; then
+					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs watchtower\`)"
 					exit 1
 				fi
 			done
 		;;
 		"${commands[1]}")
-			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+			if [[ "${container}" ]]; then
+				echo "Removing container: $container"
+				docker container rm -f "$container"
+			fi
 		;;
 		"${commands[2]}")
 			if [[ "${container}" && "${image}" ]]; then
@@ -66,7 +67,7 @@ function module_watchtower () {
 			echo
 		;;
 		*)
-		${module_options["module_watchtower,feature"]} ${commands[3]}
+			${module_options["module_watchtower,feature"]} ${commands[3]}
 		;;
 	esac
 }

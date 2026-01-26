@@ -15,10 +15,9 @@ function module_filebrowser () {
 	local title="filebrowser"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/filebrowser?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/filebrowser?( |$)/{print $3}')
-	fi
+	pkg_installed docker.io || module_docker install
+	local container=$(docker container ls -a --filter "name=filebrowser" --format '{{.ID}}')
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'filebrowser' | awk '{print $2}')
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_filebrowser,example"]}"
@@ -27,9 +26,7 @@ function module_filebrowser () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
 			[[ -d "$FILEBROWSER_BASE" ]] || mkdir -p "$FILEBROWSER_BASE" || { echo "Couldn't create storage directory: $FILEBROWSER_BASE"; exit 1; }
-
 			docker run -d \
 			--net=lsio \
 			--name=filebrowser \
@@ -41,28 +38,32 @@ function module_filebrowser () {
 			-e PUID=1000 \
 			-e PGID=1000 \
 			-p ${module_options["module_filebrowser,port"]}:80 \
-			--restart unless-stopped \
+			--restart=always \
 			filebrowser/filebrowser \
 			--database /database/filebrowser.db
-
-			sleep 3
-			if docker inspect -f '{{ .State.Running }}' filebrowser 2>/dev/null | grep true; then
-				echo "Filebrowser installed and running."
-			else
-				echo "Filebrowser failed to start. Check logs with: docker logs filebrowser"
-				exit 1
-			fi
+			for i in $(seq 1 20); do
+				state="$(docker inspect -f '{{.State.Status}}' filebrowser 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
+					break
+				fi
+				sleep 3
+				if [[ $i -eq 20 ]]; then
+					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs filebrowser\`)"
+					exit 1
+				fi
+			done
 		;;
 		"${commands[1]}")
 			if [[ "${container}" ]]; then
-				docker container rm -f "$container" >/dev/null
-			fi
-
-			if [[ "${image}" ]]; then
-				docker image rm "$image" >/dev/null
+				echo "Removing container: $container"
+				docker container rm -f "$container"
 			fi
 		;;
 		"${commands[2]}")
+			${module_options["module_filebrowser,feature"]} ${commands[1]}
+			if [[ "${image}" ]]; then
+				docker image rm "$image"
+			fi
 			${module_options["module_filebrowser,feature"]} ${commands[1]}
 			if [[ -n "${FILEBROWSER_BASE}" && "${FILEBROWSER_BASE}" != "/" ]]; then
 				rm -rf "${FILEBROWSER_BASE}"

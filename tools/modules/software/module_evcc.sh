@@ -17,10 +17,9 @@ function module_evcc () {
 	local title="evcc"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/evcc?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/evcc?( |$)/{print $3}')
-	fi
+	pkg_installed docker.io || module_docker install
+	local container=$(docker container ls -a --filter "name=evcc" --format '{{.ID}}')
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'evcc' | awk '{print $2}')
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_evcc,example"]}"
@@ -29,12 +28,11 @@ function module_evcc () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
 			[[ -d "$EVCC_BASE" ]] || mkdir -p "$EVCC_BASE" || { echo "Couldn't create storage directory: $EVCC_BASE"; exit 1; }
 			touch "${EVCC_BASE}/evcc.yaml"
 			docker run -d \
 			--net=lsio \
-			--name evcc \
+			--name=evcc \
 			-v "${EVCC_BASE}/evcc.yaml:/app/evcc.yaml" \
 			-v "${EVCC_BASE}/.evcc:/root/.evcc" \
 			-v /etc/machine-id:/etc/machine-id \
@@ -42,28 +40,31 @@ function module_evcc () {
 			-p 8887:8887 \
 			-p 9522:9522/udp \
 			-p 4712:4712 \
+			--restart=always \
 			evcc/evcc:latest
 			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' evcc >/dev/null 2>&1 ; then
-					break
-				else
-					sleep 3
+				state="$(docker inspect -f '{{.State.Status}}' evcc 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
+				break
 				fi
-				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs evcc\`)"
+				sleep 3
+				if [[ $i -eq 20 ]]; then
+					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs evcc\`)"
 					exit 1
 				fi
 			done
 		;;
 		"${commands[1]}")
 			if [[ "${container}" ]]; then
-				docker container rm -f "$container" >/dev/null
-			fi
-			if [[ "${image}" ]]; then
-				docker image rm "$image" >/dev/null
+				echo "Removing container: $container"
+				docker container rm -f "$container"
 			fi
 		;;
 		"${commands[2]}")
+			${module_options["module_evcc,feature"]} ${commands[1]}
+			if [[ "${image}" ]]; then
+				docker image rm "$image"
+			fi
 			${module_options["module_evcc,feature"]} ${commands[1]}
 			if [[ -n "${EVCC_BASE}" && "${EVCC_BASE}" != "/" ]]; then
 				rm -rf "${EVCC_BASE}"
@@ -84,7 +85,6 @@ function module_evcc () {
 			echo -e "\tremove\t- Remove $title."
 			echo -e "\tpurge\t- Purge $title data folder."
 			echo -e "\tstatus\t- Installation status $title."
-
 			echo
 		;;
 		*)
