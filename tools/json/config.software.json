@@ -2231,7 +2231,7 @@
                             ],
                             "status": "Enabled",
                             "author": "@armbian",
-                            "condition": "! module_wireguard image"
+                            "condition": "! module_wireguard status"
                         },
                         {
                             "id": "WRG002",
@@ -2242,7 +2242,7 @@
                             ],
                             "status": "Enabled",
                             "author": "@armbian",
-                            "condition": "! module_wireguard servermode"
+                            "condition": "! module_wireguard status"
                         },
                         {
                             "id": "WRG003",
@@ -2253,7 +2253,7 @@
                             ],
                             "status": "Enabled",
                             "author": "@armbian",
-                            "condition": "module_wireguard image || module_wireguard container"
+                            "condition": "module_wireguard status"
                         },
                         {
                             "id": "WRG004",
@@ -2263,7 +2263,7 @@
                             ],
                             "status": "Enabled",
                             "author": "@armbian",
-                            "condition": "module_wireguard servermode"
+                            "condition": "module_wireguard status server"
                         },
                         {
                             "id": "WRG005",
@@ -2274,7 +2274,7 @@
                             ],
                             "status": "Enabled",
                             "author": "@armbian",
-                            "condition": "module_wireguard image"
+                            "condition": "module_wireguard status"
                         },
                         {
                             "id": "ZTR001",
