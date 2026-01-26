@@ -40,7 +40,7 @@ function module_readarr () {
 			-v "${READARR_BASE}/books:/books" `#optional` \
 			-v "${READARR_BASE}/client:/downloads" `#optional` \
 			--restart=always \
-			lscr.io/linuxserver/readarr:develop
+			lscr.io/linuxserver/readarr:latest
 			for i in $(seq 1 20); do
 				state="$(docker inspect -f '{{.State.Status}}' readarr 2>/dev/null || true)"
 				if [[ "$state" == "running" ]]; then
