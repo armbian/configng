@@ -1061,7 +1061,7 @@ These helper functions facilitate various operations related to job management, 
 | Install lidarr container | install remove purge status help | @armbian 
 | Check if a domain is reachable via IPv4 and IPv6 | check_ip_version google.com | @Tearran 
 | Install package | pkg_install neovim | @dimitry-ishenko 
-| Install wireguard container | pull client server remove purge qrcode image container servermode help | @armbian 
+| Install wireguard container | install client server remove purge qrcode status help | @armbian 
 | Secure Web Application Gateway  | install remove purge status password help | @igorpecovnik 
 | Install deluge container | install remove purge status help | @igorpecovnik 
 | Set Armbian root filesystem to read only | install remove status help | @igorpecovnik 
