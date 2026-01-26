@@ -22,13 +22,13 @@ function module_immich () {
 	local DATABASE_PASSWORD="immich"
 	local DATABASE_NAME="immich"
 	local DATABASE_HOST="postgres-immich"
-	local DATABASE_IMAGE="tensorchord/pgvecto-rs:pg14-v0.2.0"
+	local DATABASE_IMAGE="tensorchord/pgvecto-rs"
+	local DATABASE_TAG="pg14-v0.2.0"
 	local DATABASE_PORT="5432"
 
-	if pkg_installed docker-ce; then
-		local container=$(docker ps -q -f "name=^immich$")
-		local image=$(docker images -q ghcr.io/imagegenius/immich)
-	fi
+	pkg_installed docker.io || module_docker install
+	local container=$(docker container ls -a --filter "name=immich" --format '{{.ID}}')
+	local image=$(docker image ls -a --format '{{.Repository}}:{{.Tag}}' | grep 'ghcr.io/imagegenius/immich:' | head -1)
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_immich,example"]}"
@@ -37,11 +37,10 @@ function module_immich () {
 
 	case "$1" in
 		"${commands[0]}")
-			shift
-
-
-			if ! pkg_installed docker-ce; then
-				module_docker install
+			# Check if the module is already installed
+			if [[ "${container}" && "${image}" ]]; then
+				echo "Immich container is already installed."
+				exit 0
 			fi
 
 			# workaround if we re-install
@@ -55,7 +54,7 @@ function module_immich () {
 			# Install armbian-config dependencies
 			if ! docker container ls -a --format '{{.Names}}' | grep -q '^redis$'; then module_redis install; fi
 			if ! docker container ls -a --format '{{.Names}}' | grep "^$DATABASE_HOST$"; then
-				module_postgres install $DATABASE_USER $DATABASE_PASSWORD $DATABASE_NAME $DATABASE_IMAGE $DATABASE_HOST
+				module_postgres install $DATABASE_USER $DATABASE_PASSWORD $DATABASE_NAME $DATABASE_IMAGE $DATABASE_TAG $DATABASE_HOST
 			fi
 
 			until docker exec -i $DATABASE_HOST psql -U $DATABASE_USER -c '\q' 2>/dev/null; do
@@ -106,7 +105,7 @@ function module_immich () {
 			sleep 5
 
 			if [ -t 1 ]; then
-				for s in {1..30}; do
+				for s in {1..10}; do
 					for i in {0..100..10}; do
 						echo "$i"
 						sleep 1
@@ -117,7 +116,7 @@ function module_immich () {
 				done | $DIALOG --gauge "Starting Immich\n\nPlease wait..." 10 50 0
 			else
 				echo "Waiting for Immich to become available..."
-				for s in {1..30}; do
+				for s in {1..10}; do
 					sleep 10
 					if curl -sf http://localhost:${module_options["module_immich,port"]}/ > /dev/null; then
 						echo "✅ Immich is responding."
@@ -127,22 +126,23 @@ function module_immich () {
 			fi
 		;;
 		"${commands[1]}")
-			if [ -n "$container" ]; then
-				docker container rm -f "$container" >/dev/null
+			if [[ "${container}" ]]; then
+				echo "Removing container: $container"
+				docker container rm -f "$container"
 			fi
 		;;
 		"${commands[2]}")
-			module_immich "${commands[1]}"
-			if [ -n "$image" ]; then
-				docker image rm -f "$image"
+			${module_options["module_immich,feature"]} ${commands[1]}
+			if [[ "${image}" ]]; then
+				docker image rm "$image"
 			fi
 			module_postgres purge $DATABASE_USER $DATABASE_PASSWORD $DATABASE_NAME $DATABASE_IMAGE $DATABASE_HOST
-			if [ -n "$IMMICH_BASE" ] && [ "$IMMICH_BASE" != "/" ]; then
-				rm -rf "$IMMICH_BASE"
+			if [[ -n "${IMMICH_BASE}" && "${IMMICH_BASE}" != "/" ]]; then
+				rm -rf "${IMMICH_BASE}"
 			fi
 		;;
 		"${commands[3]}")
-			if [ -n "$container" ] && [ -n "$image" ]; then
+			if [[ "${container}" && "${image}" ]]; then
 				return 0
 			else
 				return 1
@@ -151,15 +151,15 @@ function module_immich () {
 		"${commands[4]}")
 			echo -e "\nUsage: ${module_options["module_immich,feature"]} <command>"
 			echo -e "Commands:  ${module_options["module_immich,example"]}"
+			echo "Available commands:"
 			echo -e "\tinstall\t- Install $title."
 			echo -e "\tremove\t- Remove $title."
 			echo -e "\tpurge\t- Purge $title data folder."
 			echo -e "\tstatus\t- Installation status $title."
-			echo -e "\thelp\t- Show this help message."
 			echo
 		;;
 		*)
-			module_immich "${commands[4]}"
+			${module_options["module_immich,feature"]} ${commands[4]}
 		;;
 	esac
 }

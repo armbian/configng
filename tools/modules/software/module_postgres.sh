@@ -23,7 +23,8 @@ function module_postgres () {
 	local POSTGRES_PASSWORD="$3"
 	local POSTGRES_DB="$4"
 	local POSTGRES_IMAGE="$5"
-	local POSTGRES_CONTAINER="$6"
+	local POSTGRES_TAG="$6"
+	local POSTGRES_CONTAINER="$7"
 
 	# Defaults if nothing is set
 	POSTGRES_USER="${POSTGRES_USER:-armbian}"
