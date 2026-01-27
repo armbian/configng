@@ -72,7 +72,8 @@ Timed out waiting for ${title} to start, consult logs (\`docker logs sabnzbd\`)"
 		"${commands[2]}")
 			${module_options["module_sabnzbd,feature"]} ${commands[1]}
 			if [[ "${image}" ]]; then
-				docker image rm "$image"
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
 			fi
 			${module_options["module_sabnzbd,feature"]} ${commands[1]}
 			if [[ -n "${SABNZBD_BASE}" && "${SABNZBD_BASE}" != "/" ]]; then

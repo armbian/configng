@@ -71,7 +71,8 @@ function module_embyserver () {
 		"${commands[2]}")
 			${module_options["module_embyserver,feature"]} ${commands[1]}
 			if [[ "${image}" ]]; then
-				docker image rm "$image"
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
 			fi
 			if [[ -n "${EMBY_BASE}" && "${EMBY_BASE}" != "/" ]]; then
 				rm -rf "${EMBY_BASE}"

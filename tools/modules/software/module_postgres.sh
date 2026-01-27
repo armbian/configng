@@ -88,7 +88,8 @@ Timed out waiting for ${title} to start, consult logs (\`docker logs ${POSTGRES_
 		"${commands[2]}")
 			${module_options["module_postgres,feature"]} ${commands[1]} $POSTGRES_USER $POSTGRES_PASSWORD $POSTGRES_DB $POSTGRES_IMAGE $POSTGRES_CONTAINER
 			if [[ "${image}" ]]; then
-				docker image rm "$image"
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
 			fi
 			${module_options["module_postgres,feature"]} ${commands[1]} $POSTGRES_USER $POSTGRES_PASSWORD $POSTGRES_DB $POSTGRES_IMAGE $POSTGRES_CONTAINER
 			if [[ -n "${POSTGRES_BASE}" && "${POSTGRES_BASE}" != "/" ]]; then

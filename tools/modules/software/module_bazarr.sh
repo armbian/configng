@@ -71,7 +71,8 @@ function module_bazarr () {
 		"${commands[2]}")
 			${module_options["module_bazarr,feature"]} ${commands[1]}
 			if [[ "${image}" ]]; then
-				docker image rm "$image"
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
 			fi
 			${module_options["module_bazarr,feature"]} ${commands[1]}
 			if [[ -n "${BAZARR_BASE}" && "${BAZARR_BASE}" != "/" ]]; then

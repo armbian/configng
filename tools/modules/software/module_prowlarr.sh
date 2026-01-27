@@ -69,7 +69,8 @@ function module_prowlarr () {
 		"${commands[2]}")
 			${module_options["module_prowlarr,feature"]} ${commands[1]}
 			if [[ "${image}" ]]; then
-				docker image rm "$image"
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
 			fi
 			${module_options["module_prowlarr,feature"]} ${commands[1]}
 			if [[ -n "${PROWLARR_BASE}" && "${PROWLARR_BASE}" != "/" ]]; then

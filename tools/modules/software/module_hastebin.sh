@@ -75,7 +75,8 @@ function module_hastebin () {
 		"${commands[2]}")
 			${module_options["module_hastebin,feature"]} ${commands[1]}
 			if [[ "${image}" ]]; then
-				docker image rm "$image"
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
 			fi
 			if [[ -n "${HASTEBIN_BASE}" && "${HASTEBIN_BASE}" != "/" ]]; then
 				rm -rf "${HASTEBIN_BASE}"

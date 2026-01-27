@@ -68,7 +68,8 @@ function module_actualbudget () {
 		"${commands[2]}")
 			${module_options["module_actualbudget,feature"]} ${commands[1]}
 			if [[ "${image}" ]]; then
-				docker image rm "$image"
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
 			fi
 			${module_options["module_actualbudget,feature"]} ${commands[1]}
 			if [[ -n "${ACTUALBUDGET_BASE}" && "${ACTUALBUDGET_BASE}" != "/" ]]; then

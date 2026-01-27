@@ -82,7 +82,8 @@ function module_qbittorrent () {
 		"${commands[2]}")
 			${module_options["module_qbittorrent,feature"]} ${commands[1]}
 			if [[ "${image}" ]]; then
-				docker image rm "$image"
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
 			fi
 			if [[ -n "${QBITTORRENT_BASE}" && "${QBITTORRENT_BASE}" != "/" ]]; then
 				rm -rf "${QBITTORRENT_BASE}"

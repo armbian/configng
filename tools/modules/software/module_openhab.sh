@@ -76,7 +76,8 @@ function module_openhab() {
 		"${commands[2]}")
 			${module_options["module_openhab,feature"]} ${commands[1]}
 			if [[ "${image}" ]]; then
-				docker image rm "$image"
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
 			fi
 			${module_options["module_openhab,feature"]} ${commands[1]}
 			if [[ -n "${OPENHAB_BASE}" && "${OPENHAB_BASE}" != "/" ]]; then

@@ -71,7 +71,8 @@ function module_sonarr () {
 		"${commands[2]}")
 			${module_options["module_sonarr,feature"]} ${commands[1]}
 			if [[ "${image}" ]]; then
-				docker image rm "$image"
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
 			fi
 			if [[ -n "${SONARR_BASE}" && "${SONARR_BASE}" != "/" ]]; then
 				rm -rf "${SONARR_BASE}"

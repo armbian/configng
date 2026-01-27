@@ -86,7 +86,8 @@ function module_unbound () {
 				docker container rm -f "$container"
 			fi
 			if [[ "${image}" ]]; then
-				docker image rm "$image"
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
 			fi
 		;;
 		"${commands[2]}")

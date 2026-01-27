@@ -133,7 +133,14 @@ function module_immich () {
 		"${commands[1]}")
 			if [[ "${container}" ]]; then
 				echo "Removing container: $container"
-				docker container rm -f "$container"
+				docker container rm -f "$container" 2>/dev/null || true
+				# Wait for container to be fully removed
+				for i in $(seq 1 10); do
+					if ! docker container ls -a --format '{{.ID}}' | grep -q "^${container}$"; then
+						break
+					fi
+					sleep 1
+				done
 			fi
 		;;
 		"${commands[2]}")

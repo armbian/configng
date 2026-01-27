@@ -97,7 +97,8 @@ function module_jellyfin () {
 				docker container rm -f "$container"
 			fi
 			if [[ "${image}" ]]; then
-				docker image rm "$image"
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
 			fi
 			# Drop udev rules upon app removal
 			rm -f "/etc/udev/rules.d/50-rk3588-mpp.rules"
