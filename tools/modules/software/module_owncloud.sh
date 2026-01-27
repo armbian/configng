@@ -66,7 +66,6 @@ function module_owncloud () {
 			if [[ "${image}" ]]; then
 				docker image rm "$image"
 			fi
-			${module_options["module_owncloud,feature"]} ${commands[1]}
 			if [[ -n "${OWNCLOUD_BASE}" && "${OWNCLOUD_BASE}" != "/" ]]; then
 				rm -rf "${OWNCLOUD_BASE}"
 			fi

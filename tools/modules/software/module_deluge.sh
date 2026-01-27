@@ -69,7 +69,6 @@ function module_deluge () {
 			if [[ "${image}" ]]; then
 				docker image rm "$image"
 			fi
-			${module_options["module_deluge,feature"]} ${commands[1]}
 			if [[ -n "${DELUGE_BASE}" && "${DELUGE_BASE}" != "/" ]]; then
 				rm -rf "${DELUGE_BASE}"
 			fi
