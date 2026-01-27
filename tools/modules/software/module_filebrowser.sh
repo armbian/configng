@@ -15,7 +15,9 @@ function module_filebrowser () {
 	local title="filebrowser"
 	local condition=$(which "$title" 2>/dev/null)
 
-	pkg_installed docker.io || module_docker install
+	if ! module_docker status >/dev/null 2>&1; then
+		module_docker install
+	fi
 	local container=$(docker container ls -a --filter "name=filebrowser" --format '{{.ID}}')
 	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'filebrowser' | awk '{print $2}')
 

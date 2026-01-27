@@ -48,7 +48,9 @@ function module_netalertx () {
 	local title="netalertx"
 	local condition=$(which "$title" 2>/dev/null)
 
-	pkg_installed docker.io || module_docker install
+	if ! module_docker status >/dev/null 2>&1; then
+		module_docker install
+	fi
 	local container=$(docker container ls -a --filter "name=netalertx" --format '{{.ID}}')
 	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'netalertx' | awk '{print $2}')
 
@@ -56,6 +58,8 @@ function module_netalertx () {
 	IFS=' ' read -r -a commands <<< "${module_options["module_netalertx,example"]}"
 
 	NETALERTX_BASE="${SOFTWARE_FOLDER}/netalertx"
+
+	NETALERTX_NO_TMPFS=1
 
 	case "$1" in
 		"${commands[0]}")
@@ -67,6 +71,20 @@ function module_netalertx () {
 				device_params="--device /dev/tty"
 			fi
 
+			# Check if we should use tmpfs for /app/api (requires sufficient RAM)
+			# Set NETALERTX_NO_TMPFS=1 to disable tmpfs and use disk instead
+			local mount_params=""
+			if [[ "${NETALERTX_NO_TMPFS}" != "1" ]]; then
+				# Get available memory in MB
+				local available_mem=$(free -m | awk '/^Mem:/{print $7}')
+				# Only use tmpfs if we have at least 512MB available RAM
+				if [[ $available_mem -ge 512 ]]; then
+					mount_params="--mount type=tmpfs,target=/app/api"
+				else
+					echo "Warning: Insufficient RAM for tmpfs mount. /app/api will use disk storage."
+				fi
+			fi
+
 			docker run -d --rm --network=host \
 			--name=netalertx \
 			$device_params \
@@ -76,7 +94,7 @@ function module_netalertx () {
 			-e PORT=20211 \
 			-v "${NETALERTX_BASE}/config:/app/config" \
 			-v "${NETALERTX_BASE}/db:/app/db" \
-			--mount type=tmpfs,target=/app/api \
+			$mount_params \
 			ghcr.io/jokob-sk/netalertx:latest
 			for i in $(seq 1 20); do
 				state="$(docker inspect -f '{{.State.Status}}' netalertx 2>/dev/null || true)"
