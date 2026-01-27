@@ -1,17 +1,17 @@
 
 module_options+=(
-	["see_ping,author"]="@Tearran"
-	["see_ping,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#632"
-	["see_ping,feature"]="see_ping"
-	["see_ping,desc"]="Check the internet connection with fallback DNS"
-	["see_ping,example"]="see_ping"
-	["see_ping,doc_link"]=""
-	["see_ping,status"]="review"
+	["module_see_ping,author"]="@Tearran"
+	["module_see_ping,ref_link"]="https://github.com/Tearran/configng/blob/main/config.ng.functions.sh#632"
+	["module_see_ping,feature"]="see_ping"
+	["module_see_ping,desc"]="Check the internet connection with fallback DNS"
+	["module_see_ping,example"]="see_ping"
+	["module_see_ping,doc_link"]=""
+	["module_see_ping,status"]="review"
 )
 #
 # Function to check the internet connection
 #
-function see_ping() {
+function module_see_ping() {
 	# List of servers to ping
 	servers=("1.1.1.1" "8.8.8.8")
 

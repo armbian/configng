@@ -52,7 +52,7 @@
                             "short": "Add or Change",
                             "module": "module_generic",
                             "command": [
-                                "network_config armbian"
+                                "module_network_config armbian"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -62,7 +62,7 @@
                             "id": "NEA003",
                             "description": "Revert to Armbian defaults",
                             "command": [
-                                "default_network_config"
+                                "module_default_network_config"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -119,7 +119,7 @@
                     "description": "Bluetooth Discover",
                     "about": "This will enable bluetooth and discover devices\n",
                     "command": [
-                        "connect_bt_interface"
+                        "module_connect_bt_interface"
                     ],
                     "status": "Disabled",
                     "author": "@armbian",
@@ -130,7 +130,7 @@
                     "description": "Toggle system IPv6/IPv4 internet protocol",
                     "about": "This will toggle your internet protocol",
                     "command": [
-                        "toggle_ipv6 | show_infobox"
+                        "module_toggle_ipv6 | show_infobox"
                     ],
                     "status": "Disabled",
                     "author": "@armbian",

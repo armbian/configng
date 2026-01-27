@@ -1,16 +1,16 @@
 
 module_options+=(
-	["qr_code,author"]="@igorpecovnik"
-	["qr_code,ref_link"]=""
-	["qr_code,feature"]="qr_code"
-	["qr_code,desc"]="Show or generate QR code for Google OTP"
-	["qr_code,example"]="qr_code generate"
-	["qr_code,status"]="Active"
+	["module_qr_code,author"]="@igorpecovnik"
+	["module_qr_code,ref_link"]=""
+	["module_qr_code,feature"]="qr_code"
+	["module_qr_code,desc"]="Show or generate QR code for Google OTP"
+	["module_qr_code,example"]="module_qr_code generate"
+	["module_qr_code,status"]="Active"
 )
 #
 # check dpkg status of $1 -- currently only 'not installed at all' case caught
 #
-function qr_code() {
+function module_qr_code() {
 
 	clear
 	if [[ "$1" == "generate" ]]; then
