@@ -56,7 +56,7 @@ function module_openhab() {
 				sleep 3
 				if [[ $i -eq 20 ]]; then
 					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs openhab\`)"
-					exit 1
+					return 1
 				fi
 			done
 			;;
