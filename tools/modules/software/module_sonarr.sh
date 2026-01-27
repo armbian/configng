@@ -11,16 +11,21 @@ module_options+=(
 	["module_sonarr,arch"]="x86-64 arm64"
 )
 #
-# Mmodule_sonarr
+# Module sonarr
 #
 function module_sonarr () {
 	local title="sonarr"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/sonarr?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/sonarr?( |$)/{print $3}')
+	# Ensure Docker is available for commands that need it (install, remove, purge)
+	if [[ "$1" != "status" && "$1" != "help" ]]; then
+		if ! module_docker status >/dev/null 2>&1; then
+			module_docker install
+		fi
 	fi
+
+	local container=$(docker container ls -a --filter "name=sonarr" --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'sonarr' | awk '{print $2}') 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_sonarr,example"]}"
@@ -29,7 +34,9 @@ function module_sonarr () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$SONARR_BASE" ]] || mkdir -p "$SONARR_BASE" || { echo "Couldn't create storage directory: $SONARR_BASE"; exit 1; }
 			docker run -d \
 			--name=sonarr \
@@ -41,27 +48,35 @@ function module_sonarr () {
 			-v "${SONARR_BASE}/config:/config" \
 			-v "${SONARR_BASE}/tvseries:/tv" `#optional` \
 			-v "${SONARR_BASE}/client:/downloads" `#optional` \
-			--restart unless-stopped \
+			--restart=always \
 			lscr.io/linuxserver/sonarr:latest
 			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' sonarr >/dev/null 2>&1 ; then
-					break
-				else
-					sleep 3
+				state="$(docker inspect -f '{{.State.Status}}' sonarr 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
+				break
 				fi
-				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs sonarr\`)"
+				sleep 3
+				if [[ $i -eq 20 ]]; then
+					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs sonarr\`)"
 					exit 1
 				fi
 			done
 		;;
 		"${commands[1]}")
-			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+			if [[ "${container}" ]]; then
+				echo "Removing container: $container"
+				docker container rm -f "$container"
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_sonarr,feature"]} ${commands[1]}
-			[[ -n "${SONARR_BASE}" && "${SONARR_BASE}" != "/" ]] && rm -rf "${SONARR_BASE}"
+			if [[ "${image}" ]]; then
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
+			fi
+			if [[ -n "${SONARR_BASE}" && "${SONARR_BASE}" != "/" ]]; then
+				rm -rf "${SONARR_BASE}"
+			fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then

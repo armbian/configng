@@ -1,5 +1,5 @@
 module_options+=(
-	["module_redis,author"]=""
+	["module_redis,author"]="@armbian"
 	["module_redis,maintainer"]="@igorpecovnik"
 	["module_redis,feature"]="module_redis"
 	["module_redis,example"]="install remove purge status help"
@@ -17,10 +17,14 @@ function module_redis () {
 	local title="redis"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/redis?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/redis?( |$)/{print $3}')
+	# Ensure Docker is available for commands that need it (install, remove, purge)
+	if [[ "$1" != "status" && "$1" != "help" ]]; then
+		if ! module_docker status >/dev/null 2>&1; then
+			module_docker install
+		fi
 	fi
+	local container=$(docker container ls -a --filter "name=redis" --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'redis '| awk '{print $2}') 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_redis,example"]}"
@@ -29,37 +33,41 @@ function module_redis () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$REDIS_BASE" ]] || mkdir -p "$REDIS_BASE" || { echo "Couldn't create storage directory: $REDIS_BASE"; exit 1; }
 			docker run -d \
-			--name=redis \
 			--net=lsio \
+			--name redis \
+			--restart=always \
 			-p 6379:6379 \
 			-v "${REDIS_BASE}/data:/data" \
-			--restart unless-stopped \
 			redis:alpine
 			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "org.opencontainers.image.version" }}' redis >/dev/null 2>&1 ; then
-					break
-				else
-					sleep 3
+				state="$(docker inspect -f '{{.State.Status}}' redis 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
+				break
 				fi
-				if [ $i -eq 20 ]; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs redis\`)"
+				sleep 3
+				if [[ $i -eq 20 ]]; then
+					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs redis\`)"
 					exit 1
 				fi
 			done
 		;;
 		"${commands[1]}")
-			if [[ -n "${container}" ]]; then
-				docker container rm -f "$container" >/dev/null
-			fi
-
-			if [[ -n "${image}" ]]; then
-				docker image rm "$image" >/dev/null
+			if [[ "${container}" ]]; then
+				echo "Removing container: $container"
+				docker container rm -f "$container"
 			fi
 		;;
 		"${commands[2]}")
+			${module_options["module_redis,feature"]} ${commands[1]}
+			if [[ "${image}" ]]; then
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
+			fi
 			${module_options["module_redis,feature"]} ${commands[1]}
 			if [[ -n "${REDIS_BASE}" && "${REDIS_BASE}" != "/" ]]; then
 				rm -rf "${REDIS_BASE}"

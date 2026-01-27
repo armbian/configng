@@ -17,10 +17,14 @@ function module_adguardhome () {
 	local title="adguardhome"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/adguardhome?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/adguardhome?( |$)/{print $3}')
+	# Ensure Docker is available for commands that need it (install, remove, purge)
+	if [[ "$1" != "status" && "$1" != "help" ]]; then
+		if ! module_docker status >/dev/null 2>&1; then
+			module_docker install
+		fi
 	fi
+	local container=$(docker container ls -a --filter "name=adguardhome" --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'adguard' | awk '{print $2}') 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_adguardhome,example"]}"
@@ -29,7 +33,9 @@ function module_adguardhome () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$ADGUARDHOME_BASE" ]] || mkdir -p "$ADGUARDHOME_BASE" || { echo "Couldn't create storage directory: $ADGUARDHOME_BASE"; exit 1; }
 			if [[ ! -f "/etc/systemd/resolved.conf.d/armbian-defaults.conf" ]]; then
 				${module_options["module_adguardhome,feature"]} ${commands[1]}
@@ -42,20 +48,20 @@ function module_adguardhome () {
 			-v "${ADGUARDHOME_BASE}/workdir:/opt/adguardhome/work" \
 			-v "${ADGUARDHOME_BASE}/confdir:/opt/adguardhome/conf" \
 			--name adguardhome \
-			--restart=unless-stopped \
+			--restart=always \
 			adguard/adguardhome
 			#-p 67:67/udp -p 68:68/udp \ # add if you intend to use AdGuard Home as a DHCP server.
 			#-p 853:853/tcp \ # if you are going to run AdGuard Home as a DNS-over-TLS⁠ server.
 			#-p 5443:5443/tcp -p 5443:5443/udp \ add if you are going to run AdGuard Home as a DNSCrypt⁠ server.
 			# More info: https://hub.docker.com/r/adguard/adguardhome
 			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' adguardhome >/dev/null 2>&1 ; then
+				state="$(docker inspect -f '{{.State.Status}}' adguardhome 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
 					break
-				else
-					sleep 3
 				fi
-				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs adguardhome\`)"
+				sleep 3
+				if [[ $i -eq 20 ]]; then
+					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs adguardhome\`)"
 					exit 1
 				fi
 			done
@@ -73,10 +79,8 @@ function module_adguardhome () {
 		;;
 		"${commands[1]}")
 			if [[ "${container}" ]]; then
-				docker container rm -f "$container" >/dev/null
-			fi
-			if [[ "${image}" ]]; then
-				docker image rm "$image" >/dev/null
+				echo "Removing container: $container"
+				docker container rm -f "$container"
 			fi
 			# restore DNS settings
 			if srv_active systemd-resolved; then
@@ -90,6 +94,10 @@ function module_adguardhome () {
 			fi
 		;;
 		"${commands[2]}")
+			${module_options["module_adguardhome,feature"]} ${commands[1]}
+			if [[ "${image}" ]]; then
+				docker image rm "$image"
+			fi
 			${module_options["module_adguardhome,feature"]} ${commands[1]}
 			if [[ -n "${ADGUARDHOME_BASE}" && "${ADGUARDHOME_BASE}" != "/" ]]; then
 				rm -rf "${ADGUARDHOME_BASE}"

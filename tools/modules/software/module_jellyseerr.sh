@@ -17,10 +17,15 @@ function module_jellyseerr () {
 	local title="jellyseerr"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/jellyseerr?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/jellyseerr?( |$)/{print $3}')
+	# Ensure Docker is available for commands that need it (install, remove, purge)
+	if [[ "$1" != "status" && "$1" != "help" ]]; then
+		if ! module_docker status >/dev/null 2>&1; then
+			module_docker install
+		fi
 	fi
+
+	local container=$(docker container ls -a --filter "name=jellyseerr" --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'jellyseerr' | awk '{print $2}') 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_jellyseerr,example"]}"
@@ -29,39 +34,44 @@ function module_jellyseerr () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$JELLYSEERR_BASE" ]] || mkdir -p "$JELLYSEERR_BASE" || { echo "Couldn't create storage directory: $JELLYSEERR_BASE"; exit 1; }
 			docker run -d \
-			--name jellyseerr \
+			--name=jellyseerr \
 			--net=lsio \
 			-e LOG_LEVEL=debug \
 			-e TZ="$(cat /etc/timezone)" \
 			-e PORT=5055 `#optional` \
 			-p 5055:5055 \
 			-v "${JELLYSEERR_BASE}/config:/app/config" \
-			--restart unless-stopped \
+			--restart=always \
 			fallenbagel/jellyseerr
 			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' jellyseerr >/dev/null 2>&1 ; then
-					break
-				else
-					sleep 3
+				state="$(docker inspect -f '{{.State.Status}}' jellyseerr 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
+				break
 				fi
-				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs jellyseerr\`)"
+				sleep 3
+				if [[ $i -eq 20 ]]; then
+					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs jellyseerr\`)"
 					exit 1
 				fi
 			done
 		;;
 		"${commands[1]}")
 			if [[ "${container}" ]]; then
-				docker container rm -f "$container" >/dev/null
-			fi
-			if [[ "${image}" ]]; then
-				docker image rm "$image" >/dev/null
+				echo "Removing container: $container"
+				docker container rm -f "$container"
 			fi
 		;;
 		"${commands[2]}")
+			${module_options["module_jellyseerr,feature"]} ${commands[1]}
+			if [[ "${image}" ]]; then
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
+			fi
 			${module_options["module_jellyseerr,feature"]} ${commands[1]}
 			if [[ -n "${JELLYSEERR_BASE}" && "${JELLYSEERR_BASE}" != "/" ]]; then
 				rm -rf "${JELLYSEERR_BASE}"
@@ -81,6 +91,7 @@ function module_jellyseerr () {
 			echo -e "\tinstall\t- Install $title."
 			echo -e "\tstatus\t- Installation status $title."
 			echo -e "\tremove\t- Remove $title."
+			echo -e "\tpurge\t- Purge $title."
 			echo
 		;;
 		*)

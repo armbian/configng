@@ -373,7 +373,7 @@
                                 "pkg_installed qrencode || pkg_install qrencode",
                                 "sed -i \"s/^#\\?ChallengeResponseAuthentication.*/ChallengeResponseAuthentication yes/\" /etc/ssh/sshd_config",
                                 "sed -i $'/KbdInteractiveAuthentication/{iChallengeResponseAuthentication yes\\n:a;n;ba}' /etc/ssh/sshd_config || sed -n -i '/password updating/{p;:a;N;/@include common-password/!ba;s/.*\\n/auth required pam_google_authenticator.so nullok\\nauth required pam_permit.so\\n/};p' /etc/pam.d/sshd",
-                                "[ ! -f /root/.google_authenticator ] && qr_code generate",
+                                "[ ! -f /root/.google_authenticator ] && module_qr_code generate",
                                 "srv_restart ssh"
                             ],
                             "status": "Stable",
@@ -384,7 +384,7 @@
                             "id": "ACC009",
                             "description": "Generate new OTP authentication QR code",
                             "command": [
-                                "qr_code generate"
+                                "module_qr_code generate"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -394,7 +394,7 @@
                             "id": "ACC010",
                             "description": "Show OTP authentication QR code",
                             "command": [
-                                "qr_code"
+                                "module_qr_code"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",

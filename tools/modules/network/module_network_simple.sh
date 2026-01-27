@@ -16,7 +16,6 @@ module_options+=(
 function module_simple_network() {
 
 	local title="network"
-	local condition=$(which "$title" 2>/dev/null)
 
 	# Convert the example string to an array
 	local commands
@@ -69,10 +68,10 @@ function module_simple_network() {
 						for f in /sys/class/net/*; do
 							local intf=$(basename $f)
 							# skip unwanted
-							if [[ $intf =~ ^dummy0|^lo|^docker|^virbr ]]; then
+							if [[ $intf =~ ^dummy0|^lo|^docker|^virbr|^veth ]]; then
 								continue
 							else
-								local tmp=$(ip -4 addr show dev $intf | grep $adapter | grep -v "$intf:avahi" | awk '/inet/ {print $2}' | uniq | head -1)
+								local tmp=$(ip -4 addr show dev $intf | grep "$adapter" | grep -v "$intf:avahi" | awk '/inet/ {print $2}' | uniq | head -1)
 								[[ -n $tmp ]] && ips+=("$tmp")
 							fi
 						done
@@ -145,7 +144,7 @@ function module_simple_network() {
 			'
 			# capture grep output in "iw" scan command in to array
 			local iw_command=( \
-			$(lc_all=C sudo iw dev $adapter scan \
+			$(LC_ALL=C sudo iw dev $adapter scan \
 			| grep -o 'BSS ..\:..\:..:..\:..\:..\|SSID: .*\|signal\: .* \|freq\: .*') \
 			)
 			# Resetting IFS to previous value
@@ -197,16 +196,40 @@ function module_simple_network() {
 				fi
 			((COUNT++))
 		done
+
+		# Add hidden network option at the beginning of the list
+		local final_list=("HIDDEN_NETWORK" "[Connect to hidden network]")
+		for item in "${list[@]}"; do
+			final_list+=("$item")
+		done
+
 		SELECTED_BSSID=$($DIALOG \
 		--notags \
 		--title "Select SSID" \
 		--menu "\nSSID                     Signal   Frequency Channel" \
-		$((${#list[@]}/2 + 10 )) 57 $((${#list[@]}/2 )) "${list[@]}" 3>&1 1>&2 2>&3)
+		$((${#final_list[@]}/2 + 10 )) 57 $((${#final_list[@]}/2 )) "${final_list[@]}" 3>&1 1>&2 2>&3)
 		if [[ $? -eq 0 ]]; then
-			# search for SSID
-			for elt in "${pair[@]}"; do
-				if [[ $elt == *$SELECTED_BSSID* && -n "{SELECTED_BSSID}" ]]; then
-				SELECTED_SSID=$(echo "$elt" | cut -d"=" -f2)
+			# Check if hidden network was selected
+			if [[ "$SELECTED_BSSID" == "HIDDEN_NETWORK" ]]; then
+				SELECTED_SSID=$($DIALOG --title "Hidden Network" --inputbox "\nEnter hidden network SSID:" 8 50 3>&1 1>&2 2>&3)
+				if [[ -z "$SELECTED_SSID" || $? -ne 0 ]]; then
+					SELECTED_SSID=""
+				elif (( ${#SELECTED_SSID} > 32 )); then
+					$DIALOG --msgbox "SSID must be 1-32 characters." 7 45 --title "Error"
+					SELECTED_SSID=""
+				fi
+			else
+				# search for SSID in scanned networks
+				for elt in "${pair[@]}"; do
+					if [[ $elt == *$SELECTED_BSSID* && -n "${SELECTED_BSSID}" ]]; then
+					SELECTED_SSID=$(echo "$elt" | cut -d"=" -f2)
+					break
+					fi
+				done
+			fi
+
+			# If we have an SSID, prompt for password
+			if [[ -n "${SELECTED_SSID}" ]]; then
 				while true; do
 					SELECTED_PASSWORD=$($DIALOG --title "Enter password for ${SELECTED_SSID}" --passwordbox "" 7 50 3>&1 1>&2 2>&3)
 					if [[ -z "$SELECTED_PASSWORD" || ${#SELECTED_PASSWORD} -ge 8 ]]; then
@@ -214,9 +237,8 @@ function module_simple_network() {
 					else
 						$DIALOG --msgbox "Passphrase must be between 8 and 63 characters!" 7 51 --title "Error"
 					fi
-					done
-				fi
-			done
+				done
+			fi
 		fi
 		;;
 		"${commands[4]}")
@@ -224,7 +246,8 @@ function module_simple_network() {
 			local list=()
 			for f in /sys/class/net/*; do
 				local interface=$(basename $f)
-				if [[ $interface =~ ^dummy0|^lo|^docker|^virbr|^br ]]; then continue;
+				if [[ $interface =~ ^dummy0|^lo|^docker|^virbr|^br|^veth ]]; then
+					continue
 				else
 					[[ $interface == w* && $interface != wa* ]] && devicetype="wifi" || devicetype="wired"
 					local query=$(ip -4 -br addr show dev $interface | awk '{print $3}')
@@ -234,12 +257,17 @@ function module_simple_network() {
 			adapter=$($DIALOG --notags --title "Select interface" --menu "\n Adaptor                 IP address     Type"  \
 			$((${#list[@]}/2 + 10 )) 50 $((${#list[@]}/2 + 1)) "${list[@]}" 3>&1 1>&2 2>&3)
 			if [[ $? -eq 0 ]]; then
-				if $DIALOG --title "Action for ${adapter}" --yes-button "Configure" --no-button "Drop" --yesno "$1" 5 60; then
+				# Automatically enable interface if it's disabled
+				if ! ip link show "$adapter" 2>/dev/null | grep -q "state UP"; then
+					# Check if wireless and blocked by rfkill
+					if [[ "$adapter" == w* ]] && command -v rfkill &> /dev/null; then
+						# Unblock and disable rfkill permanently
+						rfkill unblock wifi 2>/dev/null || rfkill unblock all 2>/dev/null
+						# Disable rfkill to prevent reblocking on reboot
+						systemctl disable rfkill 2>/dev/null
+						systemctl stop rfkill 2>/dev/null
+					fi
 					ip link set ${adapter} up
-				else
-					${module_options["module_simple_network,feature"]} ${commands[9]} "${adapter}"
-					netplan apply
-					${module_options["module_simple_network,feature"]} ${commands[4]} "$2"
 				fi
 			fi
 		;;
@@ -297,29 +325,31 @@ function module_simple_network() {
 		;;
 		"${commands[9]}")
 			# remove adapter from yaml file
-			sed -i -e 'H;x;/^\(  *\)\n\1/{s/\n.*//;x;d;}' \
-			-e 's/.*//;x;/'${2}'/{s/^\( *\).*/ \1/;x;d;}' /etc/netplan/${yamlfile}.yaml
-			# awk solution to cleanout empty wifis or ethernets section
-			# which doesn't need additional dependencies
-			cat /etc/netplan/${yamlfile}.yaml | awk 'BEGIN {
-			re = "[^[:space:]-]"
-			if (getline != 1)
-				exit
-			while (1) {
-				last = $0
-				last_nf = NF
-				if (getline != 1) {
-					if (last_nf != 1)
-						print last
+			if [[ -f /etc/netplan/${yamlfile}.yaml ]]; then
+				sed -i -e 'H;x;/^\(  *\)\n\1/{s/\n.*//;x;d;}' \
+				-e 's/.*//;x;/'${2}'/{s/^\( *\).*/ \1/;x;d;}' /etc/netplan/${yamlfile}.yaml
+				# awk solution to cleanout empty wifis or ethernets section
+				# which doesn't need additional dependencies
+				cat /etc/netplan/${yamlfile}.yaml | awk 'BEGIN {
+				re = "[^[:space:]-]"
+				if (getline != 1)
 					exit
-				}
-				if (last_nf == 1 && match(last, re) == match($0, re))
-					continue
-				print last
-				}
-			} $1' > /etc/netplan/${yamlfile}.yaml.tmp
-			mv /etc/netplan/${yamlfile}.yaml.tmp /etc/netplan/${yamlfile}.yaml
-			chmod 600 /etc/netplan/${yamlfile}.yaml
+				while (1) {
+					last = $0
+					last_nf = NF
+					if (getline != 1) {
+						if (last_nf != 1)
+							print last
+						exit
+					}
+					if (last_nf == 1 && match(last, re) == match($0, re))
+						continue
+					print last
+					}
+				} $1' > /etc/netplan/${yamlfile}.yaml.tmp
+				mv /etc/netplan/${yamlfile}.yaml.tmp /etc/netplan/${yamlfile}.yaml
+				chmod 600 /etc/netplan/${yamlfile}.yaml
+			fi
 		;;
 		"${commands[20]}")
 			echo -e "\nUsage: ${module_options["module_simple_network,feature"]} <command>"

@@ -1,14 +1,14 @@
 
 module_options+=(
-	["default_wireless_network_config,author"]="@igorpecovnik"
-	["default_wireless_network_config,ref_link"]=""
-	["default_wireless_network_config,feature"]="default_wireless_network_config"
-	["default_wireless_network_config,desc"]="Stop hostapd, clean config"
-	["default_wireless_network_config,example"]="default_wireless_network_config"
-	["default_wireless_network_config,doc_link"]=""
-	["default_wireless_network_config,status"]="review"
+	["module_default_wireless_network_config,author"]="@igorpecovnik"
+	["module_default_wireless_network_config,ref_link"]=""
+	["module_default_wireless_network_config,feature"]="default_wireless_network_config"
+	["module_default_wireless_network_config,desc"]="Stop hostapd, clean config"
+	["module_default_wireless_network_config,example"]="default_wireless_network_config"
+	["module_default_wireless_network_config,doc_link"]=""
+	["module_default_wireless_network_config,status"]="review"
 )
-function default_wireless_network_config(){
+function module_default_wireless_network_config(){
 
 	# defaul yaml file
 	local yamlfile=${1:-armbian}

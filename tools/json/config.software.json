@@ -133,38 +133,27 @@
                     "sub": [
                         {
                             "id": "CON001",
-                            "description": "Docker minimal",
+                            "description": "Docker",
                             "short": "Docker",
                             "module": "module_docker",
-                            "about": "This operation will install Docker Minimal.",
+                            "about": "This operation will install Docker from distribution maintained packages.",
                             "command": [
-                                "module_docker install minimal"
+                                "module_docker install"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! module_docker status docker-ce"
-                        },
-                        {
-                            "id": "CON002",
-                            "description": "Docker engine",
-                            "about": "This operation will install Docker Engine.",
-                            "command": [
-                                "module_docker install engine"
-                            ],
-                            "status": "Stable",
-                            "author": "@schwar3kat",
-                            "condition": "! module_docker status docker-compose-plugin"
+                            "condition": "! module_docker status"
                         },
                         {
                             "id": "CON003",
                             "description": "Docker remove",
-                            "about": "This operation will purge Docker.",
+                            "about": "This operation will remove Docker packages.",
                             "command": [
                                 "module_docker remove"
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "module_docker status docker-ce"
+                            "condition": "module_docker status"
                         },
                         {
                             "id": "CON004",
@@ -175,7 +164,7 @@
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "module_docker status docker-ce"
+                            "condition": "module_docker status"
                         },
                         {
                             "id": "POR001",
@@ -1062,41 +1051,6 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "module_radarr status"
-                        },
-                        {
-                            "id": "RDR001",
-                            "description": "Readarr automatic downloader for Ebooks",
-                            "short": "Readarr",
-                            "module": "module_readarr",
-                            "about": "This operation will install Readarr",
-                            "command": [
-                                "module_readarr install"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "! module_readarr status"
-                        },
-                        {
-                            "id": "RDR002",
-                            "description": "Readarr remove",
-                            "about": "This operation will remove Readarr",
-                            "command": [
-                                "module_readarr remove"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "module_readarr status"
-                        },
-                        {
-                            "id": "RDR003",
-                            "description": "Readarr purge with data folder",
-                            "about": "This operation will purge Readarr with data folder",
-                            "command": [
-                                "module_readarr purge"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "module_readarr status"
                         },
                         {
                             "id": "SABN01",
@@ -2242,7 +2196,7 @@
                             ],
                             "status": "Enabled",
                             "author": "@armbian",
-                            "condition": "! module_wireguard image"
+                            "condition": "! module_wireguard status"
                         },
                         {
                             "id": "WRG002",
@@ -2253,7 +2207,7 @@
                             ],
                             "status": "Enabled",
                             "author": "@armbian",
-                            "condition": "! module_wireguard servermode"
+                            "condition": "! module_wireguard status"
                         },
                         {
                             "id": "WRG003",
@@ -2264,7 +2218,7 @@
                             ],
                             "status": "Enabled",
                             "author": "@armbian",
-                            "condition": "module_wireguard image || module_wireguard container"
+                            "condition": "module_wireguard status"
                         },
                         {
                             "id": "WRG004",
@@ -2274,7 +2228,7 @@
                             ],
                             "status": "Enabled",
                             "author": "@armbian",
-                            "condition": "module_wireguard servermode"
+                            "condition": "module_wireguard status server"
                         },
                         {
                             "id": "WRG005",
@@ -2285,7 +2239,7 @@
                             ],
                             "status": "Enabled",
                             "author": "@armbian",
-                            "condition": "module_wireguard image"
+                            "condition": "module_wireguard status"
                         },
                         {
                             "id": "ZTR001",

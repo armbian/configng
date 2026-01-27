@@ -1,16 +1,16 @@
 
 module_options+=(
-	["default_network_config,author"]="@igorpecovnik"
-	["default_network_config,ref_link"]=""
-	["default_network_config,feature"]="default_network_config"
-	["default_network_config,desc"]="Revert network config back to Armbian defaults"
-	["default_network_config,example"]="default_network_config"
-	["default_network_config,status"]="review"
+	["module_default_network_config,author"]="@igorpecovnik"
+	["module_default_network_config,ref_link"]=""
+	["module_default_network_config,feature"]="default_network_config"
+	["module_default_network_config,desc"]="Revert network config back to Armbian defaults"
+	["module_default_network_config,example"]="default_network_config"
+	["module_default_network_config,status"]="review"
 )
 #
 # Function to revert network configuration to Armbian defaults
 #
-function default_network_config() {
+function module_default_network_config() {
 
 	local yamlfile=10-dhcp-all-interfaces
 

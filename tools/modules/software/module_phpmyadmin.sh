@@ -17,10 +17,15 @@ function module_phpmyadmin () {
 	local title="phpmyadmin"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/phpmyadmin?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/phpmyadmin?( |$)/{print $3}')
+	# Ensure Docker is available for commands that need it (install, remove, purge)
+	if [[ "$1" != "status" && "$1" != "help" ]]; then
+		if ! module_docker status >/dev/null 2>&1; then
+			module_docker install
+		fi
 	fi
+
+	local container=$(docker container ls -a --filter "name=phpmyadmin" --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'phpmyadmin' | awk '{print $2}') 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_phpmyadmin,example"]}"
@@ -29,7 +34,9 @@ function module_phpmyadmin () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$PHPMYADMIN_BASE" ]] || mkdir -p "$PHPMYADMIN_BASE" || { echo "Couldn't create storage directory: $PHPMYADMIN_BASE"; exit 1; }
 			docker run -d \
 			--name=phpmyadmin \
@@ -40,29 +47,32 @@ function module_phpmyadmin () {
 			-e PMA_ARBITRARY=1 \
 			-p 8071:80 \
 			-v "${PHPMYADMIN_BASE}/config:/config" \
-			--restart unless-stopped \
+			--restart=always \
 			lscr.io/linuxserver/phpmyadmin:latest
 			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' phpmyadmin >/dev/null 2>&1 ; then
-					break
-				else
-					sleep 3
+				state="$(docker inspect -f '{{.State.Status}}' phpmyadmin 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
+				break
 				fi
-				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs phpmyadmin\`)"
+				sleep 3
+				if [[ $i -eq 20 ]]; then
+					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs phpmyadmin\`)"
 					exit 1
 				fi
 			done
 		;;
 		"${commands[1]}")
 			if [[ "${container}" ]]; then
-				docker container rm -f "$container" >/dev/null
-			fi
-			if [[ "${image}" ]]; then
-				docker image rm "$image" >/dev/null
+				echo "Removing container: $container"
+				docker container rm -f "$container"
 			fi
 		;;
 		"${commands[2]}")
+			${module_options["module_phpmyadmin,feature"]} ${commands[1]}
+			if [[ "${image}" ]]; then
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
+			fi
 			${module_options["module_phpmyadmin,feature"]} ${commands[1]}
 			if [[ -n "${PHPMYADMIN_BASE}" && "${PHPMYADMIN_BASE}" != "/" ]]; then
 				rm -rf "${PHPMYADMIN_BASE}"
@@ -83,7 +93,6 @@ function module_phpmyadmin () {
 			echo -e "\tremove\t- Remove $title."
 			echo -e "\tpurge\t- Purge $title data folder."
 			echo -e "\tstatus\t- Installation status $title."
-
 			echo
 		;;
 		*)

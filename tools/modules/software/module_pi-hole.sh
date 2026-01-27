@@ -8,7 +8,7 @@ module_options+=(
 	["module_pi_hole,doc_link"]="https://docs.pi-hole.net/"
 	["module_pi_hole,group"]="DNS"
 	["module_pi_hole,port"]="8811"
-	["module_pi_hole,arch"]=""
+	["module_pi_hole,arch"]="x86-64 arm64"
 )
 #
 # Module Pi-Hole
@@ -17,10 +17,16 @@ function module_pi_hole () {
 	local title="pihole"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/pihole?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/pihole?( |$)/{print $3}')
+	# Ensure Docker is available for commands that need it (install, remove, purge)
+	if [[ "$1" != "status" && "$1" != "help" ]]; then
+		if ! module_docker status >/dev/null 2>&1; then
+			module_docker install
+		fi
 	fi
+
+	local container=$(docker container ls -a --filter 'name=^/pihole$' --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --filter 'reference=pihole/pihole:*' --format '{{.Repository}}:{{.Tag}}' | head -1) 2>/dev/null || echo ""
+
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_pi_hole,example"]}"
 
@@ -28,7 +34,15 @@ function module_pi_hole () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
+			# Check if the module is already installed
+			if [[ "${container}" && "${image}" ]]; then
+				echo "Pi-hole container is already installed."
+				exit 0
+			fi
+
 			if ! docker container ls -a --format '{{.Names}}' | grep -q '^unbound$'; then module_unbound install; fi
 			local unbound_ip=$(docker inspect --format '{{ .NetworkSettings.Networks.lsio.IPAddress }}' unbound)
 			[[ -d "$PIHOLE_BASE" ]] || mkdir -p "$PIHOLE_BASE" || { echo "Couldn't create storage directory: $PIHOLE_BASE"; exit 1; }
@@ -50,7 +64,7 @@ function module_pi_hole () {
 			-e VIRTUAL_HOST="pi.hole" \
 			-e PROXY_LOCATION="pi.hole" \
 			-e FTLCONF_LOCAL_IPV4="${LOCALIPADD}" \
-			-e FTLCONF_dns_upstreams="${unbound_ip}" \
+			-e FTLCONF_dns_upstreams="unbound#5335" \
 			pihole/pihole:latest
 			for i in $(seq 1 20); do
 				if docker inspect -f '{{ index .Config.Labels "build_version" }}' pihole >/dev/null 2>&1 ; then
@@ -77,8 +91,13 @@ function module_pi_hole () {
 			${module_options["module_pi_hole,feature"]} ${commands[3]}
 		;;
 		"${commands[1]}")
-			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+			if [[ "${container}" ]]; then
+				echo "Removing container: $container"
+				docker container rm -f "$container"
+			fi
+			if [[ "${image}" ]]; then
+				docker image rm "$image"
+			fi
 			# restore DNS settings
 			if srv_active systemd-resolved; then
 				mkdir -p /etc/systemd/resolved.conf.d/

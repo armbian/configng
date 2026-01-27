@@ -35,6 +35,7 @@ jobs:
         with:
           files: |
               tests/*.conf
+          separator: "\n"
 
       - name: "Make JSON ${{ steps.changed-files.outputs.all_changed_files }}"
         id: json
@@ -42,34 +43,55 @@ jobs:
 
           delimiter="$(openssl rand -hex 8)"
           echo "DEPLOYMENT_MATRIX<<${delimiter}" >> "${GITHUB_OUTPUT}"
-          # define OS variants where we can run test install
-          images=("bookworm" "jammy" "noble")
+          # define OS variants and their Docker images - use pre-built Armbian images
+          declare -A docker_images=(
+            ["bookworm"]="ghcr.io/armbian/repository-update:bookworm-amd64"
+            ["trixie"]="ghcr.io/armbian/repository-update:trixie-amd64"
+            ["forky"]="ghcr.io/armbian/repository-update:forky-amd64"
+            ["jammy"]="ghcr.io/armbian/repository-update:jammy-amd64"
+            ["noble"]="ghcr.io/armbian/repository-update:noble-amd64"
+            ["resolute"]="ghcr.io/armbian/repository-update:resolute-amd64"
+          )
+          images=("bookworm" "trixie" "forky" "jammy" "noble" "resolute")
           # read tests cases
-          if [[ -n "${{ steps.changed-files.outputs.all_changed_files }}" ]]; then
-              tests=($(grep -rwl ${{ steps.changed-files.outputs.all_changed_files }} -e "ENABLED=true" | cut -d":" -f1))
-              else
+          # Run all tests on schedule, workflow_dispatch on main, or when no files changed
+          run_all_tests=false
+          if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.ref_name }}" == "main" && "${{ github.event_name }}" == "workflow_dispatch" ]] || [[ "${{ steps.changed-files.outputs.any_changed }}" != "true" ]]; then
+              run_all_tests=true
+          fi
+
+          if [[ "$run_all_tests" == "true" ]]; then
               tests=($(grep -rwl tests/*.conf -e "ENABLED=true" | cut -d":" -f1))
+          else
+              # Get changed test files using git to avoid parsing issues
+              changed_tests=($(cd "${GITHUB_WORKSPACE}" && git diff --name-only origin/main...HEAD | grep '^tests/.*\.conf$' || true))
+              if [[ ${#changed_tests[@]} -gt 0 ]]; then
+                  # Filter for ENABLED=true
+                  tests=($(grep -rwl -e "ENABLED=true" -- "${changed_tests[@]}" 2>/dev/null | cut -d":" -f1))
+              else
+                  tests=()
+              fi
           fi
           # loop enabled test cases
           for i in "${tests[@]}"; do
              unset RELEASE
              source "${i}"
-             if [[ -z "${RELEASE}" ]]; then RELEASE=all; fi
-             # if we speficy releases, we need to loop docker images and use if there is a match
-             if [[ $RELEASE != all || -z $RELEASE ]]; then
+             if [[ -z "${RELEASE}" || "${RELEASE}" == "all" ]]; then RELEASE=all; fi
+             # if we specify releases, we need to loop docker images and use if there is a match
+             if [[ $RELEASE != "all" ]]; then
                 for j in ${images[@]}; do
                     elements=($(echo $RELEASE | tr ':' "\n"))
                     testid=($(echo $i | cut -d"/" -f2 | cut -d"." -f1))
                     for SELECTED_RELEASE in "${elements[@]}"; do
                         if [[ $j == *"${SELECTED_RELEASE}"* ]]; then
-                           echo "{\"package\":\"${i}\",\"name\":\"${TESTNAME}\",\"os\":\"$j\",\"id\":\"$testid\"}"
+                           echo "{\"package\":\"${i}\",\"name\":\"${TESTNAME}\",\"os\":\"$j\",\"id\":\"$testid\",\"docker_image\":\"${docker_images[$j]}\"}"
                         fi
                     done
                 done
              else
                 for j in ${images[@]}; do
                     testid=($(echo $i | cut -d"/" -f2 | cut -d"." -f1))
-                    echo "{\"package\":\"${i}\",\"name\":\"${TESTNAME}\",\"os\":\"$j\",\"id\":\"$testid\"}"
+                    echo "{\"package\":\"${i}\",\"name\":\"${TESTNAME}\",\"os\":\"$j\",\"id\":\"$testid\",\"docker_image\":\"${docker_images[$j]}\"}"
                 done
              fi
           done | jq -s >> $GITHUB_OUTPUT
@@ -80,43 +102,37 @@ jobs:
     if: ${{ needs.prepare.outputs.DEPLOYMENT_MATRIX != '[]' }}
     strategy:
       fail-fast: false
-      max-parallel: 32
+      max-parallel: 128
       matrix:
         server: ${{ fromJSON(needs.prepare.outputs.DEPLOYMENT_MATRIX) }}
     name: "${{ matrix.server.name }} (${{ matrix.server.os }})"
-    runs-on: "${{ matrix.server.os }}"
+    #runs-on: "ubuntu-latest"
+    runs-on: [ docker, X64 ]
     timeout-minutes: 15
+    container:
+      image: ${{ matrix.server.docker_image }}
+      options: --privileged --security-opt seccomp=unconfined --tmpfs /tmp --tmpfs /run --tmpfs /run/lock
+      env:
+        DBUS_SESSION_BUS_ADDRESS: unix:path=/run/bus/bus.sock
     steps:
 
-      - name: "Install dependencies: fastfetch"
+      - name: "Initialize systemd"
         run: |
-          if lsof /var/lib/dpkg/lock >/dev/null 2>&1; then reboot; fi
-          sudo apt update
-          sudo dpkg --configure -a
-          sudo apt-get -y install fastfetch
+          # Start systemd in the container
+          /sbin/init &
+          sleep 5
+          # Make the container appear as if systemd is PID 1
+          export SYSTEMD_IGNORE_CHROOT=1
+          export container=docker
 
       - name: "Checkout Armbian configuration tool"
         uses: actions/checkout@v6
         with:
           path: 'config'
 
-      - name: "Run fastfecth"
+      - name: "Run unit test: ${{ matrix.server.name }} via ${{ matrix.server.package }}"
+        shell: bash
         run: |
-          fastfetch
-
-      - name: "Clean up Docker containers and images (if Docker is installed)"
-        run: |
-          if command -v docker >/dev/null 2>&1; then
-            docker ps -aq | xargs -r docker stop
-            docker ps -aq | xargs -r docker rm
-            docker images -aq | xargs -r docker rmi -f
-          else
-            echo "Docker not installed, skipping cleanup."
-          fi
-
-      - name: "Run unit test: ${{ matrix.server.name }} "
-        run: |
-
           export TERM=linux
           rm -rf test; mkdir -p test
           cd config
@@ -133,10 +149,6 @@ jobs:
 
           # Generate table entry
           echo "|${{ matrix.server.os }}| ${{ matrix.server.name }} | $((finish_time - start_time)) sec |" > ../test/${{ matrix.server.id }}-${{ matrix.server.os }}
-
-      - name: "Run fastfecth"
-        run: |
-          fastfetch
 
       - name: "Upload test summary"
         uses: actions/upload-artifact@v6

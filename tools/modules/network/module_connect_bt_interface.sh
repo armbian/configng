@@ -1,15 +1,15 @@
 module_options+=(
-	["connect_bt_interface,author"]="@armbian"
-	["connect_bt_interface,ref_link"]=""
-	["connect_bt_interface,feature"]="connect_bt_interface"
-	["connect_bt_interface,desc"]="Migrated procedures from Armbian config."
-	["connect_bt_interface,example"]="connect_bt_interface"
-	["connect_bt_interface,status"]="Active"
+	["module_connect_bt_interface,author"]="@armbian"
+	["module_connect_bt_interface,ref_link"]=""
+	["module_connect_bt_interface,feature"]="connect_bt_interface"
+	["module_connect_bt_interface,desc"]="Migrated procedures from Armbian config."
+	["module_connect_bt_interface,example"]="module_connect_bt_interface"
+	["module_connect_bt_interface,status"]="Active"
 )
 #
 # connect to bluetooth device
 #
-function connect_bt_interface() {
+function module_connect_bt_interface() {
 
 	IFS=$'
 '

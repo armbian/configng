@@ -1,17 +1,17 @@
 
 module_options+=(
-	["network_config,author"]="@igorpecovnik"
-	["network_config,ref_link"]=""
-	["network_config,feature"]="network_config"
-	["network_config,desc"]="Netplan wrapper"
-	["network_config,example"]="network_config"
-	["network_config,doc_link"]=""
-	["network_config,status"]="review"
+	["module_network_config,author"]="@igorpecovnik"
+	["module_network_config,ref_link"]=""
+	["module_network_config,feature"]="network_config"
+	["module_network_config,desc"]="Netplan wrapper"
+	["module_network_config,example"]="module_network_config"
+	["module_network_config,doc_link"]=""
+	["module_network_config,status"]="review"
 )
 #
 # Function to select network adapter
 #
-function network_config() {
+function module_network_config() {
 
 	# defaul yaml file
 	local yamlfile=${1:-armbian}
@@ -20,7 +20,7 @@ function network_config() {
 	store_netplan_config
 
 	LIST=()
-	HIDE_IP_PATTERN="^dummy0|^lo|^docker|^virbr|^br"
+	HIDE_IP_PATTERN="^dummy0|^lo|^docker|^virbr|^br|^veth"
 	for f in /sys/class/net/*; do
 		interface=$(basename $f)
 		if [[ $interface =~ $HIDE_IP_PATTERN ]]; then
@@ -51,7 +51,7 @@ function network_config() {
 			case $wifimode in
 			stop)
 				# disable hostapd and cleanup config
-				default_wireless_network_config "${yamlfile}" "${adapter}"
+				module_default_wireless_network_config "${yamlfile}" "${adapter}"
 			;;
 
 			sta)
@@ -111,7 +111,7 @@ function network_config() {
 			ap)
 				if [[ -f /etc/netplan/armbian.yaml && "$(netplan get bridges)" != "null" ]]; then
 				ip link set ${adapter} up
-				default_wireless_network_config "${yamlfile}" "${adapter}"
+				module_default_wireless_network_config "${yamlfile}" "${adapter}"
 				pkg_install --no-install-recommends hostapd networkd-dispatcher bridge-utils
 				SELECTED_SSID=$($DIALOG --title "Enter SSID for AP" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
 				if [[ -n "${SELECTED_SSID}" && $? == 0 ]]; then

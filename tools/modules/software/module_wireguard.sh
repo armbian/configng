@@ -2,7 +2,7 @@ module_options+=(
 	["module_wireguard,author"]="@armbian"
 	["module_wireguard,maintainer"]="@igorpecovnik"
 	["module_wireguard,feature"]="module_wireguard"
-	["module_wireguard,example"]="pull client server remove purge qrcode image container servermode help"
+	["module_wireguard,example"]="install client server remove purge qrcode status help"
 	["module_wireguard,desc"]="Install wireguard container"
 	["module_wireguard,status"]="Active"
 	["module_wireguard,doc_link"]="https://docs.linuxserver.io/images/docker-wireguard/#server-mode"
@@ -10,6 +10,7 @@ module_options+=(
 	["module_wireguard,port"]="51820"
 	["module_wireguard,arch"]="x86-64 arm64"
 )
+
 #
 # Module wireguard
 #
@@ -17,10 +18,15 @@ function module_wireguard () {
 	local title="wireguard"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/wireguard?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/wireguard?( |$)/{print $3}')
+	# Ensure Docker is available for commands that need it (install, remove, purge)
+	if [[ "$1" != "status" && "$1" != "help" ]]; then
+		if ! module_docker status >/dev/null 2>&1; then
+			module_docker install
+		fi
 	fi
+
+	local container=$(docker container ls -a --filter "name=wireguard" --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}}:{{.Tag}}' | grep 'lscr.io/linuxserver/wireguard:' | head -1) 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_wireguard,example"]}"
@@ -29,26 +35,31 @@ function module_wireguard () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			# Check if the module is already installed
-			pkg_installed docker-ce || module_docker install
+			if [[ "${container}" && "${image}" ]]; then
+				echo "WireGuard container is already installed."
+				exit 0
+			fi
 
 			# Create the base and config directory if it doesn't exist
 			[[ -d "$WIREGUARD_BASE" ]] || mkdir -p "$WIREGUARD_BASE" || { echo "Couldn't create storage directory: $WIREGUARD_BASE"; exit 1; }
 			[[ -d "$WIREGUARD_BASE/config/wg_confs/" ]] || mkdir -p "$WIREGUARD_BASE/config/wg_confs/" || { echo "Couldn't create config directory: $WIREGUARD_BASE/config/wg_confs/"; exit 1; }
 
-			# Check if the image is already pulled
+			# Check if the image is already present
 			${module_options["module_wireguard,feature"]} ${commands[6]}
 			if [[ $? -ne 0 ]]; then
 				docker pull lscr.io/linuxserver/wireguard:latest || { echo "Couldn't pull image: lscr.io/linuxserver/wireguard:latest"; exit 1; }
 			fi
 		;;
 		"${commands[1]}")
-
 			# Pull the image if not already done
 			${module_options["module_wireguard,feature"]} ${commands[0]}
 
 			# Create temp file
-			TMP_FILE=$(mktemp)
+			local TMP_FILE=$(mktemp)
 
 			# Optional initial content
 			if [[ -f "${WIREGUARD_BASE}/config/wg_confs/client.conf" ]]; then
@@ -66,7 +77,7 @@ function module_wireguard () {
 			rm -f "$TMP_FILE"
 
 			# Check if the container is running, if so, remove it
-			${module_options["module_wireguard,feature"]} ${commands[7]}
+			${module_options["module_wireguard,feature"]} ${commands[6]}
 			if [[ $? -eq 0 ]]; then
 				docker rm -f wireguard >/dev/null 2>&1
 			fi
@@ -79,18 +90,18 @@ function module_wireguard () {
 			fi
 
 			docker run -d \
-			--name=wireguard \
-			--net=lsio \
-			--cap-add=NET_ADMIN \
-			--cap-add=SYS_MODULE \
-			--privileged \
-			-e PUID=1000 \
-			-e PGID=1000 \
-			-e TZ="$(cat /etc/timezone)" \
-			-v "${WIREGUARD_BASE}/config:/config" \
-			--restart unless-stopped \
-			--sysctl net.ipv4.ip_forward=1 \
-			lscr.io/linuxserver/wireguard:latest
+				--name=wireguard \
+				--net=lsio \
+				--cap-add=NET_ADMIN \
+				--cap-add=SYS_MODULE \
+				--privileged \
+				-e PUID=1000 \
+				-e PGID=1000 \
+				-e TZ="$(cat /etc/timezone)" \
+				-v "${WIREGUARD_BASE}/config:/config" \
+				--restart unless-stopped \
+				--sysctl net.ipv4.ip_forward=1 \
+				lscr.io/linuxserver/wireguard:latest
 			for i in $(seq 1 20); do
 				if docker inspect -f '{{ index .Config.Labels "build_version" }}' wireguard >/dev/null 2>&1 && [[ -f "${WIREGUARD_BASE}/config/wg_confs/client.conf" ]]; then
 					break
@@ -172,7 +183,6 @@ function module_wireguard () {
 			fi
 		;;
 		"${commands[2]}")
-
 			# Pull the image if not already done
 			${module_options["module_wireguard,feature"]} ${commands[0]}
 
@@ -180,7 +190,7 @@ function module_wireguard () {
 				NUMBER_OF_PEERS=$($DIALOG --title "Enter comma delimited peer keywords" --inputbox " \n" 7 50 "laptop" 3>&1 1>&2 2>&3)
 			fi
 			if [[ $? -eq 0 ]]; then
-				${module_options["module_wireguard,feature"]} ${commands[7]}
+				${module_options["module_wireguard,feature"]} ${commands[6]}
 				if [[ $? -eq 0 ]]; then
 					docker rm -f wireguard >/dev/null 2>&1
 				fi
@@ -189,29 +199,29 @@ function module_wireguard () {
 				rm -f "${WIREGUARD_BASE}/config/wg_confs/client.conf"
 
 				docker run -d \
-				--name=wireguard \
-				--net=lsio \
-				--cap-add=NET_ADMIN \
-				--cap-add=SYS_MODULE `#optional` \
-				-e PUID=1000 \
-				-e PGID=1000 \
-				-e TZ="$(cat /etc/timezone)" \
-				-e SERVERURL=auto \
-				-e SERVERPORT=51820 \
-				-e PEERS="${NUMBER_OF_PEERS}" \
-				-e PEERDNS=auto \
-				-e INTERNAL_SUBNET=10.13.13.0 \
-				-e ALLOWEDIPS=0.0.0.0/0 \
-				-e PERSISTENTKEEPALIVE_PEERS= \
-				-e LOG_CONFS=true \
-				-p 51820:51820/udp \
-				-v "${WIREGUARD_BASE}/config:/config" \
-				--sysctl="net.ipv4.conf.all.src_valid_mark=1" \
-				--restart unless-stopped \
-				lscr.io/linuxserver/wireguard:latest
+					--name=wireguard \
+					--net=lsio \
+					--cap-add=NET_ADMIN \
+					--cap-add=SYS_MODULE \
+					-e PUID=1000 \
+					-e PGID=1000 \
+					-e TZ="$(cat /etc/timezone)" \
+					-e SERVERURL=auto \
+					-e SERVERPORT=51820 \
+					-e PEERS="${NUMBER_OF_PEERS}" \
+					-e PEERDNS=auto \
+					-e INTERNAL_SUBNET=10.13.13.0 \
+					-e ALLOWEDIPS=0.0.0.0/0 \
+					-e PERSISTENTKEEPALIVE_PEERS= \
+					-e LOG_CONFS=true \
+					-p 51820:51820/udp \
+					-v "${WIREGUARD_BASE}/config:/config" \
+					--sysctl="net.ipv4.conf.all.src_valid_mark=1" \
+					--restart unless-stopped \
+					lscr.io/linuxserver/wireguard:latest
 				for i in $(seq 1 20); do
 					if docker inspect -f '{{ index .Config.Labels "build_version" }}' wireguard >/dev/null 2>&1 && [[ -f "${WIREGUARD_BASE}/config/wg_confs/wg0.conf" ]]; then
-							break
+						break
 					else
 						sleep 3
 					fi
@@ -236,8 +246,8 @@ function module_wireguard () {
 			rm -f /usr/local/bin/add-vpn-lan-routes.sh
 			rm -f /usr/local/bin/remove-vpn-lan-routes.sh
 			rm -f /etc/systemd/system/add-vpn-lan-routes.service
-			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null 2>&1 || true
+			[[ "${image}" ]] && docker image rm "$image" >/dev/null 2>&1 || true
 		;;
 		"${commands[4]}")
 			${module_options["module_wireguard,feature"]} ${commands[3]}
@@ -245,9 +255,9 @@ function module_wireguard () {
 		;;
 		"${commands[5]}")
 			if [[ -z $2 ]]; then
-				LIST=($(ls -1 ${WIREGUARD_BASE}/config/ | grep peer | cut -d"_" -f2))
-				LIST_LENGTH=$((${#LIST[@]} / 2))
-				SELECTED_PEER=$(dialog --title "Select peer" --no-items --menu "" $((${LIST_LENGTH} + 8)) 60 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
+				local LIST=($(ls -1 ${WIREGUARD_BASE}/config/ 2>/dev/null | grep peer | cut -d"_" -f2))
+				local LIST_LENGTH=$((${#LIST[@]} / 2))
+				local SELECTED_PEER=$(dialog --title "Select peer" --no-items --menu "" $((${LIST_LENGTH} + 8)) 60 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
 			fi
 			if [[ -n ${SELECTED_PEER} ]]; then
 				clear
@@ -257,52 +267,30 @@ function module_wireguard () {
 			fi
 		;;
 		"${commands[6]}")
-			if pkg_installed docker-ce; then
-				local image=$(docker image ls -a | mawk '/wireguard?( |$)/{print $3}')
+			if [[ "$2" == server && -f "${WIREGUARD_BASE}/config/wg_confs/client.conf" ]]; then
+				return 1
 			fi
-			if [[ "${image}" ]]; then
+			if [[ "${container}" && "${image}" ]]; then
 				return 0
 			else
 				return 1
 			fi
 		;;
 		"${commands[7]}")
-			if pkg_installed docker-ce; then
-				local container=$(docker container ls -a | mawk '/wireguard?( |$)/{print $1}')
-			fi
-			if [[ "${container}" ]]; then
-				return 0
-			else
-				return 1
-			fi
-		;;
-		"${commands[8]}")
-			if pkg_installed docker-ce; then
-				local container=$(docker container ls -a | mawk '/wireguard?( |$)/{print $1}')
-				local image=$(docker image ls -a | mawk '/wireguard?( |$)/{print $3}')
-			fi
-			if [[ "${container}" && "${image}" && -f "${WIREGUARD_BASE}/config/wg_confs/wg0.conf" ]]; then
-				return 0
-			else
-				return 1
-			fi
-		;;
-		"${commands[9]}")
 			echo -e "\nUsage: ${module_options["module_wireguard,feature"]} <command>"
 			echo -e "Commands:  ${module_options["module_wireguard,example"]}"
 			echo "Available commands:"
-			echo -e "\tpull\t\t- Pull $title image."
+			echo -e "\tinstall\t\t- Pull $title image."
 			echo -e "\tclient\t\t- Add client config $title."
 			echo -e "\tserver\t\t- Add server config $title."
 			echo -e "\tremove\t\t- Remove $title."
 			echo -e "\tpurge\t\t- Purge $title with data."
 			echo -e "\tqrcode\t\t- Show qrcodes for clients $title."
-			echo -e "\timage\t\t- Image download status $title."
-			echo -e "\tcontainer\t- Container run status $title."
+			echo -e "\tstatus\t\t- Installation status $title."
 			echo
 		;;
 		*)
-			${module_options["module_wireguard,feature"]} ${commands[9]}
+			${module_options["module_wireguard,feature"]} ${commands[7]}
 		;;
 	esac
 }
