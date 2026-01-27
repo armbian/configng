@@ -66,7 +66,6 @@ function module_sonarr () {
 			if [[ "${image}" ]]; then
 				docker image rm "$image"
 			fi
-			${module_options["module_sonarr,feature"]} ${commands[1]}
 			if [[ -n "${SONARR_BASE}" && "${SONARR_BASE}" != "/" ]]; then
 				rm -rf "${SONARR_BASE}"
 			fi

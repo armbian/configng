@@ -78,7 +78,6 @@ function module_qbittorrent () {
 			if [[ "${image}" ]]; then
 				docker image rm "$image"
 			fi
-			${module_options["module_qbittorrent,feature"]} ${commands[1]}
 			if [[ -n "${QBITTORRENT_BASE}" && "${QBITTORRENT_BASE}" != "/" ]]; then
 				rm -rf "${QBITTORRENT_BASE}"
 			fi

@@ -66,7 +66,6 @@ function module_radarr () {
 			if [[ "${image}" ]]; then
 				docker image rm "$image"
 			fi
-			${module_options["module_radarr,feature"]} ${commands[1]}
 			if [[ -n "${RADARR_BASE}" && "${RADARR_BASE}" != "/" ]]; then
 				rm -rf "${RADARR_BASE}"
 			fi
