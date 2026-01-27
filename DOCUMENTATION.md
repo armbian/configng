@@ -1005,6 +1005,7 @@ These helper functions facilitate various operations related to job management, 
 | Netplan wrapper | simple advanced type stations select store restore dhcp static help | @igorpecovnik 
 | Exit with error code 1, optionally printing a message to stderr | run_critical_function || die 'The world is about to end' | @dimitry-ishenko 
 | Reload service | srv_reload ssh.service | @dimitry-ishenko 
+| Revert network config back to Armbian defaults | default_network_config | @igorpecovnik 
 | Webmin setup and service setting. | help install remove start stop enable disable status check | @Tearran 
 | Install HA supervised container | install remove purge status help | @armbian 
 | Display a menu from pipe | show_menu <<< armbianmonitor -h  ;  | @Tearran 
@@ -1029,7 +1030,6 @@ These helper functions facilitate various operations related to job management, 
 | Deploy Armbian KVM instances | install remove save drop restore list help | @igorpecovnik 
 | Install OpenMediaVault (OMV) | install remove status help | @igorpecovnik 
 | Unmask service | srv_unmask ssh.service | @dimitry-ishenko 
-| Migrated procedures from Armbian config. | connect_bt_interface | @armbian 
 | Display a message box | show_message <<< 'hello world'  | @Tearran 
 | Manage self hosted runners | install remove remove_online purge status help | @igorpecovnik 
 | Install domoticz container | install remove purge status help | @armbian 
@@ -1037,9 +1037,9 @@ These helper functions facilitate various operations related to job management, 
 | Menu for armbianmonitor features | see_monitoring | @Tearran 
 | Enable/disable device tree overlays |  | @viraniac 
 | XFCE desktop packages | install remove disable enable status auto manual login help | @igorpecovnik 
-| Show or generate QR code for Google OTP | qr_code generate | @igorpecovnik 
 | Remove package | pkg_remove nmap | @dimitry-ishenko 
 | Install Immich (photo and video backup solution) | install remove purge status help |  
+| Check the internet connection with fallback DNS | see_ping | @Tearran 
 | Samba setup and service setting. | help install remove start stop enable disable configure default status | @Tearran 
 | Check when apt list was last updated and suggest updating or update | see_current_apt or see_current_apt update | @Tearran 
 | Install/uninstall/check status of portainer container | install remove purge status help | @armbian 
@@ -1053,7 +1053,6 @@ These helper functions facilitate various operations related to job management, 
 | Install openssh-server container | install remove purge status help | @armbian 
 | Upgrade installed packages | pkg_upgrade | @dimitry-ishenko 
 | Install lidarr container | install remove purge status help | @armbian 
-| Check if a domain is reachable via IPv4 and IPv6 | check_ip_version google.com | @Tearran 
 | Install package | pkg_install neovim | @dimitry-ishenko 
 | Install wireguard container | install client server remove purge qrcode status help | @armbian 
 | Secure Web Application Gateway  | install remove purge status password help | @igorpecovnik 
@@ -1072,11 +1071,11 @@ These helper functions facilitate various operations related to job management, 
 | Fix dependency issues | pkg_fix | @igorpecovnik 
 | Install radarr container | install remove purge status help | @armbian 
 | Install mysql container | install remove purge status help | @igorpecovnik 
-| Toggle IPv6 on or off | toggle_ipv6 | @Tearran 
 | Adjust welcome screen (motd) | adjust_motd clear, header, sysinfo, tips, commands | @igorpecovnik 
 | Install embyserver container | install remove purge status help | @schwar3kat 
 | Install duplicati container | install remove purge status help | @armbian 
 | Install qbittorrent container | install remove purge status help | @qbittorrent 
+| Show or generate QR code for Google OTP | module_qr_code generate | @igorpecovnik 
 | Reload systemd configuration | srv_daemon_reload | @dimitry-ishenko 
 | Generate JSON-like object file. | generate_json | @Tearran 
 | Install actualbudget container | install remove purge status help | @armbian 
@@ -1085,9 +1084,9 @@ These helper functions facilitate various operations related to job management, 
 | Install navidrome container | install remove purge status help | @armbian 
 | Install Openhab | install remove purge status help | @igorpecovnik 
 | Uses Avalible (Whiptail, DIALOG, READ) for the menu interface | <function_name> | Tearran 
-| Netplan wrapper | network_config | @igorpecovnik 
 | Install medusa container | install remove purge status help | @armbian 
 | Install prometheus container | install remove purge status help | @armbian 
+| Netplan wrapper | module_network_config | @igorpecovnik 
 | Install syncthing container | install remove purge status help | @igorpecovnik 
 | Install Zerotier | help install remove start stop enable disable status check | @jnovos 
 | Install grafana container | install remove purge status help | @armbian 
@@ -1103,12 +1102,13 @@ These helper functions facilitate various operations related to job management, 
 | Install nfs client | install remove servers mounts help | @igorpecovnik 
 | pipeline strings to an infobox  | show_infobox <<< 'hello world' ;  | @Tearran 
 | Install uptimekuma container | install remove purge status help | @armbian 
-| Stop hostapd, clean config | default_wireless_network_config | @igorpecovnik 
 | Install homepage container | install remove purge status help | @armbian 
 | Generate desktop packages list |  | @igorpecovnik 
+| Toggle IPv6 on or off | toggle_ipv6 | @Tearran 
 | Update sub-submenu descriptions based on conditions | update_sub_submenu_data MenuID SubID SubSubID CMD | @Tearran 
 | Parse json to get list of desired menu or submenu items | parse_menu_items 'menu_options_array' | @viraniac 
 | Show the usage of the functions. | see_use | @Tearran 
+| Stop hostapd, clean config | default_wireless_network_config | @igorpecovnik 
 | Check if service is enabled | srv_enabled ssh.service | @dimitry-ishenko 
 | Download and flash Armbian OS images for selected hardware | install remove purge status help |  
 | Install adguardhome container | install remove purge status help | @igorpecovnik 
@@ -1120,16 +1120,16 @@ These helper functions facilitate various operations related to job management, 
 | Install Redis in a container (In-Memory Data Store) | install remove purge status help | @armbian 
 | Stop service | srv_stop ssh.service | @dimitry-ishenko 
 | Configure an unconfigured package | pkg_configure | @dimitry-ishenko 
+| Check if a domain is reachable via IPv4 and IPv6 | module_check_ip_version google.com | @Tearran 
 | Install Pi-hole container | install remove purge password status help | @armbian 
 | Generate a Help message for cli commands. | see_cmd_list [category] | @Tearran 
 | Install mariadb container | install remove purge status help | @igorpecovnik 
 | Disable service | srv_disable ssh.service | @dimitry-ishenko 
-| Revert network config back to Armbian defaults | default_network_config | @igorpecovnik 
 | Check if the current OS is supported based on /etc/armbian-distribution-status | help | @Tearran 
 | Install prowlarr container | install remove purge status help | @Prowlarr 
 | Install nfsd server | install remove manage add status clients servers help | @igorpecovnik 
 | Install and configure Armbian rsyncd. | install remove status help | @igorpecovnik 
-| Check the internet connection with fallback DNS | see_ping | @Tearran 
+| Migrated procedures from Armbian config. | module_connect_bt_interface | @armbian 
 | Make sure param contains only valid chars | sanitize 'foo_bar_42' | @Tearran 
 | Install docker from a repo using apt | install remove purge status help | @schwar3kat 
 | Upgrade to next stable or rolling release | release_upgrade stable verify | @igorpecovnik 
