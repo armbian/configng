@@ -41,7 +41,7 @@ function module_postgres () {
 	POSTGRES_TAG="${POSTGRES_TAG:-pg14-v0.2.0}"
 	POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-postgres}"
 	local container=$(docker container ls -a --filter "name=^${POSTGRES_CONTAINER}$" --format '{{.ID}}') 2>/dev/null || echo ""
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep "${POSTGRES_IMAGE}" | awk '{print $2}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.Tag}} {{.ID}}' | grep "${POSTGRES_IMAGE}" | awk '{print $3}') 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_postgres,example"]}"
