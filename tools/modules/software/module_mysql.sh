@@ -18,9 +18,6 @@ function module_mysql () {
 	local title="mysql"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
-	fi
 	local container=$(docker container ls -a --filter "name=mysql" --format '{{.ID}}')
 	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep '^mysql ' | awk '{print $2}')
 
@@ -31,6 +28,9 @@ function module_mysql () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			# Exit if mysql is already running
 			if [[ "${container}" && "${image}" ]]; then
 				echo "MySQL container is already installed."

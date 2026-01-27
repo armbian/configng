@@ -17,9 +17,6 @@ function module_pi_hole () {
 	local title="pihole"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
-	fi
 	local container=$(docker container ls -a --filter 'name=^/pihole$' --format '{{.ID}}')
 	local image=$(docker image ls -a --filter 'reference=pihole/pihole:*' --format '{{.Repository}}:{{.Tag}}' | head -1)
 
@@ -30,6 +27,9 @@ function module_pi_hole () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			# Check if the module is already installed
 			if [[ "${container}" && "${image}" ]]; then
 				echo "Pi-hole container is already installed."

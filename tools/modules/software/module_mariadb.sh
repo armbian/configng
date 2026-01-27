@@ -17,9 +17,6 @@ function module_mariadb () {
 	local title="mariadb"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
-	fi
 	local container=$(docker container ls -a --filter "name=mariadb" --format '{{.ID}}')
 	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'mariadb '| awk '{print $2}')
 
@@ -30,6 +27,9 @@ function module_mariadb () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$MARIADB_BASE" ]] || mkdir -p "$MARIADB_BASE" || { echo "Couldn't create storage directory: $MARIADB_BASE"; exit 1; }
 			docker run -d \
 			--net=lsio \

@@ -17,9 +17,6 @@ function module_duplicati () {
 	local title="duplicati"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
-	fi
 	local container=$(docker container ls -a --filter "name=duplicati" --format '{{.ID}}')
 	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'duplicati' | awk '{print $2}')
 
@@ -30,6 +27,9 @@ function module_duplicati () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			shift
 			# Accept encryption key and WebUI password from parameters if provided
 			local DUPLICATI_ENCRYPTION_KEY="$1"

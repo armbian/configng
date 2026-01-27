@@ -18,10 +18,6 @@ module_options+=(
 function module_actualbudget () {
 	local title="actualbudget"
 	local condition=$(which "$title" 2>/dev/null)
-
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
-	fi
 	local container=$(docker container ls -a --filter "name=my_actual_budget" --format '{{.ID}}')
 	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'actual' | awk '{print $2}')
 
@@ -32,6 +28,9 @@ function module_actualbudget () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$ACTUALBUDGET_BASE" ]] || mkdir -p "$ACTUALBUDGET_BASE" || { echo "Couldn't create storage directory: $ACTUALBUDGET_BASE"; exit 1; }
 			docker run -d \
 			--net=lsio \

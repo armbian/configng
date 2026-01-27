@@ -22,9 +22,6 @@ function module_armbianrouter () {
 	local title="armbianrouter"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
-	fi
 	local container=$(docker container ls -a --format '{{.ID}} {{.Names}}' | mawk '$2 ~ /^armbianrouter/ {print $1}')
 	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'armbian-router' | awk '{print $2}')
 
@@ -43,6 +40,9 @@ function module_armbianrouter () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$ROUTER_BASE" ]] || mkdir -p "$ROUTER_BASE" || { echo "Couldn't create storage directory: $ROUTER_BASE"; exit 1; }
 
 			# Download all config yaml files

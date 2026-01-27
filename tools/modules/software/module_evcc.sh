@@ -17,9 +17,6 @@ function module_evcc () {
 	local title="evcc"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
-	fi
 	local container=$(docker container ls -a --filter "name=evcc" --format '{{.ID}}')
 	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'evcc' | awk '{print $2}')
 
@@ -30,6 +27,9 @@ function module_evcc () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$EVCC_BASE" ]] || mkdir -p "$EVCC_BASE" || { echo "Couldn't create storage directory: $EVCC_BASE"; exit 1; }
 			touch "${EVCC_BASE}/evcc.yaml"
 			docker run -d \

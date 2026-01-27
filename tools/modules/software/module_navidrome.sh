@@ -17,9 +17,6 @@ function module_navidrome () {
 	local title="navidrome"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
-	fi
 	local container=$(docker container ls -a --filter "name=navidrome" --format '{{.ID}}')
 	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'navidrome' | awk '{print $2}')
 
@@ -30,6 +27,9 @@ function module_navidrome () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$NAVIDROME_BASE" ]] || mkdir -p "$NAVIDROME_BASE"/{music,data} || { echo "Couldn't create storage directory: $NAVIDROME_BASE"; exit 1; }
 			sudo chown -R 1000:1000 "$NAVIDROME_BASE"/
 			docker run -d \

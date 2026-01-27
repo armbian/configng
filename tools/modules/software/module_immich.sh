@@ -25,10 +25,6 @@ function module_immich () {
 	local DATABASE_IMAGE="tensorchord/pgvecto-rs"
 	local DATABASE_TAG="pg14-v0.2.0"
 	local DATABASE_PORT="5432"
-
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
-	fi
 	local container=$(docker container ls -a --filter "name=immich" --format '{{.ID}}')
 	local image=$(docker image ls -a --format '{{.Repository}}:{{.Tag}}' | grep 'ghcr.io/imagegenius/immich:' | head -1)
 
@@ -39,6 +35,9 @@ function module_immich () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			# Check if the module is already installed
 			if [[ "${container}" && "${image}" ]]; then
 				echo "Immich container is already installed."
@@ -115,7 +114,9 @@ function module_immich () {
 					if curl -sf http://localhost:${module_options["module_immich,port"]}/ > /dev/null; then
 						break
 					fi
-				done | $DIALOG --gauge "Starting Immich\n\nPlease wait..." 10 50 0
+				done | $DIALOG --gauge "Starting Immich
+
+Please wait..." 10 50 0
 			else
 				echo "Waiting for Immich to become available..."
 				for s in {1..10}; do
@@ -151,13 +152,14 @@ function module_immich () {
 			fi
 		;;
 		"${commands[4]}")
-			echo -e "\nUsage: ${module_options["module_immich,feature"]} <command>"
+			echo -e "
+Usage: ${module_options["module_immich,feature"]} <command>"
 			echo -e "Commands:  ${module_options["module_immich,example"]}"
 			echo "Available commands:"
-			echo -e "\tinstall\t- Install $title."
-			echo -e "\tremove\t- Remove $title."
-			echo -e "\tpurge\t- Purge $title data folder."
-			echo -e "\tstatus\t- Installation status $title."
+			echo -e "	install	- Install $title."
+			echo -e "	remove	- Remove $title."
+			echo -e "	purge	- Purge $title data folder."
+			echo -e "	status	- Installation status $title."
 			echo
 		;;
 		*)

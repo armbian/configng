@@ -17,9 +17,6 @@ function module_syncthing () {
 	local title="syncthing"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
-	fi
 	local container=$(docker container ls -a --filter "name=syncthing" --format '{{.ID}}')
 	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'syncthing' | awk '{print $2}')
 
@@ -30,6 +27,9 @@ function module_syncthing () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$SYNCTHING_BASE" ]] || mkdir -p "$SYNCTHING_BASE" || { echo "Couldn't create storage directory: $SYNCTHING_BASE"; exit 1; }
 			docker run -d \
 			--name=syncthing \

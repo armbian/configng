@@ -17,9 +17,6 @@ function module_domoticz () {
 	local title="domoticz"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
-	fi
 	local container=$(docker container ls -a --filter "name=domoticz" --format '{{.ID}}')
 	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'domoticz' | awk '{print $2}')
 
@@ -30,6 +27,9 @@ function module_domoticz () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$DOMOTICZ_BASE" ]] || mkdir -p "$DOMOTICZ_BASE" || { echo "Couldn't create storage directory: $DOMOTICZ_BASE"; exit 1; }
 
 			# Check if USB serial device exists, only add --device if it does

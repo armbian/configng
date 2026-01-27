@@ -16,10 +16,6 @@ module_options+=(
 function module_redis () {
 	local title="redis"
 	local condition=$(which "$title" 2>/dev/null)
-
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
-	fi
 	local container=$(docker container ls -a --filter "name=redis" --format '{{.ID}}')
 	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'redis '| awk '{print $2}')
 
@@ -30,6 +26,9 @@ function module_redis () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$REDIS_BASE" ]] || mkdir -p "$REDIS_BASE" || { echo "Couldn't create storage directory: $REDIS_BASE"; exit 1; }
 			docker run -d \
 			--net=lsio \

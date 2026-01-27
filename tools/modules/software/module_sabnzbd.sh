@@ -17,9 +17,6 @@ function module_sabnzbd () {
 	local title="sabnzbd"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
-	fi
 	local container=$(docker container ls -a --filter "name=sabnzbd" --format '{{.ID}}')
 	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'sabnzbd' | awk '{print $2}')
 
@@ -30,6 +27,9 @@ function module_sabnzbd () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$SABNZBD_BASE" ]] || mkdir -p "$SABNZBD_BASE" || { echo "Couldn't create storage directory: $SABNZBD_BASE"; exit 1; }
 			docker run -d \
 			--name=sabnzbd \
@@ -50,7 +50,8 @@ function module_sabnzbd () {
 				fi
 				sleep 3
 				if [[ $i -eq 20 ]]; then
-					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs sabnzbd\`)"
+					echo -e "
+Timed out waiting for ${title} to start, consult logs (\`docker logs sabnzbd\`)"
 					exit 1
 				fi
 			done
@@ -79,13 +80,14 @@ function module_sabnzbd () {
 			fi
 		;;
 		"${commands[4]}")
-			echo -e "\nUsage: ${module_options["module_sabnzbd,feature"]} <command>"
+			echo -e "
+Usage: ${module_options["module_sabnzbd,feature"]} <command>"
 			echo -e "Commands:  ${module_options["module_sabnzbd,example"]}"
 			echo "Available commands:"
-			echo -e "\tinstall\t- Install $title."
-			echo -e "\tstatus\t- Installation status $title."
-			echo -e "\tremove\t- Remove $title."
-			echo -e "\tremove\t- Purge $title."
+			echo -e "	install	- Install $title."
+			echo -e "	status	- Installation status $title."
+			echo -e "	remove	- Remove $title."
+			echo -e "	remove	- Purge $title."
 			echo
 		;;
 		*)

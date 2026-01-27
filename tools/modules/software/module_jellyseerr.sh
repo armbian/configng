@@ -17,9 +17,6 @@ function module_jellyseerr () {
 	local title="jellyseerr"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
-	fi
 	local container=$(docker container ls -a --filter "name=jellyseerr" --format '{{.ID}}')
 	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'jellyseerr' | awk '{print $2}')
 
@@ -30,6 +27,9 @@ function module_jellyseerr () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$JELLYSEERR_BASE" ]] || mkdir -p "$JELLYSEERR_BASE" || { echo "Couldn't create storage directory: $JELLYSEERR_BASE"; exit 1; }
 			docker run -d \
 			--name=jellyseerr \

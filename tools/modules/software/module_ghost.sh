@@ -18,9 +18,6 @@ function module_ghost () {
 	local title="ghost"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
-	fi
 	local container=$(docker container ls -a --filter "name=ghost" --format '{{.ID}}')
 	local image=$(docker image ls -a --format '{{.Repository}}:{{.Tag}}' | grep '^ghost:' | head -1)
 
@@ -31,6 +28,9 @@ function module_ghost () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			# Install mysql if not installed
 			if ! module_mysql status; then
 				module_mysql install

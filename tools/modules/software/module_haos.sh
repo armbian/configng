@@ -18,9 +18,6 @@ function module_haos() {
 	local title="haos"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
-	fi
 	local container=$(docker container ls -a --filter "name=home-assistant" --format '{{.ID}}')
 	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'home-assistant' | awk '{print $2}')
 
@@ -31,6 +28,9 @@ function module_haos() {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$HAOS_BASE" ]] || mkdir -p "$HAOS_BASE" || { echo "Couldn't create storage directory: $HAOS_BASE"; exit 1; }
 
 			# this hack will allow running it on minimal image, but this has to be done properly in the network section, to allow easy switching

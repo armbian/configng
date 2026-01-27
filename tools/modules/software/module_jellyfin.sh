@@ -16,10 +16,6 @@ module_options+=(
 function module_jellyfin () {
 	local title="jellyfin"
 	local condition=$(which "$title" 2>/dev/null)
-
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
-	fi
 	local container=$(docker container ls -a --filter "name=jellyfin" --format '{{.ID}}')
 	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'jellyfin' | awk '{print $2}')
 
@@ -56,6 +52,9 @@ function module_jellyfin () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$JELLYFIN_BASE" ]] || mkdir -p "$JELLYFIN_BASE" || { echo "Couldn't create storage directory: $JELLYFIN_BASE"; exit 1; }
 			docker run -d \
 			--name=jellyfin \

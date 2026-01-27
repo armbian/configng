@@ -17,9 +17,6 @@ function module_prometheus () {
 	local title="prometheus"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
-	fi
 	local container=$(docker container ls -a --filter "name=prometheus" --format '{{.ID}}')
 	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'prom' | awk '{print $2}')
 
@@ -30,6 +27,9 @@ function module_prometheus () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$PROMETHEUS_BASE" ]] || mkdir -p "$PROMETHEUS_BASE" || { echo "Couldn't create storage directory: $PROMETHEUS_BASE"; exit 1; }
 
 			# Create dummy prometheus config file if it is not exist

@@ -17,9 +17,6 @@ function module_hastebin () {
 	local title="hastebin"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
-	fi
 	local container=$(docker container ls -a --filter "name=hastebin" --format '{{.ID}}')
 	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'hastebin' | awk '{print $2}')
 
@@ -30,6 +27,9 @@ function module_hastebin () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$HASTEBIN_BASE" ]] || mkdir -p "$HASTEBIN_BASE" || { echo "Couldn't create storage directory: $HASTEBIN_BASE"; exit 1; }
 			mkdir -p "$HASTEBIN_BASE/pastes"
 

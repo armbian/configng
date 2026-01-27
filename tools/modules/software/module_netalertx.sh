@@ -48,9 +48,6 @@ function module_netalertx () {
 	local title="netalertx"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
-	fi
 	local container=$(docker container ls -a --filter "name=netalertx" --format '{{.ID}}')
 	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'netalertx' | awk '{print $2}')
 
@@ -63,6 +60,9 @@ function module_netalertx () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$NETALERTX_BASE" ]] || mkdir -p "$NETALERTX_BASE" || { echo "Couldn't create storage directory: $NETALERTX_BASE"; exit 1; }
 
 			# Check if /dev/tty exists, only add --device if it does

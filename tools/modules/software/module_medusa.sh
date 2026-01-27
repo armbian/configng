@@ -17,9 +17,6 @@ function module_medusa () {
 	local title="medusa"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
-	fi
 	local container=$(docker container ls -a --filter "name=medusa" --format '{{.ID}}')
 	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'medusa' | awk '{print $2}')
 
@@ -30,6 +27,9 @@ function module_medusa () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$MEDUSA_BASE" ]] || mkdir -p "$MEDUSA_BASE" || { echo "Couldn't create storage directory: $MEDUSA_BASE"; exit 1; }
 			docker run -d \
 			--name=medusa \

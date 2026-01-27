@@ -18,9 +18,6 @@ function module_openhab() {
 	local title="openhab"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
-	fi
 	local container=$(docker container ls -a --filter "name=openhab" --format '{{.ID}}')
 	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'openhab' | awk '{print $2}')
 
@@ -31,6 +28,9 @@ function module_openhab() {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			docker run -d \
 			--name openhab \
 			--net=lsio \
