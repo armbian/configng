@@ -16,8 +16,8 @@ module_options+=(
 function module_adguardhome () {
 	local title="adguardhome"
 	local condition=$(which "$title" 2>/dev/null)
-	local container=$(docker container ls -a --filter "name=adguardhome" --format '{{.ID}}')
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'adguard' | awk '{print $2}')
+	local container=$(docker container ls -a --filter "name=adguardhome" --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'adguard' | awk '{print $2}') 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_adguardhome,example"]}"

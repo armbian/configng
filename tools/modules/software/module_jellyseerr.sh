@@ -17,8 +17,8 @@ function module_jellyseerr () {
 	local title="jellyseerr"
 	local condition=$(which "$title" 2>/dev/null)
 
-	local container=$(docker container ls -a --filter "name=jellyseerr" --format '{{.ID}}')
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'jellyseerr' | awk '{print $2}')
+	local container=$(docker container ls -a --filter "name=jellyseerr" --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'jellyseerr' | awk '{print $2}') 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_jellyseerr,example"]}"

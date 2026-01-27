@@ -16,8 +16,8 @@ module_options+=(
 function module_jellyfin () {
 	local title="jellyfin"
 	local condition=$(which "$title" 2>/dev/null)
-	local container=$(docker container ls -a --filter "name=jellyfin" --format '{{.ID}}')
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'jellyfin' | awk '{print $2}')
+	local container=$(docker container ls -a --filter "name=jellyfin" --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'jellyfin' | awk '{print $2}') 2>/dev/null || echo ""
 
 	# Hardware acceleration
 	unset hwacc

@@ -17,8 +17,8 @@ function module_uptimekuma () {
 	local title="uptimekuma"
 	local condition=$(which "$title" 2>/dev/null)
 
-	local container=$(docker container ls -a --filter "name=uptime-kuma" --format '{{.ID}}')
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'uptime-kuma '| awk '{print $2}')
+	local container=$(docker container ls -a --filter "name=uptime-kuma" --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'uptime-kuma '| awk '{print $2}') 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_uptimekuma,example"]}"

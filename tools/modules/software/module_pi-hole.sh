@@ -17,8 +17,8 @@ function module_pi_hole () {
 	local title="pihole"
 	local condition=$(which "$title" 2>/dev/null)
 
-	local container=$(docker container ls -a --filter 'name=^/pihole$' --format '{{.ID}}')
-	local image=$(docker image ls -a --filter 'reference=pihole/pihole:*' --format '{{.Repository}}:{{.Tag}}' | head -1)
+	local container=$(docker container ls -a --filter 'name=^/pihole$' --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --filter 'reference=pihole/pihole:*' --format '{{.Repository}}:{{.Tag}}' | head -1) 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_pi_hole,example"]}"

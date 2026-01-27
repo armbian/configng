@@ -17,8 +17,8 @@ function module_transmission () {
 	local title="transmission"
 	local condition=$(which "$title" 2>/dev/null)
 
-	local container=$(docker container ls -a --filter "name=transmission" --format '{{.ID}}')
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'transmission' | awk '{print $2}')
+	local container=$(docker container ls -a --filter "name=transmission" --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'transmission' | awk '{print $2}') 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_transmission,example"]}"

@@ -17,8 +17,8 @@ function module_stirling () {
 	local title="stirling"
 	local condition=$(which "$title" 2>/dev/null)
 
-	local container=$(docker container ls -a --filter "name=stirling-pdf" --format '{{.ID}}')
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'stirling' | awk '{print $2}')
+	local container=$(docker container ls -a --filter "name=stirling-pdf" --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'stirling' | awk '{print $2}') 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_stirling,example"]}"

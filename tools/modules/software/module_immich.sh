@@ -25,8 +25,8 @@ function module_immich () {
 	local DATABASE_IMAGE="tensorchord/pgvecto-rs"
 	local DATABASE_TAG="pg14-v0.2.0"
 	local DATABASE_PORT="5432"
-	local container=$(docker container ls -a --filter "name=immich" --format '{{.ID}}')
-	local image=$(docker image ls -a --format '{{.Repository}}:{{.Tag}}' | grep 'ghcr.io/imagegenius/immich:' | head -1)
+	local container=$(docker container ls -a --filter "name=immich" --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}}:{{.Tag}}' | grep 'ghcr.io/imagegenius/immich:' | head -1) 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_immich,example"]}"
@@ -38,6 +38,10 @@ function module_immich () {
 			if ! module_docker status >/dev/null 2>&1; then
 				module_docker install
 			fi
+
+			local container=$(docker container ls -a --filter "name=immich" --format '{{.ID}}') 2>/dev/null || echo ""
+			local image=$(docker image ls -a --format '{{.Repository}}:{{.Tag}}' | grep 'ghcr.io/imagegenius/immich:' | head -1) 2>/dev/null || echo ""
+
 			# Check if the module is already installed
 			if [[ "${container}" && "${image}" ]]; then
 				echo "Immich container is already installed."
