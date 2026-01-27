@@ -16,15 +16,19 @@ module_options+=(
 #
 function module_hedgedoc () {
 	local title="hedgedoc"
-	local condition=$(which "$title" 2>/dev/null)
+
+	# Ensure Docker is available for commands that need it (install, remove, purge)
+	if [[ "$1" != "status" && "$1" != "help" ]]; then
+		if ! module_docker status >/dev/null 2>&1; then
+			module_docker install
+		fi
+	fi
 
 	local DOMAIN="${2:-$LOCALIPADD}"
 	local USE_SSL="${3:-false}"
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/(^|[[:space:]])hedgedoc([[:space:]]|$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/linuxserver\/hedgedoc?( |$)/{print $3}')
-	fi
+	local container=$(docker container ls -a --format '{{.ID}} {{.Names}}' | awk '$2 == "hedgedoc" {print $1}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}}:{{.Tag}}' | grep 'quay.io/hedgedoc/hedgedoc:' | head -1) 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_hedgedoc,example"]}"
@@ -41,15 +45,20 @@ function module_hedgedoc () {
 			local DATABASE_HOST="hedgedoc-db"
 			local DATABASE_USER="hedgedoc"
 			local DATABASE_NAME="hedgedoc"
+			local DATABASE_IMAGE="postgres"
+			local DATABASE_TAG="16-alpine"
 			local DATABASE_PASSWORD=$(openssl rand -hex 8)
+			local session_secret
 
-            		# Install postgres if not installed
-			if ! module_postgres status "${DATABASE_USER}" "${DATABASE_PASSWORD}" "${DATABASE_NAME}" "" "${DATABASE_HOST}"; then
-				module_postgres install "${DATABASE_USER}" "${DATABASE_PASSWORD}" "${DATABASE_NAME}" "postgres:16-alpine" "${DATABASE_HOST}"
+			DATABASE_PASSWORD=$(openssl rand -hex 8)
+
+			# Install postgres if not installed
+			if ! docker container ls -a --format '{{.Names}}' | grep -q "^${DATABASE_HOST}$"; then
+				module_postgres install "${DATABASE_USER}" "${DATABASE_PASSWORD}" "${DATABASE_NAME}" "${DATABASE_IMAGE}" "${DATABASE_TAG}" "${DATABASE_HOST}"
 			fi
 
-			[[ -d "$HEDGEDOC_BASE" ]] || mkdir -p "$HEDGEDOC_BASE" || { echo "Couldn't create storage directory: $HEDGEDOC_BASE"; exit 1; }
-			mkdir -p "$HEDGEDOC_BASE/uploads"
+			[[ -d "${HEDGEDOC_BASE}" ]] || mkdir -p "${HEDGEDOC_BASE}" || { echo "Couldn't create storage directory: ${HEDGEDOC_BASE}"; exit 1; }
+			mkdir -p "${HEDGEDOC_BASE}/uploads"
 
 			session_secret=$(openssl rand -hex 32)
 
@@ -73,7 +82,7 @@ function module_hedgedoc () {
 				else
 					sleep 3
 				fi
-				if [ $i -eq 20 ]; then
+				if [[ $i -eq 20 ]]; then
 					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs hedgedoc\`)"
 					exit 1
 				fi
@@ -81,19 +90,28 @@ function module_hedgedoc () {
 		;;
 		"${commands[1]}")
 			if [[ "${container}" ]]; then
-				docker container rm -f "$container" >/dev/null
-			fi
-			if [[ "${image}" ]]; then
-				docker image rm "$image" >/dev/null
+				echo "Removing container: ${container}"
+				docker container rm -f "${container}" 2>/dev/null || true
+				# Wait for container to be fully removed
+				for i in $(seq 1 10); do
+					if ! docker container ls -a --format '{{.ID}}' | grep -q "^${container}$"; then
+						break
+					fi
+					sleep 1
+				done
 			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_hedgedoc,feature"]} ${commands[1]}
+			# Wait for container to be fully removed before removing image
+			if [[ "${image}" ]]; then
+				sleep 2
+				docker image rm -f "${image}" 2>/dev/null || true
+			fi
+			module_postgres purge "" "" "" "" "" "hedgedoc-db"
 			if [[ -n "${HEDGEDOC_BASE}" && "${HEDGEDOC_BASE}" != "/" ]]; then
 				rm -rf "${HEDGEDOC_BASE}"
 			fi
-			# Also purge the database container
-			module_postgres purge "" "" "" "" "hedgedoc-db"
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then
@@ -106,10 +124,10 @@ function module_hedgedoc () {
 			echo -e "\nUsage: ${module_options["module_hedgedoc,feature"]} <command>"
 			echo -e "Commands:  ${module_options["module_hedgedoc,example"]}"
 			echo "Available commands:"
-			echo -e "\tinstall\t- Install $title with PostgreSQL database."
-			echo -e "\tremove\t- Remove $title container and image."
-			echo -e "\tpurge\t- Remove $title and delete all data including database."
-			echo -e "\tstatus\t- Check $title installation status."
+			echo -e "\tinstall\t- Install ${title} with PostgreSQL database."
+			echo -e "\tremove\t- Remove ${title} container and image."
+			echo -e "\tpurge\t- Remove ${title} and delete all data including database."
+			echo -e "\tstatus\t- Check ${title} installation status."
 			echo -e "\thelp\t- Show this help message."
 			echo
 		;;

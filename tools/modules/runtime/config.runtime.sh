@@ -171,3 +171,4 @@ update_sub_submenu_data "Software" "Downloaders" "JEL002" "http://$LOCALIPADD:${
 
 # web
 update_sub_submenu_data "Software" "WebHosting" "GHOST2" "http://$LOCALIPADD:${module_options["module_ghost,port"]}/ghost"
+update_sub_submenu_data "Software" "WebHosting" "HDOC02" "http://$LOCALIPADD:${module_options["module_hedgedoc,port"]}"
