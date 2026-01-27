@@ -198,9 +198,6 @@ sudo armbian-config
     - ### Radarr automatic downloader for movies
     - ### Radarr remove
     - ### Radarr purge with data folder
-    - ### Readarr automatic downloader for Ebooks
-    - ### Readarr remove
-    - ### Readarr purge with data folder
     - ### SABnzbd newsgroup downloader
     - ### SABnzbd remove
     - ### SABnzbd purge with data folder
@@ -529,9 +526,6 @@ Outputs:
 	--cmd RAD001 - Radarr automatic downloader for movies
 	--cmd RAD002 - Radarr remove (http://localhost:7878)
 	--cmd RAD003 - Radarr purge with data folder
-	--cmd RDR001 - Readarr automatic downloader for Ebooks
-	--cmd RDR002 - Readarr remove (http://localhost:8787)
-	--cmd RDR003 - Readarr purge with data folder
 	--cmd SABN01 - SABnzbd newsgroup downloader
 	--cmd SABN02 - SABnzbd remove (http://localhost:8380)
 	--cmd SABN03 - SABnzbd purge with data folder
@@ -543,7 +537,7 @@ Outputs:
 	--cmd TRA003 - Transmission purge with data folder
     Finance - Manage your finances
 	--cmd ABU001 - Do your finances with Actual Budget
-	--cmd ABU002 - Actual Budget remove (http://localhost:5006)
+	--cmd ABU002 - Actual Budget remove (http://localhost:5443)
 	--cmd ABU003 - Actual Budget purge with data folder
     HomeAutomation - Home Automation for control home appliances
 	--cmd DOM001 - Domoticz open source home automation
@@ -1015,7 +1009,7 @@ These helper functions facilitate various operations related to job management, 
 | Install HA supervised container | install remove purge status help | @armbian 
 | Display a menu from pipe | show_menu <<< armbianmonitor -h  ;  | @Tearran 
 | Start service | srv_start ssh.service | @dimitry-ishenko 
-| Install watchtower container | install remove status help | @armbian 
+| Install watchtower container | install remove purge status help | @armbian 
 | Build the main menu from a object | generate_top_menu 'json_data' | @Tearran 
 | Install bazarr container | install remove purge status help | @igorpecovnik 
 | Install headers container | install remove status help | @armbian 
@@ -1085,7 +1079,7 @@ These helper functions facilitate various operations related to job management, 
 | Install qbittorrent container | install remove purge status help | @qbittorrent 
 | Reload systemd configuration | srv_daemon_reload | @dimitry-ishenko 
 | Generate JSON-like object file. | generate_json | @Tearran 
-| Install actualbudget container | install remove purge status help |  
+| Install actualbudget container | install remove purge status help | @armbian 
 | Install transmission container | install remove purge status help | @armbian 
 | Install nextcloud container | install remove purge status help | @igorpecovnik 
 | Install navidrome container | install remove purge status help | @armbian 
@@ -1108,7 +1102,6 @@ These helper functions facilitate various operations related to job management, 
 | Check if service is active | srv_active ssh.service | @dimitry-ishenko 
 | Install nfs client | install remove servers mounts help | @igorpecovnik 
 | pipeline strings to an infobox  | show_infobox <<< 'hello world' ;  | @Tearran 
-| Install readarr container | install remove purge status help | @armbian 
 | Install uptimekuma container | install remove purge status help | @armbian 
 | Stop hostapd, clean config | default_wireless_network_config | @igorpecovnik 
 | Install homepage container | install remove purge status help | @armbian 
