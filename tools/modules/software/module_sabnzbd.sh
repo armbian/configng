@@ -95,7 +95,7 @@ Usage: ${module_options["module_sabnzbd,feature"]} <command>"
 			echo -e "	install	- Install $title."
 			echo -e "	status	- Installation status $title."
 			echo -e "	remove	- Remove $title."
-			echo -e "	remove	- Purge $title."
+			echo -e "	purge	- Purge $title."
 			echo
 		;;
 		*)
