@@ -17,6 +17,13 @@ function module_immich () {
 	local title="immich"
 	local condition=$(which "$title" 2>/dev/null)
 
+	# Ensure Docker is available for commands that need it (install, remove, purge)
+	if [[ "$1" != "status" && "$1" != "help" ]]; then
+		if ! module_docker status >/dev/null 2>&1; then
+			module_docker install
+		fi
+	fi
+
 	# Database
 	local DATABASE_USER="immich"
 	local DATABASE_PASSWORD="immich"
@@ -35,13 +42,6 @@ function module_immich () {
 
 	case "$1" in
 		"${commands[0]}")
-			if ! module_docker status >/dev/null 2>&1; then
-				module_docker install
-			fi
-
-			local container=$(docker container ls -a --filter "name=immich" --format '{{.ID}}') 2>/dev/null || echo ""
-			local image=$(docker image ls -a --format '{{.Repository}}:{{.Tag}}' | grep 'ghcr.io/imagegenius/immich:' | head -1) 2>/dev/null || echo ""
-
 			# Check if the module is already installed
 			if [[ "${container}" && "${image}" ]]; then
 				echo "Immich container is already installed."

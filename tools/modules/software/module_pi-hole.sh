@@ -17,6 +17,13 @@ function module_pi_hole () {
 	local title="pihole"
 	local condition=$(which "$title" 2>/dev/null)
 
+	# Ensure Docker is available for commands that need it (install, remove, purge)
+	if [[ "$1" != "status" && "$1" != "help" ]]; then
+		if ! module_docker status >/dev/null 2>&1; then
+			module_docker install
+		fi
+	fi
+
 	local container=$(docker container ls -a --filter 'name=^/pihole$' --format '{{.ID}}') 2>/dev/null || echo ""
 	local image=$(docker image ls -a --filter 'reference=pihole/pihole:*' --format '{{.Repository}}:{{.Tag}}' | head -1) 2>/dev/null || echo ""
 

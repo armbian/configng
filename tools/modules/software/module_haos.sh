@@ -18,6 +18,13 @@ function module_haos() {
 	local title="haos"
 	local condition=$(which "$title" 2>/dev/null)
 
+	# Ensure Docker is available for commands that need it (install, remove, purge)
+	if [[ "$1" != "status" && "$1" != "help" ]]; then
+		if ! module_docker status >/dev/null 2>&1; then
+			module_docker install
+		fi
+	fi
+
 	local container=$(docker container ls -a --filter "name=home-assistant" --format '{{.ID}}') 2>/dev/null || echo ""
 	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'home-assistant' | awk '{print $2}') 2>/dev/null || echo ""
 
