@@ -101,7 +101,7 @@ function module_immich () {
 				-v "${IMMICH_BASE}/config:/config" \
 				-v "${IMMICH_BASE}/photos:/photos" \
 				-v "${IMMICH_BASE}/libraries:/libraries" \
-				--restart unless-stopped \
+				--restart=always \
 				ghcr.io/imagegenius/immich:latest; then
 					echo "❌ Failed to start Immich container"
 					exit 1
@@ -118,9 +118,7 @@ function module_immich () {
 					if curl -sf http://localhost:${module_options["module_immich,port"]}/ > /dev/null; then
 						break
 					fi
-				done | $DIALOG --gauge "Starting Immich
-
-Please wait..." 10 50 0
+				done | $DIALOG --gauge "Starting Immich Please wait..." 10 50 0
 			else
 				echo "Waiting for Immich to become available..."
 				for s in {1..10}; do
@@ -140,8 +138,10 @@ Please wait..." 10 50 0
 		;;
 		"${commands[2]}")
 			${module_options["module_immich,feature"]} ${commands[1]}
+			# Wait for container to be fully removed before removing image
 			if [[ "${image}" ]]; then
-				docker image rm "$image"
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
 			fi
 			module_postgres purge $DATABASE_USER $DATABASE_PASSWORD $DATABASE_NAME $DATABASE_IMAGE $DATABASE_HOST
 			if [[ -n "${IMMICH_BASE}" && "${IMMICH_BASE}" != "/" ]]; then
@@ -156,8 +156,7 @@ Please wait..." 10 50 0
 			fi
 		;;
 		"${commands[4]}")
-			echo -e "
-Usage: ${module_options["module_immich,feature"]} <command>"
+			echo -e "Usage: ${module_options["module_immich,feature"]} <command>"
 			echo -e "Commands:  ${module_options["module_immich,example"]}"
 			echo "Available commands:"
 			echo -e "	install	- Install $title."
