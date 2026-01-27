@@ -34,7 +34,9 @@ function module_postgres () {
 	POSTGRES_TAG="${POSTGRES_TAG:-pg14-v0.2.0}"
 	POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-postgres}"
 
-	pkg_installed docker.io || module_docker install
+	if ! module_docker status >/dev/null 2>&1; then
+		module_docker install
+	fi
 	local container=$(docker container ls -a --filter "name=^${POSTGRES_CONTAINER}$" --format '{{.ID}}')
 	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep "${POSTGRES_IMAGE}" | awk '{print $2}')
 

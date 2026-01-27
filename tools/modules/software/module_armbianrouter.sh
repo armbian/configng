@@ -22,10 +22,11 @@ function module_armbianrouter () {
 	local title="armbianrouter"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a --format '{{.ID}} {{.Names}}' | mawk '$2 ~ /^armbianrouter/ {print $1}')
-		local image=$(docker image ls -a | mawk '/armbian-router?( |$)/{print $3}')
+	if ! module_docker status >/dev/null 2>&1; then
+		module_docker install
 	fi
+	local container=$(docker container ls -a --format '{{.ID}} {{.Names}}' | mawk '$2 ~ /^armbianrouter/ {print $1}')
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'armbian-router' | awk '{print $2}')
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_armbianrouter,example"]}"
@@ -42,7 +43,6 @@ function module_armbianrouter () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
 			[[ -d "$ROUTER_BASE" ]] || mkdir -p "$ROUTER_BASE" || { echo "Couldn't create storage directory: $ROUTER_BASE"; exit 1; }
 
 			# Download all config yaml files
@@ -64,16 +64,16 @@ function module_armbianrouter () {
 					--net=lsio \
 					-p $port:$port \
 					-v "${ROUTER_BASE}:/app" \
-					--restart unless-stopped \
+					--restart=always \
 					ghcr.io/armbian/armbian-router:latest /bin/dlrouter --config /app/${routers[$port]}.yaml
 				for i in $(seq 1 20); do
-					if docker inspect -f '{{ index .Config.Labels "build_version" }}' armbianrouter-${routers[$port]} >/dev/null 2>&1 ; then
+					state="$(docker inspect -f '{{.State.Status}}' armbianrouter-${routers[$port]} 2>/dev/null || true)"
+					if [[ "$state" == "running" ]]; then
 						break
-					else
-						sleep 3
 					fi
-					if [ $i -eq 20 ] ; then
-						echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs armbianrouter-dlrouter-{debs,images,archive,debs-beta,cache}\`)"
+					sleep 3
+					if [[ $i -eq 20 ]]; then
+						echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs armbianrouter-dlrouter-{debs,images,archive,debs-beta,cache}\`)"
 						exit 1
 					fi
 				done
@@ -90,6 +90,9 @@ function module_armbianrouter () {
 		;;
 		"${commands[2]}")
 			${module_options["module_armbianrouter,feature"]} ${commands[1]}
+			if [[ "${image}" ]]; then
+				docker image rm "$image"
+			fi
 			if [[ -n "${ROUTER_BASE}" && "${ROUTER_BASE}" != "/" ]]; then
 				rm -rf "${ROUTER_BASE}"
 			fi

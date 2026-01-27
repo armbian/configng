@@ -48,50 +48,81 @@ function module_netalertx () {
 	local title="netalertx"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/netalertx( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/netalertx( |$)/{print $3}')
+	if ! module_docker status >/dev/null 2>&1; then
+		module_docker install
 	fi
+	local container=$(docker container ls -a --filter "name=netalertx" --format '{{.ID}}')
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'netalertx' | awk '{print $2}')
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_netalertx,example"]}"
 
 	NETALERTX_BASE="${SOFTWARE_FOLDER}/netalertx"
 
+	NETALERTX_NO_TMPFS=1
+
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
 			[[ -d "$NETALERTX_BASE" ]] || mkdir -p "$NETALERTX_BASE" || { echo "Couldn't create storage directory: $NETALERTX_BASE"; exit 1; }
+
+			# Check if /dev/tty exists, only add --device if it does
+			local device_params=""
+			if [[ -e /dev/tty ]]; then
+				device_params="--device /dev/tty"
+			fi
+
+			# Check if we should use tmpfs for /app/api (requires sufficient RAM)
+			# Set NETALERTX_NO_TMPFS=1 to disable tmpfs and use disk instead
+			local mount_params=""
+			if [[ "${NETALERTX_NO_TMPFS}" != "1" ]]; then
+				# Get available memory in MB
+				local available_mem=$(free -m | awk '/^Mem:/{print $7}')
+				# Only use tmpfs if we have at least 512MB available RAM
+				if [[ $available_mem -ge 512 ]]; then
+					mount_params="--mount type=tmpfs,target=/app/api"
+				else
+					echo "Warning: Insufficient RAM for tmpfs mount. /app/api will use disk storage."
+				fi
+			fi
+
 			docker run -d --rm --network=host \
 			--name=netalertx \
+			$device_params \
 			-e PUID=200 \
 			-e PGID=300 \
 			-e TZ="$(cat /etc/timezone)" \
 			-e PORT=20211 \
 			-v "${NETALERTX_BASE}/config:/app/config" \
 			-v "${NETALERTX_BASE}/db:/app/db" \
-			--mount type=tmpfs,target=/app/api \
+			$mount_params \
 			ghcr.io/jokob-sk/netalertx:latest
-
 			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' netalertx >/dev/null 2>&1 ; then
+				state="$(docker inspect -f '{{.State.Status}}' netalertx 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
 					break
-				else
-					sleep 3
 				fi
-				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs netalertx\`)"
+				sleep 3
+				if [[ $i -eq 20 ]]; then
+					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs netalertx\`)"
 					exit 1
 				fi
 			done
 		;;
 		"${commands[1]}")
-			if [[ "${container}" ]]; then docker container rm -f "$container" >/dev/null; fi
-			if [[ "${image}" ]]; then docker image rm "$image" >/dev/null; fi
+			if [[ "${container}" ]]; then
+				echo "Removing container: $container"
+				docker container rm -f "$container"
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_netalertx,feature"]} ${commands[1]}
-			if [[ -n "${NETALERTX_BASE}" && "${NETALERTX_BASE}" != "/" ]]; then rm -rf "${NETALERTX_BASE}"; fi
+			if [[ "${image}" ]]; then
+				docker image rm "$image"
+			fi
+			${module_options["module_netalertx,feature"]} ${commands[1]}
+			if [[ -n "${NETALERTX_BASE}" && "${NETALERTX_BASE}" != "/" ]]; then
+				rm -rf "${NETALERTX_BASE}"
+			fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then

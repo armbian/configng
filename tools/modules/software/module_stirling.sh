@@ -17,10 +17,11 @@ function module_stirling () {
 	local title="stirling"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/stirling-pdf?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/stirling-pdf?( |$)/{print $3}')
+	if ! module_docker status >/dev/null 2>&1; then
+		module_docker install
 	fi
+	local container=$(docker container ls -a --filter "name=stirling-pdf" --format '{{.ID}}')
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'stirling' | awk '{print $2}')
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_stirling,example"]}"
@@ -29,7 +30,6 @@ function module_stirling () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
 			[[ -d "$STIRLING_BASE" ]] || mkdir -p "$STIRLING_BASE" || { echo "Couldn't create storage directory: $STIRLING_BASE"; exit 1; }
 			docker run -d \
 			--net=lsio \
@@ -42,27 +42,35 @@ function module_stirling () {
 			-e INSTALL_BOOK_AND_ADVANCED_HTML_OPS=false \
 			-e LANGS=en_GB \
 			--name stirling-pdf \
-			--restart unless-stopped \
+			--restart=always \
 			stirlingtools/stirling-pdf:latest
 			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' stirling-pdf >/dev/null 2>&1 ; then
+				state="$(docker inspect -f '{{.State.Status}}' stirling-pdf 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
 					break
-				else
-					sleep 3
 				fi
-				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs stirling-pdf\`)"
+				sleep 3
+				if [[ $i -eq 20 ]]; then
+					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs stirling-pdf\`)"
 					exit 1
 				fi
 			done
 		;;
 		"${commands[1]}")
-			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+			if [[ "${container}" ]]; then
+				echo "Removing container: $container"
+				docker container rm -f "$container"
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_stirling,feature"]} ${commands[1]}
-			[[ -n "${STIRLING_BASE}" && "${STIRLING_BASE}" != "/" ]] && rm -rf "${STIRLING_BASE}"
+			if [[ "${image}" ]]; then
+				docker image rm "$image"
+			fi
+			${module_options["module_stirling,feature"]} ${commands[1]}
+			if [[ -n "${STIRLING_BASE}" && "${STIRLING_BASE}" != "/" ]]; then
+				rm -rf "${STIRLING_BASE}"
+			fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then

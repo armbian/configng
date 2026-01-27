@@ -26,7 +26,9 @@ function module_immich () {
 	local DATABASE_TAG="pg14-v0.2.0"
 	local DATABASE_PORT="5432"
 
-	pkg_installed docker.io || module_docker install
+	if ! module_docker status >/dev/null 2>&1; then
+		module_docker install
+	fi
 	local container=$(docker container ls -a --filter "name=immich" --format '{{.ID}}')
 	local image=$(docker image ls -a --format '{{.Repository}}:{{.Tag}}' | grep 'ghcr.io/imagegenius/immich:' | head -1)
 

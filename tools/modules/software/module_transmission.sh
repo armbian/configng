@@ -17,10 +17,11 @@ function module_transmission () {
 	local title="transmission"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/transmission?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/transmission?( |$)/{print $3}')
+	if ! module_docker status >/dev/null 2>&1; then
+		module_docker install
 	fi
+	local container=$(docker container ls -a --filter "name=transmission" --format '{{.ID}}')
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'transmission' | awk '{print $2}')
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_transmission,example"]}"
@@ -29,7 +30,6 @@ function module_transmission () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
 			[[ -d "$TRANSMISSION_BASE" ]] || mkdir -p "$TRANSMISSION_BASE" || { echo "Couldn't create storage directory: $TRANSMISSION_BASE"; exit 1; }
 			TRANSMISSION_USER=$($DIALOG --title "Enter username for Transmission client" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
 			TRANSMISSION_PASS=$($DIALOG --title "Enter password for Transmission client" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
@@ -48,30 +48,31 @@ function module_transmission () {
 			-v "${TRANSMISSION_BASE}/config:/config" \
 			-v "${TRANSMISSION_BASE}/downloads:/downloads" \
 			-v "${TRANSMISSION_BASE}/watch:/watch" \
-			--restart unless-stopped \
+			--restart=always \
 			lscr.io/linuxserver/transmission:latest
 			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' transmission >/dev/null 2>&1 ; then
+				state="$(docker inspect -f '{{.State.Status}}' transmission 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
 					break
-				else
-					sleep 3
 				fi
-				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs transmission\`)"
+				sleep 3
+				if [[ $i -eq 20 ]]; then
+					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs transmission\`)"
 					exit 1
 				fi
 			done
 		;;
 		"${commands[1]}")
 			if [[ "${container}" ]]; then
-				docker container rm -f "$container" >/dev/null
-			fi
-
-			if [[ "${image}" ]]; then
-				docker image rm "$image" >/dev/null
+				echo "Removing container: $container"
+				docker container rm -f "$container"
 			fi
 		;;
 		"${commands[2]}")
+			${module_options["module_transmission,feature"]} ${commands[1]}
+			if [[ "${image}" ]]; then
+				docker image rm "$image"
+			fi
 			${module_options["module_transmission,feature"]} ${commands[1]}
 			if [[ -n "${TRANSMISSION_BASE}" && "${TRANSMISSION_BASE}" != "/" ]]; then
 				rm -rf "${TRANSMISSION_BASE}"

@@ -1053,41 +1053,6 @@
                             "condition": "module_radarr status"
                         },
                         {
-                            "id": "RDR001",
-                            "description": "Readarr automatic downloader for Ebooks",
-                            "short": "Readarr",
-                            "module": "module_readarr",
-                            "about": "This operation will install Readarr",
-                            "command": [
-                                "module_readarr install"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "! module_readarr status"
-                        },
-                        {
-                            "id": "RDR002",
-                            "description": "Readarr remove",
-                            "about": "This operation will remove Readarr",
-                            "command": [
-                                "module_readarr remove"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "module_readarr status"
-                        },
-                        {
-                            "id": "RDR003",
-                            "description": "Readarr purge with data folder",
-                            "about": "This operation will purge Readarr with data folder",
-                            "command": [
-                                "module_readarr purge"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "condition": "module_readarr status"
-                        },
-                        {
                             "id": "SABN01",
                             "description": "SABnzbd newsgroup downloader",
                             "short": "SABnzbd",

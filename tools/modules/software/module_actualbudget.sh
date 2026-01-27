@@ -19,10 +19,11 @@ function module_actualbudget () {
 	local title="actualbudget"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/my_actual_budget?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/actual-server?( |$)/{print $3}')
+	if ! module_docker status >/dev/null 2>&1; then
+		module_docker install
 	fi
+	local container=$(docker container ls -a --filter "name=my_actual_budget" --format '{{.ID}}')
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'actual' | awk '{print $2}')
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_actualbudget,example"]}"
@@ -31,7 +32,6 @@ function module_actualbudget () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
 			[[ -d "$ACTUALBUDGET_BASE" ]] || mkdir -p "$ACTUALBUDGET_BASE" || { echo "Couldn't create storage directory: $ACTUALBUDGET_BASE"; exit 1; }
 			docker run -d \
 			--net=lsio \
@@ -39,31 +39,38 @@ function module_actualbudget () {
 			-e PGID=1000 \
 			-e TZ="$(cat /etc/timezone)" \
 			--name my_actual_budget \
-			--restart=unless-stopped \
 			-v "${ACTUALBUDGET_BASE}/data:/data" \
 			-p 5006:5006 \
 			-p 443:443 \
-			--restart unless-stopped \
+			--restart=always \
 			actualbudget/actual-server:latest
 			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' my_actual_budget >/dev/null 2>&1 ; then
+				state="$(docker inspect -f '{{.State.Status}}' my_actual_budget 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
 					break
-				else
-					sleep 3
 				fi
-				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs actualbudget\`)"
+				sleep 3
+				if [[ $i -eq 20 ]]; then
+					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs my_actual_budget\`)"
 					exit 1
 				fi
 			done
 		;;
 		"${commands[1]}")
-			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+			if [[ "${container}" ]]; then
+				echo "Removing container: $container"
+				docker container rm -f "$container"
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_actualbudget,feature"]} ${commands[1]}
-			[[ -n "${ACTUALBUDGET_BASE}" && "${ACTUALBUDGET_BASE}" != "/" ]] && rm -rf "${ACTUALBUDGET_BASE}"
+			if [[ "${image}" ]]; then
+				docker image rm "$image"
+			fi
+			${module_options["module_actualbudget,feature"]} ${commands[1]}
+			if [[ -n "${ACTUALBUDGET_BASE}" && "${ACTUALBUDGET_BASE}" != "/" ]]; then
+				rm -rf "${ACTUALBUDGET_BASE}"
+			fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then

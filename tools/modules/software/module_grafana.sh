@@ -17,10 +17,11 @@ function module_grafana () {
 	local title="grafana"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/grafana-enterprise?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/grafana-enterprise?( |$)/{print $3}')
+	if ! module_docker status >/dev/null 2>&1; then
+		module_docker install
 	fi
+	local container=$(docker container ls -a --filter "name=grafana" --format '{{.ID}}')
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'grafana' | awk '{print $2}')
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_grafana,example"]}"
@@ -29,7 +30,6 @@ function module_grafana () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
 			[[ -d "$GRAFANA_BASE" ]] || mkdir -p "$GRAFANA_BASE" || { echo "Couldn't create storage directory: $GRAFANA_BASE"; exit 1; }
 			docker run -d \
 			--name=grafana \
@@ -39,29 +39,31 @@ function module_grafana () {
 			-e TZ="$(cat /etc/timezone)" \
 			-p ${module_options["module_grafana,port"]}:3000 \
 			-v "${GRAFANA_BASE}:/var/lib/grafana" \
-			--restart unless-stopped \
+			--restart=always \
 			grafana/grafana-enterprise
 			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' grafana >/dev/null 2>&1 ; then
-					break
-				else
-					sleep 3
+				state="$(docker inspect -f '{{.State.Status}}' grafana 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
+				break
 				fi
-				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs grafana\`)"
+				sleep 3
+				if [[ $i -eq 20 ]]; then
+					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs grafana\`)"
 					exit 1
 				fi
 			done
 		;;
 		"${commands[1]}")
 			if [[ "${container}" ]]; then
-				docker container rm -f "$container" >/dev/null
-			fi
-			if [[ "${image}" ]]; then
-				docker image rm "$image" >/dev/null
+				echo "Removing container: $container"
+				docker container rm -f "$container"
 			fi
 		;;
 		"${commands[2]}")
+			${module_options["module_grafana,feature"]} ${commands[1]}
+			if [[ "${image}" ]]; then
+				docker image rm "$image"
+			fi
 			${module_options["module_grafana,feature"]} ${commands[1]}
 			if [[ -n "${GRAFANA_BASE}" && "${GRAFANA_BASE}" != "/" ]]; then
 				rm -rf "${GRAFANA_BASE}"
@@ -81,6 +83,7 @@ function module_grafana () {
 			echo -e "\tinstall\t- Install $title."
 			echo -e "\tstatus\t- Installation status $title."
 			echo -e "\tremove\t- Remove $title."
+			echo -e "\tpurge\t- Purge $title."
 			echo
 		;;
 		*)
