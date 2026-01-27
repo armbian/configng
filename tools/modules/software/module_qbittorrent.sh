@@ -17,11 +17,14 @@ function module_qbittorrent () {
 	local title="qbittorrent"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
+	# Ensure Docker is available for commands that need it (install, remove, purge)
+	if [[ "$1" != "status" && "$1" != "help" ]]; then
+		if ! module_docker status >/dev/null 2>&1; then
+			module_docker install
+		fi
 	fi
-	local container=$(docker container ls -a --filter "name=qbittorrent" --format '{{.ID}}')
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'qbittorrent' | awk '{print $2}')
+	local container=$(docker container ls -a --filter "name=qbittorrent" --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'qbittorrent' | awk '{print $2}') 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_qbittorrent,example"]}"
@@ -30,6 +33,9 @@ function module_qbittorrent () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$QBITTORRENT_BASE" ]] || mkdir -p "$QBITTORRENT_BASE" || { echo "Couldn't create storage directory: $QBITTORRENT_BASE"; exit 1; }
 			docker run -d \
 			--name=qbittorrent \
@@ -76,7 +82,8 @@ function module_qbittorrent () {
 		"${commands[2]}")
 			${module_options["module_qbittorrent,feature"]} ${commands[1]}
 			if [[ "${image}" ]]; then
-				docker image rm "$image"
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
 			fi
 			if [[ -n "${QBITTORRENT_BASE}" && "${QBITTORRENT_BASE}" != "/" ]]; then
 				rm -rf "${QBITTORRENT_BASE}"

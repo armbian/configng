@@ -17,11 +17,15 @@ function module_watchtower () {
 	local title="watchtower"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
+	# Ensure Docker is available for commands that need it (install, remove, purge)
+	if [[ "$1" != "status" && "$1" != "help" ]]; then
+		if ! module_docker status >/dev/null 2>&1; then
+			module_docker install
+		fi
 	fi
-	local container=$(docker container ls -a --filter "name=watchtower" --format '{{.ID}}')
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'watchtower' | awk '{print $2}')
+
+	local container=$(docker container ls -a --filter "name=watchtower" --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'watchtower' | awk '{print $2}') 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_watchtower,example"]}"
@@ -30,6 +34,9 @@ function module_watchtower () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$WATCHTOWER_BASE" ]] || mkdir -p "$WATCHTOWER_BASE" || { echo "Couldn't create storage directory: $WATCHTOWER_BASE"; exit 1; }
 			docker run -d \
 			--net=lsio \
@@ -59,7 +66,8 @@ function module_watchtower () {
 		"${commands[2]}")
 			${module_options["module_watchtower,feature"]} ${commands[1]}
 			if [[ "${image}" ]]; then
-				docker image rm "$image"
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
 			fi
 			${module_options["module_watchtower,feature"]} ${commands[1]}
 			if [[ -n "${WATCHTOWER_BASE}" && "${WATCHTOWER_BASE}" != "/" ]]; then

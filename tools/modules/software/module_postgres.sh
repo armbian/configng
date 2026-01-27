@@ -18,6 +18,13 @@ function module_postgres () {
 	local title="postgres"
 	local condition=$(which "$title" 2>/dev/null)
 
+	# Ensure Docker is available for commands that need it (install, remove, purge)
+	if [[ "$1" != "status" && "$1" != "help" ]]; then
+		if ! module_docker status >/dev/null 2>&1; then
+			module_docker install
+		fi
+	fi
+
 	# Accept optional parameters
 	local POSTGRES_USER="$2"
 	local POSTGRES_PASSWORD="$3"
@@ -33,12 +40,8 @@ function module_postgres () {
 	POSTGRES_IMAGE="${POSTGRES_IMAGE:-tensorchord/pgvecto-rs}"
 	POSTGRES_TAG="${POSTGRES_TAG:-pg14-v0.2.0}"
 	POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-postgres}"
-
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
-	fi
-	local container=$(docker container ls -a --filter "name=^${POSTGRES_CONTAINER}$" --format '{{.ID}}')
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep "${POSTGRES_IMAGE}" | awk '{print $2}')
+	local container=$(docker container ls -a --filter "name=^${POSTGRES_CONTAINER}$" --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep "${POSTGRES_IMAGE}" | awk '{print $2}') 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_postgres,example"]}"
@@ -47,6 +50,9 @@ function module_postgres () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$POSTGRES_BASE" ]] || mkdir -p "$POSTGRES_BASE" || { echo "Couldn't create storage directory: $POSTGRES_BASE"; exit 1; }
 			# Download or update image
 			docker pull $POSTGRES_IMAGE
@@ -67,7 +73,8 @@ function module_postgres () {
 				fi
 				sleep 3
 				if [[ $i -eq 20 ]]; then
-					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs ${POSTGRES_CONTAINER}\`)"
+					echo -e "
+Timed out waiting for ${title} to start, consult logs (\`docker logs ${POSTGRES_CONTAINER}\`)"
 					exit 1
 				fi
 			done
@@ -81,7 +88,8 @@ function module_postgres () {
 		"${commands[2]}")
 			${module_options["module_postgres,feature"]} ${commands[1]} $POSTGRES_USER $POSTGRES_PASSWORD $POSTGRES_DB $POSTGRES_IMAGE $POSTGRES_CONTAINER
 			if [[ "${image}" ]]; then
-				docker image rm "$image"
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
 			fi
 			${module_options["module_postgres,feature"]} ${commands[1]} $POSTGRES_USER $POSTGRES_PASSWORD $POSTGRES_DB $POSTGRES_IMAGE $POSTGRES_CONTAINER
 			if [[ -n "${POSTGRES_BASE}" && "${POSTGRES_BASE}" != "/" ]]; then
@@ -97,12 +105,13 @@ function module_postgres () {
 		;;
 		"${commands[4]}")
 			# Help
-			echo -e "\nUsage: ${module_options["module_postgres,feature"]} <command> [username] [password] [database]"
+			echo -e "
+Usage: ${module_options["module_postgres,feature"]} <command> [username] [password] [database]"
 			echo "Commands: ${module_options["module_postgres,example"]}"
-			echo -e "\tinstall [username] [password] [database] - Install ${title} (defaults: armbian/armbian/armbian)"
-			echo -e "\tremove - Remove ${title}"
-			echo -e "\tpurge  - Purge ${title} data"
-			echo -e "\tstatus - Check ${title} installation status"
+			echo -e "	install [username] [password] [database] - Install ${title} (defaults: armbian/armbian/armbian)"
+			echo -e "	remove - Remove ${title}"
+			echo -e "	purge  - Purge ${title} data"
+			echo -e "	status - Check ${title} installation status"
 			echo
 		;;
 		*)

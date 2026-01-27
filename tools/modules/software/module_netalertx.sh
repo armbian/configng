@@ -48,11 +48,15 @@ function module_netalertx () {
 	local title="netalertx"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
+	# Ensure Docker is available for commands that need it (install, remove, purge)
+	if [[ "$1" != "status" && "$1" != "help" ]]; then
+		if ! module_docker status >/dev/null 2>&1; then
+			module_docker install
+		fi
 	fi
-	local container=$(docker container ls -a --filter "name=netalertx" --format '{{.ID}}')
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'netalertx' | awk '{print $2}')
+
+	local container=$(docker container ls -a --filter "name=netalertx" --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'netalertx' | awk '{print $2}') 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_netalertx,example"]}"
@@ -65,12 +69,6 @@ function module_netalertx () {
 		"${commands[0]}")
 			[[ -d "$NETALERTX_BASE" ]] || mkdir -p "$NETALERTX_BASE" || { echo "Couldn't create storage directory: $NETALERTX_BASE"; exit 1; }
 
-			# Check if /dev/tty exists, only add --device if it does
-			local device_params=""
-			if [[ -e /dev/tty ]]; then
-				device_params="--device /dev/tty"
-			fi
-
 			# Check if we should use tmpfs for /app/api (requires sufficient RAM)
 			# Set NETALERTX_NO_TMPFS=1 to disable tmpfs and use disk instead
 			local mount_params=""
@@ -79,22 +77,35 @@ function module_netalertx () {
 				local available_mem=$(free -m | awk '/^Mem:/{print $7}')
 				# Only use tmpfs if we have at least 512MB available RAM
 				if [[ $available_mem -ge 512 ]]; then
-					mount_params="--mount type=tmpfs,target=/app/api"
+					mount_params="--mount type=tmpfs,tmpfs-size=512m,target=/app/api"
 				else
 					echo "Warning: Insufficient RAM for tmpfs mount. /app/api will use disk storage."
 				fi
 			fi
 
-			docker run -d --rm --network=host \
+			docker run -d \
 			--name=netalertx \
-			$device_params \
+			--network=host \
+			--cap-drop=ALL \
+			--cap-add=CHOWN \
+			--cap-add=SETGID \
+			--cap-add=SETUID \
+			--cap-add=NET_RAW \
+			--cap-add=NET_ADMIN \
+			--cap-add=NET_BIND_SERVICE \
+			--read-only \
+			--tmpfs /tmp \
+			--tmpfs /tmp/run:rw,noexec,nosuid,size=128m \
+			--tmpfs /tmp/log:rw,noexec,nosuid,size=64m \
+			--tmpfs /tmp/nginx:rw,noexec,nosuid,size=32m \
 			-e PUID=200 \
 			-e PGID=300 \
 			-e TZ="$(cat /etc/timezone)" \
 			-e PORT=20211 \
-			-v "${NETALERTX_BASE}/config:/app/config" \
-			-v "${NETALERTX_BASE}/db:/app/db" \
+			-v "${NETALERTX_BASE}/config:/data/config:rw" \
+			-v "${NETALERTX_BASE}/db:/data/db:rw" \
 			$mount_params \
+			--restart unless-stopped \
 			ghcr.io/jokob-sk/netalertx:latest
 			for i in $(seq 1 20); do
 				state="$(docker inspect -f '{{.State.Status}}' netalertx 2>/dev/null || true)"
@@ -117,7 +128,8 @@ function module_netalertx () {
 		"${commands[2]}")
 			${module_options["module_netalertx,feature"]} ${commands[1]}
 			if [[ "${image}" ]]; then
-				docker image rm "$image"
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
 			fi
 			${module_options["module_netalertx,feature"]} ${commands[1]}
 			if [[ -n "${NETALERTX_BASE}" && "${NETALERTX_BASE}" != "/" ]]; then

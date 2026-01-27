@@ -64,6 +64,10 @@ function module_docker() {
 			else
 				pkg_remove docker.io docker-cli docker-compose
 			fi
+			# Remove docker0 bridge interface if it exists
+			if ip link show docker0 &>/dev/null; then
+				ip link delete docker0
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_docker,feature"]} ${commands[1]}

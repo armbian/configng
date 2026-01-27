@@ -17,11 +17,15 @@ module_portainer() {
 	local title="portainer"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
+	# Ensure Docker is available for commands that need it (install, remove, purge)
+	if [[ "$1" != "status" && "$1" != "help" ]]; then
+		if ! module_docker status >/dev/null 2>&1; then
+			module_docker install
+		fi
 	fi
-	local container=$(docker container ls -a --filter "name=portainer" --format '{{.ID}}')
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'portainer/portainer' | awk '{print $2}')
+
+	local container=$(docker container ls -a --filter "name=portainer" --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'portainer/portainer' | awk '{print $2}') 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_portainer,example"]}"
@@ -30,6 +34,9 @@ module_portainer() {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$PORTAINER_BASE" ]] || mkdir -p "$PORTAINER_BASE" || { echo "Couldn't create storage directory: $PORTAINER_BASE"; exit 1; }
 			docker volume ls -q | grep -xq 'portainer_data' || docker volume create portainer_data
 			docker run -d \
@@ -63,7 +70,8 @@ module_portainer() {
 		"${commands[2]}")
 			${module_options["module_portainer,feature"]} ${commands[1]}
 			if [[ "${image}" ]]; then
-				docker image rm "$image"
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
 			fi
 			${module_options["module_portainer,feature"]} ${commands[1]}
 			if [[ -n "${PORTAINER_BASE}" && "${PORTAINER_BASE}" != "/" ]]; then

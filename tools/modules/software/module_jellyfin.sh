@@ -17,11 +17,14 @@ function module_jellyfin () {
 	local title="jellyfin"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
+	# Ensure Docker is available for commands that need it (install, remove, purge)
+	if [[ "$1" != "status" && "$1" != "help" ]]; then
+		if ! module_docker status >/dev/null 2>&1; then
+			module_docker install
+		fi
 	fi
-	local container=$(docker container ls -a --filter "name=jellyfin" --format '{{.ID}}')
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'jellyfin' | awk '{print $2}')
+	local container=$(docker container ls -a --filter "name=jellyfin" --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'jellyfin' | awk '{print $2}') 2>/dev/null || echo ""
 
 	# Hardware acceleration
 	unset hwacc
@@ -56,6 +59,9 @@ function module_jellyfin () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$JELLYFIN_BASE" ]] || mkdir -p "$JELLYFIN_BASE" || { echo "Couldn't create storage directory: $JELLYFIN_BASE"; exit 1; }
 			docker run -d \
 			--name=jellyfin \
@@ -91,7 +97,8 @@ function module_jellyfin () {
 				docker container rm -f "$container"
 			fi
 			if [[ "${image}" ]]; then
-				docker image rm "$image"
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
 			fi
 			# Drop udev rules upon app removal
 			rm -f "/etc/udev/rules.d/50-rk3588-mpp.rules"

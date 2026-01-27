@@ -17,11 +17,15 @@ function module_transmission () {
 	local title="transmission"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
+	# Ensure Docker is available for commands that need it (install, remove, purge)
+	if [[ "$1" != "status" && "$1" != "help" ]]; then
+		if ! module_docker status >/dev/null 2>&1; then
+			module_docker install
+		fi
 	fi
-	local container=$(docker container ls -a --filter "name=transmission" --format '{{.ID}}')
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'transmission' | awk '{print $2}')
+
+	local container=$(docker container ls -a --filter "name=transmission" --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'transmission' | awk '{print $2}') 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_transmission,example"]}"
@@ -30,6 +34,9 @@ function module_transmission () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$TRANSMISSION_BASE" ]] || mkdir -p "$TRANSMISSION_BASE" || { echo "Couldn't create storage directory: $TRANSMISSION_BASE"; exit 1; }
 			TRANSMISSION_USER=$($DIALOG --title "Enter username for Transmission client" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
 			TRANSMISSION_PASS=$($DIALOG --title "Enter password for Transmission client" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
@@ -71,7 +78,8 @@ function module_transmission () {
 		"${commands[2]}")
 			${module_options["module_transmission,feature"]} ${commands[1]}
 			if [[ "${image}" ]]; then
-				docker image rm "$image"
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
 			fi
 			${module_options["module_transmission,feature"]} ${commands[1]}
 			if [[ -n "${TRANSMISSION_BASE}" && "${TRANSMISSION_BASE}" != "/" ]]; then

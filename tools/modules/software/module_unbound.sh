@@ -17,11 +17,15 @@ function module_unbound () {
 	local title="unbound"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
+	# Ensure Docker is available for commands that need it (install, remove, purge)
+	if [[ "$1" != "status" && "$1" != "help" ]]; then
+		if ! module_docker status >/dev/null 2>&1; then
+			module_docker install
+		fi
 	fi
-	local container=$(docker container ls -a --filter "name=unbound" --format '{{.ID}}')
-	local image=$(docker image ls -a --format '{{.Repository}}:{{.Tag}}' | grep 'alpinelinux/unbound:' | head -1)
+
+	local container=$(docker container ls -a --filter "name=unbound" --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}}:{{.Tag}}' | grep 'alpinelinux/unbound:' | head -1) 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_unbound,example"]}"
@@ -30,6 +34,9 @@ function module_unbound () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			# Check if the module is already installed
 			if [[ "${container}" && "${image}" ]]; then
 				echo "Unbound container is already installed."
@@ -79,7 +86,8 @@ function module_unbound () {
 				docker container rm -f "$container"
 			fi
 			if [[ "${image}" ]]; then
-				docker image rm "$image"
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
 			fi
 		;;
 		"${commands[2]}")

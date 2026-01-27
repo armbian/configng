@@ -17,11 +17,15 @@ function module_prometheus () {
 	local title="prometheus"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
+	# Ensure Docker is available for commands that need it (install, remove, purge)
+	if [[ "$1" != "status" && "$1" != "help" ]]; then
+		if ! module_docker status >/dev/null 2>&1; then
+			module_docker install
+		fi
 	fi
-	local container=$(docker container ls -a --filter "name=prometheus" --format '{{.ID}}')
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'prom' | awk '{print $2}')
+
+	local container=$(docker container ls -a --filter "name=prometheus" --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'prom' | awk '{print $2}') 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_prometheus,example"]}"
@@ -30,6 +34,9 @@ function module_prometheus () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$PROMETHEUS_BASE" ]] || mkdir -p "$PROMETHEUS_BASE" || { echo "Couldn't create storage directory: $PROMETHEUS_BASE"; exit 1; }
 
 			# Create dummy prometheus config file if it is not exist
@@ -76,7 +83,8 @@ function module_prometheus () {
 		"${commands[2]}")
 			${module_options["module_prometheus,feature"]} ${commands[1]}
 			if [[ "${image}" ]]; then
-				docker image rm "$image"
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
 			fi
 			${module_options["module_prometheus,feature"]} ${commands[1]}
 			if [[ -n "${PROMETHEUS_BASE}" && "${PROMETHEUS_BASE}" != "/" ]]; then

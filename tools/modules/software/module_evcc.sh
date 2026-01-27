@@ -17,11 +17,15 @@ function module_evcc () {
 	local title="evcc"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if ! module_docker status >/dev/null 2>&1; then
-		module_docker install
+	# Ensure Docker is available for commands that need it (install, remove, purge)
+	if [[ "$1" != "status" && "$1" != "help" ]]; then
+		if ! module_docker status >/dev/null 2>&1; then
+			module_docker install
+		fi
 	fi
-	local container=$(docker container ls -a --filter "name=evcc" --format '{{.ID}}')
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'evcc' | awk '{print $2}')
+
+	local container=$(docker container ls -a --filter "name=evcc" --format '{{.ID}}') 2>/dev/null || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'evcc' | awk '{print $2}') 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_evcc,example"]}"
@@ -30,6 +34,9 @@ function module_evcc () {
 
 	case "$1" in
 		"${commands[0]}")
+			if ! module_docker status >/dev/null 2>&1; then
+				module_docker install
+			fi
 			[[ -d "$EVCC_BASE" ]] || mkdir -p "$EVCC_BASE" || { echo "Couldn't create storage directory: $EVCC_BASE"; exit 1; }
 			touch "${EVCC_BASE}/evcc.yaml"
 			docker run -d \
@@ -65,7 +72,8 @@ function module_evcc () {
 		"${commands[2]}")
 			${module_options["module_evcc,feature"]} ${commands[1]}
 			if [[ "${image}" ]]; then
-				docker image rm "$image"
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
 			fi
 			${module_options["module_evcc,feature"]} ${commands[1]}
 			if [[ -n "${EVCC_BASE}" && "${EVCC_BASE}" != "/" ]]; then
