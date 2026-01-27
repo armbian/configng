@@ -1,5 +1,5 @@
 module_options+=(
-	["module_actualbudget,author"]=""
+	["module_actualbudget,author"]="@armbian"
 	["module_actualbudget,maintainer"]="@igorpecovnik"
 	["module_actualbudget,feature"]="module_actualbudget"
 	["module_actualbudget,example"]="install remove purge status help"
@@ -7,8 +7,8 @@ module_options+=(
 	["module_actualbudget,status"]="Active"
 	["module_actualbudget,doc_link"]="https://actualbudget.org/docs"
 	["module_actualbudget,group"]="Finances"
-	["module_actualbudget,port"]="5006"
-	["module_actualbudget,arch"]=""
+	["module_actualbudget,port"]="5443"
+	["module_actualbudget,arch"]="x86-64 arm64"
 )
 #
 # Manages the lifecycle of the ActualBudget Docker container module.
@@ -35,9 +35,6 @@ function module_actualbudget () {
 
 	case "$1" in
 		"${commands[0]}")
-			if ! module_docker status >/dev/null 2>&1; then
-				module_docker install
-			fi
 			[[ -d "$ACTUALBUDGET_BASE" ]] || mkdir -p "$ACTUALBUDGET_BASE" || { echo "Couldn't create storage directory: $ACTUALBUDGET_BASE"; exit 1; }
 			docker run -d \
 			--net=lsio \
@@ -47,7 +44,7 @@ function module_actualbudget () {
 			--name my_actual_budget \
 			-v "${ACTUALBUDGET_BASE}/data:/data" \
 			-p 5006:5006 \
-			-p 443:443 \
+			-p ${module_options["module_actualbudget,port"]}:443 \
 			--restart=always \
 			actualbudget/actual-server:latest
 			for i in $(seq 1 20); do
