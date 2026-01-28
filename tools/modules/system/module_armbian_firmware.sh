@@ -46,6 +46,7 @@ module_options+=(
 	["module_armbian_firmware,doc_link"]="https://docs.armbian.com/"
 	["module_armbian_firmware,group"]="System"
 	["module_armbian_firmware,arch"]="x86-64 arm64 armhf riscv64"
+	["module_armbian_firmware,max_versions"]="4"
 )
 
 function module_armbian_firmware() {
@@ -128,12 +129,37 @@ function module_armbian_firmware() {
 			| xargs -n3 -d'\n' \
 			| sed \"s/ /=/\" $grep_current_kernel"
 
+			# Collect all kernels grouped by branch, then take last 3 of each branch
+			# This prevents overwhelming the user with too many old kernel versions
+			declare -A branch_kernels
+			IFS=$'\n'
+			for line in $(eval ${search_exec}); do
+				# Extract package and version
+				local pkg=$(echo "$line" | awk -F '=| ' '{print $1}')
+				local ver=$(echo "$line" | awk -F '=| ' '{print $2}')
+				# Extract branch (3rd field in package name: linux-image-<branch>-<linuxfamily>)
+				local branch=$(echo "$pkg" | cut -d'-' -f3)
+				# Add to branch group
+				branch_kernels["$branch"]+="$line"$'\n'
+			done
+			unset IFS
+
 			# Build menu list for dialog: package name and version
-			# Format: "linux-image-current-xxx" "v1.2.3" ...
+			# Only show last N kernels per branch (most recent versions)
+			# N is configurable via module_armbian_firmware,max_versions option
 			IFS=$'\n'
 			local LIST=()
-			for line in $(eval ${search_exec}); do
-				LIST+=($(echo $line | awk -F ' ' '{print $1 "      "}') $(echo $line | awk -F ' ' '{print "v"$2}'))
+			local max_versions="${module_options["module_armbian_firmware,max_versions"]:-3}"
+			for branch in "${!branch_kernels[@]}"; do
+				# Sort versions and take last N (newest)
+				local count=0
+				for line in $(echo "${branch_kernels[$branch]}" | sort -t= -k2 -V -r | head -n "$max_versions"); do
+					local pkg=$(echo "$line" | awk -F '=| ' '{print $1}')
+					local ver=$(echo "$line" | awk -F '=| ' '{print $2}')
+					LIST+=("$pkg      ")
+					LIST+=("v$ver")
+					((count++))
+				done
 			done
 			unset IFS
 
