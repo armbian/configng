@@ -1026,7 +1026,7 @@ These helper functions facilitate various operations related to job management, 
 | Install jellyseerr container | install remove purge status help | @armbian 
 | Needed by generate_menu | execute_command 'id' | @Tearran 
 | Display a Yes/No dialog box and process continue/exit | get_user_continue 'Do you wish to continue?' process_input | @Tearran 
-| Module for Armbian firmware manipulating. | select install show hold unhold repository headers help | @igorpecovnik 
+| Module for Armbian firmware manipulating | select install show hold unhold repository help | @igorpecovnik 
 | Deploy Armbian KVM instances | install remove save drop restore list help | @igorpecovnik 
 | Install OpenMediaVault (OMV) | install remove status help | @igorpecovnik 
 | Unmask service | srv_unmask ssh.service | @dimitry-ishenko 
