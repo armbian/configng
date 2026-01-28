@@ -371,13 +371,18 @@ function module_armbian_firmware() {
 			local linuxfamily=${LINUXFAMILY:-$KERNELPKG_LINUXFAMILY}
 
 			# Find which Armbian sources file exists (old .list or new .sources format)
-			local sources_files=()
-			for file in "/etc/apt/sources.list.d/armbian.list" "/etc/apt/sources.list.d/armbian.sources"; do
-				[[ -e "$file" ]] && sources_files+=("$file")
-			done
+			local sources_file=""
+			[[ -f "/etc/apt/sources.list.d/armbian.list" ]] && sources_file="/etc/apt/sources.list.d/armbian.list"
+			[[ -f "/etc/apt/sources.list.d/armbian.sources" ]] && sources_file="/etc/apt/sources.list.d/armbian.sources"
+
+			# Validate we found a sources file
+			if [[ -z "$sources_file" ]]; then
+				echo "Error: Armbian APT sources file not found." >&2
+				return 1
+			fi
 
 			# Check current repository and switch if requested
-			if grep -q 'apt.armbian.com' "${sources_files[@]}"; then
+			if grep -q 'apt.armbian.com' "$sources_file"; then
 				# Currently on STABLE repository
 				if [[ "$repository" == "rolling" && "$status" == "status" ]]; then
 					return 1  # Not on rolling
@@ -386,7 +391,7 @@ function module_armbian_firmware() {
 				fi
 				# Switch to rolling repository
 				if [[ "$repository" == "rolling" ]]; then
-					sed -i 's|[a-zA-Z0-9.-]*\.armbian\.com|beta.armbian.com|g' "${sources_files[@]}"
+					sed -i 's|[a-zA-Z0-9.-]*\.armbian\.com|beta.armbian.com|g' "$sources_file"
 					pkg_update
 				fi
 			else
@@ -398,7 +403,7 @@ function module_armbian_firmware() {
 				fi
 				# Switch to stable repository
 				if [[ "$repository" == "stable" ]]; then
-					sed -i 's|[a-zA-Z0-9.-]*\.armbian\.com|apt.armbian.com|g' "${sources_files[@]}"
+					sed -i 's|[a-zA-Z0-9.-]*\.armbian\.com|apt.armbian.com|g' "$sources_file"
 					pkg_update
 				fi
 			fi
