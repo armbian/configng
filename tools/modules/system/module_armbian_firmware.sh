@@ -153,7 +153,10 @@ function module_armbian_firmware() {
 			for branch in "${!branch_kernels[@]}"; do
 				# Sort by kernel version (field 2) and take last N (newest)
 				for line in $(echo "${branch_kernels[$branch]}" | sort -k2 -V -r | head -n "$max_versions"); do
-					LIST+=($(echo $line | awk -F '=| ' '{print $1 "      "}') $(echo $line | awk -F '=| ' '{print "v"$2}'))
+					# First field: package=version (e.g., linux-image-current-meson64=23.02.2-trunk)
+					# Second field: kernel version (e.g., 6.6.44)
+					LIST+=("$(echo $line | awk '{print $1}')      ")
+					LIST+=("v$(echo $line | awk '{print $2}')")
 				done
 			done
 			unset IFS
