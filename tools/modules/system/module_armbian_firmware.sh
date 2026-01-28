@@ -129,38 +129,31 @@ function module_armbian_firmware() {
 			| xargs -n3 -d'\n' \
 			| sed \"s/ /=/\" $grep_current_kernel"
 
-			# Collect all kernels grouped by branch, then take last 3 of each branch
+			# Collect all kernels grouped by branch, then take last N of each branch
 			# This prevents overwhelming the user with too many old kernel versions
 			declare -A branch_kernels
 			IFS=$'\n'
 			for line in $(eval ${search_exec}); do
-				# Extract package and version
+				# Extract package and version (package=version format), and kernel version
 				local pkg=$(echo "$line" | awk -F '=| ' '{print $1}')
-				local ver=$(echo "$line" | awk -F '=| ' '{print $2}')
+				local kernel_ver=$(echo "$line" | awk -F '=| ' '{print $2}')
 				# Extract branch (3rd field in package name: linux-image-<branch>-<linuxfamily>)
-				local branch=$(echo "$pkg" | cut -d'-' -f3)
+				local branch=$(echo "$pkg" | cut -d'-' -f3 | cut -d'=' -f1)
 				# Add to branch group
 				branch_kernels["$branch"]+="$line"$'\n'
 			done
 			unset IFS
 
-			# Build menu list for dialog: package name and version
+			# Build menu list for dialog: package name and kernel version
 			# Only show last N kernels per branch (most recent versions)
 			# N is configurable via module_armbian_firmware,max_versions option
 			IFS=$'\n'
 			local LIST=()
 			local max_versions="${module_options["module_armbian_firmware,max_versions"]:-3}"
 			for branch in "${!branch_kernels[@]}"; do
-				# Sort versions and take last N (newest)
-				local count=0
-				for line in $(echo "${branch_kernels[$branch]}" | sort -t= -k2 -V -r | head -n "$max_versions"); do
-					local pkg=$(echo "$line" | awk -F '=| ' '{print $1}')
-					local ver=$(echo "$line" | awk -F '=| ' '{print $2}')
-					# Extract kernel version from package name (e.g., 6.1.11)
-					local kernel_ver=$(echo "$ver" | grep -oP '\d+\.\d+\.\d+')
-					LIST+=("$pkg      ")
-					LIST+=("Package: v$ver | Kernel: $kernel_ver")
-					((count++))
+				# Sort by kernel version (field 2) and take last N (newest)
+				for line in $(echo "${branch_kernels[$branch]}" | sort -k2 -V -r | head -n "$max_versions"); do
+					LIST+=($(echo $line | awk -F '=| ' '{print $1 "      "}') $(echo $line | awk -F '=| ' '{print "v"$2}'))
 				done
 			done
 			unset IFS
