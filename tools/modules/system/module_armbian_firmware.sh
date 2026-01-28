@@ -1,14 +1,17 @@
 module_options+=(
 	["module_armbian_firmware,author"]="@igorpecovnik"
+	["module_armbian_firmware,maintainer"]="@igorpecovnik"
 	["module_armbian_firmware,feature"]="module_armbian_firmware"
 	["module_armbian_firmware,example"]="select install show hold unhold repository headers help"
-	["module_armbian_firmware,desc"]="Module for Armbian firmware manipulating."
-	["module_armbian_firmware,status"]="review"
+	["module_armbian_firmware,desc"]="Module for Armbian firmware manipulating"
+	["module_armbian_firmware,status"]="Active"
+	["module_armbian_firmware,doc_link"]="https://docs.armbian.com/"
+	["module_armbian_firmware,group"]="System"
+	["module_armbian_firmware,arch"]="x86-64 arm64"
 )
 
 function module_armbian_firmware() {
 	local title="Armbian FW"
-	local condition=$(which "$title" 2>/dev/null)
 
 	# Convert the example string to an array
 	local commands
@@ -34,7 +37,7 @@ function module_armbian_firmware() {
 				if $DIALOG --title "Warning!" --yesno "Firmware upgrade is disabled. Release hold and proceed?" 7 60; then
 					${module_options["module_armbian_firmware,feature"]} ${commands[4]}
 				else
-					exit 0
+					return 0
 				fi
 			fi
 
@@ -107,6 +110,22 @@ function module_armbian_firmware() {
 		# purge old and install new packages from desired branch and version
 		"${commands[1]}")
 
+			# input parameters
+			local branch=$2
+			local version="$( echo $3 | tr -d '\011\012\013\014\015\040')" # remove tabs and spaces from version
+			local hide=$4
+			local headers=$5
+			local linuxfamily=$6
+
+			# Check if the exact version is already installed
+			if [[ -n "${version}" ]]; then
+				local current_version=$(dpkg -l | grep "^ii" | grep "linux-image-${branch}-${linuxfamily}" | awk '{print $3}')
+				if [[ "${current_version}" == "${version}" ]]; then
+					echo "Kernel ${branch}-${linuxfamily} version ${version} is already installed."
+					return 0
+				fi
+			fi
+
 			# We are updating beta packages repository quite often. In order to make sure, update won't break, always update package list
 			pkg_update
 
@@ -116,13 +135,6 @@ function module_armbian_firmware() {
 			Pin-Priority: 1001
 			EOT
 			trap '{ rm -f -- "/etc/apt/preferences.d/armbian-upgrade-policy"; }' EXIT
-
-			# input parameters
-			local branch=$2
-			local version="$( echo $3 | tr -d '\011\012\013\014\015\040')" # remove tabs and spaces from version
-			local hide=$4
-			local headers=$5
-			local linuxfamily=$6
 
 			# generate list
 			${module_options["module_armbian_firmware,feature"]} ${commands[2]} "${branch}" "${version}" "hide" "" "$headers" "$linuxfamily"
@@ -136,7 +148,7 @@ function module_armbian_firmware() {
 					pkg_install --allow-downgrades "${pkg}"
 				else
 					echo "Error: Package ${pkg} install not possible due to network / repository problem. Try again later and report to Armbian forums"
-					exit 0
+					return 1
 				fi
 			done
 			# at the end, also switch bsp
@@ -163,7 +175,7 @@ function module_armbian_firmware() {
 
 			# input parameters
 			local branch="${2:-$BRANCH}"
-			local version="$( echo $3 | tr -d '\011\012\013\014\015\040')" # remove tabs and spaces from version
+			local version="$( echo "$3" | tr -d '\011\012\013\014\015\040')" # remove tabs and spaces from version
 			local hide="$4"
 			local repository="$5"
 			local headers="$6"
@@ -228,7 +240,7 @@ function module_armbian_firmware() {
 		"${commands[3]}")
 
 			# input parameter
-			local status=$2
+			local status="$2"
 
 			# generate a list of packages
 			${module_options["module_armbian_firmware,feature"]} ${commands[2]} "" "" hide
@@ -236,15 +248,15 @@ function module_armbian_firmware() {
 			# we are only interested in which Armbian packages are put on hold
 			if [[ "$status" == "status" ]]; then
 				local get_hold=($(apt-mark showhold))
-				local test_hold=($(for all_packages in ${packages[@]}; do
-					for hold_packages in ${get_hold[@]}; do
-					echo $all_packages | grep $hold_packages
+				local test_hold=($(for all_packages in "${packages[@]}"; do
+					for hold_packages in "${get_hold[@]}"; do
+						echo "$all_packages" | grep -q "$hold_packages" && echo "$all_packages"
 					done
 				done))
-			[[ -z ${test_hold[@]} ]] && return 1 || return 0
+				[[ -z ${test_hold[@]} ]] && return 1 || return 0
 			else
 				# put Armbian packages on hold
-				apt-mark hold ${packages[@]} >/dev/null 2>&1
+				apt-mark hold ${packages[@]} # without quotes
 			fi
 
 		;;
@@ -256,7 +268,7 @@ function module_armbian_firmware() {
 			${module_options["module_armbian_firmware,feature"]} ${commands[2]} "" "" hide
 
 			# release Armbian packages from hold
-			apt-mark unhold ${packages[@]} >/dev/null 2>&1
+			apt-mark unhold ${packages[@]} # without quotes
 
 		;;
 
@@ -307,8 +319,8 @@ function module_armbian_firmware() {
 		"${commands[6]}")
 
 			# input parameters
-			local command=$2
-			local version=${3:-$KERNELPKG_VERSION}
+			local command="$2"
+			local version="${3:-$KERNELPKG_VERSION}"
 
 			if [[ "${command}" == "install" ]]; then
 				if [[ -f /etc/armbian-image-release ]]; then
@@ -316,20 +328,20 @@ function module_armbian_firmware() {
 					${module_options["module_armbian_firmware,feature"]} ${commands[1]} "${BRANCH}" "${version}" "" "true" "${KERNELPKG_LINUXFAMILY}"
 				else
 					# for non armbian builds
-					pkg_install "linux-headers-$(uname -r | sed 's/'-$(dpkg --print-architecture)'//')"
+					pkg_install "linux-headers-$(uname -r | sed "s/-$(dpkg --print-architecture)//")"
 				fi
 			elif [[ "${command}" == "remove" ]]; then
 				# remove headers packages
 				${module_options["module_armbian_firmware,feature"]} ${commands[2]} "${BRANCH}" "${version}" "hide" "" "true" "${KERNELPKG_LINUXFAMILY}"
-				if [ "${#packages[@]}" -gt 0 ]; then
-					if dpkg -l | grep -qw ${packages[@]/=*/}; then
-						pkg_remove ${packages[@]/=*/}
+				if [[ "${#packages[@]}" -gt 0 ]]; then
+					if dpkg -l | grep -qw "${packages[@]/=*/}"; then
+						pkg_remove "${packages[@]/=*/}"
 					fi
 				fi
 			else
 				# return 0 if packages are installed else 1
 				${module_options["module_armbian_firmware,feature"]} ${commands[2]} "${BRANCH}" "${version}" "hide" "" "true" "${KERNELPKG_LINUXFAMILY}"
-				if pkg_installed ${packages[@]/=*/}; then
+				if pkg_installed "${packages[@]/=*/}"; then
 					return 0
 				else
 					return 1
@@ -341,13 +353,13 @@ function module_armbian_firmware() {
 			echo -e "\nUsage: ${module_options["module_armbian_firmware,feature"]} <command> <switches>"
 			echo -e "Commands:  ${module_options["module_armbian_firmware,example"]}"
 			echo "Available commands:"
-			echo -e "\tselect    \t- TUI to select $title.              \t switches: [ stable | rolling ]"
-			echo -e "\tinstall   \t- Install $title.                    \t switches: [ \$branch | \$version ]"
-			echo -e "\tshow      \t- Show $title packages.              \t switches: [ \$branch | \$version | hide ]"
-			echo -e "\thold      \t- Mark $title packages as held back. \t switches: [status] returns true or false"
-			echo -e "\tunhold    \t- Unset $title packages set as held back."
-			echo -e "\trepository\t- Selects repository and performs update. \t switches: [ stable | rolling ]"
-			echo -e "\theaders   \t- Kernel headers management.         \t\t switches: [ install | remove | status ]"
+			echo -e "  select     - TUI to select $title.                    switches: [ stable | rolling ]"
+			echo -e "  install    - Install $title.                          switches: [ \$branch | \$version ]"
+			echo -e "  show       - Show $title packages.                    switches: [ \$branch | \$version | hide ]"
+			echo -e "  hold       - Mark $title packages as held back.       switches: [status] returns true or false"
+			echo -e "  unhold     - Unset $title packages set as held back."
+			echo -e "  repository - Selects repository and performs update.   switches: [ stable | rolling ]"
+			echo -e "  headers    - Kernel headers management.               switches: [ install | remove | status ]"
 			echo
 		;;
 		*)
