@@ -24,8 +24,8 @@ function module_netdata () {
 		fi
 	fi
 
-	local container=$(docker container ls -a --filter "name=netdata" --format '{{.ID}}') 2>/dev/null || echo ""
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'netdata' | awk '{print $2}') 2>/dev/null || echo ""
+	local container=$(docker container ls -a --filter "name=netdata" --format '{{.ID}}' 2>/dev/null) || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' 2>/dev/null | grep 'netdata' | awk '{print $2}') || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_netdata,example"]}"

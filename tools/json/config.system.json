@@ -593,7 +593,7 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_watchtower status && pkg_installed docker-ce"
+                            "condition": "! module_watchtower status"
                         },
                         {
                             "id": "WTC002",
@@ -603,7 +603,7 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_watchtower status && pkg_installed docker-ce"
+                            "condition": "module_watchtower status"
                         },
                         {
                             "id": "UNAT01",

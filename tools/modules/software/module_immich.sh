@@ -32,8 +32,8 @@ function module_immich () {
 	local DATABASE_IMAGE="tensorchord/pgvecto-rs"
 	local DATABASE_TAG="pg14-v0.2.0"
 	local DATABASE_PORT="5432"
-	local container=$(docker container ls -a --format '{{.ID}} {{.Names}}' | awk '$2 == "immich" {print $1}') 2>/dev/null || echo ""
-	local image=$(docker image ls -a --format '{{.Repository}}:{{.Tag}}' | grep 'ghcr.io/imagegenius/immich:' | head -1) 2>/dev/null || echo ""
+	local container=$(docker container ls -a --format '{{.ID}} {{.Names}}' | awk '$2 == "immich" {print $1}' 2>/dev/null) || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep 'ghcr.io/imagegenius/immich:' | head -1) || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_immich,example"]}"
