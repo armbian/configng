@@ -25,8 +25,8 @@ function module_wireguard () {
 		fi
 	fi
 
-	local container=$(docker container ls -a --filter "name=wireguard" --format '{{.ID}}') 2>/dev/null || echo ""
-	local image=$(docker image ls -a --format '{{.Repository}}:{{.Tag}}' | grep 'lscr.io/linuxserver/wireguard:' | head -1) 2>/dev/null || echo ""
+	local container=$(docker container ls -a --filter "name=wireguard" --format '{{.ID}}' 2>/dev/null) || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep 'lscr.io/linuxserver/wireguard:' | head -1) || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_wireguard,example"]}"

@@ -24,8 +24,8 @@ function module_domoticz () {
 		fi
 	fi
 
-	local container=$(docker container ls -a --filter "name=domoticz" --format '{{.ID}}') 2>/dev/null || echo ""
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'domoticz' | awk '{print $2}') 2>/dev/null || echo ""
+	local container=$(docker container ls -a --filter "name=domoticz" --format '{{.ID}}' 2>/dev/null) || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' 2>/dev/null | grep 'domoticz' | awk '{print $2}') || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_domoticz,example"]}"

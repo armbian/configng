@@ -23,8 +23,8 @@ function module_jellyfin () {
 			module_docker install
 		fi
 	fi
-	local container=$(docker container ls -a --filter "name=jellyfin" --format '{{.ID}}') 2>/dev/null || echo ""
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'jellyfin' | awk '{print $2}') 2>/dev/null || echo ""
+	local container=$(docker container ls -a --filter "name=jellyfin" --format '{{.ID}}' 2>/dev/null) || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' 2>/dev/null | grep 'jellyfin' | awk '{print $2}') || echo ""
 
 	# Hardware acceleration
 	unset hwacc

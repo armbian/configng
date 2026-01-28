@@ -24,8 +24,8 @@ function module_unbound () {
 		fi
 	fi
 
-	local container=$(docker container ls -a --filter "name=unbound" --format '{{.ID}}') 2>/dev/null || echo ""
-	local image=$(docker image ls -a --format '{{.Repository}}:{{.Tag}}' | grep 'alpinelinux/unbound:' | head -1) 2>/dev/null || echo ""
+	local container=$(docker container ls -a --filter "name=unbound" --format '{{.ID}}' 2>/dev/null) || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep 'alpinelinux/unbound:' | head -1) || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_unbound,example"]}"

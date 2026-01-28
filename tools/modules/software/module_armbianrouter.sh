@@ -29,8 +29,8 @@ function module_armbianrouter () {
 		fi
 	fi
 
-	local container=$(docker container ls -a --format '{{.ID}} {{.Names}}' | mawk '$2 ~ /^armbianrouter/ {print $1}') 2>/dev/null || echo ""
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'armbian-router' | awk '{print $2}') 2>/dev/null || echo ""
+	local container=$(docker container ls -a --format '{{.ID}} {{.Names}}' | mawk '$2 ~ /^armbianrouter/ {print $1}' 2>/dev/null) || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' 2>/dev/null | grep 'armbian-router' | awk '{print $2}') || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_armbianrouter,example"]}"

@@ -25,8 +25,8 @@ function module_ghost () {
 		fi
 	fi
 
-	local container=$(docker container ls -a --filter "name=ghost" --format '{{.ID}}') 2>/dev/null || echo ""
-	local image=$(docker image ls -a --format '{{.Repository}}:{{.Tag}}' | grep '^ghost:' | head -1) 2>/dev/null || echo ""
+	local container=$(docker container ls -a --filter "name=ghost" --format '{{.ID}}' 2>/dev/null) || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep '^ghost:' | head -1) || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_ghost,example"]}"
