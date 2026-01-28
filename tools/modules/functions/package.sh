@@ -41,6 +41,10 @@ module_options+=(
 pkg_install()
 {
 	_pkg_have_stdin && debconf-apt-progress -- apt-get -y install "$@" || apt-get -y install "$@"
+	if [[ $? == 100 ]]; then
+		_pkg_have_stdin && dpkg --configure -a
+		_pkg_have_stdin && debconf-apt-progress -- apt-get -y install "$@" || apt-get -y install "$@"
+	fi
 }
 
 module_options+=(
@@ -68,6 +72,10 @@ module_options+=(
 pkg_remove()
 {
 	_pkg_have_stdin && debconf-apt-progress -- apt-get -y autopurge "$@" || apt-get -y autopurge "$@"
+	if [[ $? == 100 ]]; then
+		_pkg_have_stdin && dpkg --configure -a
+		_pkg_have_stdin && debconf-apt-progress -- apt-get -y autopurge "$@" || apt-get -y autopurge "$@"
+	fi
 }
 
 module_options+=(

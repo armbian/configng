@@ -28,21 +28,21 @@
                             "short": "Kernel Headers",
                             "module": "module_generic",
                             "command": [
-                                "module_armbian_firmware headers install"
+                                "module_headers install"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_armbian_firmware headers status"
+                            "condition": "! module_headers status"
                         },
                         {
                             "id": "HEAD02",
                             "description": "Remove Linux headers",
                             "command": [
-                                "module_armbian_firmware headers remove"
+                                "module_headers remove"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_armbian_firmware headers status"
+                            "condition": "module_headers status"
                         },
                         {
                             "id": "DTO001",
