@@ -402,7 +402,7 @@ Outputs:
 	--cmd NETF09 - Find NFS servers in subnet and mount shares
 	--cmd NETF10 - Show and manage NFS mounts
 	--cmd ZFS001 - ZFS filesystem - enable support (v2.2.2)
-	--cmd ZFS002 - ZFS filesystem - remove support ()
+	--cmd ZFS002 - ZFS filesystem - remove support (ZFS is not installed)
     Access - Manage SSH daemon options, enable 2FA
 	--cmd ACC001 - Disable root login
 	--cmd ACC002 - Enable root login
@@ -1013,7 +1013,7 @@ These helper functions facilitate various operations related to job management, 
 | Install watchtower container | install remove purge status help | @armbian 
 | Build the main menu from a object | generate_top_menu 'json_data' | @Tearran 
 | Install bazarr container | install remove purge status help | @igorpecovnik 
-| Install headers container | install remove status help | @armbian 
+| Install kernel headers for building kernel modules | install remove status help | @armbian 
 | Migrated procedures from Armbian config. | is_package_manager_running | @armbian 
 | Migrated procedures from Armbian config. | check_desktop | @armbian 
 | Install phpmyadmin container | install remove purge status help | @igorpecovnik 
@@ -1046,7 +1046,7 @@ These helper functions facilitate various operations related to job management, 
 | Install plexmediaserver from repo using apt | install remove status | @schwar3kat 
 | Generate 'Armbian CPU logo' SVG for document file. | generate_svg | @Tearran 
 | Upgrade installed packages (potentially removing some) | pkg_full_upgrade | @dimitry-ishenko 
-| Install zfs filesystem support | install remove status kernel_max zfs_version zfs_installed_version help | @igorpecovnik 
+| Install ZFS filesystem support | install remove status kernel_max zfs_version zfs_installed_version help | @igorpecovnik 
 | Check if package is installed | pkg_installed mc | @dimitry-ishenko 
 | Update submenu descriptions based on conditions | update_submenu_data | @Tearran 
 | Install evcc container | install remove purge status help | @naltatis 
