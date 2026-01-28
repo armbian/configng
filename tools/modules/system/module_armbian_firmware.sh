@@ -156,8 +156,10 @@ function module_armbian_firmware() {
 				for line in $(echo "${branch_kernels[$branch]}" | sort -t= -k2 -V -r | head -n "$max_versions"); do
 					local pkg=$(echo "$line" | awk -F '=| ' '{print $1}')
 					local ver=$(echo "$line" | awk -F '=| ' '{print $2}')
+					# Extract kernel version from package name (e.g., 6.1.11)
+					local kernel_ver=$(echo "$ver" | grep -oP '\d+\.\d+\.\d+')
 					LIST+=("$pkg      ")
-					LIST+=("v$ver")
+					LIST+=("Package: v$ver | Kernel: $kernel_ver")
 					((count++))
 				done
 			done
