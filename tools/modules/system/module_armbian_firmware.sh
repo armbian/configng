@@ -40,7 +40,7 @@ module_options+=(
 	["module_armbian_firmware,author"]="@igorpecovnik"
 	["module_armbian_firmware,maintainer"]="@igorpecovnik"
 	["module_armbian_firmware,feature"]="module_armbian_firmware"
-	["module_armbian_firmware,example"]="select install show hold unhold repository headers help"
+	["module_armbian_firmware,example"]="select install show hold unhold repository help"
 	["module_armbian_firmware,desc"]="Module for Armbian firmware manipulating"
 	["module_armbian_firmware,status"]="Active"
 	["module_armbian_firmware,doc_link"]="https://docs.armbian.com/"
@@ -53,7 +53,7 @@ function module_armbian_firmware() {
 	local title="Armbian FW"
 
 	# Convert the example string to an array of available commands
-	# Commands: select, install, show, hold, unhold, repository, headers, help
+	# Commands: select, install, show, hold, unhold, repository, help
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_armbian_firmware,example"]}"
 
@@ -189,7 +189,7 @@ function module_armbian_firmware() {
 
 		# ========================================================================
 		# INSTALL COMMAND: Purge old kernel packages and install new ones
-		# Parameters: $2=branch, $3=version, $4=hide, $5=headers, $6=linuxfamily
+		# Parameters: $2=branch, $3=version, $4=hide, $5=linuxfamily
 		# ========================================================================
 		"${commands[1]}")
 
@@ -225,7 +225,7 @@ function module_armbian_firmware() {
 
 			# Generate the list of packages to install based on branch and version
 			# The "hide" parameter suppresses output since we're using the list programmatically
-			${module_options["module_armbian_firmware,feature"]} ${commands[2]} "${branch}" "${version}" "hide" "" "$headers" "$linuxfamily"
+			${module_options["module_armbian_firmware,feature"]} ${commands[2]} "${branch}" "${version}" "hide" "" "$linuxfamily"
 
 			# Install each package with proper error handling
 			# For each package: remove existing version, then install new version
@@ -248,9 +248,9 @@ function module_armbian_firmware() {
 			# Clean up the temporary APT policy file
 			rm -f /etc/apt/preferences.d/armbian-upgrade-policy
 
-			# Prompt for reboot if running interactively and not just installing headers
+			# Prompt for reboot if running interactively
 			# Kernel changes require reboot to take effect
-			if test -t 0 && [[ "${headers}" != "true" ]]; then
+			if test -t 0; then
 				if $DIALOG --title " Reboot required " --yes-button "Reboot" --no-button "Cancel" --yesno \
 					"A reboot is required to apply the changes. Shall we reboot now?" 7 34; then
 					reboot
@@ -260,7 +260,7 @@ function module_armbian_firmware() {
 
 		# ========================================================================
 		# SHOW COMMAND: Generate list of packages to install (without installing)
-		# Parameters: $2=branch, $3=version, $4=hide, $5=repository, $6=headers, $7=linuxfamily
+		# Parameters: $2=branch, $3=version, $4=hide, $5=repository, $6=linuxfamily
 		# Output: Space-separated list of package names (unless $4=="hide")
 		# ========================================================================
 		"${commands[2]}")
@@ -270,8 +270,7 @@ function module_armbian_firmware() {
 			local version="$( echo "$3" | tr -d '\011\012\013\014\015\040')" # Clean version string
 			local hide="$4"                              # If "hide", don't output the list
 			local repository="$5"                        # Repository to use (currently unused)
-			local headers="$6"                           # If "true", only headers
-			local linuxfamily="${7:-$KERNELPKG_LINUXFAMILY}" # Default to kernel environment
+			local linuxfamily="${6:-$KERNELPKG_LINUXFAMILY}" # Default to kernel environment
 
 			# Default to stable repository if not specified
 			[[ -z $repository ]] && local repository="apt.armbian.com"
@@ -441,7 +440,7 @@ function module_armbian_firmware() {
 		# ========================================================================
 		# HELP COMMAND: Display usage information
 		# ========================================================================
-		"${commands[7]}")
+		"${commands[6]}")
 			echo -e "\nUsage: ${module_options["module_armbian_firmware,feature"]} <command> <switches>"
 			echo -e "Commands:  ${module_options["module_armbian_firmware,example"]}"
 			echo "Available commands:"
@@ -455,7 +454,7 @@ function module_armbian_firmware() {
 		;;
 		*)
 			# Default to help if invalid command is provided
-			${module_options["module_armbian_firmware,feature"]} ${commands[7]}
+			${module_options["module_armbian_firmware,feature"]} ${commands[6]}
 		;;
 	esac
 }
