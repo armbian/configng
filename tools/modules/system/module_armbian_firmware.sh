@@ -8,6 +8,12 @@
 # WARNING: This is a critical system module. Kernel management can render a
 # system unbootable if misused. Always test on non-production systems first.
 #
+# Architecture Support:
+#   x86-64     - Intel/AMD 64-bit systems
+#   arm64      - ARM 64-bit systems (most SBCs)
+#   armhf      - ARM 32-bit systems (hard float)
+#   riscv64    - RISC-V 64-bit systems
+#
 # Commands:
 #   select     - Interactive TUI for selecting and installing kernels
 #   install    - Direct installation of specific kernel version
@@ -15,7 +21,6 @@
 #   hold       - Prevent kernel packages from automatic upgrades
 #   unhold     - Release held packages, allowing upgrades
 #   repository - Switch between stable and rolling beta repositories
-#   headers    - Install/remove kernel headers for module compilation
 #   help       - Display usage information
 #
 # Kernel Branches:
@@ -28,7 +33,6 @@
 #   module_armbian_firmware select              # Interactive kernel selection
 #   module_armbian_firmware install current "" "" "" "" # Install latest current kernel
 #   module_armbian_firmware hold status         # Check if kernels are held
-#   module_armbian_firmware headers install     # Install kernel headers
 #
 # ==============================================================================
 
@@ -41,7 +45,7 @@ module_options+=(
 	["module_armbian_firmware,status"]="Active"
 	["module_armbian_firmware,doc_link"]="https://docs.armbian.com/"
 	["module_armbian_firmware,group"]="System"
-	["module_armbian_firmware,arch"]="x86-64 arm64"
+	["module_armbian_firmware,arch"]="x86-64 arm64 armhf riscv64"
 )
 
 function module_armbian_firmware() {
@@ -153,7 +157,7 @@ function module_armbian_firmware() {
 					local branch=$(echo "${target_version}" | cut -d'-' -f3)
 					local linuxfamily=$(echo "${target_version}" | cut -d'-' -f4 | cut -d'=' -f1)
 					# Call install command to perform the actual kernel installation
-					${module_options["module_armbian_firmware,feature"]} ${commands[1]} "${branch}" "${target_version/*=/}" "" "" "${linuxfamily}"
+					${module_options["module_armbian_firmware,feature"]} ${commands[1]} "${branch}" "${target_version/*=/}" "" "${linuxfamily}"
 				fi
 			fi
 
@@ -169,8 +173,7 @@ function module_armbian_firmware() {
 			local branch=$2                              # Kernel branch: legacy, vendor, current, edge
 			local version="$( echo $3 | tr -d '\011\012\013\014\015\040')" # Specific version (cleaned of tabs/spaces)
 			local hide=$4                                # If "hide", suppress output
-			local headers=$5                             # If "true", only install headers
-			local linuxfamily=$6                         # Board family (e.g., rockchip64, meson64)
+			local linuxfamily=$5                         # Board family (e.g., rockchip64, meson64)
 
 			# Idempotency check: don't reinstall if exact version is already present
 			# This prevents unnecessary reboots and saves time
@@ -209,26 +212,14 @@ function module_armbian_firmware() {
 					# Convert specific package name to wildcard pattern for removal
 					# e.g., "linux-image-current-meson64=1.2.3" -> "linux-image*"
 					purge_pkg=$(echo $pkg | sed -e 's/linux-image.*/linux-image*/;s/linux-dtb.*/linux-dtb*/;s/linux-headers.*/linux-headers*/;s/armbian-firmware-*/armbian-firmware*/')
-					pkg_remove "${purge_pkg}"
-					pkg_install --allow-downgrades "${pkg}"
+					pkg_remove ${purge_pkg}
+					pkg_install --allow-downgrades ${pkg}
 				else
 					# Package installation failed - likely network or repository issue
 					echo "Error: Package ${pkg} install not possible due to network / repository problem. Try again later and report to Armbian forums"
 					return 1
 				fi
 			done
-
-			# NOTE: BSP package switching is currently disabled
-			# The following code would switch armbian-bsp-cli to match kernel branch
-			# This is commented out due to potential issues with board-specific configurations
-			# if branch is not defined, we use the one that is currently installed
-			#[[ -z $branch ]] && local branch=$BRANCH
-			#[[ -z $BRANCH ]] && local branch="current"
-			#local bsp=$(dpkg -l | grep -E "armbian-bsp-cli" | awk '{print $2}' | sed "s/legacy\|vendor\|current\|edge/${branch}/g")
-			#if apt-get install --simulate --download-only --allow-downgrades --reinstall "${bsp}" > /dev/null 2>&1; then
-			#	pkg_remove "armbian-bsp-cli*"
-			#	pkg_install --allow-downgrades "${bsp}"
-			#fi
 
 			# Clean up the temporary APT policy file
 			rm -f /etc/apt/preferences.d/armbian-upgrade-policy
@@ -272,12 +263,6 @@ function module_armbian_firmware() {
 			# This maintains user's previous choice to have headers installed
 			if dpkg -l | grep -E "linux-headers" >/dev/null; then
 				armbian_packages+=("linux-headers-${branch}-${linuxfamily}")
-			fi
-
-			# Special case: if headers parameter is "true", only install headers
-			# This is used by the module_headers command for standalone header installation
-			if  [[ "${headers}" == true ]]; then
-				armbian_packages=("linux-headers-${branch}-${linuxfamily}")
 			fi
 
 			# Resolve specific package versions from repository cache
@@ -420,52 +405,9 @@ function module_armbian_firmware() {
 
 			# If we're not just checking status, trigger firmware reinstallation
 			# This pulls packages from the newly-switched repository
-			[[ "$status" != "status" ]] && ${module_options["module_armbian_firmware,feature"]} ${commands[1]} "${branch}" "" "" "" "${linuxfamily}"
+			[[ "$status" != "status" ]] && ${module_options["module_armbian_firmware,feature"]} ${commands[1]} "${branch}" "" "" "${linuxfamily}"
 		;;
 
-		# ========================================================================
-		# HEADERS COMMAND: Manage kernel headers package installation
-		# Parameters: $2=action (install/remove/status), $3=version
-		# Used by: module_headers for standalone header management
-		# ========================================================================
-		"${commands[6]}")
-
-			# Parse input parameters
-			local command="$2"                    # Action: install, remove, or status
-			local version="${3:-$KERNELPKG_VERSION}"  # Target version (default: current)
-
-			if [[ "${command}" == "install" ]]; then
-				# INSTALL HEADERS: Install kernel headers for current or specific kernel
-				if [[ -f /etc/armbian-image-release ]]; then
-					# Armbian system: Use full firmware module with headers=true flag
-					# This ensures proper dependencies and package matching
-					${module_options["module_armbian_firmware,feature"]} ${commands[1]} "${BRANCH}" "${version}" "" "true" "${KERNELPKG_LINUXFAMILY}"
-				else
-					# Non-Armbian system: Install headers directly using running kernel version
-					# Removes architecture suffix from uname -r output for package name
-					pkg_install "linux-headers-$(uname -r | sed "s/-$(dpkg --print-architecture)//")"
-				fi
-			elif [[ "${command}" == "remove" ]]; then
-				# REMOVE HEADERS: Uninstall kernel headers packages
-				# Generate list of headers packages
-				${module_options["module_armbian_firmware,feature"]} ${commands[2]} "${BRANCH}" "${version}" "hide" "" "true" "${KERNELPKG_LINUXFAMILY}"
-				# Remove packages if they are actually installed
-				if [[ "${#packages[@]}" -gt 0 ]]; then
-					if dpkg -l | grep -qw "${packages[@]/=*/}"; then
-						pkg_remove "${packages[@]/=*/}"
-					fi
-				fi
-			else
-				# STATUS: Check if headers are installed (default action if command not specified)
-				# Returns 0 if installed, 1 if not installed
-				${module_options["module_armbian_firmware,feature"]} ${commands[2]} "${BRANCH}" "${version}" "hide" "" "true" "${KERNELPKG_LINUXFAMILY}"
-				if pkg_installed "${packages[@]/=*/}"; then
-					return 0
-				else
-					return 1
-				fi
-			fi
-		;;
 
 		# ========================================================================
 		# HELP COMMAND: Display usage information
@@ -480,7 +422,6 @@ function module_armbian_firmware() {
 			echo -e "  hold       - Mark $title packages as held back.       switches: [status] returns true or false"
 			echo -e "  unhold     - Unset $title packages set as held back."
 			echo -e "  repository - Selects repository and performs update.   switches: [ stable | rolling ]"
-			echo -e "  headers    - Kernel headers management.               switches: [ install | remove | status ]"
 			echo
 		;;
 		*)
