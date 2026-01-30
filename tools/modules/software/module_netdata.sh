@@ -5,7 +5,7 @@ module_options+=(
 	["module_netdata,example"]="install remove purge status help"
 	["module_netdata,desc"]="Install netdata container"
 	["module_netdata,status"]="Active"
-	["module_netdata,doc_link"]="https://transmissionbt.com/"
+	["module_netdata,doc_link"]="https://learn.netdata.cloud/"
 	["module_netdata,group"]="Monitoring"
 	["module_netdata,port"]="19999"
 	["module_netdata,arch"]="x86-64 arm64"
@@ -34,10 +34,7 @@ function module_netdata () {
 
 	case "$1" in
 		"${commands[0]}")
-			if ! module_docker status >/dev/null 2>&1; then
-				module_docker install
-			fi
-			[[ -d "$NETDATA_BASE" ]] || mkdir -p "$NETDATA_BASE" || { echo "Couldn't create storage directory: $NETDATA_BASE"; exit 1; }
+			[[ -d "$NETDATA_BASE" ]] || mkdir -p "$NETDATA_BASE" || { echo "Couldn't create storage directory: $NETDATA_BASE"; return 1; }
 			docker run -d \
 			--name=netdata \
 			--pid=host \
@@ -67,7 +64,7 @@ function module_netdata () {
 				sleep 3
 				if [[ $i -eq 20 ]]; then
 					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs netdata\`)"
-					exit 1
+					return 1
 				fi
 			done
 		;;
@@ -83,7 +80,6 @@ function module_netdata () {
 				sleep 2
 				docker image rm -f "$image" 2>/dev/null || true
 			fi
-			${module_options["module_netdata,feature"]} ${commands[1]}
 			if [[ -n "${NETDATA_BASE}" && "${NETDATA_BASE}" != "/" ]]; then
 				rm -rf "${NETDATA_BASE}"
 			fi
