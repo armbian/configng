@@ -136,7 +136,7 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_overlayfs status"
+                            "condition": "! module_overlayfs status"
                         },
                         {
                             "id": "ROO002",
@@ -147,7 +147,7 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_overlayfs status"
+                            "condition": "module_overlayfs status"
                         },
                         {
                             "id": "NETF01",

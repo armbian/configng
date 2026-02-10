@@ -11,7 +11,7 @@ module_options+=(
 	["module_overlayfs,arch"]=""
 )
 #
-# Armbian root filesystem to read only
+# Install overlayroot for read-only root filesystem
 #
 function module_overlayfs() {
 	local title="overlayfs"
@@ -21,11 +21,14 @@ function module_overlayfs() {
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_overlayfs,example"]}"
 
+	OVERLAYFS_BASE="${SOFTWARE_FOLDER}/overlayfs"
+
 	case "$1" in
 		"${commands[0]}")
 			pkg_install -o Dpkg::Options::="--force-confold" overlayroot cryptsetup cryptsetup-bin
 			[[ ! -f /etc/overlayroot.conf ]] && cp /etc/overlayroot.conf.dpkg-new /etc/overlayroot.conf
 			sed -i "s/^overlayroot=.*/overlayroot=\"tmpfs\"/" /etc/overlayroot.conf
+			rm -f /etc/update-motd.d/97-overlayroot
 			if $DIALOG --title " Reboot required " --yes-button "Reboot" --no-button "Cancel" --yesno \
 			"A reboot is required to apply the changes. Shall we reboot now?" 7 34; then
 			reboot
@@ -41,9 +44,9 @@ function module_overlayfs() {
 		;;
 		"${commands[2]}")
 			if command -v overlayroot-chroot > /dev/null 2>&1; then
-				return 1
-			else
 				return 0
+			else
+				return 1
 			fi
 		;;
 		"${commands[3]}")
