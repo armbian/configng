@@ -2331,6 +2331,40 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "module_ghost status"
+                        },
+                        {
+                            "id": "HDOC01",
+                            "description": "HedgeDoc collaborative markdown editor install",
+                            "short": "HedgeDoc",
+                            "module": "module_hedgedoc",
+                            "about": "This operation will install HedgeDoc, a real-time collaborative markdown editor",
+                            "command": [
+                                "module_hedgedoc install"
+                            ],
+                            "status": "Stable",
+                            "author": "@efectn",
+                            "condition": "! module_hedgedoc status"
+                        },
+                        {
+                            "id": "HDOC02",
+                            "description": "HedgeDoc remove",
+                            "command": [
+                                "module_hedgedoc remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@efectn",
+                            "condition": "module_hedgedoc status"
+                        },
+                        {
+                            "id": "HDOC03",
+                            "description": "HedgeDoc purge with data folder",
+                            "about": "This operation will purge HedgeDoc data and remove the container",
+                            "command": [
+                                "module_hedgedoc purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@efectn",
+                            "condition": "module_hedgedoc status"
                         }
                     ]
                 }
