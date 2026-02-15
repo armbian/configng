@@ -490,7 +490,7 @@
                 {
                     "id": "Desktops",
                     "description": "Desktop Environments",
-                    "status": "Disabled",
+                    "status": "Enabled",
                     "sub": [
                         {
                             "id": "CINMDE",
