@@ -23,9 +23,9 @@ function module_images () {
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_images,example"]}"
 
-	local ALL_IMAGES_JSON_URL="https://github.armbian.com/all-images.json"
+	local ALL_IMAGES_JSON_URL="https://github.armbian.com/armbian-images.json"
 	local IMAGES_BASE="${SOFTWARE_FOLDER}/images"
-	local IMAGES_JSON_PATH="${IMAGES_BASE}/all-images.json"
+	local IMAGES_JSON_PATH="${IMAGES_BASE}/armbian-images.json"
 
 	# $1 = command, $2 = board_slug override (optional)
 	local CMD="$1"
@@ -223,9 +223,9 @@ function module_images () {
 			.. | objects
 			| select(.board_slug? != null)
 			| select((.file_extension? // "") | test("^img(\\.(xz|gz|zst|bz2|lz4))?$"; "i"))
-			| select(.kernel_branch != "cloud")
+			| select(.branch != "cloud")
 			| select(norm(.board_slug) == norm($board))
-			| .preinstalled_application // ""
+			| .file_application // ""
 			]
 			| unique
 			| sort
@@ -330,8 +330,8 @@ function module_images () {
 			def norm(s): (s | ascii_downcase | gsub("[^a-z0-9]+"; "-"));
 			def preapp_filter:
 			if   $preapp == ""          then .
-			elif $preapp == "__EMPTY__" then select((.preinstalled_application // "") == "")
-			else select(.preinstalled_application == $preapp)
+			elif $preapp == "__EMPTY__" then select((.file_application // "") == "")
+			else select(.file_application == $preapp)
 			end;
 			def repo_filter:
 			if $repo == "" then .
@@ -341,11 +341,11 @@ function module_images () {
 			.. | objects
 			| select(.board_slug? != null)
 			| select((.file_extension? // "") | test("^img(\\.(xz|gz|zst|bz2|lz4))?$"; "i"))
-			| select(.kernel_branch != "cloud")
+			| select(.branch != "cloud")
 			| select(norm(.board_slug) == norm($board))
 			| preapp_filter
 			| repo_filter
-			| .kernel_branch // "unknown"
+			| .branch // "unknown"
 			]
 			| unique
 			| sort
@@ -407,8 +407,8 @@ function module_images () {
 			def norm(s): (s | ascii_downcase | gsub("[^a-z0-9]+"; "-"));
 			def preapp_filter:
 			if   $preapp == ""          then .
-			elif $preapp == "__EMPTY__" then select((.preinstalled_application // "") == "")
-			else select(.preinstalled_application == $preapp)
+			elif $preapp == "__EMPTY__" then select((.file_application // "") == "")
+			else select(.file_application == $preapp)
 			end;
 			def repo_filter:
 			if $repo == "" then .
@@ -418,12 +418,12 @@ function module_images () {
 			.. | objects
 			| select(.board_slug? != null)
 			| select((.file_extension? // "") | test("^img(\\.(xz|gz|zst|bz2|lz4))?$"; "i"))
-			| select(.kernel_branch != "cloud")
+			| select(.branch != "cloud")
 			| select(norm(.board_slug) == norm($board))
 			| preapp_filter
 			| repo_filter
-			| (if $kbranch != "" then select(.kernel_branch == $kbranch) else . end)
-			| .image_variant // "unknown"
+			| (if $kbranch != "" then select(.branch == $kbranch) else . end)
+			| .variant // "unknown"
 			]
 			| unique
 			| sort
@@ -450,7 +450,7 @@ function module_images () {
 				"${options[@]}" \
 				3>&1 1>&2 2>&3)
 		else
-			echo "Available variants for $board (preinstalled=${PREAPP_FILTER:-ALL}, kernel=${KERNEL_FILTER:-all}, repo=${DOWNLOAD_REPO_FILTER:-all}):"
+			echo "Available variants for $board (preinstalled=${PREAPP_FILTER:-ALL}, branch=${KERNEL_FILTER:-all}, repo=${DOWNLOAD_REPO_FILTER:-all}):"
 			echo "  ALL  - All variants"
 			while IFS='|' read -r _ variant; do
 				[[ -z "$variant" ]] && continue
@@ -487,8 +487,8 @@ function module_images () {
 				def norm(s): (s | ascii_downcase | gsub("[^a-z0-9]+"; "-"));
 				def preapp_filter:
 					if   $preapp == ""          then .
-					elif $preapp == "__EMPTY__" then select((.preinstalled_application // "") == "")
-					else select(.preinstalled_application == $preapp)
+					elif $preapp == "__EMPTY__" then select((.file_application // "") == "")
+					else select(.file_application == $preapp)
 					end;
 				def repo_filter:
 					if $repo == "" then .
@@ -524,12 +524,12 @@ function module_images () {
 				.. | objects
 				| select(.board_slug? != null)
 				| select((.file_extension? // "") | test("^img(\\.(xz|gz|zst|bz2|lz4))?$"; "i"))
-				| select(.kernel_branch != "cloud")
+				| select(.branch != "cloud")
 				| select(norm(.board_slug) == norm($board))
 				| preapp_filter
 				| repo_filter
-				| (if $kbranch != "" then select(.kernel_branch == $kbranch) else . end)
-				| (if $variant != "" then select(.image_variant == $variant) else . end)
+				| (if $kbranch != "" then select(.branch == $kbranch) else . end)
+				| (if $variant != "" then select(.variant == $variant) else . end)
 				]
 				| sort_by([ (if .promoted=="true" then 0 else 1 end), .armbian_version ])
 				| to_entries[]
@@ -537,11 +537,11 @@ function module_images () {
 					(.key|tostring) + "|" +
 					(if .value.promoted=="true" then "\u2605 " else "  " end) +
 					pad(show_ver(.value.armbian_version); 10) + " " +
-					pad(.value.distro_release // ""; 9) + " " +
-					pad(.value.kernel_branch // ""; 10) + " " +
-					pad(.value.image_variant // ""; 12) + " " +
+					pad(.value.distro // ""; 9) + " " +
+					pad(.value.branch // ""; 10) + " " +
+					pad(.value.variant // ""; 12) + " " +
 					pad_right(size_mb(.value); 7) + " " +
-					pad_right((.value.preinstalled_application // ""); 15)
+					pad_right((.value.file_application // ""); 15)
 				)
 			' "$IMAGES_JSON_PATH" 2>/dev/null)
 
@@ -549,7 +549,7 @@ function module_images () {
 			if [[ -z "$temp_list" ]]; then
 				# No images even after filters – offer to adjust filters
 				if [[ -n "$DIALOG" ]]; then
-					if $DIALOG --yesno "No images found for:\n\n  board:   $board\n  preapp:  ${PREAPP_FILTER:-ALL}\n  repo:    ${DOWNLOAD_REPO_FILTER:-all}\n  kernel:  ${KERNEL_FILTER:-all}\n  variant: ${VARIANT_FILTER:-all}\n\nWould you like to adjust filters?" 17 72; then
+					if $DIALOG --yesno "No images found for:\n\n  board:   $board\n  preapp:  ${PREAPP_FILTER:-ALL}\n  repo:    ${DOWNLOAD_REPO_FILTER:-all}\n  branch:  ${KERNEL_FILTER:-all}\n  variant: ${VARIANT_FILTER:-all}\n\nWould you like to adjust filters?" 17 72; then
 						select_preapp_for_board         "$board" || return 1
 						select_kernel_branch_for_board  "$board" || return 1
 						select_image_variant_for_board  "$board" || return 1
@@ -559,7 +559,7 @@ function module_images () {
 						return 1
 					fi
 				else
-					echo "No images found for board=$board, preapp=${PREAPP_FILTER:-ALL}, repo=${DOWNLOAD_REPO_FILTER:-all}, kernel=${KERNEL_FILTER:-all}, variant=${VARIANT_FILTER:-all}."
+					echo "No images found for board=$board, preapp=${PREAPP_FILTER:-ALL}, repo=${DOWNLOAD_REPO_FILTER:-all}, branch=${KERNEL_FILTER:-all}, variant=${VARIANT_FILTER:-all}."
 					read -rp "Adjust filters? [y/N]: " ans
 					if [[ "$ans" =~ ^[Yy]$ ]]; then
 						select_preapp_for_board         "$board" || return 1
@@ -584,11 +584,11 @@ function module_images () {
 
 			if [[ -n "$DIALOG" ]]; then
 				selected_index=$($DIALOG --title "Select Armbian image" \
-					--menu "\nBoard: $board\nPreinstalled: ${PREAPP_FILTER:-ALL}\nRepo: ${DOWNLOAD_REPO_FILTER:-all}\nKernel: ${KERNEL_FILTER:-all}\nVariant: ${VARIANT_FILTER:-all}\n★ = promoted image\n\n  #   version    release   kernel     variant    size (MB)  [preinstalled]" 26 80 8 \
+					--menu "\nBoard: $board\nPreinstalled: ${PREAPP_FILTER:-ALL}\nRepo: ${DOWNLOAD_REPO_FILTER:-all}\nBranch: ${KERNEL_FILTER:-all}\nVariant: ${VARIANT_FILTER:-all}\n★ = promoted image\n\n  #   version    release   branch     variant    size (MB)  [preinstalled]" 26 80 8 \
 					"${options[@]}" \
 					3>&1 1>&2 2>&3)
 			else
-				echo "Available images for $board (preapp=${PREAPP_FILTER:-ALL}, repo=${DOWNLOAD_REPO_FILTER:-all}, kernel=${KERNEL_FILTER:-all}, variant=${VARIANT_FILTER:-all}; ★ = promoted):"
+				echo "Available images for $board (preapp=${PREAPP_FILTER:-ALL}, repo=${DOWNLOAD_REPO_FILTER:-all}, branch=${KERNEL_FILTER:-all}, variant=${VARIANT_FILTER:-all}; ★ = promoted):"
 				local i=0
 				while [[ $i -lt ${#options[@]} ]]; do
 					echo "  ${options[$i]}: ${options[$((i+1))]}"
@@ -604,8 +604,8 @@ function module_images () {
 				def norm(s): (s | ascii_downcase | gsub("[^a-z0-9]+"; "-"));
 				def preapp_filter:
 				if   $preapp == ""          then .
-				elif $preapp == "__EMPTY__" then select((.preinstalled_application // "") == "")
-				else select(.preinstalled_application == $preapp)
+				elif $preapp == "__EMPTY__" then select((.file_application // "") == "")
+				else select(.file_application == $preapp)
 				end;
 				def repo_filter:
 				if $repo == "" then .
@@ -615,12 +615,12 @@ function module_images () {
 				.. | objects
 				| select(.board_slug? != null)
 				| select((.file_extension? // "") | test("^img(\\.(xz|gz|zst|bz2|lz4))?$"; "i"))
-				| select(.kernel_branch != "cloud")
+				| select(.branch != "cloud")
 				| select(norm(.board_slug) == norm($board))
 				| preapp_filter
 				| repo_filter
-				| (if $kbranch != "" then select(.kernel_branch == $kbranch) else . end)
-				| (if $variant != "" then select(.image_variant == $variant) else . end)
+				| (if $kbranch != "" then select(.branch == $kbranch) else . end)
+				| (if $variant != "" then select(.variant == $variant) else . end)
 				]
 				| sort_by([ (if .promoted=="true" then 0 else 1 end), .armbian_version ])
 				| .[$idx]
@@ -1068,10 +1068,10 @@ function module_images () {
 	}
 
 	# Helper: return 0 if cache directory contains any downloaded image
-	# (ignores the index file all-images.json). Intended for menu logic.
+	# (ignores the index file armbian-images.json). Intended for menu logic.
 	images_cache_has_content() {
 		[[ -d "$IMAGES_BASE" ]] || return 1
-		if find "$IMAGES_BASE" -maxdepth 1 -type f ! -name 'all-images.json' | read -r _; then
+		if find "$IMAGES_BASE" -maxdepth 1 -type f ! -name 'armbian-images.json' | read -r _; then
 			return 0
 		fi
 		return 1
@@ -1094,13 +1094,13 @@ function module_images () {
 		"${commands[1]}")  # remove = remove downloaded images only
 			if [[ -d "$IMAGES_BASE" ]]; then
 				if [[ -n "$DIALOG" ]]; then
-					if $DIALOG --yesno "Remove all downloaded Armbian images in:\n\n$IMAGES_BASE\n\nThe index file (all-images.json) will be kept." 12 70; then
-						find "$IMAGES_BASE" -maxdepth 1 -type f ! -name 'all-images.json' -delete
+					if $DIALOG --yesno "Remove all downloaded Armbian images in:\n\n$IMAGES_BASE\n\nThe index file (armbian-images.json) will be kept." 12 70; then
+						find "$IMAGES_BASE" -maxdepth 1 -type f ! -name 'armbian-images.json' -delete
 					fi
 				else
-					read -rp "Remove all downloaded images (keep all-images.json) in $IMAGES_BASE? [y/N]: " ans
+					read -rp "Remove all downloaded images (keep armbian-images.json) in $IMAGES_BASE? [y/N]: " ans
 					if [[ "$ans" =~ ^[Yy]$ ]]; then
-						find "$IMAGES_BASE" -maxdepth 1 -type f ! -name 'all-images.json' -delete
+						find "$IMAGES_BASE" -maxdepth 1 -type f ! -name 'armbian-images.json' -delete
 					fi
 				fi
 			fi
@@ -1133,7 +1133,7 @@ function module_images () {
 					]
 					| length
 				' "$IMAGES_JSON_PATH" 2>/dev/null); then
-					echo "Images index: FAILED (parse error in $IMAGES_JSON_PATH)"
+					echo "Images index: FAILED (parse error in index file)"
 					return 1
 				fi
 
@@ -1223,8 +1223,8 @@ function module_images () {
 			echo -e "\nUsage: ${module_options["module_images,feature"]} <command> [board_slug]"
 			echo -e "Commands:  ${module_options["module_images,example"]}"
 			echo "Available commands:"
-			echo -e "\tinstall\t- Interactive: filter by preinstalled app + stability + kernel + variant, select image, flash to device."
-			echo -e "\tremove\t- Remove downloaded image files (keep the index all-images.json)."
+			echo -e "\tinstall\t- Interactive: filter by preinstalled app + stability + branch + variant, select image, flash to device."
+			echo -e "\tremove\t- Remove downloaded image files (keep the index armbian-images.json)."
 			echo -e "\tpurge\t- Remove the entire images cache directory (index + images)."
 			echo -e "\tstatus\t- Show images index status and counts for the current board."
 			echo -e "\thelp\t- Show this help message."
@@ -1235,11 +1235,11 @@ function module_images () {
 			echo "- Only records with real image file_extension are considered; entries whose"
 			echo "  file_extension contains .asc, .torrent or .sha* are ignored."
 			echo "- You can filter images by:"
-			echo "    * preinstalled_application: ALL / STABLE / barebone / specific (OMV, HA, OpenHAB, ...)"
+			echo "    * file_application: ALL / STABLE / barebone / specific (OMV, HA, OpenHAB, ...)"
 			echo "      - STABLE = download_repository == \"archive\""
-			echo "    * kernel_branch"
-			echo "    * image_variant"
-			echo "- Image selector columns: version | kernel | variant | size (MB) | {preinstalled}."
+			echo "    * branch"
+			echo "    * variant"
+			echo "- Image selector columns: version | distro | branch | variant | size (MB) | {preinstalled}."
 			echo "- Menu marks promoted images with a leading '★'."
 			echo "- Board matching is case- and separator-insensitive (uefi-x86, UEFI_X86, uefi x86, etc.)."
 			echo
