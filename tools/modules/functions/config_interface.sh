@@ -605,7 +605,7 @@ dialog_menu() {
 				done
 			fi
 			read -p "Enter choice number: " choice_index
-			if [[ "$choice_index" =~ ^[0-9]+$ ]] && [ "$choice_index" -ge 1 ] && [ "$choice_index" -le "$i" ]; then
+			if [[ "$choice_index" =~ ^[0-9]+$ ]] && [ "$choice_index" -ge 1 ] && [ "$choice_index" -lt "$i" ]; then
 				if $use_no_items; then
 					echo "${options[((choice_index-1))]}"
 				else
