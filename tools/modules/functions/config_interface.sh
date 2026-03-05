@@ -134,10 +134,8 @@ generate_top_menu() {
 
 		parse_menu_items menu_options
 
-		local OPTION
-		local exitstatus
-		OPTION=$(dialog_menu "$TITLE" "$status" 0 80 9 --ok-button Select --cancel-button Exit -- "${menu_options[@]}")
-		exitstatus=$?
+		local OPTION=$(dialog_menu "$TITLE" "$status" 0 80 9 --ok-button Select --cancel-button Exit -- "${menu_options[@]}")
+		local exitstatus=$?
 
 		if [ $exitstatus = 0 ]; then
 			[ -z "$OPTION" ] && break
@@ -169,10 +167,9 @@ function generate_menu() {
 		local submenu_options=()
 		parse_menu_items submenu_options
 
-		local OPTION
-		local exitstatus
-		OPTION=$(dialog_menu "$top_parent_id $parent_id" "$status" 0 80 9 --ok-button Select --cancel-button Back -- "${submenu_options[@]}")
-		exitstatus=$?
+		local OPTION=$(dialog_menu "$top_parent_id $parent_id" "$status" 0 80 9 --ok-button Select --cancel-button Back -- "${submenu_options[@]}")
+
+		local exitstatus=$?
 
 		if [ $exitstatus = 0 ]; then
 			[ -z "$OPTION" ] && break
