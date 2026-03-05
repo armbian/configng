@@ -259,10 +259,10 @@ function module_wireguard () {
 			while IFS= read -r -d '' peer_conf; do
 				peer="${peer_conf#peer_}"
 				peer="${peer%.conf}"
-				[[ -n "$peer" ]] && LIST+=("$peer")
+				[[ -n "$peer" ]] && LIST+=("$peer" "$peer")
 			done < <(find "${WIREGUARD_BASE}/config/" -mindepth 2 -maxdepth 2 -name "peer_*.conf" -type f -printf "%f\0")
 			local LIST_LENGTH=$((${#LIST[@]} / 2))
-			local SELECTED_PEER=$(dialog_menu "Select peer" "" $((${LIST_LENGTH} + 8)) 60 ${LIST_LENGTH} --no-items -- "${LIST[@]}")
+			local SELECTED_PEER=$(dialog_menu "Select peer" "" $((${LIST_LENGTH} + 8)) 60 ${LIST_LENGTH} -- "${LIST[@]}")
 		fi
 			if [[ -n ${SELECTED_PEER} ]]; then
 				clear
