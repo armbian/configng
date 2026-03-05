@@ -38,8 +38,8 @@ function module_transmission () {
 				module_docker install
 			fi
 			[[ -d "$TRANSMISSION_BASE" ]] || mkdir -p "$TRANSMISSION_BASE" || { echo "Couldn't create storage directory: $TRANSMISSION_BASE"; exit 1; }
-			TRANSMISSION_USER=$($(dialog_inputbox "Enter username for Transmission client" "\\nHit enter for defaults" "armbian" 9 50))
-			TRANSMISSION_PASS=$($(dialog_inputbox "Enter password for Transmission client" "\\nHit enter for defaults" "armbian" 9 50))
+			TRANSMISSION_USER=$(dialog_inputbox "Enter username for Transmission client" "\nHit enter for defaults" "armbian" 9 50)
+			TRANSMISSION_PASS=$(dialog_inputbox "Enter password for Transmission client" "\nHit enter for defaults" "armbian" 9 50)
 			docker run -d \
 			--name=transmission \
 			--net=lsio \
