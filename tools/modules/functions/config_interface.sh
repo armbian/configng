@@ -652,6 +652,42 @@ dialog_inputbox() {
 }
 
 module_options+=(
+	["dialog_passwordbox,author"]="@armbian"
+	["dialog_passwordbox,desc"]="Display a password input dialog using the configured dialog tool"
+	["dialog_passwordbox,example"]="dialog_passwordbox "Title" "Prompt""
+	["dialog_passwordbox,feature"]="dialog_passwordbox"
+	["dialog_passwordbox,status"]="Active"
+)
+
+# Display a password input dialog with proper redirection for each dialog tool
+dialog_passwordbox() {
+	local title="$1"
+	local prompt="$2"
+	local height="${3:-0}"
+	local width="${4:-80}"
+	shift 4 || true
+
+	# Parse remaining arguments as extra args
+	local extra_args=("$@")
+
+	case "$DIALOG" in
+		"whiptail")
+			whiptail --title "$title" "${extra_args[@]}" --passwordbox "$prompt" $height $width 3>&1 1>&2 2>&3
+			;;
+		"dialog")
+			# dialog outputs selection to stderr by default; swap stdout/stderr (3>&1 1>&2 2>&3) to capture stderr to stdout for command substitution
+			dialog --title "$title" "${extra_args[@]}" --passwordbox "$prompt" $height $width 3>&1 1>&2 2>&3
+			;;
+		"read")
+			# For read mode, use read -s to hide input
+			read -s -p "$prompt: " result
+			echo ""
+			echo "$result"
+			;;
+	esac
+}
+
+module_options+=(
 	["dialog_yesno,author"]="@armbian"
 	["dialog_yesno,desc"]="Display a yes/no dialog using the configured dialog tool"
 	["dialog_yesno,example"]="dialog_yesno \"Title\" \"Question\""
