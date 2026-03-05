@@ -676,7 +676,7 @@ dialog_passwordbox() {
 			;;
 		"dialog")
 			# dialog outputs selection to stderr by default; swap stdout/stderr (3>&1 1>&2 2>&3) to capture stderr to stdout for command substitution
-			dialog --title "$title" "${extra_args[@]}" --passwordbox "$prompt" $height $width 3>&1 1>&2 2>&3
+			dialog --title "$title" "${extra_args[@]}" --insecure --passwordbox "$prompt" $height $width 3>&1 1>&2 2>&3
 			;;
 		"read")
 			# For read mode, use read -s to hide input
