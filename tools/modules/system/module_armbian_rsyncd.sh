@@ -25,13 +25,13 @@ function module_armbian_rsyncd() {
 
 				# lets make temporally file
 				rsyncd_config=$(mktemp)
-				if target_sync=$(dialog_checklist "Select an Option" "Choose your favorite programming language" 15 60 6 \
+				if target_sync=$(dialog_checklist "Select rsync target" "Choose which Armbian rsync targets to mirror" 15 60 6 \
 				"apt" "Armbian stable packages" ON \
 				"dl" "Stable images" ON \
 				"beta" "Armbian unstable packages" OFF \
 				"archive" "Old images" OFF \
-				"oldarhive" "Very old Archive" OFF \
-				"cache" "Nighly and community images cache" OFF); then
+				"oldarchive" "Very old archive" OFF \
+				"cache" "Nightly and community images cache" OFF); then
 
 					for choice in $(echo ${target_sync} | tr -d '"'); do
 						cat <<- EOF >> $rsyncd_config
