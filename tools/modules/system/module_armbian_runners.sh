@@ -38,31 +38,31 @@ function module_armbian_runners () {
 			# Prompt using dialog if parameters are missing AND in interactive mode
 			if [[ -t 1 ]]; then
 				if [[ -z "$gh_token" ]]; then
-					gh_token=$($(dialog_inputbox "" "Enter your GitHub token:" "" 8 60))
+					gh_token=$(dialog_inputbox "" "Enter your GitHub token:" "" 8 60)
 				fi
 
 				if [[ -z "$runner_name" ]]; then
-					runner_name=$($(dialog_inputbox "" "Enter runner name:" "armbian" 8 60))
+					runner_name=$(dialog_inputbox "" "Enter runner name:" "armbian" 8 60)
 				fi
 
 				if [[ -z "$start" ]]; then
-					start=$($(dialog_inputbox "" "Enter start index:" "01" 8 60))
+					start=$(dialog_inputbox "" "Enter start index:" "01" 8 60)
 				fi
 
 				if [[ -z "$stop" ]]; then
-					stop=$($(dialog_inputbox "" "Enter stop index:" "01" 8 60))
+					stop=$(dialog_inputbox "" "Enter stop index:" "01" 8 60)
 				fi
 
 				if [[ -z "$label_primary" ]]; then
-					label_primary=$($(dialog_inputbox "" "Enter primary label(s):" "alfa" 8 60))
+					label_primary=$(dialog_inputbox "" "Enter primary label(s):" "alfa" 8 60)
 				fi
 
 				if [[ -z "$label_secondary" ]]; then
-					label_secondary=$($(dialog_inputbox "" "Enter secondary label(s):" "fast,images" 8 60))
+					label_secondary=$(dialog_inputbox "" "Enter secondary label(s):" "fast,images" 8 60)
 				fi
 
 				if [[ -z "$organisation" ]]; then
-					organisation=$($(dialog_inputbox "" "Enter GitHub organisation:" "armbian" 8 60))
+					organisation=$(dialog_inputbox "" "Enter GitHub organisation:" "armbian" 8 60)
 				fi
 			fi
 

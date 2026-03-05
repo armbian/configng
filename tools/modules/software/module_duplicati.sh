@@ -46,7 +46,7 @@ function module_duplicati () {
 
 			# If no encryption key provided, prompt for it
 			if [[ -z "${DUPLICATI_ENCRYPTION_KEY}" ]]; then
-				DUPLICATI_ENCRYPTION_KEY=$($(dialog_inputbox "Duplicati Encryption Key" "\\nEnter an encryption key for Duplicati (at least 8 characters):" "" 9 60))
+				DUPLICATI_ENCRYPTION_KEY=$(dialog_inputbox "Duplicati Encryption Key" "\nEnter an encryption key for Duplicati (at least 8 characters):" "" 9 60)
 			fi
 
 			# Check encryption key length
@@ -57,7 +57,7 @@ function module_duplicati () {
 
 			# If no WebUI password provided, prompt for it
 			if [[ -z "${DUPLICATI_WEBUI_PASSWORD}" ]]; then
-				DUPLICATI_WEBUI_PASSWORD=$($(dialog_inputbox "Duplicati WebUI Password" "\\nEnter a password for Duplicati WebUI (at least 8 characters):" "" 9 60))
+				DUPLICATI_WEBUI_PASSWORD=$(dialog_inputbox "Duplicati WebUI Password" "\nEnter a password for Duplicati WebUI (at least 8 characters):" "" 9 60)
 			fi
 
 			# Check WebUI password length

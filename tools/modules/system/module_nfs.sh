@@ -31,7 +31,7 @@ function module_nfs () {
 			if ! pkg_installed nmap; then pkg_install nmap; fi
 			if ! pkg_installed nfs-common; then pkg_install nfs-common; fi
 
-			local subnet=$($(dialog_inputbox "Choose subnet to search for NFS server" "\\nValid format: <IP Address>/<Subnet Mask Length>" "${LOCALSUBNET}" 9 60))
+			local subnet=$(dialog_inputbox "Choose subnet to search for NFS server" "\\nValid format: <IP Address>/<Subnet Mask Length>" "${LOCALSUBNET}" 9 60)
 			LIST=($(nmap -oG - -p2049 ${subnet} | grep '/open/' | cut -d' ' -f2 | grep -v "${LOCALIPADD}"))
 			LIST_LENGTH=$((${#LIST[@]}))
 			if nfs_server=$(dialog --no-items \
