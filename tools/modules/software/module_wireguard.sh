@@ -84,7 +84,7 @@ function module_wireguard () {
 
 			# Get local subnets from user input or use default
 			if [[ -z $2 ]]; then
-				LOCAL_SUBNETS=$($DIALOG --title "Enter comma delimited subnets for routing" --inputbox "\n* delete if this is not your local subnet \n" 9 70 "10.0.10.0/24" 3>&1 1>&2 2>&3)
+			LOCAL_SUBNETS=$(dialog_inputbox "Enter comma delimited subnets for routing" "\n* delete if this is not your local subnet \n" "10.0.10.0/24" 9 70)
 			else
 				LOCAL_SUBNETS="$2"
 			fi
@@ -187,7 +187,7 @@ function module_wireguard () {
 			${module_options["module_wireguard,feature"]} ${commands[0]}
 
 			if [[ -z $2 ]]; then
-				NUMBER_OF_PEERS=$($DIALOG --title "Enter comma delimited peer keywords" --inputbox " \n" 7 50 "laptop" 3>&1 1>&2 2>&3)
+			NUMBER_OF_PEERS=$(dialog_inputbox "Enter comma delimited peer keywords" " \n" "laptop" 7 50)
 			fi
 			if [[ $? -eq 0 ]]; then
 				${module_options["module_wireguard,feature"]} ${commands[6]}
