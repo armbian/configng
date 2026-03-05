@@ -91,7 +91,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_duplicati status"
+                            "condition": "! module_duplicati status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "DPL002",
@@ -142,7 +143,8 @@
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! module_docker status"
+                            "condition": "! module_docker status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "CON003",
@@ -177,7 +179,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_portainer status"
+                            "condition": "! module_portainer status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "POR002",
@@ -217,7 +220,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_adguardhome status"
+                            "condition": "! module_adguardhome status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "ADG002",
@@ -291,7 +295,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_unbound status"
+                            "condition": "! module_unbound status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "UNB002",
@@ -329,7 +334,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_mysql status"
+                            "condition": "! module_mysql status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "MYSQL2",
@@ -361,7 +367,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_mariadb status"
+                            "condition": "! module_mariadb status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "DAT002",
@@ -393,7 +400,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_phpmyadmin status"
+                            "condition": "! module_phpmyadmin status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "MYA002",
@@ -426,7 +434,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_postgres status"
+                            "condition": "! module_postgres status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "PGSQL2",
@@ -461,7 +470,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_redis status"
+                            "condition": "! module_redis status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "REDIS2",
@@ -783,7 +793,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_bazarr status"
+                            "condition": "! module_bazarr status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "BAZ002",
@@ -818,7 +829,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_deluge status"
+                            "condition": "! module_deluge status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "DEL002",
@@ -853,7 +865,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_qbittorrent status"
+                            "condition": "! module_qbittorrent status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "DOW002",
@@ -888,7 +901,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_prowlarr status"
+                            "condition": "! module_prowlarr status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "DOW026",
@@ -923,7 +937,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_jellyseerr status"
+                            "condition": "! module_jellyseerr status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "JEL002",
@@ -958,7 +973,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_lidarr status"
+                            "condition": "! module_lidarr status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "LID002",
@@ -993,7 +1009,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_medusa status"
+                            "condition": "! module_medusa status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "MDS002",
@@ -1028,7 +1045,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_radarr status"
+                            "condition": "! module_radarr status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "RAD002",
@@ -1063,7 +1081,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_sabnzbd status"
+                            "condition": "! module_sabnzbd status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "SABN02",
@@ -1098,7 +1117,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_sonarr status"
+                            "condition": "! module_sonarr status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "SON002",
@@ -1133,7 +1153,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_transmission status"
+                            "condition": "! module_transmission status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "TRA002",
@@ -1173,7 +1194,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_actualbudget status"
+                            "condition": "! module_actualbudget status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "ABU002",
@@ -1212,7 +1234,8 @@
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "! module_domoticz status"
+                            "condition": "! module_domoticz status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "DOM002",
@@ -1247,7 +1270,8 @@
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "! module_evcc status"
+                            "condition": "! module_evcc status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "EVCC02",
@@ -1282,7 +1306,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_openhab status"
+                            "condition": "! module_openhab status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "HAB002",
@@ -1317,7 +1342,8 @@
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "! module_haos status && grep -q Debian /etc/os-release"
+                            "condition": "! module_haos status && grep -q Debian /etc/os-release",
+                            "container_type": "docker"
                         },
                         {
                             "id": "HAS002",
@@ -1389,7 +1415,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_homepage status"
+                            "condition": "! module_homepage status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "HPG002",
@@ -1422,7 +1449,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_netbox status"
+                            "condition": "! module_netbox status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "NBOX02",
@@ -1487,7 +1515,8 @@
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "! module_embyserver status"
+                            "condition": "! module_embyserver status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "EMB002",
@@ -1521,7 +1550,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_filebrowser status"
+                            "condition": "! module_filebrowser status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "FIL002",
@@ -1554,7 +1584,8 @@
                             ],
                             "status": "Stable",
                             "author": "@efectn",
-                            "condition": "! module_hastebin status"
+                            "condition": "! module_hastebin status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "HPS002",
@@ -1587,7 +1618,8 @@
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "! module_immich status"
+                            "condition": "! module_immich status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "IMM002",
@@ -1621,7 +1653,8 @@
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "! module_jellyfin status"
+                            "condition": "! module_jellyfin status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "JMS002",
@@ -1675,7 +1708,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_navidrome status"
+                            "condition": "! module_navidrome status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "NAV002",
@@ -1707,7 +1741,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_nextcloud status"
+                            "condition": "! module_nextcloud status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "NCT002",
@@ -1763,7 +1798,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_owncloud status"
+                            "condition": "! module_owncloud status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "OWC002",
@@ -1795,7 +1831,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_syncthing status"
+                            "condition": "! module_syncthing status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "STC002",
@@ -1828,7 +1865,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_stirling status"
+                            "condition": "! module_stirling status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "STR002",
@@ -1869,7 +1907,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_grafana status"
+                            "condition": "! module_grafana status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "GRA002",
@@ -1904,7 +1943,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_netalertx status"
+                            "condition": "! module_netalertx status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "NAX002",
@@ -1939,7 +1979,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_netdata status"
+                            "condition": "! module_netdata status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "NTD002",
@@ -1974,7 +2015,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_prometheus status"
+                            "condition": "! module_prometheus status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "PRO002",
@@ -2053,7 +2095,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! pkg_installed avahi-daemon"
+                            "condition": "! pkg_installed avahi-daemon",
+                            "container_type": "docker"
                         },
                         {
                             "id": "AVH002",
@@ -2078,7 +2121,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! pkg_installed iperf3"
+                            "condition": "! pkg_installed iperf3",
+                            "container_type": "docker"
                         },
                         {
                             "id": "IPR002",
@@ -2102,7 +2146,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! pkg_installed iptraf-ng"
+                            "condition": "! pkg_installed iptraf-ng",
+                            "container_type": "docker"
                         },
                         {
                             "id": "IPT002",
@@ -2126,7 +2171,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! pkg_installed nload"
+                            "condition": "! pkg_installed nload",
+                            "container_type": "docker"
                         },
                         {
                             "id": "NLD002",
@@ -2156,7 +2202,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_octoprint status"
+                            "condition": "! module_octoprint status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "OCT002",
@@ -2196,7 +2243,8 @@
                             ],
                             "status": "Enabled",
                             "author": "@armbian",
-                            "condition": "! module_wireguard status"
+                            "condition": "! module_wireguard status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "WRG002",
@@ -2268,7 +2316,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_swag status"
+                            "condition": "! module_swag status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "SWAG02",
@@ -2310,7 +2359,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_ghost status"
+                            "condition": "! module_ghost status",
+                            "container_type": "docker"
                         },
                         {
                             "id": "GHOST2",
