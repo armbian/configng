@@ -79,7 +79,7 @@ function module_armbian_firmware() {
 			# Check if firmware packages are currently on hold (prevented from upgrading)
 			# If so, warn user and offer to release the hold before proceeding
 			if ${module_options["module_armbian_firmware,feature"]} ${commands[3]} "status"; then
-				if $DIALOG --title "Warning!" --yesno "Firmware upgrade is disabled. Release hold and proceed?" 7 60; then
+				if dialog_yesno "Warning!" "Firmware upgrade is disabled. Release hold and proceed?" "Yes" "No" 7 60; then
 					${module_options["module_armbian_firmware,feature"]} ${commands[4]}
 				else
 					return 0
@@ -88,7 +88,7 @@ function module_armbian_firmware() {
 
 			# Ask user if they want to see all available kernels or just mainstream ones
 			# Default (no) shows all branches including edge and vendor-specific kernels
-			if ! $DIALOG --title "Advanced options" --yesno --defaultno "Show only mainstream kernels on the list?" 7 60; then
+			if ! dialog_yesno "Advanced options" "Show only mainstream kernels on the list?" "Yes" "No" 7 60 --defaultno; then
 				KERNEL_TEST_TARGET="legacy,vendor,current,edge"
 			fi
 
@@ -165,16 +165,15 @@ function module_armbian_firmware() {
 			local list_length=$((${#LIST[@]} / 2))
 			if [ "$list_length" -eq 0 ]; then
 				# No alternative kernels available for this board
-				$DIALOG --backtitle "$BACKTITLE" --title " Warning " --msgbox "No other kernels available!" 7 31
+				dialog_msgbox "Warning" "No other kernels available!" 7 31
 			else
+				# Calculate menu dimensions
+				local menu_height=$((${list_length} + 7))
+				local menu_width=80
+				local menu_list_height=${list_length}
+
 				# Show kernel selection menu and capture user's choice
-				if target_version=$(\
-						$DIALOG \
-						--separate-output \
-						--title "Select kernel" \
-						--menu "" \
-						$((${list_length} + 7)) 80 $((${list_length})) "${LIST[@]}" \
-						3>&1 1>&2 2>&3)
+				if target_version=$(dialog_menu "Select kernel" "" ${menu_height} ${menu_width} ${menu_list_height} -- "${LIST[@]}")
 				then
 					# Extract branch and linuxfamily from selected package name
 					# Package name format: linux-image-<branch>-<linuxfamily>=<version>
@@ -251,8 +250,7 @@ function module_armbian_firmware() {
 			# Prompt for reboot if running interactively
 			# Kernel changes require reboot to take effect
 			if test -t 0; then
-				if $DIALOG --title " Reboot required " --yes-button "Reboot" --no-button "Cancel" --yesno \
-					"A reboot is required to apply the changes. Shall we reboot now?" 7 34; then
+				if dialog_yesno " Reboot required " "A reboot is required to apply the changes. Shall we reboot now?" "Reboot" "Cancel" 7 34; then
 					reboot
 				fi
 			fi
