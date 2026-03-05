@@ -114,9 +114,9 @@ function module_pi_hole () {
 			[[ -n "${PIHOLE_BASE}" && "${PIHOLE_BASE}" != "/" ]] && rm -rf "${PIHOLE_BASE}"
 		;;
 		"${commands[3]}")
-			SELECTED_PASSWORD=$($(dialog_passwordbox "Enter new password for Pi-hole admin" "" "" 7 50))
+			SELECTED_PASSWORD=$(dialog_passwordbox "Enter new password for Pi-hole admin" "" "" 7 50)
 			if [[ -n $SELECTED_PASSWORD ]]; then
-				docker exec -it "${container}" sh -c "pihole setpassword ${SELECTED_PASSWORD}"
+				docker exec -it "${container}" pihole setpassword "${SELECTED_PASSWORD}"
 			fi
 		;;
 		"${commands[4]}")
