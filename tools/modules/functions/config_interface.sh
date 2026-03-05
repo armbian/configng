@@ -634,10 +634,9 @@ dialog_inputbox() {
 	local default="${3:-}"
 	local height="${4:-0}"
 	local width="${5:-80}"
-	shift 5 || true
+	local extra_args=("${@:6}")
 
 	# Parse remaining arguments as extra args
-	local extra_args=("$@")
 
 	case "$DIALOG" in
 		"whiptail")
@@ -668,10 +667,8 @@ dialog_passwordbox() {
 	local prompt="$2"
 	local height="${3:-0}"
 	local width="${4:-80}"
-	shift 4 || true
-
+	local extra_args=("${@:5}")
 	# Parse remaining arguments as extra args
-	local extra_args=("$@")
 
 	case "$DIALOG" in
 		"whiptail")
@@ -706,10 +703,8 @@ dialog_yesno() {
 	local no_label="${4:-No}"
 	local height="${5:-0}"
 	local width="${6:-80}"
-	shift 6 || true
-
+	local extra_args=("${@:7}")
 	# Parse remaining arguments as extra args
-	local extra_args=("$@")
 
 	case "$DIALOG" in
 		"whiptail")
@@ -739,10 +734,7 @@ dialog_msgbox() {
 	local prompt="$2"
 	local height="${3:-0}"
 	local width="${4:-0}"
-	shift 4 || true
-
-	# Parse remaining arguments as extra args
-	local extra_args=("$@")
+	local extra_args=("${@:5}")
 
 	case "$DIALOG" in
 		"whiptail")
@@ -772,10 +764,8 @@ dialog_infobox() {
 	local prompt="$2"
 	local height="${3:-6}"
 	local width="${4:-80}"
-	shift 4 || true
 
-	# Parse remaining arguments as extra args
-	local extra_args=("$@")
+	local extra_args=("${@:5}")
 
 	case "$DIALOG" in
 		"whiptail")
@@ -804,11 +794,9 @@ dialog_gauge() {
 	local prompt="$2"
 	local height="${3:-10}"
 	local width="${4:-70}"
-	shift 4 || true
 
 	# Parse remaining arguments as extra args
-	local extra_args=("$@")
-
+	local extra_args=("${@:5}")
 	case "$DIALOG" in
 		"whiptail")
 			whiptail --title "$title" "${extra_args[@]}" --gauge "$prompt" $height $width 0
