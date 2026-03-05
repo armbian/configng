@@ -712,7 +712,9 @@ dialog_yesno() {
 			;;
 		"read")
 			read -p "$prompt [$yes_label/$no_label]: " choice
-			[[ "$choice" =~ ^[Yy]$ ]] || [[ "$choice" =~ ^[Yy][Ee][Ss]$ ]]
+			local choice_lower=$(echo "$choice" | tr '[:upper:]' '[:lower:]')
+			local yes_label_lower=$(echo "$yes_label" | tr '[:upper:]' '[:lower:]')
+			[[ "$choice_lower" == "y" ]] || [[ "$choice_lower" == "yes" ]] || [[ "$choice_lower" == "$yes_label_lower" ]]
 			;;
 	esac
 }
