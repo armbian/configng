@@ -31,7 +31,7 @@ function module_openssh-server () {
 		"${commands[0]}")
 			pkg_installed docker-ce || module_docker install
 			[[ -d "${OPENSSHSERVER_BASE}" ]] || mkdir -p "${OPENSSHSERVER_BASE}" || { echo "Couldn't create storage directory: ${OPENSSHSERVER_BASE}"; exit 1; }
-			USER_NAME=$($(dialog_inputbox "Enter username" "\\nHit enter for defaults" "upload"))
+			USER_NAME=$(dialog_inputbox "Enter username" "\nHit enter for defaults" "upload")
 			PUBLIC_KEY=$(dialog_inputbox "Enter public key" "" "" 9 50)
 			MOUNT_POINT=$(dialog_inputbox "Enter shared folder path" "" "${SOFTWARE_FOLDER}/swag/config/www")
 			docker run -d \
