@@ -61,13 +61,17 @@ function module_simple_network() {
 			local menu_list_height=$((${#list[@]} / 2))
 			wiredmode=$(dialog_menu "Select IP mode" "" $menu_height $menu_width $menu_list_height -- "${list[@]}")
 			if [[ $? -eq 0 ]]; then
+				# Get MAC address first - needed for both DHCP and Static
 				mac_address=$(ip a s ${adapter} | grep link/ether | awk '{print $2}')
-				mac_address=$($(dialog_inputbox "Spoof MAC address?" "\\nValid format: $mac_address" "$mac_address"))
-				if [[ $? -eq 0 ]]; then
-					if [[ "${wiredmode}" == "dhcp" ]]; then
-						# set dhcp on adapter
-						${module_options["module_simple_network,feature"]} ${commands[7]} "$2" "$3"
-					elif [[ "${wiredmode}" == "static" ]]; then
+				mac_address=$(dialog_inputbox "Spoof MAC address?" "\nValid format: $mac_address" "$mac_address" 8 50)
+			exit_code=$?
+				# If dialog was cancelled or returned empty, use the default MAC address
+				[[ -z "$mac_address" ]] && mac_address=$(ip a s ${adapter} | grep link/ether | awk '{print $2}')
+
+				if [[ "${wiredmode}" == "dhcp" ]]; then
+					# set dhcp on adapter
+					${module_options["module_simple_network,feature"]} ${commands[7]} "$2" "$3"
+				elif [[ "${wiredmode}" == "static" ]]; then
 						local ips=()
 						for f in /sys/class/net/*; do
 							local intf=$(basename $f)
@@ -81,16 +85,15 @@ function module_simple_network() {
 						done
 						address=${ips[0]} # use only 1st one
 						[[ -z "${address}" ]] && address="1.2.3.4/5"
-						address=$($(dialog_inputbox "Enter IP for $adapter" "\\nValid format: $address" "$address"))
+						address=$(dialog_inputbox "Enter IP for $adapter" "\nValid format: $address" "$address" 8 50)
 						route_to="0.0.0.0/0"
-						route_to=$($(dialog_inputbox "Use default route or set static" "\\nValid format: $route_to" "$route_to"))
+						route_to=$(dialog_inputbox "Use default route or set static" "\nValid format: $route_to" "$route_to" 8 50)
 						route_via=$(ip route show default | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]" | head -1 | xargs)
-						route_via=$($(dialog_inputbox "Enter IP for gateway" "\\nValid format: $route_via" "$route_via"))
+						route_via=$(dialog_inputbox "Enter IP for gateway" "\nValid format: $route_via" "$route_via" 8 50)
 						nameservers="9.9.9.9,1.1.1.1"
-						nameservers=$($(dialog_inputbox "Enter DNS server" "\\nValid format: $nameservers" "$nameservers"))
+						nameservers=$(dialog_inputbox "Enter DNS server" "\nValid format: $nameservers" "$nameservers" 8 50)
 						# set fixed ip on adapter
 						${module_options["module_simple_network,feature"]} ${commands[8]} "$2" "$3"
-					fi
 				fi
 			fi
 		;;
@@ -215,7 +218,7 @@ function module_simple_network() {
 		if [[ $? -eq 0 ]]; then
 			# Check if hidden network was selected
 			if [[ "$SELECTED_BSSID" == "HIDDEN_NETWORK" ]]; then
-				SELECTED_SSID=$($(dialog_inputbox "Hidden Network" "\\nEnter hidden network SSID:" ""))
+				SELECTED_SSID=$(dialog_inputbox "Hidden Network" "\nEnter hidden network SSID:" "" 8 50)
 				if [[ -z "$SELECTED_SSID" || $? -ne 0 ]]; then
 					SELECTED_SSID=""
 				elif (( ${#SELECTED_SSID} > 32 )); then
@@ -235,7 +238,7 @@ function module_simple_network() {
 			# If we have an SSID, prompt for password
 			if [[ -n "${SELECTED_SSID}" ]]; then
 				while true; do
-					SELECTED_PASSWORD=$($(dialog_passwordbox "Enter password for ${SELECTED_SSID}" "" "" 7 50))
+					SELECTED_PASSWORD=$(dialog_passwordbox "Enter password for ${SELECTED_SSID}" "" 7 50)
 					if [[ -z "$SELECTED_PASSWORD" || ${#SELECTED_PASSWORD} -ge 8 ]]; then
 						break
 					else
