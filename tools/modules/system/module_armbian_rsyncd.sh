@@ -21,7 +21,7 @@ function module_armbian_rsyncd() {
 
 	case "$1" in
 		"${commands[0]}")
-			if export_path=$(dialog_inputbox "Where is armbian file storage located?" "" "/armbian/openssh-server/storage/"); then
+			if export_path=$(dialog_inputbox "Where is armbian file storage located?" "" "/armbian/openssh-server/storage"); then
 
 				# lets make temporally file
 				rsyncd_config=$(mktemp)
