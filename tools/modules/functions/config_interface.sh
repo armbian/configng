@@ -94,6 +94,11 @@ parse_menu_items() {
 	while IFS= read -r id; do
 		IFS= read -r description
 		IFS= read -r condition
+		IFS= read -r container_type
+		# Append [C] for container-based software
+		if [[ "$container_type" != "null" && -n "$container_type" ]]; then
+			description="$description [C]"
+		fi
 		# If the condition field is not empty and not null, run the function specified in the condition
 		if [[ -n $condition && $condition != "null" ]]; then
 			# If the function returns a truthy value, add the menu item to the menu
@@ -104,7 +109,7 @@ parse_menu_items() {
 			# If the condition field is empty or null, add the menu item to the menu
 			options+=("$id" "  -  $description ")
 		fi
-	done < <(echo "$json_data" | jq -r '.menu[] | '${parent_id:+".. | objects | select(.id==\"$parent_id\") | .sub[]? |"}' select(.status != "Disabled") | "\(.id)\n\(.description)\n\(.condition)"' || exit 1)
+	done < <(echo "$json_data" | jq -r '.menu[] | '${parent_id:+".. | objects | select(.id==\"$parent_id\") | .sub[]? |"}' select(.status != "Disabled") | "\(.id)\n\(.description)\n\(.condition)\n\(.container_type // "null")"' || exit 1)
 }
 
 module_options+=(
