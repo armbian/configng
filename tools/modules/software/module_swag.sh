@@ -87,10 +87,10 @@ function module_swag() {
 			fi
 		;;
 		"${commands[4]}")
-			SWAG_USER=$($DIALOG --title "Secure webserver with .htaccess username and password" \
-			--inputbox "\nHit enter for USERNAME defaults" 9 70 "armbian" 3>&1 1>&2 2>&3)
-			SWAG_PASSWORD=$($DIALOG --title "Enter new password for ${SWAG_USER}" \
-			--inputbox "\nHit enter for auto generated password" 9 70 "$(tr -dc 'A-Za-z0-9=' < /dev/urandom | head -c 10)" 3>&1 1>&2 2>&3)
+			SWAG_USER=$(dialog_inputbox "Secure webserver with .htaccess username and password" \
+			"\nHit enter for USERNAME defaults" "armbian" 9 70)
+			SWAG_PASSWORD=$(dialog_inputbox "Enter new password for ${SWAG_USER}" \
+			"\nHit enter for auto generated password" "$(tr -dc 'A-Za-z0-9=' < /dev/urandom | head -c 10)" 9 70)
 			if [[ "${SWAG_USER}" && "${SWAG_PASSWORD}" ]]; then
 				docker exec -it swag htpasswd -b -c /config/nginx/.htpasswd ${SWAG_USER} ${SWAG_PASSWORD} >/dev/null 2>&1
 				docker restart ${container} >/dev/null

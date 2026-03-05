@@ -38,31 +38,31 @@ function module_armbian_runners () {
 			# Prompt using dialog if parameters are missing AND in interactive mode
 			if [[ -t 1 ]]; then
 				if [[ -z "$gh_token" ]]; then
-					gh_token=$($DIALOG --inputbox "Enter your GitHub token:" 8 60 3>&1 1>&2 2>&3)
+					gh_token=$($(dialog_inputbox "" "Enter your GitHub token:" "" 8 60))
 				fi
 
 				if [[ -z "$runner_name" ]]; then
-					runner_name=$($DIALOG --inputbox "Enter runner name:" 8 60 "armbian" 3>&1 1>&2 2>&3)
+					runner_name=$($(dialog_inputbox "" "Enter runner name:" "armbian" 8 60))
 				fi
 
 				if [[ -z "$start" ]]; then
-					start=$($DIALOG --inputbox "Enter start index:" 8 60 "01" 3>&1 1>&2 2>&3)
+					start=$($(dialog_inputbox "" "Enter start index:" "01" 8 60))
 				fi
 
 				if [[ -z "$stop" ]]; then
-					stop=$($DIALOG --inputbox "Enter stop index:" 8 60 "01" 3>&1 1>&2 2>&3)
+					stop=$($(dialog_inputbox "" "Enter stop index:" "01" 8 60))
 				fi
 
 				if [[ -z "$label_primary" ]]; then
-					label_primary=$($DIALOG --inputbox "Enter primary label(s):" 8 60 "alfa" 3>&1 1>&2 2>&3)
+					label_primary=$($(dialog_inputbox "" "Enter primary label(s):" "alfa" 8 60))
 				fi
 
 				if [[ -z "$label_secondary" ]]; then
-					label_secondary=$($DIALOG --inputbox "Enter secondary label(s):" 8 60 "fast,images" 3>&1 1>&2 2>&3)
+					label_secondary=$($(dialog_inputbox "" "Enter secondary label(s):" "fast,images" 8 60))
 				fi
 
 				if [[ -z "$organisation" ]]; then
-					organisation=$($DIALOG --inputbox "Enter GitHub organisation:" 8 60 "armbian" 3>&1 1>&2 2>&3)
+					organisation=$($(dialog_inputbox "" "Enter GitHub organisation:" "armbian" 8 60))
 				fi
 			fi
 
