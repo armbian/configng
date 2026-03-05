@@ -810,3 +810,85 @@ dialog_gauge() {
 			;;
 	esac
 }
+
+module_options+=(
+	["dialog_checklist,author"]="@armbian"
+	["dialog_checklist,desc"]="Display a checklist dialog using the configured dialog tool"
+	["dialog_checklist,example"]="dialog_checklist \"Title\" \"Prompt\" option1 \"Description 1\" ON option2 \"Description 2\" OFF"
+	["dialog_checklist,feature"]="dialog_checklist"
+	["dialog_checklist,status"]="Active"
+)
+
+# Display a checklist dialog with proper redirection for each dialog tool
+dialog_checklist() {
+	local title="$1"
+	local prompt="$2"
+	local height="${3:-0}"
+	local width="${4:-80}"
+	local list_height="${5:-9}"
+	shift 5
+
+	# Parse arguments: everything before -- is extra args, everything after is data
+	local extra_args=()
+	local options=()
+
+	while [[ $# -gt 0 ]]; do
+		if [[ "$1" == "--" ]]; then
+			shift
+			break
+		elif [[ "$1" == --* ]]; then
+			# For dialog options that require arguments, consume both the flag and its value
+			case "$1" in
+				--ok-button|--cancel-button|--yes-button|--no-button)
+					extra_args+=("$1")
+					shift
+					if [[ $# -gt 0 && "$1" != --* ]]; then
+						extra_args+=("$1")
+						shift
+					fi
+					;;
+				--separate-output|--nocancel)
+					extra_args+=("$1")
+					shift
+					;;
+				*)
+					extra_args+=("$1")
+					shift
+					;;
+			esac
+		else
+			break
+		fi
+	done
+
+	# All remaining arguments are data (options)
+	options=("$@")
+
+	case "$DIALOG" in
+		"whiptail")
+			whiptail --title "$title" "${extra_args[@]}" --checklist "$prompt" $height $width $list_height "${options[@]}" 3>&1 1>&2 2>&3
+			;;
+		"dialog")
+			# dialog outputs selection to stderr by default; swap stdout/stderr (3>&1 1>&2 2>&3) to capture stderr to stdout for command substitution
+			dialog --title "$title" "${extra_args[@]}" --checklist "$prompt" $height $width $list_height "${options[@]}" 3>&1 1>&2 2>&3
+			;;
+		"read")
+			# Fallback to read - handle checklist by showing numbered list
+			local i=1
+			for ((j=0; j<${#options[@]}; j+=3)); do
+				local status="${options[j+2]}"
+				local marker=" "
+				[[ "$status" =~ ^[Oo][Nn]$ ]] && marker="*"
+				echo "$i. [$marker] ${options[j]} - ${options[j+1]}"
+				((i++))
+			done
+			read -p "Enter choice numbers (comma-separated): " choices
+			for choice in ${choices//,/ }; do
+				if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -lt "$i" ]; then
+					idx=$((choice - 1))
+					echo "${options[idx*3]}"
+				fi
+			done
+			;;
+	esac
+}
