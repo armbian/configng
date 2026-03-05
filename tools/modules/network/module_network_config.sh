@@ -32,7 +32,11 @@ function module_network_config() {
 		fi
 	done
 	LIST_LENGTH=$((${#LIST[@]} / 2))
-	adapter=$($DIALOG --title "Select interface" --menu "" $((${LIST_LENGTH} + 8)) 60 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
+	# Calculate menu dimensions based on list length
+	local adapter_menu_height=$((${LIST_LENGTH} + 8))
+	local adapter_menu_width=60
+	local adapter_menu_list_height=$((${LIST_LENGTH}))
+	adapter=$(dialog_menu "Select interface" "" $adapter_menu_height $adapter_menu_width $adapter_menu_list_height -- "${LIST[@]}")
 	if [[ -n $adapter && $? == 0 ]]; then
 		#
 		# Wireless networking
@@ -47,7 +51,11 @@ function module_network_config() {
 				LIST+=("ap" "Become an access point")
 			fi
 			LIST_LENGTH=$((${#LIST[@]} / 2))
-			wifimode=$($DIALOG --title "Select wifi mode" --menu "" $((${LIST_LENGTH} + 8)) 60 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
+			# Calculate menu dimensions based on list length
+		local wifimode_menu_height=$((${LIST_LENGTH} + 8))
+		local wifimode_menu_width=60
+		local wifimode_menu_list_height=$((${LIST_LENGTH}))
+		wifimode=$(dialog_menu "Select wifi mode" "" $wifimode_menu_height $wifimode_menu_width $wifimode_menu_list_height -- "${LIST[@]}")
 			case $wifimode in
 			stop)
 				# disable hostapd and cleanup config
@@ -73,7 +81,7 @@ function module_network_config() {
 						break
 					fi
 					sleep 1
-				done | $DIALOG --title "" --infobox "Scanning. Please wait" 4 26
+				done | dialog_infobox "" "Scanning. Please wait" 4 26
 				# construct second array
 				while IFS=$'\t' read -r -a wifiArray
 				do
@@ -86,9 +94,13 @@ function module_network_config() {
 				if [[ ${#LIST[@]} == 0 ]]; then
 					restore_netplan_config
 				else
-					SELECTED_SSID=$($DIALOG --notags --backtitle "" --menu "Select WiFi Network" $((${#LIST[@]}/3 + 14 )) 70 $((${#LIST[@]}/3 + 6)) "${LIST[@]}" 3>&1 1>&2 2>&3)
+					# Calculate menu dimensions based on list size
+				local ssid_menu_height=$((${#LIST[@]}/3 + 14))
+				local ssid_menu_width=70
+				local ssid_menu_list_height=$((${#LIST[@]}/3 + 6))
+				SELECTED_SSID=$(dialog_menu "Select WiFi Network" "" $ssid_menu_height $ssid_menu_width $ssid_menu_list_height --notags --backtitle "" -- "${LIST[@]}")
 					if [[ -n $SELECTED_SSID ]]; then
-						SELECTED_PASSWORD=$($DIALOG --title "Enter new password for $SELECTED_SSID" --passwordbox "" 7 50 3>&1 1>&2 2>&3)
+						SELECTED_PASSWORD=$(dialog_passwordbox "Enter new password for ${SELECTED_SSID}" "" "" 7 50)
 						if [[ -n $SELECTED_PASSWORD ]]; then
 							# connect to AP
 							netplan set --origin-hint ${yamlfile} renderer=${NETWORK_RENDERER}
@@ -96,9 +108,7 @@ function module_network_config() {
 							netplan set --origin-hint ${yamlfile} wifis.$adapter.dhcp4=true
 							netplan set --origin-hint ${yamlfile} wifis.$adapter.dhcp6=true
 							show_message <<< "$(netplan get all)"
-							$DIALOG --title " Changing network settings " --yes-button "Yes" --no-button "Cancel" --yesno \
-							"This action might disconnect you from network.\n\nAre you sure network was configured correctly?" 9 50
-							if [[ $? = 0 ]]; then
+							if dialog_yesno "Changing network settings" "This action might disconnect you from network.\n\nAre you sure network was configured correctly?" "Yes" "Cancel" 9 50; then
 								netplan apply
 							else
 								restore_netplan_config
@@ -113,9 +123,9 @@ function module_network_config() {
 				ip link set ${adapter} up
 				module_default_wireless_network_config "${yamlfile}" "${adapter}"
 				pkg_install --no-install-recommends hostapd networkd-dispatcher bridge-utils
-				SELECTED_SSID=$($DIALOG --title "Enter SSID for AP" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
+				SELECTED_SSID=$(dialog_inputbox "Enter SSID for AP" "\nHit enter for defaults" "armbian" 9 50)
 				if [[ -n "${SELECTED_SSID}" && $? == 0 ]]; then
-					SELECTED_PASSWORD=$($DIALOG --title "Enter new password for $SELECTED_SSID" --passwordbox "\nDefault password: 12345678\n" 9 50 "12345678" 3>&1 1>&2 2>&3)
+					SELECTED_PASSWORD=$(dialog_passwordbox "Enter new password for ${SELECTED_SSID}" "\nDefault password: 12345678\n" "12345678" 9 50)
 					if [[ -n "${SELECTED_PASSWORD}" && $? == 0 ]]; then
 						# start bridged AP
 						netplan set --origin-hint ${yamlfile} renderer=${NETWORK_RENDERER}
@@ -208,11 +218,15 @@ function module_network_config() {
 			LIST+=("static" "Set IP manually")
 			[[ -f /etc/netplan/armbian.yaml ]] && LIST+=("spoof" "Spoof MAC address")
 			LIST_LENGTH=$((${#LIST[@]} / 2))
-			wiredmode=$($DIALOG --title "Select IP mode" --menu "" $((${LIST_LENGTH} + 8)) 60 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
+			# Calculate menu dimensions based on list length
+		local ipmode_menu_height=$((${LIST_LENGTH} + 8))
+		local ipmode_menu_width=60
+		local ipmode_menu_list_height=$((${LIST_LENGTH}))
+		wiredmode=$(dialog_menu "Select IP mode" "" $ipmode_menu_height $ipmode_menu_width $ipmode_menu_list_height -- "${LIST[@]}")
 			wired_exit=$?
 			if [[ "${wiredmode}" == "spoof" && $wired_exit == 0 ]]; then
 				local mac_address=$(ip a s ${adapter} | grep link/ether | awk '{print $2}')
-				mac_address=$($DIALOG --title "Enter MAC for $adapter" --inputbox "\nValid format: $mac_address" 9 40 "$mac_address" 3>&1 1>&2 2>&3)
+				mac_address=$(dialog_inputbox "Enter MAC for ${adapter}" "\nValid format: ${mac_address}" "${mac_address}" 9 40)
 				if [[ -n $mac_address && $? == 0 ]]; then
 					netplan set --origin-hint ${yamlfile} ethernets.$adapter.macaddress=''$mac_address''
 					netplan apply
@@ -226,9 +240,7 @@ function module_network_config() {
 				netplan set --origin-hint ${yamlfile} bridges.br0.dhcp4=yes
 				netplan set --origin-hint ${yamlfile} bridges.br0.dhcp6=yes
 				show_message <<< "$(netplan get all)"
-				$DIALOG --title " Changing network settings " --yes-button "Yes" --no-button "Cancel" --yesno \
-				"This action might disconnect you from network.\n\nAre you sure network was configured correctly?" 9 50
-				if [[ $? = 0 ]]; then
+				if dialog_yesno "Changing network settings" "This action might disconnect you from network.\n\nAre you sure network was configured correctly?" "Yes" "Cancel" 9 50; then
 					# apply NetPlan
 					netplan apply
 					[[ "${NETWORK_RENDERER}" == "NetworkManager" ]] && srv_restart NetworkManager
@@ -252,13 +264,13 @@ function module_network_config() {
 				[[ -z "${address}" ]] && address="1.2.3.4/5"
 				# clean values from config
 				[[ -f /etc/netplan/${yamlfile}.yaml ]] && sed -i -e 'H;x;/^\(  *\)\n\1/{s/\n.*//;x;d;}' -e 's/.*//;x;/bridges/{s/^\( *\).*/ \1/;x;d;}' /etc/netplan/${yamlfile}.yaml
-				address=$($DIALOG --title "Enter IP for $adapter" --inputbox "\nValid format: $address" 9 40 "$address" 3>&1 1>&2 2>&3)
+				address=$(dialog_inputbox "Enter IP for ${adapter}" "\nValid format: ${address}" "${address}" 9 40)
 				if [[ -n $address && $? == 0 ]]; then
 					defaultroute=$(ip route show default | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]" | head -1 | xargs)
-					defaultroute=$($DIALOG --title "Enter IP for default route" --inputbox "\nValid format: $defaultroute" 9 40 "$defaultroute" 3>&1 1>&2 2>&3)
+					defaultroute=$(dialog_inputbox "Enter IP for default route" "\nValid format: ${defaultroute}" "${defaultroute}" 9 40)
 					if [[ -n $defaultroute && $? == 0 ]]; then
 						nameservers="9.9.9.9,1.1.1.1"
-						nameservers=$($DIALOG --title "Enter DNS server" --inputbox "\nValid format: $nameservers" 9 40 "$nameservers" 3>&1 1>&2 2>&3)
+						nameservers=$(dialog_inputbox "Enter DNS server" "\nValid format: ${nameservers}" "${nameservers}" 9 40)
 					else
 						restore_netplan_config
 					fi
@@ -275,9 +287,7 @@ function module_network_config() {
 					fi
 					if [[ $? == 0 ]]; then
 						show_message <<< "$(netplan get all)"
-						$DIALOG --title " Changing network settings " --yes-button "Yes" --no-button "Cancel" --yesno \
-						"This action might disconnect you from network.\n\nAre you sure network was configured correctly?" 9 50
-						if [[ $? = 0 ]]; then
+						if dialog_yesno "Changing network settings" "This action might disconnect you from network.\n\nAre you sure network was configured correctly?" "Yes" "Cancel" 9 50; then
 							# apply NetPlan
 							netplan apply
 							[[ "${NETWORK_RENDERER}" == "NetworkManager" ]] && srv_restart NetworkManager

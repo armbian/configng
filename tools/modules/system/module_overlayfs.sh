@@ -33,15 +33,13 @@ function module_overlayfs() {
 			EOT
 			rm -f /etc/update-motd.d/97-overlayroot
 
-			if $DIALOG --title " Reboot required " --yes-button "Reboot" --no-button "Cancel" --yesno \
-			"A reboot is required to apply the changes. Shall we reboot now?" 7 34; then
+			if dialog_yesno " Reboot required " "A reboot is required to apply the changes. Shall we reboot now?" "Reboot" "Cancel" 7 34; then
 			reboot
 			fi
 		;;
 		"${commands[1]}")
 			overlayroot-chroot rm /etc/overlayroot.conf > /dev/null 2>&1
-			if $DIALOG --title " Reboot required " --yes-button "Reboot" --no-button "Cancel" --yesno \
-			"A reboot is required to apply the changes. Shall we reboot now?" 7 34; then
+			if dialog_yesno " Reboot required " "A reboot is required to apply the changes. Shall we reboot now?" "Reboot" "Cancel" 7 34; then
 			reboot
 			fi
 		;;

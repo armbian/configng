@@ -55,10 +55,14 @@ function module_simple_network() {
 			# static or dhcp
 			local list=()
 			list=("dhcp" "Auto IP assigning" "static" "Set IP manually")
-			wiredmode=$($DIALOG --title "Select IP mode" --menu "" $((${#list[@]} / 2 + 8)) 60 $((${#list[@]} / 2)) "${list[@]}" 3>&1 1>&2 2>&3)
+			# Calculate menu dimensions based on list size
+			local menu_height=$((${#list[@]} / 2 + 8))
+			local menu_width=60
+			local menu_list_height=$((${#list[@]} / 2))
+			wiredmode=$(dialog_menu "Select IP mode" "" $menu_height $menu_width $menu_list_height -- "${list[@]}")
 			if [[ $? -eq 0 ]]; then
 				mac_address=$(ip a s ${adapter} | grep link/ether | awk '{print $2}')
-				mac_address=$($DIALOG --title "Spoof MAC address?" --inputbox "\nValid format: $mac_address" 9 40 "$mac_address" 3>&1 1>&2 2>&3)
+				mac_address=$($(dialog_inputbox "Spoof MAC address?" "\\nValid format: $mac_address" "$mac_address"))
 				if [[ $? -eq 0 ]]; then
 					if [[ "${wiredmode}" == "dhcp" ]]; then
 						# set dhcp on adapter
@@ -77,13 +81,13 @@ function module_simple_network() {
 						done
 						address=${ips[0]} # use only 1st one
 						[[ -z "${address}" ]] && address="1.2.3.4/5"
-						address=$($DIALOG --title "Enter IP for $adapter" --inputbox "\nValid format: $address" 9 40 "$address" 3>&1 1>&2 2>&3)
+						address=$($(dialog_inputbox "Enter IP for $adapter" "\\nValid format: $address" "$address"))
 						route_to="0.0.0.0/0"
-						route_to=$($DIALOG --title "Use default route or set static" --inputbox "\nValid format: $route_to" 9 40 "$route_to" 3>&1 1>&2 2>&3)
+						route_to=$($(dialog_inputbox "Use default route or set static" "\\nValid format: $route_to" "$route_to"))
 						route_via=$(ip route show default | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]" | head -1 | xargs)
-						route_via=$($DIALOG --title "Enter IP for gateway" --inputbox "\nValid format: $route_via" 9 40 "$route_via" 3>&1 1>&2 2>&3)
+						route_via=$($(dialog_inputbox "Enter IP for gateway" "\\nValid format: $route_via" "$route_via"))
 						nameservers="9.9.9.9,1.1.1.1"
-						nameservers=$($DIALOG --title "Enter DNS server" --inputbox "\nValid format: $nameservers" 9 40 "$nameservers" 3>&1 1>&2 2>&3)
+						nameservers=$($(dialog_inputbox "Enter DNS server" "\\nValid format: $nameservers" "$nameservers"))
 						# set fixed ip on adapter
 						${module_options["module_simple_network,feature"]} ${commands[8]} "$2" "$3"
 					fi
@@ -203,19 +207,19 @@ function module_simple_network() {
 			final_list+=("$item")
 		done
 
-		SELECTED_BSSID=$($DIALOG \
-		--notags \
-		--title "Select SSID" \
-		--menu "\nSSID                     Signal   Frequency Channel" \
-		$((${#final_list[@]}/2 + 10 )) 57 $((${#final_list[@]}/2 )) "${final_list[@]}" 3>&1 1>&2 2>&3)
+		# Calculate menu dimensions based on list size
+			local ssid_menu_height=$((${#final_list[@]}/2 + 10))
+			local ssid_menu_width=57
+			local ssid_menu_list_height=$((${#final_list[@]}/2))
+			SELECTED_BSSID=$(dialog_menu "Select SSID" "\nSSID                     Signal   Frequency Channel" $ssid_menu_height $ssid_menu_width $ssid_menu_list_height --notags -- "${final_list[@]}")
 		if [[ $? -eq 0 ]]; then
 			# Check if hidden network was selected
 			if [[ "$SELECTED_BSSID" == "HIDDEN_NETWORK" ]]; then
-				SELECTED_SSID=$($DIALOG --title "Hidden Network" --inputbox "\nEnter hidden network SSID:" 8 50 3>&1 1>&2 2>&3)
+				SELECTED_SSID=$($(dialog_inputbox "Hidden Network" "\\nEnter hidden network SSID:" ""))
 				if [[ -z "$SELECTED_SSID" || $? -ne 0 ]]; then
 					SELECTED_SSID=""
 				elif (( ${#SELECTED_SSID} > 32 )); then
-					$DIALOG --msgbox "SSID must be 1-32 characters." 7 45 --title "Error"
+					dialog_msgbox "Message" "SSID must be 1-32 characters." --title "Error"
 					SELECTED_SSID=""
 				fi
 			else
@@ -231,11 +235,11 @@ function module_simple_network() {
 			# If we have an SSID, prompt for password
 			if [[ -n "${SELECTED_SSID}" ]]; then
 				while true; do
-					SELECTED_PASSWORD=$($DIALOG --title "Enter password for ${SELECTED_SSID}" --passwordbox "" 7 50 3>&1 1>&2 2>&3)
+					SELECTED_PASSWORD=$($(dialog_passwordbox "Enter password for ${SELECTED_SSID}" "" "" 7 50))
 					if [[ -z "$SELECTED_PASSWORD" || ${#SELECTED_PASSWORD} -ge 8 ]]; then
 						break
 					else
-						$DIALOG --msgbox "Passphrase must be between 8 and 63 characters!" 7 51 --title "Error"
+						dialog_msgbox "Message" "Passphrase must be between 8 and 63 characters!" --title "Error"
 					fi
 				done
 			fi
@@ -254,8 +258,11 @@ function module_simple_network() {
 					list+=("${interface}" "$(printf "%-16s%18s%9s" ${interface} ${query:-unassigned} ${devicetype})")
 				fi
 			done
-			adapter=$($DIALOG --notags --title "Select interface" --menu "\n Adaptor                 IP address     Type"  \
-			$((${#list[@]}/2 + 10 )) 50 $((${#list[@]}/2 + 1)) "${list[@]}" 3>&1 1>&2 2>&3)
+			# Calculate menu dimensions based on list size
+			local adapter_menu_height=$((${#list[@]}/2 + 10))
+			local adapter_menu_width=50
+			local adapter_menu_list_height=$((${#list[@]}/2 + 1))
+			adapter=$(dialog_menu "Select interface" "\n Adaptor                 IP address     Type" $adapter_menu_height $adapter_menu_width $adapter_menu_list_height --notags -- "${list[@]}")
 			if [[ $? -eq 0 ]]; then
 				# Automatically enable interface if it's disabled
 				if ! ip link show "$adapter" 2>/dev/null | grep -q "state UP"; then

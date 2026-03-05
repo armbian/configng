@@ -65,7 +65,7 @@ function adjust_motd() {
 	done
 
 	INLIST=($(grep THIS_SCRIPT= /etc/update-motd.d/* | cut -d"=" -f2 | sed "s/\"//g"))
-	CHOICES=$($DIALOG --separate-output --nocancel --title "Adjust welcome screen" --checklist "" 14 76 8 "${LIST[@]}" 3>&1 1>&2 2>&3)
+	CHOICES=$(dialog_checklist "Adjust welcome screen" "" 14 76 8 --separate-output --nocancel -- "${LIST[@]}")
 	INSERT="$(echo "${INLIST[@]}" "${CHOICES[@]}" | tr ' ' '\n' | sort | uniq -u | tr '\n' ' ' | sed 's/ *$//')"
 	# adjust motd config
 	sed -i "s/^MOTD_DISABLE=.*/MOTD_DISABLE=\"$INSERT\"/g" /etc/default/armbian-motd
