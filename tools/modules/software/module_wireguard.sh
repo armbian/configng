@@ -254,11 +254,16 @@ function module_wireguard () {
 			[[ -n "${WIREGUARD_BASE}" && "${WIREGUARD_BASE}" != "/" ]] && rm -rf "${WIREGUARD_BASE}"
 		;;
 		"${commands[5]}")
-			if [[ -z $2 ]]; then
-				local LIST=($(ls -1 ${WIREGUARD_BASE}/config/ 2>/dev/null | grep peer | cut -d"_" -f2))
-				local LIST_LENGTH=$((${#LIST[@]} / 2))
-				local SELECTED_PEER=$(dialog --title "Select peer" --no-items --menu "" $((${LIST_LENGTH} + 8)) 60 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
-			fi
+		if [[ -z $2 ]]; then
+			local LIST=()
+			while IFS= read -r -d '' peer_conf; do
+				peer="${peer_conf#peer_}"
+				peer="${peer%.conf}"
+				[[ -n "$peer" ]] && LIST+=("$peer")
+			done < <(find "${WIREGUARD_BASE}/config/" -mindepth 2 -maxdepth 2 -name "peer_*.conf" -type f -printf "%f\0")
+			local LIST_LENGTH=$((${#LIST[@]} / 2))
+			local SELECTED_PEER=$(dialog_menu "Select peer" "" $((${LIST_LENGTH} + 8)) 60 ${LIST_LENGTH} --no-items -- "${LIST[@]}")
+		fi
 			if [[ -n ${SELECTED_PEER} ]]; then
 				clear
 				docker exec -it wireguard /app/show-peer ${SELECTED_PEER}
