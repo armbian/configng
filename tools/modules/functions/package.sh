@@ -40,11 +40,17 @@ module_options+=(
 
 pkg_install()
 {
+	local exit_code
 	_pkg_have_stdin && debconf-apt-progress -- apt-get -y install "$@" || apt-get -y install "$@"
-	if [[ $? == 100 ]]; then
+	exit_code=$?
+
+	if [[ $exit_code == 100 ]]; then
 		_pkg_have_stdin && dpkg --configure -a
 		_pkg_have_stdin && debconf-apt-progress -- apt-get -y install "$@" || apt-get -y install "$@"
+		exit_code=$?
 	fi
+
+	return $exit_code
 }
 
 module_options+=(
@@ -71,11 +77,17 @@ module_options+=(
 
 pkg_remove()
 {
+	local exit_code
 	_pkg_have_stdin && debconf-apt-progress -- apt-get -y autopurge "$@" || apt-get -y autopurge "$@"
-	if [[ $? == 100 ]]; then
+	exit_code=$?
+
+	if [[ $exit_code == 100 ]]; then
 		_pkg_have_stdin && dpkg --configure -a
 		_pkg_have_stdin && debconf-apt-progress -- apt-get -y autopurge "$@" || apt-get -y autopurge "$@"
+		exit_code=$?
 	fi
+
+	return $exit_code
 }
 
 module_options+=(
