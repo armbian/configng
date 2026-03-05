@@ -89,8 +89,17 @@ function module_swag() {
 		"${commands[4]}")
 			SWAG_USER=$(dialog_inputbox "Secure webserver with .htaccess username and password" \
 			"\nHit enter for USERNAME defaults" "armbian" 9 70)
-			SWAG_PASSWORD=$(dialog_inputbox "Enter new password for ${SWAG_USER}" \
-			"\nHit enter for auto generated password" "$(tr -dc 'A-Za-z0-9=' < /dev/urandom | head -c 10)" 9 70)
+			# Pre-generate default password
+			local default_password=$(tr -dc 'A-Za-z0-9=' < /dev/urandom | head -c 10)
+			# Ask if user wants to use auto-generated password
+			if dialog_yesno "Password Configuration" \
+				"\nAuto-generated password for '${SWAG_USER}':\n\n  ${default_password}\n\nUse this password?" \
+				"Use Generated" "Enter Own" 12 70; then
+				SWAG_PASSWORD="$default_password"
+			else
+				SWAG_PASSWORD=$(dialog_passwordbox "Enter new password for ${SWAG_USER}" \
+				"\nEnter a custom password" 9 70)
+			fi
 			if [[ "${SWAG_USER}" && "${SWAG_PASSWORD}" ]]; then
 				docker exec -it swag htpasswd -b -c /config/nginx/.htpasswd ${SWAG_USER} ${SWAG_PASSWORD} >/dev/null 2>&1
 				docker restart ${container} >/dev/null
