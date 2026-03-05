@@ -98,7 +98,7 @@ function module_network_config() {
 				local ssid_menu_height=$((${#LIST[@]}/3 + 14))
 				local ssid_menu_width=70
 				local ssid_menu_list_height=$((${#LIST[@]}/3 + 6))
-				SELECTED_SSID=$(dialog_menu "Select WiFi Network" "" $ssid_menu_height $ssid_menu_width $ssid_menu_list_height --notags --backtitle "" -- "${LIST[@]}")
+				SELECTED_SSID=$(dialog_menu "Select WiFi Network" "" $ssid_menu_height $ssid_menu_width $ssid_menu_list_height --notags -- "${LIST[@]}")
 					if [[ -n $SELECTED_SSID ]]; then
 						SELECTED_PASSWORD=$(dialog_passwordbox "Enter new password for ${SELECTED_SSID}" "" "" 7 50)
 						if [[ -n $SELECTED_PASSWORD ]]; then
