@@ -553,7 +553,7 @@ dialog_menu() {
 		elif [[ "$1" == --* ]]; then
 			# For dialog options that require arguments (like --ok-button), consume both the flag and its value
 			case "$1" in
-				--ok-button|--cancel-button|--yes-button|--no-button)
+				--ok-button|--cancel-button|--yes-button|--no-button|--default-item)
 					extra_args+=("$1")
 					shift
 					if [[ $# -gt 0 && "$1" != --* ]]; then
