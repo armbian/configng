@@ -53,8 +53,7 @@ function module_cockpit() {
 					virsh net-autostart hostbridge-${intf}
 				fi
 			done
-			if $DIALOG --title " Reboot required " --yes-button "Reboot" --no-button "Cancel" --yesno \
-				"A reboot is required to start $title properly. Shall we reboot now?" 7 34; then
+			if dialog_yesno " Reboot required " "A reboot is required to start $title properly. Shall we reboot now?" "Reboot" "Cancel" 7 34; then
 				reboot
 			fi
 
