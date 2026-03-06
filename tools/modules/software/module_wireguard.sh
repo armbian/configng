@@ -186,10 +186,15 @@ function module_wireguard () {
 			# Pull the image if not already done
 			${module_options["module_wireguard,feature"]} ${commands[0]}
 
+			local dialog_rc
 			if [[ -z $2 ]]; then
-			NUMBER_OF_PEERS=$(dialog_inputbox "Enter comma delimited peer keywords" " \n" "laptop" 7 50)
+				NUMBER_OF_PEERS=$(dialog_inputbox "Enter comma delimited peer keywords" " \n" "laptop" 7 50)
+				dialog_rc=$?
+			else
+				NUMBER_OF_PEERS="$2"
+				dialog_rc=0
 			fi
-			if [[ $? -eq 0 ]]; then
+			if [[ $dialog_rc -eq 0 ]]; then
 				${module_options["module_wireguard,feature"]} ${commands[6]}
 				if [[ $? -eq 0 ]]; then
 					docker rm -f wireguard >/dev/null 2>&1
