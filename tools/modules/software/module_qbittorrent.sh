@@ -52,17 +52,7 @@ function module_qbittorrent () {
 			-v "${QBITTORRENT_BASE}/downloads:/downloads" `#optional` \
 			--restart=always \
 			lscr.io/linuxserver/qbittorrent:latest
-			for i in $(seq 1 20); do
-				state="$(docker inspect -f '{{.State.Status}}' qbittorrent 2>/dev/null || true)"
-				if [[ "$state" == "running" ]]; then
-				break
-				fi
-				sleep 3
-				if [[ $i -eq 20 ]]; then
-					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs qbittorrent\`)"
-					exit 1
-				fi
-			done
+			wait_for_container_ready "qbittorrent" 20 3 "running" || exit 1
 			sleep 3
 			TEMP_PASSWORD=$(docker logs qbittorrent 2>&1 | grep password | grep session | cut -d":" -f2 | xargs)
 			if [[ -t 1 ]]; then

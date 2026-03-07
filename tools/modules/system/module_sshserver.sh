@@ -55,17 +55,7 @@ function module_openssh-server () {
 			-v "${MOUNT_POINT}:/config/storage" \
 			--restart unless-stopped \
 			lscr.io/linuxserver/openssh-server:latest
-			for i in $(seq 1 20); do
-				state="$(docker inspect -f '{{.State.Status}}' openssh-server 2>/dev/null || true)"
-				if [[ "$state" == "running" ]]; then
-					break
-				fi
-				sleep 3
-				if [[ $i -eq 20 ]]; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs openssh-server\`)"
-					return 1
-				fi
-			done
+			wait_for_container_ready "openssh-server" 20 3 "running" || return 1
 			# read container version
 			container_version=$(docker exec openssh-server /bin/bash -c "grep ^PRETTY_NAME= /etc/os-release | sed -E 's/PRETTY_NAME=\"([^\"]*) v[0-9].*/\\1/'")
 			# install rsync

@@ -80,17 +80,7 @@ function module_duplicati () {
 			-v "${DUPLICATI_BASE}/backups:/backups" \
 			-v /:/source:ro \
 			lscr.io/linuxserver/duplicati:latest
-			for i in $(seq 1 20); do
-				state="$(docker inspect -f '{{.State.Status}}' duplicati 2>/dev/null || true)"
-				if [[ "$state" == "running" ]]; then
-				break
-				fi
-				sleep 3
-				if [[ $i -eq 20 ]]; then
-					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs duplicati\`)"
-					exit 1
-				fi
-			done
+			wait_for_container_ready "duplicati" 20 3 "running" || exit 1
 		;;
 		"${commands[1]}")
 			if [[ "${container}" ]]; then
