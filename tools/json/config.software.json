@@ -2120,8 +2120,7 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! pkg_installed iperf3",
-                            "container_type": "docker"
+                            "condition": "! pkg_installed iperf3"
                         },
                         {
                             "id": "IPR002",
@@ -2145,8 +2144,7 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! pkg_installed iptraf-ng",
-                            "container_type": "docker"
+                            "condition": "! pkg_installed iptraf-ng"
                         },
                         {
                             "id": "IPT002",
@@ -2170,8 +2168,7 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! pkg_installed nload",
-                            "container_type": "docker"
+                            "condition": "! pkg_installed nload"
                         },
                         {
                             "id": "NLD002",
