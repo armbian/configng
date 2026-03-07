@@ -55,17 +55,7 @@ function module_swag() {
 				-v "${SWAG_BASE}/config:/config" \
 				--restart unless-stopped \
 				lscr.io/linuxserver/swag
-				for i in $(seq 1 20); do
-					if docker inspect -f '{{ index .Config.Labels "build_version" }}' swag >/dev/null 2>&1 ; then
-						break
-					else
-						sleep 3
-					fi
-					if [ $i -eq 20 ] ; then
-						echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs swag\`)"
-						exit 1
-					fi
-				done
+				wait_for_container_ready "swag" || exit 1
 				# set password
 				${module_options["module_swag,feature"]} ${commands[4]}
 			else
@@ -87,10 +77,19 @@ function module_swag() {
 			fi
 		;;
 		"${commands[4]}")
-			SWAG_USER=$($DIALOG --title "Secure webserver with .htaccess username and password" \
-			--inputbox "\nHit enter for USERNAME defaults" 9 70 "armbian" 3>&1 1>&2 2>&3)
-			SWAG_PASSWORD=$($DIALOG --title "Enter new password for ${SWAG_USER}" \
-			--inputbox "\nHit enter for auto generated password" 9 70 "$(tr -dc 'A-Za-z0-9=' < /dev/urandom | head -c 10)" 3>&1 1>&2 2>&3)
+			SWAG_USER=$(dialog_inputbox "Secure webserver with .htaccess username and password" \
+			"\nHit enter for USERNAME defaults" "armbian" 9 70)
+			# Pre-generate default password
+			local default_password=$(tr -dc 'A-Za-z0-9=' < /dev/urandom | head -c 10)
+			# Ask if user wants to use auto-generated password
+			if dialog_yesno "Password Configuration" \
+				"\nAuto-generated password for '${SWAG_USER}':\n\n  ${default_password}\n\nUse this password?" \
+				"Use Generated" "Enter Own" 12 70; then
+				SWAG_PASSWORD="$default_password"
+			else
+				SWAG_PASSWORD=$(dialog_passwordbox "Enter new password for ${SWAG_USER}" \
+				"\nEnter a custom password" 9 70)
+			fi
 			if [[ "${SWAG_USER}" && "${SWAG_PASSWORD}" ]]; then
 				docker exec -it swag htpasswd -b -c /config/nginx/.htpasswd ${SWAG_USER} ${SWAG_PASSWORD} >/dev/null 2>&1
 				docker restart ${container} >/dev/null

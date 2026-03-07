@@ -118,7 +118,7 @@ function module_immich () {
 					if curl -sf http://localhost:${module_options["module_immich,port"]}/ > /dev/null; then
 						break
 					fi
-				done | $DIALOG --gauge "Starting Immich Please wait..." 10 50 0
+				done | dialog_gauge "Immich" "Starting Immich Please wait..."
 			else
 				echo "Waiting for Immich to become available..."
 				for s in {1..10}; do

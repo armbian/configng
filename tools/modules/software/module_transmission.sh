@@ -38,8 +38,8 @@ function module_transmission () {
 				module_docker install
 			fi
 			[[ -d "$TRANSMISSION_BASE" ]] || mkdir -p "$TRANSMISSION_BASE" || { echo "Couldn't create storage directory: $TRANSMISSION_BASE"; exit 1; }
-			TRANSMISSION_USER=$($DIALOG --title "Enter username for Transmission client" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
-			TRANSMISSION_PASS=$($DIALOG --title "Enter password for Transmission client" --inputbox "\nHit enter for defaults" 9 50 "armbian" 3>&1 1>&2 2>&3)
+			TRANSMISSION_USER=$(dialog_inputbox "Enter username for Transmission client" "\nHit enter for defaults" "armbian" 9 50)
+			TRANSMISSION_PASS=$(dialog_inputbox "Enter password for Transmission client" "\nHit enter for defaults" "armbian" 9 50)
 			docker run -d \
 			--name=transmission \
 			--net=lsio \
@@ -57,17 +57,7 @@ function module_transmission () {
 			-v "${TRANSMISSION_BASE}/watch:/watch" \
 			--restart=always \
 			lscr.io/linuxserver/transmission:latest
-			for i in $(seq 1 20); do
-				state="$(docker inspect -f '{{.State.Status}}' transmission 2>/dev/null || true)"
-				if [[ "$state" == "running" ]]; then
-					break
-				fi
-				sleep 3
-				if [[ $i -eq 20 ]]; then
-					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs transmission\`)"
-					exit 1
-				fi
-			done
+			wait_for_container_ready "transmission" 20 3 "running" || exit 1
 		;;
 		"${commands[1]}")
 			if [[ "${container}" ]]; then

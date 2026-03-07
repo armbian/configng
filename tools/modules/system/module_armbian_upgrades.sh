@@ -70,8 +70,8 @@ function module_armbian_upgrades () {
 					)
 			fi
 			# toggle options
-			if target_sync=$($DIALOG --title "Select an Option" --notags --checklist \
-				"\nConfigure unattended-upgrade options:" 16 73 8 \
+			if target_sync=$(dialog_checklist "Select an Option" \
+				"\nConfigure unattended-upgrade options:" 16 73 8 --notags \
 				"Unattended-Upgrade" "Automatic security and package updates system." ${Unattended_Upgrade:-ON} \
 				"Update-Package-Lists" "Automatically updates the list of available packages." ${Update_Package_Lists:-OFF} \
 				"Download-Upgradeable-Packages" "Downloads upgradeable packages without installing them." ${Download_Upgradeable_Packages:-OFF} \
@@ -79,7 +79,7 @@ function module_armbian_upgrades () {
 				"Remove-New-Unused-Dependencies" "Removes dependencies no longer required after upgrades." ${Remove_New_Unused_Dependencies:-OFF} \
 				"Automatic-Reboot" "Reboots the system automatically if required after upgrades.    " ${Automatic_Reboot:-OFF} \
 				"Automatic-Reboot-WithUsers" "Reboots even if users are logged in." ${Automatic_Reboot_WithUsers:-OFF} \
-				"Remove-Unused-Dependencies" "Removes packages that are no longer required after upgrades." ${Remove_Unused_Dependencies:-OFF} 3>&1 1>&2 2>&3); then
+				"Remove-Unused-Dependencies" "Removes packages that are no longer required after upgrades." ${Remove_Unused_Dependencies:-OFF}); then
 				# set all to 0 or false
 				sed -i 's/"[0-9]"/"0"/g' /etc/apt/apt.conf.d/20auto-upgrades
 				sed -i 's/"true"/"false"/g' /etc/apt/apt.conf.d/50unattended-upgrades

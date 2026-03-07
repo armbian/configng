@@ -198,7 +198,7 @@ function serve_doc() {
 	Press [Enter] to exit"
 		)
 
-		$DIALOG --title "Message Box" --msgbox "$input" 0 0
+		dialog_msgbox "Message Box" "$input" 0 0
 
 		# Stop the server
 		kill "$server_pid"

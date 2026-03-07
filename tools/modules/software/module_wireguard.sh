@@ -84,7 +84,7 @@ function module_wireguard () {
 
 			# Get local subnets from user input or use default
 			if [[ -z $2 ]]; then
-				LOCAL_SUBNETS=$($DIALOG --title "Enter comma delimited subnets for routing" --inputbox "\n* delete if this is not your local subnet \n" 9 70 "10.0.10.0/24" 3>&1 1>&2 2>&3)
+			LOCAL_SUBNETS=$(dialog_inputbox "Enter comma delimited subnets for routing" "\n* delete if this is not your local subnet \n" "10.0.10.0/24" 9 70)
 			else
 				LOCAL_SUBNETS="$2"
 			fi
@@ -102,17 +102,7 @@ function module_wireguard () {
 				--restart unless-stopped \
 				--sysctl net.ipv4.ip_forward=1 \
 				lscr.io/linuxserver/wireguard:latest
-			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' wireguard >/dev/null 2>&1 && [[ -f "${WIREGUARD_BASE}/config/wg_confs/client.conf" ]]; then
-					break
-				else
-					sleep 3
-				fi
-				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs wireguard\`)"
-					exit 1
-				fi
-			done
+			wait_for_container_ready "wireguard" 20 3 '[[ -f "${WIREGUARD_BASE}/config/wg_confs/client.conf" ]]' || exit 1
 			if [[ -n "${LOCAL_SUBNETS}" ]]; then
 				# Create host-side route helper script for LAN routing via WireGuard container
 				cat > "/usr/local/bin/add-vpn-lan-routes.sh" <<- EOT
@@ -186,10 +176,15 @@ function module_wireguard () {
 			# Pull the image if not already done
 			${module_options["module_wireguard,feature"]} ${commands[0]}
 
+			local dialog_rc
 			if [[ -z $2 ]]; then
-				NUMBER_OF_PEERS=$($DIALOG --title "Enter comma delimited peer keywords" --inputbox " \n" 7 50 "laptop" 3>&1 1>&2 2>&3)
+				NUMBER_OF_PEERS=$(dialog_inputbox "Enter comma delimited peer keywords" " \n" "laptop" 7 50)
+				dialog_rc=$?
+			else
+				NUMBER_OF_PEERS="$2"
+				dialog_rc=0
 			fi
-			if [[ $? -eq 0 ]]; then
+			if [[ $dialog_rc -eq 0 ]]; then
 				${module_options["module_wireguard,feature"]} ${commands[6]}
 				if [[ $? -eq 0 ]]; then
 					docker rm -f wireguard >/dev/null 2>&1
@@ -219,17 +214,7 @@ function module_wireguard () {
 					--sysctl="net.ipv4.conf.all.src_valid_mark=1" \
 					--restart unless-stopped \
 					lscr.io/linuxserver/wireguard:latest
-				for i in $(seq 1 20); do
-					if docker inspect -f '{{ index .Config.Labels "build_version" }}' wireguard >/dev/null 2>&1 && [[ -f "${WIREGUARD_BASE}/config/wg_confs/wg0.conf" ]]; then
-						break
-					else
-						sleep 3
-					fi
-					if [ $i -eq 20 ] ; then
-						echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs wireguard\`)"
-						exit 1
-					fi
-				done
+				wait_for_container_ready "wireguard" 20 3 '[[ -f "${WIREGUARD_BASE}/config/wg_confs/wg0.conf" ]]' || exit 1
 				${module_options["module_wireguard,feature"]} ${commands[5]}
 			fi
 		;;
@@ -254,11 +239,18 @@ function module_wireguard () {
 			[[ -n "${WIREGUARD_BASE}" && "${WIREGUARD_BASE}" != "/" ]] && rm -rf "${WIREGUARD_BASE}"
 		;;
 		"${commands[5]}")
-			if [[ -z $2 ]]; then
-				local LIST=($(ls -1 ${WIREGUARD_BASE}/config/ 2>/dev/null | grep peer | cut -d"_" -f2))
-				local LIST_LENGTH=$((${#LIST[@]} / 2))
-				local SELECTED_PEER=$(dialog --title "Select peer" --no-items --menu "" $((${LIST_LENGTH} + 8)) 60 $((${LIST_LENGTH})) "${LIST[@]}" 3>&1 1>&2 2>&3)
-			fi
+		if [[ -z $2 ]]; then
+			local LIST=()
+			while IFS= read -r -d '' peer_conf; do
+				peer="${peer_conf#peer_}"
+				peer="${peer%.conf}"
+				[[ -n "$peer" ]] && LIST+=("$peer" "$peer")
+			done < <(find "${WIREGUARD_BASE}/config/" -mindepth 2 -maxdepth 2 -name "peer_*.conf" -type f -printf "%f\0")
+			local LIST_LENGTH=$((${#LIST[@]} / 2))
+			local SELECTED_PEER=$(dialog_menu "Select peer" "" $((${LIST_LENGTH} + 8)) 60 ${LIST_LENGTH} -- "${LIST[@]}")
+		else
+			local SELECTED_PEER="$2"
+		fi
 			if [[ -n ${SELECTED_PEER} ]]; then
 				clear
 				docker exec -it wireguard /app/show-peer ${SELECTED_PEER}

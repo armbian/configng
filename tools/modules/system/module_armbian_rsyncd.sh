@@ -21,20 +21,17 @@ function module_armbian_rsyncd() {
 
 	case "$1" in
 		"${commands[0]}")
-			if export_path=$(dialog --title \
-				"Where is Armbian file storage located?" \
-				--inputbox "" 6 60 "/armbian/openssh-server/storage/" 3>&1 1>&2 2>&3); then
+			if export_path=$(dialog_inputbox "Where is armbian file storage located?" "" "/armbian/openssh-server/storage"); then
 
 				# lets make temporally file
 				rsyncd_config=$(mktemp)
-				if target_sync=$($DIALOG --title "Select an Option" --checklist \
-					"Choose your favorite programming language" 15 60 6 \
-					"apt" "Armbian stable packages" ON \
-					"dl" "Stable images" ON \
-					"beta" "Armbian unstable packages" OFF \
-					"archive" "Old images" OFF \
-					"oldarhive" "Very old Archive" OFF \
-					"cache" "Nighly and community images cache" OFF 3>&1 1>&2 2>&3); then
+				if target_sync=$(dialog_checklist "Select rsync target" "Choose which Armbian rsync targets to mirror" 15 60 6 \
+				"apt" "Armbian stable packages" ON \
+				"dl" "Stable images" ON \
+				"beta" "Armbian unstable packages" OFF \
+				"archive" "Old images" OFF \
+				"oldarchive" "Very old archive" OFF \
+				"cache" "Nightly and community images cache" OFF); then
 
 					for choice in $(echo ${target_sync} | tr -d '"'); do
 						cat <<- EOF >> $rsyncd_config

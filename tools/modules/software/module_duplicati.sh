@@ -46,7 +46,7 @@ function module_duplicati () {
 
 			# If no encryption key provided, prompt for it
 			if [[ -z "${DUPLICATI_ENCRYPTION_KEY}" ]]; then
-				DUPLICATI_ENCRYPTION_KEY=$($DIALOG --title "Duplicati Encryption Key" --inputbox "\nEnter an encryption key for Duplicati (at least 8 characters):" 9 60 "" 3>&1 1>&2 2>&3)
+				DUPLICATI_ENCRYPTION_KEY=$(dialog_inputbox "Duplicati Encryption Key" "\nEnter an encryption key for Duplicati (at least 8 characters):" "" 9 60)
 			fi
 
 			# Check encryption key length
@@ -57,7 +57,7 @@ function module_duplicati () {
 
 			# If no WebUI password provided, prompt for it
 			if [[ -z "${DUPLICATI_WEBUI_PASSWORD}" ]]; then
-				DUPLICATI_WEBUI_PASSWORD=$($DIALOG --title "Duplicati WebUI Password" --inputbox "\nEnter a password for Duplicati WebUI (at least 8 characters):" 9 60 "" 3>&1 1>&2 2>&3)
+				DUPLICATI_WEBUI_PASSWORD=$(dialog_inputbox "Duplicati WebUI Password" "\nEnter a password for Duplicati WebUI (at least 8 characters):" "" 9 60)
 			fi
 
 			# Check WebUI password length
@@ -80,17 +80,7 @@ function module_duplicati () {
 			-v "${DUPLICATI_BASE}/backups:/backups" \
 			-v /:/source:ro \
 			lscr.io/linuxserver/duplicati:latest
-			for i in $(seq 1 20); do
-				state="$(docker inspect -f '{{.State.Status}}' duplicati 2>/dev/null || true)"
-				if [[ "$state" == "running" ]]; then
-				break
-				fi
-				sleep 3
-				if [[ $i -eq 20 ]]; then
-					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs duplicati\`)"
-					exit 1
-				fi
-			done
+			wait_for_container_ready "duplicati" 20 3 "running" || exit 1
 		;;
 		"${commands[1]}")
 			if [[ "${container}" ]]; then

@@ -66,17 +66,7 @@ function module_pi_hole () {
 			-e FTLCONF_LOCAL_IPV4="${LOCALIPADD}" \
 			-e FTLCONF_dns_upstreams="unbound#5335" \
 			pihole/pihole:latest
-			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' pihole >/dev/null 2>&1 ; then
-					break
-				else
-					sleep 3
-				fi
-				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs pihole\`)"
-					exit 1
-				fi
-			done
+			wait_for_container_ready "pihole" || exit 1
 			local container_ip=$(docker inspect --format '{{ .NetworkSettings.Networks.lsio.IPAddress }}' pihole)
 			if srv_active systemd-resolved; then
 				mkdir -p /etc/systemd/resolved.conf.d/
@@ -114,9 +104,9 @@ function module_pi_hole () {
 			[[ -n "${PIHOLE_BASE}" && "${PIHOLE_BASE}" != "/" ]] && rm -rf "${PIHOLE_BASE}"
 		;;
 		"${commands[3]}")
-			SELECTED_PASSWORD=$($DIALOG --title "Enter new password for Pi-hole admin" --passwordbox "" 7 50 3>&1 1>&2 2>&3)
+			SELECTED_PASSWORD=$(dialog_passwordbox "Enter new password for Pi-hole admin" "" "" 7 50)
 			if [[ -n $SELECTED_PASSWORD ]]; then
-				docker exec -it "${container}" sh -c "pihole setpassword ${SELECTED_PASSWORD}"
+				docker exec -it "${container}" pihole setpassword "${SELECTED_PASSWORD}"
 			fi
 		;;
 		"${commands[4]}")

@@ -433,6 +433,7 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
+                            "container_type": "docker",
                             "condition": "! module_openssh-server status"
                         },
                         {
@@ -593,6 +594,7 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
+                            "container_type": "docker",
                             "condition": "! module_watchtower status"
                         },
                         {

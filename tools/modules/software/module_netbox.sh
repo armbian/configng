@@ -44,10 +44,10 @@ function module_netbox () {
 		"${commands[0]}")
 			# Prompt for email and password using dialog
 			[[ -z "$SUPERUSER_EMAIL" ]] && \
-			SUPERUSER_EMAIL=$($DIALOG --title "Enter NetBox superuser email" --inputbox "" 8 50 3>&1 1>&2 2>&3)
+			SUPERUSER_EMAIL=$(dialog_inputbox "Enter NetBox superuser email" "")
 			[[ -z "$SUPERUSER_EMAIL" ]] && SUPERUSER_EMAIL="info@armbian.com"
 			[[ -z "$SUPERUSER_PASSWORD" ]] && \
-			SUPERUSER_PASSWORD=$($DIALOG --title "Enter NetBox admin password" --passwordbox "" 8 50 3>&1 1>&2 2>&3)
+			SUPERUSER_PASSWORD=$(dialog_passwordbox "Enter NetBox admin password" "" 8 50)
 			[[ -z "$SUPERUSER_PASSWORD" ]] && SUPERUSER_PASSWORD="armbian"
 
 			clear  # Clean up dialog artifacts
@@ -130,7 +130,7 @@ function module_netbox () {
 					if curl -sf http://localhost:${module_options["module_netbox,port"]}/ > /dev/null; then
 						break
 					fi
-				done | $DIALOG --gauge "Preparing NetBox\n\nPlease wait! (can take a few minutes) " 10 50 0
+				done | dialog_gauge "NetBox" "Preparing NetBox\n\nPlease wait! (can take a few minutes)"
 			else
 				# No terminal, fallback to echoing progress
 				echo "Waiting for NetBox to become available..."
