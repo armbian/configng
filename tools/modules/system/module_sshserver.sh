@@ -17,10 +17,15 @@ function module_openssh-server () {
 	local title="openssh-server"
 	local condition=$(which "$title" 2>/dev/null)
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/openssh-server?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/openssh-server?( |$)/{print $3}')
+	# Ensure Docker is available for commands that need it (install, remove, purge)
+	if [[ "$1" != "status" && "$1" != "help" ]]; then
+		if ! module_docker status >/dev/null 2>&1; then
+			module_docker install
+		fi
 	fi
+
+	local container=$(docker container ls -a --filter "name=openssh-server" --format '{{.ID}}' 2>/dev/null) || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep 'lscr.io/linuxserver/openssh-server:' | head -1) || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_openssh-server,example"]}"
@@ -29,8 +34,7 @@ function module_openssh-server () {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_installed docker-ce || module_docker install
-			[[ -d "${OPENSSHSERVER_BASE}" ]] || mkdir -p "${OPENSSHSERVER_BASE}" || { echo "Couldn't create storage directory: ${OPENSSHSERVER_BASE}"; exit 1; }
+			[[ -d "${OPENSSHSERVER_BASE}" ]] || mkdir -p "${OPENSSHSERVER_BASE}" || { echo "Couldn't create storage directory: ${OPENSSHSERVER_BASE}"; return 1; }
 			USER_NAME=$(dialog_inputbox "Enter username" "\nHit enter for defaults" "upload")
 			PUBLIC_KEY=$(dialog_inputbox "Enter public key" "" "" 9 50)
 			MOUNT_POINT=$(dialog_inputbox "Enter shared folder path" "" "${SOFTWARE_FOLDER}/swag/config/www")
@@ -52,14 +56,14 @@ function module_openssh-server () {
 			--restart unless-stopped \
 			lscr.io/linuxserver/openssh-server:latest
 			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' openssh-server >/dev/null 2>&1 ; then
+				state="$(docker inspect -f '{{.State.Status}}' openssh-server 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
 					break
-				else
-					sleep 3
 				fi
-				if [ $i -eq 20 ] ; then
+				sleep 3
+				if [[ $i -eq 20 ]]; then
 					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs openssh-server\`)"
-					exit 1
+					return 1
 				fi
 			done
 			# read container version
@@ -73,12 +77,20 @@ function module_openssh-server () {
 			"
 		;;
 		"${commands[1]}")
-			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
+			if [[ "${container}" ]]; then
+				echo "Removing container: $container"
+				docker container rm -f "$container" >/dev/null
+			fi
 		;;
 		"${commands[2]}")
 			${module_options["module_openssh-server,feature"]} ${commands[1]}
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
-			[[ -n "${OPENSSHSERVER_BASE}" && "${OPENSSHSERVER_BASE}" != "/" ]] && rm -rf "${OPENSSHSERVER_BASE}"
+			if [[ "${image}" ]]; then
+				sleep 2
+				docker image rm -f "$image" 2>/dev/null || true
+			fi
+			if [[ -n "${OPENSSHSERVER_BASE}" && "${OPENSSHSERVER_BASE}" != "/" ]]; then
+				rm -rf "${OPENSSHSERVER_BASE}"
+			fi
 		;;
 		"${commands[3]}")
 			if [[ "${container}" && "${image}" ]]; then
@@ -94,6 +106,7 @@ function module_openssh-server () {
 			echo -e "\tinstall\t- Install $title."
 			echo -e "\tstatus\t- Installation status $title."
 			echo -e "\tremove\t- Remove $title."
+			echo -e "\tpurge\t- Purge $title."
 			echo
 		;;
 		*)
