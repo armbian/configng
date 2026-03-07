@@ -61,10 +61,10 @@ def format_container_badge(item):
         return ""
 
     colors = {
-        "docker": ("#039BE5", "#ffffff", "🐳"),
-        "podman": ("#3B4C6C", "#ffffff", "🐳"),
-        "lxc":    ("#00A8E1", "#ffffff", "📦"),
-        "kvm":    ("#E95420", "#ffffff", "💿"),
+	"docker": ("#ffffff", "#039BE5", "🐳"),
+	"podman": ("#ffffff", "#3B4C6C", "🐳"),
+	"lxc":    ("#ffffff", "#00A8E1", "📦"),
+	"kvm":    ("#ffffff", "#E95420", "💿"),
     }
 
     bg, fg, icon = colors.get(container_type, ("#757575", "#ffffff", "🐳"))
