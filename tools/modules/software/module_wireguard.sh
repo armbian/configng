@@ -102,17 +102,7 @@ function module_wireguard () {
 				--restart unless-stopped \
 				--sysctl net.ipv4.ip_forward=1 \
 				lscr.io/linuxserver/wireguard:latest
-			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' wireguard >/dev/null 2>&1 && [[ -f "${WIREGUARD_BASE}/config/wg_confs/client.conf" ]]; then
-					break
-				else
-					sleep 3
-				fi
-				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs wireguard\`)"
-					exit 1
-				fi
-			done
+			wait_for_container_ready "wireguard" 20 3 '[[ -f "${WIREGUARD_BASE}/config/wg_confs/client.conf" ]]' || exit 1
 			if [[ -n "${LOCAL_SUBNETS}" ]]; then
 				# Create host-side route helper script for LAN routing via WireGuard container
 				cat > "/usr/local/bin/add-vpn-lan-routes.sh" <<- EOT
@@ -224,17 +214,7 @@ function module_wireguard () {
 					--sysctl="net.ipv4.conf.all.src_valid_mark=1" \
 					--restart unless-stopped \
 					lscr.io/linuxserver/wireguard:latest
-				for i in $(seq 1 20); do
-					if docker inspect -f '{{ index .Config.Labels "build_version" }}' wireguard >/dev/null 2>&1 && [[ -f "${WIREGUARD_BASE}/config/wg_confs/wg0.conf" ]]; then
-						break
-					else
-						sleep 3
-					fi
-					if [ $i -eq 20 ] ; then
-						echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs wireguard\`)"
-						exit 1
-					fi
-				done
+				wait_for_container_ready "wireguard" 20 3 '[[ -f "${WIREGUARD_BASE}/config/wg_confs/wg0.conf" ]]' || exit 1
 				${module_options["module_wireguard,feature"]} ${commands[5]}
 			fi
 		;;

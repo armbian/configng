@@ -55,17 +55,7 @@ function module_swag() {
 				-v "${SWAG_BASE}/config:/config" \
 				--restart unless-stopped \
 				lscr.io/linuxserver/swag
-				for i in $(seq 1 20); do
-					if docker inspect -f '{{ index .Config.Labels "build_version" }}' swag >/dev/null 2>&1 ; then
-						break
-					else
-						sleep 3
-					fi
-					if [ $i -eq 20 ] ; then
-						echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs swag\`)"
-						exit 1
-					fi
-				done
+				wait_for_container_ready "swag" || exit 1
 				# set password
 				${module_options["module_swag,feature"]} ${commands[4]}
 			else

@@ -892,3 +892,56 @@ dialog_checklist() {
 			;;
 	esac
 }
+
+module_options+=(
+	["wait_for_container_ready,author"]="@armbian"
+	["wait_for_container_ready,desc"]="Wait for a Docker container to be ready by checking for build_version label"
+	["wait_for_container_ready,example"]="wait_for_container_ready \"container_name\" 20 3"
+	["wait_for_container_ready,feature"]="wait_for_container_ready"
+	["wait_for_container_ready,status"]="Active"
+)
+
+# Wait for a Docker container to be ready
+# Usage: wait_for_container_ready <container_name> [max_attempts] [sleep_interval] [check_type] [extra_condition]
+# check_type: "build_version" (default) or "running"
+wait_for_container_ready() {
+	local container_name="$1"
+	local max_attempts="${2:-20}"
+	local sleep_interval="${3:-3}"
+	local check_type="${4:-build_version}"
+	local extra_condition="${5:-}"
+
+	for ((i=1; i<=max_attempts; i++)); do
+		local container_ready=false
+
+		case "$check_type" in
+			"running")
+				local state
+				state="$(docker inspect -f '{{.State.Status}}' "$container_name" 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
+					container_ready=true
+				fi
+				;;
+			"build_version"|*)
+				if docker inspect -f '{{ index .Config.Labels "build_version" }}' "$container_name" >/dev/null 2>&1; then
+					container_ready=true
+				fi
+				;;
+		esac
+
+		if $container_ready; then
+			# Check extra condition if provided
+			if [[ -n "$extra_condition" ]]; then
+				if eval "$extra_condition"; then
+					return 0
+				fi
+			else
+				return 0
+			fi
+		fi
+		sleep "$sleep_interval"
+	done
+
+	echo -e "\nTimed out waiting for ${container_name} to start, consult your container logs for more info (\`docker logs ${container_name}\`)"
+	return 1
+}

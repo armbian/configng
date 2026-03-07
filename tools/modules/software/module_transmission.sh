@@ -57,17 +57,7 @@ function module_transmission () {
 			-v "${TRANSMISSION_BASE}/watch:/watch" \
 			--restart=always \
 			lscr.io/linuxserver/transmission:latest
-			for i in $(seq 1 20); do
-				state="$(docker inspect -f '{{.State.Status}}' transmission 2>/dev/null || true)"
-				if [[ "$state" == "running" ]]; then
-					break
-				fi
-				sleep 3
-				if [[ $i -eq 20 ]]; then
-					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs transmission\`)"
-					exit 1
-				fi
-			done
+			wait_for_container_ready "transmission" 20 3 "running" || exit 1
 		;;
 		"${commands[1]}")
 			if [[ "${container}" ]]; then
