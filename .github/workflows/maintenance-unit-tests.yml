@@ -179,7 +179,7 @@ jobs:
           echo "|:---|:---|---:|" >> $GITHUB_STEP_SUMMARY
           cat test/* | sed '$ s/.$//' >> $GITHUB_STEP_SUMMARY
 
-      - uses: geekyeggo/delete-artifact@v5
+      - uses: geekyeggo/delete-artifact@v6
         with:
           name: |
             test-*
