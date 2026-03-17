@@ -276,9 +276,14 @@ function module_wireguard () {
 			local SELECTED_PEER="$2"
 		fi
 			if [[ -n ${SELECTED_PEER} ]]; then
+				# Validate peer name to prevent command injection
+				if [[ ! "${SELECTED_PEER}" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+					echo "Error: Invalid peer name '${SELECTED_PEER}'. Peer names must contain only letters, numbers, hyphens, and underscores."
+					exit 1
+				fi
 				clear
-				docker exec -it wireguard /app/show-peer ${SELECTED_PEER}
-				cat ${WIREGUARD_BASE}/config/peer_${SELECTED_PEER}/peer_${SELECTED_PEER}.conf
+				docker exec -it wireguard /app/show-peer "${SELECTED_PEER}"
+				cat "${WIREGUARD_BASE}/config/peer_${SELECTED_PEER}/peer_${SELECTED_PEER}.conf"
 				read
 			fi
 		;;
