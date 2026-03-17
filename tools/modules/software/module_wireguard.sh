@@ -239,6 +239,19 @@ function module_wireguard () {
 					--restart unless-stopped \
 					lscr.io/linuxserver/wireguard:latest
 				wait_for_container_ready "wireguard" 20 3 '[[ -f "${WIREGUARD_BASE}/config/wg_confs/wg0.conf" ]]' || exit 1
+
+				# Wait for peer configs to be created by the container
+				local peer_wait_count=0
+				local max_peer_wait=10
+				while [[ $peer_wait_count -lt $max_peer_wait ]]; do
+					peer_count=$(find "${WIREGUARD_BASE}/config/" -name "peer_*.conf" -type f 2>/dev/null | wc -l)
+					if [[ $peer_count -gt 0 ]]; then
+						break
+					fi
+					sleep 1
+					((peer_wait_count++))
+				done
+
 				${module_options["module_wireguard,feature"]} ${commands[5]}
 			fi
 		;;
@@ -265,16 +278,19 @@ function module_wireguard () {
 		"${commands[5]}")
 		if [[ -z $2 ]]; then
 			local LIST=()
+			# Find all peer config files recursively
 			while IFS= read -r -d '' peer_conf; do
 				peer="${peer_conf#peer_}"
 				peer="${peer%.conf}"
 				[[ -n "$peer" ]] && LIST+=("$peer" "$peer")
-			done < <(find "${WIREGUARD_BASE}/config/" -mindepth 2 -maxdepth 2 -name "peer_*.conf" -type f -printf "%f\0")
+			done < <(find "${WIREGUARD_BASE}/config/" -name "peer_*.conf" -type f -printf "%f\0")
 			local LIST_LENGTH=$((${#LIST[@]} / 2))
 
 				# Check if there are any peers to display
 				if [[ $LIST_LENGTH -eq 0 ]]; then
-					dialog_msgbox "No peers found" "No WireGuard peers configured.\n\nPlease create a server configuration first using:\n  armbian-config software wireguard server <peer_names>" 8 60
+					# Debug: show what files exist
+					local existing_files=$(find "${WIREGUARD_BASE}/config/" -type f -name "*.conf" 2>/dev/null | wc -l)
+					dialog_msgbox "No peers found" "No WireGuard peer configs found.\n\nFound $existing_files .conf file(s) in:\n  ${WIREGUARD_BASE}/config/\n\nPeer configs should be named:\n  peer_<name>/peer_<name>.conf\n\nPlease create a server configuration first using:\n  armbian-config software wireguard server <peer_names>" 12 70
 					exit 0
 				fi
 			local SELECTED_PEER=$(dialog_menu "Select peer" "" $((${LIST_LENGTH} + 8)) 60 ${LIST_LENGTH} -- "${LIST[@]}")
