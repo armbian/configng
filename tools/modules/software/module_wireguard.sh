@@ -271,6 +271,12 @@ function module_wireguard () {
 				[[ -n "$peer" ]] && LIST+=("$peer" "$peer")
 			done < <(find "${WIREGUARD_BASE}/config/" -mindepth 2 -maxdepth 2 -name "peer_*.conf" -type f -printf "%f\0")
 			local LIST_LENGTH=$((${#LIST[@]} / 2))
+
+				# Check if there are any peers to display
+				if [[ $LIST_LENGTH -eq 0 ]]; then
+					dialog_msgbox "No peers found" "No WireGuard peers configured.\n\nPlease create a server configuration first using:\n  armbian-config software wireguard server <peer_names>" 8 60
+					exit 0
+				fi
 			local SELECTED_PEER=$(dialog_menu "Select peer" "" $((${LIST_LENGTH} + 8)) 60 ${LIST_LENGTH} -- "${LIST[@]}")
 		else
 			local SELECTED_PEER="$2"
@@ -278,8 +284,9 @@ function module_wireguard () {
 			if [[ -n ${SELECTED_PEER} ]]; then
 				# Validate peer name to prevent command injection
 				if [[ ! "${SELECTED_PEER}" =~ ^[a-zA-Z0-9_-]+$ ]]; then
-					echo "Error: Invalid peer name '${SELECTED_PEER}'. Peer names must contain only letters, numbers, hyphens, and underscores."
-					exit 1
+				echo "Error: Invalid peer name '${SELECTED_PEER}'. Peer names must contain only letters, numbers, hyphens, and underscores."
+				echo "This error may occur if no peers are configured or if dialog output was corrupted."
+				exit 1
 				fi
 				clear
 				docker exec -it wireguard /app/show-peer "${SELECTED_PEER}"
