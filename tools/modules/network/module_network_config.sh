@@ -100,7 +100,7 @@ function module_network_config() {
 				local ssid_menu_list_height=$((${#LIST[@]}/3 + 6))
 				SELECTED_SSID=$(dialog_menu "Select WiFi Network" "" $ssid_menu_height $ssid_menu_width $ssid_menu_list_height --notags -- "${LIST[@]}")
 					if [[ -n $SELECTED_SSID ]]; then
-						SELECTED_PASSWORD=$(dialog_passwordbox "Enter new password for ${SELECTED_SSID}" "" "" 7 50)
+						SELECTED_PASSWORD=$(dialog_passwordbox "Enter new password for ${SELECTED_SSID}" "" 7 50)
 						if [[ -n $SELECTED_PASSWORD ]]; then
 							# connect to AP
 							netplan set --origin-hint ${yamlfile} renderer=${NETWORK_RENDERER}
@@ -125,7 +125,7 @@ function module_network_config() {
 				pkg_install --no-install-recommends hostapd networkd-dispatcher bridge-utils
 				SELECTED_SSID=$(dialog_inputbox "Enter SSID for AP" "\nHit enter for defaults" "armbian" 9 50)
 				if [[ -n "${SELECTED_SSID}" && $? == 0 ]]; then
-					SELECTED_PASSWORD=$(dialog_passwordbox "Enter new password for ${SELECTED_SSID}" "\nDefault password: 12345678\n" "12345678" 9 50)
+					SELECTED_PASSWORD=$(dialog_passwordbox "Enter new password for ${SELECTED_SSID}" "\nDefault password: 12345678\n" 9 50)
 					if [[ -n "${SELECTED_PASSWORD}" && $? == 0 ]]; then
 						# start bridged AP
 						netplan set --origin-hint ${yamlfile} renderer=${NETWORK_RENDERER}
