@@ -178,13 +178,25 @@ function module_wireguard () {
 
 			local dialog_rc
 			if [[ -z $2 ]]; then
-				NUMBER_OF_PEERS=$(dialog_inputbox "Enter comma delimited peer keywords" " \n" "laptop" 7 50)
+				NUMBER_OF_PEERS=$(dialog_inputbox "Enter comma delimited peer keywords" "\nValid characters: letters, numbers, hyphens, underscores" "laptop" 9 70)
 				dialog_rc=$?
 			else
 				NUMBER_OF_PEERS="$2"
 				dialog_rc=0
 			fi
 			if [[ $dialog_rc -eq 0 ]]; then
+				# Validate peer names - reject spaces and special characters
+				# Split by comma and validate each peer name
+				IFS=',' read -ra peers_array <<< "$NUMBER_OF_PEERS"
+				for peer in "${peers_array[@]}"; do
+					# Trim whitespace
+					peer=$(echo "$peer" | xargs)
+					# Check for invalid characters (spaces, special chars except hyphen and underscore)
+					if [[ ! "$peer" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+						dialog_msgbox "Error" "Invalid peer name: '$peer'\n\nPeer names must contain only:\n  - Letters (a-z, A-Z)\n  - Numbers (0-9)\n  - Hyphens (-)\n  - Underscores (_)\n\nSpaces and special characters are not allowed." 10 60
+						exit 1
+					fi
+				done
 				${module_options["module_wireguard,feature"]} ${commands[6]}
 				if [[ $? -eq 0 ]]; then
 					docker rm -f wireguard >/dev/null 2>&1
