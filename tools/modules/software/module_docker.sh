@@ -24,7 +24,7 @@ function module_docker() {
 		"${commands[0]}")
 			# Install docker from distribution maintained packages
 			pkg_update
-			if [[ "${DISTROID}" == bookworm ]]; then
+			if [[ "${DISTROID}" == bookworm ]] || [[ "${DISTROID}" == trixie ]]; then
 				# Install docker-ce (upstream) for bookworm
 				pkg_install ca-certificates curl gnupg
 				install -m 0755 -d /etc/apt/keyrings
@@ -58,7 +58,7 @@ function module_docker() {
 		;;
 		"${commands[1]}")
 			docker network rm lsio 2>/dev/null || true
-			if [[ "${DISTROID}" == bookworm ]]; then
+			if [[ "${DISTROID}" == bookworm ]] || [[ "${DISTROID}" == trixie ]]; then
 				pkg_remove docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 				rm -f /etc/apt/sources.list.d/docker.list
 			else
@@ -71,7 +71,7 @@ function module_docker() {
 		;;
 		"${commands[2]}")
 			${module_options["module_docker,feature"]} ${commands[1]}
-			if [[ "${DISTROID}" == bookworm ]]; then
+			if [[ "${DISTROID}" == bookworm ]] || [[ "${DISTROID}" == trixie ]]; then
 				rm -f /etc/apt/sources.list.d/docker.list
 				rm -f /etc/apt/keyrings/docker.asc
 			fi
