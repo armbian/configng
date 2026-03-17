@@ -178,22 +178,34 @@ function module_wireguard () {
 
 			local dialog_rc
 			if [[ -z $2 ]]; then
-				NUMBER_OF_PEERS=$(dialog_inputbox "Enter comma delimited peer keywords" "\nValid characters: letters, numbers, hyphens, underscores" "laptop" 9 70)
+				NUMBER_OF_PEERS=$(dialog_inputbox "Enter comma delimited peer keywords" "Valid characters: letters, numbers, hyphens, underscores" "laptop" 9 70)
 				dialog_rc=$?
 			else
 				NUMBER_OF_PEERS="$2"
 				dialog_rc=0
 			fi
 			if [[ $dialog_rc -eq 0 ]]; then
-				# Validate peer names - reject spaces and special characters
+				# Validate peer names - reject spaces, newlines, and special characters
+				# First, remove all newlines, carriage returns, and extra spaces from the input
+				NUMBER_OF_PEERS=$(echo "$NUMBER_OF_PEERS" | tr -d '\n\r' | tr -s ' ')
+
+				# Check for common help text patterns that might have been accidentally captured
+				if [[ "$NUMBER_OF_PEERS" =~ --help ]] || [[ "$NUMBER_OF_PEERS" =~ usage ]] || [[ "$NUMBER_OF_PEERS" =~ Usage ]]; then
+					dialog_msgbox "Error" "Invalid input: Help text detected\n\nPlease enter only comma-separated peer names without any additional text or commands.\n\nExample: laptop,desktop,phone" 10 60
+					exit 1
+				fi
+
 				# Split by comma and validate each peer name
 				IFS=',' read -ra peers_array <<< "$NUMBER_OF_PEERS"
 				for peer in "${peers_array[@]}"; do
-					# Trim whitespace
-					peer=$(echo "$peer" | xargs)
+					# Trim leading and trailing whitespace more safely
+					peer="${peer#"${peer%%[![:space:]]*}"}"
+					peer="${peer%"${peer##*[![:space:]]}"}"
+					# Skip empty peer names
+					[[ -z "$peer" ]] && continue
 					# Check for invalid characters (spaces, special chars except hyphen and underscore)
 					if [[ ! "$peer" =~ ^[a-zA-Z0-9_-]+$ ]]; then
-						dialog_msgbox "Error" "Invalid peer name: '$peer'\n\nPeer names must contain only:\n  - Letters (a-z, A-Z)\n  - Numbers (0-9)\n  - Hyphens (-)\n  - Underscores (_)\n\nSpaces and special characters are not allowed." 10 60
+						dialog_msgbox "Error" "Invalid peer name: '$peer'\n\nPeer names must contain only:\n  - Letters (a-z, A-Z)\n  - Numbers (0-9)\n  - Hyphens (-)\n  - Underscores (_)\n\nSpaces, newlines and special characters are not allowed." 11 60
 						exit 1
 					fi
 				done
