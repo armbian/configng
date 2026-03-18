@@ -527,8 +527,8 @@ die() {
 
 module_options+=(
 	["dialog_menu,author"]="@armbian"
-	["dialog_menu,desc"]="Display a menu dialog using the configured dialog tool"
-	["dialog_menu,example"]="dialog_menu \"Title\" \"Prompt\" option1 \"Description 1\" option2 \"Description 2\""
+	["dialog_menu,desc"]="Display a menu dialog using the configured dialog tool. Supports --item-help for additional help text per item."
+	["dialog_menu,example"]="dialog_menu \"Title\" \"Prompt\" option1 \"Description 1\" option2 \"Description 2\"\n# With --item-help:\ndialog_menu \"Title\" \"Prompt\" --item-help tag1 \"Item 1\" \"Help for item 1\" tag2 \"Item 2\" \"Help for item 2\""
 	["dialog_menu,feature"]="dialog_menu"
 	["dialog_menu,status"]="Active"
 )
@@ -545,6 +545,7 @@ dialog_menu() {
 	# Parse arguments: everything before -- is extra args, everything after is data
 	local extra_args=()
 	local options=()
+	local use_item_help=false
 
 	while [[ $# -gt 0 ]]; do
 		if [[ "$1" == "--" ]]; then
@@ -560,6 +561,11 @@ dialog_menu() {
 						extra_args+=("$1")
 						shift
 					fi
+					;;
+				--item-help)
+					use_item_help=true
+					extra_args+=("$1")
+					shift
 					;;
 				*)
 					extra_args+=("$1")
@@ -583,7 +589,7 @@ dialog_menu() {
 			dialog --title "$title" "${extra_args[@]}" --menu "$prompt" $height $width $list_height "${options[@]}" 3>&1 1>&2 2>&3
 			;;
 		"read")
-			# Fallback to read - handle --no-items if present
+			# Fallback to read - handle --no-items and --item-help if present
 			local use_no_items=false
 			for arg in "${extra_args[@]}"; do
 				[[ "$arg" == "--no-items" ]] && use_no_items=true
@@ -594,6 +600,13 @@ dialog_menu() {
 				local i=1
 				for item in "${options[@]}"; do
 					echo "$i. $item"
+					((i++))
+				done
+			elif $use_item_help; then
+				# Triplets of tag, item, and help text
+				local i=1
+				for ((j=0; j<${#options[@]}; j+=3)); do
+					echo "$i. ${options[j+1]} - ${options[j+2]}"
 					((i++))
 				done
 			else
@@ -608,6 +621,8 @@ dialog_menu() {
 			if [[ "$choice_index" =~ ^[0-9]+$ ]] && [ "$choice_index" -ge 1 ] && [ "$choice_index" -lt "$i" ]; then
 				if $use_no_items; then
 					echo "${options[((choice_index-1))]}"
+				elif $use_item_help; then
+					echo "${options[((choice_index-1)*3)]}"
 				else
 					echo "${options[((choice_index-1)*2)]}"
 				fi
