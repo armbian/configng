@@ -11,7 +11,8 @@
                         "show_message <<< $(about_armbian_configng)"
                     ],
                     "status": "Stable",
-                    "author": "@armbian"
+                    "author": "@armbian",
+                    "help": "Contribute features and improvements to the armbian-config utility"
                 },
                 {
                     "id": "HLP002",
@@ -20,9 +21,11 @@
                         "show_message <<< see_use"
                     ],
                     "status": "Disabled",
-                    "author": "@armbian"
+                    "author": "@armbian",
+                    "help": "List of Config function(WIP)"
                 }
-            ]
+            ],
+            "help": "About this tool"
         }
     ]
 }

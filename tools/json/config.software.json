@@ -11,6 +11,7 @@
                         {
                             "id": "ART001",
                             "description": "Router for repository mirror automation",
+                            "help": "The Armbian Router is an intelligent redirector system that optimizes file downloads.",
                             "short": "CDN router",
                             "module": "module_generic",
                             "command": [
@@ -28,7 +29,8 @@
                             ],
                             "status": "Stable",
                             "author": "@efectn",
-                            "condition": "module_armbianrouter status"
+                            "condition": "module_armbianrouter status",
+                            "help": "Remove CDN router"
                         },
                         {
                             "id": "GHR001",
@@ -40,7 +42,8 @@
                             ],
                             "status": "Stable",
                             "author": "@efectn",
-                            "condition": "! module_armbian_runners status"
+                            "condition": "! module_armbian_runners status",
+                            "help": "This module automates the installation, removal, and status checking of GitHub self-hosted."
                         },
                         {
                             "id": "GHR002",
@@ -50,7 +53,8 @@
                             ],
                             "status": "Stable",
                             "author": "@efectn",
-                            "condition": "module_armbian_runners status"
+                            "condition": "module_armbian_runners status",
+                            "help": "Remove GitHub runners for Armbian automation"
                         },
                         {
                             "id": "RSD001",
@@ -62,7 +66,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_armbian_rsyncd status"
+                            "condition": "! module_armbian_rsyncd status",
+                            "help": "Rsyncd server"
                         },
                         {
                             "id": "RSD002",
@@ -72,9 +77,11 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_armbian_rsyncd status"
+                            "condition": "module_armbian_rsyncd status",
+                            "help": "Remove Armbian rsyncd server"
                         }
-                    ]
+                    ],
+                    "help": "Armbian infrastructure services"
                 },
                 {
                     "id": "Backup",
@@ -92,7 +99,8 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "! module_duplicati status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Duplicati is a versatile and secure backup tool designed for everyone."
                         },
                         {
                             "id": "DPL002",
@@ -103,7 +111,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_duplicati status"
+                            "condition": "module_duplicati status",
+                            "help": "Duplicati remove"
                         },
                         {
                             "id": "DPL003",
@@ -114,9 +123,11 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_duplicati status"
+                            "condition": "module_duplicati status",
+                            "help": "Duplicati purge with data folder"
                         }
-                    ]
+                    ],
+                    "help": "Backup solutions for your data"
                 },
                 {
                     "id": "Benchy",
@@ -126,7 +137,8 @@
                     ],
                     "status": "Disabled",
                     "author": "@armbian",
-                    "condition": "[ -f /usr/bin/armbianmonitor ]"
+                    "condition": "[ -f /usr/bin/armbianmonitor ]",
+                    "help": "System benchmaking and diagnostics"
                 },
                 {
                     "id": "Containers",
@@ -144,7 +156,8 @@
                             "status": "Stable",
                             "author": "@schwar3kat",
                             "condition": "! module_docker status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "What is Docker."
                         },
                         {
                             "id": "CON003",
@@ -155,7 +168,8 @@
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "module_docker status"
+                            "condition": "module_docker status",
+                            "help": "Docker remove"
                         },
                         {
                             "id": "CON004",
@@ -166,7 +180,8 @@
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "module_docker status"
+                            "condition": "module_docker status",
+                            "help": "Docker purge with all images, containers, and volumes"
                         },
                         {
                             "id": "POR001",
@@ -180,7 +195,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_portainer status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Portainer simplifies your Docker container management via Portainer web interface."
                         },
                         {
                             "id": "POR002",
@@ -191,7 +207,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_portainer status"
+                            "condition": "module_portainer status",
+                            "help": "Portainer remove"
                         },
                         {
                             "id": "POR003",
@@ -202,9 +219,11 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_portainer status"
+                            "condition": "module_portainer status",
+                            "help": "Portainer purge with with data folder"
                         }
-                    ]
+                    ],
+                    "help": "Docker containerization and KVM virtual machines"
                 },
                 {
                     "id": "DNS",
@@ -221,7 +240,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_adguardhome status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "AdGuard Home is a network-wide software that functions as a DNS server and ad blocker."
                         },
                         {
                             "id": "ADG002",
@@ -231,7 +251,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_adguardhome status"
+                            "condition": "module_adguardhome status",
+                            "help": "AdGuardHome remove"
                         },
                         {
                             "id": "ADG003",
@@ -241,7 +262,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_adguardhome status"
+                            "condition": "module_adguardhome status",
+                            "help": "AdGuardHome purge with data folder"
                         },
                         {
                             "id": "PIH001",
@@ -253,7 +275,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_pi_hole status"
+                            "condition": "! module_pi_hole status",
+                            "help": "Pi-hole is a network-wide ad blocker that acts as a DNS (Domain Name System) sinkhole."
                         },
                         {
                             "id": "PIH002",
@@ -263,7 +286,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_pi_hole status"
+                            "condition": "module_pi_hole status",
+                            "help": "Pi-hole change web admin password"
                         },
                         {
                             "id": "PIH003",
@@ -273,7 +297,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_pi_hole status"
+                            "condition": "module_pi_hole status",
+                            "help": "Pi-hole remove"
                         },
                         {
                             "id": "PIH004",
@@ -283,7 +308,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_pi_hole status"
+                            "condition": "module_pi_hole status",
+                            "help": "Pi-hole purge with data folder"
                         },
                         {
                             "id": "UNB001",
@@ -296,7 +322,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_unbound status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Unbound is a high-performance, open-source DNS resolver."
                         },
                         {
                             "id": "UNB002",
@@ -306,7 +333,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_unbound status"
+                            "condition": "module_unbound status",
+                            "help": "Unbound remove"
                         },
                         {
                             "id": "UNB003",
@@ -316,9 +344,11 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_unbound status"
+                            "condition": "module_unbound status",
+                            "help": "Unbound purge with data folder"
                         }
-                    ]
+                    ],
+                    "help": "Network-wide ad blockers servers"
                 },
                 {
                     "id": "Database",
@@ -335,7 +365,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_mysql status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "MySQL is one of the world’s most widely used open-source database servers."
                         },
                         {
                             "id": "MYSQL2",
@@ -345,7 +376,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_mysql status"
+                            "condition": "module_mysql status",
+                            "help": "MySQL remove"
                         },
                         {
                             "id": "MYSQL3",
@@ -355,7 +387,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_mysql status"
+                            "condition": "module_mysql status",
+                            "help": "MySQL purge with data folder"
                         },
                         {
                             "id": "DAT001",
@@ -368,7 +401,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_mariadb status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "MariaDB is a fast, open-source relational database server developed by the original creators of MySQL."
                         },
                         {
                             "id": "DAT002",
@@ -378,7 +412,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_mariadb status"
+                            "condition": "module_mariadb status",
+                            "help": "Mariadb remove"
                         },
                         {
                             "id": "DAT003",
@@ -388,7 +423,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_mariadb status"
+                            "condition": "module_mariadb status",
+                            "help": "Mariadb purge with data folder"
                         },
                         {
                             "id": "MYA001",
@@ -401,7 +437,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_phpmyadmin status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Web-based MySQL/MariaDB administration interface for managing databases"
                         },
                         {
                             "id": "MYA002",
@@ -411,7 +448,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_phpmyadmin status"
+                            "condition": "module_phpmyadmin status",
+                            "help": "phpMyAdmin remove"
                         },
                         {
                             "id": "MYA003",
@@ -421,7 +459,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_phpmyadmin status"
+                            "condition": "module_phpmyadmin status",
+                            "help": "phpMyAdmin purge with data folder"
                         },
                         {
                             "id": "PGSQL1",
@@ -435,7 +474,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_postgres status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "PostgreSQL is a powerful, open-source object-relational database system."
                         },
                         {
                             "id": "PGSQL2",
@@ -446,7 +486,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_postgres status"
+                            "condition": "module_postgres status",
+                            "help": "PostgreSQL remove"
                         },
                         {
                             "id": "PGSQL3",
@@ -457,7 +498,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_postgres status"
+                            "condition": "module_postgres status",
+                            "help": "PostgreSQL purge with data folder"
                         },
                         {
                             "id": "REDIS1",
@@ -471,7 +513,8 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "! module_redis status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Redis is an open-source, in-memory data structure store, used as a database, cache, and message."
                         },
                         {
                             "id": "REDIS2",
@@ -482,7 +525,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_redis status"
+                            "condition": "module_redis status",
+                            "help": "Redis remove"
                         },
                         {
                             "id": "REDIS3",
@@ -493,9 +537,11 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_redis status"
+                            "condition": "module_redis status",
+                            "help": "Redis purge with data folder"
                         }
-                    ]
+                    ],
+                    "help": "SQL database servers and web interface managers"
                 },
                 {
                     "id": "Desktops",
@@ -515,7 +561,8 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ ! -f /usr/share/xsessions/cinnamon.desktop ] && [ ! -f /usr/share/xsessions/cinnamon2d.desktop ]"
+                                    "condition": "[ ! -f /usr/share/xsessions/cinnamon.desktop ] && [ ! -f /usr/share/xsessions/cinnamon2d.desktop ]",
+                                    "help": "Cinnamon desktop Install"
                                 },
                                 {
                                     "id": "CINM02",
@@ -525,7 +572,8 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] || [ -f /usr/share/xsessions/cinnamon2d.desktop ]"
+                                    "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] || [ -f /usr/share/xsessions/cinnamon2d.desktop ]",
+                                    "help": "Cinnamon desktop uninstall"
                                 },
                                 {
                                     "id": "CINM03",
@@ -535,7 +583,8 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                    "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]",
+                                    "help": "Enable autologin"
                                 },
                                 {
                                     "id": "CINM04",
@@ -545,9 +594,11 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                    "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]",
+                                    "help": "Disable autologin"
                                 }
-                            ]
+                            ],
+                            "help": "Cinnamon desktop"
                         },
                         {
                             "id": "GNOMDE",
@@ -561,7 +612,8 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "! module_desktop status de=gnome"
+                                    "condition": "! module_desktop status de=gnome",
+                                    "help": "Gnome desktop Install"
                                 },
                                 {
                                     "id": "GNME02",
@@ -571,7 +623,8 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "module_desktop status de=gnome"
+                                    "condition": "module_desktop status de=gnome",
+                                    "help": "Uninstall"
                                 },
                                 {
                                     "id": "GNME03",
@@ -581,7 +634,8 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "module_desktop status de=gnome && ! module_desktop login"
+                                    "condition": "module_desktop status de=gnome && ! module_desktop login",
+                                    "help": "Enable autologin"
                                 },
                                 {
                                     "id": "GNME04",
@@ -591,9 +645,11 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "module_desktop status de=gnome && module_desktop login"
+                                    "condition": "module_desktop status de=gnome && module_desktop login",
+                                    "help": "Disable autologin"
                                 }
-                            ]
+                            ],
+                            "help": "Gnome desktop"
                         },
                         {
                             "id": "I3WMDE",
@@ -608,7 +664,8 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ ! -f /usr/share/xsessions/i3.desktop ]"
+                                    "condition": "[ ! -f /usr/share/xsessions/i3.desktop ]",
+                                    "help": "i3 desktop Install"
                                 },
                                 {
                                     "id": "I3WM02",
@@ -618,7 +675,8 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/i3.desktop ]"
+                                    "condition": "[ -f /usr/share/xsessions/i3.desktop ]",
+                                    "help": "i3 desktop uninstall"
                                 },
                                 {
                                     "id": "I3WM03",
@@ -628,7 +686,8 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/i3.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                    "condition": "[ -f /usr/share/xsessions/i3.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]",
+                                    "help": "Enable autologin"
                                 },
                                 {
                                     "id": "I3WM04",
@@ -638,9 +697,11 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/i3.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                    "condition": "[ -f /usr/share/xsessions/i3.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]",
+                                    "help": "Disable autologin"
                                 }
-                            ]
+                            ],
+                            "help": "i3-wm desktop"
                         },
                         {
                             "id": "KDENEO",
@@ -655,7 +716,8 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ ! -f /usr/share/xsessions/gnome.desktop ]"
+                                    "condition": "[ ! -f /usr/share/xsessions/gnome.desktop ]",
+                                    "help": "Kde-neon desktop Install"
                                 },
                                 {
                                     "id": "KDEN02",
@@ -665,7 +727,8 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ]"
+                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ]",
+                                    "help": "Uninstall"
                                 },
                                 {
                                     "id": "KDEN03",
@@ -675,7 +738,8 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]",
+                                    "help": "Enable autologin"
                                 },
                                 {
                                     "id": "KDEN04",
@@ -685,9 +749,11 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]"
+                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]",
+                                    "help": "Disable autologin"
                                 }
-                            ]
+                            ],
+                            "help": "Kde-neon desktop"
                         },
                         {
                             "id": "XFCEDE",
@@ -702,7 +768,8 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "! module_desktop status de=xfce"
+                                    "condition": "! module_desktop status de=xfce",
+                                    "help": "XFCE is a lightweight, fast, and user-friendly desktop environment for Linux, offering a classic desktop."
                                 },
                                 {
                                     "id": "XFCE02",
@@ -712,7 +779,8 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "module_desktop status de=xfce"
+                                    "condition": "module_desktop status de=xfce",
+                                    "help": "Uninstall"
                                 },
                                 {
                                     "id": "XFCE03",
@@ -722,7 +790,8 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "module_desktop status de=xfce && ! module_desktop login"
+                                    "condition": "module_desktop status de=xfce && ! module_desktop login",
+                                    "help": "Enable autologin"
                                 },
                                 {
                                     "id": "XFCE04",
@@ -732,9 +801,11 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "module_desktop status de=xfce && module_desktop login"
+                                    "condition": "module_desktop status de=xfce && module_desktop login",
+                                    "help": "Disable autologin"
                                 }
-                            ]
+                            ],
+                            "help": "XFCE desktop"
                         },
                         {
                             "id": "Xapian",
@@ -744,9 +815,11 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "srv_active display-manager"
+                            "condition": "srv_active display-manager",
+                            "help": "Improve application search speed"
                         }
-                    ]
+                    ],
+                    "help": "Desktop Environments"
                 },
                 {
                     "id": "DevTools",
@@ -763,7 +836,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! pkg_installed git"
+                            "condition": "! pkg_installed git",
+                            "help": "Command-line tool for version control and source code management"
                         },
                         {
                             "id": "GIT002",
@@ -774,9 +848,11 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "pkg_installed git"
+                            "condition": "pkg_installed git",
+                            "help": "Remove tools for cloning and managing repositories (git)"
                         }
-                    ]
+                    ],
+                    "help": "Applications and tools for development"
                 },
                 {
                     "id": "Downloaders",
@@ -794,7 +870,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_bazarr status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Bazarr is a companion application to Sonarr and Radarr."
                         },
                         {
                             "id": "BAZ002",
@@ -805,7 +882,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_bazarr status"
+                            "condition": "module_bazarr status",
+                            "help": "Bazarr remove"
                         },
                         {
                             "id": "BAZ003",
@@ -816,7 +894,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_bazarr status"
+                            "condition": "module_bazarr status",
+                            "help": "Bazarr purge with data folder"
                         },
                         {
                             "id": "DEL001",
@@ -830,7 +909,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_deluge status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Deluge⁠ is a lightweight, Free Software, cross-platform BitTorrent client."
                         },
                         {
                             "id": "DEL002",
@@ -841,7 +921,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_deluge status"
+                            "condition": "module_deluge status",
+                            "help": "Deluge remove"
                         },
                         {
                             "id": "DEL003",
@@ -852,7 +933,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_deluge status"
+                            "condition": "module_deluge status",
+                            "help": "Deluge purge with data folder"
                         },
                         {
                             "id": "DOW001",
@@ -866,7 +948,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_qbittorrent status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "The Qbittorrent⁠ project aims to provide an open-source software alternative to µTorrent."
                         },
                         {
                             "id": "DOW002",
@@ -877,7 +960,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_qbittorrent status"
+                            "condition": "module_qbittorrent status",
+                            "help": "qBittorrent remove"
                         },
                         {
                             "id": "DOW003",
@@ -888,7 +972,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_qbittorrent status"
+                            "condition": "module_qbittorrent status",
+                            "help": "qBittorrent purge with data folder"
                         },
                         {
                             "id": "DOW025",
@@ -902,7 +987,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_prowlarr status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Prowlarr is a indexer manager/proxy built on the popular arr."
                         },
                         {
                             "id": "DOW026",
@@ -913,7 +999,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_prowlarr status"
+                            "condition": "module_prowlarr status",
+                            "help": "Prowlarr remove"
                         },
                         {
                             "id": "DOW027",
@@ -924,7 +1011,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_prowlarr status"
+                            "condition": "module_prowlarr status",
+                            "help": "Prowlarr purge with data folder"
                         },
                         {
                             "id": "JEL001",
@@ -938,7 +1026,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_jellyseerr status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Jellyseerr is a free and open source software application for managing requests for your media."
                         },
                         {
                             "id": "JEL002",
@@ -949,7 +1038,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_jellyseerr status"
+                            "condition": "module_jellyseerr status",
+                            "help": "Jellyseerr remove"
                         },
                         {
                             "id": "JEL003",
@@ -960,7 +1050,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_jellyseerr status ]]"
+                            "condition": "module_jellyseerr status ]]",
+                            "help": "Jellyseerr purge with data folder"
                         },
                         {
                             "id": "LID001",
@@ -974,7 +1065,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_lidarr status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Lidarr is a music collection manager for Usenet and BitTorrent users."
                         },
                         {
                             "id": "LID002",
@@ -985,7 +1077,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_lidarr status"
+                            "condition": "module_lidarr status",
+                            "help": "Lidarr remove"
                         },
                         {
                             "id": "LID003",
@@ -996,7 +1089,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_lidarr status"
+                            "condition": "module_lidarr status",
+                            "help": "Lidarr purge with data folder"
                         },
                         {
                             "id": "MDS001",
@@ -1010,7 +1104,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_medusa status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Medusa is an automatic Video Library Manager for TV Shows."
                         },
                         {
                             "id": "MDS002",
@@ -1021,7 +1116,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_medusa status"
+                            "condition": "module_medusa status",
+                            "help": "Medusa TV shows downloader remove"
                         },
                         {
                             "id": "MDS003",
@@ -1032,7 +1128,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_medusa status"
+                            "condition": "module_medusa status",
+                            "help": "Medusa TV shows downloader purge"
                         },
                         {
                             "id": "RAD001",
@@ -1046,7 +1143,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_radarr status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Radarr - A fork of Sonarr to work with movies à la Couchpotato."
                         },
                         {
                             "id": "RAD002",
@@ -1057,7 +1155,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_radarr status"
+                            "condition": "module_radarr status",
+                            "help": "Radarr remove"
                         },
                         {
                             "id": "RAD003",
@@ -1068,7 +1167,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_radarr status"
+                            "condition": "module_radarr status",
+                            "help": "Radarr purge with data folder"
                         },
                         {
                             "id": "SABN01",
@@ -1082,7 +1182,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_sabnzbd status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Sabnzbd⁠ makes Usenet as simple and streamlined as possible by automating everything we can."
                         },
                         {
                             "id": "SABN02",
@@ -1093,7 +1194,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_sabnzbd status"
+                            "condition": "module_sabnzbd status",
+                            "help": "SABnzbd remove"
                         },
                         {
                             "id": "SABN03",
@@ -1104,7 +1206,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_sabnzbd status"
+                            "condition": "module_sabnzbd status",
+                            "help": "SABnzbd purge with data folder"
                         },
                         {
                             "id": "SON001",
@@ -1118,7 +1221,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_sonarr status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Sonarr (formerly NZBdrone) is a PVR for usenet and bittorrent users."
                         },
                         {
                             "id": "SON002",
@@ -1129,7 +1233,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_sonarr status"
+                            "condition": "module_sonarr status",
+                            "help": "Sonarr remove"
                         },
                         {
                             "id": "SON003",
@@ -1140,7 +1245,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_sonarr status"
+                            "condition": "module_sonarr status",
+                            "help": "Sonarr purge with data folder"
                         },
                         {
                             "id": "TRA001",
@@ -1154,7 +1260,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_transmission status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Transmission⁠ is designed for easy, powerful use."
                         },
                         {
                             "id": "TRA002",
@@ -1165,7 +1272,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_transmission status"
+                            "condition": "module_transmission status",
+                            "help": "Transmission remove"
                         },
                         {
                             "id": "TRA003",
@@ -1176,9 +1284,11 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_transmission status"
+                            "condition": "module_transmission status",
+                            "help": "Transmission purge with data folder"
                         }
-                    ]
+                    ],
+                    "help": "Download apps for movies, TV shows, music and subtitles"
                 },
                 {
                     "id": "Finance",
@@ -1195,7 +1305,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_actualbudget status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Do your finances with Actual Budget"
                         },
                         {
                             "id": "ABU002",
@@ -1205,7 +1316,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_actualbudget status"
+                            "condition": "module_actualbudget status",
+                            "help": "Actual Budget remove"
                         },
                         {
                             "id": "ABU003",
@@ -1215,9 +1327,11 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_actualbudget status"
+                            "condition": "module_actualbudget status",
+                            "help": "Actual Budget purge with data folder"
                         }
-                    ]
+                    ],
+                    "help": "Manage your finances"
                 },
                 {
                     "id": "HomeAutomation",
@@ -1235,7 +1349,8 @@
                             "status": "Preview",
                             "author": "@igorpecovnik",
                             "condition": "! module_domoticz status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Domoticz is an open-source home automation platform that allows you to control and monitor smart home."
                         },
                         {
                             "id": "DOM002",
@@ -1246,7 +1361,8 @@
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "module_domoticz status"
+                            "condition": "module_domoticz status",
+                            "help": "Domoticz remove"
                         },
                         {
                             "id": "DOM003",
@@ -1257,7 +1373,8 @@
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "module_domoticz status"
+                            "condition": "module_domoticz status",
+                            "help": "Domoticz purge with data folder"
                         },
                         {
                             "id": "EVCC01",
@@ -1271,7 +1388,8 @@
                             "status": "Preview",
                             "author": "@igorpecovnik",
                             "condition": "! module_evcc status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "evcc is an energy management system with a focus on electromobility."
                         },
                         {
                             "id": "EVCC02",
@@ -1282,7 +1400,8 @@
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "module_evcc status"
+                            "condition": "module_evcc status",
+                            "help": "EVCC - solar charging automation remove"
                         },
                         {
                             "id": "EVCC03",
@@ -1293,7 +1412,8 @@
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "module_evcc status"
+                            "condition": "module_evcc status",
+                            "help": "EVCC purge with data folder"
                         },
                         {
                             "id": "HAB001",
@@ -1307,7 +1427,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_openhab status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "openHAB is a home automation platform"
                         },
                         {
                             "id": "HAB002",
@@ -1318,7 +1439,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_openhab status"
+                            "condition": "module_openhab status",
+                            "help": "openHAB remove"
                         },
                         {
                             "id": "HAB003",
@@ -1329,7 +1451,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_openhab status"
+                            "condition": "module_openhab status",
+                            "help": "openHAB purge with data folder"
                         },
                         {
                             "id": "HAS001",
@@ -1343,7 +1466,8 @@
                             "status": "Preview",
                             "author": "@igorpecovnik",
                             "condition": "! module_haos status && grep -q Debian /etc/os-release",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Home Assistant is an open source smart home platform that allows you to connect your smart home."
                         },
                         {
                             "id": "HAS002",
@@ -1354,7 +1478,8 @@
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "module_haos status"
+                            "condition": "module_haos status",
+                            "help": "Home Assistant remove"
                         },
                         {
                             "id": "HAS003",
@@ -1365,9 +1490,11 @@
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "module_haos status"
+                            "condition": "module_haos status",
+                            "help": "Home Assistant purge with data folder"
                         }
-                    ]
+                    ],
+                    "help": "Home Automation for control home appliances"
                 },
                 {
                     "id": "Management",
@@ -1383,7 +1510,8 @@
                             ],
                             "status": "Stable",
                             "author": "@Tearran",
-                            "condition": "! module_cockpit status"
+                            "condition": "! module_cockpit status",
+                            "help": "Cockpit is a web-based graphical interface for servers, intended for everyone."
                         },
                         {
                             "id": "CPT002",
@@ -1393,7 +1521,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_cockpit status"
+                            "condition": "module_cockpit status",
+                            "help": "Remove Cockpit"
                         },
                         {
                             "id": "CPT003",
@@ -1403,7 +1532,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_cockpit status"
+                            "condition": "module_cockpit status",
+                            "help": "Purge Cockpit with virtual machines"
                         },
                         {
                             "id": "HPG001",
@@ -1416,7 +1546,8 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "! module_homepage status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Homepage startpage / application dashboard."
                         },
                         {
                             "id": "HPG002",
@@ -1426,7 +1557,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_homepage status"
+                            "condition": "module_homepage status",
+                            "help": "Remove Homepage"
                         },
                         {
                             "id": "HPG003",
@@ -1436,7 +1568,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_homepage status"
+                            "condition": "module_homepage status",
+                            "help": "Purge Homepage with data folder"
                         },
                         {
                             "id": "NBOX01",
@@ -1450,7 +1583,8 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "! module_netbox status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "NetBox is an open-source infrastructure resource modeling (IRM) tool."
                         },
                         {
                             "id": "NBOX02",
@@ -1461,7 +1595,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_netbox status"
+                            "condition": "module_netbox status",
+                            "help": "NetBox remove"
                         },
                         {
                             "id": "NBOX03",
@@ -1472,7 +1607,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_netbox status"
+                            "condition": "module_netbox status",
+                            "help": "NetBox purge with data folder"
                         },
                         {
                             "id": "SMB001",
@@ -1484,7 +1620,8 @@
                             ],
                             "status": "Stable",
                             "author": "@Tearran",
-                            "condition": ""
+                            "condition": "",
+                            "help": "Samba is an open-source software suite that enables seamless file and printer sharing between."
                         },
                         {
                             "id": "WBM001",
@@ -1496,9 +1633,11 @@
                             ],
                             "status": "Stable",
                             "author": "@Tearran",
-                            "condition": ""
+                            "condition": "",
+                            "help": "Webmin is a web-based system administration tool for Unix-like servers."
                         }
-                    ]
+                    ],
+                    "help": "Remote File & Management tools"
                 },
                 {
                     "id": "Media",
@@ -1516,7 +1655,8 @@
                             "status": "Stable",
                             "author": "@schwar3kat",
                             "condition": "! module_embyserver status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Emby organizes video, music, live TV, and photos from personal media libraries and streams them."
                         },
                         {
                             "id": "EMB002",
@@ -1527,7 +1667,8 @@
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "module_embyserver status"
+                            "condition": "module_embyserver status",
+                            "help": "Emby server remove"
                         },
                         {
                             "id": "EMB003",
@@ -1537,7 +1678,8 @@
                             ],
                             "status": "Stable",
                             "author": "@schwar3kat",
-                            "condition": "module_embyserver status"
+                            "condition": "module_embyserver status",
+                            "help": "Emby server purge with data folder"
                         },
                         {
                             "id": "FIL001",
@@ -1551,7 +1693,8 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "! module_filebrowser status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Filebrowser is a lightweight, web-based file manager that gives you direct access to your files."
                         },
                         {
                             "id": "FIL002",
@@ -1562,7 +1705,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_filebrowser status"
+                            "condition": "module_filebrowser status",
+                            "help": "Filebrowser container remove"
                         },
                         {
                             "id": "FIL003",
@@ -1572,7 +1716,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_filebrowser status"
+                            "condition": "module_filebrowser status",
+                            "help": "Filebrowser container purge with data folder"
                         },
                         {
                             "id": "HPS001",
@@ -1585,7 +1730,8 @@
                             "status": "Stable",
                             "author": "@efectn",
                             "condition": "! module_hastebin status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Hastebin is a fast and simple self-hosted pastebin server."
                         },
                         {
                             "id": "HPS002",
@@ -1595,7 +1741,8 @@
                             ],
                             "status": "Stable",
                             "author": "@efectn",
-                            "condition": "module_hastebin status"
+                            "condition": "module_hastebin status",
+                            "help": "Hastebin remove"
                         },
                         {
                             "id": "HPS003",
@@ -1605,7 +1752,8 @@
                             ],
                             "status": "Stable",
                             "author": "@efectn",
-                            "condition": "module_hastebin status"
+                            "condition": "module_hastebin status",
+                            "help": "Hastebin purge with data folder"
                         },
                         {
                             "id": "IMM001",
@@ -1619,7 +1767,8 @@
                             "status": "Preview",
                             "author": "@igorpecovnik",
                             "condition": "! module_immich status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "High-performance self-hosted photo and video backup solution."
                         },
                         {
                             "id": "IMM002",
@@ -1630,7 +1779,8 @@
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "module_immich status"
+                            "condition": "module_immich status",
+                            "help": "Immich remove"
                         },
                         {
                             "id": "IMM003",
@@ -1641,7 +1791,8 @@
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "module_immich status"
+                            "condition": "module_immich status",
+                            "help": "Immich purge with data folder"
                         },
                         {
                             "id": "JMS001",
@@ -1654,7 +1805,8 @@
                             "status": "Preview",
                             "author": "@igorpecovnik",
                             "condition": "! module_jellyfin status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Jellyfin is a Free Software Media System that puts you in control of managing and streaming your."
                         },
                         {
                             "id": "JMS002",
@@ -1664,7 +1816,8 @@
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "module_jellyfin status"
+                            "condition": "module_jellyfin status",
+                            "help": "Jellyfin remove"
                         },
                         {
                             "id": "JMS003",
@@ -1674,7 +1827,8 @@
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "module_jellyfin status"
+                            "condition": "module_jellyfin status",
+                            "help": "Jellyfin purge with data folder"
                         },
                         {
                             "id": "MED001",
@@ -1685,7 +1839,8 @@
                             ],
                             "status": "Disabled",
                             "author": "@schwar3kat",
-                            "condition": "! module_plexmediaserver status"
+                            "condition": "! module_plexmediaserver status",
+                            "help": "Plex Media server"
                         },
                         {
                             "id": "MED002",
@@ -1696,7 +1851,8 @@
                             ],
                             "status": "Disabled",
                             "author": "@schwar3kat",
-                            "condition": "module_plexmediaserver status"
+                            "condition": "module_plexmediaserver status",
+                            "help": "Plex Media server remove"
                         },
                         {
                             "id": "NAV001",
@@ -1709,7 +1865,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_navidrome status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Navidrome is a modern, lightweight, and self-hosted music server and streamer."
                         },
                         {
                             "id": "NAV002",
@@ -1719,7 +1876,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_navidrome status"
+                            "condition": "module_navidrome status",
+                            "help": "Navidrome remove"
                         },
                         {
                             "id": "NAV003",
@@ -1729,7 +1887,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_navidrome status"
+                            "condition": "module_navidrome status",
+                            "help": "Navidrome purge with data folder"
                         },
                         {
                             "id": "NCT001",
@@ -1742,7 +1901,8 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "! module_nextcloud status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Nextcloud gives you access to all your files wherever you are."
                         },
                         {
                             "id": "NCT002",
@@ -1752,7 +1912,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_nextcloud status"
+                            "condition": "module_nextcloud status",
+                            "help": "Nextcloud remove"
                         },
                         {
                             "id": "NCT003",
@@ -1762,7 +1923,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_nextcloud status"
+                            "condition": "module_nextcloud status",
+                            "help": "Nextcloud purge with data folder"
                         },
                         {
                             "id": "OMV001",
@@ -1775,7 +1937,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_omv status"
+                            "condition": "! module_omv status",
+                            "help": "OpenMediaVault (OMV) is a powerful, open-source network-attached storage (NAS) operating system."
                         },
                         {
                             "id": "OMV002",
@@ -1786,7 +1949,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_omv status"
+                            "condition": "module_omv status",
+                            "help": "OpenMediaVault remove"
                         },
                         {
                             "id": "OWC001",
@@ -1799,7 +1963,8 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "! module_owncloud status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "ownCloud is a free and open-source software project for content collaboration and sharing."
                         },
                         {
                             "id": "OWC002",
@@ -1809,7 +1974,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_owncloud status"
+                            "condition": "module_owncloud status",
+                            "help": "Owncloud remove"
                         },
                         {
                             "id": "OWC003",
@@ -1819,7 +1985,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_owncloud status"
+                            "condition": "module_owncloud status",
+                            "help": "Owncloud purge with data folder"
                         },
                         {
                             "id": "STC001",
@@ -1832,7 +1999,8 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "! module_syncthing status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Syncthing replaces proprietary sync and cloud services with something open and trustworthy."
                         },
                         {
                             "id": "STC002",
@@ -1842,7 +2010,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_syncthing status"
+                            "condition": "module_syncthing status",
+                            "help": "Syncthing remove"
                         },
                         {
                             "id": "STC003",
@@ -1852,7 +2021,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_syncthing status"
+                            "condition": "module_syncthing status",
+                            "help": "Syncthing purge with data folder"
                         },
                         {
                             "id": "STR001",
@@ -1866,7 +2036,8 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "! module_stirling status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Stirling-PDF is a robust, locally hosted web-based PDF manipulation tool."
                         },
                         {
                             "id": "STR002",
@@ -1877,7 +2048,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_stirling status"
+                            "condition": "module_stirling status",
+                            "help": "Stirling PDF remove"
                         },
                         {
                             "id": "STR003",
@@ -1888,9 +2060,11 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_stirling status"
+                            "condition": "module_stirling status",
+                            "help": "Stirling PDF purge with data folder"
                         }
-                    ]
+                    ],
+                    "help": "Media servers, organizers and editors"
                 },
                 {
                     "id": "Monitoring",
@@ -1908,7 +2082,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_grafana status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Grafana is a multi-platform open source analytics and interactive visualization web application."
                         },
                         {
                             "id": "GRA002",
@@ -1919,7 +2094,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_grafana status"
+                            "condition": "module_grafana status",
+                            "help": "Grafana remove"
                         },
                         {
                             "id": "GRA003",
@@ -1930,7 +2106,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_grafana status"
+                            "condition": "module_grafana status",
+                            "help": "Grafana purge with data folder"
                         },
                         {
                             "id": "NAX001",
@@ -1944,7 +2121,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_netalertx status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "NetAlertX is an open-source network monitoring and intruder detection tool."
                         },
                         {
                             "id": "NAX002",
@@ -1955,7 +2133,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_netalertx status"
+                            "condition": "module_netalertx status",
+                            "help": "NetAlertX network scanner remove"
                         },
                         {
                             "id": "NAX003",
@@ -1966,7 +2145,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_netalertx status"
+                            "condition": "module_netalertx status",
+                            "help": "NetAlertX network scanner purge with data folder"
                         },
                         {
                             "id": "NTD001",
@@ -1980,7 +2160,8 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "! module_netdata status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Netdata is a partially open source tool designed to collect real-time metrics."
                         },
                         {
                             "id": "NTD002",
@@ -1991,7 +2172,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_netdata status"
+                            "condition": "module_netdata status",
+                            "help": "Netdata remove"
                         },
                         {
                             "id": "NTD003",
@@ -2002,7 +2184,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_netdata status"
+                            "condition": "module_netdata status",
+                            "help": "Netdata purge with data folder"
                         },
                         {
                             "id": "PRO001",
@@ -2016,7 +2199,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_prometheus status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Prometheus is an open-source monitoring and alerting toolkit."
                         },
                         {
                             "id": "PRO002",
@@ -2027,7 +2211,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_prometheus status"
+                            "condition": "module_prometheus status",
+                            "help": "Prometheus remove"
                         },
                         {
                             "id": "PRO003",
@@ -2038,7 +2223,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_prometheus status"
+                            "condition": "module_prometheus status",
+                            "help": "Prometheus purge with data folder"
                         },
                         {
                             "id": "UPK001",
@@ -2051,7 +2237,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_uptimekuma status"
+                            "condition": "! module_uptimekuma status",
+                            "help": "Uptime Kuma self-hosted monitoring tool."
                         },
                         {
                             "id": "UPK002",
@@ -2062,7 +2249,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_uptimekuma status"
+                            "condition": "module_uptimekuma status",
+                            "help": "Uptime Kuma remove"
                         },
                         {
                             "id": "UPK003",
@@ -2073,9 +2261,11 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_uptimekuma status"
+                            "condition": "module_uptimekuma status",
+                            "help": "Uptime Kuma purge with data folder"
                         }
-                    ]
+                    ],
+                    "help": "Real-time monitoring, collecting metrics, up-time status"
                 },
                 {
                     "id": "Netconfig",
@@ -2095,7 +2285,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! pkg_installed avahi-daemon"
+                            "condition": "! pkg_installed avahi-daemon",
+                            "help": "avahi-daemon hostname broadcast via mDNS"
                         },
                         {
                             "id": "AVH002",
@@ -2107,7 +2298,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "pkg_installed avahi-daemon"
+                            "condition": "pkg_installed avahi-daemon",
+                            "help": "avahi-daemon remove"
                         },
                         {
                             "id": "IPR001",
@@ -2120,7 +2312,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! pkg_installed iperf3"
+                            "condition": "! pkg_installed iperf3",
+                            "help": "iperf3 bandwidth measuring tool"
                         },
                         {
                             "id": "IPR002",
@@ -2131,7 +2324,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "pkg_installed iperf3"
+                            "condition": "pkg_installed iperf3",
+                            "help": "iperf3 remove"
                         },
                         {
                             "id": "IPT001",
@@ -2144,7 +2338,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! pkg_installed iptraf-ng"
+                            "condition": "! pkg_installed iptraf-ng",
+                            "help": "iptraf-ng IP LAN monitor"
                         },
                         {
                             "id": "IPT002",
@@ -2155,7 +2350,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "pkg_installed iptraf-ng"
+                            "condition": "pkg_installed iptraf-ng",
+                            "help": "iptraf-ng remove"
                         },
                         {
                             "id": "NLD001",
@@ -2168,7 +2364,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! pkg_installed nload"
+                            "condition": "! pkg_installed nload",
+                            "help": "nload - realtime console network usage monitor"
                         },
                         {
                             "id": "NLD002",
@@ -2179,9 +2376,11 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "pkg_installed nload"
+                            "condition": "pkg_installed nload",
+                            "help": "nload - remove"
                         }
-                    ]
+                    ],
+                    "help": "Console network tools for measuring load and bandwidth"
                 },
                 {
                     "id": "Printing",
@@ -2199,7 +2398,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_octoprint status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "OctoPrint is an open source 3D printer controller application, which provides a web interface."
                         },
                         {
                             "id": "OCT002",
@@ -2210,7 +2410,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_octoprint status"
+                            "condition": "module_octoprint status",
+                            "help": "OctoPrint remove"
                         },
                         {
                             "id": "OCT003",
@@ -2221,9 +2422,11 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_octoprint status"
+                            "condition": "module_octoprint status",
+                            "help": "OctoPrint purge with data folder"
                         }
-                    ]
+                    ],
+                    "help": "Tools for printing and 3D printing"
                 },
                 {
                     "id": "VPN",
@@ -2240,7 +2443,8 @@
                             "status": "Enabled",
                             "author": "@armbian",
                             "condition": "! module_wireguard status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "WireGuard is an extremely simple yet fast and modern VPN."
                         },
                         {
                             "id": "WRG002",
@@ -2251,7 +2455,8 @@
                             ],
                             "status": "Enabled",
                             "author": "@armbian",
-                            "condition": "! module_wireguard status"
+                            "condition": "! module_wireguard status",
+                            "help": "WireGuard VPN client"
                         },
                         {
                             "id": "WRG003",
@@ -2262,7 +2467,8 @@
                             ],
                             "status": "Enabled",
                             "author": "@armbian",
-                            "condition": "module_wireguard status"
+                            "condition": "module_wireguard status",
+                            "help": "WireGuard remove"
                         },
                         {
                             "id": "WRG004",
@@ -2272,7 +2478,8 @@
                             ],
                             "status": "Enabled",
                             "author": "@armbian",
-                            "condition": "module_wireguard status server"
+                            "condition": "module_wireguard status server",
+                            "help": "WireGuard VPN server QR codes for clients"
                         },
                         {
                             "id": "WRG005",
@@ -2283,7 +2490,8 @@
                             ],
                             "status": "Enabled",
                             "author": "@armbian",
-                            "condition": "module_wireguard status"
+                            "condition": "module_wireguard status",
+                            "help": "WireGuard purge with data folder"
                         },
                         {
                             "id": "ZTR001",
@@ -2294,9 +2502,11 @@
                             ],
                             "status": "Stable",
                             "author": "@jnovos",
-                            "condition": ""
+                            "condition": "",
+                            "help": "Secure peer-to-peer virtual private network (VPN) with easy setup"
                         }
-                    ]
+                    ],
+                    "help": "Virtual Private Network tools"
                 },
                 {
                     "id": "WebHosting",
@@ -2313,7 +2523,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_swag status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "SWAG - Secure Web Application Gateway sets up an Nginx webserver and reverse proxy with php."
                         },
                         {
                             "id": "SWAG02",
@@ -2323,7 +2534,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_swag status"
+                            "condition": "module_swag status",
+                            "help": "SWAG reverse proxy .htpasswd set"
                         },
                         {
                             "id": "SWAG03",
@@ -2333,7 +2545,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_swag status"
+                            "condition": "module_swag status",
+                            "help": "SWAG remove"
                         },
                         {
                             "id": "SWAG04",
@@ -2343,7 +2556,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_swag status"
+                            "condition": "module_swag status",
+                            "help": "SWAG purge with data folder"
                         },
                         {
                             "id": "GHOST1",
@@ -2356,7 +2570,8 @@
                             "status": "Stable",
                             "author": "@armbian",
                             "condition": "! module_ghost status",
-                            "container_type": "docker"
+                            "container_type": "docker",
+                            "help": "Ghost is a powerful open-source publishing platform designed for professional publishing."
                         },
                         {
                             "id": "GHOST2",
@@ -2366,7 +2581,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_ghost status"
+                            "condition": "module_ghost status",
+                            "help": "Ghost CMS remove"
                         },
                         {
                             "id": "GHOST3",
@@ -2376,11 +2592,14 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_ghost status"
+                            "condition": "module_ghost status",
+                            "help": "Ghost CMS purge with data folder"
                         }
-                    ]
+                    ],
+                    "help": "Web server, LEMP, reverse proxy, Let's Encrypt SSL"
                 }
-            ]
+            ],
+            "help": "Run/Install 3rd party applications"
         }
     ]
 }
