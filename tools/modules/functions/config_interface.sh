@@ -81,8 +81,8 @@ module_options+=(
 	["parse_menu_items,author"]="@viraniac"
 	["parse_menu_items,ref_link"]=""
 	["parse_menu_items,feature"]="parse_menu_items"
-	["parse_menu_items,desc"]="Parse json to get list of desired menu or submenu items"
-	["parse_menu_items,example"]="parse_menu_items 'menu_options_array'"
+	["parse_menu_items,desc"]="Parse json to get list of desired menu or submenu items. Can return pairs or triplets depending on --with-help flag."
+	["parse_menu_items,example"]="parse_menu_items 'menu_options_array'\nparse_menu_items 'menu_options_array' --with-help"
 	["parse_menu_items,doc_link"]=""
 	["parse_menu_items,status"]="Active"
 )
@@ -91,25 +91,52 @@ module_options+=(
 #
 parse_menu_items() {
 	local -n options=$1
+	local with_help=false
+
+	# Check if --with-help flag is passed
+	[[ "$2" == "--with-help" ]] && with_help=true
+
 	while IFS= read -r id; do
 		IFS= read -r description
 		IFS= read -r condition
 		IFS= read -r container_type
+		IFS= read -r help_text
+		IFS= read -r short_desc
+		IFS= read -r about_text
 		# Append [C] for container-based software
 		if [[ "$container_type" != "null" && -n "$container_type" ]]; then
 			description="$description [C]"
+		fi
+		# Use 'short' or 'about' as fallback if 'help' is empty
+		if [[ -z "$help_text" || "$help_text" == "null" ]]; then
+			help_text="$short_desc"
+		fi
+		if [[ -z "$help_text" || "$help_text" == "null" ]]; then
+			help_text="$about_text"
 		fi
 		# If the condition field is not empty and not null, run the function specified in the condition
 		if [[ -n $condition && $condition != "null" ]]; then
 			# If the function returns a truthy value, add the menu item to the menu
 			if eval $condition; then
-				options+=("$id" "  -  $description")
+				if $with_help; then
+					# Return triplets: id, description, help
+					options+=("$id" "  -  $description" "$help_text")
+				else
+					# Return pairs: id, description
+					options+=("$id" "  -  $description")
+				fi
 			fi
 		else
 			# If the condition field is empty or null, add the menu item to the menu
-			options+=("$id" "  -  $description ")
+			if $with_help; then
+				# Return triplets: id, description, help
+				options+=("$id" "  -  $description " "$help_text")
+			else
+				# Return pairs: id, description
+				options+=("$id" "  -  $description ")
+			fi
 		fi
-	done < <(echo "$json_data" | jq -r '.menu[] | '${parent_id:+".. | objects | select(.id==\"$parent_id\") | .sub[]? |"}' select(.status != "Disabled") | "\(.id)\n\(.description)\n\(.condition)\n\(.container_type // "null")"' || exit 1)
+	done < <(echo "$json_data" | jq -r '.menu[] | '${parent_id:+".. | objects | select(.id==\"$parent_id\") | .sub[]? |"}' select(.status != "Disabled") | "\(.id)\n\(.description)\n\(.condition)\n\(.container_type // "null")\n\(.help // "")\n\(.short // "")\n\(.about // "")"' || exit 1)
 }
 
 module_options+=(
@@ -132,9 +159,9 @@ generate_top_menu() {
 	while true; do
 		local menu_options=()
 
-		parse_menu_items menu_options
+		parse_menu_items menu_options --with-help
 
-		local OPTION=$(dialog_menu "$TITLE" "$status" 0 80 9 --ok-button Select --cancel-button Exit -- "${menu_options[@]}")
+		local OPTION=$(dialog_menu "$TITLE" "$status" 0 80 10 --ok-button Select --cancel-button Exit --item-help -- "${menu_options[@]}")
 		local exitstatus=$?
 
 		if [ $exitstatus = 0 ]; then
@@ -165,9 +192,9 @@ function generate_menu() {
 	while true; do
 		# Get the submenu options for the current parent_id
 		local submenu_options=()
-		parse_menu_items submenu_options
+		parse_menu_items submenu_options --with-help
 
-		local OPTION=$(dialog_menu "$top_parent_id $parent_id" "$status" 0 80 9 --ok-button Select --cancel-button Back -- "${submenu_options[@]}")
+		local OPTION=$(dialog_menu "$top_parent_id $parent_id" "$status" 0 80 10 --ok-button Select --cancel-button Back --item-help -- "${submenu_options[@]}")
 
 		local exitstatus=$?
 
@@ -582,7 +609,21 @@ dialog_menu() {
 
 	case "$DIALOG" in
 		"whiptail")
-			whiptail --title "$title" "${extra_args[@]}" --menu "$prompt" $height $width $list_height "${options[@]}" 3>&1 1>&2 2>&3
+			# whiptail doesn't support --item-help, convert triplets to pairs
+			local whiptail_args=()
+			local whiptail_options=()
+			for arg in "${extra_args[@]}"; do
+				[[ "$arg" != "--item-help" ]] && whiptail_args+=("$arg")
+			done
+			# If using item-help, convert triplets (tag, item, help) to pairs (tag, item)
+			if $use_item_help; then
+				for ((j=0; j<${#options[@]}; j+=3)); do
+					whiptail_options+=("${options[j]}" "${options[j+1]}")
+				done
+			else
+				whiptail_options=("${options[@]}")
+			fi
+			whiptail --title "$title" "${whiptail_args[@]}" --menu "$prompt" $height $width $list_height "${whiptail_options[@]}" 3>&1 1>&2 2>&3
 			;;
 		"dialog")
 			# dialog outputs selection to stderr by default; swap stdout/stderr (3>&1 1>&2 2>&3) to capture stderr to stdout for command substitution
