@@ -13,9 +13,16 @@ function set_runtime_variables() {
 
 	missing_dependencies=()
 
-	# Check if whiptail is available and set DIALOG
+	# Check if dialog tools are available and set DIALOG
 	if [[ -z "$DIALOG" ]]; then
-		missing_dependencies+=("whiptail")
+		if [[ -x "$(command -v dialog)" ]]; then
+			DIALOG="dialog"
+		elif [[ -x "$(command -v whiptail)" ]]; then
+			DIALOG="whiptail"
+		else
+			# No dialog tool available, use text-based interface
+			DIALOG="read"
+		fi
 	fi
 
 	# Check if jq is available
@@ -27,6 +34,15 @@ function set_runtime_variables() {
 	if [[ ${#missing_dependencies[@]} -ne 0 ]]; then
 		if is_package_manager_running; then
 			pkg_install ${missing_dependencies[*]}
+		fi
+	fi
+
+	# Re-check DIALOG after installing dependencies
+	if [[ "$DIALOG" == "read" ]]; then
+		if [[ -x "$(command -v dialog)" ]]; then
+			DIALOG="dialog"
+		elif [[ -x "$(command -v whiptail)" ]]; then
+			DIALOG="whiptail"
 		fi
 	fi
 
