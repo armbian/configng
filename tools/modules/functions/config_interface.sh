@@ -949,6 +949,77 @@ dialog_checklist() {
 	esac
 }
 
+dialog_radiolist() {
+	local title="$1"
+	local prompt="$2"
+	local height="${3:-0}"
+	local width="${4:-80}"
+	local list_height="${5:-9}"
+	shift 5
+
+	# Parse arguments: everything before -- is extra args, everything after is data
+	local extra_args=()
+	local options=()
+
+	while [[ $# -gt 0 ]]; do
+		if [[ "$1" == "--" ]]; then
+			shift
+			break
+		elif [[ "$1" == --* ]]; then
+			# For dialog options that require arguments, consume both the flag and its value
+			case "$1" in
+				--ok-button|--cancel-button|--yes-button|--no-button)
+					extra_args+=("$1")
+					shift
+					if [[ $# -gt 0 && "$1" != --* ]]; then
+						extra_args+=("$1")
+						shift
+					fi
+					;;
+				--separate-output|--nocancel|--notags)
+					extra_args+=("$1")
+					shift
+					;;
+				*)
+					extra_args+=("$1")
+					shift
+					;;
+			esac
+		else
+			break
+		fi
+	done
+
+	# All remaining arguments are data (options)
+	options=("$@")
+
+	case "$DIALOG" in
+		"whiptail")
+			whiptail --title "$title" "${extra_args[@]}" --radiolist "$prompt" $height $width $list_height "${options[@]}" 3>&1 1>&2 2>&3
+			;;
+		"dialog")
+			# dialog outputs selection to stderr by default; swap stdout/stderr (3>&1 1>&2 2>&3) to capture stderr to stdout for command substitution
+			dialog --title "$title" "${extra_args[@]}" --radiolist "$prompt" $height $width $list_height "${options[@]}" 3>&1 1>&2 2>&3
+			;;
+		"read")
+			# Fallback to read - handle radiolist by showing numbered list
+			local i=1
+			for ((j=0; j<${#options[@]}; j+=3)); do
+				local status="${options[j+2]}"
+				local marker=" "
+				[[ "$status" =~ ^[Oo][Nn]$ ]] && marker="*"
+				echo "$i. [$marker] ${options[j]} - ${options[j+1]}"
+				((i++))
+			done
+			read -p "Enter choice number: " choice
+			if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -lt "$i" ]; then
+				idx=$((choice - 1))
+				echo "${options[idx*3]}"
+			fi
+			;;
+	esac
+}
+
 module_options+=(
 	["wait_for_container_ready,author"]="@armbian"
 	["wait_for_container_ready,desc"]="Wait for a Docker container to be ready by checking for build_version label"
