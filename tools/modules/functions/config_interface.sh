@@ -767,9 +767,10 @@ dialog_yesno() {
 	case "$DIALOG" in
 		"whiptail")
 			whiptail --title "$title" --backtitle "$BACKTITLE" "${extra_args[@]}" --yes-button "$yes_label" --no-button "$no_label" --yesno "$prompt" $height $width 3>&1 1>&2 2>&3
+			clear
 			;;
 		"dialog")
-			dialog --title "$title" --backtitle "$BACKTITLE" "${extra_args[@]}" --yes-button "$yes_label" --no-button "$no_label" --yesno "$prompt" $height $width
+			dialog --title "$title" --backtitle "$BACKTITLE" --clear "${extra_args[@]}" --yes-button "$yes_label" --no-button "$no_label" --yesno "$prompt" $height $width
 			;;
 		"read")
 			read -p "$prompt [$yes_label/$no_label]: " choice
