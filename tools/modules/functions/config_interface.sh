@@ -630,8 +630,15 @@ dialog_menu() {
 			local whiptail_options=()
 
 			# Filter out --item-help and --backtitle (we use global BACKTITLE)
-			for arg in "${extra_args[@]}"; do
-				[[ "$arg" != "--item-help" && "$arg" != "--backtitle" ]] && whiptail_args+=("$arg")
+			# Use indexed loop to skip both flag and its value
+			for ((i=0; i<${#extra_args[@]}; i++)); do
+				arg="${extra_args[$i]}"
+				if [[ "$arg" == "--backtitle" ]]; then
+					# Skip --backtitle and its value
+					((i++))
+				elif [[ "$arg" != "--item-help" ]]; then
+					whiptail_args+=("$arg")
+				fi
 			done
 			if $use_item_help; then
 				for ((j=0; j<${#options[@]}; j+=3)); do
@@ -921,15 +928,20 @@ dialog_checklist() {
 		elif [[ "$1" == --* ]]; then
 			# For dialog options that require arguments, consume both the flag and its value
 			case "$1" in
-				--ok-button|--cancel-button|--yes-button|--no-button)
-					extra_args+=("$1")
-					shift
-					if [[ $# -gt 0 && "$1" != --* ]]; then
+				--ok-button|--cancel-button|--yes-button|--no-button|--backtitle)
+					# For --backtitle, skip both flag and value (we use global BACKTITLE)
+					if [[ "$1" == "--backtitle" ]]; then
+						shift 2
+					else
 						extra_args+=("$1")
 						shift
+						if [[ $# -gt 0 && "$1" != --* ]]; then
+							extra_args+=("$1")
+							shift
+						fi
 					fi
 					;;
-				--separate-output|--nocancel)
+				--separate-output|--nocancel|--item-help)
 					extra_args+=("$1")
 					shift
 					;;
@@ -994,15 +1006,20 @@ dialog_radiolist() {
 		elif [[ "$1" == --* ]]; then
 			# For dialog options that require arguments, consume both the flag and its value
 			case "$1" in
-				--ok-button|--cancel-button|--yes-button|--no-button)
-					extra_args+=("$1")
-					shift
-					if [[ $# -gt 0 && "$1" != --* ]]; then
+				--ok-button|--cancel-button|--yes-button|--no-button|--backtitle)
+					# For --backtitle, skip both flag and value (we use global BACKTITLE)
+					if [[ "$1" == "--backtitle" ]]; then
+						shift 2
+					else
 						extra_args+=("$1")
 						shift
+						if [[ $# -gt 0 && "$1" != --* ]]; then
+							extra_args+=("$1")
+							shift
+						fi
 					fi
 					;;
-				--separate-output|--nocancel|--notags)
+				--separate-output|--nocancel|--notags|--item-help)
 					extra_args+=("$1")
 					shift
 					;;
