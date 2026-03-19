@@ -179,13 +179,27 @@ function generate_menu() {
 	local top_parent_id="$2"
 	local backtitle="$BACKTITLE"
 	local status=""
+	local menu_title
+
+	# Build menu title from parent IDs
+	if [[ -n "$top_parent_id" && -n "$parent_id" ]]; then
+		menu_title="$TITLE > $top_parent_id > $parent_id"
+	elif [[ -n "$parent_id" ]]; then
+		menu_title="$TITLE > $parent_id"
+	else
+		menu_title="$TITLE"
+	fi
+
+	# Get the 'description' text for the current menu item to use as prompt
+	local description_text=$(jq -r --arg id "$parent_id" '.menu[] | .. | objects | select(.id==$id) | .description // ""' "$json_file" 2>/dev/null)
+	status="$description_text"
 
 	while true; do
 		# Get the submenu options for the current parent_id
 		local submenu_options=()
 		parse_menu_items submenu_options --with-help
 
-		local OPTION=$(dialog_menu "$top_parent_id $parent_id" "$status" 0 80 10 --backtitle "$backtitle" --ok-button Select --cancel-button Back --item-help -- "${submenu_options[@]}")
+		local OPTION=$(dialog_menu "$menu_title" "$status" 0 80 10 --backtitle "$backtitle" --ok-button Select --cancel-button Back --item-help -- "${submenu_options[@]}")
 
 		local exitstatus=$?
 
