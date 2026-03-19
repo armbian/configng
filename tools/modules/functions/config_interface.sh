@@ -101,18 +101,9 @@ parse_menu_items() {
 		IFS= read -r condition
 		IFS= read -r container_type
 		IFS= read -r help_text
-		IFS= read -r short_desc
-		IFS= read -r about_text
 		# Append [C] for container-based software
 		if [[ "$container_type" != "null" && -n "$container_type" ]]; then
 			description="$description [C]"
-		fi
-		# Use 'short' or 'about' as fallback if 'help' is empty
-		if [[ -z "$help_text" || "$help_text" == "null" ]]; then
-			help_text="$short_desc"
-		fi
-		if [[ -z "$help_text" || "$help_text" == "null" ]]; then
-			help_text="$about_text"
 		fi
 		# If the condition field is not empty and not null, run the function specified in the condition
 		if [[ -n $condition && $condition != "null" ]]; then
@@ -136,7 +127,7 @@ parse_menu_items() {
 				options+=("$id" "  -  $description ")
 			fi
 		fi
-	done < <(echo "$json_data" | jq -r '.menu[] | '${parent_id:+".. | objects | select(.id==\"$parent_id\") | .sub[]? |"}' select(.status != "Disabled") | "\(.id)\n\(.description)\n\(.condition)\n\(.container_type // "null")\n\(.help // "")\n\(.short // "")\n\(.about // "")"' || exit 1)
+	done < <(echo "$json_data" | jq -r '.menu[] | '${parent_id:+".. | objects | select(.id==\"$parent_id\") | .sub[]? |"}' select(.status != "Disabled") | "\(.id)\n\(.description)\n\(.condition)\n\(.container_type // "null")\n\(.help // "")"' || exit 1)
 }
 
 module_options+=(
