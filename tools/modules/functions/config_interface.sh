@@ -853,7 +853,7 @@ dialog_infobox() {
 			whiptail --title "$(strip_color_codes "$title")" --backtitle "$(strip_color_codes "$BACKTITLE")" "${extra_args[@]}" --infobox "$prompt" $height $width
 			;;
 		"dialog")
-			TERM=ansi dialog --title "$title" --backtitle "$BACKTITLE" "${extra_args[@]}" --infobox "$prompt" $height $width
+			TERM=ansi dialog --colors --title "$title" --backtitle "$BACKTITLE" "${extra_args[@]}" --infobox "$prompt" $height $width
 			;;
 		"read")
 			echo "$prompt"
