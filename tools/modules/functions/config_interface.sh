@@ -152,7 +152,7 @@ generate_top_menu() {
 
 		parse_menu_items menu_options --with-help
 
-		local OPTION=$(dialog_menu "$TITLE" "$status" 0 80 10 --ok-button Select --cancel-button Exit --item-help -- "${menu_options[@]}")
+		local OPTION=$(dialog_menu "$TITLE" "$status" 0 80 10 --backtitle "$backtitle" --ok-button Select --cancel-button Exit --item-help -- "${menu_options[@]}")
 		local exitstatus=$?
 
 		if [ $exitstatus = 0 ]; then
@@ -185,7 +185,7 @@ function generate_menu() {
 		local submenu_options=()
 		parse_menu_items submenu_options --with-help
 
-		local OPTION=$(dialog_menu "$top_parent_id $parent_id" "$status" 0 80 10 --ok-button Select --cancel-button Back --item-help -- "${submenu_options[@]}")
+		local OPTION=$(dialog_menu "$top_parent_id $parent_id" "$status" 0 80 10 --backtitle "$backtitle" --ok-button Select --cancel-button Back --item-help -- "${submenu_options[@]}")
 
 		local exitstatus=$?
 
@@ -572,7 +572,7 @@ dialog_menu() {
 		elif [[ "$1" == --* ]]; then
 			# For dialog options that require arguments (like --ok-button), consume both the flag and its value
 			case "$1" in
-				--ok-button|--cancel-button|--yes-button|--no-button|--default-item)
+				--ok-button|--cancel-button|--yes-button|--no-button|--default-item|--backtitle)
 					extra_args+=("$1")
 					shift
 					if [[ $# -gt 0 && "$1" != --* ]]; then
