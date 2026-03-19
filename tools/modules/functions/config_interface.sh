@@ -21,8 +21,11 @@ function set_colors() {
 		#echo "color code: $color_code" | show_infobox ;
 	elif [ "$DIALOG" = "dialog" ]; then
 		set_term_colors "$color_code"
+	elif [ "$DIALOG" = "read" ]; then
+		# Text-based interface doesn't support colors, just return success
+		return 0
 	else
-		echo "Invalid dialog type"
+		echo "Invalid dialog type: $DIALOG"
 		return 1
 	fi
 }
@@ -641,25 +644,33 @@ dialog_menu() {
 				[[ "$arg" == "--no-items" ]] && use_no_items=true
 			done
 
+			# Debug: show options array
+			[[ -n "$debug" ]] && echo "DEBUG: options array has ${#options[@]} elements" >&2
+			[[ -n "$debug" ]] && echo "DEBUG: use_item_help=$use_item_help" >&2
+
 			if $use_no_items; then
 				# Simple list without descriptions
 				local i=1
 				for item in "${options[@]}"; do
-					echo "$i. $item"
+					echo "$i. $item" >&2
 					((i++))
 				done
 			elif $use_item_help; then
 				# Triplets of tag, item, and help text
 				local i=1
 				for ((j=0; j<${#options[@]}; j+=3)); do
-					echo "$i. ${options[j+1]} - ${options[j+2]}"
+					# Remove "  -  " prefix from description for cleaner display
+					local desc="${options[j+1]#\  -\  }"
+					echo "$i. ${options[j]} - $desc - ${options[j+2]}" >&2
 					((i++))
 				done
 			else
 				# Pairs of item and description
 				local i=1
 				for ((j=0; j<${#options[@]}; j+=2)); do
-					echo "$i. ${options[j]} - ${options[j+1]}"
+					# Remove "  -  " prefix from description for cleaner display
+					local desc="${options[j]#\  -\  }"
+					echo "$i. $desc - ${options[j+1]}" >&2
 					((i++))
 				done
 			fi
