@@ -255,7 +255,7 @@ function execute_command() {
 
 	# If a about exists, display it and wait for user confirmation
 	if [[ "$about" != "null" && $INPUTMODE != "cmd" ]]; then
-		get_user_continue "$about\nWould you like to continue?" process_input
+		get_user_continue "\n\n$about\n\nWould you like to continue?" process_input
 	fi
 
 	# Execute each command
@@ -380,7 +380,7 @@ function get_user_continue() {
 	local message="$1"
 	local next_action="$2"
 
-	if dialog_yesno "" "$message" "Yes" "No" 15 80; then
+	if dialog_yesno "Warning" "$message" "Yes" "No" 15 80; then
 		$next_action
 	else
 		$next_action "No"
@@ -766,10 +766,10 @@ dialog_yesno() {
 
 	case "$DIALOG" in
 		"whiptail")
-			whiptail --title "$title" "${extra_args[@]}" --yes-button "$yes_label" --no-button "$no_label" --yesno "$prompt" $height $width 3>&1 1>&2 2>&3
+			whiptail --title "$title" --backtitle "$BACKTITLE" "${extra_args[@]}" --yes-button "$yes_label" --no-button "$no_label" --yesno "$prompt" $height $width 3>&1 1>&2 2>&3
 			;;
 		"dialog")
-			dialog --title "$title" "${extra_args[@]}" --yes-button "$yes_label" --no-button "$no_label" --yesno "$prompt" $height $width
+			dialog --title "$title" --backtitle "$BACKTITLE" "${extra_args[@]}" --yes-button "$yes_label" --no-button "$no_label" --yesno "$prompt" $height $width
 			;;
 		"read")
 			read -p "$prompt [$yes_label/$no_label]: " choice
