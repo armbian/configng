@@ -51,7 +51,7 @@ function module_wireguard () {
 			# Check if the image is already present
 			${module_options["module_wireguard,feature"]} ${commands[6]}
 			if [[ $? -ne 0 ]]; then
-				docker pull lscr.io/linuxserver/wireguard:latest || { echo "Couldn't pull image: lscr.io/linuxserver/wireguard:latest"; exit 1; }
+				docker_pull_progress "lscr.io/linuxserver/wireguard:latest" || { echo "Couldn't pull image: lscr.io/linuxserver/wireguard:latest"; exit 1; }
 			fi
 		;;
 		"${commands[1]}")

@@ -37,27 +37,50 @@ docker_pull_progress() {
 		return 1
 	fi
 
-	local pull_output
 	local exit_code
 
 	# Pull image with progress bar using aggressive anti-buffering pipeline
 	# unbuffer: tricks curl into line-buffering
 	# stdbuf -oL: forces jq to line-buffer output
 	# jq --unbuffered: flushes after each object
-	pull_output=$(unbuffer curl --silent --show-error \
+	#
+	# Don't capture output - let dialog_gauge display directly
+	# Use temporary file for error capture
+	local error_file=$(mktemp)
+
+	unbuffer curl --silent --show-error \
 		--unix-socket "$socket_path" \
 		-X POST "http://localhost/$api_version/images/create?fromImage=$image_name" \
-		2>&1 | stdbuf -oL jq -r --unbuffered '
-			select(
-				.progressDetail.current and .progressDetail.total and .id
-			) |
+		2> "$error_file" \
+	| stdbuf -oL jq -r --unbuffered '
+		# Show all status messages, not just ones with progress
+		select(.status != null) |
+		if .progressDetail.current and .progressDetail.total then
+			# Have progress detail - calculate percentage
 			"XXX\n" +
 			((.progressDetail.current / .progressDetail.total) * 100 | floor | tostring) +
-			"\nLayer: " + (.id[0:12]) + "... Status: " + .status +
+			"\n" + (.id // "Unknown") + ": " + .status +
 			"\nXXX"
-		' 2>&1 | dialog_gauge "Pulling $image_name..." 8 70)
+		else
+			# No progress detail - show status with indeterminate progress
+			"XXX\n" +
+			"0\n" +
+			(.id // "Docker") + ": " + .status +
+			"\nXXX"
+		end
+	' 2>> "$error_file" \
+	| dialog_gauge "Pulling" "$image_name" 8 70
 
 	exit_code=$?
+
+	# Clean up error file
+	if [[ -s "$error_file" ]]; then
+		local error_output=$(<"$error_file")
+		rm -f "$error_file"
+	else
+		rm -f "$error_file"
+		error_output=""
+	fi
 
 	if [[ $exit_code -eq 0 ]]; then
 		# Verify image was pulled
@@ -71,7 +94,7 @@ docker_pull_progress() {
 			return 1
 		fi
 	else
-		dialog_msgbox "Pull Failed" "Failed to pull image $image_name.\n\nExit code: $exit_code\n\n${pull_output}" 12 60
+		dialog_msgbox "Pull Failed" "Failed to pull image $image_name.\n\nExit code: $exit_code\n\n${error_output}" 12 60
 		return 1
 	fi
 
