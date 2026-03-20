@@ -568,6 +568,17 @@ module_options+=(
 	["dialog_menu,status"]="Active"
 )
 
+#
+# Function to strip dialog color codes
+# Removes \Z sequences (e.g., \Zb\Z1\Zn) used by dialog colors
+# Used when whiptail is active since it doesn't support color codes
+#
+strip_color_codes() {
+	local text="$1"
+	# Remove all dialog color escape sequences \Z<char>
+	echo "$text" | sed 's/\\Z[bnu0-9]//g'
+}
+
 # Display a menu dialog with proper redirection for each dialog tool
 dialog_menu() {
 	local title="$1"
@@ -631,11 +642,11 @@ dialog_menu() {
 			else
 				whiptail_options=("${options[@]}")
 			fi
-			whiptail --title "$title" "${whiptail_args[@]}" --menu "$prompt" $height $width $list_height "${whiptail_options[@]}" 3>&1 1>&2 2>&3
+			whiptail --title "$(strip_color_codes "$title")" "${whiptail_args[@]}" --backtitle "$(strip_color_codes "$BACKTITLE")" --menu "$prompt" $height $width $list_height "${whiptail_options[@]}" 3>&1 1>&2 2>&3
 			;;
 		"dialog")
 			# dialog outputs selection to stderr by default; swap stdout/stderr (3>&1 1>&2 2>&3) to capture stderr to stdout for command substitution
-			dialog --title "$title" "${extra_args[@]}" --menu "$prompt" $height $width $list_height "${options[@]}" 3>&1 1>&2 2>&3
+			dialog --colors --title "$title" "${extra_args[@]}" --backtitle "$BACKTITLE" --menu "$prompt" $height $width $list_height "${options[@]}" 3>&1 1>&2 2>&3
 			;;
 		"read")
 			# Fallback to read - handle --no-items and --item-help if present
@@ -709,11 +720,11 @@ dialog_inputbox() {
 
 	case "$DIALOG" in
 		"whiptail")
-			whiptail --title "$title" "${extra_args[@]}" --inputbox "$prompt" $height $width "$default" 3>&1 1>&2 2>&3
+			whiptail --title "$(strip_color_codes "$title")" "${extra_args[@]}" --backtitle "$(strip_color_codes "$BACKTITLE")" --inputbox "$prompt" $height $width "$default" 3>&1 1>&2 2>&3
 			;;
 		"dialog")
 			# dialog outputs selection to stderr by default; swap stdout/stderr (3>&1 1>&2 2>&3) to capture stderr to stdout for command substitution
-			dialog --title "$title" "${extra_args[@]}" --inputbox "$prompt" $height $width "$default" 3>&1 1>&2 2>&3
+			dialog --colors --title "$title" "${extra_args[@]}" --backtitle "$BACKTITLE" --inputbox "$prompt" $height $width "$default" 3>&1 1>&2 2>&3
 			;;
 		"read")
 			read -p "$prompt [$default]: " result
@@ -741,11 +752,11 @@ dialog_passwordbox() {
 
 	case "$DIALOG" in
 		"whiptail")
-			whiptail --title "$title" "${extra_args[@]}" --passwordbox "$prompt" $height $width 3>&1 1>&2 2>&3
+			whiptail --title "$(strip_color_codes "$title")" "${extra_args[@]}" --backtitle "$(strip_color_codes "$BACKTITLE")" --passwordbox "$prompt" $height $width 3>&1 1>&2 2>&3
 			;;
 		"dialog")
 			# dialog outputs selection to stderr by default; swap stdout/stderr (3>&1 1>&2 2>&3) to capture stderr to stdout for command substitution
-			dialog --title "$title" "${extra_args[@]}" --insecure --passwordbox "$prompt" $height $width 3>&1 1>&2 2>&3
+			dialog --colors --title "$title" "${extra_args[@]}" --backtitle "$BACKTITLE" --insecure --passwordbox "$prompt" $height $width 3>&1 1>&2 2>&3
 			;;
 		"read")
 			# For read mode, use read -s to hide input
@@ -777,11 +788,11 @@ dialog_yesno() {
 
 	case "$DIALOG" in
 		"whiptail")
-			whiptail --title "$title" --backtitle "$BACKTITLE" "${extra_args[@]}" --yes-button "$yes_label" --no-button "$no_label" --yesno "$prompt" $height $width 3>&1 1>&2 2>&3
+			whiptail --title "$(strip_color_codes "$title")" "${extra_args[@]}" --backtitle "$(strip_color_codes "$BACKTITLE")" --yes-button "$yes_label" --no-button "$no_label" --yesno "$prompt" $height $width 3>&1 1>&2 2>&3
 			clear
 			;;
 		"dialog")
-			dialog --title "$title" --backtitle "$BACKTITLE" --clear "${extra_args[@]}" --yes-button "$yes_label" --no-button "$no_label" --yesno "$prompt" $height $width
+			dialog --clear --colors --title "$title" "${extra_args[@]}" --backtitle "$BACKTITLE" --yes-button "$yes_label" --no-button "$no_label" --yesno "$prompt" $height $width
 			;;
 		"read")
 			read -p "$prompt [$yes_label/$no_label]: " choice
@@ -810,10 +821,10 @@ dialog_msgbox() {
 
 	case "$DIALOG" in
 		"whiptail")
-			whiptail --title "$title" "${extra_args[@]}" --msgbox "$prompt" $height $width
+			whiptail --title "$(strip_color_codes "$title")" "${extra_args[@]}" --backtitle "$(strip_color_codes "$BACKTITLE")" --msgbox "$prompt" $height $width
 			;;
 		"dialog")
-			dialog --title "$title" "${extra_args[@]}" --msgbox "$prompt" $height $width
+			dialog --colors --title "$title" "${extra_args[@]}" --backtitle "$BACKTITLE" --msgbox "$prompt" $height $width
 			;;
 		"read")
 			echo "$prompt"
@@ -841,10 +852,10 @@ dialog_infobox() {
 
 	case "$DIALOG" in
 		"whiptail")
-			whiptail --title "$title" "${extra_args[@]}" --infobox "$prompt" $height $width
+			whiptail --title "$(strip_color_codes "$title")" "${extra_args[@]}" --backtitle "$(strip_color_codes "$BACKTITLE")" --infobox "$prompt" $height $width
 			;;
 		"dialog")
-			TERM=ansi dialog --title "$title" "${extra_args[@]}" --infobox "$prompt" $height $width
+			TERM=ansi dialog --colors --title "$title" "${extra_args[@]}" --backtitle "$BACKTITLE" --infobox "$prompt" $height $width
 			;;
 		"read")
 			echo "$prompt"
@@ -871,10 +882,10 @@ dialog_gauge() {
 	local extra_args=("${@:5}")
 	case "$DIALOG" in
 		"whiptail")
-			whiptail --title "$title" "${extra_args[@]}" --gauge "$prompt" $height $width 0
+			whiptail --title "$(strip_color_codes "$title")" "${extra_args[@]}" --backtitle "$(strip_color_codes "$BACKTITLE")" --gauge "$prompt" $height $width 0
 			;;
 		"dialog")
-			dialog --title "$title" "${extra_args[@]}" --gauge "$prompt" $height $width 0
+			dialog --colors --title "$title" "${extra_args[@]}" --backtitle "$BACKTITLE" --gauge "$prompt" $height $width 0
 			;;
 		"read")
 			# For read mode, just display the prompt
@@ -939,11 +950,11 @@ dialog_checklist() {
 
 	case "$DIALOG" in
 		"whiptail")
-			whiptail --title "$title" "${extra_args[@]}" --checklist "$prompt" $height $width $list_height "${options[@]}" 3>&1 1>&2 2>&3
+			whiptail --title "$(strip_color_codes "$title")" "${extra_args[@]}" --backtitle "$(strip_color_codes "$BACKTITLE")" --checklist "$prompt" $height $width $list_height "${options[@]}" 3>&1 1>&2 2>&3
 			;;
 		"dialog")
 			# dialog outputs selection to stderr by default; swap stdout/stderr (3>&1 1>&2 2>&3) to capture stderr to stdout for command substitution
-			dialog --title "$title" "${extra_args[@]}" --checklist "$prompt" $height $width $list_height "${options[@]}" 3>&1 1>&2 2>&3
+			dialog --colors --title "$title" "${extra_args[@]}" --backtitle "$BACKTITLE" --checklist "$prompt" $height $width $list_height "${options[@]}" 3>&1 1>&2 2>&3
 			;;
 		"read")
 			# Fallback to read - handle checklist by showing numbered list
@@ -1012,11 +1023,11 @@ dialog_radiolist() {
 
 	case "$DIALOG" in
 		"whiptail")
-			whiptail --title "$title" "${extra_args[@]}" --radiolist "$prompt" $height $width $list_height "${options[@]}" 3>&1 1>&2 2>&3
+			whiptail --title "$(strip_color_codes "$title")" "${extra_args[@]}" --backtitle "$(strip_color_codes "$BACKTITLE")" --radiolist "$prompt" $height $width $list_height "${options[@]}" 3>&1 1>&2 2>&3
 			;;
 		"dialog")
 			# dialog outputs selection to stderr by default; swap stdout/stderr (3>&1 1>&2 2>&3) to capture stderr to stdout for command substitution
-			dialog --title "$title" "${extra_args[@]}" --radiolist "$prompt" $height $width $list_height "${options[@]}" 3>&1 1>&2 2>&3
+			dialog --colors --title "$title" "${extra_args[@]}" --backtitle "$BACKTITLE" --radiolist "$prompt" $height $width $list_height "${options[@]}" 3>&1 1>&2 2>&3
 			;;
 		"read")
 			# Fallback to read - handle radiolist by showing numbered list

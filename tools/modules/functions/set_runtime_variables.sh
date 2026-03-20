@@ -89,8 +89,8 @@ function set_runtime_variables() {
 		TRANSMISSION_WHITELIST+=",${docker_subnet}.*.*"
 	fi
 
-	BACKTITLE="Contribute: https://github.com/armbian/configng"
-	TITLE="Armbian configuration utility"
+	BACKTITLE="\Zb\Z7Donate:\Zn https://github.com/sponsors/armbian | \Zb\Z7Connect:\Zn https://forum.armbian.com | \Zb\Z7Explore:\Zn https://docs.armbian.com/"
+	TITLE="armbian-config"
 	[[ -z "${DEFAULT_ADAPTER// /}" ]] && DEFAULT_ADAPTER="lo"
 	# zfs subsystem - determine if our kernel is not too recent
 	ZFS_DKMS_VERSION=$(LC_ALL=C apt-cache policy zfs-dkms | grep Candidate | xargs | cut -d" " -f2 | cut -c-5)
