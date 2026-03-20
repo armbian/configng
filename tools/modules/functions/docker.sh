@@ -11,14 +11,6 @@ docker_pull_progress() {
 	local api_version="v1.41"
 	local socket_path="/var/run/docker.sock"
 
-	# Check dependencies
-	for cmd in curl jq dialog unbuffer stdbuf; do
-		if ! command -v "$cmd" &> /dev/null; then
-			dialog_msgbox "Dependency Error" "Required command '$cmd' is not installed.\nPlease install it to use this feature." 10 60
-			return 1
-		fi
-	done
-
 	# Argument validation
 	if [[ -z "$image_name" ]]; then
 		dialog_msgbox "Usage Error" "No image name provided.\n\nUsage: docker_pull_progress <image_name>" 10 60
@@ -88,13 +80,13 @@ docker_pull_progress() {
 		image_id=$(docker images -q "$image_name" 2>/dev/null | head -n 1)
 
 		if [[ -n "$image_id" ]]; then
-			dialog_msgbox "Success" "Successfully pulled $image_name!\n\nImage ID: ${image_id:0:12}" 10 60
+			dialog_infobox "Success" "Successfully pulled $image_name!\n\nImage ID: ${image_id:0:12}" 10 60
 		else
-			dialog_msgbox "Warning" "Pull command completed but image not found.\nThis may indicate a partial pull." 10 60
+			dialog_infobox "Warning" "Pull command completed but image not found.\nThis may indicate a partial pull." 10 60
 			return 1
 		fi
 	else
-		dialog_msgbox "Pull Failed" "Failed to pull image $image_name.\n\nExit code: $exit_code\n\n${error_output}" 12 60
+		dialog_infobox "Pull Failed" "Failed to pull image $image_name.\n\nExit code: $exit_code\n\n${error_output}" 12 60
 		return 1
 	fi
 

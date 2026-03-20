@@ -30,6 +30,21 @@ function set_runtime_variables() {
 		missing_dependencies+=("jq")
 	fi
 
+	# Check if curl is available (required for Docker API)
+	if ! [[ -x "$(command -v curl)" ]]; then
+		missing_dependencies+=("curl")
+	fi
+
+	# Check if unbuffer is available (required for real-time Docker pull progress)
+	if ! [[ -x "$(command -v unbuffer)" ]]; then
+		missing_dependencies+=("expect")
+	fi
+
+	# Check if stdbuf is available (required for line buffering)
+	if ! [[ -x "$(command -v stdbuf)" ]]; then
+		missing_dependencies+=("coreutils")
+	fi
+
 	# If any dependencies are missing, print a combined message and exit
 	if [[ ${#missing_dependencies[@]} -ne 0 ]]; then
 		if is_package_manager_running; then
