@@ -146,16 +146,14 @@ module_options+=(
 #
 generate_top_menu() {
 	local json_data="$1"
-	local status="$ARMBIAN $KERNELID ($DISTRO $DISTROID)"
-	local backtitle="$BACKTITLE"
-
+	local status=" "
 
 	while true; do
 		local menu_options=()
 
 		parse_menu_items menu_options --with-help
 
-		local OPTION=$(dialog_menu "$TITLE" "$status" 0 100 10 --backtitle "$backtitle" --ok-button Select --cancel-button Exit --item-help -- "${menu_options[@]}")
+		local OPTION=$(dialog_menu "armbian-config" "$status" 0 100 10 --ok-button Select --cancel-button Exit --item-help -- "${menu_options[@]}")
 		local exitstatus=$?
 
 		if [ $exitstatus = 0 ]; then
