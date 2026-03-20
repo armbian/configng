@@ -178,7 +178,6 @@ module_options+=(
 function generate_menu() {
 	local parent_id="$1"
 	local top_parent_id="$2"
-	local backtitle="$BACKTITLE"
 	local status=""
 	local menu_title
 
@@ -200,7 +199,7 @@ function generate_menu() {
 		local submenu_options=()
 		parse_menu_items submenu_options --with-help
 
-		local OPTION=$(dialog_menu "$menu_title" "$status" 0 100 10 --backtitle "$backtitle" --ok-button Select --cancel-button Back --item-help -- "${submenu_options[@]}")
+		local OPTION=$(dialog_menu "$menu_title" "$status" 0 100 10 --ok-button Select --cancel-button Back --item-help -- "${submenu_options[@]}")
 
 		local exitstatus=$?
 
