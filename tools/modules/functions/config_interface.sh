@@ -572,8 +572,8 @@ module_options+=(
 #
 strip_color_codes() {
 	local text="$1"
-	# Remove all dialog color escape sequences \Z<char>
-	echo "$text" | sed 's/\\Z[bnu0-9]//g'
+	# Remove all dialog color escape sequences \Z<any char>
+	echo "$text" | sed 's/\\Z.//g'
 }
 
 # Display a menu dialog with proper redirection for each dialog tool
