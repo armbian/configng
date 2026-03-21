@@ -34,9 +34,15 @@ function module_adguardhome () {
 			# Create base directory
 			docker_manage_base_dir create "$base_dir" || return 1
 
-			# Configure systemd-resolved if not already done
-			if [[ ! -f "/etc/systemd/resolved.conf.d/armbian-defaults.conf" ]]; then
-				${module_options["module_adguardhome,feature"]} ${commands[1]}
+			# Configure systemd-resolved before starting container
+			if srv_active systemd-resolved; then
+				mkdir -p /etc/systemd/resolved.conf.d/
+				cat > "/etc/systemd/resolved.conf.d/armbian-defaults.conf" <<- EOT
+				[Resolve]
+				DNSStubListener=no
+				EOT
+				srv_restart systemd-resolved
+				sleep 2
 			fi
 
 			docker_operation_progress run "$dockername" \
@@ -56,9 +62,8 @@ function module_adguardhome () {
 			#-p 5443:5443/tcp -p 5443:5443/udp \ # DNSCrypt
 			# See: https://hub.docker.com/r/adguard/adguardhome
 
-			# Configure systemd-resolved to use AdGuard Home
+			# Add DNS configuration after container is running
 			if srv_active systemd-resolved; then
-				mkdir -p /etc/systemd/resolved.conf.d/
 				cat > "/etc/systemd/resolved.conf.d/armbian-defaults.conf" <<- EOT
 				[Resolve]
 				DNS=127.0.0.1
