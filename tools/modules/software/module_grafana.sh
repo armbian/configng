@@ -9,7 +9,7 @@ module_options+=(
 	["module_grafana,group"]="Monitoring"
 	["module_grafana,port"]="3022"
 	["module_grafana,arch"]="x86-64 arm64"
-	["module_grafana,dockerimage"]="grafana/grafana-enterprise"
+	["module_grafana,dockerimage"]="grafana/grafana-enterprise:latest"
 	["module_grafana,dockername"]="grafana"
 )
 #
