@@ -14,7 +14,7 @@ module_options+=(
 )
 
 function download_all_images() {
-	wget -qO- https://github.armbian.com/all-images.json > "${1}/all-images.json"
+	wget -qO- https://github.armbian.com/armbian-images.json > "${1}/all-images.json"
 }
 
 #
