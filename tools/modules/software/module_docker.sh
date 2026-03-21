@@ -23,6 +23,21 @@ function module_docker() {
 	case "$1" in
 		"${commands[0]}")
 			# Install docker from distribution maintained packages
+
+			# Stop and disable Docker first to ensure clean state
+			srv_stop docker 2>/dev/null || true
+			srv_disable docker 2>/dev/null || true
+			srv_stop containerd 2>/dev/null || true
+			srv_disable containerd 2>/dev/null || true
+
+			# Kill any remaining Docker processes
+			killall dockerd containerd 2>/dev/null || true
+			sleep 2
+
+			# Reset systemd failure state
+			systemctl reset-failed docker 2>/dev/null || true
+			systemctl reset-failed containerd 2>/dev/null || true
+
 			pkg_update
 			if [[ "${DISTROID}" == bookworm ]] || [[ "${DISTROID}" == trixie ]]; then
 				# Install docker-ce (upstream) for bookworm
@@ -50,8 +65,90 @@ function module_docker() {
 			if [[ -n "${SUDO_USER}" ]]; then
 				usermod -aG docker "${SUDO_USER}"
 			fi
+
 			srv_enable docker containerd
-			srv_start docker
+
+			# Start Docker and capture exit status
+			if ! srv_start docker 2>/dev/null; then
+				echo "Error: Docker service failed to start"
+				echo ""
+				echo "Service status:"
+				systemctl status docker --no-pager 2>&1 || true
+				echo ""
+				echo "Recent logs:"
+				journalctl -xeu docker.service --no-pager -n 50 2>&1 || true
+				return 1
+			fi
+
+			# Wait for Docker daemon to be responsive with multiple checks
+			local max_wait=60
+			local wait_count=0
+			local socket_path="/var/run/docker.sock"
+			local retry_count=0
+			local max_retries=2
+
+			echo "Waiting for Docker daemon to start..."
+
+			while [[ $wait_count -lt $max_wait ]]; do
+				# Check if service failed during startup - try restart
+				if systemctl is-failed --quiet docker 2>/dev/null; then
+					if [[ $retry_count -lt $max_retries ]]; then
+						echo "Docker service failed, attempting restart (attempt $((retry_count + 1))/$max_retries)..."
+						srv_stop docker 2>/dev/null || true
+						systemctl reset-failed docker 2>/dev/null || true
+						sleep 2
+						srv_start docker 2>/dev/null
+						((retry_count++))
+						continue
+					else
+						echo "Error: Docker service failed after $max_retries restart attempts"
+						echo ""
+						echo "Service status:"
+						systemctl status docker --no-pager 2>&1 || true
+						echo ""
+						echo "Recent logs:"
+						journalctl -xeu docker.service --no-pager -n 50 2>&1 || true
+						return 1
+					fi
+				fi
+
+				# Check 1: Socket exists
+				if [[ ! -S "$socket_path" ]]; then
+					echo "[$((wait_count + 1))/${max_wait}] Waiting for socket..."
+					sleep 1
+					((wait_count++))
+					continue
+				fi
+
+				# Check 2: Service is active
+				if ! systemctl is-active --quiet docker 2>/dev/null; then
+					echo "[$((wait_count + 1))/${max_wait}] Waiting for service to be active..."
+					sleep 1
+					((wait_count++))
+					continue
+				fi
+
+				# Check 3: API is responsive
+				if docker info >/dev/null 2>&1; then
+					echo "Docker daemon is ready!"
+					break
+				fi
+
+				echo "[$((wait_count + 1))/${max_wait}] Waiting for API to respond..."
+				sleep 1
+				((wait_count++))
+			done
+
+			if [[ $wait_count -ge $max_wait ]]; then
+				echo "Error: Docker daemon failed to start within ${max_wait}s"
+				echo "Service status:"
+				systemctl status docker --no-pager 2>&1 || true
+				echo ""
+				echo "Socket check:"
+				ls -la "$socket_path" 2>&1 || true
+				return 1
+			fi
+
 			if ! docker network ls --format "{{.Name}}" | grep -q "^lsio$"; then
 				docker network create lsio
 			fi

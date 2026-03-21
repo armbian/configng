@@ -71,6 +71,10 @@ function set_runtime_variables() {
 	DIALOG_CANCEL=1
 	DIALOG_ESC=255
 
+	# Running container under 1st user
+	DOCKER_USERUID=1000
+	DOCKER_GROUPUID=1000
+
 	# we have our own lsb_release which does not use Python. Others shell install it here
 	if [[ ! -f /usr/bin/lsb_release ]]; then
 		if is_package_manager_running; then
