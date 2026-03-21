@@ -86,7 +86,11 @@ function module_adguardhome () {
 			fi
 		;;
 		"${commands[2]}") # purge
-			${module_options["module_adguardhome,feature"]} ${commands[1]}
+			# Remove container and image first
+			if ! ${module_options["module_adguardhome,feature"]} ${commands[1]}; then
+				return 1
+			fi
+			# Only remove data directory if container/image removal succeeded
 			docker_manage_base_dir remove "$base_dir"
 		;;
 		"${commands[3]}") # status

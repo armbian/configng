@@ -54,8 +54,11 @@ function module_portainer () {
 			docker_operation_progress rmi "$dockerimage"
 		;;
 		"${commands[2]}") # purge
-			${module_options["module_portainer,feature"]} ${commands[1]}
-			# Remove Docker volume
+			# Remove container and image first
+			if ! ${module_options["module_portainer,feature"]} ${commands[1]}; then
+				return 1
+			fi
+			# Only remove Docker volume and data directory if container/image removal succeeded
 			docker volume rm portainer_data 2>/dev/null || true
 			docker_manage_base_dir remove "$base_dir"
 		;;
