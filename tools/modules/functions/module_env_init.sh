@@ -25,6 +25,11 @@ function set_runtime_variables() {
 		fi
 	fi
 
+	# Check if udevadm is available
+	if ! [[ -x "$(command -v udevadm)" ]]; then
+		missing_dependencies+=("udev")
+	fi
+
 	# Check if jq is available
 	if ! [[ -x "$(command -v jq)" ]]; then
 		missing_dependencies+=("jq")
