@@ -8,8 +8,8 @@ module_options+=(
 	["module_netdata,doc_link"]="https://learn.netdata.cloud/"
 	["module_netdata,group"]="Monitoring"
 	["module_netdata,port"]="19999"
-	["module_netdata,arch"]="x86-64 arm64"
-	["module_netdata,dockerimage"]="netdata/netdata"
+	["module_netdata,arch"]="x86-64 arm64 armhf"
+	["module_netdata,dockerimage"]="netdata/netdata:latest"
 	["module_netdata,dockername"]="netdata"
 )
 #
