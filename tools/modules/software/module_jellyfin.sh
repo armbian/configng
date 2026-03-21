@@ -88,8 +88,11 @@ function module_jellyfin () {
 			udevadm control --reload-rules && udevadm trigger
 		;;
 		"${commands[2]}") # purge
-			${module_options["module_jellyfin,feature"]} ${commands[1]}
-			# Only remove config, keep media
+			# Remove container and image first
+			if ! ${module_options["module_jellyfin,feature"]} ${commands[1]}; then
+				return 1
+			fi
+			# Only remove config if container/image removal succeeded, keep media
 			rm -rf "${base_dir}/config" 2>/dev/null || true
 		;;
 		"${commands[3]}") # status

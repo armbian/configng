@@ -151,7 +151,11 @@ function module_netbox () {
 			docker_operation_progress rmi "$dockerimage"
 		;;
 		"${commands[2]}") # purge
-			${module_options["module_netbox,feature"]} ${commands[1]}
+			# Remove container and image first
+			if ! ${module_options["module_netbox,feature"]} ${commands[1]}; then
+				return 1
+			fi
+			# Only purge postgres and data directory if container/image removal succeeded
 			module_postgres purge $DATABASE_USER $DATABASE_PASSWORD $DATABASE_NAME $DATABASE_IMAGE $DATABASE_HOST
 			docker_manage_base_dir remove "$base_dir"
 		;;
