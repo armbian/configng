@@ -9,7 +9,7 @@ module_options+=(
 	["module_uptimekuma,group"]="Downloaders"
 	["module_uptimekuma,port"]="3001"
 	["module_uptimekuma,arch"]="x86-64 arm64"
-	["module_uptimekuma,dockerimage"]="louislam/uptime-kuma:1"
+	["module_uptimekuma,dockerimage"]="louislam/uptime-kuma:2"
 	["module_uptimekuma,dockername"]="uptime-kuma"
 )
 #
