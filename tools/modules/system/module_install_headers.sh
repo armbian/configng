@@ -9,12 +9,13 @@ module_options+=(
 	["module_headers,arch"]=""
 	["module_headers,doc_link"]="https://www.kernel.org/doc/html/latest/"
 	["module_headers,group"]="System"
+	["module_headers,help_remove"]="Remove kernel headers and build dependencies"
 )
 #
 # Module Headers
 #
 function module_headers () {
-	local title="headers"
+	local title="Kernel Headers"
 	local install_pkg=""
 
 	# Determine the correct headers package to install
@@ -75,13 +76,7 @@ function module_headers () {
 			fi
 		;;
 		"${commands[3]}")
-			echo -e "\nUsage: ${module_options["module_headers,feature"]} <command>"
-			echo -e "Commands:  ${module_options["module_headers,example"]}"
-			echo "Available commands:"
-			echo -e "  install  - Install $title."
-			echo -e "  status  - Installation status $title."
-			echo -e "  remove  - Remove $title."
-			echo
+			show_module_help "module_headers" "$title" "" "native"
 		;;
 		*)
 			${module_options["module_headers,feature"]} ${commands[3]}

@@ -893,6 +893,94 @@ dialog_gauge() {
 }
 
 module_options+=(
+	["show_module_help,author"]="@armbian"
+	["show_module_help,desc"]="Generic module help dialog for containers and native installs"
+	["show_module_help,example"]="show_module_help \"module_headers\" \"Kernel Headers\" \"\" \"native\""
+	["show_module_help,feature"]="show_module_help"
+	["show_module_help,status"]="Active"
+)
+
+#
+# Generic module help dialog - works for containers and native installs
+# Usage: show_module_help <module_prefix> <title> [additional_info] [module_type]
+#   module_prefix: e.g., "module_unbound", "module_headers"
+#   title: Display title for the help dialog
+#   additional_info: Optional extra info to append (e.g., port, image)
+#   module_type: Optional, "container" (default) or "native"
+#
+show_module_help() {
+	local module_prefix="$1"
+	local title="$2"
+	local additional_info="${3:-}"
+	local module_type="${4:-container}"
+
+	local feature="${module_options["${module_prefix},feature"]}"
+	local desc="${module_options["${module_prefix},desc"]}"
+	local example="${module_options["${module_prefix},example"]}"
+	local doc_link="${module_options["${module_prefix},doc_link"]}"
+
+	local help_text="Usage: $feature <command>\n\n"
+	help_text+="Available commands:\n\n"
+
+	# Parse commands and create descriptions
+	IFS=' ' read -r -a commands <<< "$example"
+	for cmd in "${commands[@]}"; do
+		# Check if module has custom description for this command
+		local custom_desc="${module_options["${module_prefix},help_${cmd}"]}"
+		if [[ -n "$custom_desc" ]]; then
+			help_text+="  $cmd  - $custom_desc\n"
+			continue
+		fi
+
+		# Fall back to default descriptions based on module type
+		case "$cmd" in
+			install)
+				if [[ "$module_type" == "container" ]]; then
+					help_text+="  install  - Pull Docker image and create container\n"
+				else
+					help_text+="  install  - $desc\n"
+				fi
+				;;
+			remove)
+				if [[ "$module_type" == "container" ]]; then
+					help_text+="  remove   - Remove container and image\n"
+				else
+					help_text+="  remove   - Remove installed packages\n"
+				fi
+				;;
+			purge)
+				if [[ "$module_type" == "container" ]]; then
+					help_text+="  purge    - Remove container, image, and all data directories\n"
+				else
+					help_text+="  purge    - Remove packages and all configuration/data\n"
+				fi
+				;;
+			status)
+				help_text+="  status   - Show installation status\n"
+				;;
+			help)
+				help_text+="  help     - Show this help message\n"
+				;;
+			password)
+				help_text+="  password - Set admin password\n"
+				;;
+			*)
+				help_text+="  $cmd  - $cmd command\n"
+				;;
+		esac
+	done
+
+	[[ -n "$additional_info" ]] && help_text+="\n$additional_info"
+	help_text+="\nDocumentation: $doc_link"
+
+	if [[ "$DIALOG" == "read" ]]; then
+		echo -e "$help_text"
+	else
+		dialog_msgbox "$title Help" "$help_text" 20 70
+	fi
+}
+
+module_options+=(
 	["dialog_checklist,author"]="@armbian"
 	["dialog_checklist,desc"]="Display a checklist dialog using the configured dialog tool"
 	["dialog_checklist,example"]="dialog_checklist \"Title\" \"Prompt\" option1 \"Description 1\" ON option2 \"Description 2\" OFF"
