@@ -295,7 +295,7 @@ function module_wireguard () {
 			docker_is_installed "wireguard" "lscr.io/linuxserver/wireguard"
 		;;
 		"${commands[7]}")
-			docker_show_module_help "module_wireguard" "$title" \
+			show_module_help "module_wireguard" "$title" \
 				"Port: $port (UDP)"
 		;;
 		*)

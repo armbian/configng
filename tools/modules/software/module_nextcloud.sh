@@ -67,7 +67,7 @@ function module_nextcloud () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_nextcloud" "$title" \
+			show_module_help "module_nextcloud" "$title" \
 				"Docker Image: $dockerimage\nPort: $port"
 		;;
 		*)

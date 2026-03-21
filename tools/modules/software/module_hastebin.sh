@@ -69,7 +69,7 @@ function module_hastebin () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_hastebin" "$title" \
+			show_module_help "module_hastebin" "$title" \
 				"Docker Image: $dockerimage\nPort: $port"
 		;;
 		*)

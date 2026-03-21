@@ -60,7 +60,7 @@ function module_uptimekuma () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_uptimekuma" "$title" \
+			show_module_help "module_uptimekuma" "$title" \
 				"Docker Image: $dockerimage\nPort: $port"
 		;;
 		*)

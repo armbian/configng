@@ -65,7 +65,7 @@ function module_homepage () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_homepage" "$title" \
+			show_module_help "module_homepage" "$title" \
 				"Web Interface: http://localhost:${port}\nDocker Image: $dockerimage"
 		;;
 		*)

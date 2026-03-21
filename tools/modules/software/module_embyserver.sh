@@ -68,7 +68,7 @@ function module_embyserver () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_embyserver" "$title" \
+			show_module_help "module_embyserver" "$title" \
 				"Docker Image: $dockerimage\nPort: $port"
 		;;
 		*)

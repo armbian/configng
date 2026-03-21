@@ -115,7 +115,7 @@ function module_pi_hole () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[5]}")
-			docker_show_module_help "module_pi_hole" "$title" \
+			show_module_help "module_pi_hole" "$title" \
 				"Web Interface: http://pi.hole:${port}\nDocker Image: $dockerimage"
 		;;
 		*)

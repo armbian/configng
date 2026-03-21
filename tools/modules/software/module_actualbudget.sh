@@ -65,7 +65,7 @@ function module_actualbudget () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_actualbudget" "$title" \
+			show_module_help "module_actualbudget" "$title" \
 				"Web Interface: http://localhost:${port}\nData Port: 5006\nDocker Image: $dockerimage"
 		;;
 		*)

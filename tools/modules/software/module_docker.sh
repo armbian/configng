@@ -190,7 +190,7 @@ function module_docker() {
 			return 0
 		;;
 		"${commands[4]}")
-			docker_show_module_help "module_docker" "$title" \
+			show_module_help "module_docker" "$title" \
 				"Architecture: ${module_options["module_docker,arch"]}"
 		;;
 		*)

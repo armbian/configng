@@ -104,15 +104,6 @@ docker_create_base_dir() {
 }
 
 #
-# Display module help dialog (wrapper for backwards compatibility)
-# Usage: docker_show_module_help <module_prefix> <title> <additional_info>
-# Note: show_module_help is defined in config_interface.sh
-#
-docker_show_module_help() {
-	show_module_help "$1" "$2" "$3" "container"
-}
-
-#
 # Parse module commands array
 # Usage: docker_parse_commands <module_prefix>
 # Outputs: Array reference to commands

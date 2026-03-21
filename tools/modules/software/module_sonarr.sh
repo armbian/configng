@@ -66,7 +66,7 @@ function module_sonarr () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_sonarr" "$title" \
+			show_module_help "module_sonarr" "$title" \
 				"Web Interface: http://localhost:${port}\nDocker Image: $dockerimage"
 		;;
 		*)

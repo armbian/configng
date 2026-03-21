@@ -70,7 +70,7 @@ function module_octoprint () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_octoprint" "$title" \
+			show_module_help "module_octoprint" "$title" \
 				"Docker Image: $dockerimage\nPort: $port\n\nNote: Camera support requires /dev/video0 device."
 		;;
 		*)

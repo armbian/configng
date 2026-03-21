@@ -145,7 +145,7 @@ function module_immich () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_immich" "$title" \
+			show_module_help "module_immich" "$title" \
 				"Docker Image: $dockerimage\nPort: $port\n\nRequires: Redis and PostgreSQL with vector support"
 		;;
 		*)

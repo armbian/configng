@@ -59,7 +59,7 @@ function module_watchtower () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_watchtower" "$title" \
+			show_module_help "module_watchtower" "$title" \
 				"Docker Image: $dockerimage\nPorts: None\n\nNote: Mounts Docker socket for container updates"
 		;;
 		*)

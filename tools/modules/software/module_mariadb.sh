@@ -68,7 +68,7 @@ function module_mariadb () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_mariadb" "$title" \
+			show_module_help "module_mariadb" "$title" \
 				"Port: ${port}\nDocker Image: $dockerimage"
 		;;
 		*)

@@ -69,7 +69,7 @@ function module_stirling () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_stirling" "$title" \
+			show_module_help "module_stirling" "$title" \
 				"Docker Image: $dockerimage\nPort: $port"
 		;;
 		*)
