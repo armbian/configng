@@ -9,91 +9,63 @@ module_options+=(
 	["module_owncloud,group"]="Database"
 	["module_owncloud,port"]="7787"
 	["module_owncloud,arch"]="x86-64 arm64"
+	["module_owncloud,dockerimage"]="owncloud/server:latest"
+	["module_owncloud,dockername"]="owncloud"
 )
 #
 # Module owncloud
 #
 function module_owncloud () {
-	local title="owncloud"
-	local condition=$(which "$title" 2>/dev/null)
-
-	# Ensure Docker is available for commands that need it (install, remove, purge)
-	if [[ "$1" != "status" && "$1" != "help" ]]; then
-		if ! module_docker status >/dev/null 2>&1; then
-			module_docker install
-		fi
-	fi
-
-	local container=$(docker container ls -a --filter "name=owncloud" --format '{{.ID}}' 2>/dev/null) || echo ""
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' 2>/dev/null | grep 'owncloud' | awk '{print $2}') || echo ""
+	local title="ownCloud"
+	local dockerimage="${module_options["module_owncloud,dockerimage"]}"
+	local dockername="${module_options["module_owncloud,dockername"]}"
+	local port="${module_options["module_owncloud,port"]}"
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_owncloud,example"]}"
 
-	OWNCLOUD_BASE="${SOFTWARE_FOLDER}/owncloud"
+	local base_dir="${SOFTWARE_FOLDER}/$dockername"
 
 	case "$1" in
-		"${commands[0]}")
-			if ! module_docker status >/dev/null 2>&1; then
-				module_docker install
-			fi
-			[[ -d "$OWNCLOUD_BASE" ]] || mkdir -p "$OWNCLOUD_BASE" || { echo "Couldn't create storage directory: $OWNCLOUD_BASE"; exit 1; }
-			docker run -d \
-			--name=owncloud \
-			--net=lsio \
-			-e PUID=1000 \
-			-e PGID=1000 \
-			-e TZ="$(cat /etc/timezone)" \
-			-e "OWNCLOUD_TRUSTED_DOMAINS=${LOCALIPADD}" \
-			-p 7787:8080 \
-			-v "${OWNCLOUD_BASE}/config:/config" \
-			-v "${OWNCLOUD_BASE}/data:/mnt/data" \
-			--restart=always \
-			owncloud/server
-			for i in $(seq 1 20); do
-				state="$(docker inspect -f '{{.State.Status}}' owncloud 2>/dev/null || true)"
-				if [[ "$state" == "running" ]]; then
-				break
-				fi
-				sleep 3
-				if [[ $i -eq 20 ]]; then
-					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs owncloud\`)"
-					exit 1
-				fi
-			done
+		"${commands[0]}") # install
+			# Pull image
+			docker_operation_progress pull "$dockerimage"
+
+			# Create base directory
+			docker_manage_base_dir create "$base_dir" || return 1
+
+			# Create subdirectories
+			mkdir -p "${base_dir}/config" "${base_dir}/data"
+
+			# Run container
+			docker_operation_progress run "$dockername" \
+				-d \
+				--name="$dockername" \
+				--net=lsio \
+				-e PUID="${DOCKER_USERUID}" \
+				-e PGID="${DOCKER_GROUPUID}" \
+				-e TZ="$(cat /etc/timezone)" \
+				-e "OWNCLOUD_TRUSTED_DOMAINS=${LOCALIPADD}" \
+				-p "${port}:8080" \
+				-v "${base_dir}/config:/config" \
+				-v "${base_dir}/data:/mnt/data" \
+				--restart=always \
+				"$dockerimage"
 		;;
-		"${commands[1]}")
-			if [[ "${container}" ]]; then
-				echo "Removing container: $container"
-				docker container rm -f "$container"
-			fi
+		"${commands[1]}") # remove
+			docker_operation_progress rm "$dockername"
+			docker_operation_progress rmi "$dockerimage"
 		;;
-		"${commands[2]}")
+		"${commands[2]}") # purge
 			${module_options["module_owncloud,feature"]} ${commands[1]}
-			if [[ "${image}" ]]; then
-				sleep 2
-				docker image rm -f "$image" 2>/dev/null || true
-			fi
-			if [[ -n "${OWNCLOUD_BASE}" && "${OWNCLOUD_BASE}" != "/" ]]; then
-				rm -rf "${OWNCLOUD_BASE}"
-			fi
+			docker_manage_base_dir remove "$base_dir"
 		;;
-		"${commands[3]}")
-			if [[ "${container}" && "${image}" ]]; then
-				return 0
-			else
-				return 1
-			fi
+		"${commands[3]}") # status
+			docker_is_installed "$dockername" "$dockerimage"
 		;;
-		"${commands[4]}")
-			echo -e "\nUsage: ${module_options["module_owncloud,feature"]} <command>"
-			echo -e "Commands:  ${module_options["module_owncloud,example"]}"
-			echo "Available commands:"
-			echo -e "\tinstall\t- Install $title."
-			echo -e "\tremove\t- Remove $title."
-			echo -e "\tpurge\t- Purge $title data folder."
-			echo -e "\tstatus\t- Installation status $title."
-			echo
+		"${commands[4]}") # help
+			docker_show_module_help "module_owncloud" "$title" \
+				"Docker Image: $dockerimage\nPort: $port"
 		;;
 		*)
 			${module_options["module_owncloud,feature"]} ${commands[4]}

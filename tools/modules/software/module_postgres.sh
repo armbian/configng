@@ -9,110 +9,79 @@ module_options+=(
 	["module_postgres,group"]="Database"
 	["module_postgres,port"]="5432"
 	["module_postgres,arch"]="x86-64 arm64"
+	["module_postgres,dockerimage"]="tensorchord/pgvecto-rs:pg14-v0.2.0"
+	["module_postgres,dockername"]="postgres"
 )
 
 #
-# Module postgres
+# Module PostgreSQL
 #
 function module_postgres () {
-	local title="postgres"
-	local condition=$(which "$title" 2>/dev/null)
-
-	# Ensure Docker is available for commands that need it (install, remove, purge)
-	if [[ "$1" != "status" && "$1" != "help" ]]; then
-		if ! module_docker status >/dev/null 2>&1; then
-			module_docker install
-		fi
-	fi
-
-	# Accept optional parameters
-	local POSTGRES_USER="$2"
-	local POSTGRES_PASSWORD="$3"
-	local POSTGRES_DB="$4"
-	local POSTGRES_IMAGE="$5"
-	local POSTGRES_TAG="$6"
-	local POSTGRES_CONTAINER="$7"
-
-	# Defaults if nothing is set
-	POSTGRES_USER="${POSTGRES_USER:-armbian}"
-	POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-armbian}"
-	POSTGRES_DB="${POSTGRES_DB:-armbian}"
-	POSTGRES_IMAGE="${POSTGRES_IMAGE:-tensorchord/pgvecto-rs}"
-	POSTGRES_TAG="${POSTGRES_TAG:-pg14-v0.2.0}"
-	POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-postgres}"
-	local container=$(docker container ls -a --filter "name=^${POSTGRES_CONTAINER}$" --format '{{.ID}}' 2>/dev/null) || echo ""
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' 2>/dev/null | grep "${POSTGRES_IMAGE}" | awk '{print $2}') || echo ""
+	local title="PostgreSQL"
+	local port="${module_options["module_postgres,port"]}"
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_postgres,example"]}"
 
-	POSTGRES_BASE="${SOFTWARE_FOLDER}/${POSTGRES_CONTAINER}"
+	# Accept optional parameters
+	local postgres_user="${2:-armbian}"
+	local postgres_password="${3:-armbian}"
+	local postgres_db="${4:-armbian}"
+	local postgres_image="${5:-tensorchord/pgvecto-rs}"
+	local postgres_tag="${6:-pg14-v0.2.0}"
+	local postgres_container="${7:-postgres}"
+
+	local dockerimage="${postgres_image}:${postgres_tag}"
+	local dockername="$postgres_container"
+	local base_dir="${SOFTWARE_FOLDER}/${postgres_container}"
 
 	case "$1" in
-		"${commands[0]}")
-			if ! module_docker status >/dev/null 2>&1; then
-				module_docker install
-			fi
-			[[ -d "$POSTGRES_BASE" ]] || mkdir -p "$POSTGRES_BASE" || { echo "Couldn't create storage directory: $POSTGRES_BASE"; exit 1; }
-			# Download or update image
-			docker pull $POSTGRES_IMAGE
-			docker run -d \
-			--net=lsio \
-			--name ${POSTGRES_CONTAINER} \
-			--restart=always \
-			-e POSTGRES_USER=${POSTGRES_USER} \
-			-e POSTGRES_PASSWORD=${POSTGRES_PASSWORD} \
-			-e POSTGRES_DB=${POSTGRES_DB} \
-			-e TZ="$(cat /etc/timezone)" \
-			-v "${POSTGRES_BASE}/${POSTGRES_CONTAINER}/data:/var/lib/postgresql/data" \
-			${POSTGRES_IMAGE}:${POSTGRES_TAG}
-			for i in $(seq 1 20); do
-				state="$(docker inspect -f '{{.State.Status}}' ${POSTGRES_CONTAINER} 2>/dev/null || true)"
-				if [[ "$state" == "running" ]]; then
-				break
-				fi
-				sleep 3
-				if [[ $i -eq 20 ]]; then
-					echo -e "
-Timed out waiting for ${title} to start, consult logs (\`docker logs ${POSTGRES_CONTAINER}\`)"
-					exit 1
-				fi
-			done
+		"${commands[0]}") # install
+			# Pull image (handles Docker installation and already-installed check)
+			docker_operation_progress pull "$dockerimage"
+
+			# Create base directory
+			docker_manage_base_dir create "$base_dir" || return 1
+
+			docker_operation_progress run "$dockername" \
+				-d \
+				--name="$dockername" \
+				--net=lsio \
+				--restart=always \
+				-e POSTGRES_USER="${postgres_user}" \
+				-e POSTGRES_PASSWORD="${postgres_password}" \
+				-e POSTGRES_DB="${postgres_db}" \
+				-e TZ="$(cat /etc/timezone)" \
+				-v "${base_dir}/${postgres_container}/data:/var/lib/postgresql/data" \
+				-p "${port}:5432" \
+				"$dockerimage"
 		;;
-		"${commands[1]}")
-			if [[ "${container}" ]]; then
-				echo "Removing container: $container"
-				docker container rm -f "$container"
-			fi
+		"${commands[1]}") # remove
+			# Remove container and image (functions handle existence checks)
+			docker_operation_progress rm "$dockername"
+			docker_operation_progress rmi "$dockerimage"
 		;;
-		"${commands[2]}")
-			${module_options["module_postgres,feature"]} ${commands[1]} $POSTGRES_USER $POSTGRES_PASSWORD $POSTGRES_DB $POSTGRES_IMAGE $POSTGRES_CONTAINER
-			if [[ "${image}" ]]; then
-				sleep 2
-				docker image rm -f "$image" 2>/dev/null || true
-			fi
-			${module_options["module_postgres,feature"]} ${commands[1]} $POSTGRES_USER $POSTGRES_PASSWORD $POSTGRES_DB $POSTGRES_IMAGE $POSTGRES_CONTAINER
-			if [[ -n "${POSTGRES_BASE}" && "${POSTGRES_BASE}" != "/" ]]; then
-				rm -rf "${POSTGRES_BASE}"
-			fi
+		"${commands[2]}") # purge
+			${module_options["module_postgres,feature"]} ${commands[1]}
+			docker_manage_base_dir remove "$base_dir"
 		;;
-		"${commands[3]}")
-			if [[ "${container}" && "${image}" ]]; then
-				return 0
+		"${commands[3]}") # status
+			# Return 0 if installed, 1 if not (used by menu system)
+			docker_is_installed "$dockername" "$dockerimage"
+		;;
+		"${commands[4]}") # help
+			if [[ -t 1 ]]; then
+				dialog_msgbox "$title Help" \
+					"Usage: ${module_options["module_postgres,feature"]} <command> [username] [password] [database]\n\nCommands: ${module_options["module_postgres,example"]}\n\ninstall [username] [password] [database] - Install $title (defaults: armbian/armbian/armbian)\nremove - Remove $title\npurge  - Purge $title data\nstatus - Check $title installation status" 15 70
 			else
-				return 1
+				echo -e "\nUsage: ${module_options["module_postgres,feature"]} <command> [username] [password] [database]"
+				echo "Commands: ${module_options["module_postgres,example"]}"
+				echo -e "\tinstall [username] [password] [database] - Install ${title} (defaults: armbian/armbian/armbian)"
+				echo -e "\tremove - Remove ${title}"
+				echo -e "\tpurge  - Purge ${title} data"
+				echo -e "\tstatus - Check ${title} installation status"
+				echo
 			fi
-		;;
-		"${commands[4]}")
-			# Help
-			echo -e "
-Usage: ${module_options["module_postgres,feature"]} <command> [username] [password] [database]"
-			echo "Commands: ${module_options["module_postgres,example"]}"
-			echo -e "	install [username] [password] [database] - Install ${title} (defaults: armbian/armbian/armbian)"
-			echo -e "	remove - Remove ${title}"
-			echo -e "	purge  - Purge ${title} data"
-			echo -e "	status - Check ${title} installation status"
-			echo
 		;;
 		*)
 			${module_options["module_postgres,feature"]} ${commands[4]}

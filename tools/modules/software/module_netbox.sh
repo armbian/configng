@@ -9,20 +9,24 @@ module_options+=(
 	["module_netbox,group"]="Management"
 	["module_netbox,port"]="8222"
 	["module_netbox,arch"]="x86-64 arm64"
+	["module_netbox,dockerimage"]="netboxcommunity/netbox:latest"
+	["module_netbox,dockername"]="netbox"
 )
 
 #
 # Module netbox
 #
 function module_netbox () {
-	local title="netbox"
-	local condition=$(which "$title" 2>/dev/null)
+	local title="NetBox"
+	local dockerimage="${module_options["module_netbox,dockerimage"]}"
+	local dockername="${module_options["module_netbox,dockername"]}"
+	local port="${module_options["module_netbox,port"]}"
 
 	# Accept optional parameters
 	local SUPERUSER_EMAIL="$2"
 	local SUPERUSER_PASSWORD="$3"
 
-	# Database
+	# Database configuration
 	local DATABASE_USER="netbox"
 	local DATABASE_PASSWORD="netbox"
 	local DATABASE_NAME="netbox"
@@ -30,18 +34,13 @@ function module_netbox () {
 	local DATABASE_IMAGE="postgres:17-alpine"
 	local DATABASE_PORT="5432"
 
-	if pkg_installed docker-ce; then
-		local container=$(docker ps -q -f "name=^netbox$")
-		local image=$(docker images -q netboxcommunity/netbox)
-	fi
-
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_netbox,example"]}"
 
-	NETBOX_BASE="${SOFTWARE_FOLDER}/netbox"
+	local base_dir="${SOFTWARE_FOLDER}/$dockername"
 
 	case "$1" in
-		"${commands[0]}")
+		"${commands[0]}") # install
 			# Prompt for email and password using dialog
 			[[ -z "$SUPERUSER_EMAIL" ]] && \
 			SUPERUSER_EMAIL=$(dialog_inputbox "Enter NetBox superuser email" "")
@@ -52,11 +51,13 @@ function module_netbox () {
 
 			clear  # Clean up dialog artifacts
 
-			pkg_installed docker-ce || module_docker install
-			[[ -d "$NETBOX_BASE" ]] || mkdir -p "$NETBOX_BASE" || { echo "Couldn't create storage directory: $NETBOX_BASE"; exit 1; }
+			# Create base directory
+			docker_manage_base_dir create "$base_dir" || return 1
 
-			# Install armbian-config dependencies
-			if ! docker container ls -a --format '{{.Names}}' | grep -q '^redis$'; then module_redis install; fi
+			# Install dependencies
+			if ! docker container ls -a --format '{{.Names}}' | grep -q '^redis$'; then
+				module_redis install
+			fi
 			if ! docker container ls -a --format '{{.Names}}' | grep -q "^$DATABASE_HOST$"; then
 				module_postgres install $DATABASE_USER $DATABASE_PASSWORD $DATABASE_NAME $DATABASE_IMAGE $DATABASE_HOST
 			fi
@@ -64,11 +65,10 @@ function module_netbox () {
 			# Generate a random secret key (50+ chars)
 			NETBOX_SECRET_KEY=$(tr -dc 'A-Za-z0-9!@#$%^&*()-_=+' </dev/urandom | head -c 64)
 
-			# Generate starting configuration
-			[[ -d "$NETBOX_BASE/config" ]] || mkdir -p "$NETBOX_BASE/config"
-
-			if [[ ! -f "$NETBOX_BASE/config/configuration.py" ]]; then
-				cat > "$NETBOX_BASE/config/configuration.py" <<- EOT
+			# Create configuration directory and file
+			mkdir -p "$base_dir/config"
+			if [[ ! -f "$base_dir/config/configuration.py" ]]; then
+				cat > "$base_dir/config/configuration.py" <<- EOT
 				ALLOWED_HOSTS = ['*']
 				DATABASE = {
 					'NAME': '$DATABASE_NAME',
@@ -98,45 +98,45 @@ function module_netbox () {
 			EOT
 			fi
 
-			# Download or update image
-			docker pull netboxcommunity/netbox:latest
+			# Pull image
+			docker_operation_progress pull "$dockerimage"
 
-			if ! docker run -d \
-			--name=netbox \
-			--net=lsio \
-			-e TZ="$(cat /etc/timezone)" \
-			-e SUPERUSER_EMAIL="${SUPERUSER_EMAIL}" \
-			-e SUPERUSER_PASSWORD="${SUPERUSER_PASSWORD}" \
-			-e DB_NAME=netbox \
-			-p ${module_options["module_netbox,port"]}:8080 \
-			-v "${NETBOX_BASE}/config:/etc/netbox/config" \
-			-v "${NETBOX_BASE}/reports:/etc/netbox/reports" \
-			-v "${NETBOX_BASE}/scripts:/etc/netbox/scripts" \
-			--restart unless-stopped \
-			netboxcommunity/netbox:latest ; then
-				echo "❌ Failed to start NetBox container"; exit 1
+			# Run container
+			if ! docker_operation_progress run "$dockername" \
+				-d \
+				--name="$dockername" \
+				--net=lsio \
+				-e TZ="$(cat /etc/timezone)" \
+				-e SUPERUSER_EMAIL="${SUPERUSER_EMAIL}" \
+				-e SUPERUSER_PASSWORD="${SUPERUSER_PASSWORD}" \
+				-e DB_NAME=netbox \
+				-p "${port}:8080" \
+				-v "${base_dir}/config:/etc/netbox/config" \
+				-v "${base_dir}/reports:/etc/netbox/reports" \
+				-v "${base_dir}/scripts:/etc/netbox/scripts" \
+				--restart unless-stopped \
+				"$dockerimage"; then
+				echo "❌ Failed to start NetBox container"
+				exit 1
 			fi
 
-			# waiting for web
+			# Wait for web service
 			sleep 5
-
 			if [[ -t 1 ]]; then
-				# We have a terminal, use dialog
 				for s in {1..30}; do
 					for i in {0..100..10}; do
 						echo "$i"
 						sleep 1
 					done
-					if curl -sf http://localhost:${module_options["module_netbox,port"]}/ > /dev/null; then
+					if curl -sf http://localhost:${port}/ > /dev/null; then
 						break
 					fi
 				done | dialog_gauge "NetBox" "Preparing NetBox\n\nPlease wait! (can take a few minutes)"
 			else
-				# No terminal, fallback to echoing progress
 				echo "Waiting for NetBox to become available..."
 				for s in {1..30}; do
 					sleep 10
-					if curl -sf http://localhost:${module_options["module_netbox,port"]}/ > /dev/null; then
+					if curl -sf http://localhost:${port}/ > /dev/null; then
 						echo "✅ NetBox is responding."
 						break
 					fi
@@ -144,41 +144,23 @@ function module_netbox () {
 			fi
 
 			# Delete default API Token
-			docker exec -i netbox /opt/netbox/netbox/manage.py shell -c "from users.models import Token;Token.objects.filter(key='0123456789abcdef0123456789abcdef01234567').delete();"
-
+			docker exec -i "$dockername" /opt/netbox/netbox/manage.py shell -c "from users.models import Token;Token.objects.filter(key='0123456789abcdef0123456789abcdef01234567').delete();"
 		;;
-		"${commands[1]}")
-			if [[ -n "${container}" ]]; then
-				docker container rm -f "$container" >/dev/null
-			fi
+		"${commands[1]}") # remove
+			docker_operation_progress rm "$dockername"
+			docker_operation_progress rmi "$dockerimage"
 		;;
-		"${commands[2]}")
+		"${commands[2]}") # purge
 			${module_options["module_netbox,feature"]} ${commands[1]}
-			if [[ -n "${image}" ]]; then
-				docker image rm "$image" >/dev/null
-			fi
 			module_postgres purge $DATABASE_USER $DATABASE_PASSWORD $DATABASE_NAME $DATABASE_IMAGE $DATABASE_HOST
-			if [[ -n "${NETBOX_BASE}" && "${NETBOX_BASE}" != "/" ]]; then
-				rm -rf "${NETBOX_BASE}"
-			fi
+			docker_manage_base_dir remove "$base_dir"
 		;;
-		"${commands[3]}")
-			if [[ "${container}" && "${image}" ]]; then
-				return 0
-			else
-				return 1
-			fi
+		"${commands[3]}") # status
+			docker_is_installed "$dockername" "$dockerimage"
 		;;
-		"${commands[4]}")
-			echo -e "\nUsage: ${module_options["module_netbox,feature"]} <command>"
-			echo -e "Commands:  ${module_options["module_netbox,example"]}"
-			echo "Available commands:"
-			echo -e "\tinstall\t- Install $title."
-			echo -e "\tremove\t- Remove $title."
-			echo -e "\tpurge\t- Purge $title data folder."
-			echo -e "\tstatus\t- Installation status $title."
-			echo -e "\thelp\t- Show this help message."
-			echo
+		"${commands[4]}") # help
+			docker_show_module_help "module_netbox" "$title" \
+				"Docker Image: $dockerimage\nPort: $port\n\nRequires: Redis and PostgreSQL\n\nOptional arguments for install:\n  superuser_email superuser_password"
 		;;
 		*)
 			${module_options["module_netbox,feature"]} ${commands[4]}

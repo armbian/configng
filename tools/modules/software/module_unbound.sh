@@ -9,7 +9,7 @@ module_options+=(
 	["module_unbound,group"]="DNS"
 	["module_unbound,port"]="5335"
 	["module_unbound,arch"]="x86-64"
-	["module_unbound,dockerimage"]="alpinelinux/unbound"
+	["module_unbound,dockerimage"]="alpinelinux/unbound:latest"
 	["module_unbound,dockername"]="unbound"
 )
 #
