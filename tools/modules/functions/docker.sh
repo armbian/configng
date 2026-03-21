@@ -77,6 +77,8 @@ docker_manage_base_dir() {
 					dialog_msgbox "Error" "Failed to create directory:\n$base_dir" 8 50
 					return 1
 				fi
+				# Set ownership to the Docker user
+				chown -R "${DOCKER_USERUID}:${DOCKER_GROUPUID}" "$base_dir"
 			fi
 			;;
 		remove)
