@@ -33,7 +33,6 @@ docker_ensure_docker() {
 #
 docker_get_container_id() {
 	local container_name="$1"
-	docker_ensure_docker
 	docker container ls -a --filter "name=^${container_name}$" --format '{{.ID}}' 2>/dev/null || echo ""
 }
 
@@ -44,8 +43,7 @@ docker_get_container_id() {
 #
 docker_get_image_ref() {
 	local image_pattern="$1"
-	docker_ensure_docker
-	docker image ls -a --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep "$image_pattern:" | head -1 || echo ""
+	docker image ls -a --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep "$image_pattern" | head -1 || echo ""
 }
 
 #
@@ -354,7 +352,6 @@ docker_operation_progress() {
 		run)
 			# Run container - $target is container name, rest are docker run args
 			local docker_args=("${@:3}")
-
 			(
 				echo "XXX"
 				echo "0"
