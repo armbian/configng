@@ -9,90 +9,61 @@ module_options+=(
 	["module_radarr,group"]="Downloaders"
 	["module_radarr,port"]="7878"
 	["module_radarr,arch"]="x86-64 arm64"
+	["module_radarr,dockerimage"]="lscr.io/linuxserver/radarr:latest"
+	["module_radarr,dockername"]="radarr"
 )
 #
-# Module radarr
+# Module Radarr
 #
 function module_radarr () {
-	local title="radarr"
-	local condition=$(which "$title" 2>/dev/null)
-
-	# Ensure Docker is available for commands that need it (install, remove, purge)
-	if [[ "$1" != "status" && "$1" != "help" ]]; then
-		if ! module_docker status >/dev/null 2>&1; then
-			module_docker install
-		fi
-	fi
-	local container=$(docker container ls -a --filter "name=radarr" --format '{{.ID}}' 2>/dev/null) || echo ""
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' 2>/dev/null | grep 'radarr' | awk '{print $2}') || echo ""
+	local title="Radarr"
+	local dockerimage="${module_options["module_radarr,dockerimage"]}"
+	local dockername="${module_options["module_radarr,dockername"]}"
+	local port="${module_options["module_radarr,port"]}"
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_radarr,example"]}"
 
-	RADARR_BASE="${SOFTWARE_FOLDER}/radarr"
+	local base_dir="${SOFTWARE_FOLDER}/radarr"
 
 	case "$1" in
-		"${commands[0]}")
-			if ! module_docker status >/dev/null 2>&1; then
-				module_docker install
-			fi
-			[[ -d "$RADARR_BASE" ]] || mkdir -p "$RADARR_BASE" || { echo "Couldn't create storage directory: $RADARR_BASE"; exit 1; }
-			docker run -d \
-			--name=radarr \
-			--net=lsio \
-			-e PUID=1000 \
-			-e PGID=1000 \
-			-e TZ="$(cat /etc/timezone)" \
-			-p 7878:7878 \
-			-v "${RADARR_BASE}/config:/config" \
-			-v "${RADARR_BASE}/movies:/movies" `#optional` \
-			-v "${RADARR_BASE}/client:/downloads" `#optional` \
-			--restart=always \
-			lscr.io/linuxserver/radarr:latest
-			for i in $(seq 1 20); do
-				state="$(docker inspect -f '{{.State.Status}}' radarr 2>/dev/null || true)"
-				if [[ "$state" == "running" ]]; then
-				break
-				fi
-				sleep 3
-				if [[ $i -eq 20 ]]; then
-					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs radarr\`)"
-					exit 1
-				fi
-			done
+		"${commands[0]}") # install
+			# Pull image (handles Docker installation and already-installed check)
+			docker_operation_progress pull "$dockerimage"
+
+			# Create base directory
+			docker_manage_base_dir create "$base_dir" || return 1
+
+			docker_operation_progress run "$dockername" \
+				-d \
+				--name="$dockername" \
+				--net=lsio \
+				-e PUID="${DOCKER_USERUID}" \
+				-e PGID="${DOCKER_GROUPUID}" \
+				-e TZ="$(cat /etc/timezone)" \
+				-p "${port}:7878" \
+				-v "${base_dir}/config:/config" \
+				-v "${base_dir}/movies:/movies" \
+				-v "${base_dir}/downloads:/downloads" \
+				--restart=always \
+				"$dockerimage"
 		;;
-		"${commands[1]}")
-			if [[ "${container}" ]]; then
-				echo "Removing container: $container"
-				docker container rm -f "$container"
-			fi
+		"${commands[1]}") # remove
+			# Remove container and image (functions handle existence checks)
+			docker_operation_progress rm "$dockername"
+			docker_operation_progress rmi "$dockerimage"
 		;;
-		"${commands[2]}")
+		"${commands[2]}") # purge
 			${module_options["module_radarr,feature"]} ${commands[1]}
-			if [[ "${image}" ]]; then
-				sleep 2
-				docker image rm -f "$image" 2>/dev/null || true
-			fi
-			if [[ -n "${RADARR_BASE}" && "${RADARR_BASE}" != "/" ]]; then
-				rm -rf "${RADARR_BASE}"
-			fi
+			docker_manage_base_dir remove "$base_dir"
 		;;
-		"${commands[3]}")
-			if [[ "${container}" && "${image}" ]]; then
-				return 0
-			else
-				return 1
-			fi
+		"${commands[3]}") # status
+			# Return 0 if installed, 1 if not (used by menu system)
+			docker_is_installed "$dockername" "$dockerimage"
 		;;
-		"${commands[4]}")
-			echo -e "\nUsage: ${module_options["module_radarr,feature"]} <command>"
-			echo -e "Commands:  ${module_options["module_radarr,example"]}"
-			echo "Available commands:"
-			echo -e "\tinstall\t- Install $title."
-			echo -e "\tstatus\t- Installation status $title."
-			echo -e "\tremove\t- Remove $title."
-			echo -e "\tpurge\t- Purge $title."
-			echo
+		"${commands[4]}") # help
+			docker_show_module_help "module_radarr" "$title" \
+				"Web Interface: http://localhost:${port}\nDocker Image: $dockerimage"
 		;;
 		*)
 			${module_options["module_radarr,feature"]} ${commands[4]}
