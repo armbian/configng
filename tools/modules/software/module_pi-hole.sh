@@ -39,8 +39,16 @@ function module_pi_hole () {
 			# Create base directory
 			docker_manage_base_dir create "$base_dir" || return 1
 
-			# Configure systemd-resolved if not already done
-			[[ ! -f "/etc/systemd/resolved.conf.d/armbian-defaults.conf" ]] && ${module_options["module_pi_hole,feature"]} ${commands[1]}
+			# Configure systemd-resolved before starting container
+			if srv_active systemd-resolved; then
+				mkdir -p /etc/systemd/resolved.conf.d/
+				cat > "/etc/systemd/resolved.conf.d/armbian-defaults.conf" <<- EOT
+				[Resolve]
+				DNSStubListener=no
+				EOT
+				srv_restart systemd-resolved
+				sleep 2
+			fi
 
 			docker_operation_progress run "$dockername" \
 				-d \
@@ -63,9 +71,9 @@ function module_pi_hole () {
 				-e FTLCONF_dns_upstreams="unbound#5335" \
 				"$dockerimage"
 
-			local container_ip=$(docker inspect --format '{{ .NetworkSettings.Networks.lsio.IPAddress }}' "$dockername")
+			# Add container IP to DNS configuration after container is running
 			if srv_active systemd-resolved; then
-				mkdir -p /etc/systemd/resolved.conf.d/
+				local container_ip=$(docker inspect --format '{{ .NetworkSettings.Networks.lsio.IPAddress }}' "$dockername")
 				cat > "/etc/systemd/resolved.conf.d/armbian-defaults.conf" <<- EOT
 				[Resolve]
 				DNS=127.0.0.1 ${container_ip}
