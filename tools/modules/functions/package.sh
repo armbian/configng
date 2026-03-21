@@ -5,6 +5,113 @@ _pkg_have_stdin() { [[ -t 0 ]]; }
 
 declare -A module_options
 module_options+=(
+	["apt_operation_progress,author"]="@igorpecovnik"
+	["apt_operation_progress,desc"]="Internal wrapper for APT operations with progress display"
+	["apt_operation_progress,status"]="Internal"
+)
+
+# Wrapper for apt operations with progress display
+# Replaces debconf-apt-progress with dialog_gauge UI
+# Usage: apt_operation_progress <operation> [apt_args...]
+# Operations: update, upgrade, full-upgrade, install, remove, fix-broken
+apt_operation_progress() {
+	local operation="$1"
+	shift
+	local args=("$@")
+	local title="APT Operation"
+	local error_file=$(mktemp)
+	local exit_code
+
+	case "$operation" in
+		update)
+			title="Package Update"
+			;;
+		upgrade)
+			title="Package Upgrade"
+			;;
+		full-upgrade)
+			title="Full Package Upgrade"
+			;;
+		install)
+			title="Install Package"
+			;;
+		remove|autopurge)
+			title="Remove Package"
+			;;
+		fix-broken)
+			title="Fix Broken Packages"
+			;;
+		*)
+			title="APT Operation"
+			;;
+	esac
+
+	if [[ "$DIALOG" == "read" ]]; then
+		# For read mode, just run without progress
+		if [[ "$operation" == "fix-broken" ]]; then
+			apt-get -y --fix-broken install "$@" 2>&1 | tee "$error_file"
+		elif [[ "$operation" == "autopurge" ]]; then
+			apt-get -y autopurge "$@" 2>&1 | tee "$error_file"
+		else
+			apt-get -y "$operation" "$@" 2>&1 | tee "$error_file"
+		fi
+		exit_code=${PIPESTATUS[0]}
+	else
+		# With dialog/whiptail, show progress
+		(
+			echo "XXX"
+			echo "0"
+			echo "Starting $operation..."
+			echo "XXX"
+
+			# Build apt command
+			local apt_cmd
+			if [[ "$operation" == "fix-broken" ]]; then
+				apt_cmd="DEBIAN_FRONTEND=noninteractive apt-get -y --fix-broken install ${args[*]}"
+			elif [[ "$operation" == "autopurge" ]]; then
+				apt_cmd="DEBIAN_FRONTEND=noninteractive apt-get -y autopurge ${args[*]}"
+			else
+				apt_cmd="DEBIAN_FRONTEND=noninteractive apt-get -y $operation ${args[*]}"
+			fi
+
+			# Run apt command and capture output
+			eval "$apt_cmd" 2>&1 | while IFS= read -r line; do
+				# Parse apt output for progress indicators
+				if [[ "$line" =~ ^(Hit|Get|Reading|Download|Fetch|Hit|Preparing|Unpacking|Setting|Selecting|Processing) ]]; then
+					echo "XXX"
+					echo "0"
+					echo "$line"
+					echo "XXX"
+				elif [[ "$line" =~ (Err|Error|FAILED|could not|unable to) ]]; then
+					echo "XXX"
+					echo "0"
+					echo "Error: $line"
+					echo "XXX"
+				fi
+			done
+
+			echo "XXX"
+			echo "100"
+			echo "$operation complete!"
+			echo "XXX"
+		) | dialog_gauge "$title" "Processing $operation..." 8 80
+
+		exit_code=$?
+	fi
+
+	# Show any errors
+	if [[ -s "$error_file" ]]; then
+		if [[ $exit_code -ne 0 ]]; then
+			dialog_msgbox "$title Failed" "$operation failed.\n\n$(cat "$error_file" | tail -20)" 12 60
+		fi
+	fi
+
+	rm -f "$error_file"
+	return $exit_code
+}
+
+declare -A module_options
+module_options+=(
 	["pkg_configure,author"]="@dimitry-ishenko"
 	["pkg_configure,desc"]="Configure an unconfigured package"
 	["pkg_configure,example"]="pkg_configure"
@@ -27,7 +134,7 @@ module_options+=(
 
 pkg_full_upgrade()
 {
-	_pkg_have_stdin && debconf-apt-progress -- apt-get -y full-upgrade "$@" || apt-get -y full-upgrade "$@"
+	apt_operation_progress full-upgrade "$@"
 }
 
 module_options+=(
@@ -41,12 +148,12 @@ module_options+=(
 pkg_install()
 {
 	local exit_code
-	_pkg_have_stdin && debconf-apt-progress -- apt-get -y install "$@" || apt-get -y install "$@"
+	apt_operation_progress install "$@"
 	exit_code=$?
 
 	if [[ $exit_code == 100 ]]; then
-		_pkg_have_stdin && dpkg --configure -a
-		_pkg_have_stdin && debconf-apt-progress -- apt-get -y install "$@" || apt-get -y install "$@"
+		dpkg --configure -a
+		apt_operation_progress install "$@"
 		exit_code=$?
 	fi
 
@@ -78,12 +185,12 @@ module_options+=(
 pkg_remove()
 {
 	local exit_code
-	_pkg_have_stdin && debconf-apt-progress -- apt-get -y autopurge "$@" || apt-get -y autopurge "$@"
+	apt_operation_progress autopurge "$@"
 	exit_code=$?
 
 	if [[ $exit_code == 100 ]]; then
-		_pkg_have_stdin && dpkg --configure -a
-		_pkg_have_stdin && debconf-apt-progress -- apt-get -y autopurge "$@" || apt-get -y autopurge "$@"
+		dpkg --configure -a
+		apt_operation_progress autopurge "$@"
 		exit_code=$?
 	fi
 
@@ -100,7 +207,7 @@ module_options+=(
 
 pkg_update()
 {
-	_pkg_have_stdin && debconf-apt-progress -- apt-get -y update || apt-get -y update
+	apt_operation_progress update
 }
 
 module_options+=(
@@ -113,7 +220,7 @@ module_options+=(
 
 pkg_upgrade()
 {
-	_pkg_have_stdin && debconf-apt-progress -- apt-get -y upgrade "$@" || apt-get -y upgrade "$@"
+	apt_operation_progress upgrade "$@"
 }
 
 module_options+=(
@@ -126,5 +233,5 @@ module_options+=(
 
 pkg_fix()
 {
-	_pkg_have_stdin && debconf-apt-progress -- apt-get -y --fix-broken install "$@" || apt-get -y --fix-broken install "$@"
+	apt_operation_progress fix-broken "$@"
 }
