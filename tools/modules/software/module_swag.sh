@@ -102,7 +102,7 @@ function module_swag() {
 			fi
 		;;
 		"${commands[5]}") # help
-			docker_show_module_help "module_swag" "$title" \
+			show_module_help "module_swag" "$title" \
 				"Docker Image: $dockerimage\nPorts: 80, 443\n\nThis module requires a domain name during install."
 		;;
 		*)

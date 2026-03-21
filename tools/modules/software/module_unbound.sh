@@ -76,7 +76,7 @@ function module_unbound () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_unbound" "$title" \
+			show_module_help "module_unbound" "$title" \
 				"Docker Image: $dockerimage\nPort: $port (TCP/UDP)"
 		;;
 		*)

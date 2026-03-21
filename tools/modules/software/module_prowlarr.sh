@@ -63,7 +63,7 @@ function module_prowlarr () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_prowlarr" "$title" \
+			show_module_help "module_prowlarr" "$title" \
 				"Docker Image: $dockerimage\nPort: $port"
 		;;
 		*)

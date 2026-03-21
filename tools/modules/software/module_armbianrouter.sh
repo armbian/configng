@@ -94,7 +94,7 @@ function module_armbianrouter () {
 			docker_is_installed "$container_name" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_armbianrouter" "$title" \
+			show_module_help "module_armbianrouter" "$title" \
 				"Docker Image: $dockerimage\nPorts: 8080, 8081, 8082, 8083, 8084, 8100\n\nNote: This installs 6 router containers"
 		;;
 		*)

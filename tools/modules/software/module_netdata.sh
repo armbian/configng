@@ -75,7 +75,7 @@ function module_netdata () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_netdata" "$title" \
+			show_module_help "module_netdata" "$title" \
 				"Web Interface: http://localhost:${port}\nDocker Image: $dockerimage\n\nUses host networking for system monitoring"
 		;;
 		*)

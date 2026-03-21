@@ -66,7 +66,7 @@ function module_sabnzbd () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_sabnzbd" "$title" \
+			show_module_help "module_sabnzbd" "$title" \
 				"Web Interface: http://localhost:${port}\nDocker Image: $dockerimage"
 		;;
 		*)

@@ -61,7 +61,7 @@ function module_redis () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_redis" "$title" \
+			show_module_help "module_redis" "$title" \
 				"Port: ${port}\nDocker Image: $dockerimage"
 		;;
 		*)

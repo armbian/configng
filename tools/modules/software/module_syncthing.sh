@@ -72,7 +72,7 @@ function module_syncthing () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_syncthing" "$title" \
+			show_module_help "module_syncthing" "$title" \
 				"Docker Image: $dockerimage\nPorts: 8884 (Web UI), 22000 (TCP/UDP), 21027 (UDP)"
 		;;
 		*)

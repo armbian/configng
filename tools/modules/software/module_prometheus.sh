@@ -74,7 +74,7 @@ function module_prometheus () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_prometheus" "$title" \
+			show_module_help "module_prometheus" "$title" \
 				"Docker Image: $dockerimage\nPort: $port"
 		;;
 		*)

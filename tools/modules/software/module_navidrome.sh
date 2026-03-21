@@ -67,7 +67,7 @@ function module_navidrome () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_navidrome" "$title" \
+			show_module_help "module_navidrome" "$title" \
 				"Docker Image: $dockerimage\nPort: $port"
 		;;
 		*)

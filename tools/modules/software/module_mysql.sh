@@ -98,7 +98,7 @@ function module_mysql () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_mysql" "$title" \
+			show_module_help "module_mysql" "$title" \
 				"Port: ${port}\nDocker Image: $dockerimage\n\nOptionally accepts arguments:\n root_password database user user_password"
 		;;
 		*)

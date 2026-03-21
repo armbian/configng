@@ -95,7 +95,7 @@ function module_duplicati () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_duplicati" "$title" \
+			show_module_help "module_duplicati" "$title" \
 				"Docker Image: $dockerimage\nPort: $port\n\nOptional arguments for install:\n  encryption_key webui_password"
 		;;
 		*)

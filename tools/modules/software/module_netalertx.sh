@@ -95,7 +95,7 @@ function module_netalertx () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_netalertx" "$title" \
+			show_module_help "module_netalertx" "$title" \
 				"Docker Image: $dockerimage\nPort: $port (uses host network)\n\nNote: Uses custom PUID=200, PGID=300 for security"
 		;;
 		*)

@@ -74,7 +74,7 @@ function module_domoticz () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_domoticz" "$title" \
+			show_module_help "module_domoticz" "$title" \
 				"Docker Image: $dockerimage\nPorts: $port (HTTP), 8443 (HTTPS)\n\nNote: USB serial support requires /dev/ttyUSB0 device."
 		;;
 		*)

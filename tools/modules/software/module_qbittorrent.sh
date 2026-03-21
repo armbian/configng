@@ -80,7 +80,7 @@ function module_qbittorrent () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			docker_show_module_help "module_qbittorrent" "$title" \
+			show_module_help "module_qbittorrent" "$title" \
 				"Web Interface: http://localhost:${port}\nDocker Image: $dockerimage"
 		;;
 		*)
