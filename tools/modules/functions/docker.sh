@@ -104,47 +104,12 @@ docker_create_base_dir() {
 }
 
 #
-# Display module help dialog
+# Display module help dialog (wrapper for backwards compatibility)
 # Usage: docker_show_module_help <module_prefix> <title> <additional_info>
-#   module_prefix: e.g., "module_unbound"
-#   title: Display title for the help dialog
-#   additional_info: Optional extra info to append (e.g., port, image)
+# Note: show_module_help is defined in config_interface.sh
 #
 docker_show_module_help() {
-	local module_prefix="$1"
-	local title="$2"
-	local additional_info="$3"
-
-	local feature="${module_options["${module_prefix},feature"]}"
-	local desc="${module_options["${module_prefix},desc"]}"
-	local example="${module_options["${module_prefix},example"]}"
-	local doc_link="${module_options["${module_prefix},doc_link"]}"
-
-	local help_text="Usage: $feature <command>\n\n"
-	help_text+="Available commands:\n\n"
-
-	# Parse commands and create descriptions
-	IFS=' ' read -r -a commands <<< "$example"
-	for cmd in "${commands[@]}"; do
-		case "$cmd" in
-			install) help_text+="  install  - Install $desc\n" ;;
-			remove) help_text+="  remove   - Remove container and image\n" ;;
-			purge) help_text+="  purge    - Remove all data directories\n" ;;
-			status) help_text+="  status   - Show installation status\n" ;;
-			help) help_text+="  help     - Show this help message\n" ;;
-			password) help_text+="  password - Set admin password\n" ;;
-			*) help_text+="  $cmd     - $cmd command\n" ;;
-		esac
-	done
-
-	help_text+="\n$additional_info"
-	help_text+="\nDocumentation: $doc_link"
-
-	if [[ "$DIALOG" == "read" ]]; then
-		echo -e "$help_text"
-	else
-		dialog_msgbox "$title Help" "$help_text" 20 70
-	fi
+	show_module_help "$1" "$2" "$3" "container"
 }
 
 #
