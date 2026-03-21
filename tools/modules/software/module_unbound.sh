@@ -9,47 +9,36 @@ module_options+=(
 	["module_unbound,group"]="DNS"
 	["module_unbound,port"]="5335"
 	["module_unbound,arch"]="x86-64"
+	["module_unbound,dockerimage"]="alpinelinux/unbound"
+	["module_unbound,dockername"]="unbound"
 )
 #
 # Module Unbound
 #
 function module_unbound () {
-	local title="unbound"
-	local condition=$(which "$title" 2>/dev/null)
-
-	# Ensure Docker is available for commands that need it (install, remove, purge)
-	if [[ "$1" != "status" && "$1" != "help" ]]; then
-		if ! module_docker status >/dev/null 2>&1; then
-			module_docker install
-		fi
-	fi
-
-	local container=$(docker container ls -a --filter "name=unbound" --format '{{.ID}}' 2>/dev/null) || echo ""
-	local image=$(docker image ls -a --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep 'alpinelinux/unbound:' | head -1) || echo ""
+	local title="Unbound"
+	local dockerimage="${module_options["module_unbound,dockerimage"]}"
+	local dockername="${module_options["module_unbound,dockername"]}"
+	local port="${module_options["module_unbound,port"]}"
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_unbound,example"]}"
 
-	UNBOUND_BASE="${SOFTWARE_FOLDER}/unbound"
+	local base_dir="${SOFTWARE_FOLDER}/$dockername"
 
 	case "$1" in
-		"${commands[0]}")
-			if ! module_docker status >/dev/null 2>&1; then
-				module_docker install
-			fi
-			# Check if the module is already installed
-			if [[ "${container}" && "${image}" ]]; then
-				echo "Unbound container is already installed."
-				return 0
-			fi
+		"${commands[0]}") # install
+			# Pull image (handles Docker installation and already-installed check)
+			docker_operation_progress pull "$dockerimage"
 
-			[[ -d "$UNBOUND_BASE" ]] || mkdir -p "$UNBOUND_BASE" || { echo "Couldn't create storage directory: $UNBOUND_BASE"; exit 1; }
+			# Create base directory
+			docker_manage_base_dir create "$base_dir" || return 1
 
-			# Create unbound.conf
-			cat > "${UNBOUND_BASE}/unbound.conf" <<-EOT
+			# Create unbound.conf with port from module_options
+			cat > "${base_dir}/unbound.conf" <<-EOT
 			server:
 				interface: 0.0.0.0
-				port: 5335
+				port: $port
 				access-control: 0.0.0.0/0 allow
 				do-ip4: yes
 				do-udp: yes
@@ -57,60 +46,34 @@ function module_unbound () {
 				do-ip6: no
 				verbosity: 1
 			EOT
-
-			docker run -d \
-			--net=lsio \
-			-e PUID=1000 \
-			-e PGID=1000 \
-			-p ${module_options["module_unbound,port"]}:${module_options["module_unbound,port"]}/tcp \
-			-p ${module_options["module_unbound,port"]}:${module_options["module_unbound,port"]}/udp \
-			-v ${UNBOUND_BASE}/unbound.conf:/etc/unbound/unbound.conf:ro \
-			--name unbound \
-			--restart=unless-stopped \
-			alpinelinux/unbound
-			for i in $(seq 1 20); do
-				if docker inspect -f '{{ index .Config.Labels "build_version" }}' unbound >/dev/null 2>&1 ; then
-					break
-				else
-					sleep 3
-				fi
-				if [ $i -eq 20 ] ; then
-					echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs unbound\`)"
-					exit 1
-				fi
-			done
+			docker_operation_progress run "$dockername" \
+				-d \
+				--net=lsio \
+				-e PUID="${DOCKER_USERUID}" \
+				-e PGID="${DOCKER_GROUPUID}" \
+				-p "${port}:${port}/tcp" \
+				-p "${port}:${port}/udp" \
+				-v "${base_dir}/unbound.conf:/etc/unbound/unbound.conf:ro" \
+				--name "$dockername" \
+				--restart=unless-stopped \
+				"$dockerimage"
 		;;
-		"${commands[1]}")
-			if [[ "${container}" ]]; then
-				echo "Removing container: $container"
-				docker container rm -f "$container"
-			fi
-			if [[ "${image}" ]]; then
-				sleep 2
-				docker image rm -f "$image" 2>/dev/null || true
-			fi
+		"${commands[1]}") # remove
+			# Remove container and image (functions handle existence checks)
+			docker_operation_progress rm "$dockername"
+			docker_operation_progress rmi "$dockerimage"
 		;;
-		"${commands[2]}")
+		"${commands[2]}") # purge
 			${module_options["module_unbound,feature"]} ${commands[1]}
-			[[ -n "${UNBOUND_BASE}" && "${UNBOUND_BASE}" != "/" ]] && rm -rf "${UNBOUND_BASE}"
+			docker_manage_base_dir remove "$base_dir"
 		;;
-		"${commands[3]}")
-			if [[ "${container}" && "${image}" ]]; then
-				return 0
-			else
-				return 1
-			fi
+		"${commands[3]}") # status
+			# Return 0 if installed, 1 if not (used by menu system)
+			docker_is_installed "$dockername" "$dockerimage"
 		;;
-		"${commands[4]}")
-			echo -e "\nUsage: ${module_options["module_unbound,feature"]} <command>"
-			echo -e "Commands:  ${module_options["module_unbound,example"]}"
-			echo "Available commands:"
-			echo -e "\tinstall\t- Install $title."
-			echo -e "\tremove\t- Remove $title."
-			echo -e "\tpurge\t- Purge $title data folder."
-			echo -e "\tstatus\t- Installation status $title."
-
-			echo
+		"${commands[4]}") # help
+			docker_show_module_help "module_unbound" "$title" \
+				"Docker Image: $dockerimage\nPort: $port (TCP/UDP)"
 		;;
 		*)
 			${module_options["module_unbound,feature"]} ${commands[4]}
