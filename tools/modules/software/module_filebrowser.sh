@@ -8,8 +8,8 @@ module_options+=(
 	["module_filebrowser,doc_link"]="https://filebrowser.org/"
 	["module_filebrowser,group"]="Utilities"
 	["module_filebrowser,port"]="8095"
-	["module_filebrowser,arch"]="x86-64 arm64"
-	["module_filebrowser,dockerimage"]="filebrowser/filebrowser"
+	["module_filebrowser,arch"]="x86-64 arm64 armhf"
+	["module_filebrowser,dockerimage"]="filebrowser/filebrowser:latest"
 	["module_filebrowser,dockername"]="filebrowser"
 )
 
