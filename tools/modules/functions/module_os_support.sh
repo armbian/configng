@@ -17,7 +17,6 @@ function check_distro_status() {
 		*)
 
 			# Ensure OS detection succeeded
-			# if [[ -z "$DISTROID" && -z "$ARMBIAN" ]]; then
 			if [[ -z "$DISTROID" ]]; then
 				echo "Error: Unable to detect the current OS distribution."
 				exit 1
