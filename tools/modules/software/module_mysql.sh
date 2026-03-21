@@ -9,115 +9,93 @@ module_options+=(
 	["module_mysql,group"]="Database"
 	["module_mysql,port"]="3306"
 	["module_mysql,arch"]="x86-64 arm64"
+	["module_mysql,dockerimage"]="mysql:lts"
+	["module_mysql,dockername"]="mysql"
 )
-
 #
-# Module mysql
+# Module MySQL
 #
 function module_mysql () {
-	local title="mysql"
-	local condition=$(which "$title" 2>/dev/null)
-
-	# Ensure Docker is available for commands that need it (install, remove, purge)
-	if [[ "$1" != "status" && "$1" != "help" ]]; then
-		if ! module_docker status >/dev/null 2>&1; then
-			module_docker install
-		fi
-	fi
-
-	local container=$(docker container ls -a --filter "name=mysql" --format '{{.ID}}' 2>/dev/null) || echo ""
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' 2>/dev/null | grep '^mysql ' | awk '{print $2}') || echo ""
+	local title="MySQL"
+	local dockerimage="${module_options["module_mysql,dockerimage"]}"
+	local dockername="${module_options["module_mysql,dockername"]}"
+	local port="${module_options["module_mysql,port"]}"
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_mysql,example"]}"
 
-	MYSQL_BASE="${SOFTWARE_FOLDER}/mysql"
+	local base_dir="${SOFTWARE_FOLDER}/mysql"
 
 	case "$1" in
-		"${commands[0]}")
-			if ! module_docker status >/dev/null 2>&1; then
-				module_docker install
-			fi
-			# Exit if mysql is already running
-			if [[ "${container}" && "${image}" ]]; then
+		"${commands[0]}") # install
+			# Pull image (handles Docker installation and already-installed check)
+			docker_operation_progress pull "$dockerimage"
+
+			# Exit if already installed (check is done by pull, but we need to handle params)
+			if docker_is_installed "$dockername" "$dockerimage" 2>/dev/null; then
 				echo "MySQL container is already installed."
-				exit 0
+				return 0
 			fi
 
-			MYSQL_ROOT_PASSWORD="${2:-armbian}"
-			MYSQL_DATABASE="${3:-armbian}"
-			MYSQL_USER="${4:-armbian}"
-			MYSQL_PASSWORD="${5:-armbian}"
+			# Get parameters or use defaults
+			local mysql_root_password="${2:-armbian}"
+			local mysql_database="${3:-armbian}"
+			local mysql_user="${4:-armbian}"
+			local mysql_password="${5:-armbian}"
 
-			[[ -d "$MYSQL_BASE" ]] || mkdir -p "$MYSQL_BASE" || { echo "Couldn't create storage directory: $MYSQL_BASE"; exit 1; }
+			# Create base directory
+			docker_manage_base_dir create "$base_dir" || return 1
 
-			docker run -d \
-				--name mysql \
+			docker_operation_progress run "$dockername" \
+				-d \
+				--name="$dockername" \
 				--net=lsio \
-				-e MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD}" \
-				-e MYSQL_DATABASE="${MYSQL_DATABASE}" \
-				-e MYSQL_USER="${MYSQL_USER}" \
-				-e MYSQL_PASSWORD="${MYSQL_PASSWORD}" \
-				-v "${MYSQL_BASE}:/var/lib/mysql" \
-				-p "${module_options["module_mysql,port"]}:3306" \
+				-e MYSQL_ROOT_PASSWORD="${mysql_root_password}" \
+				-e MYSQL_DATABASE="${mysql_database}" \
+				-e MYSQL_USER="${mysql_user}" \
+				-e MYSQL_PASSWORD="${mysql_password}" \
+				-v "${base_dir}:/var/lib/mysql" \
+				-p "${port}:3306" \
 				--restart unless-stopped \
-				mysql:lts
+				"$dockerimage"
 
 			# Wait for MySQL to be ready
-			until docker exec mysql \
-				env MYSQL_PWD="$MYSQL_ROOT_PASSWORD" \
+			until docker exec "$dockername" \
+				env MYSQL_PWD="$mysql_root_password" \
 				mysql -uroot -e "SELECT 1;" &>/dev/null; do
 				echo "⏳ Waiting for MySQL to accept connections..."
 				sleep 2
 			done
 
 			# Create additional databases
-			MYSQL_DATABASES=("ghost") # Add any additional databases you want to create here
-			for MYSQL_DATABASE in "${MYSQL_DATABASES[@]}"; do
-				echo "⏳ Creating database: $MYSQL_DATABASE and granting privileges..."
-
-				docker exec -i mysql \
-				env MYSQL_PWD="$MYSQL_ROOT_PASSWORD" \
+			local mysql_databases=("ghost")
+			for db_name in "${mysql_databases[@]}"; do
+				echo "⏳ Creating database: $db_name and granting privileges..."
+				docker exec -i "$dockername" \
+				env MYSQL_PWD="$mysql_root_password" \
 				mysql -uroot <<-EOF
-					CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\`;
-					GRANT ALL PRIVILEGES ON \`$MYSQL_DATABASE\`.* TO '${MYSQL_USER}'@'%';
+					CREATE DATABASE IF NOT EXISTS \`$db_name\`;
+					GRANT ALL PRIVILEGES ON \`$db_name\`.* TO '${mysql_user}'@'%';
 					FLUSH PRIVILEGES;
 				EOF
 			done
 		;;
-		"${commands[1]}")
-			if [[ "${container}" ]]; then
-				echo "Removing container: $container"
-				docker container rm -f "$container"
-			fi
-			if [[ "${image}" ]]; then
-				docker image rm "$image"
-			fi
+		"${commands[1]}") # remove
+			# Remove container and image (functions handle existence checks)
+			docker_operation_progress rm "$dockername"
+			docker_operation_progress rmi "$dockerimage"
 		;;
-		"${commands[2]}")
+		"${commands[2]}") # purge
 			${module_options["module_mysql,feature"]} ${commands[1]}
-			if [[ -n "${MYSQL_BASE}" && "${MYSQL_BASE}" != "/" ]]; then
-				rm -rf "${MYSQL_BASE}"
-			fi
+			docker_manage_base_dir remove "$base_dir"
 		;;
-		"${commands[3]}")
-			if [[ "${container}" && "${image}" ]]; then
-				return 0
-			else
-				return 1
-			fi
+		"${commands[3]}") # status
+			# Return 0 if installed, 1 if not (used by menu system)
+			docker_is_installed "$dockername" "$dockerimage"
 		;;
-		"${commands[4]}")
-			echo -e "\nUsage: ${module_options["module_mysql,feature"]} <command>"
-			echo -e "Commands:  ${module_options["module_mysql,example"]}"
-			echo "Available commands:"
-			echo -e "\tinstall\t- Install $title."
-			echo -e "\t         Optionally accepts arguments:"
-			echo -e "\t         root_password database user user_password"
-			echo -e "\tremove\t- Remove $title."
-			echo -e "\tpurge\t- Purge $title data folder."
-			echo -e "\tstatus\t- Installation status $title."
-			echo
+		"${commands[4]}") # help
+			docker_show_module_help "module_mysql" "$title" \
+				"Port: ${port}\nDocker Image: $dockerimage\n\nOptionally accepts arguments:\n root_password database user user_password"
 		;;
 		*)
 			${module_options["module_mysql,feature"]} ${commands[4]}
