@@ -8,8 +8,8 @@ module_options+=(
 	["module_portainer,doc_link"]="https://docs.portainer.io/"
 	["module_portainer,group"]="Containers"
 	["module_portainer,port"]="9000"
-	["module_portainer,arch"]="x86-64 arm64 armhf"
-	["module_portainer,dockerimage"]="portainer/portainer-ce"
+	["module_portainer,arch"]="x86-64 arm64"
+	["module_portainer,dockerimage"]="portainer/portainer-ce:latest"
 	["module_portainer,dockername"]="portainer"
 )
 #
