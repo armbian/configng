@@ -254,43 +254,15 @@ docker_operation_progress() {
 			rm -f "$raw_response_file" "$http_code_file"
 
 			# Verify and show result
-			if [[ $exit_code -eq 0 ]]; then
-				# Wait for Docker to register the image with polling
-				local max_wait=10
-				local wait_count=0
-				local verify_image=""
-
-				while [[ $wait_count -lt $max_wait && -z "$verify_image" ]]; do
-					# Check multiple ways to find the image
-					verify_image=$(docker image ls --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep -F "$target" | head -1)
-
-					if [[ -z "$verify_image" ]]; then
-						# Try more lenient match - just check repository
-						local repo_only="${target%:*}"
-						verify_image=$(docker image ls --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep -F "$repo_only" | head -1)
-					fi
-
-					if [[ -z "$verify_image" ]]; then
-						sleep 1
-						((wait_count++))
-					fi
-				done
-
-				if [[ -z "$verify_image" ]]; then
-					local error_output=""
-					[[ -s "$error_file" ]] && error_output=$(<"$error_file")
-
-					dialog_msgbox "Pull Failed" \
-						"Failed to pull: $target\n\nThe pull operation completed but the image was not found after ${max_wait} seconds.\n\nError details:\n${error_output}" \
-						12 70
-					return 1
-				fi
-			else
+			if [[ $exit_code -ne 0 ]]; then
 				local error_output=""
 				[[ -s "$error_file" ]] && error_output=$(<"$error_file")
 				dialog_msgbox "Pull Failed" "Failed to pull: $target\n\nExit code: $exit_code\n\n${error_output}" 14 60
 				return 1
 			fi
+			# Note: We trust the Docker API response. If HTTP 200 with no errors,
+			# the pull succeeded. Additional verification can fail when running
+			# in Docker-in-Docker scenarios due to image registration delays.
 			;;
 
 		rm)
