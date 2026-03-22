@@ -35,6 +35,10 @@ function module_filebrowser () {
 			# Create base directory
 			docker_manage_base_dir create "$base_dir" || return 1
 
+			# Create database directory with proper ownership
+			mkdir -p "${base_dir}/database"
+			chown -R "${DOCKER_USERUID}:${DOCKER_GROUPUID}" "${base_dir}/database"
+
 			docker_operation_progress run "$dockername" \
 				-d \
 				--net=lsio \
@@ -50,6 +54,20 @@ function module_filebrowser () {
 				--restart=always \
 				"$dockerimage" \
 				--database /database/filebrowser.db
+
+			# Wait for container to initialize and extract password from logs
+			sleep 3
+			local admin_password
+			admin_password=$(docker logs "$dockername" 2>&1 | grep "initialized with randomly generated password" | awk -F': ' '{print $NF}')
+
+			# Display credentials with 10-second countdown
+			local countdown=10
+			while [[ $countdown -gt 0 ]]; do
+				dialog_infobox "${title} installed" \
+					"Web Interface: http://${LOCALIPADD}:${port}\n\nUsername: admin\nPassword: ${admin_password}\n\nClosing in ${countdown} seconds..." 11 70
+				sleep 1
+				((countdown--))
+			done
 		;;
 		"${commands[1]}") # remove
 			# Remove container and image (functions handle existence checks)
