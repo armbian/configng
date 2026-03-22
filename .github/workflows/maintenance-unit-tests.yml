@@ -144,7 +144,7 @@ jobs:
           # Test case execution
           start_time=$(date +%s)
           figlet  "RUN TEST CASE"
-          testcase # function inside test script
+          testcase
           finish_time=$(date +%s)
 
           # Generate table entry
