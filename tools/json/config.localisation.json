@@ -62,7 +62,7 @@
                     "help": "Change System Hostname"
                 }
             ],
-            "help": "Localisation"
+            "help": "Configure system language, locale, timezone, and regional settings to ensure proper formatting and user experience."
         }
     ]
 }

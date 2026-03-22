@@ -700,7 +700,7 @@
                     "help": "Manage system updates, firmware upgrades, and repositories"
                 }
             ],
-            "help": "System wide and admin settings"
+            "help": "Adjust core system and administrative settings including hardware, services, time, users, and low-level system configuration."
         }
     ]
 }

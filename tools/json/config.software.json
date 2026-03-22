@@ -2600,7 +2600,7 @@
                     "help": "Web server, LEMP, reverse proxy, Let's Encrypt SSL"
                 }
             ],
-            "help": "Run/Install 3rd party applications"
+            "help": "Install and manage additional software packages, updates, and repositories to extend system functionality."
         }
     ]
 }
