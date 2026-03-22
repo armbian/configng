@@ -1,12 +1,19 @@
 
 module_options+=(
 	["check_os_status,author"]="@Tearran"
+	["check_os_status,ref_link"]=""
 	["check_os_status,feature"]="check_os_status"
-	["check_os_status,example"]="help"
-	["check_os_status,desc"]="Check if the current OS is supported based on /etc/armbian-distribution-status"
+	["check_os_status,desc"]="Check if the current OS distribution is supported"
+	["check_os_status,example"]="check_os_status"
+	["check_os_status,doc_link"]=""
 	["check_os_status,status"]="Active"
 )
 
+#
+# Check if current OS distribution is officially supported
+# Shows a warning and prompts for confirmation if OS is not in the supported list
+# Usage: check_distro_status
+#
 function check_distro_status() {
 	case "$1" in
 		help)
@@ -18,24 +25,31 @@ function check_distro_status() {
 
 			# Ensure OS detection succeeded
 			if [[ -z "$DISTROID" ]]; then
-				echo "Error: Unable to detect the current OS distribution."
-				exit 1
+				dialog_msgbox "OS Detection Error" \
+					"Unable to detect the current OS distribution.\n\nPlease ensure you're running on a supported system." \
+					8 60
+				return 1
 			fi
 
 			# Check if the OS is listed as supported in the DISTRO_STATUS
 			if grep -qE "^${DISTROID}=.*supported" "$DISTRO_STATUS" 2> /dev/null; then
-				echo "The current $ARMBIAN ($DISTROID) is supported."
+				# OS is supported - return silently
+				return 0
+			fi
+
+			# OS not supported - show warning and continue after a brief pause
+			if [[ "$DIALOG" == "read" ]]; then
+				echo "Warning: The current OS ($DISTROID) is not officially supported."
+				echo "The tool may still work, but issues may not be addressed by maintainers."
+				echo "Continuing in 3 seconds..."
+				sleep 3
 			else
-			BACKTITLE="Warning: The current OS ($DISTROID) is not supported or not listed"
-			set_colors 1
-			info_wait_continue "Warning:
+				local warning_msg="Warning: The current OS ($DISTROID) is not officially supported.\n\n"
+				warning_msg+="The tool might still work, but issues may not be accepted or\n"
+				warning_msg+="addressed by the maintainers. You are welcome to contribute fixes."
 
-			The current OS ($DISTROID) is not a officially supported distro!
-
-			The tool might still work well, but be aware that issues may
-			not be accepted and addressed by the maintainers. However, you
-			are welcome to contribute fixes for any problems you encounter.
-			" process_input
+				dialog_msgbox "OS Support Warning" "$warning_msg" 10 60
+				sleep 3
 			fi
 		;;
 	esac
