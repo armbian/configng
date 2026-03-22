@@ -14,10 +14,7 @@ function set_runtime_variables() {
 
 	# Check if dialog tools are available and set DIALOG
 	if [[ -z "$DIALOG" ]]; then
-		# Check if we have a terminal - if not, use text-based interface
-		if ! tty -s &>/dev/null; then
-			DIALOG="read"
-		elif [[ -x "$(command -v dialog)" ]]; then
+		if [[ -x "$(command -v dialog)" ]]; then
 			DIALOG="dialog"
 		elif [[ -x "$(command -v whiptail)" ]]; then
 			DIALOG="whiptail"
