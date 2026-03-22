@@ -59,18 +59,38 @@ function module_mysql () {
 				--restart unless-stopped \
 				"$dockerimage"
 
-			# Wait for MySQL to be ready
-			until docker exec "$dockername" \
+			# Wait for MySQL to be ready with dialog_gauge progress
+			local max_wait=60
+			local wait_count=0
+			(
+				while [[ $wait_count -lt $max_wait ]]; do
+					if docker exec "$dockername" \
+						env MYSQL_PWD="$mysql_root_password" \
+						mysql -uroot -e "SELECT 1;" &>/dev/null; then
+						echo "XXX"; echo "100"; echo "MySQL is ready!"; echo "XXX"
+						exit 0
+					fi
+
+					echo "XXX"; echo "$((wait_count * 100 / max_wait))"; echo "Waiting for MySQL to accept connections..."; echo "XXX"
+					sleep 2
+					((wait_count++))
+				done
+				echo "XXX"; echo "100"; echo "Timed out waiting for MySQL"; echo "XXX"
+			) | dialog_gauge "$title" "Initializing MySQL..." 8 60
+
+			# Verify MySQL is ready
+			if ! docker exec "$dockername" \
 				env MYSQL_PWD="$mysql_root_password" \
-				mysql -uroot -e "SELECT 1;" &>/dev/null; do
-				echo "⏳ Waiting for MySQL to accept connections..."
-				sleep 2
-			done
+				mysql -uroot -e "SELECT 1;" &>/dev/null; then
+				dialog_msgbox "$title Installation Failed" \
+					"MySQL container failed to start properly.\n\nCheck logs with: docker logs $dockername" \
+					10 60
+				return 1
+			fi
 
 			# Create additional databases
 			local mysql_databases=("ghost")
 			for db_name in "${mysql_databases[@]}"; do
-				echo "⏳ Creating database: $db_name and granting privileges..."
 				docker exec -i "$dockername" \
 				env MYSQL_PWD="$mysql_root_password" \
 				mysql -uroot <<-EOF

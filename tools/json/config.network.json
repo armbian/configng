@@ -149,7 +149,7 @@
                     "help": "Toggle system IPv6/IPv4 internet protocol"
                 }
             ],
-            "help": "Fixed and wireless network settings"
+            "help": "Configure wired and wireless networking including interfaces, IP settings, DNS, routing, and connection management."
         }
     ]
 }
