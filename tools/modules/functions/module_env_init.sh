@@ -10,7 +10,6 @@ module_options+=(
 # gather info about the board and start with loading menu variables
 #
 function set_runtime_variables() {
-
 	missing_dependencies=()
 
 	# Check if dialog tools are available and set DIALOG
@@ -54,15 +53,6 @@ function set_runtime_variables() {
 	if [[ ${#missing_dependencies[@]} -ne 0 ]]; then
 		if is_package_manager_running; then
 			pkg_install ${missing_dependencies[*]}
-		fi
-	fi
-
-	# Re-check DIALOG after installing dependencies
-	if [[ "$DIALOG" == "read" ]]; then
-		if [[ -x "$(command -v dialog)" ]]; then
-			DIALOG="dialog"
-		elif [[ -x "$(command -v whiptail)" ]]; then
-			DIALOG="whiptail"
 		fi
 	fi
 
