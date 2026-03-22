@@ -255,30 +255,34 @@ docker_operation_progress() {
 
 			# Verify and show result
 			if [[ $exit_code -eq 0 ]]; then
-				# Wait a moment for Docker to register the image
-				sleep 1
+				# Wait for Docker to register the image with polling
+				local max_wait=10
+				local wait_count=0
+				local verify_image=""
 
-				# Check multiple ways to find the image
-				local verify_image
-				verify_image=$(docker image ls --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep -F "$target" | head -1)
+				while [[ $wait_count -lt $max_wait && -z "$verify_image" ]]; do
+					# Check multiple ways to find the image
+					verify_image=$(docker image ls --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep -F "$target" | head -1)
 
-				if [[ -z "$verify_image" ]]; then
-					# Try more lenient match - just check repository
-					local repo_only="${target%:*}"
-					verify_image=$(docker image ls --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep -F "$repo_only" | head -1)
-				fi
+					if [[ -z "$verify_image" ]]; then
+						# Try more lenient match - just check repository
+						local repo_only="${target%:*}"
+						verify_image=$(docker image ls --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep -F "$repo_only" | head -1)
+					fi
+
+					if [[ -z "$verify_image" ]]; then
+						sleep 1
+						((wait_count++))
+					fi
+				done
 
 				if [[ -z "$verify_image" ]]; then
 					local error_output=""
 					[[ -s "$error_file" ]] && error_output=$(<"$error_file")
 
-					# Debug: show what images we have
-					local all_images
-					all_images=$(docker image ls --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | head -20)
-
 					dialog_msgbox "Pull Failed" \
-						"Failed to pull: $target\n\nThe pull operation completed but the image was not found.\n\nImages present:\n${all_images}\n\nError details:\n${error_output}" \
-						18 70
+						"Failed to pull: $target\n\nThe pull operation completed but the image was not found after ${max_wait} seconds.\n\nError details:\n${error_output}" \
+						12 70
 					return 1
 				fi
 			else
