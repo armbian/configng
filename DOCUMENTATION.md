@@ -1022,6 +1022,7 @@ These helper functions facilitate various operations related to job management, 
 | Display a yes/no dialog using the configured dialog tool | dialog_yesno "Title" "Question" | @armbian 
 | Generate Document files. | generate_readme | @Tearran 
 | Storing netplan config to tmp | store_netplan_config | @igorpecovnik 
+| Generic module help dialog for containers and native installs | show_module_help "module_headers" "Kernel Headers" "" "native" | @armbian 
 | Install PostgreSQL container (advanced relational database) | install remove purge status help | @armbian 
 | Install jellyfin container | install remove purge status help | @armbian 
 | Install jellyseerr container | install remove purge status help | @armbian 
@@ -1088,7 +1089,7 @@ These helper functions facilitate various operations related to job management, 
 | Install transmission container | install remove purge status help | @armbian 
 | Install nextcloud container | install remove purge status help | @igorpecovnik 
 | Install navidrome container | install remove purge status help | @armbian 
-| Wait for a Docker container to be ready by checking for build_version label | wait_for_container_ready "container_name" 20 3 | @armbian 
+| Wait for a Docker container to be ready (default: check if running) | wait_for_container_ready "container_name" 20 3 | @armbian 
 | Install Openhab | install remove purge status help | @igorpecovnik 
 | Uses Avalible (Whiptail, DIALOG, READ) for the menu interface | <function_name> | Tearran 
 | Install medusa container | install remove purge status help | @armbian 
@@ -1133,7 +1134,7 @@ parse_menu_items 'menu_options_array' --with-help | @viraniac
 | Generate a Help message for cli commands. | see_cmd_list [category] | @Tearran 
 | Install mariadb container | install remove purge status help | @igorpecovnik 
 | Disable service | srv_disable ssh.service | @dimitry-ishenko 
-| Check if the current OS is supported based on /etc/armbian-distribution-status | help | @Tearran 
+| Check if the current OS distribution is supported | check_os_status | @Tearran 
 | Install prowlarr container | install remove purge status help | @Prowlarr 
 | Install nfsd server | install remove manage add status clients servers help | @igorpecovnik 
 | Install and configure Armbian rsyncd. | install remove status help | @igorpecovnik 
