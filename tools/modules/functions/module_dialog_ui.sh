@@ -1135,7 +1135,7 @@ dialog_radiolist() {
 
 module_options+=(
 	["wait_for_container_ready,author"]="@armbian"
-	["wait_for_container_ready,desc"]="Wait for a Docker container to be ready by checking for build_version label"
+	["wait_for_container_ready,desc"]="Wait for a Docker container to be ready (default: check if running)"
 	["wait_for_container_ready,example"]="wait_for_container_ready \"container_name\" 20 3"
 	["wait_for_container_ready,feature"]="wait_for_container_ready"
 	["wait_for_container_ready,status"]="Active"
@@ -1143,26 +1143,26 @@ module_options+=(
 
 # Wait for a Docker container to be ready
 # Usage: wait_for_container_ready <container_name> [max_attempts] [sleep_interval] [check_type] [extra_condition]
-# check_type: "build_version" (default) or "running"
+# check_type: "running" (default, works for all containers) or "build_version" (LinuxServer-specific)
 wait_for_container_ready() {
 	local container_name="$1"
 	local max_attempts="${2:-20}"
 	local sleep_interval="${3:-3}"
-	local check_type="${4:-build_version}"
+	local check_type="${4:-running}"
 	local extra_condition="${5:-}"
 
 	for ((i=1; i<=max_attempts; i++)); do
 		local container_ready=false
 
 		case "$check_type" in
-			"running")
+			"running"|*)
 				local state
 				state="$(docker inspect -f '{{.State.Status}}' "$container_name" 2>/dev/null || true)"
 				if [[ "$state" == "running" ]]; then
 					container_ready=true
 				fi
 				;;
-			"build_version"|*)
+			"build_version")
 				if docker inspect -f '{{ index .Config.Labels "build_version" }}' "$container_name" >/dev/null 2>&1; then
 					container_ready=true
 				fi
