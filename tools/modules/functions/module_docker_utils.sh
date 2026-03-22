@@ -255,10 +255,11 @@ docker_operation_progress() {
 
 			# Verify and show result
 			if [[ $exit_code -eq 0 ]]; then
-				local image_id
-				image_id=$(docker images -q "$target" 2>/dev/null | head -n 1)
+				# Use same check method as pre-pull check
+				local verify_image
+				verify_image=$(docker image ls --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep "^${target}$" | head -1)
 
-				if [[ -z "$image_id" ]]; then
+				if [[ -z "$verify_image" ]]; then
 					local error_output=""
 					[[ -s "$error_file" ]] && error_output=$(<"$error_file")
 
