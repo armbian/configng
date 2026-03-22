@@ -86,7 +86,7 @@ function module_wireguard () {
 				--sysctl net.ipv4.ip_forward=1 \
 				"$dockerimage"
 
-			wait_for_container_ready "$dockername" 20 3 '[[ -f "${base_dir}/config/wg_confs/client.conf" ]]' || exit 1
+			wait_for_container_ready "$dockername" 20 3 "running" '[[ -f "${base_dir}/config/wg_confs/client.conf" ]]' || exit 1
 			if [[ -n "${LOCAL_SUBNETS}" ]]; then
 				# Create host-side route helper script for LAN routing via WireGuard container
 				cat > "/usr/local/bin/add-vpn-lan-routes.sh" <<- EOT
@@ -218,7 +218,7 @@ function module_wireguard () {
 				--restart unless-stopped \
 				"$dockerimage"
 
-			wait_for_container_ready "$dockername" 20 3 '[[ -f "${base_dir}/config/wg_confs/wg0.conf" ]]' || exit 1
+			wait_for_container_ready "$dockername" 20 3 "running" '[[ -f "${base_dir}/config/wg_confs/wg0.conf" ]]' || exit 1
 
 				# Wait for peer configs to be created by the container
 				local peer_wait_count=0
