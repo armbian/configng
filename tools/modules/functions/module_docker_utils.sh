@@ -184,6 +184,9 @@ docker_operation_progress() {
 			fi
 
 			# Pull image with progress via Docker API
+			local raw_response_file=$(mktemp)
+			local http_code_file=$(mktemp)
+
 			(
 				echo "XXX"
 				echo "0"
@@ -193,10 +196,27 @@ docker_operation_progress() {
 				unbuffer curl --silent --show-error \
 					--unix-socket "$socket_path" \
 					-X POST "http://localhost/$api_version/images/create?fromImage=$target" \
+					-w "%{http_code}" \
+					-o "$raw_response_file" \
 					2> "$error_file" \
-				| stdbuf -oL jq -r --unbuffered '
-						select(.status != null) |
-						if .progressDetail.current and .progressDetail.total then
+				> "$http_code_file"
+
+				# Check HTTP response code
+				local http_code=$(<"$http_code_file")
+				if [[ "$http_code" != "200" ]]; then
+					echo "XXX"
+					echo "0"
+					echo "Error: HTTP $http_code"
+					echo "XXX"
+					exit 1
+				fi
+
+				# Parse and display progress from captured response
+				jq -r --unbuffered '
+						select(.status != null) or (.error != null) |
+						if .error then
+							"ERROR\n" + .error + "\n"
+						elif .progressDetail.current and .progressDetail.total then
 							# Calculate actual percentage
 							"XXX\n" +
 							((.progressDetail.current / .progressDetail.total) * 100 | floor | tostring) +
@@ -206,7 +226,7 @@ docker_operation_progress() {
 							# No progress detail - show status
 							"XXX\n0\n" + (.id // "Preparing") + "...  " + .status + "\nXXX"
 						end
-					' 2>> "$error_file"
+					' "$raw_response_file" 2>> "$error_file"
 
 				echo "XXX"
 				echo "100"
@@ -216,13 +236,20 @@ docker_operation_progress() {
 
 			exit_code=$?
 
+			rm -f "$raw_response_file" "$http_code_file"
+
 			# Verify and show result
 			if [[ $exit_code -eq 0 ]]; then
 				local image_id
 				image_id=$(docker images -q "$target" 2>/dev/null | head -n 1)
 
 				if [[ -z "$image_id" ]]; then
-					dialog_msgbox "Warning" "Pull completed but image not found.\nThis may indicate a partial pull." 10 60
+					local error_output=""
+					[[ -s "$error_file" ]] && error_output=$(<"$error_file")
+
+					dialog_msgbox "Pull Failed" \
+						"Failed to pull: $target\n\nThe pull operation completed but the image was not found.\n\nThis may be due to:\n- Network issues during download\n- Registry authentication errors\n- Invalid image name or tag\n\nError details:\n${error_output}" \
+						14 70
 					return 1
 				fi
 			else
