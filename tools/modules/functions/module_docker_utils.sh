@@ -211,8 +211,17 @@ docker_operation_progress() {
 					exit 1
 				fi
 
+				# Check if response file has content
+				if [[ ! -s "$raw_response_file" ]]; then
+					echo "XXX"
+					echo "0"
+					echo "Error: Empty response from Docker API"
+					echo "XXX"
+					exit 1
+				fi
+
 				# Parse and display progress from captured response
-				jq -r --unbuffered '
+				if ! jq -r --unbuffered '
 						select(.status != null) or (.error != null) |
 						if .error then
 							"ERROR\n" + .error + "\n"
@@ -226,7 +235,13 @@ docker_operation_progress() {
 							# No progress detail - show status
 							"XXX\n0\n" + (.id // "Preparing") + "...  " + .status + "\nXXX"
 						end
-					' "$raw_response_file" 2>> "$error_file"
+					' "$raw_response_file" 2>> "$error_file"; then
+					echo "XXX"
+					echo "0"
+					echo "Error: Failed to parse Docker API response"
+					echo "XXX"
+					exit 1
+				fi
 
 				echo "XXX"
 				echo "100"
@@ -248,7 +263,7 @@ docker_operation_progress() {
 					[[ -s "$error_file" ]] && error_output=$(<"$error_file")
 
 					dialog_msgbox "Pull Failed" \
-						"Failed to pull: $target\n\nThe pull operation completed but the image was not found.\n\nThis may be due to:\n- Network issues during download\n- Registry authentication errors\n- Invalid image name or tag\n\nError details:\n${error_output}" \
+						"Failed to pull: $target\n\nThe pull operation completed but the image was not found.\n\nThis may be due to:\n- Network issues during download\n- Registry authentication errors\n- Invalid image name or tag\n- Docker API returned empty response\n\nError details:\n${error_output}" \
 						14 70
 					return 1
 				fi
