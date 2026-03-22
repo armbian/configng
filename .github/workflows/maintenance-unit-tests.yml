@@ -133,7 +133,6 @@ jobs:
       - name: "Run unit test: ${{ matrix.server.name }} via ${{ matrix.server.package }}"
         shell: bash
         run: |
-          export TERM=linux
           rm -rf test; mkdir -p test
           cd config
           # assemble armbian config
