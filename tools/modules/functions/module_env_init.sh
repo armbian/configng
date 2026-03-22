@@ -83,8 +83,27 @@ function set_runtime_variables() {
 		DOCKER_USERUID=$(id -u "$SUDO_USER")
 		DOCKER_GROUPUID=$(id -g "$SUDO_USER")
 	elif [[ $EUID -eq 0 ]]; then
-		# Running as root without sudo - fail
-		die "This tool must be run as a regular user (or with sudo), not as root directly. Docker containers need proper file permissions."
+		# Running as root without sudo - try to detect an interactive non-root user
+		# Try logname first (most reliable)
+		local detected_user=$(logname 2>/dev/null)
+		if [[ -z "$detected_user" ]] || [[ "$detected_user" == "root" ]]; then
+			# Fall back to 'who am i' parsing
+			detected_user=$(who am i 2>/dev/null | awk '{print $1}')
+			if [[ -z "$detected_user" ]] || [[ "$detected_user" == "root" ]]; then
+				# No interactive user detected - use sensible defaults
+				# This allows root operations that don't involve Docker
+				DOCKER_USERUID=1000
+				DOCKER_GROUPUID=1000
+			else
+				# Use detected user from 'who am i'
+				DOCKER_USERUID=$(id -u "$detected_user")
+				DOCKER_GROUPUID=$(id -g "$detected_user")
+			fi
+		else
+			# Use detected user from logname
+			DOCKER_USERUID=$(id -u "$detected_user")
+			DOCKER_GROUPUID=$(id -g "$detected_user")
+		fi
 	else
 		# Running as regular user without sudo
 		DOCKER_USERUID=$(id -u)
