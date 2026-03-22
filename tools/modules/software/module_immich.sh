@@ -38,8 +38,8 @@ function module_immich () {
 		"${commands[0]}") # install
 			# Check if already installed
 			if docker_is_installed "$dockername" "$dockerimage"; then
-				echo "Immich container is already installed."
-				exit 0
+				dialog_msgbox "$title" "Immich container is already installed." 8 50
+				return 0
 			fi
 
 			# Create base directory and subdirectories
@@ -54,31 +54,57 @@ function module_immich () {
 				module_redis install
 			fi
 			if ! docker container ls -a --format '{{.Names}}' | grep "^$DATABASE_HOST$"; then
-				module_postgres install $DATABASE_USER $DATABASE_PASSWORD $DATABASE_NAME $DATABASE_IMAGE $DATABASE_HOST
+				# Split image and tag: "tensorchord/pgvecto-rs:pg14-v0.2.0" -> image="tensorchord/pgvecto-rs" tag="pg14-v0.2.0"
+				local pg_image="${DATABASE_IMAGE%:*}"
+				local pg_tag="${DATABASE_IMAGE##*:}"
+				module_postgres install "$DATABASE_USER" "$DATABASE_PASSWORD" "$DATABASE_NAME" "$pg_image" "$pg_tag" "$DATABASE_HOST"
 			fi
 
-			# Wait for PostgreSQL to be ready
-			until docker exec -i $DATABASE_HOST psql -U $DATABASE_USER -c '\q' 2>/dev/null; do
-				echo "⏳ Waiting for PostgreSQL to be ready..."
-				sleep 2
-			done
-			echo "✅ PostgreSQL is ready. Creating Immich DB..."
+			# Wait for PostgreSQL to be ready with dialog_gauge progress
+			local max_wait_pg=60
+			local wait_count_pg=0
+			(
+				while [[ $wait_count_pg -lt $max_wait_pg ]]; do
+					if docker exec -i $DATABASE_HOST psql -U $DATABASE_USER -c '\q' 2>/dev/null; then
+						echo "XXX"; echo "100"; echo "PostgreSQL is ready!"; echo "XXX"
+						exit 0
+					fi
+
+					echo "XXX"; echo "$((wait_count_pg * 100 / max_wait_pg))"; echo "Waiting for PostgreSQL to be ready..."; echo "XXX"
+					sleep 2
+					((wait_count_pg++))
+				done
+				echo "XXX"; echo "100"; echo "Timed out waiting for PostgreSQL"; echo "XXX"
+			) | dialog_gauge "$title" "Waiting for PostgreSQL..." 8 60
+
+			# Verify PostgreSQL is ready
+			if ! docker exec -i $DATABASE_HOST psql -U $DATABASE_USER -c '\q' 2>/dev/null; then
+				dialog_msgbox "$title Installation Failed" \
+					"PostgreSQL container failed to start properly.\n\nCheck logs with: docker logs $DATABASE_HOST" \
+					10 60
+				return 1
+			fi
+
+			dialog_infobox "$title" "Creating Immich database..." 5 50
 
 			# Create database if it doesn't exist
+			dialog_infobox "$title" "Checking database..." 5 50
 			if docker exec -i $DATABASE_HOST psql -U $DATABASE_USER -tAc "SELECT 1 FROM pg_database WHERE datname='$DATABASE_NAME';" | grep -q 1; then
-				echo "✅ Database '$DATABASE_NAME' exists."
+				dialog_infobox "$title" "✅ Database '$DATABASE_NAME' already exists." 5 50
 			else
+				dialog_infobox "$title" "Creating database '$DATABASE_NAME'..." 5 50
 				docker exec -i $DATABASE_HOST psql -U $DATABASE_USER <<-EOT
 				CREATE DATABASE $DATABASE_NAME;
 				GRANT ALL PRIVILEGES ON DATABASE $DATABASE_NAME TO $DATABASE_USER;
 				EOT
+				dialog_infobox "$title" "✅ Database '$DATABASE_NAME' created successfully." 5 50
 			fi
 
 			# Pull image
 			docker_operation_progress pull "$dockerimage"
 
 			# Run container
-			if ! docker_operation_progress run "$dockername" \
+			docker_operation_progress run "$dockername" \
 				-d \
 				--name="$dockername" \
 				--net=lsio \
@@ -100,32 +126,34 @@ function module_immich () {
 				-v "${base_dir}/photos:/photos" \
 				-v "${base_dir}/libraries:/libraries" \
 				--restart=always \
-				"$dockerimage"; then
-				echo "❌ Failed to start Immich container"
-				exit 1
-			fi
+				"$dockerimage"
 
-			# Wait for service to be available
-			sleep 5
-			if [ -t 1 ]; then
-				for s in {1..10}; do
-					for i in {0..100..10}; do
-						echo "$i"
-						sleep 1
-					done
+			# Wait for Immich service to be available with dialog_gauge progress
+			local max_wait_immich=120
+			local wait_count_immich=0
+			(
+				while [[ $wait_count_immich -lt $max_wait_immich ]]; do
 					if curl -sf http://localhost:${port}/ > /dev/null; then
-						break
+						echo "XXX"; echo "100"; echo "Immich is ready!"; echo "XXX"
+						exit 0
 					fi
-				done | dialog_gauge "Immich" "Starting Immich Please wait..."
-			else
-				echo "Waiting for Immich to become available..."
-				for s in {1..10}; do
-					sleep 10
-					if curl -sf http://localhost:${port}/ > /dev/null; then
-						echo "✅ Immich is responding."
-						break
-					fi
+
+					echo "XXX"; echo "$((wait_count_immich * 100 / max_wait_immich))"; echo "Waiting for Immich to start..."; echo "XXX"
+					sleep 2
+					((wait_count_immich++))
 				done
+				echo "XXX"; echo "100"; echo "Timed out waiting for Immich"; echo "XXX"
+			) | dialog_gauge "$title" "Starting Immich..." 8 60
+
+			# Verify Immich is responding
+			if ! curl -sf http://localhost:${port}/ > /dev/null; then
+				dialog_msgbox "$title Warning" \
+					"Immich container started but may not be fully ready yet.\n\nCheck status with: docker logs $dockername" \
+					10 60
+			else
+				dialog_msgbox "$title Installation Complete" \
+					"Immich has been installed successfully!\n\nAccess at: http://localhost:${port}\n\nDefault credentials need to be created on first visit." \
+					12 60
 			fi
 		;;
 		"${commands[1]}") # remove
@@ -138,7 +166,9 @@ function module_immich () {
 				return 1
 			fi
 			# Only purge postgres and data directory if container/image removal succeeded
-			module_postgres purge $DATABASE_USER $DATABASE_PASSWORD $DATABASE_NAME $DATABASE_IMAGE $DATABASE_HOST
+			local pg_image="${DATABASE_IMAGE%:*}"
+			local pg_tag="${DATABASE_IMAGE##*:}"
+			module_postgres purge "$DATABASE_USER" "$DATABASE_PASSWORD" "$DATABASE_NAME" "$pg_image" "$pg_tag" "$DATABASE_HOST"
 			docker_manage_base_dir remove "$base_dir"
 		;;
 		"${commands[3]}") # status

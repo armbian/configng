@@ -11,6 +11,7 @@ module_options+=(
 	["module_postgres,arch"]="x86-64 arm64"
 	["module_postgres,dockerimage"]="tensorchord/pgvecto-rs:pg14-v0.2.0"
 	["module_postgres,dockername"]="postgres"
+	["module_postgres,help_install"]="Install PostgreSQL with custom credentials and image"
 )
 
 #
@@ -74,18 +75,8 @@ function module_postgres () {
 			docker_is_installed "$dockername" "$dockerimage"
 		;;
 		"${commands[4]}") # help
-			if [[ -t 1 ]]; then
-				dialog_msgbox "$title Help" \
-					"Usage: ${module_options["module_postgres,feature"]} <command> [username] [password] [database]\n\nCommands: ${module_options["module_postgres,example"]}\n\ninstall [username] [password] [database] - Install $title (defaults: armbian/armbian/armbian)\nremove - Remove $title\npurge  - Purge $title data\nstatus - Check $title installation status" 15 70
-			else
-				echo -e "\nUsage: ${module_options["module_postgres,feature"]} <command> [username] [password] [database]"
-				echo "Commands: ${module_options["module_postgres,example"]}"
-				echo -e "\tinstall [username] [password] [database] - Install ${title} (defaults: armbian/armbian/armbian)"
-				echo -e "\tremove - Remove ${title}"
-				echo -e "\tpurge  - Purge ${title} data"
-				echo -e "\tstatus - Check ${title} installation status"
-				echo
-			fi
+			show_module_help "module_postgres" "$title" \
+				"Port: $port\nImage: ${module_options["module_postgres,dockerimage"]}\n\nInstall accepts custom parameters:\n [username] [password] [database] [image] [tag] [container_name]\n\nDefaults: armbian armbian armbian tensorchord/pgvecto-rs pg14-v0.2.0 postgres"
 		;;
 		*)
 			${module_options["module_postgres,feature"]} ${commands[4]}
