@@ -35,7 +35,9 @@ function module_adguardhome () {
 			docker_manage_base_dir create "$base_dir" || return 1
 
 			# Configure systemd-resolved before starting container
+			local resolved_active=false
 			if srv_active systemd-resolved; then
+				resolved_active=true
 				mkdir -p /etc/systemd/resolved.conf.d/
 				cat > "/etc/systemd/resolved.conf.d/armbian-defaults.conf" <<- EOT
 				[Resolve]
@@ -45,7 +47,8 @@ function module_adguardhome () {
 				sleep 2
 			fi
 
-			docker_operation_progress run "$dockername" \
+			# Run container and check for success
+			if ! docker_operation_progress run "$dockername" \
 				-d \
 				--net=host \
 				-p 53:53/tcp -p 53:53/udp \
@@ -55,15 +58,28 @@ function module_adguardhome () {
 				-v "${base_dir}/confdir:/opt/adguardhome/conf" \
 				--name "$dockername" \
 				--restart=always \
-				"$dockerimage"
+				"$dockerimage"; then
+				# Container failed to start - restore DNS configuration
+				if $resolved_active; then
+					dialog_msgbox "$title Installation Failed" \
+						"AdGuard Home container failed to start.\n\nRestoring DNS configuration..." \
+						8 60
+					cat > "/etc/systemd/resolved.conf.d/armbian-defaults.conf" <<- EOT
+				[Resolve]
+				DNSStubListener=no
+				EOT
+					srv_restart systemd-resolved
+				fi
+				return 1
+			fi
 			# Additional ports for advanced usage (uncomment if needed):
 			#-p 67:67/udp -p 68:68/udp \ # DHCP server
 			#-p 853:853/tcp \ # DNS-over-TLS
 			#-p 5443:5443/tcp -p 5443:5443/udp \ # DNSCrypt
 			# See: https://hub.docker.com/r/adguard/adguardhome
 
-			# Add DNS configuration after container is running
-			if srv_active systemd-resolved; then
+			# Add DNS configuration after container is running (only if start succeeded)
+			if $resolved_active; then
 				cat > "/etc/systemd/resolved.conf.d/armbian-defaults.conf" <<- EOT
 				[Resolve]
 				DNS=127.0.0.1
