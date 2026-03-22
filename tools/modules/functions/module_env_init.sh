@@ -76,9 +76,20 @@ function set_runtime_variables() {
 	DIALOG_CANCEL=1
 	DIALOG_ESC=255
 
-	# Running container under 1st user
-	DOCKER_USERUID=1000
-	DOCKER_GROUPUID=1000
+	# Running container under the actual user (handles sudo)
+	# When run with sudo, get the real user's UID/GID, not root's
+	if [[ -n "$SUDO_USER" ]]; then
+		# Running with sudo - use the real user who invoked sudo
+		DOCKER_USERUID=$(id -u "$SUDO_USER")
+		DOCKER_GROUPUID=$(id -g "$SUDO_USER")
+	elif [[ $EUID -eq 0 ]]; then
+		# Running as root without sudo - fail
+		die "This tool must be run as a regular user (or with sudo), not as root directly. Docker containers need proper file permissions."
+	else
+		# Running as regular user without sudo
+		DOCKER_USERUID=$(id -u)
+		DOCKER_GROUPUID=$(id -g)
+	fi
 
 	# we have our own lsb_release which does not use Python. Others shell install it here
 	if [[ ! -f /usr/bin/lsb_release ]]; then
