@@ -66,7 +66,7 @@ function module_dozzle () {
 		;;
 		"${commands[4]}") # help
 			show_module_help "module_dozzle" "$title" \
-				"Docker Image: $dockerimage\nPort: $port\n\nDozzle is a lightweight, real-time Docker log viewer.\n\nFeatures:\n- View logs from all containers in real-time\n- Search and filter logs\n- Color-coded log levels\n- No authentication required (secure with reverse proxy)\n\nAccess at: http://<your-ip>:$port\n\nNote: Docker socket is mounted for log access.\nConsider securing with reverse proxy for production use."
+				"Docker Image: $dockerimage\nPort: $port\n\nDozzle is a lightweight, real-time Docker log viewer."
 		;;
 		*)
 			${module_options["module_dozzle,feature"]} ${commands[4]}
