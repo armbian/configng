@@ -295,6 +295,9 @@ sudo armbian-config
     - ### Uptime Kuma self-hosted monitoring tool
     - ### Uptime Kuma remove
     - ### Uptime Kuma purge with data folder
+    - ### Dozzle real-time Docker log viewer
+    - ### Dozzle remove
+    - ### Dozzle purge
 
 
   - ### Console network tools for measuring load and bandwidth
@@ -613,6 +616,9 @@ Outputs:
 	--cmd UPK001 - Uptime Kuma self-hosted monitoring tool
 	--cmd UPK002 - Uptime Kuma remove (http://localhost:3001)
 	--cmd UPK003 - Uptime Kuma purge with data folder
+	--cmd DOZ001 - Dozzle real-time Docker log viewer
+	--cmd DOZ002 - Dozzle remove
+	--cmd DOZ003 - Dozzle purge
     Netconfig - Console network tools for measuring load and bandwidth
 	--cmd AVH001 - avahi-daemon hostname broadcast via mDNS
 	--cmd AVH002 - avahi-daemon remove
@@ -1095,6 +1101,7 @@ These helper functions facilitate various operations related to job management, 
 | Install medusa container | install remove purge status help | @armbian 
 | Install prometheus container | install remove purge status help | @armbian 
 | Netplan wrapper | module_network_config | @igorpecovnik 
+| Install Dozzle container (real-time Docker log viewer) | install remove purge status help | @armbian 
 | Install syncthing container | install remove purge status help | @igorpecovnik 
 | Install Zerotier | help install remove start stop enable disable status check | @jnovos 
 | Install grafana container | install remove purge status help | @armbian 
