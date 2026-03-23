@@ -16,13 +16,17 @@ function manage_zsh() {
 
 	if [[ "$1" == "enable" ]]; then
 
-		sed -i "s|^SHELL=.*|SHELL=/bin/zsh|" /etc/default/useradd
-		sed -i -E "s|(^\|#)DSHELL=.*|DSHELL=/bin/zsh|" /etc/adduser.conf
-
 		pkg_update
 
-		# install
-		pkg_install armbian-zsh zsh-common zsh tmux
+		# install zsh before changing any shells — if install fails, abort
+		# to avoid setting an invalid shell that locks all users out via pam_shells
+		if ! pkg_install armbian-zsh zsh-common zsh tmux; then
+			echo "Failed to install zsh packages; shell not changed"
+			return 1
+		fi
+
+		sed -i "s|^SHELL=.*|SHELL=/bin/zsh|" /etc/default/useradd
+		sed -i -E "s|(^\|#)DSHELL=.*|DSHELL=/bin/zsh|" /etc/adduser.conf
 
 		update_skel
 

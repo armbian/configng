@@ -13,7 +13,8 @@
                         "dpkg-reconfigure tzdata"
                     ],
                     "status": "Stable",
-                    "author": "@armbian"
+                    "author": "@armbian",
+                    "help": "Change Global timezone"
                 },
                 {
                     "id": "LOC001",
@@ -25,7 +26,8 @@
                         "show_message <<< 'Global locale updated.  Please log out and back in for changes to take effect.\n\nDesktop users may also need to change locale in desktop settings.'"
                     ],
                     "status": "Stable",
-                    "author": "@armbian"
+                    "author": "@armbian",
+                    "help": "Reconfigure the language and character set"
                 },
                 {
                     "id": "KEY001",
@@ -35,7 +37,8 @@
                         "update-initramfs -u"
                     ],
                     "status": "Stable",
-                    "author": "@armbian"
+                    "author": "@armbian",
+                    "help": "Change Keyboard layout"
                 },
                 {
                     "id": "APT001",
@@ -45,7 +48,8 @@
                         "get_user_continue \"This is only a frontend test\" process_input"
                     ],
                     "status": "Disabled",
-                    "author": "@armbian"
+                    "author": "@armbian",
+                    "help": "Change APT mirrors"
                 },
                 {
                     "id": "HOS001",
@@ -54,9 +58,11 @@
                         "change_system_hostname"
                     ],
                     "status": "Stable",
-                    "author": "@armbian"
+                    "author": "@armbian",
+                    "help": "Change System Hostname"
                 }
-            ]
+            ],
+            "help": "Configure system language, locale, timezone, and regional settings to ensure proper formatting and user experience."
         }
     ]
 }

@@ -14,13 +14,14 @@
                             "description": "Use alternative kernels",
                             "short": "Alternative kernels",
                             "module": "module_generic",
-                            "about": "Switching between kernels might change functionality of your device. \n\nIt might fail to boot!",
+                            "about": "Switching between kernels might change functionality of your device. It might fail to boot!",
                             "command": [
                                 "module_armbian_firmware select"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": ""
+                            "condition": "",
+                            "help": "Switching between different kernel versions can significantly impact the functionality of your."
                         },
                         {
                             "id": "HEAD01",
@@ -28,21 +29,24 @@
                             "short": "Kernel Headers",
                             "module": "module_generic",
                             "command": [
-                                "module_armbian_firmware headers install"
+                                "module_headers install"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_armbian_firmware headers status"
+                            "condition": "! module_headers status",
+                            "help": "Kernel headers are files required to build modules (drivers) or software that interfaces."
                         },
                         {
                             "id": "HEAD02",
                             "description": "Remove Linux headers",
+                            "short": "Remove Headers",
                             "command": [
-                                "module_armbian_firmware headers remove"
+                                "module_headers remove"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_armbian_firmware headers status"
+                            "condition": "module_headers status",
+                            "help": "Remove Linux headers"
                         },
                         {
                             "id": "DTO001",
@@ -54,7 +58,8 @@
                             ],
                             "status": "Stable",
                             "author": "@viraniac @igorpecovnik",
-                            "condition": "[ -d /boot/dtb/ ] && [ -f /boot/armbianEnv.txt ]"
+                            "condition": "[ -d /boot/dtb/ ] && [ -f /boot/armbianEnv.txt ]",
+                            "help": "Device Tree Overlays allow you to dynamically modify the Linux device tree at runtime, without."
                         },
                         {
                             "id": "ODR001",
@@ -66,22 +71,25 @@
                             ],
                             "status": "Preview",
                             "author": "@GeoffClements",
-                            "condition": "[ $BOARDFAMILY == odroidxu4 ]"
+                            "condition": "[ \"$BOARDFAMILY\" == odroidxu4 ]",
+                            "help": "Odroid Boards Config"
                         },
                         {
                             "id": "BOOT01",
                             "description": "Edit the boot environment",
                             "short": "Boot Environment",
                             "module": "module_generic",
-                            "about": "This will open /boot/armbianEnv.txt file to edit\nCTRL+S to save\nCTLR+X to exit\nwould you like to continue?",
+                            "about": "This will open /boot/armbianEnv.txt file to edit. Would you like to continue?",
                             "command": [
                                 "nano /boot/armbianEnv.txt"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "[[ -f /boot/armbianEnv.txt ]]"
+                            "condition": "[[ -f /boot/armbianEnv.txt ]]",
+                            "help": "Edit the boot environment allows you to modify critical boot settings stored in /boot/armbianEnv."
                         }
-                    ]
+                    ],
+                    "help": "Alternative kernels, device tree overlays, and boot configuration"
                 },
                 {
                     "id": "Storage",
@@ -99,7 +107,8 @@
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "[[ -f /sbin/armbian-install || -f /usr/bin/armbian-install ]]"
+                            "condition": "[[ -f /sbin/armbian-install || -f /usr/bin/armbian-install ]]",
+                            "help": "Clones your current live OS installation - Keeps your settings, configuration, installed."
                         },
                         {
                             "id": "FLASH1",
@@ -111,7 +120,8 @@
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "module_images status >/dev/null"
+                            "condition": "module_images status >/dev/null",
+                            "help": "What can this tool do."
                         },
                         {
                             "id": "FLASH2",
@@ -123,7 +133,8 @@
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "module_images cache-status"
+                            "condition": "module_images cache-status",
+                            "help": "Remove cached images"
                         },
                         {
                             "id": "ROO001",
@@ -136,7 +147,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_overlayfs status"
+                            "condition": "! module_overlayfs status",
+                            "help": "Read-only filesystem is enabled using overlayroot, a utility that places a temporary writable."
                         },
                         {
                             "id": "ROO002",
@@ -147,7 +159,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_overlayfs status"
+                            "condition": "module_overlayfs status",
+                            "help": "Disable read only filesystem"
                         },
                         {
                             "id": "NETF01",
@@ -159,7 +172,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! pkg_installed nfs-common"
+                            "condition": "! pkg_installed nfs-common",
+                            "help": "Enable Network filesystem (NFS) support"
                         },
                         {
                             "id": "NETF02",
@@ -169,7 +183,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "pkg_installed nfs-common"
+                            "condition": "pkg_installed nfs-common",
+                            "help": "Disable Network filesystem (NFS) support"
                         },
                         {
                             "id": "NETF03",
@@ -188,7 +203,8 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "! module_nfsd status"
+                                    "condition": "! module_nfsd status",
+                                    "help": "NFS server"
                                 },
                                 {
                                     "id": "NETF05",
@@ -198,7 +214,8 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "module_nfsd status"
+                                    "condition": "module_nfsd status",
+                                    "help": "Configure network filesystem (NFS) daemon"
                                 },
                                 {
                                     "id": "NETF06",
@@ -208,7 +225,8 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "module_nfsd status"
+                                    "condition": "module_nfsd status",
+                                    "help": "Remove network filesystem (NFS) daemon"
                                 },
                                 {
                                     "id": "NETF07",
@@ -219,9 +237,11 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "module_nfsd status && [[ ${NFS_CLIENTS_NUMBER} -gt 0 ]]"
+                                    "condition": "module_nfsd status && [[ ${NFS_CLIENTS_NUMBER} -gt 0 ]]",
+                                    "help": "Show network filesystem (NFS) daemon clients"
                                 }
-                            ]
+                            ],
+                            "help": "NFS server"
                         },
                         {
                             "id": "NETF08",
@@ -240,7 +260,8 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "pkg_installed nfs-common"
+                                    "condition": "pkg_installed nfs-common",
+                                    "help": "Find NFS servers"
                                 },
                                 {
                                     "id": "NETF10",
@@ -250,9 +271,11 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[[ -n $(mount --type=nfs4) ]]"
+                                    "condition": "[[ -n $(mount --type=nfs4) ]]",
+                                    "help": "Show and manage NFS mounts"
                                 }
-                            ]
+                            ],
+                            "help": "NFS client"
                         },
                         {
                             "id": "ZFS001",
@@ -264,7 +287,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_zfs status && linux-version compare \"${KERNELID}\" le \"$(module_zfs kernel_max)\""
+                            "condition": "! module_zfs status && linux-version compare \"${KERNELID}\" le \"$(module_zfs kernel_max)\"",
+                            "help": "ZFS is an advanced, high-performance file system and volume manager designed for data integrity,."
                         },
                         {
                             "id": "ZFS002",
@@ -274,9 +298,11 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_zfs status"
+                            "condition": "module_zfs status",
+                            "help": "ZFS filesystem - remove support"
                         }
-                    ]
+                    ],
+                    "help": "Manage storage devices, ZFS filesystems, and NFS mounts"
                 },
                 {
                     "id": "Access",
@@ -285,7 +311,7 @@
                     "sub": [
                         {
                             "id": "ACC001",
-                            "description": "Disable root login",                            
+                            "description": "Disable root login",
                             "short": "Native",
                             "module": "module_generic",
                             "command": [
@@ -294,7 +320,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "grep -q '^PermitRootLogin yes'  /etc/ssh/sshd_config"
+                            "condition": "grep -q '^PermitRootLogin yes'  /etc/ssh/sshd_config",
+                            "help": "Manage native SSH daemon allows you to configure SSH server settings such as login security,."
                         },
                         {
                             "id": "ACC002",
@@ -305,7 +332,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "grep -q '^PermitRootLogin no' /etc/ssh/sshd_config"
+                            "condition": "grep -q '^PermitRootLogin no' /etc/ssh/sshd_config",
+                            "help": "Enable root login"
                         },
                         {
                             "id": "ACC003",
@@ -316,7 +344,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "grep -q 'PasswordAuthentication yes' /etc/ssh/sshd_config"
+                            "condition": "grep -q 'PasswordAuthentication yes' /etc/ssh/sshd_config",
+                            "help": "Disable password login"
                         },
                         {
                             "id": "ACC004",
@@ -327,7 +356,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "grep -q 'PasswordAuthentication no' /etc/ssh/sshd_config"
+                            "condition": "grep -q 'PasswordAuthentication no' /etc/ssh/sshd_config",
+                            "help": "Enable password login"
                         },
                         {
                             "id": "ACC005",
@@ -338,7 +368,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "grep -q 'PubkeyAuthentication yes' /etc/ssh/sshd_config"
+                            "condition": "grep -q 'PubkeyAuthentication yes' /etc/ssh/sshd_config",
+                            "help": "Disable Public key authentication login"
                         },
                         {
                             "id": "ACC006",
@@ -349,7 +380,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "grep -q 'PubkeyAuthentication no' /etc/ssh/sshd_config"
+                            "condition": "grep -q 'PubkeyAuthentication no' /etc/ssh/sshd_config",
+                            "help": "Enable Public key authentication login"
                         },
                         {
                             "id": "ACC007",
@@ -363,7 +395,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "grep -q 'ChallengeResponseAuthentication yes' /etc/ssh/sshd_config"
+                            "condition": "grep -q 'ChallengeResponseAuthentication yes' /etc/ssh/sshd_config",
+                            "help": "Disable OTP authentication"
                         },
                         {
                             "id": "ACC008",
@@ -378,7 +411,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! pkg_installed libpam-google-authenticator || ! pkg_installed qrencode || grep -q '^ChallengeResponseAuthentication no' /etc/ssh/sshd_config || ! grep -q 'ChallengeResponseAuthentication' /etc/ssh/sshd_config"
+                            "condition": "! pkg_installed libpam-google-authenticator || ! pkg_installed qrencode || grep -q '^ChallengeResponseAuthentication no' /etc/ssh/sshd_config || ! grep -q 'ChallengeResponseAuthentication' /etc/ssh/sshd_config",
+                            "help": "Enable OTP authentication"
                         },
                         {
                             "id": "ACC009",
@@ -388,7 +422,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config"
+                            "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config",
+                            "help": "Generate new OTP authentication QR code"
                         },
                         {
                             "id": "ACC010",
@@ -398,7 +433,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config && [ -f /root/.google_authenticator ]"
+                            "condition": "grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config && [ -f /root/.google_authenticator ]",
+                            "help": "Show OTP authentication QR code"
                         },
                         {
                             "id": "ACC011",
@@ -409,7 +445,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "grep -q '^PrintLastLog yes' /etc/ssh/sshd_config"
+                            "condition": "grep -q '^PrintLastLog yes' /etc/ssh/sshd_config",
+                            "help": "Disable last login banner"
                         },
                         {
                             "id": "ACC012",
@@ -420,7 +457,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "grep -q '^PrintLastLog no' /etc/ssh/sshd_config"
+                            "condition": "grep -q '^PrintLastLog no' /etc/ssh/sshd_config",
+                            "help": "Enable last login banner"
                         },
                         {
                             "id": "SSH001",
@@ -433,7 +471,9 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_openssh-server status"
+                            "container_type": "docker",
+                            "condition": "! module_openssh-server status",
+                            "help": "Sandboxed & containerised SSH server allows ssh access without giving keys to the entire server."
                         },
                         {
                             "id": "SSH002",
@@ -444,7 +484,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_openssh-server status"
+                            "condition": "module_openssh-server status",
+                            "help": "Remove sandboxed SSH server"
                         },
                         {
                             "id": "SSH003",
@@ -455,9 +496,11 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_openssh-server status"
+                            "condition": "module_openssh-server status",
+                            "help": "Purge sandboxed SSH server with data folder"
                         }
-                    ]
+                    ],
+                    "help": "Configure SSH server settings and two-factor authentication"
                 },
                 {
                     "id": "User",
@@ -475,18 +518,20 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"bash\" ]]"
+                            "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"bash\" ]]",
+                            "help": "ZSH is a powerful and customizable shell designed to be an enhanced replacement for BASH."
                         },
                         {
                             "id": "SHELL2",
-                            "description": "Change shell system wide to BASH",                            
+                            "description": "Change shell system wide to BASH",
                             "about": "This will switch system wide shell to BASH",
                             "command": [
                                 "manage_zsh disable"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"zsh\" ]]"
+                            "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"zsh\" ]]",
+                            "help": "Change shell system wide to BASH"
                         },
                         {
                             "id": "MOTD01",
@@ -498,9 +543,11 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "[ -f /etc/default/armbian-motd ]"
+                            "condition": "[ -f /etc/default/armbian-motd ]",
+                            "help": "Adjust MOTD"
                         }
-                    ]
+                    ],
+                    "help": "Change default shell and customize message of the day"
                 },
                 {
                     "id": "Updates",
@@ -520,7 +567,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_armbian_firmware hold status"
+                            "condition": "module_armbian_firmware hold status",
+                            "help": "Enable Armbian firmware upgrades manages whether the Armbian firmware (kernel + u-boot +."
                         },
                         {
                             "id": "UPD002",
@@ -531,7 +579,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "! module_armbian_firmware hold status"
+                            "condition": "! module_armbian_firmware hold status",
+                            "help": "Disable Armbian firmware upgrades"
                         },
                         {
                             "id": "ROLLIN",
@@ -544,7 +593,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_armbian_firmware repository stable status"
+                            "condition": "module_armbian_firmware repository stable status",
+                            "help": "The daily rolling repository offers frequently updated packages directly from development branches."
                         },
                         {
                             "id": "STABLE",
@@ -557,7 +607,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "module_armbian_firmware repository rolling status"
+                            "condition": "module_armbian_firmware repository rolling status",
+                            "help": "The stable repository provides thoroughly tested packages intended for production use."
                         },
                         {
                             "id": "STD001",
@@ -569,7 +620,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade stable verify"
+                            "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade stable verify",
+                            "help": "Stable / LTS upgrades move your system to a newer release of Debian or Ubuntu, bringing updated."
                         },
                         {
                             "id": "UNS001",
@@ -581,7 +633,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade rolling verify"
+                            "condition": "[ -f /etc/armbian-distribution-status ] && release_upgrade rolling verify",
+                            "help": "Non-LTS releases are intended for developers, testers, and enthusiasts who want the latest."
                         },
                         {
                             "id": "WTC001",
@@ -593,7 +646,9 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_watchtower status && pkg_installed docker-ce"
+                            "container_type": "docker",
+                            "condition": "! module_watchtower status",
+                            "help": "Watchtower is a lightweight tool that automatically monitors and updates running Docker."
                         },
                         {
                             "id": "WTC002",
@@ -603,7 +658,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_watchtower status && pkg_installed docker-ce"
+                            "condition": "module_watchtower status",
+                            "help": "Disable automating Docker container base images updating"
                         },
                         {
                             "id": "UNAT01",
@@ -615,7 +671,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! module_armbian_upgrades status"
+                            "condition": "! module_armbian_upgrades status",
+                            "help": "Unattended upgrades automatically install security updates and important package updates on your."
                         },
                         {
                             "id": "UNAT02",
@@ -625,7 +682,8 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_armbian_upgrades status"
+                            "condition": "module_armbian_upgrades status",
+                            "help": "Configure automatic package updates"
                         },
                         {
                             "id": "UNAT03",
@@ -635,11 +693,14 @@
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "module_armbian_upgrades status"
+                            "condition": "module_armbian_upgrades status",
+                            "help": "Disable automatic package updates"
                         }
-                    ]
+                    ],
+                    "help": "Manage system updates, firmware upgrades, and repositories"
                 }
-            ]
+            ],
+            "help": "Adjust core system and administrative settings including hardware, services, time, users, and low-level system configuration."
         }
     ]
 }

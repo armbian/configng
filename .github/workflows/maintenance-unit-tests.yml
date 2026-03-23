@@ -144,14 +144,14 @@ jobs:
           # Test case execution
           start_time=$(date +%s)
           figlet  "RUN TEST CASE"
-          testcase # function inside test script
+          testcase
           finish_time=$(date +%s)
 
           # Generate table entry
           echo "|${{ matrix.server.os }}| ${{ matrix.server.name }} | $((finish_time - start_time)) sec |" > ../test/${{ matrix.server.id }}-${{ matrix.server.os }}
 
       - name: "Upload test summary"
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: test-${{ matrix.server.id }}-${{ matrix.server.os }}
           path: test
@@ -165,7 +165,7 @@ jobs:
     steps:
 
       - name: Download All Artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           path: test
           pattern: test-*
@@ -179,7 +179,7 @@ jobs:
           echo "|:---|:---|---:|" >> $GITHUB_STEP_SUMMARY
           cat test/* | sed '$ s/.$//' >> $GITHUB_STEP_SUMMARY
 
-      - uses: geekyeggo/delete-artifact@v5
+      - uses: geekyeggo/delete-artifact@v6
         with:
           name: |
             test-*

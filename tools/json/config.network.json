@@ -14,7 +14,8 @@
                     ],
                     "status": "Stable",
                     "author": "@igorpecovnik",
-                    "condition": ""
+                    "condition": "",
+                    "help": "Configure basic network settings for wired and wireless interfaces"
                 },
                 {
                     "id": "BNS002",
@@ -26,7 +27,8 @@
                     ],
                     "status": "Stable",
                     "author": "@igorpecovnik",
-                    "condition": "[ -f /etc/netplan/10-dhcp-all-interfaces.yaml ] && [ -f /etc/netplan/armbian.yaml ]"
+                    "condition": "[ -f /etc/netplan/10-dhcp-all-interfaces.yaml ] && [ -f /etc/netplan/armbian.yaml ]",
+                    "help": "Remove Fallback DHCP Configuration"
                 },
                 {
                     "id": "VNS001",
@@ -38,7 +40,8 @@
                     ],
                     "status": "Stable",
                     "author": "@igorpecovnik",
-                    "condition": "[[ -f /etc/netplan/armbian.yaml ]]"
+                    "condition": "[[ -f /etc/netplan/armbian.yaml ]]",
+                    "help": "View Network Configuration allows you to display the system’s active network settings."
                 },
                 {
                     "id": "NEA001",
@@ -56,7 +59,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": ""
+                            "condition": "",
+                            "help": "In order to configure your network devices, they need to be supported."
                         },
                         {
                             "id": "NEA003",
@@ -66,7 +70,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": ""
+                            "condition": "",
+                            "help": "Revert to Armbian defaults"
                         },
                         {
                             "id": "NEA004",
@@ -76,7 +81,8 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "[[ -f /etc/netplan/armbian.yaml ]]"
+                            "condition": "[[ -f /etc/netplan/armbian.yaml ]]",
+                            "help": "Show configuration"
                         },
                         {
                             "id": "NEA005",
@@ -86,9 +92,11 @@
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "[ -f /etc/netplan/armbian.yaml ] && [ netplan status 2>/dev/null ]"
+                            "condition": "[ -f /etc/netplan/armbian.yaml ] && [ netplan status 2>/dev/null ]",
+                            "help": "Show active status"
                         }
-                    ]
+                    ],
+                    "help": "Advanced network configuration with bridges, VLANs, and bonding"
                 },
                 {
                     "id": "BLU001",
@@ -100,7 +108,8 @@
                     ],
                     "status": "Disabled",
                     "author": "@armbian",
-                    "condition": "! pkg_installed bluetooth && ! pkg_installed bluez && ! pkg_installed bluez-tools"
+                    "condition": "! pkg_installed bluetooth && ! pkg_installed bluez && ! pkg_installed bluez-tools",
+                    "help": "Install Bluetooth support"
                 },
                 {
                     "id": "BLU002",
@@ -112,7 +121,8 @@
                     ],
                     "status": "Disabled",
                     "author": "@armbian",
-                    "condition": "pkg_installed bluetooth || pkg_installed bluez || pkg_installed bluez-tools"
+                    "condition": "pkg_installed bluetooth || pkg_installed bluez || pkg_installed bluez-tools",
+                    "help": "Remove Bluetooth support"
                 },
                 {
                     "id": "BLU003",
@@ -123,7 +133,8 @@
                     ],
                     "status": "Disabled",
                     "author": "@armbian",
-                    "condition": "pkg_installed bluetooth || pkg_installed bluez || pkg_installed bluez-tools"
+                    "condition": "pkg_installed bluetooth || pkg_installed bluez || pkg_installed bluez-tools",
+                    "help": "Bluetooth Discover"
                 },
                 {
                     "id": "IPV001",
@@ -134,9 +145,11 @@
                     ],
                     "status": "Disabled",
                     "author": "@armbian",
-                    "condition": ""
+                    "condition": "",
+                    "help": "Toggle system IPv6/IPv4 internet protocol"
                 }
-            ]
+            ],
+            "help": "Configure wired and wireless networking including interfaces, IP settings, DNS, routing, and connection management."
         }
     ]
 }

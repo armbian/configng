@@ -53,6 +53,30 @@ def format_arch_labels(arch_string):
     arches = arch_string.strip().split()
     return " ".join(label_template.format(bg=colors.get(arch, ("#e0e0e0", "#333333"))[0], fg=colors.get(arch, ("#e0e0e0", "#333333"))[1], arch=arch) for arch in arches)
 
+def format_container_badge(item):
+    """Generate a badge for container-based software"""
+    container_type = item.get('container_type')
+
+    if not container_type:
+        return ""
+
+    colors = {
+	"docker": ("#ffffff", "#039BE5", "🐳"),
+	"podman": ("#ffffff", "#3B4C6C", "🐳"),
+	"lxc":    ("#ffffff", "#00A8E1", "📦"),
+	"kvm":    ("#ffffff", "#E95420", "💿"),
+    }
+
+    bg, fg, icon = colors.get(container_type, ("#757575", "#ffffff", "🐳"))
+
+    label_template = '<span style="background-color:{bg}; color:{fg}; padding:3px 6px; border-radius:4px; font-size:90%;">{icon} {type}</span>'
+    return label_template.format(
+        bg=bg,
+        fg=fg,
+        icon=icon,
+        type=container_type.capitalize()
+    )
+
 def generate_anchor_links(item, level=0, parent_path=""):
     links = []
     current_id = item['id'].lower()
@@ -109,6 +133,10 @@ def create_markdown_user(item, level=1, show_meta=True, force_title=False, skip_
                 doc_link = module_options[module].get('doc_link')
                 if doc_link:
                     md.append(f"__Documentation:__ [Link]({doc_link})  ")
+        # Container type badge (shown regardless of module_options)
+        container_badge = format_container_badge(item)
+        if container_badge:
+            md.append(f"__Installation:__ {container_badge}  ")
 
     if item.get('command') and not skip_commands:
         cmd = item['command'][0] if isinstance(item['command'], list) else item['command']
@@ -163,6 +191,10 @@ def create_markdown_user(item, level=1, show_meta=True, force_title=False, skip_
                         doc_link = module_options[module].get('doc_link')
                         if doc_link:
                             md.append(f"__Documentation:__ [Link]({doc_link})  ")
+                    # Container type badge (shown regardless of module_options)
+                    container_badge = format_container_badge(sub_item)
+                    if container_badge:
+                        md.append(f"__Installation:__ {container_badge}  ")
                     first_sub = False
 
                 if sub_item.get('command'):

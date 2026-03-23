@@ -5,105 +5,78 @@ module_options+=(
 	["module_netdata,example"]="install remove purge status help"
 	["module_netdata,desc"]="Install netdata container"
 	["module_netdata,status"]="Active"
-	["module_netdata,doc_link"]="https://transmissionbt.com/"
+	["module_netdata,doc_link"]="https://learn.netdata.cloud/"
 	["module_netdata,group"]="Monitoring"
 	["module_netdata,port"]="19999"
-	["module_netdata,arch"]="x86-64 arm64"
+	["module_netdata,arch"]="x86-64 arm64 armhf"
+	["module_netdata,dockerimage"]="netdata/netdata:latest"
+	["module_netdata,dockername"]="netdata"
 )
 #
-# Module netdata
+# Module Netdata
 #
 function module_netdata () {
-	local title="netdata"
-	local condition=$(which "$title" 2>/dev/null)
-
-	# Ensure Docker is available for commands that need it (install, remove, purge)
-	if [[ "$1" != "status" && "$1" != "help" ]]; then
-		if ! module_docker status >/dev/null 2>&1; then
-			module_docker install
-		fi
-	fi
-
-	local container=$(docker container ls -a --filter "name=netdata" --format '{{.ID}}') 2>/dev/null || echo ""
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'netdata' | awk '{print $2}') 2>/dev/null || echo ""
+	local title="Netdata"
+	local dockerimage="${module_options["module_netdata,dockerimage"]}"
+	local dockername="${module_options["module_netdata,dockername"]}"
+	local port="${module_options["module_netdata,port"]}"
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_netdata,example"]}"
 
-	NETDATA_BASE="${SOFTWARE_FOLDER}/netdata"
+	local base_dir="${SOFTWARE_FOLDER}/netdata"
 
 	case "$1" in
-		"${commands[0]}")
-			if ! module_docker status >/dev/null 2>&1; then
-				module_docker install
-			fi
-			[[ -d "$NETDATA_BASE" ]] || mkdir -p "$NETDATA_BASE" || { echo "Couldn't create storage directory: $NETDATA_BASE"; exit 1; }
-			docker run -d \
-			--name=netdata \
-			--pid=host \
-			--network=host \
-			-v "${NETDATA_BASE}/netdataconfig:/etc/netdata" \
-			-v "${NETDATA_BASE}/netdatalib:/var/lib/netdata" \
-			-v "${NETDATA_BASE}/netdatacache:/var/cache/netdata" \
-			-v /:/host/root:ro,rslave \
-			-v /etc/passwd:/host/etc/passwd:ro \
-			-v /etc/group:/host/etc/group:ro \
-			-v /etc/localtime:/etc/localtime:ro \
-			-v /proc:/host/proc:ro \
-			-v /sys:/host/sys:ro \
-			-v /etc/os-release:/host/etc/os-release:ro \
-			-v /var/log:/host/var/log:ro \
-			-v /var/run/docker.sock:/var/run/docker.sock:ro \
-			--restart=always \
-			--cap-add SYS_PTRACE \
-			--cap-add SYS_ADMIN \
-			--security-opt apparmor=unconfined \
-			netdata/netdata
-			for i in $(seq 1 20); do
-				state="$(docker inspect -f '{{.State.Status}}' netdata 2>/dev/null || true)"
-				if [[ "$state" == "running" ]]; then
-				break
-				fi
-				sleep 3
-				if [[ $i -eq 20 ]]; then
-					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs netdata\`)"
-					exit 1
-				fi
-			done
+		"${commands[0]}") # install
+			# Pull image (handles Docker installation and already-installed check)
+			docker_operation_progress pull "$dockerimage"
+
+			# Create base directory
+			docker_manage_base_dir create "$base_dir" || return 1
+
+			docker_operation_progress run "$dockername" \
+				-d \
+				--name="$dockername" \
+				--pid=host \
+				--network=host \
+				-v "${base_dir}/netdataconfig:/etc/netdata" \
+				-v "${base_dir}/netdatalib:/var/lib/netdata" \
+				-v "${base_dir}/netdatacache:/var/cache/netdata" \
+				-v /:/host/root:ro,rslave \
+				-v /etc/passwd:/host/etc/passwd:ro \
+				-v /etc/group:/host/etc/group:ro \
+				-v /etc/localtime:/etc/localtime:ro \
+				-v /proc:/host/proc:ro \
+				-v /sys:/host/sys:ro \
+				-v /etc/os-release:/host/etc/os-release:ro \
+				-v /var/log:/host/var/log:ro \
+				-v /var/run/docker.sock:/var/run/docker.sock:ro \
+				--restart=always \
+				--cap-add SYS_PTRACE \
+				--cap-add SYS_ADMIN \
+				--security-opt apparmor=unconfined \
+				"$dockerimage"
 		;;
-		"${commands[1]}")
-			if [[ "${container}" ]]; then
-				echo "Removing container: $container"
-				docker container rm -f "$container"
-			fi
+		"${commands[1]}") # remove
+			# Remove container and image (functions handle existence checks)
+			docker_operation_progress rm "$dockername"
+			docker_operation_progress rmi "$dockerimage"
 		;;
-		"${commands[2]}")
-			${module_options["module_netdata,feature"]} ${commands[1]}
-			if [[ "${image}" ]]; then
-				sleep 2
-				docker image rm -f "$image" 2>/dev/null || true
-			fi
-			${module_options["module_netdata,feature"]} ${commands[1]}
-			if [[ -n "${NETDATA_BASE}" && "${NETDATA_BASE}" != "/" ]]; then
-				rm -rf "${NETDATA_BASE}"
-			fi
-		;;
-		"${commands[3]}")
-			if [[ "${container}" && "${image}" ]]; then
-				return 0
-			else
+		"${commands[2]}") # purge
+			# Remove container and image first
+			if ! ${module_options["module_netdata,feature"]} ${commands[1]}; then
 				return 1
 			fi
+			# Only remove data directory if container/image removal succeeded
+			docker_manage_base_dir remove "$base_dir"
 		;;
-		"${commands[4]}")
-			echo -e "\nUsage: ${module_options["module_netdata,feature"]} <command>"
-			echo -e "Commands:  ${module_options["module_netdata,example"]}"
-			echo "Available commands:"
-			echo -e "\tinstall\t- Install $title."
-			echo -e "\tstatus\t- Installation status $title."
-			echo -e "\tremove\t- Remove $title."
-			echo -e "\tpurge\t- Purge $title."
-			echo
+		"${commands[3]}") # status
+			# Return 0 if installed, 1 if not (used by menu system)
+			docker_is_installed "$dockername" "$dockerimage"
+		;;
+		"${commands[4]}") # help
+			show_module_help "module_netdata" "$title" \
+				"Web Interface: http://localhost:${port}\nDocker Image: $dockerimage\n\nUses host networking for system monitoring"
 		;;
 		*)
 			${module_options["module_netdata,feature"]} ${commands[4]}

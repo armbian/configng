@@ -9,81 +9,35 @@ module_options+=(
 	["module_adguardhome,group"]="DNS"
 	["module_adguardhome,port"]="3000"
 	["module_adguardhome,arch"]=""
+	["module_adguardhome,dockerimage"]="adguard/adguardhome:latest"
+	["module_adguardhome,dockername"]="adguardhome"
 )
 #
-# Module adguardhome
+# Module AdGuard Home
 #
 function module_adguardhome () {
-	local title="adguardhome"
-	local condition=$(which "$title" 2>/dev/null)
-
-	# Ensure Docker is available for commands that need it (install, remove, purge)
-	if [[ "$1" != "status" && "$1" != "help" ]]; then
-		if ! module_docker status >/dev/null 2>&1; then
-			module_docker install
-		fi
-	fi
-	local container=$(docker container ls -a --filter "name=adguardhome" --format '{{.ID}}') 2>/dev/null || echo ""
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'adguard' | awk '{print $2}') 2>/dev/null || echo ""
+	local title="AdGuard Home"
+	local dockerimage="${module_options["module_adguardhome,dockerimage"]}"
+	local dockername="${module_options["module_adguardhome,dockername"]}"
+	local port="${module_options["module_adguardhome,port"]}"
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_adguardhome,example"]}"
 
-	ADGUARDHOME_BASE="${SOFTWARE_FOLDER}/adguardhome"
+	local base_dir="${SOFTWARE_FOLDER}/adguardhome"
 
 	case "$1" in
-		"${commands[0]}")
-			if ! module_docker status >/dev/null 2>&1; then
-				module_docker install
-			fi
-			[[ -d "$ADGUARDHOME_BASE" ]] || mkdir -p "$ADGUARDHOME_BASE" || { echo "Couldn't create storage directory: $ADGUARDHOME_BASE"; exit 1; }
-			if [[ ! -f "/etc/systemd/resolved.conf.d/armbian-defaults.conf" ]]; then
-				${module_options["module_adguardhome,feature"]} ${commands[1]}
-			fi
-			docker run -d \
-			--net=host \
-			-p 53:53/tcp -p 53:53/udp \
-			-p 80:80/tcp -p 443:443/tcp -p 443:443/udp -p 3000:3000/tcp \
-			-p 784:784/udp -p 853:853/udp -p 8853:8853/udp \
-			-v "${ADGUARDHOME_BASE}/workdir:/opt/adguardhome/work" \
-			-v "${ADGUARDHOME_BASE}/confdir:/opt/adguardhome/conf" \
-			--name adguardhome \
-			--restart=always \
-			adguard/adguardhome
-			#-p 67:67/udp -p 68:68/udp \ # add if you intend to use AdGuard Home as a DHCP server.
-			#-p 853:853/tcp \ # if you are going to run AdGuard Home as a DNS-over-TLS⁠ server.
-			#-p 5443:5443/tcp -p 5443:5443/udp \ add if you are going to run AdGuard Home as a DNSCrypt⁠ server.
-			# More info: https://hub.docker.com/r/adguard/adguardhome
-			for i in $(seq 1 20); do
-				state="$(docker inspect -f '{{.State.Status}}' adguardhome 2>/dev/null || true)"
-				if [[ "$state" == "running" ]]; then
-					break
-				fi
-				sleep 3
-				if [[ $i -eq 20 ]]; then
-					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs adguardhome\`)"
-					exit 1
-				fi
-			done
-			local container_ip=$(docker inspect --format '{{ .NetworkSettings.Networks.lsio.IPAddress }}' adguardhome)
+		"${commands[0]}") # install
+			# Pull image (handles Docker installation and already-installed check)
+			docker_operation_progress pull "$dockerimage"
+
+			# Create base directory
+			docker_manage_base_dir create "$base_dir" || return 1
+
+			# Configure systemd-resolved before starting container
+			local resolved_active=false
 			if srv_active systemd-resolved; then
-				mkdir -p /etc/systemd/resolved.conf.d/
-				cat > "/etc/systemd/resolved.conf.d/armbian-defaults.conf" <<- EOT
-				[Resolve]
-				DNS=127.0.0.1 ${container_ip}
-				DNSStubListener=no
-				EOT
-				srv_restart systemd-resolved
-				sleep 2
-			fi
-		;;
-		"${commands[1]}")
-			if [[ "${container}" ]]; then
-				echo "Removing container: $container"
-				docker container rm -f "$container"
-			fi
-			# restore DNS settings
-			if srv_active systemd-resolved; then
+				resolved_active=true
 				mkdir -p /etc/systemd/resolved.conf.d/
 				cat > "/etc/systemd/resolved.conf.d/armbian-defaults.conf" <<- EOT
 				[Resolve]
@@ -92,34 +46,76 @@ function module_adguardhome () {
 				srv_restart systemd-resolved
 				sleep 2
 			fi
-		;;
-		"${commands[2]}")
-			${module_options["module_adguardhome,feature"]} ${commands[1]}
-			if [[ "${image}" ]]; then
-				docker image rm "$image"
-			fi
-			${module_options["module_adguardhome,feature"]} ${commands[1]}
-			if [[ -n "${ADGUARDHOME_BASE}" && "${ADGUARDHOME_BASE}" != "/" ]]; then
-				rm -rf "${ADGUARDHOME_BASE}"
-			fi
-		;;
-		"${commands[3]}")
-			if [[ "${container}" && "${image}" ]]; then
-				return 0
-			else
+
+			# Run container and check for success
+			if ! docker_operation_progress run "$dockername" \
+				-d \
+				--net=host \
+				-p 53:53/tcp -p 53:53/udp \
+				-p 80:80/tcp -p 443:443/tcp -p 443:443/udp -p 3000:3000/tcp \
+				-p 784:784/udp -p 853:853/udp -p 8853:8853/udp \
+				-v "${base_dir}/workdir:/opt/adguardhome/work" \
+				-v "${base_dir}/confdir:/opt/adguardhome/conf" \
+				--name "$dockername" \
+				--restart=always \
+				"$dockerimage"; then
+				# Container failed to start - restore DNS configuration
+				if $resolved_active; then
+					dialog_msgbox "$title Installation Failed" \
+						"AdGuard Home container failed to start.\n\nRestoring DNS configuration..." \
+						8 60
+					cat > "/etc/systemd/resolved.conf.d/armbian-defaults.conf" <<- EOT
+				[Resolve]
+				DNSStubListener=no
+				EOT
+					srv_restart systemd-resolved
+				fi
 				return 1
 			fi
-		;;
-		"${commands[4]}")
-			echo -e "\nUsage: ${module_options["module_adguardhome,feature"]} <command>"
-			echo -e "Commands:  ${module_options["module_adguardhome,example"]}"
-			echo "Available commands:"
-			echo -e "\tinstall\t- Install $title."
-			echo -e "\tremove\t- Remove $title."
-			echo -e "\tpurge\t- Purge $title data folder."
-			echo -e "\tstatus\t- Installation status $title."
+			# Additional ports for advanced usage (uncomment if needed):
+			#-p 67:67/udp -p 68:68/udp \ # DHCP server
+			#-p 853:853/tcp \ # DNS-over-TLS
+			#-p 5443:5443/tcp -p 5443:5443/udp \ # DNSCrypt
+			# See: https://hub.docker.com/r/adguard/adguardhome
 
-			echo
+			# Add DNS configuration after container is running (only if start succeeded)
+			if $resolved_active; then
+				cat > "/etc/systemd/resolved.conf.d/armbian-defaults.conf" <<- EOT
+				[Resolve]
+				DNS=127.0.0.1
+				DNSStubListener=no
+				EOT
+				srv_restart systemd-resolved
+				sleep 2
+			fi
+		;;
+		"${commands[1]}") # remove
+			# Remove container and image (functions handle existence checks)
+			docker_operation_progress rm "$dockername"
+			docker_operation_progress rmi "$dockerimage"
+
+			# Restore DNS settings
+			if srv_active systemd-resolved; then
+				rm -f /etc/systemd/resolved.conf.d/armbian-defaults.conf
+				srv_restart systemd-resolved
+				sleep 2
+			fi
+		;;
+		"${commands[2]}") # purge
+			# Remove container and image first
+			if ! ${module_options["module_adguardhome,feature"]} ${commands[1]}; then
+				return 1
+			fi
+			# Only remove data directory if container/image removal succeeded
+			docker_manage_base_dir remove "$base_dir"
+		;;
+		"${commands[3]}") # status
+			# Return 0 if installed, 1 if not (used by menu system)
+			docker_is_installed "$dockername" "$dockerimage"
+		;;
+		"${commands[4]}") # help
+			show_module_help "module_adguardhome" "$title" \
+				"Web Interface: http://localhost:${port}\nDocker Image: $dockerimage"
 		;;
 		*)
 			${module_options["module_adguardhome,feature"]} ${commands[4]}

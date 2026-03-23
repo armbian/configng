@@ -9,36 +9,30 @@ module_options+=(
 	["module_octoprint,group"]="Printing"
 	["module_octoprint,port"]="7981"
 	["module_octoprint,arch"]="x86-64 arm64"
+	["module_octoprint,dockerimage"]="octoprint/octoprint:latest"
+	["module_octoprint,dockername"]="octoprint"
 )
 #
 # Module octoprint
 #
 function module_octoprint () {
-	local title="octoprint"
-	local condition=$(which "$title" 2>/dev/null)
-
-	# Ensure Docker is available for commands that need it (install, remove, purge)
-	if [[ "$1" != "status" && "$1" != "help" ]]; then
-		if ! module_docker status >/dev/null 2>&1; then
-			module_docker install
-		fi
-	fi
-
-	local container=$(docker container ls -a --filter "name=octoprint" --format '{{.ID}}') 2>/dev/null || echo ""
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'octoprint' | awk '{print $2}') 2>/dev/null || echo ""
+	local title="OctoPrint"
+	local dockerimage="${module_options["module_octoprint,dockerimage"]}"
+	local dockername="${module_options["module_octoprint,dockername"]}"
+	local port="${module_options["module_octoprint,port"]}"
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_octoprint,example"]}"
 
-	OCTOPRINT_BASE="${SOFTWARE_FOLDER}/octoprint"
+	local base_dir="${SOFTWARE_FOLDER}/$dockername"
 
 	case "$1" in
-		"${commands[0]}")
-			if ! module_docker status >/dev/null 2>&1; then
-				module_docker install
-			fi
-			[[ -d "$OCTOPRINT_BASE" ]] || mkdir -p "$OCTOPRINT_BASE" || { echo "Couldn't create storage directory: $OCTOPRINT_BASE"; exit 1; }
-			docker volume create octoprint
+		"${commands[0]}") # install
+			# Pull image
+			docker_operation_progress pull "$dockerimage"
+
+			# Create base directory
+			docker_manage_base_dir create "$base_dir" || return 1
 
 			# Check if camera device exists, only add --device if it does
 			local device_params=""
@@ -48,60 +42,36 @@ function module_octoprint () {
 				echo "Warning: /dev/video0 not found. Camera support will not be available."
 			fi
 
-			docker run -d \
-			--name=octoprint \
-			-v "${OCTOPRINT_BASE}:/octoprint/octoprint" \
-			$device_params \
-			-e TZ="$(cat /etc/timezone)" \
-			-e ENABLE_MJPG_STREAMER=true \
-			-p 7981:80 \
-			--restart=always \
-			octoprint/octoprint
-			for i in $(seq 1 20); do
-				state="$(docker inspect -f '{{.State.Status}}' octoprint 2>/dev/null || true)"
-				if [[ "$state" == "running" ]]; then
-				break
-				fi
-				sleep 3
-				if [[ $i -eq 20 ]]; then
-					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs octoprint\`)"
-					exit 1
-				fi
-			done
+			# Run container
+			docker_operation_progress run "$dockername" \
+				-d \
+				--name="$dockername" \
+				-v "${base_dir}:/octoprint/octoprint" \
+				$device_params \
+				-e TZ="$(cat /etc/timezone)" \
+				-e ENABLE_MJPG_STREAMER=true \
+				-p "${port}:80" \
+				--restart=always \
+				"$dockerimage"
 		;;
-		"${commands[1]}")
-			if [[ "${container}" ]]; then
-				echo "Removing container: $container"
-				docker container rm -f "$container"
-			fi
+		"${commands[1]}") # remove
+			docker_operation_progress rm "$dockername"
+			docker_operation_progress rmi "$dockerimage"
 		;;
-		"${commands[2]}")
-			${module_options["module_octoprint,feature"]} ${commands[1]}
-			if [[ "${image}" ]]; then
-				sleep 2
-				docker image rm -f "$image" 2>/dev/null || true
-			fi
-			${module_options["module_octoprint,feature"]} ${commands[1]}
-			if [[ -n "${OCTOPRINT_BASE}" && "${OCTOPRINT_BASE}" != "/" ]]; then
-				rm -rf "${OCTOPRINT_BASE}"
-			fi
-		;;
-		"${commands[3]}")
-			if [[ "${container}" && "${image}" ]]; then
-				return 0
-			else
+		"${commands[2]}") # purge
+			# Remove container and image first
+			if ! ${module_options["module_octoprint,feature"]} ${commands[1]}; then
 				return 1
 			fi
+			# Only remove data directory if container/image removal succeeded
+			docker_manage_base_dir remove "$base_dir"
 		;;
-		"${commands[4]}")
-			echo -e "\nUsage: ${module_options["module_octoprint,feature"]} <command>"
-			echo -e "Commands:  ${module_options["module_octoprint,example"]}"
-			echo "Available commands:"
-			echo -e "\tinstall\t- Install $title."
-			echo -e "\tstatus\t- Installation status $title."
-			echo -e "\tremove\t- Remove $title."
-			echo -e "\tpurge\t- Purge $title."
-			echo
+		"${commands[3]}") # status
+			docker_is_installed "$dockername" "$dockerimage"
+		;;
+		"${commands[4]}") # help
+			show_module_help "module_octoprint" "$title" \
+				"Docker Image: $dockerimage\nPort: $port\n\nNote: Camera support requires /dev/video0 device."
 		;;
 		*)
 			${module_options["module_octoprint,feature"]} ${commands[4]}

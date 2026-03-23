@@ -88,10 +88,7 @@ function manage_dtoverlays () {
 		fi
 
 		if [[ "${scenario}" == "00" ]]; then
-			$DIALOG --title " Manage devicetree overlays " \
-				--no-button "Cancel" \
-				--yes-button "Exit" \
-				--yesno "    The overlays provided by Armbian cannot be loaded\n    by /boot/boot.scr script.\n" 11 44
+			dialog_yesno "Manage devicetree overlays" "    The overlays provided by Armbian cannot be loaded\n    by /boot/boot.scr script.\n" "Exit" "Cancel" 11 44
 				exit_status=$?
 			if [ $exit_status == 0 ]; then
 				exit 0
@@ -114,9 +111,7 @@ function manage_dtoverlays () {
 			grep '^overlays' ${overlayconf} | grep -qw ${candidate} && status=ON
 			options+=( "$overlay" "" "$status")
 		done
-		selection=$($DIALOG --title "Manage devicetree overlays" --cancel-button "Back" \
-			--ok-button "Save" --checklist "\nUse <space> to toggle functions and save them.\nExit when you are done.\n\n    overlay_prefix=$overlay_prefix\n " \
-			0 0 0 "${options[@]}" 3>&1 1>&2 2>&3)
+		selection=$(dialog_checklist "Manage devicetree overlays" "\nUse <space> to toggle functions and save them.\nExit when you are done.\n\n    overlay_prefix=$overlay_prefix\n " 0 0 0 --cancel-button "Back" --ok-button "Save" -- "${options[@]}")
 		exit_status=$?
 		case $exit_status in
 			0)
@@ -155,8 +150,7 @@ function manage_dtoverlays () {
 				;;
 			1)
 				if [[ "$changes" == "true" ]]; then
-					$DIALOG --title " Reboot required " --yes-button "Reboot" \
-						--no-button "Cancel" --yesno "A reboot is required to apply the changes. Shall we reboot now?" 7 34
+					dialog_yesno "Reboot required" "A reboot is required to apply the changes. Shall we reboot now?" "Reboot" "Cancel" 7 34
 					if [[ $? = 0 ]]; then
 						reboot
 					fi

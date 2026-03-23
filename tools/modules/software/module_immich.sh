@@ -9,83 +9,107 @@ module_options+=(
 	["module_immich,group"]="Media"
 	["module_immich,port"]="8077"
 	["module_immich,arch"]="x86-64 arm64"
+	["module_immich,dockerimage"]="ghcr.io/imagegenius/immich:latest"
+	["module_immich,dockername"]="immich"
 )
 #
 # Module immich
 #
 function module_immich () {
-	local title="immich"
-	local condition=$(which "$title" 2>/dev/null)
+	local title="Immich"
+	local dockerimage="${module_options["module_immich,dockerimage"]}"
+	local dockername="${module_options["module_immich,dockername"]}"
+	local port="${module_options["module_immich,port"]}"
 
-	# Ensure Docker is available for commands that need it (install, remove, purge)
-	if [[ "$1" != "status" && "$1" != "help" ]]; then
-		if ! module_docker status >/dev/null 2>&1; then
-			module_docker install
-		fi
-	fi
-
-	# Database
+	# Database configuration
 	local DATABASE_USER="immich"
 	local DATABASE_PASSWORD="immich"
 	local DATABASE_NAME="immich"
 	local DATABASE_HOST="postgres-immich"
-	local DATABASE_IMAGE="tensorchord/pgvecto-rs"
-	local DATABASE_TAG="pg14-v0.2.0"
+	local DATABASE_IMAGE="tensorchord/pgvecto-rs:pg14-v0.2.0"
 	local DATABASE_PORT="5432"
-	local container=$(docker container ls -a --format '{{.ID}} {{.Names}}' | awk '$2 == "immich" {print $1}') 2>/dev/null || echo ""
-	local image=$(docker image ls -a --format '{{.Repository}}:{{.Tag}}' | grep 'ghcr.io/imagegenius/immich:' | head -1) 2>/dev/null || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_immich,example"]}"
 
-	IMMICH_BASE="${SOFTWARE_FOLDER}/immich"
+	local base_dir="${SOFTWARE_FOLDER}/$dockername"
 
 	case "$1" in
-		"${commands[0]}")
-			# Check if the module is already installed
-			if [[ "${container}" && "${image}" ]]; then
-				echo "Immich container is already installed."
-				exit 0
+		"${commands[0]}") # install
+			# Check if already installed
+			if docker_is_installed "$dockername" "$dockerimage"; then
+				dialog_msgbox "$title" "Immich container is already installed." 8 50
+				return 0
 			fi
 
-			# workaround if we re-install
-			mkdir -p \
-			"$IMMICH_BASE"/photos/{backups,encoded-video,library,profile,thumbs,upload} \
-			"$IMMICH_BASE"/config \
-			"$IMMICH_BASE"/libraries
-			touch "$IMMICH_BASE"/photos/{backups,thumbs,profile,upload,library,encoded-video}/.immich
-			sudo chown -R 1000:1000 "$IMMICH_BASE"/
+			# Create base directory and subdirectories
+			docker_manage_base_dir create "$base_dir" || return 1
+			mkdir -p "$base_dir"/photos/{backups,encoded-video,library,profile,thumbs,upload}
+			mkdir -p "$base_dir"/config "$base_dir"/libraries
+			touch "$base_dir"/photos/{backups,thumbs,profile,upload,library,encoded-video}/.immich
+			chown -R "${DOCKER_USERUID}:${DOCKER_GROUPUID}" "$base_dir"/
 
-			# Install armbian-config dependencies
-			if ! docker container ls -a --format '{{.Names}}' | grep -q '^redis$'; then module_redis install; fi
+			# Install dependencies
+			if ! docker container ls -a --format '{{.Names}}' | grep -q '^redis$'; then
+				module_redis install
+			fi
 			if ! docker container ls -a --format '{{.Names}}' | grep "^$DATABASE_HOST$"; then
-				module_postgres install $DATABASE_USER $DATABASE_PASSWORD $DATABASE_NAME $DATABASE_IMAGE $DATABASE_TAG $DATABASE_HOST
+				# Split image and tag: "tensorchord/pgvecto-rs:pg14-v0.2.0" -> image="tensorchord/pgvecto-rs" tag="pg14-v0.2.0"
+				local pg_image="${DATABASE_IMAGE%:*}"
+				local pg_tag="${DATABASE_IMAGE##*:}"
+				module_postgres install "$DATABASE_USER" "$DATABASE_PASSWORD" "$DATABASE_NAME" "$pg_image" "$pg_tag" "$DATABASE_HOST"
 			fi
 
-			until docker exec -i $DATABASE_HOST psql -U $DATABASE_USER -c '\q' 2>/dev/null; do
-				echo "⏳ Waiting for PostgreSQL to be ready..."
-				sleep 2
-			done
-			echo "✅ PostgreSQL is ready. Creating Immich DB..."
+			# Wait for PostgreSQL to be ready with dialog_gauge progress
+			local max_wait_pg=60
+			local wait_count_pg=0
+			(
+				while [[ $wait_count_pg -lt $max_wait_pg ]]; do
+					if docker exec -i $DATABASE_HOST psql -U $DATABASE_USER -c '\q' 2>/dev/null; then
+						echo "XXX"; echo "100"; echo "PostgreSQL is ready!"; echo "XXX"
+						exit 0
+					fi
 
+					echo "XXX"; echo "$((wait_count_pg * 100 / max_wait_pg))"; echo "Waiting for PostgreSQL to be ready..."; echo "XXX"
+					sleep 2
+					((wait_count_pg++))
+				done
+				echo "XXX"; echo "100"; echo "Timed out waiting for PostgreSQL"; echo "XXX"
+			) | dialog_gauge "$title" "Waiting for PostgreSQL..." 8 60
+
+			# Verify PostgreSQL is ready
+			if ! docker exec -i $DATABASE_HOST psql -U $DATABASE_USER -c '\q' 2>/dev/null; then
+				dialog_msgbox "$title Installation Failed" \
+					"PostgreSQL container failed to start properly.\n\nCheck logs with: docker logs $DATABASE_HOST" \
+					10 60
+				return 1
+			fi
+
+			dialog_infobox "$title" "Creating Immich database..." 5 50
+
+			# Create database if it doesn't exist
+			dialog_infobox "$title" "Checking database..." 5 50
 			if docker exec -i $DATABASE_HOST psql -U $DATABASE_USER -tAc "SELECT 1 FROM pg_database WHERE datname='$DATABASE_NAME';" | grep -q 1; then
-				echo "✅ Database '$DATABASE_NAME' exists."
+				dialog_infobox "$title" "✅ Database '$DATABASE_NAME' already exists." 5 50
 			else
+				dialog_infobox "$title" "Creating database '$DATABASE_NAME'..." 5 50
 				docker exec -i $DATABASE_HOST psql -U $DATABASE_USER <<-EOT
 				CREATE DATABASE $DATABASE_NAME;
 				GRANT ALL PRIVILEGES ON DATABASE $DATABASE_NAME TO $DATABASE_USER;
 				EOT
+				dialog_infobox "$title" "✅ Database '$DATABASE_NAME' created successfully." 5 50
 			fi
 
-			# Download or update image
-			docker pull ghcr.io/imagegenius/immich:latest
+			# Pull image
+			docker_operation_progress pull "$dockerimage"
 
-			# Run Immich container
-			if ! docker run -d \
-				--name=immich \
+			# Run container
+			docker_operation_progress run "$dockername" \
+				-d \
+				--name="$dockername" \
 				--net=lsio \
-				-e PUID=1000 \
-				-e PGID=1000 \
+				-e PUID="${DOCKER_USERUID}" \
+				-e PGID="${DOCKER_GROUPUID}" \
 				-e TZ="$(cat /etc/timezone)" \
 				-e DB_HOSTNAME=$DATABASE_HOST \
 				-e DB_USERNAME=$DATABASE_USER \
@@ -97,80 +121,62 @@ function module_immich () {
 				-e REDIS_PASSWORD= \
 				-e SERVER_HOST=0.0.0.0 \
 				-e SERVER_PORT=8080 \
-				-p ${module_options["module_immich,port"]}:8080 \
-				-v "${IMMICH_BASE}/config:/config" \
-				-v "${IMMICH_BASE}/photos:/photos" \
-				-v "${IMMICH_BASE}/libraries:/libraries" \
+				-p "${port}:8080" \
+				-v "${base_dir}/config:/config" \
+				-v "${base_dir}/photos:/photos" \
+				-v "${base_dir}/libraries:/libraries" \
 				--restart=always \
-				ghcr.io/imagegenius/immich:latest; then
-					echo "❌ Failed to start Immich container"
-					exit 1
-			fi
+				"$dockerimage"
 
-			sleep 5
+			# Wait for Immich service to be available with dialog_gauge progress
+			local max_wait_immich=120
+			local wait_count_immich=0
+			(
+				while [[ $wait_count_immich -lt $max_wait_immich ]]; do
+					if curl -sf http://localhost:${port}/ > /dev/null; then
+						echo "XXX"; echo "100"; echo "Immich is ready!"; echo "XXX"
+						exit 0
+					fi
 
-			if [ -t 1 ]; then
-				for s in {1..10}; do
-					for i in {0..100..10}; do
-						echo "$i"
-						sleep 1
-					done
-					if curl -sf http://localhost:${module_options["module_immich,port"]}/ > /dev/null; then
-						break
-					fi
-				done | $DIALOG --gauge "Starting Immich Please wait..." 10 50 0
-			else
-				echo "Waiting for Immich to become available..."
-				for s in {1..10}; do
-					sleep 10
-					if curl -sf http://localhost:${module_options["module_immich,port"]}/ > /dev/null; then
-						echo "✅ Immich is responding."
-						break
-					fi
+					echo "XXX"; echo "$((wait_count_immich * 100 / max_wait_immich))"; echo "Waiting for Immich to start..."; echo "XXX"
+					sleep 2
+					((wait_count_immich++))
 				done
-			fi
-		;;
-		"${commands[1]}")
-			if [[ "${container}" ]]; then
-				echo "Removing container: $container"
-				docker container rm -f "$container" 2>/dev/null || true
-				# Wait for container to be fully removed
-				for i in $(seq 1 10); do
-					if ! docker container ls -a --format '{{.ID}}' | grep -q "^${container}$"; then
-						break
-					fi
-					sleep 1
-				done
-			fi
-		;;
-		"${commands[2]}")
-			${module_options["module_immich,feature"]} ${commands[1]}
-			# Wait for container to be fully removed before removing image
-			if [[ "${image}" ]]; then
-				sleep 2
-				docker image rm -f "$image" 2>/dev/null || true
-			fi
-			module_postgres purge $DATABASE_USER $DATABASE_PASSWORD $DATABASE_NAME $DATABASE_IMAGE $DATABASE_HOST
-			if [[ -n "${IMMICH_BASE}" && "${IMMICH_BASE}" != "/" ]]; then
-				rm -rf "${IMMICH_BASE}"
-			fi
-		;;
-		"${commands[3]}")
-			if [[ "${container}" && "${image}" ]]; then
-				return 0
+				echo "XXX"; echo "100"; echo "Timed out waiting for Immich"; echo "XXX"
+			) | dialog_gauge "$title" "Starting Immich..." 8 60
+
+			# Verify Immich is responding
+			if ! curl -sf http://localhost:${port}/ > /dev/null; then
+				dialog_msgbox "$title Warning" \
+					"Immich container started but may not be fully ready yet.\n\nCheck status with: docker logs $dockername" \
+					10 60
 			else
+				dialog_msgbox "$title Installation Complete" \
+					"Immich has been installed successfully!\n\nAccess at: http://localhost:${port}\n\nDefault credentials need to be created on first visit." \
+					12 60
+			fi
+		;;
+		"${commands[1]}") # remove
+			docker_operation_progress rm "$dockername"
+			docker_operation_progress rmi "$dockerimage"
+		;;
+		"${commands[2]}") # purge
+			# Remove container and image first
+			if ! ${module_options["module_immich,feature"]} ${commands[1]}; then
 				return 1
 			fi
+			# Only purge postgres and data directory if container/image removal succeeded
+			local pg_image="${DATABASE_IMAGE%:*}"
+			local pg_tag="${DATABASE_IMAGE##*:}"
+			module_postgres purge "$DATABASE_USER" "$DATABASE_PASSWORD" "$DATABASE_NAME" "$pg_image" "$pg_tag" "$DATABASE_HOST"
+			docker_manage_base_dir remove "$base_dir"
 		;;
-		"${commands[4]}")
-			echo -e "Usage: ${module_options["module_immich,feature"]} <command>"
-			echo -e "Commands:  ${module_options["module_immich,example"]}"
-			echo "Available commands:"
-			echo -e "	install	- Install $title."
-			echo -e "	remove	- Remove $title."
-			echo -e "	purge	- Purge $title data folder."
-			echo -e "	status	- Installation status $title."
-			echo
+		"${commands[3]}") # status
+			docker_is_installed "$dockername" "$dockerimage"
+		;;
+		"${commands[4]}") # help
+			show_module_help "module_immich" "$title" \
+				"Docker Image: $dockerimage\nPort: $port\n\nRequires: Redis and PostgreSQL with vector support"
 		;;
 		*)
 			${module_options["module_immich,feature"]} ${commands[4]}

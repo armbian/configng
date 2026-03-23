@@ -11,7 +11,7 @@ module_options+=(
 	["module_overlayfs,arch"]=""
 )
 #
-# Armbian root filesystem to read only
+# Install overlayroot for read-only root filesystem
 #
 function module_overlayfs() {
 	local title="overlayfs"
@@ -21,30 +21,34 @@ function module_overlayfs() {
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_overlayfs,example"]}"
 
+	OVERLAYFS_BASE="${SOFTWARE_FOLDER}/overlayfs"
+
 	case "$1" in
 		"${commands[0]}")
-			pkg_install -o Dpkg::Options::="--force-confold" overlayroot cryptsetup cryptsetup-bin
-			[[ ! -f /etc/overlayroot.conf ]] && cp /etc/overlayroot.conf.dpkg-new /etc/overlayroot.conf
-			sed -i "s/^overlayroot=.*/overlayroot=\"tmpfs\"/" /etc/overlayroot.conf
-			if $DIALOG --title " Reboot required " --yes-button "Reboot" --no-button "Cancel" --yesno \
-			"A reboot is required to apply the changes. Shall we reboot now?" 7 34; then
+			pkg_install --reinstall -o Dpkg::Options::="--force-confold" overlayroot
+			cat > /etc/overlayroot.conf <<-EOT
+			# overlayroot config - managed by configng
+			overlayroot_cfgdisk="disabled"
+			overlayroot="tmpfs"
+			EOT
+			rm -f /etc/update-motd.d/97-overlayroot
+
+			if dialog_yesno " Reboot required " "A reboot is required to apply the changes. Shall we reboot now?" "Reboot" "Cancel" 7 34; then
 			reboot
 			fi
 		;;
 		"${commands[1]}")
 			overlayroot-chroot rm /etc/overlayroot.conf > /dev/null 2>&1
-			pkg_remove overlayroot cryptsetup cryptsetup-bin
-			if $DIALOG --title " Reboot required " --yes-button "Reboot" --no-button "Cancel" --yesno \
-			"A reboot is required to apply the changes. Shall we reboot now?" 7 34; then
+			if dialog_yesno " Reboot required " "A reboot is required to apply the changes. Shall we reboot now?" "Reboot" "Cancel" 7 34; then
 			reboot
 			fi
 		;;
 		"${commands[2]}")
-			if command -v overlayroot-chroot > /dev/null 2>&1; then
-				return 1
-			else
-				return 0
-			fi
+			overlayroot-chroot true > /dev/null 2>&1
+			case $? in
+				0) return 0 ;;
+				*) return 1 ;;
+			esac
 		;;
 		"${commands[3]}")
 			echo -e "\nUsage: ${module_options["module_overlayfs,feature"]} <command>"

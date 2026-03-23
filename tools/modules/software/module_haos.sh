@@ -25,8 +25,8 @@ function module_haos() {
 		fi
 	fi
 
-	local container=$(docker container ls -a --filter "name=home-assistant" --format '{{.ID}}') 2>/dev/null || echo ""
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'home-assistant' | awk '{print $2}') 2>/dev/null || echo ""
+	local container=$(docker container ls -a --filter "name=home-assistant" --format '{{.ID}}' 2>/dev/null) || echo ""
+	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' 2>/dev/null | grep 'home-assistant' | awk '{print $2}') || echo ""
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_haos,example"]}"
@@ -109,7 +109,7 @@ function module_haos() {
 					if curl -sf http://localhost:${module_options["module_haos,port"]}/ > /dev/null; then
 						break
 					fi
-				done | $DIALOG --gauge "Preparing Home Assistant Supervised\n\nPlease wait! (can take a few minutes) " 10 50 0
+				done | dialog_gauge "Home Assistant Supervised" "Preparing Home Assistant Supervised\n\nPlease wait! (can take a few minutes)"
 			else
 				# No terminal, fallback to echoing progress
 				echo "Waiting for Home Assistant Supervised to become available..."
@@ -128,8 +128,7 @@ function module_haos() {
 
 			# reboot related to apparmor install
 			if [[ -t 1 ]]; then
-				if $DIALOG --title " Reboot required " --yes-button "Reboot" --no-button "Cancel" --yesno \
-					"A reboot is required to enable AppArmor. Shall we reboot now?" 7 68; then
+if dialog_yesno "Reboot required" "A reboot is required to enable AppArmor. Shall we reboot now?" "Reboot" "Cancel" 7 68; then
 					reboot
 				fi
 			fi

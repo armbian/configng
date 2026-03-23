@@ -9,87 +9,59 @@ module_options+=(
 	["module_uptimekuma,group"]="Downloaders"
 	["module_uptimekuma,port"]="3001"
 	["module_uptimekuma,arch"]="x86-64 arm64"
+	["module_uptimekuma,dockerimage"]="louislam/uptime-kuma:2"
+	["module_uptimekuma,dockername"]="uptime-kuma"
 )
 #
 # Module uptimekuma
 #
 function module_uptimekuma () {
-	local title="uptimekuma"
-	local condition=$(which "$title" 2>/dev/null)
-
-	# Ensure Docker is available for commands that need it (install, remove, purge)
-	if [[ "$1" != "status" && "$1" != "help" ]]; then
-		if ! module_docker status >/dev/null 2>&1; then
-			module_docker install
-		fi
-	fi
-
-	local container=$(docker container ls -a --filter "name=uptime-kuma" --format '{{.ID}}') 2>/dev/null || echo ""
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'uptime-kuma '| awk '{print $2}') 2>/dev/null || echo ""
+	local title="Uptime Kuma"
+	local dockerimage="${module_options["module_uptimekuma,dockerimage"]}"
+	local dockername="${module_options["module_uptimekuma,dockername"]}"
+	local port="${module_options["module_uptimekuma,port"]}"
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_uptimekuma,example"]}"
 
-	UPTIMEKUMA_BASE="${SOFTWARE_FOLDER}/uptimekuma"
+	local base_dir="${SOFTWARE_FOLDER}/uptimekuma"
 
 	case "$1" in
-		"${commands[0]}")
-			if ! module_docker status >/dev/null 2>&1; then
-				module_docker install
-			fi
-			[[ -d "$UPTIMEKUMA_BASE" ]] || mkdir -p "$UPTIMEKUMA_BASE" || { echo "Couldn't create storage directory: $UPTIMEKUMA_BASE"; exit 1; }
-			docker run -d \
-			--net=lsio \
-			--name uptime-kuma \
-			--restart=always \
-			-p 3001:3001 \
-			-v "${UPTIMEKUMA_BASE}:/app/data" \
-			louislam/uptime-kuma:1
-			for i in $(seq 1 20); do
-				state="$(docker inspect -f '{{.State.Status}}' uptime-kuma 2>/dev/null || true)"
-				if [[ "$state" == "running" ]]; then
-				break
-				fi
-				sleep 3
-				if [[ $i -eq 20 ]]; then
-					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs uptime-kuma\`)"
-					exit 1
-				fi
-			done
+		"${commands[0]}") # install
+			# Pull image
+			docker_operation_progress pull "$dockerimage"
+
+			# Create base directory
+			docker_manage_base_dir create "$base_dir" || return 1
+
+			# Run container
+			docker_operation_progress run "$dockername" \
+				-d \
+				--net=lsio \
+				--name "$dockername" \
+				--restart=always \
+				-p "${port}:3001" \
+				-v "${base_dir}:/app/data" \
+				"$dockerimage"
 		;;
-		"${commands[1]}")
-			if [[ "${container}" ]]; then
-				echo "Removing container: $container"
-				docker container rm -f "$container"
-			fi
+		"${commands[1]}") # remove
+			docker_operation_progress rm "$dockername"
+			docker_operation_progress rmi "$dockerimage"
 		;;
-		"${commands[2]}")
-			${module_options["module_uptimekuma,feature"]} ${commands[1]}
-			if [[ "${image}" ]]; then
-				sleep 2
-				docker image rm -f "$image" 2>/dev/null || true
-			fi
-			${module_options["module_uptimekuma,feature"]} ${commands[1]}
-			if [[ -n "${UPTIMEKUMA_BASE}" && "${UPTIMEKUMA_BASE}" != "/" ]]; then
-				rm -rf "${UPTIMEKUMA_BASE}"
-			fi
-		;;
-		"${commands[3]}")
-			if [[ "${container}" && "${image}" ]]; then
-				return 0
-			else
+		"${commands[2]}") # purge
+			# Remove container and image first
+			if ! ${module_options["module_uptimekuma,feature"]} ${commands[1]}; then
 				return 1
 			fi
+			# Only remove data directory if container/image removal succeeded
+			docker_manage_base_dir remove "$base_dir"
 		;;
-		"${commands[4]}")
-			echo -e "\nUsage: ${module_options["module_uptimekuma,feature"]} <command>"
-			echo -e "Commands:  ${module_options["module_uptimekuma,example"]}"
-			echo "Available commands:"
-			echo -e "\tinstall\t- Install $title."
-			echo -e "\tremove\t- Remove $title."
-			echo -e "\tpurge\t- Purge $title data folder."
-			echo -e "\tstatus\t- Installation status $title."
-			echo
+		"${commands[3]}") # status
+			docker_is_installed "$dockername" "$dockerimage"
+		;;
+		"${commands[4]}") # help
+			show_module_help "module_uptimekuma" "$title" \
+				"Docker Image: $dockerimage\nPort: $port"
 		;;
 		*)
 			${module_options["module_uptimekuma,feature"]} ${commands[4]}

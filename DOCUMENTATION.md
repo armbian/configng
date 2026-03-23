@@ -402,7 +402,7 @@ Outputs:
 	--cmd NETF09 - Find NFS servers in subnet and mount shares
 	--cmd NETF10 - Show and manage NFS mounts
 	--cmd ZFS001 - ZFS filesystem - enable support (v2.2.2)
-	--cmd ZFS002 - ZFS filesystem - remove support ()
+	--cmd ZFS002 - ZFS filesystem - remove support (ZFS is not installed)
     Access - Manage SSH daemon options, enable 2FA
 	--cmd ACC001 - Disable root login
 	--cmd ACC002 - Enable root login
@@ -1013,23 +1013,27 @@ These helper functions facilitate various operations related to job management, 
 | Install watchtower container | install remove purge status help | @armbian 
 | Build the main menu from a object | generate_top_menu 'json_data' | @Tearran 
 | Install bazarr container | install remove purge status help | @igorpecovnik 
-| Install headers container | install remove status help | @armbian 
+| Install kernel headers for building kernel modules | install remove status help | @armbian 
 | Migrated procedures from Armbian config. | is_package_manager_running | @armbian 
 | Migrated procedures from Armbian config. | check_desktop | @armbian 
 | Install phpmyadmin container | install remove purge status help | @igorpecovnik 
 | Install stirling container | install remove purge status help | @Frooodle 
 | Install sonarr container | install remove purge status help | @armbian 
+| Display a yes/no dialog using the configured dialog tool | dialog_yesno "Title" "Question" | @armbian 
 | Generate Document files. | generate_readme | @Tearran 
 | Storing netplan config to tmp | store_netplan_config | @igorpecovnik 
+| Generic module help dialog for containers and native installs | show_module_help "module_headers" "Kernel Headers" "" "native" | @armbian 
 | Install PostgreSQL container (advanced relational database) | install remove purge status help | @armbian 
 | Install jellyfin container | install remove purge status help | @armbian 
 | Install jellyseerr container | install remove purge status help | @armbian 
 | Needed by generate_menu | execute_command 'id' | @Tearran 
+| Display an input box dialog using the configured dialog tool | dialog_inputbox "Title" "Prompt" "default_value" | @armbian 
 | Display a Yes/No dialog box and process continue/exit | get_user_continue 'Do you wish to continue?' process_input | @Tearran 
-| Module for Armbian firmware manipulating. | select install show hold unhold repository headers help | @igorpecovnik 
+| Module for Armbian firmware manipulating | select install show hold unhold repository help | @igorpecovnik 
 | Deploy Armbian KVM instances | install remove save drop restore list help | @igorpecovnik 
 | Install OpenMediaVault (OMV) | install remove status help | @igorpecovnik 
 | Unmask service | srv_unmask ssh.service | @dimitry-ishenko 
+| Display a checklist dialog using the configured dialog tool | dialog_checklist "Title" "Prompt" option1 "Description 1" ON option2 "Description 2" OFF | @armbian 
 | Display a message box | show_message <<< 'hello world'  | @Tearran 
 | Manage self hosted runners | install remove remove_online purge status help | @igorpecovnik 
 | Install domoticz container | install remove purge status help | @armbian 
@@ -1039,14 +1043,16 @@ These helper functions facilitate various operations related to job management, 
 | XFCE desktop packages | install remove disable enable status auto manual login help | @igorpecovnik 
 | Remove package | pkg_remove nmap | @dimitry-ishenko 
 | Install Immich (photo and video backup solution) | install remove purge status help |  
+| Display a message box using the configured dialog tool | dialog_msgbox "Title" "Message" | @armbian 
 | Check the internet connection with fallback DNS | see_ping | @Tearran 
 | Samba setup and service setting. | help install remove start stop enable disable configure default status | @Tearran 
 | Check when apt list was last updated and suggest updating or update | see_current_apt or see_current_apt update | @Tearran 
 | Install/uninstall/check status of portainer container | install remove purge status help | @armbian 
 | Install plexmediaserver from repo using apt | install remove status | @schwar3kat 
+| Display a gauge dialog for progress indication | echo 50 | dialog_gauge "Title" "Progress" 10 70 | @armbian 
 | Generate 'Armbian CPU logo' SVG for document file. | generate_svg | @Tearran 
 | Upgrade installed packages (potentially removing some) | pkg_full_upgrade | @dimitry-ishenko 
-| Install zfs filesystem support | install remove status kernel_max zfs_version zfs_installed_version help | @igorpecovnik 
+| Install ZFS filesystem support | install remove status kernel_max zfs_version zfs_installed_version help | @igorpecovnik 
 | Check if package is installed | pkg_installed mc | @dimitry-ishenko 
 | Update submenu descriptions based on conditions | update_submenu_data | @Tearran 
 | Install evcc container | install remove purge status help | @naltatis 
@@ -1055,6 +1061,7 @@ These helper functions facilitate various operations related to job management, 
 | Install lidarr container | install remove purge status help | @armbian 
 | Install package | pkg_install neovim | @dimitry-ishenko 
 | Install wireguard container | install client server remove purge qrcode status help | @armbian 
+| Display an info box using the configured dialog tool | dialog_infobox "Title" "Message" 6 80 | @armbian 
 | Secure Web Application Gateway  | install remove purge status password help | @igorpecovnik 
 | Install deluge container | install remove purge status help | @igorpecovnik 
 | Set Armbian root filesystem to read only | install remove status help | @igorpecovnik 
@@ -1082,6 +1089,7 @@ These helper functions facilitate various operations related to job management, 
 | Install transmission container | install remove purge status help | @armbian 
 | Install nextcloud container | install remove purge status help | @igorpecovnik 
 | Install navidrome container | install remove purge status help | @armbian 
+| Wait for a Docker container to be ready (default: check if running) | wait_for_container_ready "container_name" 20 3 | @armbian 
 | Install Openhab | install remove purge status help | @igorpecovnik 
 | Uses Avalible (Whiptail, DIALOG, READ) for the menu interface | <function_name> | Tearran 
 | Install medusa container | install remove purge status help | @armbian 
@@ -1106,7 +1114,8 @@ These helper functions facilitate various operations related to job management, 
 | Generate desktop packages list |  | @igorpecovnik 
 | Toggle IPv6 on or off | toggle_ipv6 | @Tearran 
 | Update sub-submenu descriptions based on conditions | update_sub_submenu_data MenuID SubID SubSubID CMD | @Tearran 
-| Parse json to get list of desired menu or submenu items | parse_menu_items 'menu_options_array' | @viraniac 
+| Parse json to get list of desired menu or submenu items. Can return pairs or triplets depending on --with-help flag. | parse_menu_items 'menu_options_array'
+parse_menu_items 'menu_options_array' --with-help | @viraniac 
 | Show the usage of the functions. | see_use | @Tearran 
 | Stop hostapd, clean config | default_wireless_network_config | @igorpecovnik 
 | Check if service is enabled | srv_enabled ssh.service | @dimitry-ishenko 
@@ -1125,11 +1134,12 @@ These helper functions facilitate various operations related to job management, 
 | Generate a Help message for cli commands. | see_cmd_list [category] | @Tearran 
 | Install mariadb container | install remove purge status help | @igorpecovnik 
 | Disable service | srv_disable ssh.service | @dimitry-ishenko 
-| Check if the current OS is supported based on /etc/armbian-distribution-status | help | @Tearran 
+| Check if the current OS distribution is supported | check_os_status | @Tearran 
 | Install prowlarr container | install remove purge status help | @Prowlarr 
 | Install nfsd server | install remove manage add status clients servers help | @igorpecovnik 
 | Install and configure Armbian rsyncd. | install remove status help | @igorpecovnik 
 | Migrated procedures from Armbian config. | module_connect_bt_interface | @armbian 
+| Display a password input dialog using the configured dialog tool | dialog_passwordbox Title Prompt | @armbian 
 | Make sure param contains only valid chars | sanitize 'foo_bar_42' | @Tearran 
 | Install docker from a repo using apt | install remove purge status help | @schwar3kat 
 | Upgrade to next stable or rolling release | release_upgrade stable verify | @igorpecovnik 
@@ -1139,6 +1149,9 @@ These helper functions facilitate various operations related to job management, 
 | Install netalertx container | install remove purge status help | @jokob-sk 
 | Restart service | srv_restart ssh.service | @dimitry-ishenko 
 | Update package repository | pkg_update | @dimitry-ishenko 
+| Display a menu dialog using the configured dialog tool. Supports --item-help for additional help text per item. | dialog_menu "Title" "Prompt" option1 "Description 1" option2 "Description 2"
+# With --item-help:
+dialog_menu "Title" "Prompt" --item-help tag1 "Item 1" "Help for item 1" tag2 "Item 2" "Help for item 2" | @armbian 
 | Secure version of get_user_continue | get_user_continue_secure 'Do you wish to continue?' process_input | @Tearran 
 
 

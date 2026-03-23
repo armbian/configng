@@ -9,103 +9,101 @@ module_options+=(
 	["module_swag,group"]="WebHosting"
 	["module_swag,port"]="443"
 	["module_swag,arch"]="x86-64 arm64"
+	["module_swag,dockerimage"]="lscr.io/linuxserver/swag:latest"
+	["module_swag,dockername"]="swag"
 )
 
 function module_swag() {
-	local title="swag"
-	local condition=$(which "$title" 2>/dev/null)
+	local title="SWAG"
+	local dockerimage="${module_options["module_swag,dockerimage"]}"
+	local dockername="${module_options["module_swag,dockername"]}"
+	local port="${module_options["module_swag,port"]}"
 
-	if pkg_installed docker-ce; then
-		local container=$(docker container ls -a | mawk '/swag?( |$)/{print $1}')
-		local image=$(docker image ls -a | mawk '/swag?( |$)/{print $3}')
-	fi
+	local container=$(docker_get_container_id "$dockername")
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_swag,example"]}"
 
-	SWAG_BASE="${SOFTWARE_FOLDER}/swag"
+	local base_dir="${SOFTWARE_FOLDER}/$dockername"
 
 	case "$1" in
-		"${commands[0]}")
+		"${commands[0]}") # install
+			# Get URL via dialog
 			SWAG_URL=$(dialog --title \
-			"Secure Web Application Gateway URL?" \
-			--inputbox "\nExamples: myhome.domain.org (port 80 and 443 must be exposed to internet)" \
-			8 80 "" 3>&1 1>&2 2>&3);
+				"Secure Web Application Gateway URL?" \
+				--inputbox "\nExamples: myhome.domain.org (port 80 and 443 must be exposed to internet)" \
+				8 80 "" 3>&1 1>&2 2>&3);
 
 			if [[ ${SWAG_URL} && $? -eq 0 ]]; then
-
-				# adjust hostname
+				# Adjust hostname
 				hostnamectl set-hostname $(echo ${SWAG_URL} | sed -E 's/^\s*.*:\/\///g')
-				# install docker
-				pkg_installed docker-ce || module_docker install
 
-				[[ -d "$SWAG_BASE" ]] || mkdir -p "$SWAG_BASE" || { echo "Couldn't create storage directory: $SWAG_BASE"; exit 1; }
+				# Pull image
+				docker_operation_progress pull "$dockerimage"
 
-				docker run -d \
-				--name=swag \
-				--cap-add=NET_ADMIN \
-				--net=lsio \
-				-e PUID=1000 \
-				-e PGID=1000 \
-				-e TZ="$(cat /etc/timezone)" \
-				-e URL="${SWAG_URL}" \
-				-e VALIDATION=http \
-				-p 443:443 \
-				-p 80:80 \
-				-v "${SWAG_BASE}/config:/config" \
-				--restart unless-stopped \
-				lscr.io/linuxserver/swag
-				for i in $(seq 1 20); do
-					if docker inspect -f '{{ index .Config.Labels "build_version" }}' swag >/dev/null 2>&1 ; then
-						break
-					else
-						sleep 3
-					fi
-					if [ $i -eq 20 ] ; then
-						echo -e "\nTimed out waiting for ${title} to start, consult your container logs for more info (\`docker logs swag\`)"
-						exit 1
-					fi
-				done
-				# set password
+				# Create base directory
+				docker_manage_base_dir create "$base_dir" || return 1
+
+				# Run container
+				docker_operation_progress run "$dockername" \
+					-d \
+					--name="$dockername" \
+					--cap-add=NET_ADMIN \
+					--net=lsio \
+					-e PUID="${DOCKER_USERUID}" \
+					-e PGID="${DOCKER_GROUPUID}" \
+					-e TZ="$(cat /etc/timezone)" \
+					-e URL="${SWAG_URL}" \
+					-e VALIDATION=http \
+					-p 443:443 \
+					-p 80:80 \
+					-v "${base_dir}/config:/config" \
+					--restart unless-stopped \
+					"$dockerimage"
+
+				# Set password
 				${module_options["module_swag,feature"]} ${commands[4]}
 			else
 				show_message <<< "Entering fully qualified domain name is required!"
 			fi
 		;;
-		"${commands[1]}")
-			[[ "${container}" ]] && docker container rm -f "$container" >/dev/null
-			[[ "${image}" ]] && docker image rm "$image" >/dev/null
+		"${commands[1]}") # remove
+			docker_operation_progress rm "$dockername"
+			docker_operation_progress rmi "$dockerimage"
 		;;
-		"${commands[2]}")
-			[[ -n "${SWAG_BASE}" && "${SWAG_BASE}" != "/" ]] && rm -rf "${SWAG_BASE}"
-		;;
-		"${commands[3]}")
-			if [[ "${container}" && "${image}" ]]; then
-				return 0
-			else
+		"${commands[2]}") # purge
+			# Remove container and image first
+			if ! ${module_options["module_swag,feature"]} ${commands[1]}; then
 				return 1
 			fi
+			# Only remove data directory if container/image removal succeeded
+			docker_manage_base_dir remove "$base_dir"
 		;;
-		"${commands[4]}")
-			SWAG_USER=$($DIALOG --title "Secure webserver with .htaccess username and password" \
-			--inputbox "\nHit enter for USERNAME defaults" 9 70 "armbian" 3>&1 1>&2 2>&3)
-			SWAG_PASSWORD=$($DIALOG --title "Enter new password for ${SWAG_USER}" \
-			--inputbox "\nHit enter for auto generated password" 9 70 "$(tr -dc 'A-Za-z0-9=' < /dev/urandom | head -c 10)" 3>&1 1>&2 2>&3)
+		"${commands[3]}") # status
+			docker_is_installed "$dockername" "$dockerimage"
+		;;
+		"${commands[4]}") # password
+			SWAG_USER=$(dialog_inputbox "Secure webserver with .htaccess username and password" \
+				"\nHit enter for USERNAME defaults" "armbian" 9 70)
+			# Pre-generate default password
+			local default_password=$(tr -dc 'A-Za-z0-9=' < /dev/urandom | head -c 10)
+			# Ask if user wants to use auto-generated password
+			if dialog_yesno "Password Configuration" \
+				"\nAuto-generated password for '${SWAG_USER}':\n\n  ${default_password}\n\nUse this password?" \
+				"Use Generated" "Enter Own" 12 70; then
+				SWAG_PASSWORD="$default_password"
+			else
+				SWAG_PASSWORD=$(dialog_passwordbox "Enter new password for ${SWAG_USER}" \
+					"\nEnter a custom password" 9 70)
+			fi
 			if [[ "${SWAG_USER}" && "${SWAG_PASSWORD}" ]]; then
-				docker exec -it swag htpasswd -b -c /config/nginx/.htpasswd ${SWAG_USER} ${SWAG_PASSWORD} >/dev/null 2>&1
-				docker restart ${container} >/dev/null
+				docker exec -it "$dockername" htpasswd -b -c /config/nginx/.htpasswd ${SWAG_USER} ${SWAG_PASSWORD} >/dev/null 2>&1
+				docker restart "$dockername" >/dev/null
 			fi
 		;;
-		"${commands[5]}")
-			echo -e "\nUsage: ${module_options["module_swag,feature"]} <command>"
-			echo -e "Commands:  ${module_options["module_swag,example"]}"
-			echo "Available commands:"
-			echo -e "\tinstall\t- Install $title."
-			echo -e "\tremove\t- Remove $title."
-			echo -e "\tpurge\t- Purge $title data folder."
-			echo -e "\tpassword\t- Set .htaccess password for $title."
-			echo -e "\tstatus\t- Installation status $title."
-			echo
+		"${commands[5]}") # help
+			show_module_help "module_swag" "$title" \
+				"Docker Image: $dockerimage\nPorts: 80, 443\n\nThis module requires a domain name during install."
 		;;
 		*)
 			${module_options["module_swag,feature"]} ${commands[5]}

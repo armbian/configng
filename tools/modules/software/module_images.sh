@@ -23,9 +23,9 @@ function module_images () {
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_images,example"]}"
 
-	local ALL_IMAGES_JSON_URL="https://github.armbian.com/all-images.json"
+	local ALL_IMAGES_JSON_URL="https://github.armbian.com/armbian-images.json"
 	local IMAGES_BASE="${SOFTWARE_FOLDER}/images"
-	local IMAGES_JSON_PATH="${IMAGES_BASE}/all-images.json"
+	local IMAGES_JSON_PATH="${IMAGES_BASE}/armbian-images.json"
 
 	# $1 = command, $2 = board_slug override (optional)
 	local CMD="$1"
@@ -52,7 +52,7 @@ function module_images () {
 	ensure_board_slug() {
 		if [[ -z "$BOARD_SLUG" ]]; then
 			if [[ -n "$DIALOG" ]]; then
-				BOARD_SLUG=$($DIALOG --title "Board slug" --inputbox "Enter board slug (e.g. bananapi):" 8 50 3>&1 1>&2 2>&3)
+				BOARD_SLUG=$(dialog_inputbox "Board slug" "Enter board slug (e.g. bananapi):" "" 8 50)
 				[[ -z "$BOARD_SLUG" ]] && { echo "Board slug not provided."; return 1; }
 			else
 				read -rp "Enter board slug (e.g. bananapi): " BOARD_SLUG
@@ -77,7 +77,7 @@ function module_images () {
 
 		if (( now - epoch > max_age )) || [[ ! -s "$IMAGES_JSON_PATH" ]]; then
 			if [[ -n "$DIALOG" ]]; then
-				$DIALOG --infobox "Refreshing Armbian images index...\n\n$ALL_IMAGES_JSON_URL" 8 70
+				dialog_infobox "" "Refreshing Armbian images index...\n\n$ALL_IMAGES_JSON_URL" 8 70
 			else
 				echo "Refreshing Armbian images index from $ALL_IMAGES_JSON_URL ..."
 			fi
@@ -122,10 +122,7 @@ function module_images () {
 		local selected_idx
 
 		if [[ -n "$DIALOG" ]]; then
-			selected_idx=$($DIALOG --title "Select board" \
-				--menu "\nNo images found for the current board.\n\nSelect a different board to flash:" 24 76 12 \
-				"${options[@]}" \
-				3>&1 1>&2 2>&3)
+			selected_idx=$(dialog_menu "Select board" "\nNo images found for the current board.\n\nSelect a different board to flash:" 24 76 12 -- "${options[@]}")
 		else
 			echo "Boards available in index:"
 			local i=0
@@ -164,11 +161,7 @@ function module_images () {
 
 		if [[ -n "$DIALOG" ]]; then
 			local choice
-			choice=$($DIALOG --title "Confirm board" \
-				--menu "\nDetected board: ${BOARD_SLUG}\n\nWhat would you like to do?" 15 76 3 \
-				"CURRENT" "Use this board" \
-				"OTHER"   "Choose another board from images index" \
-				3>&1 1>&2 2>&3)
+			choice=$(dialog_menu "Confirm board" "\nDetected board: ${BOARD_SLUG}\n\nWhat would you like to do?" 15 76 3 -- "CURRENT" "Use this board" "OTHER" "Choose another board from images index")
 
 			[[ -z "$choice" ]] && return 1
 
@@ -223,9 +216,9 @@ function module_images () {
 			.. | objects
 			| select(.board_slug? != null)
 			| select((.file_extension? // "") | test("^img(\\.(xz|gz|zst|bz2|lz4))?$"; "i"))
-			| select(.kernel_branch != "cloud")
+			| select(.branch != "cloud")
 			| select(norm(.board_slug) == norm($board))
-			| .preinstalled_application // ""
+			| .file_application // ""
 			]
 			| unique
 			| sort
@@ -283,11 +276,7 @@ function module_images () {
 		local selected
 
 		if [[ -n "$DIALOG" ]]; then
-			selected=$($DIALOG --title "Prebuild images" \
-				--menu "\nSelect image type: stable, barebone, or with preinstalled apps." 22 76 12 \
-				"${options[@]}" \
-				--default-item STABLE \
-				3>&1 1>&2 2>&3)
+			selected=$(dialog_menu "Prebuild images" "\nSelect image type: stable, barebone, or with preinstalled apps." 22 76 12 --default-item STABLE -- "${options[@]}")
 		else
 			echo "Available application filters for $board:"
 			local i=0
@@ -330,8 +319,8 @@ function module_images () {
 			def norm(s): (s | ascii_downcase | gsub("[^a-z0-9]+"; "-"));
 			def preapp_filter:
 			if   $preapp == ""          then .
-			elif $preapp == "__EMPTY__" then select((.preinstalled_application // "") == "")
-			else select(.preinstalled_application == $preapp)
+			elif $preapp == "__EMPTY__" then select((.file_application // "") == "")
+			else select(.file_application == $preapp)
 			end;
 			def repo_filter:
 			if $repo == "" then .
@@ -341,11 +330,11 @@ function module_images () {
 			.. | objects
 			| select(.board_slug? != null)
 			| select((.file_extension? // "") | test("^img(\\.(xz|gz|zst|bz2|lz4))?$"; "i"))
-			| select(.kernel_branch != "cloud")
+			| select(.branch != "cloud")
 			| select(norm(.board_slug) == norm($board))
 			| preapp_filter
 			| repo_filter
-			| .kernel_branch // "unknown"
+			| .branch // "unknown"
 			]
 			| unique
 			| sort
@@ -369,10 +358,7 @@ function module_images () {
 		local selected
 
 		if [[ -n "$DIALOG" ]]; then
-			selected=$($DIALOG --title "Kernel branch" \
-				--menu "\nSelect kernel branch to filter images (or choose All):" 14 70 4 \
-				"${options[@]}" \
-				3>&1 1>&2 2>&3)
+			selected=$(dialog_menu "Kernel branch" "\nSelect kernel branch to filter images (or choose All):" 14 70 4 -- "${options[@]}")
 		else
 			echo "Available kernel branches for $board (preinstalled=${PREAPP_FILTER:-ALL}, repo=${DOWNLOAD_REPO_FILTER:-all}):"
 			echo "  ALL  - All kernel branches"
@@ -407,8 +393,8 @@ function module_images () {
 			def norm(s): (s | ascii_downcase | gsub("[^a-z0-9]+"; "-"));
 			def preapp_filter:
 			if   $preapp == ""          then .
-			elif $preapp == "__EMPTY__" then select((.preinstalled_application // "") == "")
-			else select(.preinstalled_application == $preapp)
+			elif $preapp == "__EMPTY__" then select((.file_application // "") == "")
+			else select(.file_application == $preapp)
 			end;
 			def repo_filter:
 			if $repo == "" then .
@@ -418,12 +404,12 @@ function module_images () {
 			.. | objects
 			| select(.board_slug? != null)
 			| select((.file_extension? // "") | test("^img(\\.(xz|gz|zst|bz2|lz4))?$"; "i"))
-			| select(.kernel_branch != "cloud")
+			| select(.branch != "cloud")
 			| select(norm(.board_slug) == norm($board))
 			| preapp_filter
 			| repo_filter
-			| (if $kbranch != "" then select(.kernel_branch == $kbranch) else . end)
-			| .image_variant // "unknown"
+			| (if $kbranch != "" then select(.branch == $kbranch) else . end)
+			| .variant // "unknown"
 			]
 			| unique
 			| sort
@@ -445,12 +431,9 @@ function module_images () {
 		local selected
 
 		if [[ -n "$DIALOG" ]]; then
-			selected=$($DIALOG --title "Image variant" \
-				--menu "\nSelect image variant to filter (or choose All):" 15 70 5 \
-				"${options[@]}" \
-				3>&1 1>&2 2>&3)
+			selected=$(dialog_menu "Image variant" "\nSelect image variant to filter (or choose All):" 15 70 5 -- "${options[@]}")
 		else
-			echo "Available variants for $board (preinstalled=${PREAPP_FILTER:-ALL}, kernel=${KERNEL_FILTER:-all}, repo=${DOWNLOAD_REPO_FILTER:-all}):"
+			echo "Available variants for $board (preinstalled=${PREAPP_FILTER:-ALL}, branch=${KERNEL_FILTER:-all}, repo=${DOWNLOAD_REPO_FILTER:-all}):"
 			echo "  ALL  - All variants"
 			while IFS='|' read -r _ variant; do
 				[[ -z "$variant" ]] && continue
@@ -487,8 +470,8 @@ function module_images () {
 				def norm(s): (s | ascii_downcase | gsub("[^a-z0-9]+"; "-"));
 				def preapp_filter:
 					if   $preapp == ""          then .
-					elif $preapp == "__EMPTY__" then select((.preinstalled_application // "") == "")
-					else select(.preinstalled_application == $preapp)
+					elif $preapp == "__EMPTY__" then select((.file_application // "") == "")
+					else select(.file_application == $preapp)
 					end;
 				def repo_filter:
 					if $repo == "" then .
@@ -524,12 +507,12 @@ function module_images () {
 				.. | objects
 				| select(.board_slug? != null)
 				| select((.file_extension? // "") | test("^img(\\.(xz|gz|zst|bz2|lz4))?$"; "i"))
-				| select(.kernel_branch != "cloud")
+				| select(.branch != "cloud")
 				| select(norm(.board_slug) == norm($board))
 				| preapp_filter
 				| repo_filter
-				| (if $kbranch != "" then select(.kernel_branch == $kbranch) else . end)
-				| (if $variant != "" then select(.image_variant == $variant) else . end)
+				| (if $kbranch != "" then select(.branch == $kbranch) else . end)
+				| (if $variant != "" then select(.variant == $variant) else . end)
 				]
 				| sort_by([ (if .promoted=="true" then 0 else 1 end), .armbian_version ])
 				| to_entries[]
@@ -537,11 +520,11 @@ function module_images () {
 					(.key|tostring) + "|" +
 					(if .value.promoted=="true" then "\u2605 " else "  " end) +
 					pad(show_ver(.value.armbian_version); 10) + " " +
-					pad(.value.distro_release // ""; 9) + " " +
-					pad(.value.kernel_branch // ""; 10) + " " +
-					pad(.value.image_variant // ""; 12) + " " +
+					pad(.value.distro // ""; 9) + " " +
+					pad(.value.branch // ""; 10) + " " +
+					pad(.value.variant // ""; 12) + " " +
 					pad_right(size_mb(.value); 7) + " " +
-					pad_right((.value.preinstalled_application // ""); 15)
+					pad_right((.value.file_application // ""); 15)
 				)
 			' "$IMAGES_JSON_PATH" 2>/dev/null)
 
@@ -549,7 +532,7 @@ function module_images () {
 			if [[ -z "$temp_list" ]]; then
 				# No images even after filters – offer to adjust filters
 				if [[ -n "$DIALOG" ]]; then
-					if $DIALOG --yesno "No images found for:\n\n  board:   $board\n  preapp:  ${PREAPP_FILTER:-ALL}\n  repo:    ${DOWNLOAD_REPO_FILTER:-all}\n  kernel:  ${KERNEL_FILTER:-all}\n  variant: ${VARIANT_FILTER:-all}\n\nWould you like to adjust filters?" 17 72; then
+					if dialog_yesno "Adjust filters" "No images found for:\n\n  board:   ${board}\n  preapp:  ${PREAPP_FILTER:-ALL}\n  repo:    ${DOWNLOAD_REPO_FILTER:-all}\n  branch:  ${KERNEL_FILTER:-all}\n  variant: ${VARIANT_FILTER:-all}\n\nWould you like to adjust filters?" "Yes" "No" 17 72; then
 						select_preapp_for_board         "$board" || return 1
 						select_kernel_branch_for_board  "$board" || return 1
 						select_image_variant_for_board  "$board" || return 1
@@ -559,7 +542,7 @@ function module_images () {
 						return 1
 					fi
 				else
-					echo "No images found for board=$board, preapp=${PREAPP_FILTER:-ALL}, repo=${DOWNLOAD_REPO_FILTER:-all}, kernel=${KERNEL_FILTER:-all}, variant=${VARIANT_FILTER:-all}."
+					echo "No images found for board=$board, preapp=${PREAPP_FILTER:-ALL}, repo=${DOWNLOAD_REPO_FILTER:-all}, branch=${KERNEL_FILTER:-all}, variant=${VARIANT_FILTER:-all}."
 					read -rp "Adjust filters? [y/N]: " ans
 					if [[ "$ans" =~ ^[Yy]$ ]]; then
 						select_preapp_for_board         "$board" || return 1
@@ -583,12 +566,9 @@ function module_images () {
 			local selected_index
 
 			if [[ -n "$DIALOG" ]]; then
-				selected_index=$($DIALOG --title "Select Armbian image" \
-					--menu "\nBoard: $board\nPreinstalled: ${PREAPP_FILTER:-ALL}\nRepo: ${DOWNLOAD_REPO_FILTER:-all}\nKernel: ${KERNEL_FILTER:-all}\nVariant: ${VARIANT_FILTER:-all}\n★ = promoted image\n\n  #   version    release   kernel     variant    size (MB)  [preinstalled]" 26 80 8 \
-					"${options[@]}" \
-					3>&1 1>&2 2>&3)
+				selected_index=$(dialog_menu "Select Armbian image" "\nBoard: $board\nPreinstalled: ${PREAPP_FILTER:-ALL}\nRepo: ${DOWNLOAD_REPO_FILTER:-all}\nBranch: ${KERNEL_FILTER:-all}\nVariant: ${VARIANT_FILTER:-all}\n★ = promoted image\n\n  #   version    release   branch     variant    size (MB)  [preinstalled]" 26 80 8 -- "${options[@]}")
 			else
-				echo "Available images for $board (preapp=${PREAPP_FILTER:-ALL}, repo=${DOWNLOAD_REPO_FILTER:-all}, kernel=${KERNEL_FILTER:-all}, variant=${VARIANT_FILTER:-all}; ★ = promoted):"
+				echo "Available images for $board (preapp=${PREAPP_FILTER:-ALL}, repo=${DOWNLOAD_REPO_FILTER:-all}, branch=${KERNEL_FILTER:-all}, variant=${VARIANT_FILTER:-all}; ★ = promoted):"
 				local i=0
 				while [[ $i -lt ${#options[@]} ]]; do
 					echo "  ${options[$i]}: ${options[$((i+1))]}"
@@ -604,8 +584,8 @@ function module_images () {
 				def norm(s): (s | ascii_downcase | gsub("[^a-z0-9]+"; "-"));
 				def preapp_filter:
 				if   $preapp == ""          then .
-				elif $preapp == "__EMPTY__" then select((.preinstalled_application // "") == "")
-				else select(.preinstalled_application == $preapp)
+				elif $preapp == "__EMPTY__" then select((.file_application // "") == "")
+				else select(.file_application == $preapp)
 				end;
 				def repo_filter:
 				if $repo == "" then .
@@ -615,12 +595,12 @@ function module_images () {
 				.. | objects
 				| select(.board_slug? != null)
 				| select((.file_extension? // "") | test("^img(\\.(xz|gz|zst|bz2|lz4))?$"; "i"))
-				| select(.kernel_branch != "cloud")
+				| select(.branch != "cloud")
 				| select(norm(.board_slug) == norm($board))
 				| preapp_filter
 				| repo_filter
-				| (if $kbranch != "" then select(.kernel_branch == $kbranch) else . end)
-				| (if $variant != "" then select(.image_variant == $variant) else . end)
+				| (if $kbranch != "" then select(.branch == $kbranch) else . end)
+				| (if $variant != "" then select(.variant == $variant) else . end)
 				]
 				| sort_by([ (if .promoted=="true" then 0 else 1 end), .armbian_version ])
 				| .[$idx]
@@ -727,7 +707,7 @@ function module_images () {
 
 		if [[ ${#dev_options[@]} -eq 0 ]]; then
 			if [[ -n "$DIALOG" ]]; then
-					"$DIALOG" --title "Error" --msgbox "No flashable block devices were found.\n\n(System disks are excluded automatically.)" 10 70
+					dialog_msgbox "Error" "No flashable block devices were found.\n\n(System disks are excluded automatically.)" 10 70
 			else
 					echo "No flashable block devices (excluding system disks) found."
 			fi
@@ -737,10 +717,7 @@ function module_images () {
 		local target
 
 		if [[ -n "$DIALOG" ]]; then
-			target=$($DIALOG --title "Select target device" \
-				--menu "\nSelect block device to flash.\n\n⚠  ALL DATA ON THE SELECTED DEVICE WILL BE LOST!" 15 76 3 \
-				"${dev_options[@]}" \
-				3>&1 1>&2 2>&3)
+			target=$(dialog_menu "Select target device" "\nSelect block device to flash.\n\n⚠  ALL DATA ON THE SELECTED DEVICE WILL BE LOST!" 15 76 3 -- "${dev_options[@]}")
 		else
 			echo "Available block devices (ALL DATA WILL BE LOST):"
 			local i=0
@@ -763,7 +740,7 @@ function module_images () {
 		local msg="WARNING!\n\nYou are about to write a disk image to:\n\n  ${dev}\n\nAll existing data on this device will be irreversibly destroyed.\n\nDo you want to continue?"
 
 		if [[ -n "$DIALOG" ]]; then
-			if ! $DIALOG --title "Final confirmation" --yesno "$msg" 15 72; then
+			if ! dialog_yesno "Final confirmation" "$msg" "" "" 15 72; then
 				return 1
 			fi
 		else
@@ -800,9 +777,7 @@ function module_images () {
 		# If already present, ask reuse
 		if [[ -f "$LOCAL_IMAGE_PATH" ]]; then
 			if [[ -n "$DIALOG" ]]; then
-				$DIALOG --title "Note" --yesno \
-					"\nUncompressed image already exists in ${IMAGES_BASE}/:\n\n${raw_filename}\n\nReuse this file?" \
-					12 70 && return 0
+				dialog_yesno "Note" "\nUncompressed image already exists in ${IMAGES_BASE}/:\n\n${raw_filename}\n\nReuse this file?" "" "" 12 70 && return 0
 			else
 				read -rp "Image $LOCAL_IMAGE_PATH exists. Reuse? [y/N]: " reuse
 				[[ "$reuse" =~ ^[Yy]$ ]] && return 0
@@ -854,9 +829,7 @@ function module_images () {
 		else
 			# Fallback simple mode
 			if [[ -n "$DIALOG" ]]; then
-				$DIALOG --infobox \
-					"\nDownloading and decompressing Armbian image...\n\n$display_url" \
-					8 70
+				dialog_infobox "" "\nDownloading and decompressing Armbian image...\n\n$display_url" 8 70
 			else
 				echo "Downloading and decompressing: $display_url"
 			fi
@@ -930,8 +903,7 @@ function module_images () {
 		else
 			# Fallback: console progress
 			if [[ -n "$DIALOG" ]]; then
-				"$DIALOG" --title "Armbian imager" \
-					--infobox "\nWriting image to $dev...\n\nProgress is shown in the console." 8 70
+				dialog_infobox "Armbian imager" "\nWriting image to $dev...\n\nProgress is shown in the console." 8 70
 			else
 				echo "Writing image to $dev ..."
 			fi
@@ -1004,12 +976,7 @@ function module_images () {
 				1)
 					# Success: offer actions
 					local action
-					action=$("$DIALOG" --title "Armbian imager" \
-						--menu "\nFlashing and verification completed successfully.\n\nChoose what to do next:" 14 72 3 \
-							"REBOOT"   "Reboot system now" \
-							"SHUTDOWN" "Power off the system" \
-							"EXIT"     "Return to shell/menu" \
-							3>&1 1>&2 2>&3)
+					action=$(dialog_menu "Armbian imager" "\nFlashing and verification completed successfully.\n\nChoose what to do next:" 14 72 3 -- "REBOOT" "Reboot system now" "SHUTDOWN" "Power off the system" "EXIT" "Return to shell/menu")
 
 					case "$action" in
 						REBOOT)
@@ -1026,13 +993,11 @@ function module_images () {
 					esac
 					;;
 				0)
-					"$DIALOG" --title "Armbian imager" \
-						--msgbox "⚠ Verification FAILED!\n\nData read from $dev does not match the image.\nPlease try again or check the device." 12 75
+					dialog_msgbox "Armbian imager" "⚠ Verification FAILED!\n\nData read from $dev does not match the image.\nPlease try again or check the device." 12 75
 					return 1
 					;;
 				*)
-					"$DIALOG" --title "Armbian imager" \
-						--msgbox "Flashing completed.\n\nVerification was skipped (cmp not available)." 10 70
+					dialog_msgbox "Armbian imager" "Flashing completed.\n\nVerification was skipped (cmp not available)." 10 70
 					;;
 			esac
 		else
@@ -1068,10 +1033,10 @@ function module_images () {
 	}
 
 	# Helper: return 0 if cache directory contains any downloaded image
-	# (ignores the index file all-images.json). Intended for menu logic.
+	# (ignores the index file armbian-images.json). Intended for menu logic.
 	images_cache_has_content() {
 		[[ -d "$IMAGES_BASE" ]] || return 1
-		if find "$IMAGES_BASE" -maxdepth 1 -type f ! -name 'all-images.json' | read -r _; then
+		if find "$IMAGES_BASE" -maxdepth 1 -type f ! -name 'armbian-images.json' | read -r _; then
 			return 0
 		fi
 		return 1
@@ -1094,13 +1059,13 @@ function module_images () {
 		"${commands[1]}")  # remove = remove downloaded images only
 			if [[ -d "$IMAGES_BASE" ]]; then
 				if [[ -n "$DIALOG" ]]; then
-					if $DIALOG --yesno "Remove all downloaded Armbian images in:\n\n$IMAGES_BASE\n\nThe index file (all-images.json) will be kept." 12 70; then
-						find "$IMAGES_BASE" -maxdepth 1 -type f ! -name 'all-images.json' -delete
+					if dialog_yesno "" "Remove all downloaded Armbian images in:\n\n$IMAGES_BASE\n\nThe index file (armbian-images.json) will be kept." "" "" 12 70; then
+						find "$IMAGES_BASE" -maxdepth 1 -type f ! -name 'armbian-images.json' -delete
 					fi
 				else
-					read -rp "Remove all downloaded images (keep all-images.json) in $IMAGES_BASE? [y/N]: " ans
+					read -rp "Remove all downloaded images (keep armbian-images.json) in $IMAGES_BASE? [y/N]: " ans
 					if [[ "$ans" =~ ^[Yy]$ ]]; then
-						find "$IMAGES_BASE" -maxdepth 1 -type f ! -name 'all-images.json' -delete
+						find "$IMAGES_BASE" -maxdepth 1 -type f ! -name 'armbian-images.json' -delete
 					fi
 				fi
 			fi
@@ -1108,7 +1073,7 @@ function module_images () {
 		"${commands[2]}")  # purge = remove everything
 			if [[ -d "$IMAGES_BASE" ]]; then
 				if [[ -n "$DIALOG" ]]; then
-					if $DIALOG --yesno "Completely purge the images cache directory?\n\n$IMAGES_BASE\n\nIndex and all downloaded images will be removed." 12 70; then
+					if dialog_yesno "" "Completely purge the images cache directory?\n\n$IMAGES_BASE\n\nIndex and all downloaded images will be removed." "" "" 12 70; then
 						rm -rf "$IMAGES_BASE"
 					fi
 				else
@@ -1133,7 +1098,7 @@ function module_images () {
 					]
 					| length
 				' "$IMAGES_JSON_PATH" 2>/dev/null); then
-					echo "Images index: FAILED (parse error in $IMAGES_JSON_PATH)"
+					echo "Images index: FAILED (parse error in index file)"
 					return 1
 				fi
 
@@ -1223,8 +1188,8 @@ function module_images () {
 			echo -e "\nUsage: ${module_options["module_images,feature"]} <command> [board_slug]"
 			echo -e "Commands:  ${module_options["module_images,example"]}"
 			echo "Available commands:"
-			echo -e "\tinstall\t- Interactive: filter by preinstalled app + stability + kernel + variant, select image, flash to device."
-			echo -e "\tremove\t- Remove downloaded image files (keep the index all-images.json)."
+			echo -e "\tinstall\t- Interactive: filter by preinstalled app + stability + branch + variant, select image, flash to device."
+			echo -e "\tremove\t- Remove downloaded image files (keep the index armbian-images.json)."
 			echo -e "\tpurge\t- Remove the entire images cache directory (index + images)."
 			echo -e "\tstatus\t- Show images index status and counts for the current board."
 			echo -e "\thelp\t- Show this help message."
@@ -1235,11 +1200,11 @@ function module_images () {
 			echo "- Only records with real image file_extension are considered; entries whose"
 			echo "  file_extension contains .asc, .torrent or .sha* are ignored."
 			echo "- You can filter images by:"
-			echo "    * preinstalled_application: ALL / STABLE / barebone / specific (OMV, HA, OpenHAB, ...)"
+			echo "    * file_application: ALL / STABLE / barebone / specific (OMV, HA, OpenHAB, ...)"
 			echo "      - STABLE = download_repository == \"archive\""
-			echo "    * kernel_branch"
-			echo "    * image_variant"
-			echo "- Image selector columns: version | kernel | variant | size (MB) | {preinstalled}."
+			echo "    * branch"
+			echo "    * variant"
+			echo "- Image selector columns: version | distro | branch | variant | size (MB) | {preinstalled}."
 			echo "- Menu marks promoted images with a leading '★'."
 			echo "- Board matching is case- and separator-insensitive (uefi-x86, UEFI_X86, uefi x86, etc.)."
 			echo

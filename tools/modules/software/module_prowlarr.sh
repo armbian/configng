@@ -9,90 +9,62 @@ module_options+=(
 	["module_prowlarr,group"]="Database"
 	["module_prowlarr,port"]="9696"
 	["module_prowlarr,arch"]="x86-64 arm64"
+	["module_prowlarr,dockerimage"]="lscr.io/linuxserver/prowlarr:latest"
+	["module_prowlarr,dockername"]="prowlarr"
 )
 #
 # Module prowlarr
 #
 function module_prowlarr () {
-	local title="prowlarr"
-	local condition=$(which "$title" 2>/dev/null)
-
-	# Ensure Docker is available for commands that need it (install, remove, purge)
-	if [[ "$1" != "status" && "$1" != "help" ]]; then
-		if ! module_docker status >/dev/null 2>&1; then
-			module_docker install
-		fi
-	fi
-
-	local container=$(docker container ls -a --filter "name=prowlarr" --format '{{.ID}}') 2>/dev/null || echo ""
-	local image=$(docker image ls -a --format '{{.Repository}} {{.ID}}' | grep 'prowlarr' | awk '{print $2}') 2>/dev/null || echo ""
+	local title="Prowlarr"
+	local dockerimage="${module_options["module_prowlarr,dockerimage"]}"
+	local dockername="${module_options["module_prowlarr,dockername"]}"
+	local port="${module_options["module_prowlarr,port"]}"
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_prowlarr,example"]}"
 
-	PROWLARR_BASE="${SOFTWARE_FOLDER}/prowlarr"
+	local base_dir="${SOFTWARE_FOLDER}/$dockername"
 
 	case "$1" in
-		"${commands[0]}")
-			if ! module_docker status >/dev/null 2>&1; then
-				module_docker install
-			fi
-			[[ -d "$PROWLARR_BASE" ]] || mkdir -p "$PROWLARR_BASE" || { echo "Couldn't create storage directory: $PROWLARR_BASE"; exit 1; }
-			docker run -d \
-			--name=prowlarr \
-			--net=lsio \
-			-e PUID=1000 \
-			-e PGID=1000 \
-			-e TZ="$(cat /etc/timezone)" \
-			-p 9696:9696 \
-			-v "${PROWLARR_BASE}/config:/config" \
-			--restart=always \
-			lscr.io/linuxserver/prowlarr:latest
-			for i in $(seq 1 20); do
-				state="$(docker inspect -f '{{.State.Status}}' prowlarr 2>/dev/null || true)"
-				if [[ "$state" == "running" ]]; then
-				break
-				fi
-				sleep 3
-				if [[ $i -eq 20 ]]; then
-					echo -e "\nTimed out waiting for ${title} to start, consult logs (\`docker logs prowlarr\`)"
-					exit 1
-				fi
-			done
+		"${commands[0]}") # install
+			# Pull image
+			docker_operation_progress pull "$dockerimage"
+
+			# Create base directory
+			docker_manage_base_dir create "$base_dir" || return 1
+
+			# Run container
+			docker_operation_progress run "$dockername" \
+				-d \
+				--name="$dockername" \
+				--net=lsio \
+				-e PUID="${DOCKER_USERUID}" \
+				-e PGID="${DOCKER_GROUPUID}" \
+				-e TZ="$(cat /etc/timezone)" \
+				-p "${port}:9696" \
+				-v "${base_dir}/config:/config" \
+				--restart=always \
+				"$dockerimage"
 		;;
-		"${commands[1]}")
-			if [[ "${container}" ]]; then
-				echo "Removing container: $container"
-				docker container rm -f "$container"
-			fi
+		"${commands[1]}") # remove
+			docker_operation_progress rm "$dockername"
+			docker_operation_progress rmi "$dockerimage"
 		;;
-		"${commands[2]}")
-			${module_options["module_prowlarr,feature"]} ${commands[1]}
-			if [[ "${image}" ]]; then
-				sleep 2
-				docker image rm -f "$image" 2>/dev/null || true
-			fi
-			${module_options["module_prowlarr,feature"]} ${commands[1]}
-			if [[ -n "${PROWLARR_BASE}" && "${PROWLARR_BASE}" != "/" ]]; then
-				rm -rf "${PROWLARR_BASE}"
-			fi
-		;;
-		"${commands[3]}")
-			if [[ "${container}" && "${image}" ]]; then
-				return 0
-			else
+		"${commands[2]}") # purge
+			# Remove container and image first
+			if ! ${module_options["module_prowlarr,feature"]} ${commands[1]}; then
 				return 1
 			fi
+			# Only remove data directory if container/image removal succeeded
+			docker_manage_base_dir remove "$base_dir"
 		;;
-		"${commands[4]}")
-			echo -e "\nUsage: ${module_options["module_prowlarr,feature"]} <command>"
-			echo -e "Commands:  ${module_options["module_prowlarr,example"]}"
-			echo "Available commands:"
-			echo -e "\tinstall\t- Install $title."
-			echo -e "\tstatus\t- Installation status $title."
-			echo -e "\tremove\t- Remove $title."
-			echo -e "\tpurge\t- Purge $title."
-			echo
+		"${commands[3]}") # status
+			docker_is_installed "$dockername" "$dockerimage"
+		;;
+		"${commands[4]}") # help
+			show_module_help "module_prowlarr" "$title" \
+				"Docker Image: $dockerimage\nPort: $port"
 		;;
 		*)
 			${module_options["module_prowlarr,feature"]} ${commands[4]}
