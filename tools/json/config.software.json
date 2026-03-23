@@ -2264,6 +2264,45 @@
                             "author": "@igorpecovnik",
                             "condition": "module_uptimekuma status",
                             "help": "Uptime Kuma purge with data folder"
+                        },
+                        {
+                            "id": "DOZ001",
+                            "description": "Dozzle real-time Docker log viewer",
+                            "short": "Dozzle",
+                            "module": "module_dozzle",
+                            "about": "This operation will install Dozzle",
+                            "command": [
+                                "module_dozzle install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_dozzle status",
+                            "container_type": "docker",
+                            "help": "Dozzle is a lightweight, real-time Docker log viewer for all containers."
+                        },
+                        {
+                            "id": "DOZ002",
+                            "description": "Dozzle remove",
+                            "about": "This operation will remove Dozzle",
+                            "command": [
+                                "module_dozzle remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_dozzle status",
+                            "help": "Dozzle remove"
+                        },
+                        {
+                            "id": "DOZ003",
+                            "description": "Dozzle purge",
+                            "about": "This operation will purge Dozzle",
+                            "command": [
+                                "module_dozzle purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_dozzle status",
+                            "help": "Dozzle purge"
                         }
                     ],
                     "help": "Real-time monitoring, collecting metrics, up-time status"
