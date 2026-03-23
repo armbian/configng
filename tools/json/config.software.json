@@ -2239,6 +2239,7 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "! module_uptimekuma status",
+                            "container_type": "docker",
                             "help": "Uptime Kuma self-hosted monitoring tool."
                         },
                         {
