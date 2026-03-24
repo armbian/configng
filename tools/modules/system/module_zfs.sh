@@ -107,9 +107,6 @@ function module_zfs () {
 			# Get TXG timeout
 			local txg_timeout=$(cat /sys/module/zfs/parameters/zfs_txg_timeout 2>/dev/null || echo "5")
 
-			# Get current compression (ZFS default is lz4)
-			local current_compression=$(cat /sys/module/zfs/parameters/zfs_compression 2>/dev/null || echo "lz4")
-
 			# Create tuning menu
 			while true; do
 				local menu_text="System Memory: ${total_mem_mb} MB (${total_mem_gb} GB)\n\n"
@@ -117,19 +114,17 @@ function module_zfs () {
 				menu_text+="ARC Min: ${arc_min_mb} MB\n"
 				menu_text+="ARC Max: ${arc_max_display}\n"
 				menu_text+="Dirty Data Max: ${dirty_max_mb} MB\n"
-				menu_text+="TXG Timeout: ${txg_timeout} sec\n"
-				menu_text+="Compression: ${current_compression}\n\n"
+				menu_text+="TXG Timeout: ${txg_timeout} sec\n\n"
 				menu_text+="Select a parameter to tune:"
 
-				local choice=$(dialog_menu "ZFS Performance Tuning" "$menu_text" 25 80 8 \
+				local choice=$(dialog_menu "ZFS Performance Tuning" "$menu_text" 23 80 7 \
 					"1" "ARC Cache Size (zfs_arc_min/max)" \
 					"2" "Dirty Data Limits (zfs_dirty_data_max)" \
 					"3" "TXG Timeout (zfs_txg_timeout)" \
-					"4" "Compression (zfs_compression)" \
-					"5" "Advanced Settings" \
-					"6" "Reset to Defaults" \
-					"7" "Save & Apply Configuration" \
-					"8" "Show Current Configuration")
+					"4" "Advanced Settings" \
+					"5" "Reset to Defaults" \
+					"6" "Save & Apply Configuration" \
+					"7" "Show Current Configuration")
 
 				[[ -z "$choice" ]] && break
 
@@ -222,41 +217,7 @@ function module_zfs () {
 						dialog_msgbox "Value Updated" "TXG timeout updated.\n\nApply changes to take effect." 10 65
 						;;
 
-					4) # Compression
-						dialog_msgbox "ZFS Compression" \
-							"Compression is transparent and CPU-efficient.\n\nOptions:\n- lz4: Fast, good compression (recommended, ZFS default)\n- zstd: Better compression, slightly slower\n- gzip: Max compression, slowest\n- off: Disable compression\n\nCurrent: ${current_compression}\n\nNote: This is the default for new datasets only." 17 75
-
-						# Set default selection based on current value
-						local lz4_selected="off"
-						local zstd_selected="off"
-						local gzip_selected="off"
-						local off_selected="off"
-
-						case "$current_compression" in
-							lz4) lz4_selected="on" ;;
-							zstd) zstd_selected="on" ;;
-							gzip) gzip_selected="on" ;;
-							off) off_selected="on" ;;
-							*) lz4_selected="on" ;;  # Default to lz4
-						esac
-
-						local compression_choice=$(dialog_radiolist "Select Default Compression Algorithm" \
-							"Choose the default compression algorithm for new ZFS datasets:" 16 80 4 \
-							"lz4" "LZ4 - Fast & efficient (recommended, ZFS default)" "$lz4_selected" \
-							"zstd" "ZSTD - Better compression" "$zstd_selected" \
-							"gzip" "GZIP - Maximum compression" "$gzip_selected" \
-							"off" "Disable compression" "$off_selected")
-
-						[[ -z "$compression_choice" ]] && continue
-
-						# Update compression preference
-						echo "options zfs zfs_compression=${compression_choice}" > "$temp_file"
-						current_compression=$compression_choice
-
-						dialog_msgbox "Compression Updated" "Default compression set to: ${compression_choice}\n\nApply changes to take effect." 11 70
-						;;
-
-					5) # Advanced Settings
+					4) # Advanced Settings
 						local adv_choice=$(dialog_menu "Advanced ZFS Tuning" \
 							"WARNING: Only change these if you know what you're doing!" 20 80 6 \
 							"1" "Prefetch Settings" \
@@ -321,7 +282,7 @@ function module_zfs () {
 						esac
 						;;
 
-					6) # Reset to defaults
+					5) # Reset to defaults
 						if dialog_yesno "Reset to Defaults" \
 							"Reset all ZFS parameters to defaults?\n\nThis will remove any custom tuning."; then
 							> "$temp_file"
@@ -329,22 +290,18 @@ function module_zfs () {
 							arc_max_mb=0
 							dirty_max_mb=$recommended_dirty
 							txg_timeout=5
-							current_compression="lz4"  # ZFS default
 							# Update display
 							arc_max_display="Default (all RAM)"
 							dialog_msgbox "Reset Complete" "Parameters reset to defaults.\n\nApply changes to take effect." 11 70
 						fi
 						;;
 
-					7) # Save & Apply
+					6) # Save & Apply
 						local config_preview="The following settings will be saved to:\n${config_file}\n\n"
 						config_preview+="zfs_arc_min=$((arc_min_mb * 1024 * 1024)) bytes\n"
 						config_preview+="zfs_arc_max=$((arc_max_mb * 1024 * 1024)) bytes\n"
 						config_preview+="zfs_dirty_data_max=$((dirty_max_mb * 1024 * 1024)) bytes\n"
 						config_preview+="zfs_txg_timeout=${txg_timeout} seconds\n"
-						if [[ -f "$temp_file" ]] && grep -q "zfs_compression" "$temp_file"; then
-							config_preview+="zfs_compression=${current_compression}\n"
-						fi
 
 						dialog_msgbox "Saving ZFS Configuration" "$config_preview"
 
@@ -374,11 +331,6 @@ function module_zfs () {
 							echo ""
 							echo "# Transaction Group Settings"
 							echo "options zfs zfs_txg_timeout=${txg_timeout}"
-							echo ""
-							# Append compression if set
-							if [[ -f "$temp_file" ]] && grep -q "zfs_compression" "$temp_file"; then
-								cat "$temp_file"
-							fi
 						} > "$config_file"
 
 						# Notify about backup
@@ -412,13 +364,12 @@ function module_zfs () {
 						break
 						;;
 
-					8) # Show current configuration
+					7) # Show current configuration
 						local show_text="Current ZFS Configuration:\n\n"
 						show_text+="ARC Min: ${arc_min_mb} MB ($((arc_min_mb * 1024 * 1024)) bytes)\n"
 						show_text+="ARC Max: ${arc_max_mb} MB ($((arc_max_mb * 1024 * 1024)) bytes)\n"
 						show_text+="Dirty Data Max: ${dirty_max_mb} MB ($((dirty_max_mb * 1024 * 1024)) bytes)\n"
-						show_text+="TXG Timeout: ${txg_timeout} seconds\n"
-						show_text+="Compression: ${current_compression}\n\n"
+						show_text+="TXG Timeout: ${txg_timeout} seconds\n\n"
 						show_text+="Configuration file: ${config_file}\n\n"
 						if [[ -f "$config_file" ]]; then
 							show_text+="Current file contents:\n\n"
