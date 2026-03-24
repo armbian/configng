@@ -78,10 +78,17 @@ function module_zfs () {
 
 			local config_file="${module_options["module_zfs,config_file"]}"
 			local temp_file="/tmp/zfs_tuning_$$.txt"
+			local backup_file="/tmp/zfs_tuning_backup_$$.conf"
 
 			# Get current system memory in MB
-			local total_mem_mb=$(( $(grep MemTotal /proc/meminfo | awk '{print $2}') / 1024 ))
+			local total_mem_kb=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+			local total_mem_mb=$((total_mem_kb / 1024))
 			local total_mem_gb=$((total_mem_mb / 1024))
+
+			# Calculate recommended values based on system memory
+			local recommended_arc_min=$((total_mem_mb / 8))
+			local recommended_arc_max=$((total_mem_mb / 2))
+			local recommended_dirty=$((total_mem_mb / 25))  # 4% of RAM
 
 			# Get current ARC settings
 			local arc_min_current=$(cat /sys/module/zfs/parameters/zfs_arc_min 2>/dev/null || echo "0")
@@ -102,8 +109,8 @@ function module_zfs () {
 			# Get TXG timeout
 			local txg_timeout=$(cat /sys/module/zfs/parameters/zfs_txg_timeout 2>/dev/null || echo "5")
 
-			# Get current compression
-			local current_compression=$(cat /sys/module/zfs/parameters/zfs_compression 2>/dev/null || echo "zstd")
+			# Get current compression (ZFS default is lz4)
+			local current_compression=$(cat /sys/module/zfs/parameters/zfs_compression 2>/dev/null || echo "lz4")
 
 			# Create tuning menu
 			while true; do
@@ -116,7 +123,7 @@ function module_zfs () {
 				menu_text+="Compression: ${current_compression}\n\n"
 				menu_text+="Select a parameter to tune:"
 
-				local choice=$(dialog_menu "ZFS Performance Tuning" "$menu_text" 22 70 8 \
+				local choice=$(dialog_menu "ZFS Performance Tuning" "$menu_text" 25 80 8 \
 					"1" "ARC Cache Size (zfs_arc_min/max)" \
 					"2" "Dirty Data Limits (zfs_dirty_data_max)" \
 					"3" "TXG Timeout (zfs_txg_timeout)" \
@@ -131,78 +138,116 @@ function module_zfs () {
 				case $choice in
 					1) # ARC Cache Size Tuning
 						dialog_msgbox "ARC Cache Size Tuning" \
-							"The ARC (Adaptive Replacement Cache) is ZFS's intelligent cache.\n\nRecommended Settings:\n- zfs_arc_min: 1/8 of RAM (minimum cache)\n- zfs_arc_max: 1/2 of RAM (maximum cache)\n\nCurrent: ${arc_min_mb} MB / ${arc_max_display}"
-
-						local recommended_arc_min=$((total_mem_mb / 8))
-						local recommended_arc_max=$((total_mem_mb / 2))
+							"The ARC (Adaptive Replacement Cache) is ZFS's intelligent cache.\n\nRecommended Settings:\n- zfs_arc_min: ${recommended_arc_min} MB (1/8 of RAM)\n- zfs_arc_max: ${recommended_arc_max} MB (1/2 of RAM)\n\nCurrent: ${arc_min_mb} MB / ${arc_max_display}" 16 80
 
 						local new_arc_min_mb=$(dialog_inputbox "ARC Min Size" \
 							"Enter ARC Min Size in MB:\n(Recommended: ${recommended_arc_min} MB)\nCurrent: ${arc_min_mb} MB" \
-							12 60 "${arc_min_mb}")
+							13 70 "${arc_min_mb}")
 						[[ -z "$new_arc_min_mb" ]] && continue
+
+						# Validate numeric input
+						if ! [[ "$new_arc_min_mb" =~ ^[0-9]+$ ]]; then
+							dialog_msgbox "Invalid Input" "ARC Min must be a positive number!" 8 60
+							continue
+						fi
 
 						local new_arc_max_mb=$(dialog_inputbox "ARC Max Size" \
 							"Enter ARC Max Size in MB:\n(Recommended: ${recommended_arc_max} MB, 0 = all RAM)\nCurrent: ${arc_max_mb} MB" \
-							12 60 "${arc_max_mb}")
+							13 70 "${arc_max_mb}")
 						[[ -z "$new_arc_max_mb" ]] && continue
 
-						# Validate
+						# Validate numeric input
+						if ! [[ "$new_arc_max_mb" =~ ^[0-9]+$ ]]; then
+							dialog_msgbox "Invalid Input" "ARC Max must be a positive number (or 0)!" 8 60
+							continue
+						fi
+
+						# Validate relationship
 						if [[ $new_arc_min_mb -gt $new_arc_max_mb ]] && [[ $new_arc_max_mb -ne 0 ]]; then
-							dialog_msgbox "Invalid Values" "ARC Min cannot be greater than ARC Max!"
+							dialog_msgbox "Invalid Values" "ARC Min cannot be greater than ARC Max!" 10 65
 							continue
 						fi
 
 						arc_min_mb=$new_arc_min_mb
 						arc_max_mb=$new_arc_max_mb
 
-						dialog_msgbox "Values Updated" "ARC settings updated.\n\nApply changes to take effect."
+						# Update display
+						arc_max_display="${arc_max_mb} MB"
+						[[ $arc_max_mb -eq 0 ]] && arc_max_display="Default (all RAM)"
+
+						dialog_msgbox "Values Updated" "ARC settings updated.\n\nApply changes to take effect." 10 65
 						;;
 
 					2) # Dirty Data Limits
-						local recommended_dirty=$((total_mem_mb / 25))
 						dialog_msgbox "Dirty Data Limits" \
-							"Dirty data is data that has been changed but not yet written to disk.\n\nRecommended: ${recommended_dirty} MB (4% of RAM)\n\nHigher values = better performance but more data loss risk on power failure."
+							"Dirty data is data that has been changed but not yet written to disk.\n\nRecommended: ${recommended_dirty} MB (4% of RAM)\n\nHigher values = better performance but more data loss risk on power failure." 14 75
 
 						local new_dirty_max_mb=$(dialog_inputbox "Dirty Data Max" \
 							"Enter Dirty Data Max in MB:\n(Recommended: ${recommended_dirty} MB)\nCurrent: ${dirty_max_mb} MB" \
-							10 60 "${dirty_max_mb}")
+							11 70 "${dirty_max_mb}")
 						[[ -z "$new_dirty_max_mb" ]] && continue
+
+						# Validate numeric input
+						if ! [[ "$new_dirty_max_mb" =~ ^[0-9]+$ ]]; then
+							dialog_msgbox "Invalid Input" "Dirty Data Max must be a positive number!" 8 60
+							continue
+						fi
 
 						dirty_max_mb=$new_dirty_max_mb
 
-						dialog_msgbox "Value Updated" "Dirty data max updated.\n\nApply changes to take effect."
+						dialog_msgbox "Value Updated" "Dirty data max updated.\n\nApply changes to take effect." 10 65
 						;;
 
 					3) # TXG Timeout
 						dialog_msgbox "TXG (Transaction Group) Timeout" \
-							"Controls how often ZFS writes dirty data to disk.\n\nDefault: 5 seconds\n\nLower values = more frequent writes, better data safety, lower performance\nHigher values = less frequent writes, better performance, more data loss risk"
+							"Controls how often ZFS writes dirty data to disk.\n\nDefault: 5 seconds\n\nLower values = more frequent writes, better data safety, lower performance\nHigher values = less frequent writes, better performance, more data loss risk" 15 75
 
 						local new_txg_timeout=$(dialog_inputbox "TXG Timeout" \
 							"Enter TXG Timeout in seconds:\n(Range: 1-30, Recommended: 5)\nCurrent: ${txg_timeout} sec" \
-							11 60 "${txg_timeout}")
+							12 70 "${txg_timeout}")
 						[[ -z "$new_txg_timeout" ]] && continue
 
-						# Validate
+						# Validate numeric input
+						if ! [[ "$new_txg_timeout" =~ ^[0-9]+$ ]]; then
+							dialog_msgbox "Invalid Input" "TXG timeout must be a positive number!" 8 60
+							continue
+						fi
+
+						# Validate range
 						if [[ $new_txg_timeout -lt 1 ]] || [[ $new_txg_timeout -gt 30 ]]; then
-							dialog_msgbox "Invalid Value" "TXG timeout must be between 1 and 30 seconds!"
+							dialog_msgbox "Invalid Value" "TXG timeout must be between 1 and 30 seconds!" 10 65
 							continue
 						fi
 
 						txg_timeout=$new_txg_timeout
 
-						dialog_msgbox "Value Updated" "TXG timeout updated.\n\nApply changes to take effect."
+						dialog_msgbox "Value Updated" "TXG timeout updated.\n\nApply changes to take effect." 10 65
 						;;
 
 					4) # Compression
 						dialog_msgbox "ZFS Compression" \
-							"Compression is transparent and CPU-efficient.\n\nOptions:\n- lz4: Fast, good compression (recommended)\n- zstd: Better compression, slightly slower\n- gzip: Max compression, slowest\n- off: Disable compression\n\nCurrent: ${current_compression}\n\nNote: This is the default for new datasets only."
+							"Compression is transparent and CPU-efficient.\n\nOptions:\n- lz4: Fast, good compression (recommended, ZFS default)\n- zstd: Better compression, slightly slower\n- gzip: Max compression, slowest\n- off: Disable compression\n\nCurrent: ${current_compression}\n\nNote: This is the default for new datasets only." 17 75
+
+						# Set default selection based on current value
+						local lz4_selected=""
+						local zstd_selected=""
+						local gzip_selected=""
+						local off_selected=""
+
+						case "$current_compression" in
+							lz4) lz4_selected="lz4" ;;
+							zstd) zstd_selected="zstd" ;;
+							gzip) gzip_selected="gzip" ;;
+							off) off_selected="off" ;;
+							*) lz4_selected="lz4" ;;  # Default to lz4
+						esac
 
 						local compression_choice=$(dialog_radiolist "Select Default Compression Algorithm" \
-							"Choose the default compression algorithm for new ZFS datasets:" 15 70 4 \
-							"lz4" "LZ4 - Fast & efficient (recommended)" "lz4" \
-							"zstd" "ZSTD - Better compression" "" \
-							"gzip" "GZIP - Maximum compression" "" \
-							"off" "Disable compression" "")
+							"Choose the default compression algorithm for new ZFS datasets:" 16 80 4 \
+							"lz4" "LZ4 - Fast & efficient (recommended, ZFS default)" "$lz4_selected" \
+							"zstd" "ZSTD - Better compression" "$zstd_selected" \
+							"gzip" "GZIP - Maximum compression" "$gzip_selected" \
+							"off" "Disable compression" "$off_selected")
 
 						[[ -z "$compression_choice" ]] && continue
 
@@ -210,12 +255,12 @@ function module_zfs () {
 						echo "options zfs zfs_compression=${compression_choice}" > "$temp_file"
 						current_compression=$compression_choice
 
-						dialog_msgbox "Compression Updated" "Default compression set to: ${compression_choice}\n\nApply changes to take effect."
+						dialog_msgbox "Compression Updated" "Default compression set to: ${compression_choice}\n\nApply changes to take effect." 11 70
 						;;
 
 					5) # Advanced Settings
 						local adv_choice=$(dialog_menu "Advanced ZFS Tuning" \
-							"WARNING: Only change these if you know what you're doing!" 18 70 6 \
+							"WARNING: Only change these if you know what you're doing!" 20 80 6 \
 							"1" "Prefetch Settings" \
 							"2" "Sync Settings" \
 							"3" "VDEV Settings" \
@@ -234,22 +279,22 @@ function module_zfs () {
 								if dialog_yesno "Disable ZFS Prefetch?" \
 									"Current: ${prefetch_status}\n\nDisabling can help with certain workloads but usually hurts performance.\n\nDisable prefetch?"; then
 									# Note: This would need to be saved to temp_file and applied
-									dialog_msgbox "Info" "Prefetch settings can be manually added to the config.\n\nEdit: ${config_file}\n\nAdd: options zfs zfs_prefetch_disable=1"
+									dialog_msgbox "Info" "Prefetch settings can be manually added to the config.\n\nEdit: ${config_file}\n\nAdd: options zfs zfs_prefetch_disable=1" 13 75
 								else
-									dialog_msgbox "Info" "Prefetch will remain enabled.\n\nCurrent default: enabled"
+									dialog_msgbox "Info" "Prefetch will remain enabled.\n\nCurrent default: enabled" 11 70
 								fi
 								;;
 							2)
 								dialog_msgbox "Sync Settings" \
-									"zfs_sync_taskq_batch_pct controls sync task batching.\n\nDefault: Auto-tuned\n\nIncreasing can improve sync-heavy workloads (databases).\n\nCan be manually set in: ${config_file}"
+									"zfs_sync_taskq_batch_pct controls sync task batching.\n\nDefault: Auto-tuned\n\nIncreasing can improve sync-heavy workloads (databases).\n\nCan be manually set in: ${config_file}" 13 70
 								;;
 							3)
 								dialog_msgbox "VDEV Settings" \
-									"zfs_vdev_* parameters control VDEV behavior.\n\nMost are auto-tuned. Manual tuning rarely needed.\n\nCommon parameters:\n- zfs_vdev_async_write_min_active\n- zfs_vdev_max_active\n- zfs_vdev_open_max_ms"
+									"zfs_vdev_* parameters control VDEV behavior.\n\nMost are auto-tuned. Manual tuning rarely needed.\n\nCommon parameters:\n- zfs_vdev_async_write_min_active\n- zfs_vdev_max_active\n- zfs_vdev_open_max_ms" 14 70
 								;;
 							4)
 								dialog_msgbox "Debug & Logging" \
-									"zfs_deadman_enabled, zfs_flags, etc.\n\nOnly enable for debugging purposes.\n\nWARNING: Can significantly impact performance.\n\nAdd to config manually if needed."
+									"zfs_deadman_enabled, zfs_flags, etc.\n\nOnly enable for debugging purposes.\n\nWARNING: Can significantly impact performance.\n\nAdd to config manually if needed." 13 70
 								;;
 							5)
 								if [[ -d /sys/module/zfs/parameters ]]; then
@@ -284,24 +329,33 @@ function module_zfs () {
 							> "$temp_file"
 							arc_min_mb=0
 							arc_max_mb=0
-							dirty_max_mb=$((total_mem_mb / 25))
+							dirty_max_mb=$recommended_dirty
 							txg_timeout=5
-							current_compression="zstd"
-							dialog_msgbox "Reset Complete" "Parameters reset to defaults.\n\nApply changes to take effect."
+							current_compression="lz4"  # ZFS default
+							# Update display
+							arc_max_display="Default (all RAM)"
+							dialog_msgbox "Reset Complete" "Parameters reset to defaults.\n\nApply changes to take effect." 11 70
 						fi
 						;;
 
 					7) # Save & Apply
 						local config_preview="The following settings will be saved to:\n${config_file}\n\n"
-						config_preview+="zfs_arc_min=$((arc_min_mb * 1024 * 1024))\n"
-						config_preview+="zfs_arc_max=$((arc_max_mb * 1024 * 1024))\n"
-						config_preview+="zfs_dirty_data_max=$((dirty_max_mb * 1024 * 1024))\n"
-						config_preview+="zfs_txg_timeout=${txg_timeout}\n"
+						config_preview+="zfs_arc_min=$((arc_min_mb * 1024 * 1024)) bytes\n"
+						config_preview+="zfs_arc_max=$((arc_max_mb * 1024 * 1024)) bytes\n"
+						config_preview+="zfs_dirty_data_max=$((dirty_max_mb * 1024 * 1024)) bytes\n"
+						config_preview+="zfs_txg_timeout=${txg_timeout} seconds\n"
 						if [[ -f "$temp_file" ]] && grep -q "zfs_compression" "$temp_file"; then
 							config_preview+="zfs_compression=${current_compression}\n"
 						fi
 
 						dialog_msgbox "Saving ZFS Configuration" "$config_preview"
+
+						# Backup existing config if it exists
+						if [[ -f "$config_file" ]]; then
+							cp "$config_file" "$backup_file" || {
+								dialog_msgbox "Backup Failed" "Failed to backup existing configuration.\n\nContinuing without backup."
+							}
+						fi
 
 						# Build configuration file
 						{
@@ -329,28 +383,35 @@ function module_zfs () {
 							fi
 						} > "$config_file"
 
+						# Notify about backup
+						if [[ -f "$backup_file" ]]; then
+							dialog_msgbox "Configuration Saved" \
+								"Configuration saved successfully.\n\nPrevious configuration backed up to:\n${backup_file}\n\nYou can restore it manually if needed." 12 70
+						fi
+
 						# Apply changes
 						dialog_msgbox "Applying Changes" \
-							"Configuration saved.\n\nTo apply changes, ZFS module must be reloaded.\n\nThis requires either:\n1. Reboot\n2. Manual: rmmod zfs && modprobe zfs\n\nWARNING: Unloading ZFS requires unmounting all ZFS filesystems first."
+							"Configuration saved.\n\nTo apply changes, ZFS module must be reloaded.\n\nThis requires either:\n1. Reboot\n2. Manual: rmmod zfs && modprobe zfs\n\nWARNING: Unloading ZFS requires unmounting all ZFS filesystems first." 16 75
 
 						if dialog_yesno "Reload ZFS Module" \
 							"WARNING: All ZFS filesystems must be unmounted first!\n\nContinue?"; then
 							if zfs list 2>/dev/null | grep -q "^"; then
 								dialog_msgbox "Cannot Reload" \
-									"ZFS filesystems are mounted.\n\nPlease unmount all ZFS filesystems first:\nzfs umount -a"
+									"ZFS filesystems are mounted.\n\nPlease unmount all ZFS filesystems first:\nzfs umount -a" 11 70
 							else
 								rmmod zfs 2>/dev/null && modprobe zfs
 								if lsmod | grep -q "^zfs "; then
 									dialog_msgbox "Success" \
-										"ZFS module reloaded successfully.\n\nNew settings are now active."
+										"ZFS module reloaded successfully.\n\nNew settings are now active." 11 70
 								else
 									dialog_msgbox "Failed" \
-										"Failed to reload ZFS module.\n\nCheck 'dmesg' for errors."
+										"Failed to reload ZFS module.\n\nCheck 'dmesg' for errors." 10 65
 								fi
 							fi
 						fi
 
 						rm -f "$temp_file"
+						rm -f "$backup_file"
 						break
 						;;
 
@@ -368,7 +429,7 @@ function module_zfs () {
 						else
 							show_text+="(No custom configuration file yet)"
 						fi
-						dialog_msgbox "Current ZFS Configuration" "$show_text"
+						dialog_msgbox "Current ZFS Configuration" "$show_text" 22 80
 						;;
 				esac
 			done
@@ -397,7 +458,7 @@ function module_zfs () {
 			show_module_help "module_zfs" "ZFS" "Configuration file: ${module_options["module_zfs,config_file"]}" "native"
 		;;
 		*) # default - show help
-			show_module_help "module_zfs" "ZFS" "Configuration file: ${module_options["module_zfs,config_file"]}" "native"
+			${module_options["module_zfs,feature"]} ${commands[7]}
 		;;
 	esac
 }
