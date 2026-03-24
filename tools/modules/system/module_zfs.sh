@@ -341,13 +341,13 @@ function module_zfs () {
 
 						# Apply changes
 						dialog_msgbox "Applying Changes" \
-							"Configuration saved.\n\nTo apply changes, ZFS module must be reloaded.\n\nThis requires either:\n1. Reboot\n2. Manual: rmmod zfs && modprobe zfs\n\nWARNING: Unloading ZFS requires unmounting all ZFS filesystems first." 16 75
+							"Configuration saved.\n\nTo apply changes, ZFS module must be reloaded.\n\nThis requires either:\n1. Reboot\n2. Manual: rmmod zfs && modprobe zfs\n\nWARNING: Unloading ZFS requires exporting all pools first." 16 75
 
 						if dialog_yesno "Reload ZFS Module" \
-							"WARNING: All ZFS filesystems must be unmounted first!\n\nContinue?"; then
-							if zfs list 2>/dev/null | grep -q "^"; then
+							"WARNING: All ZFS pools must be exported first!\n\nContinue?"; then
+							if zpool list 2>/dev/null | grep -q "^"; then
 								dialog_msgbox "Cannot Reload" \
-									"ZFS filesystems are mounted.\n\nPlease unmount all ZFS filesystems first:\nzfs umount -a" 11 70
+									"ZFS pools are imported.\n\nPlease export all pools first:\nzpool export -a" 11 70
 							else
 								rmmod zfs 2>/dev/null && modprobe zfs
 								if lsmod | grep -q "^zfs "; then
