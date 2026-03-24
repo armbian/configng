@@ -75,7 +75,6 @@ function module_zfs () {
 			fi
 
 			local config_file="${module_options["module_zfs,config_file"]}"
-			local temp_file="/tmp/zfs_tuning_$$.txt"
 			local backup_file="${config_file}.bak"
 
 			# Get current system memory in MB
@@ -237,7 +236,6 @@ function module_zfs () {
 
 								if dialog_yesno "Disable ZFS Prefetch?" \
 									"Current: ${prefetch_status}\n\nDisabling can help with certain workloads but usually hurts performance.\n\nDisable prefetch?"; then
-									# Note: This would need to be saved to temp_file and applied
 									dialog_msgbox "Info" "Prefetch settings can be manually added to the config.\n\nEdit: ${config_file}\n\nAdd: options zfs zfs_prefetch_disable=1" 13 75
 								else
 									dialog_msgbox "Info" "Prefetch will remain enabled.\n\nCurrent default: enabled" 11 70
@@ -285,7 +283,6 @@ function module_zfs () {
 					5) # Reset to defaults
 						if dialog_yesno "Reset to Defaults" \
 							"Reset all ZFS parameters to defaults?\n\nThis will remove any custom tuning."; then
-							> "$temp_file"
 							arc_min_mb=0
 							arc_max_mb=0
 							dirty_max_mb=$recommended_dirty
@@ -360,7 +357,6 @@ function module_zfs () {
 							fi
 						fi
 
-						rm -f "$temp_file"
 						break
 						;;
 
@@ -388,8 +384,6 @@ function module_zfs () {
 						;;
 				esac
 			done
-
-			rm -f "$temp_file"
 			;;
 		"${commands[4]}") # kernel_max
 			echo "${ZFS_KERNEL_MAX:-<not set>}"
