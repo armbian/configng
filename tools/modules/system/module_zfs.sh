@@ -42,13 +42,11 @@ function module_zfs () {
 			echo "Installing ZFS packages..."
 			# Suppress DKMS license prompt during ZFS compilation
 			pkg_install zfsutils-linux zfs-dkms || return 1
-			echo "✅ ZFS installed successfully"
 		;;
 		"${commands[1]}") # remove
 			echo "Removing ZFS packages..."
 			pkg_remove zfsutils-linux zfs-dkms
 			# Note: We don't remove kernel headers as they may be needed by other modules
-			echo "✅ ZFS removed successfully"
 		;;
 		"${commands[2]}") # status
 			if pkg_installed zfsutils-linux; then
