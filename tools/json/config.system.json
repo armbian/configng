@@ -300,6 +300,19 @@
                             "author": "@armbian",
                             "condition": "module_zfs status",
                             "help": "ZFS filesystem - remove support"
+                        },
+                        {
+                            "id": "ZFS003",
+                            "description": "ZFS filesystem - performance tuning",
+                            "short": "Tune ZFS",
+                            "module": "module_generic",
+                            "command": [
+                                "module_zfs tune"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_zfs status",
+                            "help": "Fine-tune ZFS performance parameters (ARC cache, dirty data, TXG timeout, compression)"
                         }
                     ],
                     "help": "Manage storage devices, ZFS filesystems, and NFS mounts"
