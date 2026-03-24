@@ -345,7 +345,7 @@ function module_zfs () {
 
 						if dialog_yesno "Reload ZFS Module" \
 							"WARNING: All ZFS pools must be exported first!\n\nContinue?"; then
-							if zpool list 2>/dev/null | grep -q "^"; then
+							if [[ -n "$(zpool list -H 2>/dev/null)" ]]; then
 								dialog_msgbox "Cannot Reload" \
 									"ZFS pools are imported.\n\nPlease export all pools first:\nzpool export -a" 11 70
 							else
