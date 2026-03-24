@@ -10,6 +10,11 @@ module_options+=(
 	["module_zfs,doc_link"]="https://openzfs.github.io/openzfs-docs/"
 	["module_zfs,group"]="System"
 	["module_zfs,config_file"]="/etc/modprobe.d/zfs.conf"
+	# Custom command help descriptions
+	["module_zfs,help_tune"]="Fine-tune ZFS performance parameters (ARC, dirty data, TXG, compression)"
+	["module_zfs,help_kernel_max"]="Determine maximum supported kernel version for ZFS"
+	["module_zfs,help_zfs_version"]="Get ZFS version from DKMS"
+	["module_zfs,help_zfs_installed_version"]="Read installed ZFS version"
 )
 #
 # Module OpenZFS
@@ -21,7 +26,7 @@ function module_zfs () {
 	IFS=' ' read -r -a commands <<< "${module_options["module_zfs,example"]}"
 
 	case "$1" in
-		"${commands[0]}")
+		"${commands[0]}") # install
 			# Check if the module is already installed
 			if pkg_installed zfsutils-linux; then
 				echo "ZFS is already installed."
@@ -39,20 +44,20 @@ function module_zfs () {
 			pkg_install zfsutils-linux zfs-dkms || return 1
 			echo "✅ ZFS installed successfully"
 		;;
-		"${commands[1]}")
+		"${commands[1]}") # remove
 			echo "Removing ZFS packages..."
 			pkg_remove zfsutils-linux zfs-dkms
 			# Note: We don't remove kernel headers as they may be needed by other modules
 			echo "✅ ZFS removed successfully"
 		;;
-		"${commands[2]}")
+		"${commands[2]}") # status
 			if pkg_installed zfsutils-linux; then
 				return 0
 			else
 				return 1
 			fi
 		;;
-		"${commands[3]}")
+		"${commands[3]}") # tune
 			# Check if ZFS is installed
 			if ! pkg_installed zfsutils-linux; then
 				dialog_msgbox "ZFS Not Installed" \
@@ -124,8 +129,7 @@ function module_zfs () {
 				[[ -z "$choice" ]] && break
 
 				case $choice in
-					1)
-						# ARC Cache Size Tuning
+					1) # ARC Cache Size Tuning
 						dialog_msgbox "ARC Cache Size Tuning" \
 							"The ARC (Adaptive Replacement Cache) is ZFS's intelligent cache.\n\nRecommended Settings:\n- zfs_arc_min: 1/8 of RAM (minimum cache)\n- zfs_arc_max: 1/2 of RAM (maximum cache)\n\nCurrent: ${arc_min_mb} MB / ${arc_max_display}"
 
@@ -154,8 +158,7 @@ function module_zfs () {
 						dialog_msgbox "Values Updated" "ARC settings updated.\n\nApply changes to take effect."
 						;;
 
-					2)
-						# Dirty Data Limits
+					2) # Dirty Data Limits
 						local recommended_dirty=$((total_mem_mb / 25))
 						dialog_msgbox "Dirty Data Limits" \
 							"Dirty data is data that has been changed but not yet written to disk.\n\nRecommended: ${recommended_dirty} MB (4% of RAM)\n\nHigher values = better performance but more data loss risk on power failure."
@@ -170,8 +173,7 @@ function module_zfs () {
 						dialog_msgbox "Value Updated" "Dirty data max updated.\n\nApply changes to take effect."
 						;;
 
-					3)
-						# TXG Timeout
+					3) # TXG Timeout
 						dialog_msgbox "TXG (Transaction Group) Timeout" \
 							"Controls how often ZFS writes dirty data to disk.\n\nDefault: 5 seconds\n\nLower values = more frequent writes, better data safety, lower performance\nHigher values = less frequent writes, better performance, more data loss risk"
 
@@ -191,8 +193,7 @@ function module_zfs () {
 						dialog_msgbox "Value Updated" "TXG timeout updated.\n\nApply changes to take effect."
 						;;
 
-					4)
-						# Compression
+					4) # Compression
 						dialog_msgbox "ZFS Compression" \
 							"Compression is transparent and CPU-efficient.\n\nOptions:\n- lz4: Fast, good compression (recommended)\n- zstd: Better compression, slightly slower\n- gzip: Max compression, slowest\n- off: Disable compression\n\nCurrent: ${current_compression}\n\nNote: This is the default for new datasets only."
 
@@ -212,15 +213,14 @@ function module_zfs () {
 						dialog_msgbox "Compression Updated" "Default compression set to: ${compression_choice}\n\nApply changes to take effect."
 						;;
 
-					5)
-						# Advanced Settings
+					5) # Advanced Settings
 						local adv_choice=$(dialog_menu "Advanced ZFS Tuning" \
 							"WARNING: Only change these if you know what you're doing!" 18 70 6 \
 							"1" "Prefetch Settings" \
 							"2" "Sync Settings" \
 							"3" "VDEV Settings" \
 							"4" "Debug & Logging" \
-							"5" "View Current sysctl settings" \
+							"5" "View Current module parameters" \
 							"6" "Back")
 
 						[[ -z "$adv_choice" ]] && continue
@@ -233,41 +233,52 @@ function module_zfs () {
 
 								if dialog_yesno "Disable ZFS Prefetch?" \
 									"Current: ${prefetch_status}\n\nDisabling can help with certain workloads but usually hurts performance.\n\nDisable prefetch?"; then
-									dialog_msgbox "Info" "Prefetch will be disabled.\n\nSave configuration to apply."
+									# Note: This would need to be saved to temp_file and applied
+									dialog_msgbox "Info" "Prefetch settings can be manually added to the config.\n\nEdit: ${config_file}\n\nAdd: options zfs zfs_prefetch_disable=1"
 								else
-									dialog_msgbox "Info" "Prefetch will remain enabled.\n\nSave configuration to apply."
+									dialog_msgbox "Info" "Prefetch will remain enabled.\n\nCurrent default: enabled"
 								fi
 								;;
 							2)
 								dialog_msgbox "Sync Settings" \
-									"zfs_sync_taskq_batch_pct controls sync task batching.\n\nDefault: Auto-tuned\n\nIncreasing can improve sync-heavy workloads (databases)."
+									"zfs_sync_taskq_batch_pct controls sync task batching.\n\nDefault: Auto-tuned\n\nIncreasing can improve sync-heavy workloads (databases).\n\nCan be manually set in: ${config_file}"
 								;;
 							3)
 								dialog_msgbox "VDEV Settings" \
-									"zfs_vdev_* parameters control VDEV behavior.\n\nMost are auto-tuned. Manual tuning rarely needed."
+									"zfs_vdev_* parameters control VDEV behavior.\n\nMost are auto-tuned. Manual tuning rarely needed.\n\nCommon parameters:\n- zfs_vdev_async_write_min_active\n- zfs_vdev_max_active\n- zfs_vdev_open_max_ms"
 								;;
 							4)
 								dialog_msgbox "Debug & Logging" \
-									"zfs_deadman_enabled, zfs_flags, etc.\n\nOnly enable for debugging purposes.\n\nWARNING: Can significantly impact performance."
+									"zfs_deadman_enabled, zfs_flags, etc.\n\nOnly enable for debugging purposes.\n\nWARNING: Can significantly impact performance.\n\nAdd to config manually if needed."
 								;;
 							5)
 								if [[ -d /sys/module/zfs/parameters ]]; then
 									local params_text="Current ZFS module parameters:\n\n"
-									for param in /sys/module/zfs/parameters/*; do
-										local name=$(basename "$param")
-										local value=$(cat "$param" 2>/dev/null || echo "N/A")
-										params_text+="${name} = ${value}\n"
+									# Use ls to get parameter files safely
+									for param_file in /sys/module/zfs/parameters/*; do
+										if [[ -f "$param_file" ]]; then
+											local name=$(basename "$param_file")
+											local value
+											value=$(cat "$param_file" 2>/dev/null || echo "N/A")
+											# Truncate long values for display
+											if [[ ${#value} -gt 50 ]]; then
+												value="${value:0:47}..."
+											fi
+											params_text+="${name} = ${value}\n"
+										fi
 									done
-									dialog_msgbox "ZFS Parameters" "$params_text"
+									# Count total parameters
+									local param_count=$(ls -1 /sys/module/zfs/parameters/* 2>/dev/null | wc -l)
+									params_text+="\nTotal: ${param_count} parameters"
+									dialog_msgbox "ZFS Module Parameters" "$params_text" 20 75
 								else
-									dialog_msgbox "Not Available" "ZFS module parameters not available."
+									dialog_msgbox "Not Available" "ZFS module parameters not available.\n\nEnsure ZFS module is loaded."
 								fi
 								;;
 						esac
 						;;
 
-					6)
-						# Reset to defaults
+					6) # Reset to defaults
 						if dialog_yesno "Reset to Defaults" \
 							"Reset all ZFS parameters to defaults?\n\nThis will remove any custom tuning."; then
 							> "$temp_file"
@@ -280,8 +291,7 @@ function module_zfs () {
 						fi
 						;;
 
-					7)
-						# Save & Apply
+					7) # Save & Apply
 						local config_preview="The following settings will be saved to:\n${config_file}\n\n"
 						config_preview+="zfs_arc_min=$((arc_min_mb * 1024 * 1024))\n"
 						config_preview+="zfs_arc_max=$((arc_max_mb * 1024 * 1024))\n"
@@ -344,8 +354,7 @@ function module_zfs () {
 						break
 						;;
 
-					8)
-						# Show current configuration
+					8) # Show current configuration
 						local show_text="Current ZFS Configuration:\n\n"
 						show_text+="ARC Min: ${arc_min_mb} MB ($((arc_min_mb * 1024 * 1024)) bytes)\n"
 						show_text+="ARC Max: ${arc_max_mb} MB ($((arc_max_mb * 1024 * 1024)) bytes)\n"
@@ -366,17 +375,17 @@ function module_zfs () {
 
 			rm -f "$temp_file"
 			;;
-		"${commands[4]}")
+		"${commands[4]}") # kernel_max
 			echo "${ZFS_KERNEL_MAX:-<not set>}"
 		;;
-		"${commands[5]}")
+		"${commands[5]}") # zfs_version
 			if [[ -n "${ZFS_DKMS_VERSION}" ]]; then
 				echo "v${ZFS_DKMS_VERSION}"
 			else
 				echo "<version not available>"
 			fi
 		;;
-		"${commands[6]}")
+		"${commands[6]}") # zfs_installed_version
 			if pkg_installed zfsutils-linux; then
 				zfs --version 2>/dev/null | head -1 | cut -d"-" -f2
 			else
@@ -384,21 +393,11 @@ function module_zfs () {
 				return 1
 			fi
 		;;
-		"${commands[7]}")
-			echo -e "\nUsage: ${module_options["module_zfs,feature"]} <command>"
-			echo -e "Commands:  ${module_options["module_zfs,example"]}"
-			echo "Available commands:"
-			echo -e "  install              - Install $title."
-			echo -e "  remove               - Remove $title."
-			echo -e "  status               - Installation status $title."
-			echo -e "  tune                 - Fine-tune ZFS performance parameters (ARC, dirty data, TXG, etc.)"
-			echo -e "  kernel_max           - Determine maximum version of kernel to support $title."
-			echo -e "  zfs_version          - Gets $title version from DKMS."
-			echo -e "  zfs_installed_version - Read $title module info."
-			echo
+		"${commands[7]}") # help
+			show_module_help "module_zfs" "ZFS" "Configuration file: ${module_options["module_zfs,config_file"]}" "native"
 		;;
-		*)
-			${module_options["module_zfs,feature"]} ${commands[7]}
+		*) # default - show help
+			show_module_help "module_zfs" "ZFS" "Configuration file: ${module_options["module_zfs,config_file"]}" "native"
 		;;
 	esac
 }
