@@ -353,13 +353,31 @@ function module_zfs () {
 								dialog_msgbox "Cannot Reload" \
 									"ZFS pools are imported.\n\nPlease export all pools first:\nzpool export -a" 11 70
 							else
-								rmmod zfs 2>/dev/null && modprobe zfs
-								if lsmod | grep -q "^zfs "; then
-									dialog_msgbox "Success" \
-										"ZFS module reloaded successfully.\n\nNew settings are now active." 11 70
+								# Try to unload ZFS module
+								if rmmod zfs 2>/dev/null; then
+									# rmmod succeeded, now try to load ZFS module
+									if modprobe zfs 2>/dev/null; then
+										# Success
+										dialog_msgbox "Success" \
+											"ZFS module reloaded successfully.\n\nNew settings are now active." 11 70
+									else
+										# modprobe failed - system without ZFS!
+										# Try retry
+										if modprobe zfs 2>/dev/null; then
+											dialog_msgbox "Success" \
+												"ZFS module reloaded after retry.\n\nNew settings are now active." 11 70
+										else
+											# Recovery failed - show dmesg and recovery instructions
+											local dmesg_output
+											dmesg_output=$(dmesg | tail -20 2>/dev/null || echo "Cannot retrieve dmesg output")
+											dialog_msgbox "Critical Error" \
+												"ZFS module unload succeeded but reload FAILED!\n\nSystem is running without ZFS support.\n\nLast dmesg entries:\n${dmesg_output}\n\nRecovery:\n1. Reboot to restore ZFS\n2. Or try manually: modprobe zfs" 18 75
+										fi
+									fi
 								else
-									dialog_msgbox "Failed" \
-										"Failed to reload ZFS module.\n\nCheck 'dmesg' for errors." 10 65
+									# rmmod failed - module probably in use
+									dialog_msgbox "Unload Failed" \
+										"Failed to unload ZFS module.\n\nModule may be in use.\n\nTry rebooting to apply new settings." 11 70
 								fi
 							fi
 						fi
