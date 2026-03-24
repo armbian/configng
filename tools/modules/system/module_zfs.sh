@@ -76,7 +76,7 @@ function module_zfs () {
 
 			local config_file="${module_options["module_zfs,config_file"]}"
 			local temp_file="/tmp/zfs_tuning_$$.txt"
-			local backup_file="/tmp/zfs_tuning_backup_$$.conf"
+			local backup_file="${config_file}.bak"
 
 			# Get current system memory in MB
 			local total_mem_kb=$(grep MemTotal /proc/meminfo | awk '{print $2}')
@@ -409,7 +409,6 @@ function module_zfs () {
 						fi
 
 						rm -f "$temp_file"
-						rm -f "$backup_file"
 						break
 						;;
 
