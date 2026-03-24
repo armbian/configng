@@ -139,8 +139,8 @@ function module_zfs () {
 							"The ARC (Adaptive Replacement Cache) is ZFS's intelligent cache.\n\nRecommended Settings:\n- zfs_arc_min: ${recommended_arc_min} MB (1/8 of RAM)\n- zfs_arc_max: ${recommended_arc_max} MB (1/2 of RAM)\n\nCurrent: ${arc_min_mb} MB / ${arc_max_display}" 16 80
 
 						local new_arc_min_mb=$(dialog_inputbox "ARC Min Size" \
-							"Enter ARC Min Size in MB:\n(Recommended: ${recommended_arc_min} MB)\nCurrent: ${arc_min_mb} MB" \
-							13 70 "${arc_min_mb}")
+							"Enter ARC Min Size in MB:\n\n  Recommended: ${recommended_arc_min} MB\n  Existing value: ${arc_min_mb} MB\n\nPress OK to accept or change value:" \
+							"${arc_min_mb}" 11 70)
 						[[ -z "$new_arc_min_mb" ]] && continue
 
 						# Validate numeric input
@@ -150,8 +150,8 @@ function module_zfs () {
 						fi
 
 						local new_arc_max_mb=$(dialog_inputbox "ARC Max Size" \
-							"Enter ARC Max Size in MB:\n(Recommended: ${recommended_arc_max} MB, 0 = all RAM)\nCurrent: ${arc_max_mb} MB" \
-							13 70 "${arc_max_mb}")
+							"Enter ARC Max Size in MB:\n\n  Recommended: ${recommended_arc_max} MB (0 = all RAM)\n  Existing value: ${arc_max_mb} MB\n\nPress OK to accept or change value:" \
+							"${arc_max_mb}" 11 70)
 						[[ -z "$new_arc_max_mb" ]] && continue
 
 						# Validate numeric input
@@ -181,8 +181,8 @@ function module_zfs () {
 							"Dirty data is data that has been changed but not yet written to disk.\n\nRecommended: ${recommended_dirty} MB (4% of RAM)\n\nHigher values = better performance but more data loss risk on power failure." 14 75
 
 						local new_dirty_max_mb=$(dialog_inputbox "Dirty Data Max" \
-							"Enter Dirty Data Max in MB:\n(Recommended: ${recommended_dirty} MB)\nCurrent: ${dirty_max_mb} MB" \
-							11 70 "${dirty_max_mb}")
+							"Enter Dirty Data Max in MB:\n\n  Recommended: ${recommended_dirty} MB\n  Existing value: ${dirty_max_mb} MB\n\nPress OK to accept or change value:" \
+							"${dirty_max_mb}" 11 70)
 						[[ -z "$new_dirty_max_mb" ]] && continue
 
 						# Validate numeric input
@@ -201,8 +201,8 @@ function module_zfs () {
 							"Controls how often ZFS writes dirty data to disk.\n\nDefault: 5 seconds\n\nLower values = more frequent writes, better data safety, lower performance\nHigher values = less frequent writes, better performance, more data loss risk" 15 75
 
 						local new_txg_timeout=$(dialog_inputbox "TXG Timeout" \
-							"Enter TXG Timeout in seconds:\n(Range: 1-30, Recommended: 5)\nCurrent: ${txg_timeout} sec" \
-							12 70 "${txg_timeout}")
+							"Enter TXG Timeout in seconds (1-30):\n\n  Recommended: 5 seconds\n  Existing value: ${txg_timeout} seconds\n\nPress OK to accept or change value:" \
+							"${txg_timeout}" 11 70)
 						[[ -z "$new_txg_timeout" ]] && continue
 
 						# Validate numeric input
@@ -227,17 +227,17 @@ function module_zfs () {
 							"Compression is transparent and CPU-efficient.\n\nOptions:\n- lz4: Fast, good compression (recommended, ZFS default)\n- zstd: Better compression, slightly slower\n- gzip: Max compression, slowest\n- off: Disable compression\n\nCurrent: ${current_compression}\n\nNote: This is the default for new datasets only." 17 75
 
 						# Set default selection based on current value
-						local lz4_selected=""
-						local zstd_selected=""
-						local gzip_selected=""
-						local off_selected=""
+						local lz4_selected="off"
+						local zstd_selected="off"
+						local gzip_selected="off"
+						local off_selected="off"
 
 						case "$current_compression" in
-							lz4) lz4_selected="lz4" ;;
-							zstd) zstd_selected="zstd" ;;
-							gzip) gzip_selected="gzip" ;;
-							off) off_selected="off" ;;
-							*) lz4_selected="lz4" ;;  # Default to lz4
+							lz4) lz4_selected="on" ;;
+							zstd) zstd_selected="on" ;;
+							gzip) gzip_selected="on" ;;
+							off) off_selected="on" ;;
+							*) lz4_selected="on" ;;  # Default to lz4
 						esac
 
 						local compression_choice=$(dialog_radiolist "Select Default Compression Algorithm" \
@@ -423,7 +423,14 @@ function module_zfs () {
 						show_text+="Configuration file: ${config_file}\n\n"
 						if [[ -f "$config_file" ]]; then
 							show_text+="Current file contents:\n\n"
-							show_text+=$(cat "$config_file" 2>/dev/null || echo "Cannot read file")
+							# Append file contents, converting actual newlines to \n escape sequences
+							local file_contents
+							file_contents=$(cat "$config_file" 2>/dev/null)
+							if [[ -n "$file_contents" ]]; then
+								while IFS= read -r line; do
+									show_text+="${line}\\n"
+								done <<< "$file_contents"
+							fi
 						else
 							show_text+="(No custom configuration file yet)"
 						fi
