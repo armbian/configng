@@ -2304,6 +2304,45 @@
                             "author": "@armbian",
                             "condition": "module_dozzle status",
                             "help": "Dozzle purge"
+                        },
+                        {
+                            "id": "RUS001",
+                            "description": "RustDesk Server self-hosted remote desktop server",
+                            "short": "RustDesk Server",
+                            "module": "module_rustdesk",
+                            "about": "This operation will install RustDesk Server with hbbs/hbbr components",
+                            "command": [
+                                "module_rustdesk install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_rustdesk status",
+                            "container_type": "docker",
+                            "help": "RustDesk Server enables self-hosted remote desktop connectivity without relying on public servers."
+                        },
+                        {
+                            "id": "RUS002",
+                            "description": "RustDesk Server remove",
+                            "about": "This operation will remove RustDesk Server",
+                            "command": [
+                                "module_rustdesk remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_rustdesk status",
+                            "help": "RustDesk Server remove"
+                        },
+                        {
+                            "id": "RUS003",
+                            "description": "RustDesk Server purge with data folder",
+                            "about": "This operation will purge RustDesk Server with keys and data folder",
+                            "command": [
+                                "module_rustdesk purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_rustdesk status",
+                            "help": "RustDesk Server purge with data folder"
                         }
                     ],
                     "help": "Real-time monitoring, collecting metrics, up-time status"
