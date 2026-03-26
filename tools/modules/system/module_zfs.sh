@@ -484,7 +484,7 @@ function module_zfs () {
 			# Ask for alternate mount point (optional)
 			local alt_root=""
 			if dialog_yesno "Alternate Mount Point" \
-				"Import pool '${selected_pool}' at an alternate mount point?\n\n- Yes: Specify custom mount path\n- No: Use pool's original mount points" "Yes" "No" 10 70; then
+				"Import pool '${selected_pool}' at an alternate mount point?\n\n- Yes: Specify custom mount path\n- No: Use pool's original mount points" "Yes" "No" 10 70 --defaultno; then
 				# User wants custom mount point
 				alt_root=$(dialog_inputbox "Alternate Mount Point" \
 					"Enter alternate root mount point:\n\nExample: /mnt/pool\n\nPool datasets will be mounted under this path." \
