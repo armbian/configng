@@ -33,6 +33,8 @@ sudo armbian-config
     - ### Manage NFS Client
     - ### ZFS filesystem - enable support
     - ### ZFS filesystem - remove support
+    - ### ZFS filesystem - performance tuning
+    - ### ZFS filesystem - import existing pools
 
 
   - ### Manage SSH daemon options, enable 2FA
@@ -406,6 +408,8 @@ Outputs:
 	--cmd NETF10 - Show and manage NFS mounts
 	--cmd ZFS001 - ZFS filesystem - enable support (v2.2.2)
 	--cmd ZFS002 - ZFS filesystem - remove support (ZFS is not installed)
+	--cmd ZFS003 - ZFS filesystem - performance tuning
+	--cmd ZFS004 - ZFS filesystem - import existing pools
     Access - Manage SSH daemon options, enable 2FA
 	--cmd ACC001 - Disable root login
 	--cmd ACC002 - Enable root login
@@ -1027,7 +1031,7 @@ These helper functions facilitate various operations related to job management, 
 | Install sonarr container | install remove purge status help | @armbian 
 | Display a yes/no dialog using the configured dialog tool | dialog_yesno "Title" "Question" | @armbian 
 | Generate Document files. | generate_readme | @Tearran 
-| Storing netplan config to tmp | store_netplan_config | @igorpecovnik 
+|  |  | @igorpecovnik 
 | Generic module help dialog for containers and native installs | show_module_help "module_headers" "Kernel Headers" "" "native" | @armbian 
 | Install PostgreSQL container (advanced relational database) | install remove purge status help | @armbian 
 | Install jellyfin container | install remove purge status help | @armbian 
@@ -1058,7 +1062,7 @@ These helper functions facilitate various operations related to job management, 
 | Display a gauge dialog for progress indication | echo 50 | dialog_gauge "Title" "Progress" 10 70 | @armbian 
 | Generate 'Armbian CPU logo' SVG for document file. | generate_svg | @Tearran 
 | Upgrade installed packages (potentially removing some) | pkg_full_upgrade | @dimitry-ishenko 
-| Install ZFS filesystem support | install remove status kernel_max zfs_version zfs_installed_version help | @igorpecovnik 
+| Install ZFS filesystem support | install remove status tune scan import kernel_max zfs_version zfs_installed_version help | @igorpecovnik 
 | Check if package is installed | pkg_installed mc | @dimitry-ishenko 
 | Update submenu descriptions based on conditions | update_submenu_data | @Tearran 
 | Install evcc container | install remove purge status help | @naltatis 
