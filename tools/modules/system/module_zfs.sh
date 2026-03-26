@@ -464,7 +464,10 @@ function module_zfs () {
 			;;
 		"${commands[5]}") # import
 
-			${module_options["module_zfs,feature"]} ${commands[4]}
+			if ! ${module_options["module_zfs,feature"]} ${commands[4]}; then
+				return 1
+			fi
+
 			# Show pool selection menu
 			# Build radiolist arguments - pool names as both tag and description
 			local radiolist_args=()
