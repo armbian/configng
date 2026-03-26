@@ -315,6 +315,45 @@
                             "author": "@armbian",
                             "condition": "module_zfs status",
                             "help": "Fine-tune ZFS performance parameters (ARC cache, dirty data, TXG timeout, compression)"
+                        },
+                        {
+                            "id": "MEM001",
+                            "description": "Memory management - enable features",
+                            "short": "Memory",
+                            "module": "module_generic",
+                            "command": [
+                                "module_memory install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_memory status",
+                            "help": "Enable ZRAM compression and memory tuning"
+                        },
+                        {
+                            "id": "MEM002",
+                            "description": "Memory management - disable features",
+                            "short": "Memory",
+                            "module": "module_generic",
+                            "command": [
+                                "module_memory remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_memory status",
+                            "help": "Disable ZRAM compression and memory tuning"
+                        },
+                        {
+                            "id": "MEM003",
+                            "description": "Memory management - tune parameters",
+                            "short": "Tune Memory",
+                            "module": "module_generic",
+                            "command": [
+                                "module_memory tune"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_memory status",
+                            "help": "Fine-tune ZRAM compression and swappiness parameters"
                         }
                     ],
                     "help": "Manage storage devices, ZFS filesystems, and NFS mounts"
