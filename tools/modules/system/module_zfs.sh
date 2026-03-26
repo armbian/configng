@@ -423,40 +423,25 @@ function module_zfs () {
 		"${commands[4]}") # scan
 			# Check if ZFS is installed
 			if ! pkg_installed zfsutils-linux; then
-				dialog_msgbox "ZFS Not Installed" \
-					"ZFS is not installed. Please install ZFS first." 9 60
 				return 1
 			fi
 
 			# Check if ZFS module is loaded
 			if ! lsmod | grep -q "^zfs "; then
-				dialog_msgbox "ZFS Not Loaded" \
-					"ZFS kernel module is not loaded. Loading module now..." 9 60
-				modprobe zfs 2>/dev/null || {
-					dialog_msgbox "Failed to Load ZFS" \
-						"Failed to load ZFS kernel module. Please check your installation." 10 60
-					return 1
-				}
+				modprobe zfs 2>/dev/null || return 1
 			fi
 
-			# Scan for available pools
-			dialog_msgbox "Scanning for Pools" \
-				"Scanning for available ZFS pools...\n\nThis may take a moment." 10 60
-
 			# Get list of pools that can be imported
-			local pool_list
 			pool_list=$(zpool import 2>/dev/null)
 
 			if [[ -z "$pool_list" ]]; then
-				dialog_msgbox "No Pools Found" \
-					"No available ZFS pools were found.\n\nPools must be on accessible storage devices to be detected." 10 65
-				return 0
+				return 1
 			fi
 
 			# Parse pool list to extract pool names and info
 			declare -A pool_altroot  # Store original altroot for each pool
-			local pools=()
-			local current_pool=""
+			pools=()
+			current_pool=""
 			while IFS= read -r line; do
 				# Lines starting with "pool:" indicate pool names
 				if [[ "$line" =~ ^[[:space:]]*pool:[[:space:]]+(.+)$ ]]; then
@@ -465,91 +450,21 @@ function module_zfs () {
 					pool_altroot["$current_pool"]=""
 				# Extract altroot if present
 				elif [[ "$line" =~ ^[[:space:]]*altroot:[[:space:]]+(.+)$ ]]; then
-					local altroot_value="${BASH_REMATCH[1]}"
+					altroot_value="${BASH_REMATCH[1]}"
 					# Clean up the altroot value
 					altroot_value=$(echo "$altroot_value" | sed 's/[[:space:]]*$//')
 					pool_altroot["$current_pool"]="$altroot_value"
 				fi
 			done <<< "$pool_list"
-
 			if [[ ${#pools[@]} -eq 0 ]]; then
-				dialog_msgbox "No Importable Pools" \
-					"No ZFS pools available for import were found.\n\nMake sure pool devices are connected and accessible." 10 70
-				return 0
-			fi
-
-			# Display scan results
-			local scan_output="Found ${#pools[@]} ZFS pool(s) available for import:\n\n"
-			for pool in "${pools[@]}"; do
-				local altroot_info="${pool_altroot[$pool]}"
-				if [[ -n "$altroot_info" ]]; then
-					scan_output+="  - $pool (altroot: $altroot_info)\n"
+				return 1
 				else
-					scan_output+="  - $pool\n"
-				fi
-			done
-			scan_output+="\nUse 'Import ZFS Pool' to import a pool."
-
-			dialog_msgbox "Pool Scan Results" "$scan_output" 15 70
+				export POOLS=${#pools[@]}
+			fi
 			;;
 		"${commands[5]}") # import
-			# Check if ZFS is installed
-			if ! pkg_installed zfsutils-linux; then
-				dialog_msgbox "ZFS Not Installed" \
-					"ZFS is not installed. Please install ZFS first." 9 60
-				return 1
-			fi
 
-			# Check if ZFS module is loaded
-			if ! lsmod | grep -q "^zfs "; then
-				dialog_msgbox "ZFS Not Loaded" \
-					"ZFS kernel module is not loaded. Loading module now..." 9 60
-				modprobe zfs 2>/dev/null || {
-					dialog_msgbox "Failed to Load ZFS" \
-						"Failed to load ZFS kernel module. Please check your installation." 10 60
-					return 1
-				}
-			fi
-
-			# Scan for available pools
-			dialog_msgbox "Scanning for Pools" \
-				"Scanning for available ZFS pools...\n\nThis may take a moment." 10 60
-
-			# Get list of pools that can be imported
-			local pool_list
-			pool_list=$(zpool import 2>/dev/null)
-
-			if [[ -z "$pool_list" ]]; then
-				dialog_msgbox "No Pools Found" \
-					"No available ZFS pools were found.\n\nPools must be on accessible storage devices to be detected." 10 65
-				return 0
-			fi
-
-			# Parse pool list to extract pool names and info
-			declare -A pool_altroot  # Store original altroot for each pool
-			local pools=()
-			local current_pool=""
-			while IFS= read -r line; do
-				# Lines starting with "pool:" indicate pool names
-				if [[ "$line" =~ ^[[:space:]]*pool:[[:space:]]+(.+)$ ]]; then
-					current_pool="${BASH_REMATCH[1]}"
-					pools+=("$current_pool")
-					pool_altroot["$current_pool"]=""
-				# Extract altroot if present
-				elif [[ "$line" =~ ^[[:space:]]*altroot:[[:space:]]+(.+)$ ]]; then
-					local altroot_value="${BASH_REMATCH[1]}"
-					# Clean up the altroot value
-					altroot_value=$(echo "$altroot_value" | sed 's/[[:space:]]*$//')
-					pool_altroot["$current_pool"]="$altroot_value"
-				fi
-			done <<< "$pool_list"
-
-			if [[ ${#pools[@]} -eq 0 ]]; then
-				dialog_msgbox "No Importable Pools" \
-					"No ZFS pools available for import were found.\n\nMake sure pool devices are connected and accessible." 10 70
-				return 0
-			fi
-
+			${module_options["module_zfs,feature"]} ${commands[4]}
 			# Show pool selection menu
 			# Build radiolist arguments - pool names as both tag and description
 			local radiolist_args=()
@@ -626,11 +541,8 @@ function module_zfs () {
 				fi
 
 				if [[ $? -eq 0 ]]; then
-					# Show pool status after import
-					local pool_status=$(zpool status "$selected_pool" 2>/dev/null | head -20)
-
 					dialog_msgbox "Import Successful" \
-						"Pool '${selected_pool}' imported successfully!\n\nPool Status:\n${pool_status}" 20 80
+						"Pool '${selected_pool}' imported successfully!" 8 50
 				else
 					dialog_msgbox "Import Failed" \
 						"Failed to import pool '${selected_pool}'.\n\nError:\n${import_output}\n\nCheck 'dmesg' for more details." 14 70
