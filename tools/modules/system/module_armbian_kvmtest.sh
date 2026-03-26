@@ -87,12 +87,7 @@ function module_armbian_kvmtest () {
 	local keyword=$(echo $keyword | sed "s/,/|/g") # convert
 
 	qcowimages=(
-		"https://dl.armbian.com/nightly/uefi-${arch}/Bullseye_cloud_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Bookworm_cloud_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Trixie_cloud_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Focal_cloud_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Jammy_cloud_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Noble_cloud_minimal-qcow2"
+		"https://dl.armbian.com/nightly/uefi-${arch}/Forky_cloud_minimal-qcow2"
 		"https://dl.armbian.com/nightly/uefi-${arch}/Plucky_cloud_minimal-qcow2"
 	)
 
