@@ -215,6 +215,9 @@ sudo armbian-config
     - ### Do your finances with Actual Budget
     - ### Actual Budget remove
     - ### Actual Budget purge with data folder
+    - ### Install Wallos subscription tracker
+    - ### Remove Wallos subscription tracker
+    - ### Purge Wallos subscription tracker
 
 
   - ### Home Automation for control home appliances
@@ -546,6 +549,9 @@ Outputs:
 	--cmd ABU001 - Do your finances with Actual Budget
 	--cmd ABU002 - Actual Budget remove (http://localhost:5443)
 	--cmd ABU003 - Actual Budget purge with data folder
+	--cmd WAL001 - Install Wallos subscription tracker
+	--cmd WAL002 - Remove Wallos subscription tracker (http://localhost:8282)
+	--cmd WAL003 - Purge Wallos subscription tracker
     HomeAutomation - Home Automation for control home appliances
 	--cmd DOM001 - Domoticz open source home automation
 	--cmd DOM002 - Domoticz remove (http://localhost:8780)
@@ -1113,6 +1119,7 @@ These helper functions facilitate various operations related to job management, 
 | Install owncloud container | install remove purge status help | @armbian 
 | Install netdata container | install remove purge status help | @armbian 
 | Change the background color of the terminal or dialog box | set_colors 0-7 | @Tearran 
+| Install Wallos finance tracker container | install remove purge status help | @igorpecovnik 
 | Show general information about this tool | about_armbian_configng | @igorpecovnik 
 | Install unbound container | install remove purge status help | @igorpecovnik 
 | Serve the edit and debug server. | serve_doc | @Tearran 
