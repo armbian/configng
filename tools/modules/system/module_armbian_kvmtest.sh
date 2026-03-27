@@ -173,7 +173,18 @@ function module_armbian_kvmtest () {
 					done
 					echo 100
 					wait $curl_pid
-				) | dialog_gauge "Download" "Downloading $filename" 8 70
+				) | dialog_gauge "Download" "$filename" 8 70
+
+				# decompress
+				if [[ "$(file $output_file --extension -b)" == "xz" ]]; then
+					dialog_infobox "Decompressing" "$(basename $output_file)" 6 60
+					mv "$output_file" "$output_file".xz
+					xz -d "$output_file".xz
+				fi
+
+
+
+
 			done
 
 			# we will mount qcow image
@@ -216,7 +227,7 @@ function module_armbian_kvmtest () {
 							cat "${firstconfig}" >> ${mounttempfolder}/root/.not_logged_in_yet
 						fi
 					else
-					dialog_infobox "" "Applying first config to $domain" 6 60
+					dialog_infobox "Applying first config" "$domain" 6 60
 					cat <<- EOF >> ${mounttempfolder}/root/.not_logged_in_yet
 					PRESET_NET_CHANGE_DEFAULTS="${PRESET_NET_CHANGE_DEFAULTS}"
 					PRESET_NET_ETHERNET_ENABLED="1"
