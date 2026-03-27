@@ -115,9 +115,7 @@ function module_armbian_kvmtest () {
 
 	local qcowimages_stable=(
 		"https://dl.armbian.com/uefi-${arch}/Noble_cloud_minimal-qcow2"
-		"https://dl.armbian.com/uefi-${arch}/Jammy_cloud_minimal-qcow2"
-		"https://dl.armbian.com/uefi-${arch}/Bookworm_cloud_minimal-qcow2"
-		"https://dl.armbian.com/uefi-${arch}/Bullseye_cloud_minimal-qcow2"
+		"https://dl.armbian.com/uefi-${arch}/Trixie_cloud_minimal-qcow2"
 	)
 
 	# Select image array based on channel parameter
