@@ -58,8 +58,6 @@ function module_wallos () {
 				--restart=unless-stopped \
 				"$dockerimage"
 
-			dialog_msgbox "Wallos Installed" \
-				"Wallos finance tracker has been installed!\n\nAccess it at: http://localhost:8282\n\nConfiguration directory:\n${config_dir}" 10 70
 		;;
 		"${commands[1]}") # remove
 			docker_operation_progress rm "$dockername"

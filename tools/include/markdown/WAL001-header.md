@@ -44,53 +44,6 @@ This Docker-based application runs as a lightweight web service, providing an in
     - **Database volume**: `/var/www/html/db` → stored at `${config_dir}/db`
     - **Logos volume**: `/var/www/html/images/uploads/logos` → stored at `${config_dir}/logos`
 
-    To backup your Wallos data:
-    ```bash
-    # Stop the container
-    docker stop wallos
-
-    # Backup the configuration directory
-    tar -czf wallos-backup-$(date +%Y%m%d).tar.gz /var/lib/armbian/config/wallos
-
-    # Restart the container
-    docker start wallos
-    ```
-
-=== "Configuration"
-
-    **Environment Variables**
-
-    - **TZ**: Timezone setting (default: `Europe/Berlin`)
-      - Affects renewal reminder timestamps
-      - Format: `Region/City` (e.g., `America/New_York`, `Asia/Tokyo`)
-
-    **Port Configuration**
-
-    - Default port: `8282` (HTTP)
-    - To change, modify the port mapping in the container configuration
-
-    **Resource Requirements**
-
-    - Minimal CPU and RAM requirements
-    - Storage: ~100MB for application + database size
-    - Suitable for always-on low-power devices (SBCs, mini PCs)
-
-=== "Updates"
-
-    Wallos updates are managed through Docker image updates:
-
-    ```bash
-    # Pull latest image
-    docker pull bellamy/wallos:latest
-
-    # Recreate container with new image
-    docker stop wallos
-    docker rm wallos
-    # Armbian-config will recreate it with current configuration
-    ```
-
-    Note: Database schema migrations are handled automatically on first startup after an update.
-
 === "Troubleshooting"
 
     **Container won't start**
@@ -110,3 +63,9 @@ This Docker-based application runs as a lightweight web service, providing an in
     - Ensure Docker volumes are properly mounted
     - Check that persistence directories are not cleaned on reboot
     - Verify backup of `${config_dir}` before making changes
+
+=== "View logs"
+
+    ```sh
+    docker logs -f wallos
+    ```
