@@ -1330,6 +1330,47 @@
                             "author": "@armbian",
                             "condition": "module_actualbudget status",
                             "help": "Actual Budget purge with data folder"
+                        },
+                        {
+                            "id": "WAL001",
+                            "description": "Install Wallos subscription tracker",
+                            "short": "Wallos",
+                            "module": "module_generic",
+                            "about": "Wallos is a self-hosted subscription and finance tracker for managing recurring expenses.",
+                            "command": [
+                                "module_wallos install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "container_type": "docker",
+                            "condition": "! module_wallos status",
+                            "help": "Install Wallos finance tracker for subscription and expense management"
+                        },
+                        {
+                            "id": "WAL002",
+                            "description": "Remove Wallos subscription tracker",
+                            "short": "Remove Wallos",
+                            "about": "This operation will remove Wallos container.",
+                            "command": [
+                                "module_wallos remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_wallos status",
+                            "help": "Remove Wallos container while preserving data"
+                        },
+                        {
+                            "id": "WAL003",
+                            "description": "Purge Wallos subscription tracker",
+                            "short": "Purge Wallos",
+                            "about": "This operation will remove Wallos container and all data.",
+                            "command": [
+                                "module_wallos purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_wallos status",
+                            "help": "Remove Wallos container and delete all data"
                         }
                     ],
                     "help": "Manage your finances"
