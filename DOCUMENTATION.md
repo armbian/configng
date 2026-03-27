@@ -1037,7 +1037,7 @@ These helper functions facilitate various operations related to job management, 
 | Install sonarr container | install remove purge status help | @armbian 
 | Display a yes/no dialog using the configured dialog tool | dialog_yesno "Title" "Question" | @armbian 
 | Generate Document files. | generate_readme | @Tearran 
-|  |  | @igorpecovnik 
+| Storing netplan config to tmp | store_netplan_config | @igorpecovnik 
 | Generic module help dialog for containers and native installs | show_module_help "module_headers" "Kernel Headers" "" "native" | @armbian 
 | Install PostgreSQL container (advanced relational database) | install remove purge status help | @armbian 
 | Install jellyfin container | install remove purge status help | @armbian 
