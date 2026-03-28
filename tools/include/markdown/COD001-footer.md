@@ -51,9 +51,3 @@
     - **Cannot access web UI**: Check if port 8443 is open in your firewall
     - **Extensions not installing**: Check internet connectivity from the container
     - **Slow performance**: Consider increasing Docker resource limits
-
-=== "Official Documentation"
-
-    For more advanced configuration and usage, visit:
-    - [Code-server GitHub](https://github.com/coder/code-server)
-    - [LinuxServer.io Code-server](https://github.com/linuxserver/docker-code-server)
