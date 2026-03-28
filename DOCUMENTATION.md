@@ -173,6 +173,9 @@ sudo armbian-config
   - ### Applications and tools for development
     - ### Install tools for cloning and managing repositories (git)
     - ### Remove tools for cloning and managing repositories (git)
+    - ### Code-server VS Code in browser
+    - ### Code-server remove
+    - ### Code-server purge with data folder
 
 
   - ### Download apps for movies, TV shows, music and subtitles
@@ -511,6 +514,9 @@ Outputs:
     DevTools - Applications and tools for development
 	--cmd GIT001 - Install tools for cloning and managing repositories (git)
 	--cmd GIT002 - Remove tools for cloning and managing repositories (git)
+	--cmd COD001 - Code-server VS Code in browser
+	--cmd COD002 - Code-server remove
+	--cmd COD003 - Code-server purge with data folder
     Downloaders - Download apps for movies, TV shows, music and subtitles
 	--cmd BAZ001 - Bazarr automatic subtitles downloader for Sonarr and Radarr
 	--cmd BAZ002 - Bazarr remove (http://localhost:6767)
@@ -1055,6 +1061,7 @@ These helper functions facilitate various operations related to job management, 
 | Install domoticz container | install remove purge status help | @armbian 
 | Install and configure automatic updates | install remove configure status defaults help | @igorpecovnik 
 | Menu for armbianmonitor features | see_monitoring | @Tearran 
+| Install VS Code in browser container | install remove purge status help | @igorpecovnik 
 | Enable/disable device tree overlays |  | @viraniac 
 | XFCE desktop packages | install remove disable enable status auto manual login help | @igorpecovnik 
 | Remove package | pkg_remove nmap | @dimitry-ishenko 
