@@ -851,6 +851,45 @@
                             "author": "@armbian",
                             "condition": "pkg_installed git",
                             "help": "Remove tools for cloning and managing repositories (git)"
+                        },
+                        {
+                            "id": "COD001",
+                            "description": "Code-server VS Code in browser",
+                            "short": "Code-server",
+                            "module": "module_code-server",
+                            "about": "This operation will install Code-server, VS Code running on a remote server accessible through the browser.",
+                            "command": [
+                                "module_code-server install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_code-server status",
+                            "container_type": "docker",
+                            "help": "Code-server is VS Code running on a remote server, accessible through the browser."
+                        },
+                        {
+                            "id": "COD002",
+                            "description": "Code-server remove",
+                            "about": "This operation will remove Code-server container.",
+                            "command": [
+                                "module_code-server remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_code-server status",
+                            "help": "Code-server remove"
+                        },
+                        {
+                            "id": "COD003",
+                            "description": "Code-server purge with data folder",
+                            "about": "This operation will remove Code-server container and all data.",
+                            "command": [
+                                "module_code-server purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_code-server status",
+                            "help": "Code-server purge with data folder"
                         }
                     ],
                     "help": "Applications and tools for development"
