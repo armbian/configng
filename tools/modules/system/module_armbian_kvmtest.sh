@@ -289,18 +289,23 @@ function module_armbian_kvmtest () {
 					break
 				fi
 			done
-			if $shutdown_success; then
-				vms=($(virsh list --all --name | grep ${kvmprefix}))
-				if [[ ${#vms[@]} -gt 0 ]]; then
-					local count=0
-					local total=${#vms[@]}
-					for j in "${vms[@]}"; do
-						count=$((count + 1))
-						percent=$((count * 100 / total))
-						echo $percent
-						virsh undefine $j --remove-all-storage
-					done | dialog_gauge "Removing VMs" "Undefining and removing VM storage" 8 70
-				fi
+			# Force destroy any VMs that didn't shut down gracefully
+			if ! $shutdown_success; then
+				for j in $(virsh list --name | grep ${kvmprefix}); do
+					dialog_infobox "Force Stopping" "Destroying VM: $j" 6 60
+					virsh destroy $j
+				done
+			fi
+			vms=($(virsh list --all --name | grep ${kvmprefix}))
+			if [[ ${#vms[@]} -gt 0 ]]; then
+				local count=0
+				local total=${#vms[@]}
+				for j in "${vms[@]}"; do
+					count=$((count + 1))
+					percent=$((count * 100 / total))
+					echo $percent
+					virsh undefine $j --remove-all-storage
+				done | dialog_gauge "Removing VMs" "Undefining and removing VM storage" 8 70
 			fi
 		;;
 		"${commands[2]}")
