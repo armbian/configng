@@ -35,6 +35,9 @@ sudo armbian-config
     - ### ZFS filesystem - remove support
     - ### ZFS filesystem - performance tuning
     - ### ZFS filesystem - import existing pools
+    - ### Memory management - enable features
+    - ### Memory management - disable features
+    - ### Memory management - tune parameters
 
 
   - ### Manage SSH daemon options, enable 2FA
@@ -416,6 +419,9 @@ Outputs:
 	--cmd ZFS002 - ZFS filesystem - remove support (ZFS is not installed)
 	--cmd ZFS003 - ZFS filesystem - performance tuning
 	--cmd ZFS004 - ZFS filesystem - import existing pools
+	--cmd MEM001 - Memory management - enable features
+	--cmd MEM002 - Memory management - disable features
+	--cmd MEM003 - Memory management - tune parameters
     Access - Manage SSH daemon options, enable 2FA
 	--cmd ACC001 - Disable root login
 	--cmd ACC002 - Enable root login
@@ -1048,6 +1054,7 @@ These helper functions facilitate various operations related to job management, 
 | Install PostgreSQL container (advanced relational database) | install remove purge status help | @armbian 
 | Install jellyfin container | install remove purge status help | @armbian 
 | Install jellyseerr container | install remove purge status help | @armbian 
+| Memory management and tuning interface | install remove status tune help | @igorpecovnik 
 | Needed by generate_menu | execute_command 'id' | @Tearran 
 | Display an input box dialog using the configured dialog tool | dialog_inputbox "Title" "Prompt" "default_value" | @armbian 
 | Display a Yes/No dialog box and process continue/exit | get_user_continue 'Do you wish to continue?' process_input | @Tearran 
