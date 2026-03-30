@@ -154,7 +154,7 @@ function module_memory () {
 				menu_text+="Swappiness: ${swappiness}\n\n"
 				menu_text+="Select a parameter to tune:"
 
-				local choice=$(dialog_menu "Memory Management Tuning" "$menu_text" 22 80 6 \
+				local choice=$(dialog_menu "Memory Management Tuning" "$menu_text" 30 80 6 \
 					"1" "ZRAM Settings - Configure ZRAM compression parameters" \
 					"2" "System Parameters - Configure swappiness" \
 					"3" "Reset to Defaults - Restore recommended settings" \

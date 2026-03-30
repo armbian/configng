@@ -29,7 +29,7 @@ function module_images () {
 
 	# $1 = command, $2 = board_slug override (optional)
 	local CMD="$1"
-	local BOARD_SLUG="${2:-${BOARD:-}}"
+	local BOARD_SLUG="${2:-${BOARD:-uefi-x86}}"
 
 	# filters (set during install flow)
 	PREAPP_FILTER=""
