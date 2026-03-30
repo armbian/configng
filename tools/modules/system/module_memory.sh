@@ -509,11 +509,11 @@ function module_memory () {
 		;;
 
 		"${commands[4]}") # help
-			show_module_help
+			show_module_help "module_memory" "$title"
 		;;
 
 		*)
-			show_module_help
+			show_module_help "module_memory" "$title"
 		;;
 	esac
 }
