@@ -8,8 +8,8 @@ When enabling memory management, Armbian installs the `zram-config` package if n
 
     **Recommended Settings:**
 
-    - **Small systems (1-2 GB RAM):** 50% of RAM
-    - **Medium systems (3-4 GB RAM):** 50% of RAM
+    - **Small systems (1-3 GB RAM):** 50% of RAM
+    - **Medium systems (4-8 GB RAM):** 25% of RAM
     - **Large systems (8+ GB RAM):** 25% of RAM
 
     **Understanding ZRAM Percentage:**

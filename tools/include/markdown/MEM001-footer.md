@@ -121,7 +121,7 @@ cat /sys/block/zram0/mm_stat
 # Format: mem_used_max mem_limit mem_used max_used same_pages compr_data_size ...
 
 # Check compression ratio
-echo "Scale=2; $(cat /sys/block/zram0/orig_data_size) / $(cat /sys/block/zram0/compr_data_size)" | bc
+echo "scale=2; $(cat /sys/block/zram0/orig_data_size) / $(cat /sys/block/zram0/compr_data_size)" | bc
 
 # Monitor swap usage in real-time
 watch -n 1 'swapon --show && free -h'
