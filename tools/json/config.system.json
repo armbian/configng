@@ -317,6 +317,18 @@
                             "help": "Fine-tune ZFS performance parameters (ARC cache, dirty data, TXG timeout, compression)"
                         },
                         {
+                            "id": "ZFS004",
+                            "description": "ZFS filesystem - import existing pools",
+                            "short": "Import ZFS Pool",
+                            "module": "module_generic",
+                            "command": [
+                                "module_zfs import"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_zfs scan",
+                            "help": "Browse and import existing ZFS pools that are not currently imported"
+                        },
                             "id": "MEM001",
                             "description": "Memory management - enable features",
                             "short": "Memory",

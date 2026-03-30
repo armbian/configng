@@ -107,6 +107,7 @@ update_sub_submenu_data "Software" "Database" "MYA002" "http://$LOCALIPADD:${mod
 
 # Finance
 update_sub_submenu_data "Software" "Finance" "ABU002" "http://$LOCALIPADD:${module_options["module_actualbudget,port"]}"
+update_sub_submenu_data "Software" "Finance" "WAL002" "http://$LOCALIPADD:${module_options["module_wallos,port"]}"
 
 # Media
 update_sub_submenu_data "Software" "Media" "OMV002" "http://$LOCALIPADD:${module_options["module_omv,port"]}"

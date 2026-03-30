@@ -851,6 +851,45 @@
                             "author": "@armbian",
                             "condition": "pkg_installed git",
                             "help": "Remove tools for cloning and managing repositories (git)"
+                        },
+                        {
+                            "id": "COD001",
+                            "description": "Code-server VS Code in browser",
+                            "short": "Code-server",
+                            "module": "module_code-server",
+                            "about": "This operation will install Code-server, VS Code running on a remote server accessible through the browser.",
+                            "command": [
+                                "module_code-server install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_code-server status",
+                            "container_type": "docker",
+                            "help": "Code-server is VS Code running on a remote server, accessible through the browser."
+                        },
+                        {
+                            "id": "COD002",
+                            "description": "Code-server remove",
+                            "about": "This operation will remove Code-server container.",
+                            "command": [
+                                "module_code-server remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_code-server status",
+                            "help": "Code-server remove"
+                        },
+                        {
+                            "id": "COD003",
+                            "description": "Code-server purge with data folder",
+                            "about": "This operation will remove Code-server container and all data.",
+                            "command": [
+                                "module_code-server purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_code-server status",
+                            "help": "Code-server purge with data folder"
                         }
                     ],
                     "help": "Applications and tools for development"
@@ -1330,6 +1369,47 @@
                             "author": "@armbian",
                             "condition": "module_actualbudget status",
                             "help": "Actual Budget purge with data folder"
+                        },
+                        {
+                            "id": "WAL001",
+                            "description": "Install Wallos subscription tracker",
+                            "short": "Wallos",
+                            "module": "module_generic",
+                            "about": "Wallos is a self-hosted subscription and finance tracker for managing recurring expenses.",
+                            "command": [
+                                "module_wallos install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "container_type": "docker",
+                            "condition": "! module_wallos status",
+                            "help": "Install Wallos finance tracker for subscription and expense management"
+                        },
+                        {
+                            "id": "WAL002",
+                            "description": "Remove Wallos subscription tracker",
+                            "short": "Remove Wallos",
+                            "about": "This operation will remove Wallos container.",
+                            "command": [
+                                "module_wallos remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_wallos status",
+                            "help": "Remove Wallos container while preserving data"
+                        },
+                        {
+                            "id": "WAL003",
+                            "description": "Purge Wallos subscription tracker",
+                            "short": "Purge Wallos",
+                            "about": "This operation will remove Wallos container and all data.",
+                            "command": [
+                                "module_wallos purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_wallos status",
+                            "help": "Remove Wallos container and delete all data"
                         }
                     ],
                     "help": "Manage your finances"
