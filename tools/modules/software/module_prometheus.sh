@@ -36,16 +36,16 @@ function module_prometheus () {
 
 			# Create prometheus config file if it doesn't exist
 			if [[ ! -f "$base_dir/prometheus.yml" ]]; then
-				cat > "$base_dir/prometheus.yml" <<- EOF
-				global:
-				  scrape_interval: 15s
-				  evaluation_interval: 15s
-
-				scrape_configs:
-				  - job_name: 'prometheus'
-				    static_configs:
-				      - targets: ['localhost:9090']
-				EOF
+				printf '%s\n' \
+					"global:" \
+					"  scrape_interval: 15s" \
+					"  evaluation_interval: 15s" \
+					"" \
+					"scrape_configs:" \
+					"  - job_name: 'prometheus'" \
+					"    static_configs:" \
+					"      - targets: ['localhost:9090']" \
+					> "$base_dir/prometheus.yml"
 			fi
 
 			# Run container
