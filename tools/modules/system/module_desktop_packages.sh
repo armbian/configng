@@ -3,7 +3,7 @@ module_options+=(
 	["module_desktop_packages,feature"]="module_desktop"
 	["module_desktop_packages,desc"]="Generate desktop packages list"
 	["module_desktop_packages,de"]="budgie cinnamon deepin enlightenment gnome i3-wm kde-plasma mate xfce xmonad"
-	["module_desktop_packages,release"]="bookworm noble plucky"
+	["module_desktop_packages,release"]="bookworm trixie noble plucky"
 	["module_desktop_packages,status"]="Active"
 	["module_desktop_packages,arch"]="x86-64"
 )
@@ -137,7 +137,6 @@ function module_desktop_packages() {
 				"pavucontrol"
 				"pulseaudio"
 				"pulseaudio-module-bluetooth"
-				"software-properties-gtk"
 				"spice-vdagent"
 				"synaptic"
 				"viewnior"
@@ -176,11 +175,19 @@ function module_desktop_packages() {
 			)
 		;;
 		"${release[1]}")
+			# trixie
+			packages+=(
+				"accountsservice"
+				"libu2f-udev"
+			)
+		;;
+		"${release[2]}")
 			# noble
 			packages+=(
 				"polkitd"
 				"pkexec"
 				"libu2f-udev"
+				"software-properties-gtk"
 			)
 			packages_remove+=(
 				"qalculate-gtk"
@@ -194,12 +201,13 @@ function module_desktop_packages() {
 				"ubuntu-session"
 			)
 		;;
-		"${release[2]}")
+		"${release[3]}")
 			# plucky
 			packages+=(
 				"polkitd"
 				"pkexec"
 				"libu2f-udev"
+				"software-properties-gtk"
 			)
 			packages_remove+=(
 				"qalculate-gtk"
