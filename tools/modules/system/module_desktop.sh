@@ -104,9 +104,13 @@ function module_desktop() {
 		"${commands[1]}")
 			# disable auto login
 			${module_options["module_desktop,feature"]} ${commands[6]}
-			# remove destkop
+			# remove desktop meta-package and display manager, let autoremove handle deps
 			srv_stop display-manager
-			pkg_remove ${PACKAGES}
+			case "$de" in
+				gnome)    pkg_remove gdm3 ;;
+				kde-neon) pkg_remove kde-standard sddm ;;
+				*)        pkg_remove lightdm ;;
+			esac
 			pkg_remove armbian-${DISTROID}-desktop-${de}
 		;;
 		"${commands[2]}")
