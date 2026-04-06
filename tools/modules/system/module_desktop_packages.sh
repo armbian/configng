@@ -155,7 +155,42 @@ function module_desktop_packages() {
 			# kde-plasma
 		;;
 		"${de[7]}")
-			# mate
+			# mate - use meta-packages for clean install/removal
+			packages+=(
+				"mate-desktop-environment"
+				"mate-desktop-environment-extras"
+				"lightdm"
+				"slick-greeter"
+				"xserver-xorg"
+				"blueman"
+				"bluez"
+				"bluez-tools"
+				"colord"
+				"dbus-x11"
+				"gdebi"
+				"gnome-disk-utility"
+				"gnome-system-monitor"
+				"gvfs-backends"
+				"lm-sensors"
+				"numix-gtk-theme"
+				"numix-icon-theme"
+				"numix-icon-theme-circle"
+				"pavucontrol"
+				"pulseaudio"
+				"pulseaudio-module-bluetooth"
+				"spice-vdagent"
+				"synaptic"
+				"viewnior"
+				"xdg-user-dirs"
+				"xdg-user-dirs-gtk"
+			)
+			architecture=(
+				"arm64"
+				"amd64"
+			)
+			supported=(
+				"supported"
+			)
 		;;
 		"${de[8]}")
 			# xfce - use meta-packages for clean install/removal
