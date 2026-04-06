@@ -37,7 +37,46 @@ function module_desktop_packages() {
 
 	case "$1" in
 		"${de[0]}")
-			# budgie
+			# budgie - use meta-packages for clean install/removal
+			packages+=(
+				"budgie-desktop"
+				"budgie-desktop-environment"
+				"lightdm"
+				"slick-greeter"
+				"xserver-xorg"
+				"blueman"
+				"bluez"
+				"bluez-tools"
+				"colord"
+				"dbus-x11"
+				"evince"
+				"gdebi"
+				"gnome-disk-utility"
+				"gnome-screenshot"
+				"gnome-terminal"
+				"gvfs-backends"
+				"lm-sensors"
+				"nemo"
+				"numix-gtk-theme"
+				"numix-icon-theme"
+				"numix-icon-theme-circle"
+				"pavucontrol"
+				"plank"
+				"pulseaudio"
+				"pulseaudio-module-bluetooth"
+				"spice-vdagent"
+				"synaptic"
+				"viewnior"
+				"xdg-user-dirs"
+				"xdg-user-dirs-gtk"
+			)
+			architecture=(
+				"arm64"
+				"amd64"
+			)
+			supported=(
+				"supported"
+			)
 		;;
 		"${de[1]}")
 			# cinnamon
@@ -146,6 +185,7 @@ function module_desktop_packages() {
 				"libu2f-udev"
 			)
 			packages_remove+=(
+				"budgie-desktop-environment"
 				"libfontembed1"
 				"update-manager"
 				"update-manager-core"
