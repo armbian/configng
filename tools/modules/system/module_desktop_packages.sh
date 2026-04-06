@@ -79,7 +79,40 @@ function module_desktop_packages() {
 			)
 		;;
 		"${de[1]}")
-			# cinnamon
+			# cinnamon - use meta-packages for clean install/removal
+			packages+=(
+				"cinnamon"
+				"cinnamon-desktop-environment"
+				"lightdm"
+				"slick-greeter"
+				"blueman"
+				"bluez"
+				"bluez-tools"
+				"colord"
+				"dbus-x11"
+				"gdebi"
+				"gnome-disk-utility"
+				"gnome-system-monitor"
+				"gvfs-backends"
+				"lm-sensors"
+				"numix-gtk-theme"
+				"numix-icon-theme"
+				"numix-icon-theme-circle"
+				"pavucontrol"
+				"pulseaudio"
+				"pulseaudio-module-bluetooth"
+				"spice-vdagent"
+				"synaptic"
+				"viewnior"
+				"xdg-user-dirs"
+			)
+			architecture=(
+				"arm64"
+				"amd64"
+			)
+			supported=(
+				"supported"
+			)
 		;;
 		"${de[2]}")
 			# deepin

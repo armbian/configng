@@ -5,7 +5,7 @@ module_options+=(
 	["module_desktop,example"]="install remove disable enable status auto manual login help"
 	["module_desktop,status"]="Active"
 	["module_desktop,arch"]="x86-64"
-	["module_desktop,help_install"]="Install desktop environment (de=xfce|gnome|budgie|kde-neon)"
+	["module_desktop,help_install"]="Install desktop environment (de=xfce|gnome|cinnamon|budgie|kde-neon)"
 	["module_desktop,help_remove"]="Remove desktop environment"
 	["module_desktop,help_disable"]="Disable display manager"
 	["module_desktop,help_enable"]="Enable display manager"
