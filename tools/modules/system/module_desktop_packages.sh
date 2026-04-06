@@ -152,7 +152,30 @@ function module_desktop_packages() {
 			# i3-wm
 		;;
 		"${de[6]}")
-			# kde-plasma
+			# kde-neon (Ubuntu Noble only, uses neon-desktop meta-package)
+			packages+=(
+				"neon-desktop"
+				"sddm"
+				"konsole"
+				"dolphin"
+				"bluedevil"
+				"kscreen"
+				"plasma-discover"
+				"plasma-nm"
+				"plasma-pa"
+				"plasma-vault"
+				"pipewire-audio"
+				"pipewire-pulse"
+				"wireplumber"
+				"scdaemon"
+			)
+			architecture=(
+				"arm64"
+				"amd64"
+			)
+			supported=(
+				"supported"
+			)
 		;;
 		"${de[7]}")
 			# mate - use meta-packages for clean install/removal
