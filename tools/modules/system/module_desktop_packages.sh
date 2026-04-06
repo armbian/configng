@@ -115,7 +115,46 @@ function module_desktop_packages() {
 			)
 		;;
 		"${de[2]}")
-			# deepin
+			# deepin (DDE)
+			packages+=(
+				"dde-control-center"
+				"dde-daemon"
+				"dde-desktop"
+				"dde-dock"
+				"dde-file-manager"
+				"dde-launcher"
+				"dde-polkit-agent"
+				"dde-qt5integration"
+				"dde-session-ui"
+				"deepin-desktop-base"
+				"deepin-desktop-schemas"
+				"deepin-gtk-theme"
+				"deepin-icon-theme"
+				"deepin-sound-theme"
+				"deepin-terminal"
+				"deepin-wm"
+				"startdde"
+				"lightdm"
+				"slick-greeter"
+				"xserver-xorg"
+				"bluez"
+				"colord"
+				"dbus-x11"
+				"gvfs-backends"
+				"lm-sensors"
+				"pavucontrol"
+				"pulseaudio"
+				"pulseaudio-module-bluetooth"
+				"spice-vdagent"
+				"xdg-user-dirs"
+			)
+			architecture=(
+				"arm64"
+				"amd64"
+			)
+			supported=(
+				"unsupported"
+			)
 		;;
 		"${de[3]}")
 			# enlightenment (EFL-based desktop)
