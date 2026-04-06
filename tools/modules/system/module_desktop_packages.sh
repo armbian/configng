@@ -2,7 +2,7 @@ module_options+=(
 	["module_desktop_packages,author"]="@igorpecovnik"
 	["module_desktop_packages,feature"]="module_desktop"
 	["module_desktop_packages,desc"]="Generate desktop packages list"
-	["module_desktop_packages,de"]="budgie cinnamon deepin enlightenment gnome i3-wm kde-plasma mate xfce xmonad"
+	["module_desktop_packages,de"]="budgie cinnamon deepin enlightenment gnome i3-wm kde-neon kde-plasma mate xfce xmonad"
 	["module_desktop_packages,release"]="bookworm trixie noble plucky"
 	["module_desktop_packages,status"]="Active"
 	["module_desktop_packages,arch"]="x86-64"
@@ -178,6 +178,35 @@ function module_desktop_packages() {
 			)
 		;;
 		"${de[7]}")
+			# kde-plasma - works on both Debian and Ubuntu
+			packages+=(
+				"kde-plasma-desktop"
+				"sddm"
+				"konsole"
+				"dolphin"
+				"bluedevil"
+				"kscreen"
+				"plasma-nm"
+				"plasma-pa"
+				"xserver-xorg"
+				"colord"
+				"dbus-x11"
+				"gvfs-backends"
+				"lm-sensors"
+				"pulseaudio"
+				"pulseaudio-module-bluetooth"
+				"spice-vdagent"
+				"xdg-user-dirs"
+			)
+			architecture=(
+				"arm64"
+				"amd64"
+			)
+			supported=(
+				"supported"
+			)
+		;;
+		"${de[8]}")
 			# mate - use meta-packages for clean install/removal
 			packages+=(
 				"mate-desktop-environment"
@@ -215,7 +244,7 @@ function module_desktop_packages() {
 				"supported"
 			)
 		;;
-		"${de[8]}")
+		"${de[9]}")
 			# xfce - use meta-packages for clean install/removal
 			packages+=(
 				"xfce4"
@@ -260,7 +289,7 @@ function module_desktop_packages() {
 				"supported"
 			)
 		;;
-		"${de[9]}")
+		"${de[10]}")
 			# xmonad
 		;;
 	esac
