@@ -928,7 +928,7 @@ show_module_help() {
 		# Check if module has custom description for this command
 		local custom_desc="${module_options["${module_prefix},help_${cmd}"]}"
 		if [[ -n "$custom_desc" ]]; then
-			help_text+="  $cmd  - $custom_desc\n"
+			help_text+="$(printf "  %-9s- %s" "$cmd" "$custom_desc")\n"
 			continue
 		fi
 
