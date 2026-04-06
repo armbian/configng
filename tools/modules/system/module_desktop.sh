@@ -1,10 +1,18 @@
 module_options+=(
 	["module_desktop,author"]="@igorpecovnik"
 	["module_desktop,feature"]="module_desktop"
-	["module_desktop,desc"]="XFCE desktop packages"
+	["module_desktop,desc"]="Install and manage desktop environments"
 	["module_desktop,example"]="install remove disable enable status auto manual login help"
 	["module_desktop,status"]="Active"
 	["module_desktop,arch"]="x86-64"
+	["module_desktop,help_install"]="Install desktop environment (de=xfce|gnome|kde-neon)"
+	["module_desktop,help_remove"]="Remove desktop environment"
+	["module_desktop,help_disable"]="Disable display manager"
+	["module_desktop,help_enable"]="Enable display manager"
+	["module_desktop,help_status"]="Check if display manager is running"
+	["module_desktop,help_auto"]="Enable auto-login"
+	["module_desktop,help_manual"]="Disable auto-login"
+	["module_desktop,help_login"]="Check auto-login status"
 )
 #
 # Module install and configure desktop
@@ -188,24 +196,12 @@ function module_desktop() {
 			fi
 		;;
 		"${commands[8]}")
-			echo -e "\nUsage: ${module_options["module_desktop,feature"]} <command> [de=<desktop>]"
-			echo -e "Commands:  ${module_options["module_desktop,example"]}"
-			echo "Available commands:"
-			echo -e "\tinstall\t- Install desktop environment"
-			echo -e "\tremove\t- Remove desktop environment"
-			echo -e "\tdisable\t- Disable display manager"
-			echo -e "\tenable\t- Enable display manager"
-			echo -e "\tstatus\t- Check if display manager is running"
-			echo -e "\tauto\t- Enable auto-login"
-			echo -e "\tmanual\t- Disable auto-login"
-			echo -e "\tlogin\t- Check auto-login status"
-
-			echo -e "\nAvailable desktops: ${module_options["module_desktop_packages,de"]}"
-			echo -e "Example: ${module_options["module_desktop,feature"]} install de=gnome"
-			echo
+			show_module_help "module_desktop" "Desktop" \
+				"Available desktops: ${module_options["module_desktop_packages,de"]}\nExample: module_desktop install de=gnome" "native"
 		;;
 		*)
-			${module_options["module_desktop,feature"]} ${commands[8]}
+			show_module_help "module_desktop" "Desktop" \
+				"Available desktops: ${module_options["module_desktop_packages,de"]}\nExample: module_desktop install de=gnome" "native"
 		;;
 	esac
 }
