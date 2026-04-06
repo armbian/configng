@@ -19,8 +19,13 @@ module_options+=(
 #
 function module_desktop() {
 
-	# get user who executed this script
-	local user="${SUDO_USER:-$(whoami)}"
+	# get first non-root user with a login shell, error if none exists
+	local user
+	user=$(getent passwd | awk -F: '$3 >= 1000 && $3 < 65534 && $7 !~ /nologin|false/ {print $1; exit}')
+	if [[ -z "$user" ]]; then
+		echo "Error: No regular user found. Create a non-root user first." >&2
+		return 1
+	fi
 
 	# read desktop environment from command line parameters (de=xfce, de=gnome, etc.)
 	local de="xfce"
