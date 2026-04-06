@@ -265,7 +265,7 @@ function module_desktop_packages() {
 				"amd64"
 			)
 			supported=(
-				"supported"
+				"unsupported"
 			)
 		;;
 		"${de[7]}")
