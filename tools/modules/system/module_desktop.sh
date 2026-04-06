@@ -5,7 +5,7 @@ module_options+=(
 	["module_desktop,example"]="install remove disable enable status auto manual login help"
 	["module_desktop,status"]="Active"
 	["module_desktop,arch"]="x86-64"
-	["module_desktop,help_install"]="Install desktop environment (de=xfce|gnome|cinnamon|mate|budgie|kde-neon)"
+	["module_desktop,help_install"]="Install desktop environment (de=xfce|gnome|cinnamon|mate|budgie|kde-plasma|kde-neon)"
 	["module_desktop,help_remove"]="Remove desktop environment"
 	["module_desktop,help_disable"]="Disable display manager"
 	["module_desktop,help_enable"]="Enable display manager"
@@ -57,11 +57,11 @@ function module_desktop() {
 					pkg_install -o Dpkg::Options::="--force-confold" ${PACKAGES_UNINSTALL}
 					pkg_install -o Dpkg::Options::="--force-confold" gdm3
 				;;
-				kde-neon)
+				kde-neon|kde-plasma)
 					echo "/usr/sbin/sddm" > /etc/X11/default-display-manager
 					pkg_install -o Dpkg::Options::="--force-confold" ${PACKAGES}
 					pkg_install -o Dpkg::Options::="--force-confold" ${PACKAGES_UNINSTALL}
-					pkg_install -o Dpkg::Options::="--force-confold" kde-standard
+					pkg_install -o Dpkg::Options::="--force-confold" sddm
 				;;
 				*)
 					echo "/usr/sbin/lightdm" > /etc/X11/default-display-manager
@@ -112,8 +112,8 @@ function module_desktop() {
 			# remove desktop meta-package and display manager, let autoremove handle deps
 			srv_stop display-manager
 			case "$de" in
-				gnome)    pkg_remove gdm3 ;;
-				kde-neon) pkg_remove kde-standard sddm ;;
+				gnome)            pkg_remove gdm3 ;;
+				kde-neon|kde-plasma) pkg_remove sddm ;;
 				*)        pkg_remove lightdm ;;
 			esac
 			pkg_remove armbian-${DISTROID}-desktop-${de}
@@ -138,7 +138,7 @@ function module_desktop() {
 						return 1
 					fi
 				;;
-				kde-neon)
+				kde-neon|kde-plasma)
 					if srv_active sddm; then
 						return 0
 					else
@@ -166,7 +166,7 @@ function module_desktop() {
 					AutomaticLogin = ${user}
 					EOF
 				;;
-				kde-neon)
+				kde-neon|kde-plasma)
 					# sddm autologin
 					mkdir -p "/etc/sddm.conf.d/"
 					cat <<- EOF > "/etc/sddm.conf.d/autologin.conf"
@@ -192,8 +192,8 @@ function module_desktop() {
 		"${commands[6]}")
 			# manual login, disable auto-login
 			case "$de" in
-				gnome)    rm -f /etc/gdm3/custom.conf ;;
-				kde-neon) rm -f /etc/sddm.conf.d/autologin.conf ;;
+				gnome)            rm -f /etc/gdm3/custom.conf ;;
+				kde-neon|kde-plasma) rm -f /etc/sddm.conf.d/autologin.conf ;;
 				*)        rm -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ;;
 			esac
 			# restart after selection
