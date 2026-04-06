@@ -118,7 +118,30 @@ function module_desktop_packages() {
 			# deepin
 		;;
 		"${de[3]}")
-			# enlightenment
+			# enlightenment (EFL-based desktop)
+			packages+=(
+				"enlightenment"
+				"terminology"
+				"lightdm"
+				"slick-greeter"
+				"xserver-xorg"
+				"bluez"
+				"dbus-x11"
+				"gvfs-backends"
+				"lm-sensors"
+				"pavucontrol"
+				"pulseaudio"
+				"pulseaudio-module-bluetooth"
+				"thunar"
+				"xdg-user-dirs"
+			)
+			architecture=(
+				"arm64"
+				"amd64"
+			)
+			supported=(
+				"supported"
+			)
 		;;
 		"${de[4]}")
 			# gnome - use meta-packages for clean install/removal
