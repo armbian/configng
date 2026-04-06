@@ -74,10 +74,13 @@ function module_desktop() {
 				usermod -aG ${additionalgroup} ${user} 2> /dev/null
 			done
 			# set up profile sync daemon on desktop systems
-			which psd > /dev/null 2>&1
-			if [[ $? -eq 0 && -z $(grep overlay-helper /etc/sudoers) ]]; then
-				echo "${user} ALL=(ALL) NOPASSWD: /usr/bin/psd-overlay-helper" >> /etc/sudoers
-				touch /home/${user}/.activate_psd
+			local user_home
+			user_home=$(getent passwd "${user}" | cut -d: -f6)
+			if command -v psd > /dev/null 2>&1; then
+				if ! grep -q overlay-helper /etc/sudoers; then
+					echo "${user} ALL=(ALL) NOPASSWD: /usr/bin/psd-overlay-helper" >> /etc/sudoers
+				fi
+				touch "${user_home}/.activate_psd"
 			fi
 			# update skel
 			update_skel
