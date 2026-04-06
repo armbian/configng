@@ -209,6 +209,13 @@ function module_desktop_packages() {
 				"xwayland"
 				"zenity"
 			)
+			architecture=(
+				"arm64"
+				"amd64"
+			)
+			supported=(
+				"supported"
+			)
 		;;
 		"${de[5]}")
 			# i3-wm - tiling window manager
@@ -429,10 +436,13 @@ function module_desktop_packages() {
 			)
 		;;
 		"${release[1]}")
-			# trixie - uses pipewire, pulseaudio conflicts with pipewire-alsa
+			# trixie - uses pipewire instead of pulseaudio
 			packages+=(
 				"accountsservice"
 				"libu2f-udev"
+				"pipewire-audio"
+				"pipewire-pulse"
+				"wireplumber"
 			)
 			packages_remove+=(
 				"pulseaudio"
