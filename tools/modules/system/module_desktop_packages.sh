@@ -192,10 +192,14 @@ function module_desktop_packages() {
 			)
 		;;
 		"${release[1]}")
-			# trixie
+			# trixie - uses pipewire, pulseaudio conflicts with pipewire-alsa
 			packages+=(
 				"accountsservice"
 				"libu2f-udev"
+			)
+			packages_remove+=(
+				"pulseaudio"
+				"pulseaudio-module-bluetooth"
 			)
 		;;
 		"${release[2]}")
