@@ -381,7 +381,33 @@ function module_desktop_packages() {
 			)
 		;;
 		"${de[10]}")
-			# xmonad
+			# xmonad - Haskell tiling window manager
+			packages+=(
+				"xmonad"
+				"xmobar"
+				"lightdm"
+				"slick-greeter"
+				"xserver-xorg"
+				"xterm"
+				"dbus-x11"
+				"dmenu"
+				"dunst"
+				"feh"
+				"lm-sensors"
+				"network-manager-gnome"
+				"pavucontrol"
+				"pulseaudio"
+				"pulseaudio-module-bluetooth"
+				"thunar"
+				"xdg-user-dirs"
+			)
+			architecture=(
+				"arm64"
+				"amd64"
+			)
+			supported=(
+				"supported"
+			)
 		;;
 	esac
 
