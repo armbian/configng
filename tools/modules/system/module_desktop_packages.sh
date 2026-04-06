@@ -149,7 +149,36 @@ function module_desktop_packages() {
 			)
 		;;
 		"${de[5]}")
-			# i3-wm
+			# i3-wm - tiling window manager
+			packages+=(
+				"i3"
+				"i3status"
+				"i3lock"
+				"lightdm"
+				"slick-greeter"
+				"xserver-xorg"
+				"xterm"
+				"dbus-x11"
+				"dunst"
+				"feh"
+				"lm-sensors"
+				"network-manager-gnome"
+				"pavucontrol"
+				"pulseaudio"
+				"pulseaudio-module-bluetooth"
+				"rofi"
+				"thunar"
+				"xdg-user-dirs"
+			)
+			architecture=(
+				"arm64"
+				"amd64"
+				"armhf"
+				"riscv64"
+			)
+			supported=(
+				"supported"
+			)
 		;;
 		"${de[6]}")
 			# kde-neon (Ubuntu Noble only, uses neon-desktop meta-package)
