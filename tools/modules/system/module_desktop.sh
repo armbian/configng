@@ -49,6 +49,40 @@ function module_desktop() {
 			# update package list
 			pkg_update
 
+			# set up bianbu repo if needed
+			if [[ "$de" == "bianbu" ]]; then
+				local bianbu_ver="v1.0.15"
+				local bianbu_url="https://archive.spacemit.com/bianbu-ports"
+				local bianbu_keyring="/usr/share/keyrings/bianbu-archive-keyring.gpg"
+
+				# import GPG key
+				curl -fsSL "${bianbu_url}/bianbu-archive-keyring.gpg" -o "$bianbu_keyring"
+
+				# add sources
+				cat > /etc/apt/sources.list.d/bianbu.list <<- EOF
+				deb [signed-by=${bianbu_keyring}] ${bianbu_url}/ mantic-spacemit/snapshots/${bianbu_ver} main universe multiverse restricted
+				deb [signed-by=${bianbu_keyring}] ${bianbu_url}/ mantic-porting/snapshots/${bianbu_ver} main universe multiverse restricted
+				deb [signed-by=${bianbu_keyring}] ${bianbu_url}/ mantic-customization/snapshots/${bianbu_ver} main universe multiverse restricted
+				EOF
+
+				# pin spacemit packages higher
+				cat > /etc/apt/preferences.d/bianbu <<- EOF
+				Package: *
+				Pin: release o=spacemit,a=mantic-spacemit
+				Pin-Priority: 1200
+
+				Package: *
+				Pin: release o=spacemit,a=mantic-porting
+				Pin-Priority: 1100
+
+				Package: *
+				Pin: release o=spacemit,a=mantic-customization
+				Pin-Priority: 1100
+				EOF
+
+				pkg_update
+			fi
+
 			# desktops has different default login managers
 			case "$de" in
 				gnome)
