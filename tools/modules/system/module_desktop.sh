@@ -10,23 +10,18 @@ module_options+=(
 # Module install and configure desktop
 #
 function module_desktop() {
-	local title="test"
-	local condition=$(which "$title" 2>/dev/null)
 
 	# get user who executed this script
-	if [ $SUDO_USER ]; then local user=$SUDO_USER; else local user=$(whoami); fi
+	local user="${SUDO_USER:-$(whoami)}"
 
-	# read additional parameters from command line
+	# read desktop environment from command line parameters (de=xfce, de=gnome, etc.)
+	local de="xfce"
 	local parameter
 	IFS=' ' read -r -a parameter <<< "${2}"
-	for feature in de; do
-	for selected in ${parameter[@]}; do
+	for selected in "${parameter[@]}"; do
 		IFS='=' read -r -a split <<< "${selected}"
-		[[ ${split[0]} == $feature ]] && eval "$feature=${split[1]}"
-		done
+		[[ "${split[0]}" == "de" ]] && de="${split[1]}"
 	done
-
-	local de="${de:-xfce}" # DE
 
 	# Convert the example string to an array
 	local commands
@@ -193,17 +188,20 @@ function module_desktop() {
 			fi
 		;;
 		"${commands[8]}")
-			echo -e "\nUsage: ${module_options["module_desktop,feature"]} <command>"
+			echo -e "\nUsage: ${module_options["module_desktop,feature"]} <command> [de=<desktop>]"
 			echo -e "Commands:  ${module_options["module_desktop,example"]}"
 			echo "Available commands:"
-			echo -e "\tinstall\t- Generate packages for $title."
-			echo -e "\tremove\t-  Generate packages for $title."
-			echo -e "\tdisable\t- Generate packages for $title."
-			echo -e "\tenable\t-  Generate packages for $title."
-			echo -e "\tstatus\t-  Generate packages for $title."
+			echo -e "\tinstall\t- Install desktop environment"
+			echo -e "\tremove\t- Remove desktop environment"
+			echo -e "\tdisable\t- Disable display manager"
+			echo -e "\tenable\t- Enable display manager"
+			echo -e "\tstatus\t- Check if display manager is running"
+			echo -e "\tauto\t- Enable auto-login"
+			echo -e "\tmanual\t- Disable auto-login"
+			echo -e "\tlogin\t- Check auto-login status"
 
-			echo -e "\nAvailable switches:\n"
-			echo -e "\tkvmprefix\t- Name prefix (default = kvmtest)"
+			echo -e "\nAvailable desktops: ${module_options["module_desktop_packages,de"]}"
+			echo -e "Example: ${module_options["module_desktop,feature"]} install de=gnome"
 			echo
 		;;
 		*)

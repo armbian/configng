@@ -11,15 +11,19 @@ module_options+=(
 # Module desktop packages
 #
 function module_desktop_packages() {
-	local title="test"
-	local condition=$(which "$title" 2>/dev/null)
 
 	# Convert the example string to an array
 	local de
 	IFS=' ' read -r -a de <<< "${module_options["module_desktop_packages,de"]}"
 
+	local packages=()
+	local packages_remove=()
+	local packages_uninstall=()
+	local architecture=()
+	local supported=()
+
 	# Common desktop packages
-	local packages+=(
+	packages=(
 			"anacron"
 			"cups"
 			"eject"
@@ -46,7 +50,7 @@ function module_desktop_packages() {
 		;;
 		"${de[4]}")
 			# gnome
-			local packages+=(
+			packages+=(
 				"apt-xapian-index"
 				"at-spi2-core"
 				"colord"
@@ -106,8 +110,7 @@ function module_desktop_packages() {
 		;;
 		"${de[8]}")
 			# xfce
-			local packages+=(
-				"anacron"
+			packages+=(
 				"apt-xapian-index"
 				"blueman"
 				"bluez"
@@ -117,7 +120,6 @@ function module_desktop_packages() {
 				"brltty-x11"
 				"cifs-utils"
 				"colord"
-				"cups"
 				"cups-bsd"
 				"cups-client"
 				"cups-filters"
@@ -180,8 +182,6 @@ function module_desktop_packages() {
 				"pavucontrol"
 				"pavumeter"
 				"policykit-1"
-				"printer-driver-all"
-				"profile-sync-daemon"
 				"pulseaudio"
 				"pulseaudio-module-bluetooth"
 				"qalculate-gtk"
@@ -191,9 +191,7 @@ function module_desktop_packages() {
 				"software-properties-gtk"
 				"spice-vdagent"
 				"synaptic"
-				"system-config-printer"
 				"system-config-printer-common"
-				"terminator"
 				"thunar-volman"
 				"update-inetd"
 				"update-manager"
@@ -203,7 +201,6 @@ function module_desktop_packages() {
 				"x11-utils"
 				"x11-xserver-utils"
 				"xapps-common"
-				"xarchiver"
 				"xauth"
 				"xbacklight"
 				"xcursor-themes"
@@ -227,17 +224,15 @@ function module_desktop_packages() {
 				"xserver-xorg-video-fbdev"
 				"xwallpaper"
 			)
-			local architecture+=(
+			architecture=(
 				"arm64"
 				"amd64"
 				"armhf"
 				"riscv64"
 			)
-			local supported=(
+			supported=(
 				"supported"
 			)
-			local packages_uninstall=()
-			local packages_remove=()
 		;;
 		"${de[9]}")
 			# xmonad
@@ -249,12 +244,12 @@ function module_desktop_packages() {
 	case "$2" in
 		"${release[0]}")
 			# bookworm
-			local packages+=(
+			packages+=(
 				"accountsservice"
 				"gnome-calculator"
 				"libu2f-udev"
 			)
-			local packages_remove+=(
+			packages_remove+=(
 				"libfontembed1"
 				"update-manager"
 				"update-manager-core"
@@ -262,43 +257,40 @@ function module_desktop_packages() {
 		;;
 		"${release[1]}")
 			# noble
-			local packages+=(
+			packages+=(
 				"polkitd"
 				"pkexec"
 				"libu2f-udev"
 			)
-			local packages_remove+=(
+			packages_remove+=(
 				"qalculate-gtk"
 				"hplip"
 				"indicator-printers"
 				"libfontembed1"
 				"policykit-1"
 				"printer-driver-all"
-				"qalculate-gtk"
 			)
-			local packages_uninstall+=(
+			packages_uninstall+=(
 				"ubuntu-session"
 			)
 		;;
 		"${release[2]}")
 			# plucky
-			local packages+=(
+			packages+=(
 				"polkitd"
 				"pkexec"
 				"libu2f-udev"
 			)
-			local packages_remove+=(
+			packages_remove+=(
 				"qalculate-gtk"
 				"hplip"
 				"indicator-printers"
 				"libfontembed1"
 				"policykit-1"
 				"printer-driver-all"
-				"qalculate-gtk"
-				"libfontembed1"
 				"pavumeter"
 			)
-			local packages_uninstall+=(
+			packages_uninstall+=(
 				"ubuntu-session"
 			)
 		;;
