@@ -2,7 +2,7 @@ module_options+=(
 	["module_desktop_packages,author"]="@igorpecovnik"
 	["module_desktop_packages,feature"]="module_desktop"
 	["module_desktop_packages,desc"]="Generate desktop packages list"
-	["module_desktop_packages,de"]="budgie cinnamon deepin enlightenment gnome i3-wm kde-neon kde-plasma mate xfce xmonad"
+	["module_desktop_packages,de"]="bianbu budgie cinnamon deepin enlightenment gnome i3-wm kde-neon kde-plasma mate xfce xmonad"
 	["module_desktop_packages,release"]="bookworm trixie noble plucky"
 	["module_desktop_packages,status"]="Active"
 	["module_desktop_packages,arch"]="x86-64"
@@ -37,6 +37,32 @@ function module_desktop_packages() {
 
 	case "$1" in
 		"${de[0]}")
+			# bianbu (RISC-V only, SpacemiT)
+			packages+=(
+				"bianbu-desktop"
+				"bianbu-desktop-en"
+				"bianbu-desktop-zh"
+				"bianbu-desktop-minimal-en"
+				"bianbu-standard"
+				"bianbu-development"
+				"bianbu-esos"
+				"img-gpu-powervr"
+				"k1x-vpu-firmware"
+				"k1x-cam"
+				"spacemit-uart-bt"
+				"spacemit-modules-usrload"
+				"opensbi-spacemit"
+				"u-boot-spacemit"
+				"linux-image-6.1.15"
+			)
+			architecture=(
+				"riscv64"
+			)
+			supported=(
+				"unsupported"
+			)
+		;;
+		"${de[1]}")
 			# budgie - use meta-packages for clean install/removal
 			packages+=(
 				"budgie-desktop"
@@ -78,7 +104,7 @@ function module_desktop_packages() {
 				"unsupported"
 			)
 		;;
-		"${de[1]}")
+		"${de[2]}")
 			# cinnamon - use meta-packages for clean install/removal
 			packages+=(
 				"cinnamon"
@@ -114,7 +140,7 @@ function module_desktop_packages() {
 				"supported"
 			)
 		;;
-		"${de[2]}")
+		"${de[3]}")
 			# deepin (DDE)
 			packages+=(
 				"dde-control-center"
@@ -156,7 +182,7 @@ function module_desktop_packages() {
 				"unsupported"
 			)
 		;;
-		"${de[3]}")
+		"${de[4]}")
 			# enlightenment (EFL-based desktop)
 			packages+=(
 				"enlightenment"
@@ -182,7 +208,7 @@ function module_desktop_packages() {
 				"supported"
 			)
 		;;
-		"${de[4]}")
+		"${de[5]}")
 			# gnome - use meta-packages for clean install/removal
 			packages+=(
 				"gnome-session"
@@ -217,7 +243,7 @@ function module_desktop_packages() {
 				"supported"
 			)
 		;;
-		"${de[5]}")
+		"${de[6]}")
 			# i3-wm - tiling window manager
 			packages+=(
 				"i3"
@@ -249,7 +275,7 @@ function module_desktop_packages() {
 				"supported"
 			)
 		;;
-		"${de[6]}")
+		"${de[7]}")
 			# kde-neon (Ubuntu Noble only, uses neon-desktop meta-package)
 			packages+=(
 				"neon-desktop"
@@ -275,7 +301,7 @@ function module_desktop_packages() {
 				"unsupported"
 			)
 		;;
-		"${de[7]}")
+		"${de[8]}")
 			# kde-plasma - works on both Debian and Ubuntu
 			packages+=(
 				"kde-plasma-desktop"
@@ -304,7 +330,7 @@ function module_desktop_packages() {
 				"supported"
 			)
 		;;
-		"${de[8]}")
+		"${de[9]}")
 			# mate - use meta-packages for clean install/removal
 			packages+=(
 				"mate-desktop-environment"
@@ -342,7 +368,7 @@ function module_desktop_packages() {
 				"supported"
 			)
 		;;
-		"${de[9]}")
+		"${de[10]}")
 			# xfce - use meta-packages for clean install/removal
 			packages+=(
 				"xfce4"
@@ -387,7 +413,7 @@ function module_desktop_packages() {
 				"supported"
 			)
 		;;
-		"${de[10]}")
+		"${de[11]}")
 			# xmonad - Haskell tiling window manager
 			packages+=(
 				"xmonad"
