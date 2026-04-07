@@ -220,9 +220,11 @@ function module_desktop() {
 			# autologin methods
 			case "$de" in
 				gnome)
-					# gdm3 autologin
+					# gdm3 autologin - trixie+ uses daemon.conf, older uses custom.conf
 					mkdir -p /etc/gdm3
-					cat <<- EOF > /etc/gdm3/custom.conf
+					local gdm_conf="/etc/gdm3/custom.conf"
+					[[ "$DISTROID" == "trixie" || "$DISTROID" == "forky" ]] && gdm_conf="/etc/gdm3/daemon.conf"
+					cat <<- EOF > "$gdm_conf"
 					[daemon]
 					AutomaticLoginEnable = true
 					AutomaticLogin = ${user}
@@ -254,7 +256,7 @@ function module_desktop() {
 		"${commands[6]}")
 			# manual login, disable auto-login
 			case "$de" in
-				gnome)            rm -f /etc/gdm3/custom.conf ;;
+				gnome)            sed -i 's/AutomaticLoginEnable = true/AutomaticLoginEnable = false/' /etc/gdm3/custom.conf /etc/gdm3/daemon.conf 2>/dev/null ;;
 				kde-neon|kde-plasma) rm -f /etc/sddm.conf.d/autologin.conf ;;
 				*)        rm -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ;;
 			esac
@@ -265,7 +267,7 @@ function module_desktop() {
 			# login status - check per DE
 			case "$de" in
 				gnome)
-					grep -q '^\s*AutomaticLoginEnable\s*=\s*true' /etc/gdm3/custom.conf 2>/dev/null && return 0 || return 1
+					grep -qE '^[[:space:]]*AutomaticLoginEnable[[:space:]]*=[[:space:]]*true' /etc/gdm3/custom.conf /etc/gdm3/daemon.conf 2>/dev/null && return 0 || return 1
 				;;
 				kde-neon|kde-plasma)
 					[[ -f /etc/sddm.conf.d/autologin.conf ]] && return 0 || return 1

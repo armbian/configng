@@ -107,7 +107,7 @@
                 },
                 {
                     "id": "Desktops",
-                    "description": "Desktop Environments",
+                    "description": "Install, remove and configure desktop environments",
                     "sub": [
                         {
                             "id": "CINMDE",
@@ -374,13 +374,13 @@
                             "command": [
                                 "update-apt-xapian-index -u; sleep 3"
                             ],
-                            "status": "Stable",
+                            "status": "Disabled",
                             "author": "@igorpecovnik",
                             "condition": "srv_active display-manager",
                             "help": "Improve application search speed"
                         }
                     ],
-                    "help": "Desktop Environments"
+                    "help": "Install, remove and configure desktop environments with autologin support"
                 },
                 {
                     "id": "Storage",
