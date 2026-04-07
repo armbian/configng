@@ -14,6 +14,70 @@ module_options+=(
 	["module_desktop,help_manual"]="Disable auto-login"
 	["module_desktop,help_login"]="Check auto-login status"
 )
+
+#
+# Install Armbian desktop branding (wallpapers, icons, lightdm config, skel, postinst)
+#
+function install_desktop_branding() {
+	local de="$1"
+	local branding_dir="${script_dir}/../tools/include/branding"
+
+	if [[ ! -d "$branding_dir" ]]; then
+		echo "Warning: branding directory not found at $branding_dir" >&2
+		return 0
+	fi
+
+	dialog_infobox "Desktop" "Installing Armbian branding for ${de}..."
+
+	# lightdm configuration
+	if [[ -d "$branding_dir/lightdm" ]]; then
+		mkdir -p /etc/armbian/lightdm
+		cp -R "$branding_dir/lightdm/." /etc/armbian/lightdm/
+		cp -R /etc/armbian/lightdm/. /etc/lightdm/ 2>/dev/null || true
+	fi
+
+	# default user skeleton
+	if [[ -d "$branding_dir/skel" ]]; then
+		cp -R "$branding_dir/skel/." /etc/skel/
+	fi
+
+	# wallpapers
+	if [[ -d "$branding_dir/wallpapers" ]]; then
+		mkdir -p /usr/share/backgrounds/armbian
+		cp "$branding_dir/wallpapers/"*.jpg /usr/share/backgrounds/armbian/
+	fi
+
+	# lightdm wallpapers
+	if [[ -d "$branding_dir/wallpapers-lightdm" ]]; then
+		mkdir -p /usr/share/backgrounds/armbian-lightdm
+		cp "$branding_dir/wallpapers-lightdm/"*.jpg /usr/share/backgrounds/armbian-lightdm/
+	fi
+
+	# desktop icons
+	if [[ -d "$branding_dir/icons" ]]; then
+		mkdir -p /usr/share/icons/armbian
+		cp "$branding_dir/icons/"* /usr/share/icons/armbian/
+	fi
+
+	# login logo
+	if [[ -d "$branding_dir/pixmaps" ]]; then
+		mkdir -p /usr/share/pixmaps/armbian
+		cp "$branding_dir/pixmaps/"* /usr/share/pixmaps/armbian/
+	fi
+
+	# GNOME wallpaper properties
+	if [[ -f "$branding_dir/armbian.xml" ]]; then
+		mkdir -p /usr/share/gnome-background-properties
+		cp "$branding_dir/armbian.xml" /usr/share/gnome-background-properties/
+	fi
+
+	# DE-specific postinst script
+	if [[ -f "$branding_dir/postinst/${de}.sh" ]]; then
+		dialog_infobox "Desktop" "Running ${de} post-install configuration..."
+		bash "$branding_dir/postinst/${de}.sh"
+	fi
+}
+
 #
 # Module install and configure desktop
 #
@@ -113,15 +177,8 @@ function module_desktop() {
 				;;
 			esac
 
-			# install desktop
-			pkg_install -o Dpkg::Options::="--force-confold" armbian-${DISTROID}-desktop-${de}
-
-			# save list of newly installed packages
-			echo "DEBUG desktop: ACTUALLY_INSTALLED has ${#ACTUALLY_INSTALLED[@]} entries" >&2
-			echo "DEBUG desktop: saving to $desktop_pkg_file" >&2
-			mkdir -p /etc/armbian/desktop
-			printf '%s\n' "${ACTUALLY_INSTALLED[@]}" > "$desktop_pkg_file"
-			echo "DEBUG desktop: saved $(wc -l < "$desktop_pkg_file") lines to $desktop_pkg_file" >&2
+			# install armbian desktop branding
+			install_desktop_branding "$de"
 
 			# add user to groups
 			for additionalgroup in sudo netdev audio video dialout plugdev input bluetooth systemd-journal ssh; do
