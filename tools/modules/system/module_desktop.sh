@@ -13,8 +13,17 @@ function module_desktop() {
 	local title="test"
 	local condition=$(which "$title" 2>/dev/null)
 
-	# get user who executed this script
-	if [ $SUDO_USER ]; then local user=$SUDO_USER; else local user=$(whoami); fi
+	# get user who executed this script, fall back to first non-root human user
+	local user
+	if [[ -n "$SUDO_USER" && "$SUDO_USER" != "root" ]]; then
+		user="$SUDO_USER"
+	else
+		user=$(awk -F: '$3 >= 1000 && $3 < 65534 && $7 !~ /nologin|false/ {print $1; exit}' /etc/passwd)
+	fi
+	if [[ -z "$user" || ! -d "/home/${user}" ]]; then
+		echo "Error: No valid user found for desktop setup." >&2
+		return 1
+	fi
 
 	# read additional parameters from command line
 	local parameter
@@ -35,11 +44,16 @@ function module_desktop() {
 	# generate and install packages
 	module_desktop_packages "$de" "$DISTROID"
 
+	local desktop_pkg_file="/etc/armbian/desktop/${de}.packages"
+
 	case "$1" in
 		"${commands[0]}")
 
 			# update package list
 			pkg_update
+
+			# reset tracking of newly installed packages
+			ACTUALLY_INSTALLED=()
 
 			# desktops has different default login managers
 			case "$de" in
@@ -66,6 +80,13 @@ function module_desktop() {
 			# install desktop
 			pkg_install -o Dpkg::Options::="--force-confold" armbian-${DISTROID}-desktop-${de}
 
+			# save list of newly installed packages
+			echo "DEBUG desktop: ACTUALLY_INSTALLED has ${#ACTUALLY_INSTALLED[@]} entries" >&2
+			echo "DEBUG desktop: saving to $desktop_pkg_file" >&2
+			mkdir -p /etc/armbian/desktop
+			printf '%s\n' "${ACTUALLY_INSTALLED[@]}" > "$desktop_pkg_file"
+			echo "DEBUG desktop: saved $(wc -l < "$desktop_pkg_file") lines to $desktop_pkg_file" >&2
+
 			# add user to groups
 			for additionalgroup in sudo netdev audio video dialout plugdev input bluetooth systemd-journal ssh; do
 				usermod -aG ${additionalgroup} ${user} 2> /dev/null
@@ -89,7 +110,11 @@ function module_desktop() {
 			fi
 
 			# start new default display manager
-			srv_restart display-manager
+			if srv_active display-manager; then
+				srv_restart display-manager
+			else
+				srv_start display-manager
+			fi
 
 			# enable auto login
 			${module_options["module_desktop,feature"]} ${commands[5]}
@@ -98,9 +123,16 @@ function module_desktop() {
 		"${commands[1]}")
 			# disable auto login
 			${module_options["module_desktop,feature"]} ${commands[6]}
-			# remove destkop
-			srv_stop display-manager
-			pkg_remove ${PACKAGES}
+			# remove desktop
+			srv_active display-manager && srv_stop display-manager
+			if [[ -f "$desktop_pkg_file" ]]; then
+				# remove only packages that were newly installed
+				pkg_remove $(cat "$desktop_pkg_file")
+				rm -f "$desktop_pkg_file"
+			else
+				# fallback: no tracking file, remove full list
+				pkg_remove ${PACKAGES}
+			fi
 			pkg_remove armbian-${DISTROID}-desktop-${de}
 		;;
 		"${commands[2]}")

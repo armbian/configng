@@ -3,7 +3,7 @@ module_options+=(
 	["module_desktop_packages,feature"]="module_desktop"
 	["module_desktop_packages,desc"]="Generate desktop packages list"
 	["module_desktop_packages,de"]="budgie cinnamon deepin enlightenment gnome i3-wm kde-plasma mate xfce xmonad"
-	["module_desktop_packages,release"]="bookworm noble plucky"
+	["module_desktop_packages,release"]="bookworm trixie noble plucky"
 	["module_desktop_packages,status"]="Active"
 	["module_desktop_packages,arch"]="x86-64"
 )
@@ -261,6 +261,22 @@ function module_desktop_packages() {
 			)
 		;;
 		"${release[1]}")
+			# trixie
+			local packages+=(
+				"polkitd"
+				"pkexec"
+			)
+			local packages_remove+=(
+				"apt-xapian-index"
+				"libfontembed1"
+				"pavumeter"
+				"policykit-1"
+				"software-properties-gtk"
+				"update-manager"
+				"update-manager-core"
+			)
+		;;
+		"${release[2]}")
 			# noble
 			local packages+=(
 				"polkitd"
@@ -280,7 +296,7 @@ function module_desktop_packages() {
 				"ubuntu-session"
 			)
 		;;
-		"${release[2]}")
+		"${release[3]}")
 			# plucky
 			local packages+=(
 				"polkitd"
