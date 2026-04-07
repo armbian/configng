@@ -1,4 +1,4 @@
-Xfce is a lightweight, fast, and user-friendly desktop environment for Linux, offering a classic interface, essential apps, and customization. It prioritizes performance, simplicity, and efficiency, making it an excellent choice for devices with limited resources.
+Cinnamon is a Linux desktop environment that provides advanced innovative features and a traditional user experience. The desktop layout is similar to GNOME 2 with underlying technology forked from GNOME Shell. Cinnamon makes users feel at home with an easy-to-use and comfortable desktop experience.
 
 !!! warning "Desktop installation is resource-intensive"
 

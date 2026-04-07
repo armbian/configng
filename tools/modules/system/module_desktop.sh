@@ -19,11 +19,15 @@ module_options+=(
 #
 function module_desktop() {
 
-	# get first non-root user with a login shell, error if none exists
+	# get user who executed this script, fall back to first non-root human user
 	local user
-	user=$(getent passwd | awk -F: '$3 >= 1000 && $3 < 65534 && $7 !~ /nologin|false/ {print $1; exit}')
-	if [[ -z "$user" ]]; then
-		echo "Error: No regular user found. Create a non-root user first." >&2
+	if [[ -n "$SUDO_USER" && "$SUDO_USER" != "root" ]]; then
+		user="$SUDO_USER"
+	else
+		user=$(awk -F: '$3 >= 1000 && $3 < 65534 && $7 !~ /nologin|false/ {print $1; exit}' /etc/passwd)
+	fi
+	if [[ -z "$user" || ! -d "/home/${user}" ]]; then
+		echo "Error: No valid user found for desktop setup." >&2
 		return 1
 	fi
 
@@ -43,12 +47,16 @@ function module_desktop() {
 	# generate and install packages
 	module_desktop_packages "$de" "$DISTROID"
 
+	local desktop_pkg_file="/etc/armbian/desktop/${de}.packages"
+
 	case "$1" in
 		"${commands[0]}")
 
 			# update package list
 			pkg_update
 
+			# reset tracking of newly installed packages
+			ACTUALLY_INSTALLED=()
 			# set up bianbu repo if needed
 			if [[ "$de" == "bianbu" ]]; then
 				local bianbu_ver="v1.0.15"
@@ -108,6 +116,13 @@ function module_desktop() {
 			# install desktop
 			pkg_install -o Dpkg::Options::="--force-confold" armbian-${DISTROID}-desktop-${de}
 
+			# save list of newly installed packages
+			echo "DEBUG desktop: ACTUALLY_INSTALLED has ${#ACTUALLY_INSTALLED[@]} entries" >&2
+			echo "DEBUG desktop: saving to $desktop_pkg_file" >&2
+			mkdir -p /etc/armbian/desktop
+			printf '%s\n' "${ACTUALLY_INSTALLED[@]}" > "$desktop_pkg_file"
+			echo "DEBUG desktop: saved $(wc -l < "$desktop_pkg_file") lines to $desktop_pkg_file" >&2
+
 			# add user to groups
 			for additionalgroup in sudo netdev audio video dialout plugdev input bluetooth systemd-journal ssh; do
 				usermod -aG ${additionalgroup} ${user} 2> /dev/null
@@ -134,7 +149,11 @@ function module_desktop() {
 			fi
 
 			# start new default display manager
-			srv_restart display-manager
+			if srv_active display-manager; then
+				srv_restart display-manager
+			else
+				srv_start display-manager
+			fi
 
 			# enable auto login
 			${module_options["module_desktop,feature"]} ${commands[5]}
@@ -143,8 +162,17 @@ function module_desktop() {
 		"${commands[1]}")
 			# disable auto login
 			${module_options["module_desktop,feature"]} ${commands[6]}
+			# remove desktop
+			srv_active display-manager && srv_stop display-manager
+			if [[ -f "$desktop_pkg_file" ]]; then
+				# remove only packages that were newly installed
+				pkg_remove $(cat "$desktop_pkg_file")
+				rm -f "$desktop_pkg_file"
+			else
+				# fallback: no tracking file, remove full list
+				pkg_remove ${PACKAGES}
+			fi
 			# remove desktop meta-package and display manager, let autoremove handle deps
-			srv_stop display-manager
 			case "$de" in
 				gnome)            pkg_remove gdm3 ;;
 				kde-neon|kde-plasma) pkg_remove sddm ;;
@@ -234,12 +262,18 @@ function module_desktop() {
 			srv_restart display-manager
 		;;
 		"${commands[7]}")
-			# status
-			if [[ -f /etc/gdm3/custom.conf ]] || [[ -f /etc/sddm.conf.d/autologin.conf ]] || [[ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]]; then
-				return 0
-			else
-				return 1
-			fi
+			# login status - check per DE
+			case "$de" in
+				gnome)
+					grep -q '^\s*AutomaticLoginEnable\s*=\s*true' /etc/gdm3/custom.conf 2>/dev/null && return 0 || return 1
+				;;
+				kde-neon|kde-plasma)
+					[[ -f /etc/sddm.conf.d/autologin.conf ]] && return 0 || return 1
+				;;
+				*)
+					[[ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]] && return 0 || return 1
+				;;
+			esac
 		;;
 		"${commands[8]}")
 			show_module_help "module_desktop" "Desktop" \

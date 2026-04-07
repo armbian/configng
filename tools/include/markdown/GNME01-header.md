@@ -1,4 +1,4 @@
-Xfce is a lightweight, fast, and user-friendly desktop environment for Linux, offering a classic interface, essential apps, and customization. It prioritizes performance, simplicity, and efficiency, making it an excellent choice for devices with limited resources.
+GNOME is a modern, user-friendly desktop environment for Linux, offering a clean interface, essential apps, and customization through extensions. It prioritizes simplicity, accessibility, and efficiency.
 
 !!! warning "Desktop installation is resource-intensive"
 
