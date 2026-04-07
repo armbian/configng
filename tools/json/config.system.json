@@ -62,6 +62,20 @@
                             "help": "Device Tree Overlays allow you to dynamically modify the Linux device tree at runtime, without."
                         },
                         {
+                            "id": "DTE001",
+                            "description": "Edit device tree",
+                            "short": "Device Tree Editor",
+                            "module": "module_devicetree_edit",
+                            "about": "This will allow you to decompile, edit, and recompile device tree blobs. Incorrect changes can prevent the system from booting!",
+                            "command": [
+                                "module_devicetree_edit edit"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "[ -d /boot/dtb/ ]",
+                            "help": "Edit device tree blobs by decompiling DTB to DTS source, editing with a text editor, and recompiling. Creates automatic backups before any modification."
+                        },
+                        {
                             "id": "ODR001",
                             "description": "Select Odroid board configuration",
                             "short": "Odroid Boards Config",
