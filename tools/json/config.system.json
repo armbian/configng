@@ -112,49 +112,50 @@
                         {
                             "id": "CINMDE",
                             "description": "Cinnamon desktop",
+                            "status": "Disabled",
                             "sub": [
                                 {
                                     "id": "CINM01",
                                     "description": "Cinnamon desktop Install",
                                     "command": [
-                                        "manage_desktops 'cinnamon' 'install'"
+                                        "module_desktop install de=cinnamon"
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ ! -f /usr/share/xsessions/cinnamon.desktop ] && [ ! -f /usr/share/xsessions/cinnamon2d.desktop ]",
+                                    "condition": "! module_desktop status de=cinnamon",
                                     "help": "Cinnamon desktop Install"
                                 },
                                 {
                                     "id": "CINM02",
                                     "description": "Cinnamon desktop uninstall",
                                     "command": [
-                                        "manage_desktops 'cinnamon' 'uninstall'"
+                                        "module_desktop remove de=cinnamon"
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] || [ -f /usr/share/xsessions/cinnamon2d.desktop ]",
+                                    "condition": "module_desktop status de=cinnamon",
                                     "help": "Cinnamon desktop uninstall"
                                 },
                                 {
                                     "id": "CINM03",
                                     "description": "Enable autologin",
                                     "command": [
-                                        "manage_desktops 'cinnamon' 'auto'"
+                                        "module_desktop auto de=cinnamon"
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]",
+                                    "condition": "module_desktop status de=cinnamon && ! module_desktop login de=cinnamon",
                                     "help": "Enable autologin"
                                 },
                                 {
                                     "id": "CINM04",
                                     "description": "Disable autologin",
                                     "command": [
-                                        "manage_desktops 'cinnamon' 'manual'"
+                                        "module_desktop manual de=cinnamon"
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/cinnamon.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]",
+                                    "condition": "module_desktop status de=cinnamon && module_desktop login de=cinnamon",
                                     "help": "Disable autologin"
                                 }
                             ],
@@ -194,7 +195,7 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "module_desktop status de=gnome && ! module_desktop login",
+                                    "condition": "module_desktop status de=gnome && ! module_desktop login de=gnome",
                                     "help": "Enable autologin"
                                 },
                                 {
@@ -205,7 +206,7 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "module_desktop status de=gnome && module_desktop login",
+                                    "condition": "module_desktop status de=gnome && module_desktop login de=gnome",
                                     "help": "Disable autologin"
                                 }
                             ],
@@ -220,44 +221,44 @@
                                     "id": "I3WM01",
                                     "description": "i3 desktop Install",
                                     "command": [
-                                        "manage_desktops 'i3-wm' 'install'"
+                                        "module_desktop install de=i3-wm"
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ ! -f /usr/share/xsessions/i3.desktop ]",
+                                    "condition": "! module_desktop status de=i3-wm",
                                     "help": "i3 desktop Install"
                                 },
                                 {
                                     "id": "I3WM02",
                                     "description": "i3 desktop uninstall",
                                     "command": [
-                                        "manage_desktops 'i3-wm' 'uninstall'"
+                                        "module_desktop remove de=i3-wm"
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/i3.desktop ]",
+                                    "condition": "module_desktop status de=i3-wm",
                                     "help": "i3 desktop uninstall"
                                 },
                                 {
                                     "id": "I3WM03",
                                     "description": "Enable autologin",
                                     "command": [
-                                        "manage_desktops 'i3-wm' 'auto'"
+                                        "module_desktop auto de=i3-wm"
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/i3.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]",
+                                    "condition": "module_desktop status de=i3-wm && ! module_desktop login de=i3-wm",
                                     "help": "Enable autologin"
                                 },
                                 {
                                     "id": "I3WM04",
                                     "description": "Disable autologin",
                                     "command": [
-                                        "manage_desktops 'i3-wm' 'manual'"
+                                        "module_desktop manual de=i3-wm"
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/i3.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]",
+                                    "condition": "module_desktop status de=i3-wm && module_desktop login de=i3-wm",
                                     "help": "Disable autologin"
                                 }
                             ],
@@ -272,44 +273,44 @@
                                     "id": "KDEN01",
                                     "description": "Kde-neon desktop Install",
                                     "command": [
-                                        "manage_desktops 'kde-neon' 'install'"
+                                        "module_desktop install de=kde-neon"
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ ! -f /usr/share/xsessions/gnome.desktop ]",
+                                    "condition": "! module_desktop status de=kde-neon",
                                     "help": "Kde-neon desktop Install"
                                 },
                                 {
                                     "id": "KDEN02",
                                     "description": "Uninstall",
                                     "command": [
-                                        "manage_desktops 'kde-neon' 'uninstall'"
+                                        "module_desktop remove de=kde-neon"
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ]",
+                                    "condition": "module_desktop status de=kde-neon",
                                     "help": "Uninstall"
                                 },
                                 {
                                     "id": "KDEN03",
                                     "description": "Enable autologin",
                                     "command": [
-                                        "manage_desktops 'kde-neon' 'auto'"
+                                        "module_desktop auto de=kde-neon"
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && [ ! -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]",
+                                    "condition": "module_desktop status de=kde-neon && ! module_desktop login de=kde-neon",
                                     "help": "Enable autologin"
                                 },
                                 {
                                     "id": "KDEN04",
                                     "description": "Disable autologin",
                                     "command": [
-                                        "manage_desktops 'kde-neon' 'manual'"
+                                        "module_desktop manual de=kde-neon"
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "[ -f /usr/share/xsessions/gnome.desktop ] && [ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]",
+                                    "condition": "module_desktop status de=kde-neon && module_desktop login de=kde-neon",
                                     "help": "Disable autologin"
                                 }
                             ],
@@ -350,7 +351,7 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "module_desktop status de=xfce && ! module_desktop login",
+                                    "condition": "module_desktop status de=xfce && ! module_desktop login de=xfce",
                                     "help": "Enable autologin"
                                 },
                                 {
@@ -361,7 +362,7 @@
                                     ],
                                     "status": "Stable",
                                     "author": "@igorpecovnik",
-                                    "condition": "module_desktop status de=xfce && module_desktop login",
+                                    "condition": "module_desktop status de=xfce && module_desktop login de=xfce",
                                     "help": "Disable autologin"
                                 }
                             ],

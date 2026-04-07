@@ -1,17 +1,23 @@
 module_options+=(
 	["module_desktop,author"]="@igorpecovnik"
 	["module_desktop,feature"]="module_desktop"
-	["module_desktop,desc"]="XFCE desktop packages"
+	["module_desktop,desc"]="Install and manage desktop environments"
 	["module_desktop,example"]="install remove disable enable status auto manual login help"
 	["module_desktop,status"]="Active"
 	["module_desktop,arch"]="x86-64"
+	["module_desktop,help_install"]="Install desktop environment (de=xfce|gnome|cinnamon|mate|i3-wm|budgie|kde-plasma|kde-neon)"
+	["module_desktop,help_remove"]="Remove desktop environment"
+	["module_desktop,help_disable"]="Disable display manager"
+	["module_desktop,help_enable"]="Enable display manager"
+	["module_desktop,help_status"]="Check if display manager is running"
+	["module_desktop,help_auto"]="Enable auto-login"
+	["module_desktop,help_manual"]="Disable auto-login"
+	["module_desktop,help_login"]="Check auto-login status"
 )
 #
 # Module install and configure desktop
 #
 function module_desktop() {
-	local title="test"
-	local condition=$(which "$title" 2>/dev/null)
 
 	# get user who executed this script, fall back to first non-root human user
 	local user
@@ -25,17 +31,14 @@ function module_desktop() {
 		return 1
 	fi
 
-	# read additional parameters from command line
+	# read desktop environment from command line parameters (de=xfce, de=gnome, etc.)
+	local de="xfce"
 	local parameter
 	IFS=' ' read -r -a parameter <<< "${2}"
-	for feature in de; do
-	for selected in ${parameter[@]}; do
+	for selected in "${parameter[@]}"; do
 		IFS='=' read -r -a split <<< "${selected}"
-		[[ ${split[0]} == $feature ]] && eval "$feature=${split[1]}"
-		done
+		[[ "${split[0]}" == "de" ]] && de="${split[1]}"
 	done
-
-	local de="${de:-xfce}" # DE
 
 	# Convert the example string to an array
 	local commands
@@ -54,6 +57,39 @@ function module_desktop() {
 
 			# reset tracking of newly installed packages
 			ACTUALLY_INSTALLED=()
+			# set up bianbu repo if needed
+			if [[ "$de" == "bianbu" ]]; then
+				local bianbu_ver="v1.0.15"
+				local bianbu_url="https://archive.spacemit.com/bianbu-ports"
+				local bianbu_keyring="/usr/share/keyrings/bianbu-archive-keyring.gpg"
+
+				# import GPG key
+				curl -fsSL "${bianbu_url}/bianbu-archive-keyring.gpg" -o "$bianbu_keyring"
+
+				# add sources
+				cat > /etc/apt/sources.list.d/bianbu.list <<- EOF
+				deb [signed-by=${bianbu_keyring}] ${bianbu_url}/ mantic-spacemit/snapshots/${bianbu_ver} main universe multiverse restricted
+				deb [signed-by=${bianbu_keyring}] ${bianbu_url}/ mantic-porting/snapshots/${bianbu_ver} main universe multiverse restricted
+				deb [signed-by=${bianbu_keyring}] ${bianbu_url}/ mantic-customization/snapshots/${bianbu_ver} main universe multiverse restricted
+				EOF
+
+				# pin spacemit packages higher
+				cat > /etc/apt/preferences.d/bianbu <<- EOF
+				Package: *
+				Pin: release o=spacemit,a=mantic-spacemit
+				Pin-Priority: 1200
+
+				Package: *
+				Pin: release o=spacemit,a=mantic-porting
+				Pin-Priority: 1100
+
+				Package: *
+				Pin: release o=spacemit,a=mantic-customization
+				Pin-Priority: 1100
+				EOF
+
+				pkg_update
+			fi
 
 			# desktops has different default login managers
 			case "$de" in
@@ -63,11 +99,11 @@ function module_desktop() {
 					pkg_install -o Dpkg::Options::="--force-confold" ${PACKAGES_UNINSTALL}
 					pkg_install -o Dpkg::Options::="--force-confold" gdm3
 				;;
-				kde-neon)
+				kde-neon|kde-plasma)
 					echo "/usr/sbin/sddm" > /etc/X11/default-display-manager
 					pkg_install -o Dpkg::Options::="--force-confold" ${PACKAGES}
 					pkg_install -o Dpkg::Options::="--force-confold" ${PACKAGES_UNINSTALL}
-					pkg_install -o Dpkg::Options::="--force-confold" kde-standard
+					pkg_install -o Dpkg::Options::="--force-confold" sddm
 				;;
 				*)
 					echo "/usr/sbin/lightdm" > /etc/X11/default-display-manager
@@ -92,10 +128,13 @@ function module_desktop() {
 				usermod -aG ${additionalgroup} ${user} 2> /dev/null
 			done
 			# set up profile sync daemon on desktop systems
-			which psd > /dev/null 2>&1
-			if [[ $? -eq 0 && -z $(grep overlay-helper /etc/sudoers) ]]; then
-				echo "${user} ALL=(ALL) NOPASSWD: /usr/bin/psd-overlay-helper" >> /etc/sudoers
-				touch /home/${user}/.activate_psd
+			local user_home
+			user_home=$(getent passwd "${user}" | cut -d: -f6)
+			if command -v psd > /dev/null 2>&1; then
+				if ! grep -q overlay-helper /etc/sudoers; then
+					echo "${user} ALL=(ALL) NOPASSWD: /usr/bin/psd-overlay-helper" >> /etc/sudoers
+				fi
+				touch "${user_home}/.activate_psd"
 			fi
 			# update skel
 			update_skel
@@ -133,6 +172,12 @@ function module_desktop() {
 				# fallback: no tracking file, remove full list
 				pkg_remove ${PACKAGES}
 			fi
+			# remove desktop meta-package and display manager, let autoremove handle deps
+			case "$de" in
+				gnome)            pkg_remove gdm3 ;;
+				kde-neon|kde-plasma) pkg_remove sddm ;;
+				*)        pkg_remove lightdm ;;
+			esac
 			pkg_remove armbian-${DISTROID}-desktop-${de}
 		;;
 		"${commands[2]}")
@@ -155,7 +200,7 @@ function module_desktop() {
 						return 1
 					fi
 				;;
-				kde-neon)
+				kde-neon|kde-plasma)
 					if srv_active sddm; then
 						return 0
 					else
@@ -183,7 +228,7 @@ function module_desktop() {
 					AutomaticLogin = ${user}
 					EOF
 				;;
-				kde-neon)
+				kde-neon|kde-plasma)
 					# sddm autologin
 					mkdir -p "/etc/sddm.conf.d/"
 					cat <<- EOF > "/etc/sddm.conf.d/autologin.conf"
@@ -209,37 +254,34 @@ function module_desktop() {
 		"${commands[6]}")
 			# manual login, disable auto-login
 			case "$de" in
-				gnome)    rm -f /etc/gdm3/custom.conf ;;
-				kde-neon) rm -f /etc/sddm.conf.d/autologin.conf ;;
+				gnome)            rm -f /etc/gdm3/custom.conf ;;
+				kde-neon|kde-plasma) rm -f /etc/sddm.conf.d/autologin.conf ;;
 				*)        rm -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ;;
 			esac
 			# restart after selection
 			srv_restart display-manager
 		;;
 		"${commands[7]}")
-			# status
-			if [[ -f /etc/gdm3/custom.conf ]] || [[ -f /etc/sddm.conf.d/autologin.conf ]] || [[ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]]; then
-				return 0
-			else
-				return 1
-			fi
+			# login status - check per DE
+			case "$de" in
+				gnome)
+					grep -q '^\s*AutomaticLoginEnable\s*=\s*true' /etc/gdm3/custom.conf 2>/dev/null && return 0 || return 1
+				;;
+				kde-neon|kde-plasma)
+					[[ -f /etc/sddm.conf.d/autologin.conf ]] && return 0 || return 1
+				;;
+				*)
+					[[ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]] && return 0 || return 1
+				;;
+			esac
 		;;
 		"${commands[8]}")
-			echo -e "\nUsage: ${module_options["module_desktop,feature"]} <command>"
-			echo -e "Commands:  ${module_options["module_desktop,example"]}"
-			echo "Available commands:"
-			echo -e "\tinstall\t- Generate packages for $title."
-			echo -e "\tremove\t-  Generate packages for $title."
-			echo -e "\tdisable\t- Generate packages for $title."
-			echo -e "\tenable\t-  Generate packages for $title."
-			echo -e "\tstatus\t-  Generate packages for $title."
-
-			echo -e "\nAvailable switches:\n"
-			echo -e "\tkvmprefix\t- Name prefix (default = kvmtest)"
-			echo
+			show_module_help "module_desktop" "Desktop" \
+				"Available desktops: ${module_options["module_desktop_packages,de"]}\nExample: module_desktop install de=gnome" "native"
 		;;
 		*)
-			${module_options["module_desktop,feature"]} ${commands[8]}
+			show_module_help "module_desktop" "Desktop" \
+				"Available desktops: ${module_options["module_desktop_packages,de"]}\nExample: module_desktop install de=gnome" "native"
 		;;
 	esac
 }
