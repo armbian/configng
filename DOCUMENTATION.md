@@ -17,6 +17,7 @@ sudo armbian-config
     - ### Install Linux headers
     - ### Remove Linux headers
     - ### Manage device tree overlays
+    - ### Edit device tree
     - ### Select Odroid board configuration
     - ### Edit the boot environment
 
@@ -397,6 +398,7 @@ Outputs:
 	--cmd HEAD01 - Install Linux headers
 	--cmd HEAD02 - Remove Linux headers
 	--cmd DTO001 - Manage device tree overlays
+	--cmd DTE001 - Edit device tree
 	--cmd ODR001 - Select Odroid board configuration
 	--cmd BOOT01 - Edit the boot environment
     Storage - Install to internal media, ZFS, NFS, read-only rootfs
@@ -1157,6 +1159,7 @@ parse_menu_items 'menu_options_array' --with-help | @viraniac
 | Install NetBox container (IPAM/DCIM tool) | install remove purge status help |  
 | Install sabnzbd container | install remove purge status help | @armbian 
 | Mask service | srv_mask ssh.service | @dimitry-ishenko 
+| Edit device tree source and compile | install remove status edit help | @igorpecovnik 
 | Show service status information | srv_status ssh.service | @dimitry-ishenko 
 | Install Redis in a container (In-Memory Data Store) | install remove purge status help | @armbian 
 | Stop service | srv_stop ssh.service | @dimitry-ishenko 
