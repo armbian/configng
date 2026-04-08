@@ -329,7 +329,6 @@
                             "sub": [
                                 {
                                     "id": "XFCE01",
-                                    "about": "Install XFCE:\n\nXfce is a lightweight desktop environment for UNIX-like operating systems. It aims to be fast and low on system resources, while still being visually appealing and user friendly.",
                                     "description": "XFCE desktop Install",
                                     "command": [
                                         "module_desktop install de=xfce"
