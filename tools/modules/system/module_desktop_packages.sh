@@ -411,8 +411,13 @@ function module_desktop_packages() {
 			)
 			packages_remove+=(
 				"ristretto"
+				"thunar-bulk-rename"
 				"xfburn"
+				"xfce4-clipman"
+				"xfce4-clipman-plugin"
 				"xfce4-dict"
+				"xfce4-notes"
+				"xfce4-notes-plugin"
 				"xfce4-terminal"
 				"xsensors"
 			)
