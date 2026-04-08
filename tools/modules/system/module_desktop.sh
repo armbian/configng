@@ -77,10 +77,10 @@ function install_desktop_branding() {
 		cp -R "$branding_dir/sddm/themes/"* /usr/share/sddm/themes/
 	fi
 
-	# DE-specific postinst script
+	# DE-specific postinst script (run with set +e for compatibility with legacy scripts)
 	if [[ -f "$branding_dir/postinst/${de}.sh" ]]; then
 		dialog_infobox "Desktop" "Running ${de} post-install configuration..."
-		bash "$branding_dir/postinst/${de}.sh"
+		bash -c "set +e; source '$branding_dir/postinst/${de}.sh'"
 	fi
 }
 
