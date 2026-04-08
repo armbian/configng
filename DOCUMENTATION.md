@@ -23,6 +23,7 @@ sudo armbian-config
 
 
   - ### Install, remove and configure desktop environments
+    - ### Cinnamon - traditional layout with modern features
     - ### GNOME - modern, full-featured desktop
     - ### XFCE - lightweight and fast desktop
 
@@ -407,6 +408,11 @@ Outputs:
 	--cmd ODR001 - Select Odroid board configuration
 	--cmd BOOT01 - Edit the boot environment
     Desktops - Install, remove and configure desktop environments
+      CINMDE - Cinnamon - traditional layout with modern features
+	--cmd CINM01 - Cinnamon desktop Install
+	--cmd CINM02 - Cinnamon desktop uninstall
+	--cmd CINM03 - Enable autologin
+	--cmd CINM04 - Disable autologin
       GNOMDE - GNOME - modern, full-featured desktop
 	--cmd GNME01 - Gnome desktop Install
 	--cmd GNME02 - Uninstall
