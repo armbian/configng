@@ -409,6 +409,10 @@ function module_desktop_packages() {
 				"xdg-user-dirs"
 				"xdg-user-dirs-gtk"
 			)
+			packages_remove+=(
+				"xfce4-terminal"
+				"xsensors"
+			)
 			architecture=(
 				"arm64"
 				"amd64"
