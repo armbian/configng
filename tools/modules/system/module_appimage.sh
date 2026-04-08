@@ -68,6 +68,9 @@ function module_appimage() {
 				return 1
 			fi
 
+			# ensure FUSE support for AppImages
+			pkg_install libfuse2
+
 			# get latest release download URL
 			local download_url
 			download_url=$(curl -sL "https://api.github.com/repos/${repo}/releases/latest" | \
