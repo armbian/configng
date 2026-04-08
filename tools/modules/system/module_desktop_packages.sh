@@ -88,7 +88,6 @@ function module_desktop_packages() {
 				"spice-vdagent"
 				"system-config-printer"
 				"viewnior"
-				"xarchiver"
 				"xdg-user-dirs"
 				"xdg-user-dirs-gtk"
 			)
@@ -126,7 +125,6 @@ function module_desktop_packages() {
 				"spice-vdagent"
 				"system-config-printer"
 				"viewnior"
-				"xarchiver"
 				"xdg-user-dirs"
 			)
 			architecture=(
@@ -348,7 +346,6 @@ function module_desktop_packages() {
 				"spice-vdagent"
 				"system-config-printer"
 				"viewnior"
-				"xarchiver"
 				"xdg-user-dirs"
 				"xdg-user-dirs-gtk"
 			)
@@ -397,7 +394,6 @@ function module_desktop_packages() {
 				"system-config-printer"
 				"thunar-volman"
 				"viewnior"
-				"xarchiver"
 				"xdg-user-dirs"
 				"xdg-user-dirs-gtk"
 			)
