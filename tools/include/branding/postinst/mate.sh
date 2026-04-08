@@ -125,6 +125,12 @@ icon-theme='Numix'
 [org.mate.Marco.general]
 theme='Numix'
 num-workspaces=2
+
+[org.mate.caja.desktop]
+home-icon-visible=false
+computer-icon-visible=false
+trash-icon-visible=false
+volumes-visible=false
 GSEOF
 
 # Let NetworkManager coexist with systemd-networkd
