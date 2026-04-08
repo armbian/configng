@@ -77,17 +77,14 @@ function install_desktop_branding() {
 		cp -R "$branding_dir/sddm/themes/"* /usr/share/sddm/themes/
 	fi
 
-	# DE-specific postinst script (only run on real systems, skip in headless/CI)
+	# DE-specific postinst script (skip inside containers / CI)
 	if [[ -f "$branding_dir/postinst/${de}.sh" ]]; then
-		echo "DEBUG: DISPLAY='${DISPLAY:-}' /dev/tty1 exists=$(test -e /dev/tty1 && echo yes || echo no)" >&2
-		if [[ -n "${DISPLAY:-}" || -e /dev/tty1 ]]; then
+		if [[ -f /.dockerenv || -f /run/.containerenv || -n "${CI:-}" || -n "${GITHUB_ACTIONS:-}" ]]; then
+			echo "Skipping ${de} postinst (running inside container/CI)" >&2
+		else
 			dialog_infobox "Desktop" "Running ${de} post-install configuration..."
 			bash "$branding_dir/postinst/${de}.sh" || true
-		else
-			echo "DEBUG: Skipping postinst (no display/tty1)" >&2
 		fi
-	else
-		echo "DEBUG: No postinst script found at $branding_dir/postinst/${de}.sh" >&2
 	fi
 }
 
