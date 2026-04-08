@@ -15,6 +15,11 @@ declare -A APPIMAGE_REPO=(
 	["armbian-imager"]="armbian/imager"
 )
 
+# AppImage display names
+declare -A APPIMAGE_NAME=(
+	["armbian-imager"]="Armbian Imager"
+)
+
 # AppImage arch mapping: dpkg arch -> AppImage arch suffix
 declare -A APPIMAGE_ARCH=(
 	["arm64"]="aarch64"
@@ -84,11 +89,12 @@ function module_appimage() {
 			ln -sf "${APPIMAGE_DIR}/${filename}" "${APPIMAGE_DIR}/${app}"
 
 			# create desktop entry
+			local display_name="${APPIMAGE_NAME[$app]:-$app}"
 			cat > "${APPIMAGE_DESKTOP_DIR}/${app}.desktop" <<- EOF
 			[Desktop Entry]
 			Version=1.0
 			Type=Application
-			Name=${app}
+			Name=${display_name}
 			Exec=${APPIMAGE_DIR}/${app}
 			Icon=/usr/share/pixmaps/armbian/armbian.png
 			Terminal=false
