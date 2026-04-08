@@ -409,9 +409,8 @@ function module_desktop_packages() {
 				"xdg-user-dirs"
 				"xdg-user-dirs-gtk"
 			)
-			packages_remove+=(
+			packages_uninstall+=(
 				"ristretto"
-				"thunar-bulk-rename"
 				"xfburn"
 				"xfce4-clipman"
 				"xfce4-clipman-plugin"

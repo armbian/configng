@@ -187,6 +187,11 @@ function module_desktop() {
 				;;
 			esac
 
+			# remove unwanted packages pulled in by meta-packages
+			if [[ -n "${PACKAGES_UNINSTALL}" ]]; then
+				pkg_remove ${PACKAGES_UNINSTALL}
+			fi
+
 			# install armbian desktop branding
 			install_desktop_branding "$de"
 
