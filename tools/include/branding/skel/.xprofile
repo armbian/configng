@@ -1,0 +1,5 @@
+#!/bin/sh
+feh --bg-scale /usr/share/backgrounds/armbian/armbian03-Dre0x-Minum-dark-3840x2160.jpg &
+xmobar &
+nm-applet &
+dunst &
