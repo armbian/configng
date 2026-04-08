@@ -60,7 +60,45 @@ logout-enabled=false
 plug-enabled=false
 switch-enabled=false
 tile-enabled=false
-unplug-enabled=false" >> $keys
+unplug-enabled=false
+
+[org/mate/panel/general]
+object-id-list=['menu-bar', 'notification-area', 'clock', 'show-desktop-button']
+toplevel-id-list=['top']
+
+[org/mate/panel/toplevels/top]
+expand=true
+orientation='top'
+size=24
+
+[org/mate/panel/objects/menu-bar]
+locked=true
+toplevel-id='top'
+position=0
+object-type='menu-bar'
+
+[org/mate/panel/objects/notification-area]
+locked=true
+toplevel-id='top'
+position=10
+panel-right-stick=true
+object-type='applet'
+applet-iid='NotificationAreaAppletFactory::NotificationArea'
+
+[org/mate/panel/objects/clock]
+locked=true
+toplevel-id='top'
+position=0
+panel-right-stick=true
+object-type='applet'
+applet-iid='ClockAppletFactory::ClockApplet'
+
+[org/mate/panel/objects/show-desktop-button]
+locked=true
+toplevel-id='top'
+position=1
+object-type='applet'
+applet-iid='WnckletFactory::ShowDesktopApplet'" >> $keys
 
 echo "user-db:user
 system-db:local" >> $profile
