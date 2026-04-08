@@ -191,6 +191,7 @@ function module_desktop() {
 			install_desktop_branding "$de"
 
 			# add user to groups
+			echo "add user to groups"
 			for additionalgroup in sudo netdev audio video dialout plugdev input bluetooth systemd-journal ssh; do
 				usermod -aG ${additionalgroup} ${user} 2> /dev/null
 			done
@@ -215,15 +216,17 @@ function module_desktop() {
 				srv_stop sddm
 			fi
 
-			# start new default display manager
-			if srv_active display-manager; then
-				srv_restart display-manager
-			else
-				srv_start display-manager
-			fi
+			# start new default display manager (skip in containers)
+			if [[ ! -f /.dockerenv && ! -f /run/.containerenv && -z "${CI:-}" ]]; then
+				if srv_active display-manager; then
+					srv_restart display-manager
+				else
+					srv_start display-manager
+				fi
 
-			# enable auto login
-			${module_options["module_desktop,feature"]} ${commands[5]}
+				# enable auto login
+				${module_options["module_desktop,feature"]} ${commands[5]}
+			fi
 		;;
 
 		"${commands[1]}")
@@ -245,7 +248,6 @@ function module_desktop() {
 				kde-neon|kde-plasma) pkg_remove sddm ;;
 				*)        pkg_remove lightdm ;;
 			esac
-			pkg_remove armbian-${DISTROID}-desktop-${de}
 		;;
 		"${commands[2]}")
 			# disable
