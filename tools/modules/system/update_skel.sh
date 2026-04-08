@@ -8,16 +8,17 @@ module_options+=(
 	["update_skel,status"]="Active"
 )
 #
-# check dpkg status of $1 -- currently only 'not installed at all' case caught
+# Copy /etc/skel files into existing user home directories (skip existing files)
 #
 function update_skel() {
 
 	getent passwd |
 		while IFS=: read -r username x uid gid gecos home shell; do
-			if [ ! -d "$home" ] || [ "$username" == 'root' ] || [ "$uid" -lt 1000 ]; then
+			if [ ! -d "$home" ] || [ "$username" == 'root' ] || [ "$uid" -lt 1000 ] || [ "$uid" -ge 65534 ]; then
 				continue
 			fi
-			tar -C /etc/skel/ -cf - . | su - "$username" -c "tar --skip-old-files -xf -"
+			cp -rn /etc/skel/. "$home/"
+			chown -R "$uid:$gid" "$home/"
 		done
 
 }
