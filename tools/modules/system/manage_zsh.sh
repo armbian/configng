@@ -28,7 +28,7 @@ function manage_zsh() {
 		sed -i "s|^SHELL=.*|SHELL=/bin/zsh|" /etc/default/useradd
 		sed -i -E "s|(^\|#)DSHELL=.*|DSHELL=/bin/zsh|" /etc/adduser.conf
 
-		update_skel
+		module_update_skel install
 
 		# change shell for root
 		usermod --shell "/bin/zsh" root

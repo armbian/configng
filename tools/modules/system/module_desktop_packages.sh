@@ -2,8 +2,8 @@ module_options+=(
 	["module_desktop_packages,author"]="@igorpecovnik"
 	["module_desktop_packages,feature"]="module_desktop"
 	["module_desktop_packages,desc"]="Generate desktop packages list"
-	["module_desktop_packages,de"]="budgie cinnamon deepin enlightenment gnome i3-wm kde-plasma mate xfce xmonad"
-	["module_desktop_packages,release"]="bookworm noble plucky"
+	["module_desktop_packages,de"]="bianbu budgie cinnamon deepin enlightenment gnome i3-wm kde-neon kde-plasma mate xfce xmonad"
+	["module_desktop_packages,release"]="bookworm trixie noble plucky"
 	["module_desktop_packages,status"]="Active"
 	["module_desktop_packages,arch"]="x86-64"
 )
@@ -11,236 +11,441 @@ module_options+=(
 # Module desktop packages
 #
 function module_desktop_packages() {
-	local title="test"
-	local condition=$(which "$title" 2>/dev/null)
 
 	# Convert the example string to an array
 	local de
 	IFS=' ' read -r -a de <<< "${module_options["module_desktop_packages,de"]}"
 
+	local packages=()
+	local packages_remove=()
+	local packages_uninstall=()
+	local architecture=()
+	local supported=()
+
 	# Common desktop packages
-	local packages+=(
-			"anacron"
+	packages=(
 			"cups"
-			"eject"
-			"printer-driver-all"
 			"profile-sync-daemon"
-			"system-config-printer"
 			"terminator"
 			"upower"
-			"xarchiver"
 		)
 
 	case "$1" in
 		"${de[0]}")
-			# budgie
+			# bianbu (RISC-V only, SpacemiT)
+			packages+=(
+				"bianbu-desktop"
+				"bianbu-desktop-en"
+				"bianbu-desktop-zh"
+				"bianbu-desktop-minimal-en"
+				"bianbu-standard"
+				"bianbu-development"
+				"bianbu-esos"
+				"img-gpu-powervr"
+				"k1x-vpu-firmware"
+				"k1x-cam"
+				"spacemit-uart-bt"
+				"spacemit-modules-usrload"
+				"opensbi-spacemit"
+				"u-boot-spacemit"
+				"linux-image-6.1.15"
+			)
+			architecture=(
+				"riscv64"
+			)
+			supported=(
+				"unsupported"
+			)
 		;;
 		"${de[1]}")
-			# cinnamon
-		;;
-		"${de[2]}")
-			# deepin
-		;;
-		"${de[3]}")
-			# enlightenment
-		;;
-		"${de[4]}")
-			# gnome
-			local packages+=(
-				"apt-xapian-index"
-				"at-spi2-core"
-				"colord"
+			# budgie - use meta-packages for clean install/removal
+			packages+=(
+				"budgie-desktop"
+				"budgie-desktop-environment"
+				"lightdm"
+				"slick-greeter"
+				"xserver-xorg"
+				"blueman"
+				"bluez"
+				"bluez-tools"
 				"dbus-x11"
-				"dconf-cli"
-				"dmz-cursor-theme"
-				"foomatic-db-compressed-ppds"
-				"fonts-noto-cjk"
-				"fonts-ubuntu"
-				"fonts-ubuntu-console"
+				"evince"
 				"gdebi"
-				"gdm3"
-				"gnome-control-center"
-				"gnome-desktop3-data"
 				"gnome-disk-utility"
-				"gnome-disk-utility"
-				"gnome-keyring"
-				"gnome-menus"
-				"gnome-packagekit"
 				"gnome-screenshot"
-				"gnome-session"
-				"gnome-shell"
-				"gnome-shell-extension-appindicator"
-				"gnome-system-monitor"
 				"gnome-terminal"
 				"gvfs-backends"
-				"inputattach"
-				"libnotify-bin"
 				"lm-sensors"
-				"nautilus"
-				"nautilus-extension-gnome-terminal"
+				"nemo"
+				"numix-gtk-theme"
+				"numix-icon-theme"
+				"numix-icon-theme-circle"
+				"pavucontrol"
+				"plank"
+				"printer-driver-all"
+				"pulseaudio"
+				"pulseaudio-module-bluetooth"
+				"spice-vdagent"
+				"system-config-printer"
+				"viewnior"
+				"xdg-user-dirs"
+				"xdg-user-dirs-gtk"
+			)
+			architecture=(
+				"arm64"
+				"amd64"
+			)
+			supported=(
+				"unsupported"
+			)
+		;;
+		"${de[2]}")
+			# cinnamon - use meta-packages for clean install/removal
+			packages+=(
+				"cinnamon"
+				"cinnamon-desktop-environment"
+				"lightdm"
+				"slick-greeter"
+				"blueman"
+				"bluez"
+				"bluez-tools"
+				"dbus-x11"
+				"gdebi"
+				"gnome-disk-utility"
+				"gnome-system-monitor"
+				"gvfs-backends"
+				"lm-sensors"
+				"numix-gtk-theme"
+				"numix-icon-theme"
+				"numix-icon-theme-circle"
+				"pavucontrol"
+				"printer-driver-all"
+				"pulseaudio"
+				"pulseaudio-module-bluetooth"
+				"spice-vdagent"
+				"system-config-printer"
+				"viewnior"
+				"xdg-user-dirs"
+			)
+			architecture=(
+				"arm64"
+				"amd64"
+			)
+			supported=(
+				"supported"
+			)
+		;;
+		"${de[3]}")
+			# deepin (DDE)
+			packages+=(
+				"dde-control-center"
+				"dde-daemon"
+				"dde-desktop"
+				"dde-dock"
+				"dde-file-manager"
+				"dde-launcher"
+				"dde-polkit-agent"
+				"dde-qt5integration"
+				"dde-session-ui"
+				"deepin-desktop-base"
+				"deepin-desktop-schemas"
+				"deepin-gtk-theme"
+				"deepin-icon-theme"
+				"deepin-sound-theme"
+				"deepin-terminal"
+				"deepin-wm"
+				"startdde"
+				"lightdm"
+				"slick-greeter"
+				"xserver-xorg"
+				"bluez"
+				"dbus-x11"
+				"gvfs-backends"
+				"lm-sensors"
 				"pavucontrol"
 				"pulseaudio"
 				"pulseaudio-module-bluetooth"
-				"software-properties-gtk"
-				"synaptic"
-				"x11-apps"
-				"x11-session-utils"
-				"x11-utils"
-				"x11-xserver-utils"
+				"spice-vdagent"
+				"xdg-user-dirs"
+			)
+			architecture=(
+				"arm64"
+				"amd64"
+			)
+			supported=(
+				"unsupported"
+			)
+		;;
+		"${de[4]}")
+			# enlightenment (EFL-based desktop)
+			packages+=(
+				"enlightenment"
+				"terminology"
+				"lightdm"
+				"slick-greeter"
+				"xserver-xorg"
+				"bluez"
+				"dbus-x11"
+				"gvfs-backends"
+				"lm-sensors"
+				"pavucontrol"
+				"pulseaudio"
+				"pulseaudio-module-bluetooth"
+				"thunar"
+				"xdg-user-dirs"
+			)
+			architecture=(
+				"arm64"
+				"amd64"
+			)
+			supported=(
+				"supported"
+			)
+		;;
+		"${de[5]}")
+			# gnome - use meta-packages for clean install/removal
+			packages+=(
+				"gnome-session"
+				"gnome-shell"
+				"gnome-control-center"
+				"gnome-system-monitor"
+				"gnome-disk-utility"
+				"gnome-shell-extension-appindicator"
+				"gdm3"
+				"nautilus"
+				"network-manager-gnome"
+				"dbus-x11"
+				"gvfs-backends"
+				"lm-sensors"
+				"pulseaudio"
+				"pulseaudio-module-bluetooth"
 				"xdg-user-dirs"
 				"xdg-user-dirs-gtk"
-				"xfonts-base"
 				"xserver-xorg"
 				"xwayland"
 				"zenity"
 			)
-		;;
-		"${de[5]}")
-			# i3-wm
+			architecture=(
+				"arm64"
+				"amd64"
+			)
+			supported=(
+				"supported"
+			)
 		;;
 		"${de[6]}")
-			# kde-plasma
-		;;
-		"${de[7]}")
-			# mate
-		;;
-		"${de[8]}")
-			# xfce
-			local packages+=(
-				"anacron"
-				"apt-xapian-index"
-				"blueman"
-				"bluez"
-				"bluez-cups"
-				"bluez-tools"
-				"brltty"
-				"brltty-x11"
-				"cifs-utils"
-				"colord"
-				"cups"
-				"cups-bsd"
-				"cups-client"
-				"cups-filters"
-				"dbus-x11"
-				"dmz-cursor-theme"
-				"evince"
-				"evince-common"
-				"fontconfig"
-				"fontconfig-config"
-				"fonts-noto-cjk"
-				"fonts-ubuntu"
-				"fonts-ubuntu-console"
-				"foomatic-db-compressed-ppds"
-				"gdebi"
-				"ghostscript-x"
-				"gnome-disk-utility"
-				"gnome-font-viewer"
-				"gnome-screenshot"
-				"gnome-system-monitor"
-				"gstreamer1.0-packagekit"
-				"gstreamer1.0-plugins-base-apps"
-				"gstreamer1.0-pulseaudio"
-				"gtk2-engines"
-				"gtk2-engines-murrine"
-				"gtk2-engines-pixbuf"
-				"gvfs-backends"
-				"hplip"
-				"ayatana-indicator-printers"
-				"inputattach"
-				"inxi"
-				"keyutils"
-				"laptop-detect"
-				"libatk-adaptor"
-				"libfontconfig1"
-				"libfontembed1"
-				"libfontenc1"
-				"libgail-common"
-				"libgl1-mesa-dri"
-				"libgsettings-qt1"
-				"libgtk2.0-bin"
-				"libnotify-bin"
-				"libpam-gnome-keyring"
-				"libproxy1-plugin-gsettings"
-				"libwmf0.2-7-gtk"
-				"libxcursor1"
+			# i3-wm - tiling window manager
+			packages+=(
+				"i3"
+				"i3status"
+				"i3lock"
 				"lightdm"
+				"slick-greeter"
+				"xserver-xorg"
+				"xterm"
+				"dbus-x11"
+				"dunst"
+				"feh"
 				"lm-sensors"
-				"lxtask"
-				"mesa-utils"
-				"mousepad"
-				"mousetweaks"
-				"numix-gtk-theme"
-				"numix-icon-theme"
-				"numix-icon-theme-circle"
-				"openprinting-ppds"
-				"orca"
-				"p7zip-full"
-				"pamix"
-				"pasystray"
+				"network-manager-gnome"
 				"pavucontrol"
-				"pavumeter"
-				"policykit-1"
-				"printer-driver-all"
-				"profile-sync-daemon"
 				"pulseaudio"
 				"pulseaudio-module-bluetooth"
-				"qalculate-gtk"
-				"redshift"
-				"slick-greeter"
-				"smbclient"
-				"software-properties-gtk"
-				"spice-vdagent"
-				"synaptic"
-				"system-config-printer"
-				"system-config-printer-common"
-				"terminator"
-				"thunar-volman"
-				"update-inetd"
-				"update-manager"
-				"update-manager-core"
-				"viewnior"
-				"x11-apps"
-				"x11-utils"
-				"x11-xserver-utils"
-				"xapps-common"
-				"xarchiver"
-				"xauth"
-				"xbacklight"
-				"xcursor-themes"
+				"rofi"
+				"thunar"
 				"xdg-user-dirs"
-				"xdg-user-dirs-gtk"
-				"xfce4"
-				"xfce4-notifyd"
-				"xfce4-power-manager"
-				"xfce4-screenshooter"
-				"xfce4-terminal"
-				"xfonts-100dpi"
-				"xfonts-75dpi"
-				"xfonts-base"
-				"xfonts-encodings"
-				"xfonts-scalable"
-				"xfonts-utils"
-				"xorg-docs-core"
-				"xscreensaver"
-				"xsensors"
-				"xserver-xorg"
-				"xserver-xorg-video-fbdev"
-				"xwallpaper"
 			)
-			local architecture+=(
+			architecture=(
 				"arm64"
 				"amd64"
 				"armhf"
 				"riscv64"
 			)
-			local supported=(
+			supported=(
 				"supported"
 			)
-			local packages_uninstall=()
-			local packages_remove=()
+		;;
+		"${de[7]}")
+			# kde-neon (Ubuntu Noble only, uses neon-desktop meta-package)
+			packages+=(
+				"neon-desktop"
+				"sddm"
+				"konsole"
+				"dolphin"
+				"bluedevil"
+				"kscreen"
+				"plasma-discover"
+				"plasma-nm"
+				"plasma-pa"
+				"plasma-vault"
+				"pipewire-audio"
+				"pipewire-pulse"
+				"wireplumber"
+				"scdaemon"
+			)
+			architecture=(
+				"arm64"
+				"amd64"
+			)
+			supported=(
+				"unsupported"
+			)
+		;;
+		"${de[8]}")
+			# kde-plasma - works on both Debian and Ubuntu
+			packages+=(
+				"kde-plasma-desktop"
+				"sddm"
+				"konsole"
+				"dolphin"
+				"bluedevil"
+				"kscreen"
+				"plasma-nm"
+				"plasma-pa"
+				"xserver-xorg"
+				"dbus-x11"
+				"gvfs-backends"
+				"lm-sensors"
+				"pulseaudio"
+				"pulseaudio-module-bluetooth"
+				"spice-vdagent"
+				"xdg-user-dirs"
+			)
+			architecture=(
+				"arm64"
+				"amd64"
+			)
+			supported=(
+				"supported"
+			)
 		;;
 		"${de[9]}")
-			# xmonad
+			# mate - use meta-packages for clean install/removal
+			packages+=(
+				"mate-desktop-environment"
+				"mate-desktop-environment-extras"
+				"lightdm"
+				"slick-greeter"
+				"xserver-xorg"
+				"blueman"
+				"bluez"
+				"bluez-tools"
+				"dbus-x11"
+				"gdebi"
+				"gnome-disk-utility"
+				"gnome-system-monitor"
+				"gvfs-backends"
+				"lm-sensors"
+				"numix-gtk-theme"
+				"numix-icon-theme"
+				"numix-icon-theme-circle"
+				"pavucontrol"
+				"printer-driver-all"
+				"pulseaudio"
+				"pulseaudio-module-bluetooth"
+				"spice-vdagent"
+				"system-config-printer"
+				"viewnior"
+				"xdg-user-dirs"
+				"xdg-user-dirs-gtk"
+			)
+			architecture=(
+				"arm64"
+				"amd64"
+			)
+			supported=(
+				"supported"
+			)
+		;;
+		"${de[10]}")
+			# xfce - use meta-packages for clean install/removal
+			packages+=(
+				"xfce4"
+				"xfce4-goodies"
+				"xfce4-power-manager"
+				"lightdm"
+				"slick-greeter"
+				"xserver-xorg"
+				"blueman"
+				"bluez"
+				"bluez-tools"
+				"dbus-x11"
+				"dmz-cursor-theme"
+				"evince"
+				"fonts-ubuntu"
+				"gdebi"
+				"gnome-disk-utility"
+				"gnome-system-monitor"
+				"gtk2-engines"
+				"gtk2-engines-murrine"
+				"gtk2-engines-pixbuf"
+				"gvfs-backends"
+				"libpam-gnome-keyring"
+				"lm-sensors"
+				"mousepad"
+				"numix-gtk-theme"
+				"numix-icon-theme"
+				"numix-icon-theme-circle"
+				"pavucontrol"
+				"pulseaudio"
+				"pulseaudio-module-bluetooth"
+				"printer-driver-all"
+				"spice-vdagent"
+				"system-config-printer"
+				"thunar-volman"
+				"viewnior"
+				"xdg-user-dirs"
+				"xdg-user-dirs-gtk"
+			)
+			packages_uninstall+=(
+				"ristretto"
+				"xfburn"
+				"xfce4-clipman"
+				"xfce4-clipman-plugin"
+				"xfce4-dict"
+				"xfce4-notes"
+				"xfce4-notes-plugin"
+				"xfce4-terminal"
+				"xsensors"
+			)
+			architecture=(
+				"arm64"
+				"amd64"
+				"armhf"
+				"riscv64"
+			)
+			supported=(
+				"supported"
+			)
+		;;
+		"${de[11]}")
+			# xmonad - Haskell tiling window manager
+			packages+=(
+				"xmonad"
+				"xmobar"
+				"lightdm"
+				"slick-greeter"
+				"xserver-xorg"
+				"xterm"
+				"dbus-x11"
+				"dmenu"
+				"dunst"
+				"feh"
+				"lm-sensors"
+				"network-manager-gnome"
+				"pavucontrol"
+				"pulseaudio"
+				"pulseaudio-module-bluetooth"
+				"thunar"
+				"xdg-user-dirs"
+			)
+			architecture=(
+				"arm64"
+				"amd64"
+			)
+			supported=(
+				"supported"
+			)
 		;;
 	esac
 
@@ -249,57 +454,71 @@ function module_desktop_packages() {
 	case "$2" in
 		"${release[0]}")
 			# bookworm
-			local packages+=(
+			packages+=(
 				"accountsservice"
 				"gnome-calculator"
 				"libu2f-udev"
 			)
-			local packages_remove+=(
+			packages_remove+=(
+				"budgie-desktop-environment"
 				"libfontembed1"
 				"update-manager"
 				"update-manager-core"
 			)
 		;;
 		"${release[1]}")
-			# noble
-			local packages+=(
-				"polkitd"
-				"pkexec"
+			# trixie - uses pipewire instead of pulseaudio
+			packages+=(
+				"accountsservice"
 				"libu2f-udev"
+				"pipewire-audio"
+				"pipewire-pulse"
+				"wireplumber"
 			)
-			local packages_remove+=(
-				"qalculate-gtk"
-				"hplip"
-				"indicator-printers"
-				"libfontembed1"
-				"policykit-1"
-				"printer-driver-all"
-				"qalculate-gtk"
-			)
-			local packages_uninstall+=(
-				"ubuntu-session"
+			packages_remove+=(
+				"pulseaudio"
+				"pulseaudio-module-bluetooth"
 			)
 		;;
 		"${release[2]}")
-			# plucky
-			local packages+=(
+			# noble
+			packages+=(
 				"polkitd"
 				"pkexec"
 				"libu2f-udev"
 			)
-			local packages_remove+=(
+			packages_remove+=(
 				"qalculate-gtk"
 				"hplip"
 				"indicator-printers"
 				"libfontembed1"
 				"policykit-1"
 				"printer-driver-all"
+			)
+			packages_uninstall+=(
+				"ubuntu-session"
+				"language-selector-gnome"
+			)
+		;;
+		"${release[3]}")
+			# plucky
+			packages+=(
+				"polkitd"
+				"pkexec"
+				"libu2f-udev"
+			)
+			packages_remove+=(
 				"qalculate-gtk"
+				"hplip"
+				"indicator-printers"
 				"libfontembed1"
+				"policykit-1"
+				"printer-driver-all"
 				"pavumeter"
 			)
-			local packages_uninstall+=(
+			packages_uninstall+=(
 				"ubuntu-session"
+				"language-selector-gnome"
 			)
 		;;
 	esac

@@ -122,7 +122,7 @@ function join_json_testing() {
 	done
 
 	# Construct the final JSON structure
-	final_json=$(jq -n --argjson menu "$merged_json" '{"menu": $menu}')
+	final_json=$(echo "$merged_json" | jq '{"menu": .}')
 
 	# Write the final JSON structure to a file
 	echo "$final_json" | jq --indent 4 '.' > "$output_file"
@@ -179,7 +179,7 @@ function join_json_production() {
 	done
 
 	# Construct the final JSON structure
-	final_json=$(jq -n --argjson menu "$merged_json" '{"menu": $menu}')
+	final_json=$(echo "$merged_json" | jq '{"menu": .}')
 
 	# Write the final JSON structure to a file
 	echo "$final_json" | jq --indent 4 '.' > "$output_file"

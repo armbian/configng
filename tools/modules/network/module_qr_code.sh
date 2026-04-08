@@ -16,7 +16,7 @@ function module_qr_code() {
 	if [[ "$1" == "generate" ]]; then
 		google-authenticator -t -d -f -r 3 -R 30 -W -q
 		cp /root/.google_authenticator /etc/skel
-		update_skel
+		module_update_skel install
 	fi
 	export TOP_SECRET=$(head -1 /root/.google_authenticator)
 	qrencode -m 2 -d 9 -8 -t ANSI256 "otpauth://totp/test?secret=$TOP_SECRET"

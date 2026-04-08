@@ -106,6 +106,283 @@
                     "help": "Alternative kernels, device tree overlays, and boot configuration"
                 },
                 {
+                    "id": "Desktops",
+                    "description": "Install, remove and configure desktop environments",
+                    "sub": [
+                        {
+                            "id": "CINMDE",
+                            "description": "Cinnamon desktop",
+                            "status": "Disabled",
+                            "sub": [
+                                {
+                                    "id": "CINM01",
+                                    "description": "Cinnamon desktop Install",
+                                    "command": [
+                                        "module_desktop install de=cinnamon"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "! module_desktop status de=cinnamon",
+                                    "help": "Cinnamon desktop Install"
+                                },
+                                {
+                                    "id": "CINM02",
+                                    "description": "Cinnamon desktop uninstall",
+                                    "command": [
+                                        "module_desktop remove de=cinnamon"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "module_desktop status de=cinnamon",
+                                    "help": "Cinnamon desktop uninstall"
+                                },
+                                {
+                                    "id": "CINM03",
+                                    "description": "Enable autologin",
+                                    "command": [
+                                        "module_desktop auto de=cinnamon"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "module_desktop status de=cinnamon && ! module_desktop login de=cinnamon",
+                                    "help": "Enable autologin"
+                                },
+                                {
+                                    "id": "CINM04",
+                                    "description": "Disable autologin",
+                                    "command": [
+                                        "module_desktop manual de=cinnamon"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "module_desktop status de=cinnamon && module_desktop login de=cinnamon",
+                                    "help": "Disable autologin"
+                                }
+                            ],
+                            "help": "Cinnamon desktop"
+                        },
+                        {
+                            "id": "GNOMDE",
+                            "description": "Gnome desktop",
+                            "sub": [
+                                {
+                                    "id": "GNME01",
+                                    "description": "Gnome desktop Install",
+                                    "command": [
+                                        "module_desktop 'install' 'de=gnome'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "! module_desktop status de=gnome",
+                                    "help": "Gnome desktop Install"
+                                },
+                                {
+                                    "id": "GNME02",
+                                    "description": "Uninstall",
+                                    "command": [
+                                        "module_desktop 'remove' 'de=gnome'"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "module_desktop status de=gnome",
+                                    "help": "Uninstall"
+                                },
+                                {
+                                    "id": "GNME03",
+                                    "description": "Enable autologin",
+                                    "command": [
+                                        "module_desktop auto de=gnome"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "module_desktop status de=gnome && ! module_desktop login de=gnome",
+                                    "help": "Enable autologin"
+                                },
+                                {
+                                    "id": "GNME04",
+                                    "description": "Disable autologin",
+                                    "command": [
+                                        "module_desktop manual de=gnome"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "module_desktop status de=gnome && module_desktop login de=gnome",
+                                    "help": "Disable autologin"
+                                }
+                            ],
+                            "help": "Gnome desktop"
+                        },
+                        {
+                            "id": "I3WMDE",
+                            "description": "i3-wm desktop",
+                            "status": "Disabled",
+                            "sub": [
+                                {
+                                    "id": "I3WM01",
+                                    "description": "i3 desktop Install",
+                                    "command": [
+                                        "module_desktop install de=i3-wm"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "! module_desktop status de=i3-wm",
+                                    "help": "i3 desktop Install"
+                                },
+                                {
+                                    "id": "I3WM02",
+                                    "description": "i3 desktop uninstall",
+                                    "command": [
+                                        "module_desktop remove de=i3-wm"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "module_desktop status de=i3-wm",
+                                    "help": "i3 desktop uninstall"
+                                },
+                                {
+                                    "id": "I3WM03",
+                                    "description": "Enable autologin",
+                                    "command": [
+                                        "module_desktop auto de=i3-wm"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "module_desktop status de=i3-wm && ! module_desktop login de=i3-wm",
+                                    "help": "Enable autologin"
+                                },
+                                {
+                                    "id": "I3WM04",
+                                    "description": "Disable autologin",
+                                    "command": [
+                                        "module_desktop manual de=i3-wm"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "module_desktop status de=i3-wm && module_desktop login de=i3-wm",
+                                    "help": "Disable autologin"
+                                }
+                            ],
+                            "help": "i3-wm desktop"
+                        },
+                        {
+                            "id": "KDENEO",
+                            "description": "Kde-neon desktop",
+                            "status": "Disabled",
+                            "sub": [
+                                {
+                                    "id": "KDEN01",
+                                    "description": "Kde-neon desktop Install",
+                                    "command": [
+                                        "module_desktop install de=kde-neon"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "! module_desktop status de=kde-neon",
+                                    "help": "Kde-neon desktop Install"
+                                },
+                                {
+                                    "id": "KDEN02",
+                                    "description": "Uninstall",
+                                    "command": [
+                                        "module_desktop remove de=kde-neon"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "module_desktop status de=kde-neon",
+                                    "help": "Uninstall"
+                                },
+                                {
+                                    "id": "KDEN03",
+                                    "description": "Enable autologin",
+                                    "command": [
+                                        "module_desktop auto de=kde-neon"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "module_desktop status de=kde-neon && ! module_desktop login de=kde-neon",
+                                    "help": "Enable autologin"
+                                },
+                                {
+                                    "id": "KDEN04",
+                                    "description": "Disable autologin",
+                                    "command": [
+                                        "module_desktop manual de=kde-neon"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "module_desktop status de=kde-neon && module_desktop login de=kde-neon",
+                                    "help": "Disable autologin"
+                                }
+                            ],
+                            "help": "Kde-neon desktop"
+                        },
+                        {
+                            "id": "XFCEDE",
+                            "description": "XFCE desktop",
+                            "sub": [
+                                {
+                                    "id": "XFCE01",
+                                    "about": "Install XFCE:\n\nXfce is a lightweight desktop environment for UNIX-like operating systems. It aims to be fast and low on system resources, while still being visually appealing and user friendly.",
+                                    "description": "XFCE desktop Install",
+                                    "command": [
+                                        "module_desktop install de=xfce"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "! module_desktop status de=xfce",
+                                    "help": "XFCE is a lightweight, fast, and user-friendly desktop environment for Linux, offering a classic desktop."
+                                },
+                                {
+                                    "id": "XFCE02",
+                                    "description": "Uninstall",
+                                    "command": [
+                                        "module_desktop remove de=xfce"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "module_desktop status de=xfce",
+                                    "help": "Uninstall"
+                                },
+                                {
+                                    "id": "XFCE03",
+                                    "description": "Enable autologin",
+                                    "command": [
+                                        "module_desktop auto de=xfce"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "module_desktop status de=xfce && ! module_desktop login de=xfce",
+                                    "help": "Enable autologin"
+                                },
+                                {
+                                    "id": "XFCE04",
+                                    "description": "Disable autologin",
+                                    "command": [
+                                        "module_desktop manual de=xfce"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "module_desktop status de=xfce && module_desktop login de=xfce",
+                                    "help": "Disable autologin"
+                                }
+                            ],
+                            "help": "XFCE desktop"
+                        },
+                        {
+                            "id": "Xapian",
+                            "description": "Improve application search speed",
+                            "command": [
+                                "update-apt-xapian-index -u; sleep 3"
+                            ],
+                            "status": "Disabled",
+                            "author": "@igorpecovnik",
+                            "condition": "srv_active display-manager",
+                            "help": "Improve application search speed"
+                        }
+                    ],
+                    "help": "Install, remove and configure desktop environments with autologin support"
+                },
+                {
                     "id": "Storage",
                     "description": "Install to internal media, ZFS, NFS, read-only rootfs",
                     "short": "Storage",
