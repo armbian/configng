@@ -487,7 +487,6 @@ function module_desktop_packages() {
 				"polkitd"
 				"pkexec"
 				"libu2f-udev"
-				"software-properties-gtk"
 			)
 			packages_remove+=(
 				"qalculate-gtk"
@@ -507,7 +506,6 @@ function module_desktop_packages() {
 				"polkitd"
 				"pkexec"
 				"libu2f-udev"
-				"software-properties-gtk"
 			)
 			packages_remove+=(
 				"qalculate-gtk"
