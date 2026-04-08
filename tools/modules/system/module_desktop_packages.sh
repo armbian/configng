@@ -427,13 +427,15 @@ function module_desktop_packages() {
 			)
 		;;
 		"${de[11]}")
-			# xmonad - Haskell tiling window manager
+			# xmonad - tiling WM via gnome-session-flashback
 			packages+=(
 				"xmonad"
+				"gnome-session-flashback"
 				"xmobar"
 				"lightdm"
 				"slick-greeter"
 				"xserver-xorg"
+				"xinit"
 				"dbus-x11"
 				"dmenu"
 				"dmz-cursor-theme"
