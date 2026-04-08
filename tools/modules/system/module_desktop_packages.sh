@@ -365,8 +365,10 @@ function module_desktop_packages() {
 				"xdg-user-dirs-gtk"
 			)
 			packages_uninstall+=(
+				"brisk-menu"
 				"mate-indicator-applet"
 				"mate-indicator-applet-common"
+				"mate-applet-trash"
 			)
 			architecture=(
 				"arm64"
