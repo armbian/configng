@@ -69,7 +69,7 @@ function module_appimage() {
 			fi
 
 			# ensure FUSE support for AppImages
-			pkg_install libfuse2
+			pkg_install libfuse2 fuse
 
 			# get latest release download URL
 			local download_url
