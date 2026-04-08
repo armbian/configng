@@ -9,8 +9,9 @@ cat > /usr/share/xsessions/xmonad.desktop <<- 'XSEOF'
 [Desktop Entry]
 Name=Xmonad
 Comment=Lightweight tiling window manager
-Exec=xmonad
+Exec=/etc/X11/Xsession xmonad
 Type=Application
+DesktopNames=Xmonad
 XSEOF
 
 # Disable Pulseaudio timer scheduling which does not work with sndhdmi driver
