@@ -385,7 +385,6 @@ function module_desktop_packages() {
 				"gvfs-backends"
 				"libpam-gnome-keyring"
 				"lm-sensors"
-				"mesa-utils"
 				"mousepad"
 				"numix-gtk-theme"
 				"numix-icon-theme"
