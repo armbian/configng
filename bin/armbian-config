@@ -50,8 +50,8 @@ json_data=$(<"$json_file")
 source "$lib_dir/config.functions.sh"
 set_runtime_variables
 checkpoint mark "Loaded Runtime variables..."
-# checks for supported os
-check_distro_status
+# checks for supported os (disabled for now)
+#check_distro_status
 checkpoint mark "Check distro"
 
 checkpoint mark "Loaded Dialog..."
