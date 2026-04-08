@@ -498,6 +498,7 @@ function module_desktop_packages() {
 			)
 			packages_uninstall+=(
 				"ubuntu-session"
+				"language-selector-gnome"
 			)
 		;;
 		"${release[3]}")
@@ -518,6 +519,7 @@ function module_desktop_packages() {
 			)
 			packages_uninstall+=(
 				"ubuntu-session"
+				"language-selector-gnome"
 			)
 		;;
 	esac
