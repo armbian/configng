@@ -210,9 +210,9 @@ function module_desktop() {
 				touch "${user_home}/.activate_psd"
 			fi
 			# update skel
-			echo "DEBUG: update_skel" >&2
-			update_skel
-			echo "DEBUG: update_skel done" >&2
+			echo "DEBUG: module_update_skel" >&2
+			module_update_skel install
+			echo "DEBUG: module_update_skel done" >&2
 
 			# display manager and auto-login (skip in containers)
 			if [[ ! -f /.dockerenv && ! -f /run/.containerenv && -z "${CI:-}" ]]; then
