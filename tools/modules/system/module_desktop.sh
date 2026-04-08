@@ -77,8 +77,8 @@ function install_desktop_branding() {
 		cp -R "$branding_dir/sddm/themes/"* /usr/share/sddm/themes/
 	fi
 
-	# DE-specific postinst script (run with set +e for compatibility with legacy scripts)
-	if [[ -f "$branding_dir/postinst/${de}.sh" ]]; then
+	# DE-specific postinst script (only run on real systems, skip in headless/CI)
+	if [[ -f "$branding_dir/postinst/${de}.sh" ]] && [[ -n "${DISPLAY:-}" || -e /dev/tty1 ]]; then
 		dialog_infobox "Desktop" "Running ${de} post-install configuration..."
 		bash "$branding_dir/postinst/${de}.sh" || true
 	fi
