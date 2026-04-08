@@ -269,6 +269,8 @@ function module_desktop() {
 				kde-neon|kde-plasma) pkg_remove sddm ;;
 				*)        pkg_remove lightdm ;;
 			esac
+			# remove AppImages installed with desktop
+			module_appimage remove app=armbian-imager
 		;;
 		"${commands[2]}")
 			# disable
