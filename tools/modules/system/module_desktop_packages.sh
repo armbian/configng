@@ -217,7 +217,6 @@ function module_desktop_packages() {
 				"gnome-session"
 				"gnome-shell"
 				"gnome-control-center"
-				"gnome-terminal"
 				"gnome-system-monitor"
 				"gnome-disk-utility"
 				"gnome-shell-extension-appindicator"
