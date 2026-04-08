@@ -7,8 +7,8 @@
     background_darkness = 0.95
     background_type = transparent
     cursor_color = "#ffffff"
-    font = Ubuntu Mono 18
+    font = Monospace 11
     foreground_color = "#ffffff"
     scrollback_lines = 5000
-    use_system_font = False
+    use_system_font = True
     background_image = None
