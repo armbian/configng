@@ -191,21 +191,28 @@ function module_desktop() {
 			install_desktop_branding "$de"
 
 			# add user to groups
-			echo "add user to groups"
+			echo "DEBUG: adding user '${user}' to groups" >&2
 			for additionalgroup in sudo netdev audio video dialout plugdev input bluetooth systemd-journal ssh; do
-				usermod -aG ${additionalgroup} ${user} 2> /dev/null
+				echo "DEBUG: usermod -aG ${additionalgroup} ${user}" >&2
+				usermod -aG ${additionalgroup} ${user} 2>/dev/null && echo "DEBUG: OK" >&2 || echo "DEBUG: FAILED (rc=$?)" >&2
 			done
+			echo "DEBUG: groups done" >&2
 			# set up profile sync daemon on desktop systems
 			local user_home
+			echo "DEBUG: getent passwd ${user}" >&2
 			user_home=$(getent passwd "${user}" | cut -d: -f6)
+			echo "DEBUG: user_home=${user_home}" >&2
 			if command -v psd > /dev/null 2>&1; then
+				echo "DEBUG: psd found" >&2
 				if ! grep -q overlay-helper /etc/sudoers; then
 					echo "${user} ALL=(ALL) NOPASSWD: /usr/bin/psd-overlay-helper" >> /etc/sudoers
 				fi
 				touch "${user_home}/.activate_psd"
 			fi
 			# update skel
+			echo "DEBUG: update_skel" >&2
 			update_skel
+			echo "DEBUG: update_skel done" >&2
 
 			# stop display managers in case we are switching them
 			if srv_active gdm3; then
