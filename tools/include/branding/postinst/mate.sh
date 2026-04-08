@@ -110,6 +110,23 @@ for home in /home/*; do
 	[ -d "$home/.config/dconf" ] && rm -f "$home/.config/dconf/user" 2>/dev/null
 done
 
+# Override MATE default schema for wallpaper
+mkdir -p /usr/share/glib-2.0/schemas
+cat > /usr/share/glib-2.0/schemas/90-armbian-mate.gschema.override <<- 'GSEOF'
+[org.mate.background]
+picture-filename='/usr/share/backgrounds/armbian/armbian03-Dre0x-Minum-dark-3840x2160.jpg'
+picture-options='zoom'
+primary-color='#456789'
+
+[org.mate.interface]
+gtk-theme='Numix'
+icon-theme='Numix'
+
+[org.mate.Marco.general]
+theme='Numix'
+num-workspaces=2
+GSEOF
+
 # Let NetworkManager coexist with systemd-networkd
 if command -v NetworkManager > /dev/null 2>&1; then
 	mkdir -p /etc/NetworkManager/conf.d
