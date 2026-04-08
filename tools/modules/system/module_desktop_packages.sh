@@ -410,6 +410,7 @@ function module_desktop_packages() {
 				"xdg-user-dirs-gtk"
 			)
 			packages_remove+=(
+				"ristretto"
 				"xfburn"
 				"xfce4-dict"
 				"xfce4-terminal"
