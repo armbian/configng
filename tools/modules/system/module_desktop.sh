@@ -114,6 +114,18 @@ function module_desktop() {
 		[[ "${split[0]}" == "de" ]] && de="${split[1]}"
 	done
 
+	# validate desktop environment against supported list
+	local supported_de
+	IFS=' ' read -r -a supported_de <<< "${module_options["module_desktop_packages,de"]}"
+	local valid=false
+	for d in "${supported_de[@]}"; do
+		[[ "$de" == "$d" ]] && valid=true && break
+	done
+	if [[ "$valid" != "true" ]]; then
+		echo "Error: unsupported desktop '${de}'. Available: ${module_options["module_desktop_packages,de"]}" >&2
+		return 1
+	fi
+
 	# Convert the example string to an array
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_desktop,example"]}"
