@@ -195,6 +195,9 @@ function module_desktop() {
 			# install armbian desktop branding
 			install_desktop_branding "$de"
 
+			# install Armbian Imager AppImage
+			module_appimage install app=armbian-imager
+
 			# add user to groups
 			echo "DEBUG: adding user '${user}' to groups" >&2
 			for additionalgroup in sudo netdev audio video dialout plugdev input bluetooth systemd-journal ssh; do
