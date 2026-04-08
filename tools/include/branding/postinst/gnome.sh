@@ -39,6 +39,17 @@ system-db:local" >> $profile
 
 dconf update
 
+# Let NetworkManager coexist with systemd-networkd
+# NM only manages wifi/vpn, networkd keeps managing wired interfaces
+if command -v NetworkManager > /dev/null 2>&1; then
+	mkdir -p /etc/NetworkManager/conf.d
+	cat > /etc/NetworkManager/conf.d/10-armbian-unmanaged.conf <<- NMEOF
+	[keyfile]
+	unmanaged-devices=type:ethernet
+	NMEOF
+	systemctl restart NetworkManager 2>/dev/null || true
+fi
+
 #compile schemas
 if [ -d /usr/share/glib-2.0/schemas ]; then
 	glib-compile-schemas /usr/share/glib-2.0/schemas
