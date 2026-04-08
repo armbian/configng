@@ -217,7 +217,6 @@ function module_desktop_packages() {
 				"dbus-x11"
 				"gvfs-backends"
 				"lm-sensors"
-				"pavucontrol"
 				"pulseaudio"
 				"pulseaudio-module-bluetooth"
 				"xdg-user-dirs"
