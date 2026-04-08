@@ -25,6 +25,7 @@ function module_desktop_packages() {
 	# Common desktop packages
 	packages=(
 			"cups"
+			"dconf-cli"
 			"profile-sync-daemon"
 			"terminator"
 			"upower"
