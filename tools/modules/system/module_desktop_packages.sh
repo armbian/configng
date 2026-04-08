@@ -24,9 +24,7 @@ function module_desktop_packages() {
 
 	# Common desktop packages
 	packages=(
-			"anacron"
 			"cups"
-			"eject"
 			"profile-sync-daemon"
 			"terminator"
 			"upower"
