@@ -215,7 +215,9 @@ function module_desktop() {
 			echo "DEBUG: module_update_skel done" >&2
 
 			# display manager and auto-login (skip in containers)
+			echo "DEBUG: container check: dockerenv=$(test -f /.dockerenv && echo yes || echo no) containerenv=$(test -f /run/.containerenv && echo yes || echo no) CI='${CI:-}'" >&2
 			if [[ ! -f /.dockerenv && ! -f /run/.containerenv && -z "${CI:-}" ]]; then
+				echo "DEBUG: NOT in container, starting display manager" >&2
 				# stop display managers in case we are switching them
 				if srv_active gdm3; then
 					srv_stop gdm3
@@ -234,7 +236,10 @@ function module_desktop() {
 
 				# enable auto login
 				${module_options["module_desktop,feature"]} ${commands[5]}
+			else
+				echo "DEBUG: In container, skipping display manager" >&2
 			fi
+			echo "DEBUG: install complete" >&2
 		;;
 
 		"${commands[1]}")
