@@ -383,7 +383,6 @@ function module_desktop_packages() {
 				"gtk2-engines-murrine"
 				"gtk2-engines-pixbuf"
 				"gvfs-backends"
-				"inxi"
 				"libpam-gnome-keyring"
 				"lm-sensors"
 				"mesa-utils"
