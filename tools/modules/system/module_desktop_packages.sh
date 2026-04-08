@@ -430,7 +430,6 @@ function module_desktop_packages() {
 			# xmonad - Haskell tiling window manager
 			packages+=(
 				"xmonad"
-				"libghc-xmonad-contrib-dev"
 				"xmobar"
 				"lightdm"
 				"slick-greeter"

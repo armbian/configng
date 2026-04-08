@@ -3,6 +3,16 @@ set +e
 # overwrite stock lightdm greeter configuration
 if [ -d /etc/armbian/lightdm ]; then cp -R /etc/armbian/lightdm /etc/; fi
 
+# create xmonad session file for LightDM
+mkdir -p /usr/share/xsessions
+cat > /usr/share/xsessions/xmonad.desktop <<- 'XSEOF'
+[Desktop Entry]
+Name=Xmonad
+Comment=Lightweight tiling window manager
+Exec=xmonad
+Type=Application
+XSEOF
+
 # Disable Pulseaudio timer scheduling which does not work with sndhdmi driver
 if [ -f /etc/pulse/default.pa ]; then sed "s/load-module module-udev-detect$/& tsched=0/g" -i  /etc/pulse/default.pa; fi
 
