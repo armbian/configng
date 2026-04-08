@@ -213,6 +213,7 @@ function module_desktop_packages() {
 				"gnome-shell-extension-appindicator"
 				"gdm3"
 				"nautilus"
+				"network-manager-gnome"
 				"dbus-x11"
 				"gvfs-backends"
 				"lm-sensors"
