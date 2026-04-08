@@ -170,26 +170,23 @@ function module_desktop() {
 				gnome)
 					echo "/usr/sbin/gdm3" > /etc/X11/default-display-manager
 					pkg_install -o Dpkg::Options::="--force-confold" ${PACKAGES}
-					pkg_install -o Dpkg::Options::="--force-confold" ${PACKAGES_UNINSTALL}
 					pkg_install -o Dpkg::Options::="--force-confold" gdm3
 				;;
 				kde-neon|kde-plasma)
 					echo "/usr/sbin/sddm" > /etc/X11/default-display-manager
 					pkg_install -o Dpkg::Options::="--force-confold" ${PACKAGES}
-					pkg_install -o Dpkg::Options::="--force-confold" ${PACKAGES_UNINSTALL}
 					pkg_install -o Dpkg::Options::="--force-confold" sddm
 				;;
 				*)
 					echo "/usr/sbin/lightdm" > /etc/X11/default-display-manager
 					pkg_install -o Dpkg::Options::="--force-confold" ${PACKAGES}
-					pkg_install -o Dpkg::Options::="--force-confold" ${PACKAGES_UNINSTALL}
 					pkg_install -o Dpkg::Options::="--force-confold" lightdm
 				;;
 			esac
 
-			# remove unwanted packages pulled in by meta-packages
+			# remove unwanted packages without cascading dependency removal
 			if [[ -n "${PACKAGES_UNINSTALL}" ]]; then
-				pkg_remove ${PACKAGES_UNINSTALL}
+				apt-get remove -y --purge ${PACKAGES_UNINSTALL} 2>/dev/null || true
 			fi
 
 			# install armbian desktop branding
