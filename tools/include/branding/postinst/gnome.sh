@@ -17,7 +17,7 @@ install -Dv /dev/null $profile
 # set default shortcuts
 echo "
 [org/gnome/shell]
-favorite-apps = ['terminator.desktop', 'org.gnome.Nautilus.desktop', 'armbian-config.desktop', 'armbian-imager.desktop']
+favorite-apps = ['terminator.desktop', 'org.gnome.Nautilus.desktop', 'armbian-imager.desktop']
 
 [org/gnome/settings-daemon/plugins/power]
 sleep-inactive-ac-timeout='0'
