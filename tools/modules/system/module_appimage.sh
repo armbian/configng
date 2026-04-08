@@ -113,8 +113,9 @@ function module_appimage() {
 				echo "Error: specify app=name" >&2
 				return 1
 			fi
-			rm -f "${APPIMAGE_DIR}/${app}" "${APPIMAGE_DIR}/${app}"_*.AppImage
+			rm -f "${APPIMAGE_DIR}/${app}" "${APPIMAGE_DIR}/${app}"_*.AppImage "${APPIMAGE_DIR}/"*"${app}"*.AppImage
 			rm -f "${APPIMAGE_DESKTOP_DIR}/${app}.desktop"
+			rmdir "${APPIMAGE_DIR}" 2>/dev/null || true
 			echo "${app} removed"
 		;;
 
