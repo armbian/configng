@@ -32,7 +32,7 @@ declare -A APPIMAGE_ARCH=(
 #
 function module_appimage() {
 
-	local APPIMAGE_DIR="/opt/appimages"
+	local APPIMAGE_DIR="/armbian/appimages"
 	local APPIMAGE_DESKTOP_DIR="/usr/share/applications"
 
 	# read app name from parameters
