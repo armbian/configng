@@ -115,7 +115,6 @@
                             "description": "Cinnamon - traditional layout with modern features",
                             "short": "Cinnamon",
                             "help": "Cinnamon is a Linux desktop forked from GNOME 3 that provides a traditional layout with modern features. Familiar taskbar and start menu for users coming from Windows.",
-                            "status": "Disabled",
                             "sub": [
                                 {
                                     "id": "CINM01",
