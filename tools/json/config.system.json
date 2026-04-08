@@ -108,10 +108,13 @@
                 {
                     "id": "Desktops",
                     "description": "Install, remove and configure desktop environments",
+                    "short": "Desktop",
                     "sub": [
                         {
                             "id": "CINMDE",
-                            "description": "Cinnamon desktop",
+                            "description": "Cinnamon - traditional layout with modern features",
+                            "short": "Cinnamon",
+                            "help": "Cinnamon is a Linux desktop forked from GNOME 3 that provides a traditional layout with modern features. Familiar taskbar and start menu for users coming from Windows.",
                             "status": "Disabled",
                             "sub": [
                                 {
@@ -158,12 +161,13 @@
                                     "condition": "module_desktop status de=cinnamon && module_desktop login de=cinnamon",
                                     "help": "Disable autologin"
                                 }
-                            ],
-                            "help": "Cinnamon desktop"
+                            ]
                         },
                         {
                             "id": "GNOMDE",
-                            "description": "Gnome desktop",
+                            "description": "GNOME - modern, full-featured desktop",
+                            "short": "GNOME",
+                            "help": "GNOME is a modern desktop environment focused on simplicity and productivity. Uses Wayland by default with Activities overview and dynamic workspaces.",
                             "sub": [
                                 {
                                     "id": "GNME01",
@@ -209,12 +213,13 @@
                                     "condition": "module_desktop status de=gnome && module_desktop login de=gnome",
                                     "help": "Disable autologin"
                                 }
-                            ],
-                            "help": "Gnome desktop"
+                            ]
                         },
                         {
                             "id": "I3WMDE",
-                            "description": "i3-wm desktop",
+                            "description": "i3 - lightweight tiling window manager",
+                            "short": "i3-wm",
+                            "help": "i3 is a tiling window manager designed for power users. Keyboard-driven with minimal resource usage, ideal for developers and terminal-heavy workflows.",
                             "status": "Disabled",
                             "sub": [
                                 {
@@ -261,12 +266,13 @@
                                     "condition": "module_desktop status de=i3-wm && module_desktop login de=i3-wm",
                                     "help": "Disable autologin"
                                 }
-                            ],
-                            "help": "i3-wm desktop"
+                            ]
                         },
                         {
                             "id": "KDENEO",
-                            "description": "Kde-neon desktop",
+                            "description": "KDE Neon - Plasma desktop (Ubuntu Noble only)",
+                            "short": "KDE Neon",
+                            "help": "KDE Neon provides the latest KDE Plasma desktop on Ubuntu Noble. Feature-rich with extensive customization options. Ubuntu Noble only.",
                             "status": "Disabled",
                             "sub": [
                                 {
@@ -313,12 +319,13 @@
                                     "condition": "module_desktop status de=kde-neon && module_desktop login de=kde-neon",
                                     "help": "Disable autologin"
                                 }
-                            ],
-                            "help": "Kde-neon desktop"
+                            ]
                         },
                         {
                             "id": "XFCEDE",
-                            "description": "XFCE desktop",
+                            "description": "XFCE - lightweight and fast desktop",
+                            "short": "XFCE",
+                            "help": "XFCE is a lightweight desktop environment that aims to be fast and low on system resources while remaining visually appealing. Best choice for single board computers.",
                             "sub": [
                                 {
                                     "id": "XFCE01",
@@ -365,8 +372,7 @@
                                     "condition": "module_desktop status de=xfce && module_desktop login de=xfce",
                                     "help": "Disable autologin"
                                 }
-                            ],
-                            "help": "XFCE desktop"
+                            ]
                         },
                         {
                             "id": "Xapian",
