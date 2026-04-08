@@ -214,17 +214,18 @@ function module_desktop() {
 			update_skel
 			echo "DEBUG: update_skel done" >&2
 
-			# stop display managers in case we are switching them
-			if srv_active gdm3; then
-				srv_stop gdm3
-			elif srv_active lightdm; then
-				srv_stop lightdm
-			elif srv_active sddm; then
-				srv_stop sddm
-			fi
-
-			# start new default display manager (skip in containers)
+			# display manager and auto-login (skip in containers)
 			if [[ ! -f /.dockerenv && ! -f /run/.containerenv && -z "${CI:-}" ]]; then
+				# stop display managers in case we are switching them
+				if srv_active gdm3; then
+					srv_stop gdm3
+				elif srv_active lightdm; then
+					srv_stop lightdm
+				elif srv_active sddm; then
+					srv_stop sddm
+				fi
+
+				# start new default display manager
 				if srv_active display-manager; then
 					srv_restart display-manager
 				else
