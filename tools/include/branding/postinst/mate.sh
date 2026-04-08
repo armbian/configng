@@ -67,6 +67,11 @@ system-db:local" >> $profile
 
 dconf update
 
+# Clear user-level dconf overrides so system defaults apply (wallpaper, theme, etc.)
+for home in /home/*; do
+	[ -d "$home/.config/dconf" ] && rm -f "$home/.config/dconf/user" 2>/dev/null
+done
+
 # Let NetworkManager coexist with systemd-networkd
 if command -v NetworkManager > /dev/null 2>&1; then
 	mkdir -p /etc/NetworkManager/conf.d
