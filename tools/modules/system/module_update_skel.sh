@@ -22,7 +22,7 @@ function module_update_skel() {
 					if [ ! -d "$home" ] || [ "$username" == 'root' ] || [ "$uid" -lt 1000 ] || [ "$uid" -ge 65534 ]; then
 						continue
 					fi
-					cp -rn /etc/skel/. "$home/"
+					cp -r --update=none /etc/skel/. "$home/"
 					chown -R "$uid:$gid" "$home/"
 				done
 		;;
