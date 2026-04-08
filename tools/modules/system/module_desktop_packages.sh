@@ -364,6 +364,10 @@ function module_desktop_packages() {
 				"xdg-user-dirs"
 				"xdg-user-dirs-gtk"
 			)
+			packages_uninstall+=(
+				"mate-indicator-applet"
+				"mate-indicator-applet-common"
+			)
 			architecture=(
 				"arm64"
 				"amd64"
