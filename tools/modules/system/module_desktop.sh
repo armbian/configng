@@ -71,6 +71,12 @@ function install_desktop_branding() {
 		cp "$branding_dir/armbian.xml" /usr/share/gnome-background-properties/
 	fi
 
+	# SDDM theme (for KDE)
+	if [[ -d "$branding_dir/sddm/themes" && ("$de" == "kde-plasma" || "$de" == "kde-neon") ]]; then
+		mkdir -p /usr/share/sddm/themes
+		cp -R "$branding_dir/sddm/themes/"* /usr/share/sddm/themes/
+	fi
+
 	# DE-specific postinst script
 	if [[ -f "$branding_dir/postinst/${de}.sh" ]]; then
 		dialog_infobox "Desktop" "Running ${de} post-install configuration..."
