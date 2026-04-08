@@ -430,15 +430,17 @@ function module_desktop_packages() {
 			# xmonad - Haskell tiling window manager
 			packages+=(
 				"xmonad"
+				"libghc-xmonad-contrib-dev"
 				"xmobar"
 				"lightdm"
 				"slick-greeter"
 				"xserver-xorg"
-				"xterm"
 				"dbus-x11"
 				"dmenu"
+				"dmz-cursor-theme"
 				"dunst"
 				"feh"
+				"fonts-ubuntu"
 				"lm-sensors"
 				"network-manager-gnome"
 				"pavucontrol"
