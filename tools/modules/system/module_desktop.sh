@@ -80,7 +80,7 @@ function install_desktop_branding() {
 	# DE-specific postinst script (run with set +e for compatibility with legacy scripts)
 	if [[ -f "$branding_dir/postinst/${de}.sh" ]]; then
 		dialog_infobox "Desktop" "Running ${de} post-install configuration..."
-		bash -c "set +e; source '$branding_dir/postinst/${de}.sh'"
+		bash "$branding_dir/postinst/${de}.sh" || true
 	fi
 }
 

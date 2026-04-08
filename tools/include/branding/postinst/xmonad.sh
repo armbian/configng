@@ -1,3 +1,5 @@
+#!/bin/bash
+set +e
 # overwrite stock lightdm greeter configuration
 if [ -d /etc/armbian/lightdm ]; then cp -R /etc/armbian/lightdm /etc/; fi
 

@@ -1,3 +1,5 @@
+#!/bin/bash
+set +e
 # overwrite stock lightdm greeter configuration
 if [ -d /etc/armbian/lightdm ]; then cp -R /etc/armbian/lightdm /etc/; fi
 #if [ -f /etc/lightdm/slick-greeter.conf ]; then sed -i 's/armbian03-Dre0x-Minum-dark-blurred-3840x2160.jpg/armbian-4k-neglated-gauss.jpg/g' /etc/lightdm/slick-greeter.conf; fi
