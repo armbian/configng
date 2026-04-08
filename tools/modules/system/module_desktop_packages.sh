@@ -100,20 +100,26 @@ function module_desktop_packages() {
 			)
 		;;
 		"${de[2]}")
-			# cinnamon - use meta-packages for clean install/removal
+			# cinnamon - meta-package pulls in nemo, lightdm, xserver-xorg
 			packages+=(
 				"cinnamon"
 				"cinnamon-desktop-environment"
-				"lightdm"
 				"slick-greeter"
 				"blueman"
 				"bluez"
 				"bluez-tools"
+				"network-manager-gnome"
 				"dbus-x11"
-				"gdebi"
+				"dmz-cursor-theme"
+				"evince"
+				"fonts-ubuntu"
 				"gnome-disk-utility"
 				"gnome-system-monitor"
+				"gtk2-engines"
+				"gtk2-engines-murrine"
+				"gtk2-engines-pixbuf"
 				"gvfs-backends"
+				"libpam-gnome-keyring"
 				"lm-sensors"
 				"numix-gtk-theme"
 				"numix-icon-theme"
@@ -126,6 +132,7 @@ function module_desktop_packages() {
 				"system-config-printer"
 				"viewnior"
 				"xdg-user-dirs"
+				"xdg-user-dirs-gtk"
 			)
 			architecture=(
 				"arm64"
