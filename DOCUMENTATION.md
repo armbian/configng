@@ -22,6 +22,11 @@ sudo armbian-config
     - ### Edit the boot environment
 
 
+  - ### Install, remove and configure desktop environments
+    - ### GNOME - modern, full-featured desktop
+    - ### XFCE - lightweight and fast desktop
+
+
   - ### Install to internal media, ZFS, NFS, read-only rootfs
     - ### Copy the running Armbian system to another device
     - ### Download a fresh, official Armbian OS image and write it to a device
@@ -401,6 +406,17 @@ Outputs:
 	--cmd DTE001 - Edit device tree
 	--cmd ODR001 - Select Odroid board configuration
 	--cmd BOOT01 - Edit the boot environment
+    Desktops - Install, remove and configure desktop environments
+      GNOMDE - GNOME - modern, full-featured desktop
+	--cmd GNME01 - Gnome desktop Install
+	--cmd GNME02 - Uninstall
+	--cmd GNME03 - Enable autologin
+	--cmd GNME04 - Disable autologin
+      XFCEDE - XFCE - lightweight and fast desktop
+	--cmd XFCE01 - XFCE desktop Install
+	--cmd XFCE02 - Uninstall
+	--cmd XFCE03 - Enable autologin
+	--cmd XFCE04 - Disable autologin
     Storage - Install to internal media, ZFS, NFS, read-only rootfs
 	--cmd STO001 - Copy the running Armbian system to another device
 	--cmd FLASH1 - Download a fresh, official Armbian OS image and write it to a device
@@ -711,6 +727,16 @@ A list of the jobs defined in the Jobs file.
 ### Kernel
 
 Alternative kernels, headers, overlays, bootenv
+
+Jobs:
+
+~~~
+No commands available
+~~~
+
+### Desktops
+
+Install, remove and configure desktop environments
 
 Jobs:
 
@@ -1066,13 +1092,14 @@ These helper functions facilitate various operations related to job management, 
 | Unmask service | srv_unmask ssh.service | @dimitry-ishenko 
 | Display a checklist dialog using the configured dialog tool | dialog_checklist "Title" "Prompt" option1 "Description 1" ON option2 "Description 2" OFF | @armbian 
 | Display a message box | show_message <<< 'hello world'  | @Tearran 
+| Download and manage AppImage applications | install remove status help | @igorpecovnik 
 | Manage self hosted runners | install remove remove_online purge status help | @igorpecovnik 
 | Install domoticz container | install remove purge status help | @armbian 
 | Install and configure automatic updates | install remove configure status defaults help | @igorpecovnik 
 | Menu for armbianmonitor features | see_monitoring | @Tearran 
 | Install VS Code in browser container | install remove purge status help | @igorpecovnik 
 | Enable/disable device tree overlays |  | @viraniac 
-| XFCE desktop packages | install remove disable enable status auto manual login help | @igorpecovnik 
+| Install and manage desktop environments | install remove disable enable status auto manual login help | @igorpecovnik 
 | Remove package | pkg_remove nmap | @dimitry-ishenko 
 | Install Immich (photo and video backup solution) | install remove purge status help |  
 | Display a message box using the configured dialog tool | dialog_msgbox "Title" "Message" | @armbian 
@@ -1083,6 +1110,7 @@ These helper functions facilitate various operations related to job management, 
 | Install plexmediaserver from repo using apt | install remove status | @schwar3kat 
 | Display a gauge dialog for progress indication | echo 50 | dialog_gauge "Title" "Progress" 10 70 | @armbian 
 | Generate 'Armbian CPU logo' SVG for document file. | generate_svg | @Tearran 
+| Copy /etc/skel files into existing user home directories | install help | @igorpecovnik 
 | Upgrade installed packages (potentially removing some) | pkg_full_upgrade | @dimitry-ishenko 
 | Install ZFS filesystem support | install remove status tune scan import kernel_max zfs_version zfs_installed_version help | @igorpecovnik 
 | Check if package is installed | pkg_installed mc | @dimitry-ishenko 
@@ -1178,7 +1206,6 @@ parse_menu_items 'menu_options_array' --with-help | @viraniac
 | Make sure param contains only valid chars | sanitize 'foo_bar_42' | @Tearran 
 | Install docker from a repo using apt | install remove purge status help | @schwar3kat 
 | Upgrade to next stable or rolling release | release_upgrade stable verify | @igorpecovnik 
-| Update the /etc/skel files in users directories | update_skel | @igorpecovnik 
 | Default module implementation | disable enable help install remove status | @dimitry-ishenko 
 | change_system_hostname | change_system_hostname | @igorpecovnik 
 | Install netalertx container | install remove purge status help | @jokob-sk 
