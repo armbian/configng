@@ -1,13 +1,16 @@
 #!/bin/bash
 set +e
 
-# Configure SDDM theme
+# Configure SDDM theme and wallpaper
+mkdir -p /etc/sddm.conf.d
 if [ -d /usr/share/sddm/themes/plasma-chili ]; then
-	# Override theme in main config (conf.d doesn't override main config)
+	# Set plasma-chili theme with Armbian wallpaper
+	cp /usr/share/backgrounds/armbian/armbian03-Dre0x-Minum-dark-3840x2160.jpg \
+		/usr/share/sddm/themes/plasma-chili/components/artwork/background.jpg 2>/dev/null || true
+
 	if [ -f /etc/sddm.conf ]; then
 		sed -i 's/^Current=.*/Current=plasma-chili/' /etc/sddm.conf
 	else
-		mkdir -p /etc/sddm.conf.d
 		cat > /etc/sddm.conf.d/10-armbian-theme.conf <<- 'SDDMEOF'
 		[Theme]
 		Current=plasma-chili
@@ -15,10 +18,14 @@ if [ -d /usr/share/sddm/themes/plasma-chili ]; then
 	fi
 fi
 
-# Set SDDM background to Armbian wallpaper
-if [ -d /usr/share/sddm/themes/plasma-chili ]; then
-	cp /usr/share/backgrounds/armbian/armbian03-Dre0x-Minum-dark-3840x2160.jpg \
-		/usr/share/sddm/themes/plasma-chili/components/artwork/background.jpg 2>/dev/null || true
+# For Wayland greeter (Trixie), set background via Plasma greeter config
+if command -v kwriteconfig6 > /dev/null 2>&1 || command -v kwriteconfig5 > /dev/null 2>&1; then
+	mkdir -p /var/lib/sddm/.config
+	cat > /var/lib/sddm/.config/kdeglobals <<- 'KDEEOF'
+	[General]
+	ColorScheme=BreezeDark
+	KDEEOF
+	chown -R sddm:sddm /var/lib/sddm/.config 2>/dev/null || true
 fi
 
 # Let NetworkManager coexist with systemd-networkd (only if networkd is active)
