@@ -160,7 +160,8 @@
                                     "condition": "module_desktops status de=cinnamon && module_desktops login de=cinnamon",
                                     "help": "Disable autologin"
                                 }
-                            ]
+                            ],
+                            "condition": "module_desktop_supported cinnamon"
                         },
                         {
                             "id": "GNOMDE",
@@ -212,7 +213,8 @@
                                     "condition": "module_desktops status de=gnome && module_desktops login de=gnome",
                                     "help": "Disable autologin"
                                 }
-                            ]
+                            ],
+                            "condition": "module_desktop_supported gnome"
                         },
                         {
                             "id": "MATEDE",
@@ -264,7 +266,8 @@
                                     "condition": "module_desktops status de=mate && module_desktops login de=mate",
                                     "help": "Disable autologin"
                                 }
-                            ]
+                            ],
+                            "condition": "module_desktop_supported mate"
                         },
                         {
                             "id": "I3WMDE",
@@ -316,7 +319,8 @@
                                     "condition": "module_desktops status de=i3-wm && module_desktops login de=i3-wm",
                                     "help": "Disable autologin"
                                 }
-                            ]
+                            ],
+                            "condition": "module_desktop_supported i3-wm"
                         },
                         {
                             "id": "KDEPDE",
@@ -368,7 +372,8 @@
                                     "condition": "module_desktops status de=kde-plasma && module_desktops login de=kde-plasma",
                                     "help": "Disable autologin"
                                 }
-                            ]
+                            ],
+                            "condition": "module_desktop_supported kde-plasma"
                         },
                         {
                             "id": "KDENDE",
@@ -420,7 +425,8 @@
                                     "condition": "module_desktops status de=kde-neon && module_desktops login de=kde-neon",
                                     "help": "Disable autologin"
                                 }
-                            ]
+                            ],
+                            "condition": "module_desktop_supported kde-neon"
                         },
                         {
                             "id": "XFCEDE",
@@ -472,7 +478,8 @@
                                     "condition": "module_desktops status de=xfce && module_desktops login de=xfce",
                                     "help": "Disable autologin"
                                 }
-                            ]
+                            ],
+                            "condition": "module_desktop_supported xfce"
                         },
                         {
                             "id": "Xapian",
