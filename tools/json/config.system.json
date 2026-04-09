@@ -271,7 +271,6 @@
                             "description": "i3 - lightweight tiling window manager",
                             "short": "i3-wm",
                             "help": "i3 is a tiling window manager designed for power users. Keyboard-driven with minimal resource usage, ideal for developers and terminal-heavy workflows.",
-                            "status": "Disabled",
                             "sub": [
                                 {
                                     "id": "I3WM01",
