@@ -14,8 +14,6 @@ module_options+=(
 #
 function module_desktop_supported() {
 	local de="$1"
-	local yaml_dir="${script_dir}/../tools/modules/desktops/yaml"
-	local parser="${script_dir}/../tools/modules/desktops/scripts/parse_desktop_yaml.py"
 	local arch="${2:-$(dpkg --print-architecture)}"
 	local release="${3:-$DISTROID}"
 
@@ -32,9 +30,8 @@ function module_desktop_supported() {
 			return 0
 		;;
 		*)
-			local result
-			result=$(python3 "$parser" "$yaml_dir" "$de" "$release" "$arch" 2>/dev/null | grep '^DESKTOP_SUPPORTED=' | cut -d'"' -f2)
-			[[ "$result" == "yes" ]]
+			module_desktop_yamlparse "$de" "$arch" "$release" 2>/dev/null || return 1
+			[[ "$DESKTOP_SUPPORTED" == "yes" ]]
 		;;
 	esac
 }

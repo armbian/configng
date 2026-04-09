@@ -11,50 +11,6 @@ module_options+=(
 	["module_desktops,help_supported"]="JSON list or check one (de=name arch=X release=Y)"
 )
 
-#
-# Parse YAML desktop definition via Python helper
-# Sets: DESKTOP_PACKAGES, DESKTOP_PACKAGES_UNINSTALL, DESKTOP_DM,
-#       DESKTOP_STATUS, DESKTOP_SUPPORTED, DESKTOP_DESC,
-#       DESKTOP_REPO_URL, DESKTOP_REPO_KEY_URL, DESKTOP_REPO_KEYRING
-#
-function _desktop_yaml_parse() {
-	local de="$1"
-	local yaml_dir="${script_dir}/../tools/modules/desktops/yaml"
-	local parser="${script_dir}/../tools/modules/desktops/scripts/parse_desktop_yaml.py"
-	local arch="${2:-$(dpkg --print-architecture)}"
-	local release="${3:-$DISTROID}"
-
-	if [[ ! -f "$parser" ]]; then
-		echo "Error: YAML parser not found at $parser" >&2
-		return 1
-	fi
-
-	# reset variables
-	DESKTOP_PACKAGES=""
-	DESKTOP_PACKAGES_UNINSTALL=""
-	DESKTOP_PRIMARY_PKG=""
-	DESKTOP_DM=""
-	DESKTOP_STATUS=""
-	DESKTOP_SUPPORTED=""
-	DESKTOP_DESC=""
-	DESKTOP_REPO_URL=""
-	DESKTOP_REPO_KEY_URL=""
-	DESKTOP_REPO_KEYRING=""
-
-	eval "$(python3 "$parser" "$yaml_dir" "$de" "$release" "$arch")" || return 1
-}
-
-#
-# List available desktops via Python helper
-#
-function _desktop_yaml_list() {
-	local yaml_dir="${script_dir}/../tools/modules/desktops/yaml"
-	local parser="${script_dir}/../tools/modules/desktops/scripts/parse_desktop_yaml.py"
-	local arch="${1:-$(dpkg --print-architecture)}"
-	local release="${2:-$DISTROID}"
-
-	python3 "$parser" "$yaml_dir" "--list" "$release" "$arch"
-}
 
 #
 # Set up custom APT repo if desktop requires one
@@ -98,12 +54,12 @@ function module_desktops() {
 		"${commands[0]}")
 			# install
 			if [[ -z "$de" ]]; then
-				local available=$(_desktop_yaml_list | cut -f1 | tr '\n' ', ' | sed 's/,$//')
+				local available=$(module_desktop_yamlparse_list | cut -f1 | tr '\n' ', ' | sed 's/,$//')
 				echo "Error: specify de=name. Available: ${available}" >&2
 				return 1
 			fi
 
-			_desktop_yaml_parse "$de" || return 1
+			module_desktop_yamlparse "$de" || return 1
 
 			if [[ "$DESKTOP_SUPPORTED" != "yes" ]]; then
 				echo "Warning: '${de}' is not supported on ${DISTROID}/$(dpkg --print-architecture)" >&2
@@ -142,7 +98,7 @@ function module_desktops() {
 				return 1
 			fi
 
-			_desktop_yaml_parse "$de" || return 1
+			module_desktop_yamlparse "$de" || return 1
 
 			# stop display manager
 			if [[ -n "$DESKTOP_DM" && "$DESKTOP_DM" != "none" ]]; then
@@ -160,15 +116,13 @@ function module_desktops() {
 				return 1
 			fi
 
-			_desktop_yaml_parse "$de" || return 1
+			module_desktop_yamlparse "$de" || return 1
 
 			# check if the primary DE package is installed
 			if [[ -n "$DESKTOP_PRIMARY_PKG" ]] && dpkg -l "$DESKTOP_PRIMARY_PKG" 2>/dev/null | grep -q "^ii"; then
-				echo "installed"
 				return 0
 			fi
 
-			echo "not installed"
 			return 1
 		;;
 
