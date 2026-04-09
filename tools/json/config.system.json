@@ -372,6 +372,58 @@
                             ]
                         },
                         {
+                            "id": "KDEPDE",
+                            "description": "KDE Plasma - feature-rich customizable desktop",
+                            "short": "KDE Plasma",
+                            "help": "KDE Plasma is a feature-rich desktop with extensive customization, widgets, and a powerful settings application. Works on both Debian and Ubuntu.",
+                            "sub": [
+                                {
+                                    "id": "KDEP01",
+                                    "description": "KDE Plasma Install",
+                                    "command": [
+                                        "module_desktop install de=kde-plasma"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "! module_desktop status de=kde-plasma",
+                                    "help": "KDE Plasma Install"
+                                },
+                                {
+                                    "id": "KDEP02",
+                                    "description": "Uninstall",
+                                    "command": [
+                                        "module_desktop remove de=kde-plasma"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "module_desktop status de=kde-plasma",
+                                    "help": "Uninstall"
+                                },
+                                {
+                                    "id": "KDEP03",
+                                    "description": "Enable autologin",
+                                    "command": [
+                                        "module_desktop auto de=kde-plasma"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "module_desktop status de=kde-plasma && ! module_desktop login de=kde-plasma",
+                                    "help": "Enable autologin"
+                                },
+                                {
+                                    "id": "KDEP04",
+                                    "description": "Disable autologin",
+                                    "command": [
+                                        "module_desktop manual de=kde-plasma"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "module_desktop status de=kde-plasma && module_desktop login de=kde-plasma",
+                                    "help": "Disable autologin"
+                                }
+                            ]
+                        },
+                        {
                             "id": "XFCEDE",
                             "description": "XFCE - lightweight and fast desktop",
                             "short": "XFCE",

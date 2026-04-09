@@ -180,19 +180,19 @@ function module_desktop() {
 			# desktops has different default login managers
 			case "$de" in
 				gnome)
-					echo "/usr/sbin/gdm3" > /etc/X11/default-display-manager
 					pkg_install -o Dpkg::Options::="--force-confold" ${PACKAGES}
 					pkg_install -o Dpkg::Options::="--force-confold" gdm3
+					which gdm3 > /etc/X11/default-display-manager
 				;;
 				kde-neon|kde-plasma)
-					echo "/usr/sbin/sddm" > /etc/X11/default-display-manager
 					pkg_install -o Dpkg::Options::="--force-confold" ${PACKAGES}
 					pkg_install -o Dpkg::Options::="--force-confold" sddm
+					which sddm > /etc/X11/default-display-manager
 				;;
 				*)
-					echo "/usr/sbin/lightdm" > /etc/X11/default-display-manager
 					pkg_install -o Dpkg::Options::="--force-confold" ${PACKAGES}
 					pkg_install -o Dpkg::Options::="--force-confold" lightdm
+					which lightdm > /etc/X11/default-display-manager
 				;;
 			esac
 
