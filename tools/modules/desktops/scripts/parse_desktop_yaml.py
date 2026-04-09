@@ -82,8 +82,11 @@ def parse_desktop(yaml_dir, de_name, release, arch):
         print(f'DESKTOP_REPO_KEYRING="{repo.get("keyring", "")}"')
 
 
-def list_desktops(yaml_dir, release, arch):
+def list_desktops(yaml_dir, release, arch, fmt="tsv"):
     """List all desktops with support status."""
+    import json as jsonlib
+
+    entries = []
     for fname in sorted(os.listdir(yaml_dir)):
         if not fname.endswith(".yaml") or fname == "common.yaml":
             continue
@@ -92,12 +95,28 @@ def list_desktops(yaml_dir, release, arch):
             data = yaml.safe_load(f)
         name = fname.replace(".yaml", "")
         status = data.get("status", "unsupported")
+        desc = data.get("description", name)
+        dm = data.get("display_manager", "lightdm")
         releases = data.get("releases", {})
         release_data = releases.get(release, {})
         archs = release_data.get("architectures", [])
-        supported = "yes" if (arch in archs and release in releases) else "no"
-        arch_str = " ".join(archs) if archs else "-"
-        print(f"{name}\t{status}\t{supported}\t{arch_str}")
+        supported = arch in archs and release in releases
+
+        entries.append({
+            "name": name,
+            "description": desc,
+            "display_manager": dm,
+            "status": status,
+            "supported": supported,
+            "architectures": archs,
+        })
+
+    if fmt == "json":
+        print(jsonlib.dumps(entries, indent=2))
+    else:
+        for e in entries:
+            arch_str = " ".join(e["architectures"]) if e["architectures"] else "-"
+            print(f"{e['name']}\t{e['status']}\t{'yes' if e['supported'] else 'no'}\t{arch_str}")
 
 
 if __name__ == "__main__":
@@ -110,5 +129,7 @@ if __name__ == "__main__":
 
     if sys.argv[2] == "--list":
         list_desktops(yaml_dir, sys.argv[3], sys.argv[4])
+    elif sys.argv[2] == "--list-json":
+        list_desktops(yaml_dir, sys.argv[3], sys.argv[4], fmt="json")
     else:
         parse_desktop(yaml_dir, sys.argv[2], sys.argv[3], sys.argv[4])

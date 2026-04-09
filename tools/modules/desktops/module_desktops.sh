@@ -21,7 +21,8 @@ function _desktop_yaml_parse() {
 	local de="$1"
 	local yaml_dir="${script_dir}/../tools/modules/desktops/yaml"
 	local parser="${script_dir}/../tools/modules/desktops/scripts/parse_desktop_yaml.py"
-	local arch=$(dpkg --print-architecture)
+	local arch="${2:-$(dpkg --print-architecture)}"
+	local release="${3:-$DISTROID}"
 
 	if [[ ! -f "$parser" ]]; then
 		echo "Error: YAML parser not found at $parser" >&2
@@ -39,7 +40,7 @@ function _desktop_yaml_parse() {
 	DESKTOP_REPO_KEY_URL=""
 	DESKTOP_REPO_KEYRING=""
 
-	eval "$(python3 "$parser" "$yaml_dir" "$de" "$DISTROID" "$arch")" || return 1
+	eval "$(python3 "$parser" "$yaml_dir" "$de" "$release" "$arch")" || return 1
 }
 
 #
@@ -48,9 +49,10 @@ function _desktop_yaml_parse() {
 function _desktop_yaml_list() {
 	local yaml_dir="${script_dir}/../tools/modules/desktops/yaml"
 	local parser="${script_dir}/../tools/modules/desktops/scripts/parse_desktop_yaml.py"
-	local arch=$(dpkg --print-architecture)
+	local arch="${1:-$(dpkg --print-architecture)}"
+	local release="${2:-$DISTROID}"
 
-	python3 "$parser" "$yaml_dir" "--list" "$DISTROID" "$arch"
+	python3 "$parser" "$yaml_dir" "--list" "$release" "$arch"
 }
 
 #
@@ -78,11 +80,15 @@ function _desktop_setup_repo() {
 function module_desktops() {
 
 	local de=""
+	local query_arch=""
+	local query_release=""
 	local parameter
 	IFS=' ' read -r -a parameter <<< "${2}"
 	for selected in "${parameter[@]}"; do
 		IFS='=' read -r -a split <<< "${selected}"
 		[[ "${split[0]}" == "de" ]] && de="${split[1]}"
+		[[ "${split[0]}" == "arch" ]] && query_arch="${split[1]}"
+		[[ "${split[0]}" == "release" ]] && query_release="${split[1]}"
 	done
 
 	local commands
@@ -176,22 +182,23 @@ function module_desktops() {
 		;;
 
 		"${commands[3]}")
-			# supported
+			# supported - accepts arch= and release= overrides, outputs JSON
+			local use_arch="${query_arch:-$(dpkg --print-architecture)}"
+			local use_release="${query_release:-$DISTROID}"
+			local yaml_dir="${script_dir}/../tools/modules/desktops/yaml"
+			local parser="${script_dir}/../tools/modules/desktops/scripts/parse_desktop_yaml.py"
+
 			if [[ -z "$de" ]]; then
-				printf "%-15s %-12s %-10s %s\n" "Desktop" "Status" "Supported" "Architectures"
-				printf "%-15s %-12s %-10s %s\n" "-------" "------" "---------" "-------------"
-				_desktop_yaml_list | while IFS=$'\t' read -r name status supported archs; do
-					printf "%-15s %-12s %-10s %s\n" "$name" "$status" "$supported" "$archs"
-				done
+				python3 "$parser" "$yaml_dir" "--list-json" "$use_release" "$use_arch"
 				return 0
 			fi
 
-			_desktop_yaml_parse "$de" || return 1
+			_desktop_yaml_parse "$de" "$use_arch" "$use_release" || return 1
 			if [[ "$DESKTOP_SUPPORTED" == "yes" ]]; then
-				echo "${de}: supported on ${DISTROID}/$(dpkg --print-architecture)"
+				echo "true"
 				return 0
 			else
-				echo "${de}: not supported on ${DISTROID}/$(dpkg --print-architecture)"
+				echo "false"
 				return 1
 			fi
 		;;
