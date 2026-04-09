@@ -39,7 +39,7 @@ function module_desktop_repo() {
 				echo "Setting up repository for ${de}..." >&2
 
 				# download and verify GPG key
-				if ! curl -fsSL "$DESKTOP_REPO_KEY_URL" | gpg --yes --dearmor -o "$DESKTOP_REPO_KEYRING" 2>/dev/null; then
+				if ! (set -o pipefail; curl -fsSL --retry 3 --retry-connrefused --connect-timeout 10 --max-time 30 "$DESKTOP_REPO_KEY_URL" | gpg --yes --dearmor -o "$DESKTOP_REPO_KEYRING" 2>/dev/null); then
 					echo "Error: failed to download GPG key from $DESKTOP_REPO_KEY_URL" >&2
 					return 1
 				fi
