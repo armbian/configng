@@ -63,12 +63,17 @@ tile-enabled=false
 unplug-enabled=false
 
 [org/mate/panel/general]
-object-id-list=['menu-bar', 'notification-area', 'clock', 'show-desktop-button']
-toplevel-id-list=['top']
+object-id-list=['menu-bar', 'notification-area', 'clock', 'show-desktop-button', 'window-list', 'workspace-switcher']
+toplevel-id-list=['top', 'bottom']
 
 [org/mate/panel/toplevels/top]
 expand=true
 orientation='top'
+size=24
+
+[org/mate/panel/toplevels/bottom]
+expand=true
+orientation='bottom'
 size=24
 
 [org/mate/panel/objects/menu-bar]
@@ -95,10 +100,25 @@ applet-iid='ClockAppletFactory::ClockApplet'
 
 [org/mate/panel/objects/show-desktop-button]
 locked=true
-toplevel-id='top'
+toplevel-id='bottom'
+position=0
+object-type='applet'
+applet-iid='WnckletFactory::ShowDesktopApplet'
+
+[org/mate/panel/objects/window-list]
+locked=true
+toplevel-id='bottom'
 position=1
 object-type='applet'
-applet-iid='WnckletFactory::ShowDesktopApplet'" >> $keys
+applet-iid='WnckletFactory::WindowListApplet'
+
+[org/mate/panel/objects/workspace-switcher]
+locked=true
+toplevel-id='bottom'
+position=0
+panel-right-stick=true
+object-type='applet'
+applet-iid='WnckletFactory::WorkspaceSwitcherApplet'" >> $keys
 
 echo "user-db:user
 system-db:local" >> $profile
