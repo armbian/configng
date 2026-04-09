@@ -188,7 +188,10 @@ function module_desktops() {
 			local parser="${script_dir}/../tools/modules/desktops/scripts/parse_desktop_yaml.py"
 
 			if [[ -z "$de" ]]; then
-				python3 "$parser" "$yaml_dir" "--list-json" "$use_release" "$use_arch"
+				local result
+				result=$(python3 "$parser" "$yaml_dir" "--list-json" "$use_release" "$use_arch")
+				echo "$result"
+				[[ "$result" == "[]" ]] && return 1
 				return 0
 			fi
 
