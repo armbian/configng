@@ -81,6 +81,10 @@ locked=true
 toplevel-id='top'
 position=0
 object-type='menu-bar'
+has-arrow=true
+
+[org/mate/panel/menubar]
+icon-name='/usr/share/pixmaps/armbian/armbian.png'
 
 [org/mate/panel/objects/notification-area]
 locked=true
@@ -139,6 +143,9 @@ primary-color='#456789'
 [org.mate.interface]
 gtk-theme='Numix'
 icon-theme='Numix'
+
+[org.mate.panel.menubar]
+icon-name='/usr/share/pixmaps/armbian/armbian.png'
 
 [org.mate.Marco.general]
 theme='Numix'
