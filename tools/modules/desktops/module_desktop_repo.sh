@@ -39,8 +39,6 @@ function module_desktop_repo() {
 				cat > "/etc/apt/sources.list.d/${de}.list" <<- EOF
 				deb [signed-by=${DESKTOP_REPO_KEYRING}] ${DESKTOP_REPO_URL} ${DISTROID} main
 				EOF
-
-				pkg_update
 			fi
 		;;
 	esac

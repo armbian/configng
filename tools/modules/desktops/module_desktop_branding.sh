@@ -78,15 +78,15 @@ function module_desktop_branding() {
 				cp "$desktop_dir/branding/armbian.xml" /usr/share/gnome-background-properties/
 			fi
 
-			# SDDM theme (for KDE)
-			if [[ -d "$desktop_dir/greeters/sddm/themes" && ("$de" == "kde-plasma" || "$de" == "kde-neon") ]]; then
+			# SDDM theme (for desktops using sddm)
+			if [[ -d "$desktop_dir/greeters/sddm/themes" && "$DESKTOP_DM" == "sddm" ]]; then
 				mkdir -p /usr/share/sddm/themes
 				cp -R "$desktop_dir/greeters/sddm/themes/"* /usr/share/sddm/themes/
 			fi
 
 			# DE-specific postinst script (skip inside containers / CI)
 			if [[ -f "$desktop_dir/postinst/${de}.sh" ]]; then
-				if [[ -f /.dockerenv || -f /run/.containerenv || -n "${CI:-}" || -n "${GITHUB_ACTIONS:-}" ]]; then
+				if _desktop_in_container 2>/dev/null; then
 					echo "Skipping ${de} postinst (running inside container/CI)" >&2
 				else
 					dialog_infobox "Desktop" "Running ${de} post-install configuration..."

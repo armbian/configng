@@ -128,14 +128,25 @@ function module_desktops() {
 
 			module_desktop_yamlparse "$de" || return 1
 
-			module_desktops manual de="$de"
+			# disable auto-login
+			module_desktops manual de="$de" 2>/dev/null
 
-			systemctl stop display-manager 2>/dev/null || true
+			# stop display manager
+			if ! _desktop_in_container; then
+				systemctl stop display-manager 2>/dev/null || true
+			fi
 
+			# remove display manager
 			if [[ -n "$DESKTOP_DM" && "$DESKTOP_DM" != "none" ]]; then
 				pkg_remove "$DESKTOP_DM"
 			fi
 
+			# remove primary DE package (autopurge handles dependencies)
+			if [[ -n "$DESKTOP_PRIMARY_PKG" ]]; then
+				pkg_remove "$DESKTOP_PRIMARY_PKG"
+			fi
+
+			# remove AppImages
 			module_appimage remove app=armbian-imager
 
 			echo "${de} removed."
@@ -199,7 +210,7 @@ function module_desktops() {
 					EOF
 				;;
 			esac
-			systemctl restart display-manager 2>/dev/null || true
+			_desktop_in_container || systemctl restart display-manager 2>/dev/null || true
 		;;
 
 		"${commands[6]}")
@@ -212,7 +223,7 @@ function module_desktops() {
 				sddm)    rm -f /etc/sddm.conf.d/autologin.conf ;;
 				lightdm) rm -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ;;
 			esac
-			systemctl restart display-manager 2>/dev/null || true
+			_desktop_in_container || systemctl restart display-manager 2>/dev/null || true
 		;;
 
 		"${commands[7]}")
@@ -232,10 +243,10 @@ function module_desktops() {
 			# supported
 			local use_arch="${query_arch:-$(dpkg --print-architecture)}"
 			local use_release="${query_release:-$DISTROID}"
-			local yaml_dir="${script_dir}/../tools/modules/desktops/yaml"
-			local parser="${script_dir}/../tools/modules/desktops/scripts/parse_desktop_yaml.py"
 
 			if [[ -z "$de" ]]; then
+				local yaml_dir="${script_dir}/../tools/modules/desktops/yaml"
+				local parser="${script_dir}/../tools/modules/desktops/scripts/parse_desktop_yaml.py"
 				local result
 				result=$(python3 "$parser" "$yaml_dir" "--list-json" "$use_release" "$use_arch")
 				echo "$result"
@@ -243,8 +254,7 @@ function module_desktops() {
 				return 0
 			fi
 
-			module_desktop_yamlparse "$de" "$use_arch" "$use_release" || return 1
-			[[ "$DESKTOP_SUPPORTED" == "yes" ]] && echo "true" && return 0
+			module_desktop_supported "$de" "$use_arch" "$use_release" && echo "true" && return 0
 			echo "false"
 			return 1
 		;;
