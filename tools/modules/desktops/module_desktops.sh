@@ -8,7 +8,7 @@ module_options+=(
 	["module_desktops,help_install"]="Install desktop (de=name)"
 	["module_desktops,help_remove"]="Remove desktop (de=name)"
 	["module_desktops,help_status"]="Check if installed (de=name)"
-	["module_desktops,help_supported"]="List supported desktops or check one (de=name)"
+	["module_desktops,help_supported"]="JSON list or check one (de=name arch=X release=Y)"
 )
 
 #
@@ -205,12 +205,12 @@ function module_desktops() {
 
 		"${commands[4]}")
 			show_module_help "module_desktops" "Desktops" \
-				"Example: module_desktops install de=xfce\n\nUse 'module_desktops supported' to list available desktops" "native"
+				"Examples:\n  module_desktops install de=xfce\n  module_desktops supported\n  module_desktops supported arch=arm64 release=trixie\n  module_desktops supported de=gnome" "native"
 		;;
 
 		*)
 			show_module_help "module_desktops" "Desktops" \
-				"Example: module_desktops install de=xfce\n\nUse 'module_desktops supported' to list available desktops" "native"
+				"Examples:\n  module_desktops install de=xfce\n  module_desktops supported\n  module_desktops supported arch=arm64 release=trixie\n  module_desktops supported de=gnome" "native"
 		;;
 	esac
 }
