@@ -143,6 +143,22 @@ function module_desktop() {
 
 			# reset tracking of newly installed packages
 			ACTUALLY_INSTALLED=()
+			# set up KDE Neon repo if needed (Ubuntu only)
+			if [[ "$de" == "kde-neon" ]]; then
+				local neon_keyring="/usr/share/keyrings/neon.gpg"
+				local branding_dir="${script_dir}/../tools/include/branding"
+
+				# install GPG key from branding
+				cp "$branding_dir/neon.gpg" "$neon_keyring"
+
+				# add KDE Neon repo
+				cat > /etc/apt/sources.list.d/neon.list <<- EOF
+				deb [signed-by=${neon_keyring}] http://archive.neon.kde.org/testing ${DISTROID} main
+				EOF
+
+				pkg_update
+			fi
+
 			# set up bianbu repo if needed
 			if [[ "$de" == "bianbu" ]]; then
 				local bianbu_ver="v1.0.15"

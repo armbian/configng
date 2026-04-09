@@ -283,10 +283,11 @@ function module_desktop_packages() {
 			)
 		;;
 		"${de[7]}")
-			# kde-neon (Ubuntu Noble only, uses neon-desktop meta-package)
+			# kde-neon (Ubuntu Noble/Plucky only, uses neon-desktop meta-package + KDE Neon repo)
 			packages+=(
 				"neon-desktop"
 				"sddm"
+				"sddm-theme-breeze"
 				"konsole"
 				"dolphin"
 				"bluedevil"
@@ -299,6 +300,10 @@ function module_desktop_packages() {
 				"pipewire-pulse"
 				"wireplumber"
 				"scdaemon"
+			)
+			packages_uninstall+=(
+				"gnome-software"
+				"gnome-keyring"
 			)
 			architecture=(
 				"arm64"
