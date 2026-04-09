@@ -82,9 +82,8 @@ function module_desktops() {
 	local de=""
 	local query_arch=""
 	local query_release=""
-	local parameter
-	IFS=' ' read -r -a parameter <<< "${2}"
-	for selected in "${parameter[@]}"; do
+	local selected
+	for selected in "${@:2}"; do
 		IFS='=' read -r -a split <<< "${selected}"
 		[[ "${split[0]}" == "de" ]] && de="${split[1]}"
 		[[ "${split[0]}" == "arch" ]] && query_arch="${split[1]}"
