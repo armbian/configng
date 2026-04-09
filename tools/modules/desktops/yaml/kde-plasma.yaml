@@ -1,0 +1,71 @@
+name: kde-plasma
+description: "KDE Plasma - feature-rich customizable desktop"
+display_manager: sddm
+status: supported
+
+packages:
+  - kde-plasma-desktop
+  - sddm
+  - sddm-theme-breeze
+  - konsole
+  - dolphin
+  - ark
+  - bluedevil
+  - gwenview
+  - kscreen
+  - network-manager-gnome
+  - okular
+  - plasma-nm
+  - plasma-pa
+  - xserver-xorg
+  - dbus-x11
+  - dmz-cursor-theme
+  - fonts-ubuntu
+  - gtk2-engines
+  - gtk2-engines-murrine
+  - gtk2-engines-pixbuf
+  - gvfs-backends
+  - lm-sensors
+  - pulseaudio
+  - pulseaudio-module-bluetooth
+  - spice-vdagent
+  - xdg-user-dirs
+
+releases:
+  bookworm:
+    architectures: [arm64, amd64]
+    packages:
+      - accountsservice
+      - libu2f-udev
+    packages_remove:
+      - libfontembed1
+
+  trixie:
+    architectures: [arm64, amd64]
+    packages:
+      - accountsservice
+      - libu2f-udev
+      - pipewire-audio
+      - pipewire-pulse
+      - wireplumber
+    packages_remove:
+      - pulseaudio
+      - pulseaudio-module-bluetooth
+
+  noble:
+    architectures: [arm64, amd64]
+    packages:
+      - polkitd
+      - pkexec
+      - libu2f-udev
+    packages_remove:
+      - libfontembed1
+
+  plucky:
+    architectures: [arm64, amd64]
+    packages:
+      - polkitd
+      - pkexec
+      - libu2f-udev
+    packages_remove:
+      - libfontembed1
