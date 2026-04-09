@@ -10,22 +10,30 @@ if [ -d /usr/share/sddm/themes/plasma-chili ] && [ -f /etc/sddm.conf ]; then
 	sed -i 's/^Current=.*/Current=plasma-chili/' /etc/sddm.conf
 fi
 
-# Set Armbian wallpaper as Plasma default
-mkdir -p /etc/xdg
-cat > /etc/xdg/plasma-org.kde.plasma.desktop-appletsrc <<- 'PLASMAEOF'
-[Containments][1]
-activityId=
-formfactor=0
-immutability=1
-lastScreen=0
-location=0
-plugin=org.kde.desktopcontainment
-wallpaperplugin=org.kde.image
+# Set Armbian wallpaper for all existing and new users
+for home in /etc/skel /home/*; do
+	[ -d "$home" ] || continue
+	mkdir -p "$home/.config"
+	cat > "$home/.config/plasma-org.kde.plasma.desktop-appletsrc" <<- 'PLASMAEOF'
+	[Containments][1]
+	activityId=
+	formfactor=0
+	immutability=1
+	lastScreen=0
+	location=0
+	plugin=org.kde.desktopcontainment
+	wallpaperplugin=org.kde.image
 
-[Containments][1][Wallpaper][org.kde.image][General]
-Image=file:///usr/share/backgrounds/armbian/armbian03-Dre0x-Minum-dark-3840x2160.jpg
-FillMode=1
-PLASMAEOF
+	[Containments][1][Wallpaper][org.kde.image][General]
+	Image=file:///usr/share/backgrounds/armbian/armbian03-Dre0x-Minum-dark-3840x2160.jpg
+	FillMode=1
+	PLASMAEOF
+	# fix ownership for real users
+	if [ "$home" != "/etc/skel" ]; then
+		user=$(basename "$home")
+		chown "$user:$user" "$home/.config/plasma-org.kde.plasma.desktop-appletsrc" 2>/dev/null
+	fi
+done
 
 # Let NetworkManager coexist with systemd-networkd (only if networkd is active)
 if command -v NetworkManager > /dev/null 2>&1 && systemctl is-active --quiet systemd-networkd 2>/dev/null; then
