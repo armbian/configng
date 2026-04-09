@@ -138,11 +138,29 @@ function module_desktop() {
 	case "$1" in
 		"${commands[0]}")
 
+			# suppress interactive prompts during package installation
+			echo "encfs encfs/security-information boolean true" | debconf-set-selections 2>/dev/null || true
+
 			# update package list
 			pkg_update
 
 			# reset tracking of newly installed packages
 			ACTUALLY_INSTALLED=()
+			# set up KDE Neon repo if needed (Ubuntu only)
+			if [[ "$de" == "kde-neon" ]]; then
+				local neon_keyring="/usr/share/keyrings/neon.gpg"
+
+				# download GPG key from KDE Neon archive
+				curl -fsSL "https://archive.neon.kde.org/public.key" | gpg --dearmor -o "$neon_keyring"
+
+				# add KDE Neon repo
+				cat > /etc/apt/sources.list.d/neon.list <<- EOF
+				deb [signed-by=${neon_keyring}] http://archive.neon.kde.org/testing ${DISTROID} main
+				EOF
+
+				pkg_update
+			fi
+
 			# set up bianbu repo if needed
 			if [[ "$de" == "bianbu" ]]; then
 				local bianbu_ver="v1.0.15"

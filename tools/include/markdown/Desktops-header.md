@@ -23,6 +23,7 @@ Desktop environments that require NetworkManager (e.g., GNOME) install it alongs
 | Cinnamon | Users familiar with Windows layout | ~500 MB RAM |
 | MATE | Classic GNOME 2 fans, low-resource systems | ~350 MB RAM |
 | KDE Plasma | Power users, heavy customization | ~600 MB RAM |
+| i3-wm | Developers, keyboard-driven workflows | ~150 MB RAM |
 
 !!! note "Switching desktops"
 
