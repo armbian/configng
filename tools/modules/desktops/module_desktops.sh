@@ -13,25 +13,6 @@ module_options+=(
 
 
 #
-# Set up custom APT repo if desktop requires one
-#
-function _desktop_setup_repo() {
-	if [[ -n "$DESKTOP_REPO_URL" && -n "$DESKTOP_REPO_KEY_URL" ]]; then
-		echo "Setting up repository for ${1}..." >&2
-
-		# download GPG key
-		curl -fsSL "$DESKTOP_REPO_KEY_URL" | gpg --dearmor -o "$DESKTOP_REPO_KEYRING" 2>/dev/null
-
-		# add source
-		cat > "/etc/apt/sources.list.d/${1}.list" <<- EOF
-		deb [signed-by=${DESKTOP_REPO_KEYRING}] ${DESKTOP_REPO_URL} ${DISTROID} main
-		EOF
-
-		pkg_update
-	fi
-}
-
-#
 # Module to install and manage desktop environments (YAML-driven)
 #
 function module_desktops() {
@@ -69,7 +50,7 @@ function module_desktops() {
 			echo "encfs encfs/security-information boolean true" | debconf-set-selections 2>/dev/null || true
 
 			# set up custom repo if needed
-			_desktop_setup_repo "$de"
+			module_desktop_repo "$de"
 
 			# update package list
 			pkg_update
