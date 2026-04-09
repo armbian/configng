@@ -14,9 +14,11 @@ if [ -d /usr/share/sddm/themes/plasma-chili ] && [ -f /etc/sddm.conf ]; then
 	fi
 fi
 
-# Set Armbian wallpaper for all existing and new users
+# Set Armbian wallpaper for skel and users without existing config
 for home in /etc/skel /home/*; do
 	[ -d "$home" ] || continue
+	# skip if user already has a Plasma config
+	[ "$home" != "/etc/skel" ] && [ -f "$home/.config/plasma-org.kde.plasma.desktop-appletsrc" ] && continue
 	mkdir -p "$home/.config"
 	cat > "$home/.config/plasma-org.kde.plasma.desktop-appletsrc" <<- 'PLASMAEOF'
 	[Containments][1]
