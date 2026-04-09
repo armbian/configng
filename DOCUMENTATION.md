@@ -25,6 +25,9 @@ sudo armbian-config
   - ### Install, remove and configure desktop environments
     - ### Cinnamon - traditional layout with modern features
     - ### GNOME - modern, full-featured desktop
+    - ### MATE - traditional GNOME 2 desktop
+    - ### i3 - lightweight tiling window manager
+    - ### KDE Plasma - feature-rich customizable desktop
     - ### XFCE - lightweight and fast desktop
 
 
@@ -418,6 +421,21 @@ Outputs:
 	--cmd GNME02 - Uninstall
 	--cmd GNME03 - Enable autologin
 	--cmd GNME04 - Disable autologin
+      MATEDE - MATE - traditional GNOME 2 desktop
+	--cmd MATE01 - MATE desktop Install
+	--cmd MATE02 - Uninstall
+	--cmd MATE03 - Enable autologin
+	--cmd MATE04 - Disable autologin
+      I3WMDE - i3 - lightweight tiling window manager
+	--cmd I3WM01 - i3 desktop Install
+	--cmd I3WM02 - i3 desktop uninstall
+	--cmd I3WM03 - Enable autologin
+	--cmd I3WM04 - Disable autologin
+      KDEPDE - KDE Plasma - feature-rich customizable desktop
+	--cmd KDEP01 - KDE Plasma Install
+	--cmd KDEP02 - Uninstall
+	--cmd KDEP03 - Enable autologin
+	--cmd KDEP04 - Disable autologin
       XFCEDE - XFCE - lightweight and fast desktop
 	--cmd XFCE01 - XFCE desktop Install
 	--cmd XFCE02 - Uninstall
@@ -1083,7 +1101,7 @@ These helper functions facilitate various operations related to job management, 
 | Install sonarr container | install remove purge status help | @armbian 
 | Display a yes/no dialog using the configured dialog tool | dialog_yesno "Title" "Question" | @armbian 
 | Generate Document files. | generate_readme | @Tearran 
-| Storing netplan config to tmp | store_netplan_config | @igorpecovnik 
+|  |  | @igorpecovnik 
 | Generic module help dialog for containers and native installs | show_module_help "module_headers" "Kernel Headers" "" "native" | @armbian 
 | Install PostgreSQL container (advanced relational database) | install remove purge status help | @armbian 
 | Install jellyfin container | install remove purge status help | @armbian 
