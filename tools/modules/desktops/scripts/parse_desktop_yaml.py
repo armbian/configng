@@ -52,9 +52,18 @@ def parse_desktop(yaml_dir, de_name, release, arch):
         print(f"Error: invalid YAML in '{de_name}'", file=sys.stderr)
         sys.exit(1)
 
+    # validate package lists are actually lists
+    if not isinstance(data.get("packages", []), list):
+        print(f"Error: 'packages' must be a list in '{de_name}'", file=sys.stderr)
+        sys.exit(1)
+
+    # primary package is the first DE-specific package (for status checks)
+    de_pkgs = data.get("packages", [])
+    primary_pkg = de_pkgs[0] if de_pkgs else ""
+
     # common + base packages
     common_pkgs = load_common(yaml_dir)
-    base_pkgs = common_pkgs + data.get("packages", [])
+    base_pkgs = common_pkgs + de_pkgs
     base_uninstall = data.get("packages_uninstall", [])
 
     # release-specific overrides
@@ -74,15 +83,6 @@ def parse_desktop(yaml_dir, de_name, release, arch):
     all_pkgs = base_pkgs + release_pkgs
     all_uninstall = base_uninstall + release_uninstall
     final_pkgs = [p for p in all_pkgs if p not in release_remove]
-
-    # primary package is the first DE-specific package (for status checks)
-    de_pkgs = data.get("packages", [])
-    primary_pkg = de_pkgs[0] if de_pkgs else ""
-
-    # validate package lists are actually lists
-    if not isinstance(data.get("packages", []), list):
-        print(f"Error: 'packages' must be a list in '{de_name}'", file=sys.stderr)
-        sys.exit(1)
 
     # output bash variables (shell-escaped)
     print(f'DESKTOP_PACKAGES="{shell_escape(" ".join(final_pkgs))}"')
