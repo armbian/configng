@@ -313,6 +313,7 @@ function module_desktop_packages() {
 			packages+=(
 				"kde-plasma-desktop"
 				"sddm"
+				"sddm-theme-breeze"
 				"konsole"
 				"dolphin"
 				"ark"
