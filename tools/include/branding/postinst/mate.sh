@@ -125,10 +125,8 @@ system-db:local" >> $profile
 
 dconf update
 
-# Clear user-level dconf overrides so system defaults apply (wallpaper, theme, etc.)
-for home in /home/*; do
-	[ -d "$home/.config/dconf" ] && rm -f "$home/.config/dconf/user" 2>/dev/null
-done
+# System dconf database + gsettings schema override handle defaults
+# for both new and existing users without touching user databases
 
 # Override MATE default schema for wallpaper
 mkdir -p /usr/share/glib-2.0/schemas
