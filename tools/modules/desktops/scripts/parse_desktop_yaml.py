@@ -111,10 +111,13 @@ def list_desktops(yaml_dir, release, arch, fmt="tsv"):
             "architectures": archs,
         })
 
+    # filter to only supported entries
+    supported_entries = [e for e in entries if e["supported"]]
+
     if fmt == "json":
-        print(jsonlib.dumps(entries, indent=2))
+        print(jsonlib.dumps(supported_entries, indent=2))
     else:
-        for e in entries:
+        for e in supported_entries:
             arch_str = " ".join(e["architectures"]) if e["architectures"] else "-"
             print(f"{e['name']}\t{e['status']}\t{'yes' if e['supported'] else 'no'}\t{arch_str}")
 
