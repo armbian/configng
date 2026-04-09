@@ -53,7 +53,12 @@ function module_desktop_yamlparse() {
 			DESKTOP_REPO_KEY_URL=""
 			DESKTOP_REPO_KEYRING=""
 
-			eval "$(python3 "$parser" "$yaml_dir" "$de" "$release" "$arch")" || return 1
+			local _output
+			_output=$(python3 "$parser" "$yaml_dir" "$de" "$release" "$arch" 2>&1) || {
+				echo "Error: failed to parse YAML for '${de}': ${_output}" >&2
+				return 1
+			}
+			eval "$_output" || return 1
 		;;
 	esac
 }
