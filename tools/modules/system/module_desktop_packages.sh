@@ -328,7 +328,7 @@ function module_desktop_packages() {
 			)
 		;;
 		"${de[9]}")
-			# mate - use meta-packages for clean install/removal
+			# mate - meta-package pulls in caja, marco, mate-terminal
 			packages+=(
 				"mate-desktop-environment"
 				"mate-desktop-environment-extras"
@@ -338,11 +338,18 @@ function module_desktop_packages() {
 				"blueman"
 				"bluez"
 				"bluez-tools"
+				"network-manager-gnome"
 				"dbus-x11"
-				"gdebi"
+				"dmz-cursor-theme"
+				"evince"
+				"fonts-ubuntu"
 				"gnome-disk-utility"
 				"gnome-system-monitor"
+				"gtk2-engines"
+				"gtk2-engines-murrine"
+				"gtk2-engines-pixbuf"
 				"gvfs-backends"
+				"libpam-gnome-keyring"
 				"lm-sensors"
 				"numix-gtk-theme"
 				"numix-icon-theme"
@@ -357,9 +364,17 @@ function module_desktop_packages() {
 				"xdg-user-dirs"
 				"xdg-user-dirs-gtk"
 			)
+			packages_uninstall+=(
+				"brisk-menu"
+				"mate-indicator-applet"
+				"mate-indicator-applet-common"
+				"mate-applet-trash"
+			)
 			architecture=(
 				"arm64"
 				"amd64"
+				"armhf"
+				"riscv64"
 			)
 			supported=(
 				"supported"

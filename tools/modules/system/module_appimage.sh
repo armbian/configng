@@ -68,11 +68,24 @@ function module_appimage() {
 				return 1
 			fi
 
-			# ensure FUSE support for AppImages (libfuse2 only, fuse3 provides fusermount3)
-			pkg_install libfuse2
-			# create fusermount symlink if only fuse3 is available
-			if ! command -v fusermount > /dev/null 2>&1 && command -v fusermount3 > /dev/null 2>&1; then
-				ln -sf "$(command -v fusermount3)" /usr/local/bin/fusermount
+			# ensure FUSE support for AppImages
+			if ! pkg_install libfuse2 fuse3; then
+				echo "Error: failed to install FUSE packages required for AppImages" >&2
+				return 1
+			fi
+			# Resolve fusermount path once
+			local fmount=$(command -v fusermount3 2>/dev/null || command -v fusermount 2>/dev/null)
+			if [[ -z "$fmount" ]]; then
+				echo "Error: no fusermount binary found after installing fuse3" >&2
+				return 1
+			fi
+			# AppImages need fusermount but fuse3 only provides fusermount3
+			if ! command -v fusermount > /dev/null 2>&1; then
+				ln -sf "$fmount" /usr/local/bin/fusermount
+			fi
+			# Set FUSERMOUNT_PROG system-wide for AppImage compatibility
+			if ! grep -q FUSERMOUNT_PROG /etc/environment 2>/dev/null; then
+				echo "FUSERMOUNT_PROG=${fmount}" >> /etc/environment
 			fi
 
 			# get latest release download URL
@@ -102,7 +115,7 @@ function module_appimage() {
 			Version=1.0
 			Type=Application
 			Name=${display_name}
-			Exec=${APPIMAGE_DIR}/${app}
+			Exec=env FUSERMOUNT_PROG=${fmount} ${APPIMAGE_DIR}/${app}
 			Icon=/usr/share/pixmaps/armbian/armbian.png
 			Terminal=false
 			Categories=Utility;

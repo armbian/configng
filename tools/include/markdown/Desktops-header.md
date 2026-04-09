@@ -21,6 +21,7 @@ Desktop environments that require NetworkManager (e.g., GNOME) install it alongs
 | XFCE | Single board computers, low-end hardware | ~300 MB RAM |
 | GNOME | Modern desktops, touchscreen devices | ~800 MB RAM |
 | Cinnamon | Users familiar with Windows layout | ~500 MB RAM |
+| MATE | Classic GNOME 2 fans, low-resource systems | ~350 MB RAM |
 
 !!! note "Switching desktops"
 
