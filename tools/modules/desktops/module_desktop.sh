@@ -20,70 +20,70 @@ module_options+=(
 #
 function install_desktop_branding() {
 	local de="$1"
-	local branding_dir="${script_dir}/../tools/include/branding"
+	local desktop_dir="${script_dir}/../tools/modules/desktops"
 
-	if [[ ! -d "$branding_dir" ]]; then
-		echo "Warning: branding directory not found at $branding_dir" >&2
+	if [[ ! -d "$desktop_dir" ]]; then
+		echo "Warning: desktops directory not found at $desktop_dir" >&2
 		return 0
 	fi
 
 	dialog_infobox "Desktop" "Installing Armbian branding for ${de}..."
 
-	# lightdm configuration
-	if [[ -d "$branding_dir/lightdm" ]]; then
+	# greeter configuration (lightdm)
+	if [[ -d "$desktop_dir/greeters/lightdm" ]]; then
 		mkdir -p /etc/armbian/lightdm
-		cp -R "$branding_dir/lightdm/." /etc/armbian/lightdm/
+		cp -R "$desktop_dir/greeters/lightdm/." /etc/armbian/lightdm/
 		cp -R /etc/armbian/lightdm/. /etc/lightdm/ 2>/dev/null || true
 	fi
 
 	# default user skeleton
-	if [[ -d "$branding_dir/skel" ]]; then
-		cp -R "$branding_dir/skel/." /etc/skel/
+	if [[ -d "$desktop_dir/skel" ]]; then
+		cp -R "$desktop_dir/skel/." /etc/skel/
 	fi
 
 	# wallpapers
-	if [[ -d "$branding_dir/wallpapers" ]]; then
+	if [[ -d "$desktop_dir/branding/wallpapers" ]]; then
 		mkdir -p /usr/share/backgrounds/armbian
-		cp "$branding_dir/wallpapers/"*.jpg /usr/share/backgrounds/armbian/
+		cp "$desktop_dir/branding/wallpapers/"*.jpg /usr/share/backgrounds/armbian/
 	fi
 
 	# lightdm wallpapers
-	if [[ -d "$branding_dir/wallpapers-lightdm" ]]; then
+	if [[ -d "$desktop_dir/branding/wallpapers-lightdm" ]]; then
 		mkdir -p /usr/share/backgrounds/armbian-lightdm
-		cp "$branding_dir/wallpapers-lightdm/"*.jpg /usr/share/backgrounds/armbian-lightdm/
+		cp "$desktop_dir/branding/wallpapers-lightdm/"*.jpg /usr/share/backgrounds/armbian-lightdm/
 	fi
 
 	# desktop icons
-	if [[ -d "$branding_dir/icons" ]]; then
+	if [[ -d "$desktop_dir/branding/icons" ]]; then
 		mkdir -p /usr/share/icons/armbian
-		cp "$branding_dir/icons/"* /usr/share/icons/armbian/
+		cp "$desktop_dir/branding/icons/"* /usr/share/icons/armbian/
 	fi
 
 	# login logo
-	if [[ -d "$branding_dir/pixmaps" ]]; then
+	if [[ -d "$desktop_dir/branding/pixmaps" ]]; then
 		mkdir -p /usr/share/pixmaps/armbian
-		cp "$branding_dir/pixmaps/"* /usr/share/pixmaps/armbian/
+		cp "$desktop_dir/branding/pixmaps/"* /usr/share/pixmaps/armbian/
 	fi
 
 	# GNOME wallpaper properties
-	if [[ -f "$branding_dir/armbian.xml" ]]; then
+	if [[ -f "$desktop_dir/branding/armbian.xml" ]]; then
 		mkdir -p /usr/share/gnome-background-properties
-		cp "$branding_dir/armbian.xml" /usr/share/gnome-background-properties/
+		cp "$desktop_dir/branding/armbian.xml" /usr/share/gnome-background-properties/
 	fi
 
 	# SDDM theme (for KDE)
-	if [[ -d "$branding_dir/sddm/themes" && ("$de" == "kde-plasma" || "$de" == "kde-neon") ]]; then
+	if [[ -d "$desktop_dir/greeters/sddm/themes" && ("$de" == "kde-plasma" || "$de" == "kde-neon") ]]; then
 		mkdir -p /usr/share/sddm/themes
-		cp -R "$branding_dir/sddm/themes/"* /usr/share/sddm/themes/
+		cp -R "$desktop_dir/greeters/sddm/themes/"* /usr/share/sddm/themes/
 	fi
 
 	# DE-specific postinst script (skip inside containers / CI)
-	if [[ -f "$branding_dir/postinst/${de}.sh" ]]; then
+	if [[ -f "$desktop_dir/postinst/${de}.sh" ]]; then
 		if [[ -f /.dockerenv || -f /run/.containerenv || -n "${CI:-}" || -n "${GITHUB_ACTIONS:-}" ]]; then
 			echo "Skipping ${de} postinst (running inside container/CI)" >&2
 		else
 			dialog_infobox "Desktop" "Running ${de} post-install configuration..."
-			bash "$branding_dir/postinst/${de}.sh" || true
+			bash "$desktop_dir/postinst/${de}.sh" || true
 		fi
 	fi
 }
