@@ -56,6 +56,11 @@ function module_desktops() {
 
 			module_desktop_yamlparse "$de" || return 1
 
+			if [[ -z "$DESKTOP_PACKAGES" || -z "$DESKTOP_PRIMARY_PKG" ]]; then
+				echo "Error: YAML definition for '${de}' has no packages" >&2
+				return 1
+			fi
+
 			if [[ "$DESKTOP_SUPPORTED" != "yes" ]]; then
 				echo "Warning: '${de}' is not supported on ${DISTROID}/$(dpkg --print-architecture)" >&2
 			fi
@@ -75,7 +80,7 @@ function module_desktops() {
 			# install and register display manager
 			if [[ -n "$DESKTOP_DM" && "$DESKTOP_DM" != "none" ]]; then
 				pkg_install -o Dpkg::Options::="--force-confold" "$DESKTOP_DM"
-				which "$DESKTOP_DM" > /etc/X11/default-display-manager 2>/dev/null || true
+				command -v "$DESKTOP_DM" > /etc/X11/default-display-manager 2>/dev/null || true
 			fi
 
 			# remove unwanted packages

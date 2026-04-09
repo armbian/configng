@@ -51,25 +51,25 @@ function module_desktop_branding() {
 			# wallpapers
 			if [[ -d "$desktop_dir/branding/wallpapers" ]]; then
 				mkdir -p /usr/share/backgrounds/armbian
-				cp "$desktop_dir/branding/wallpapers/"*.jpg /usr/share/backgrounds/armbian/
+				cp "$desktop_dir/branding/wallpapers/"*.jpg /usr/share/backgrounds/armbian/ 2>/dev/null || true
 			fi
 
 			# lightdm wallpapers
 			if [[ -d "$desktop_dir/branding/wallpapers-lightdm" ]]; then
 				mkdir -p /usr/share/backgrounds/armbian-lightdm
-				cp "$desktop_dir/branding/wallpapers-lightdm/"*.jpg /usr/share/backgrounds/armbian-lightdm/
+				cp "$desktop_dir/branding/wallpapers-lightdm/"*.jpg /usr/share/backgrounds/armbian-lightdm/ 2>/dev/null || true
 			fi
 
 			# desktop icons
 			if [[ -d "$desktop_dir/branding/icons" ]]; then
 				mkdir -p /usr/share/icons/armbian
-				cp "$desktop_dir/branding/icons/"* /usr/share/icons/armbian/
+				cp "$desktop_dir/branding/icons/"* /usr/share/icons/armbian/ 2>/dev/null || true
 			fi
 
 			# login logo
 			if [[ -d "$desktop_dir/branding/pixmaps" ]]; then
 				mkdir -p /usr/share/pixmaps/armbian
-				cp "$desktop_dir/branding/pixmaps/"* /usr/share/pixmaps/armbian/
+				cp "$desktop_dir/branding/pixmaps/"* /usr/share/pixmaps/armbian/ 2>/dev/null || true
 			fi
 
 			# GNOME wallpaper properties

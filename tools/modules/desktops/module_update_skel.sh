@@ -22,8 +22,19 @@ function module_update_skel() {
 					if [ ! -d "$home" ] || [ "$username" == 'root' ] || [ "$uid" -lt 1000 ] || [ "$uid" -ge 65534 ]; then
 						continue
 					fi
-					cp -r --update=none /etc/skel/. "$home/"
-					chown -R "$uid:$gid" "$home/"
+					# copy new files only, then fix ownership of copied files
+					find /etc/skel -mindepth 1 | while read -r src; do
+						local dst="$home/${src#/etc/skel/}"
+						if [ ! -e "$dst" ]; then
+							if [ -d "$src" ]; then
+								mkdir -p "$dst"
+							else
+								mkdir -p "$(dirname "$dst")"
+								cp "$src" "$dst"
+							fi
+							chown "$uid:$gid" "$dst"
+						fi
+					done
 				done
 		;;
 		"${commands[1]}")

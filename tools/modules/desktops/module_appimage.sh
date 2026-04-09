@@ -37,9 +37,8 @@ function module_appimage() {
 
 	# read app name from parameters
 	local app=""
-	local parameter
-	IFS=' ' read -r -a parameter <<< "${2}"
-	for selected in "${parameter[@]}"; do
+	local selected
+	for selected in "${@:2}"; do
 		IFS='=' read -r -a split <<< "${selected}"
 		[[ "${split[0]}" == "app" ]] && app="${split[1]}"
 	done

@@ -23,6 +23,11 @@ import os
 import yaml
 
 
+def shell_escape(s):
+    """Escape characters that are special inside double-quoted shell strings."""
+    return str(s).replace('\\', '\\\\').replace('"', '\\"').replace('$', '\\$').replace('`', '\\`')
+
+
 def load_common(yaml_dir):
     """Load common packages from common.yaml."""
     common_file = os.path.join(yaml_dir, "common.yaml")
@@ -43,14 +48,18 @@ def parse_desktop(yaml_dir, de_name, release, arch):
     with open(yaml_file) as f:
         data = yaml.safe_load(f)
 
+    if not isinstance(data, dict):
+        print(f"Error: invalid YAML in '{de_name}'", file=sys.stderr)
+        sys.exit(1)
+
     # common + base packages
     common_pkgs = load_common(yaml_dir)
     base_pkgs = common_pkgs + data.get("packages", [])
     base_uninstall = data.get("packages_uninstall", [])
 
     # release-specific overrides
-    releases = data.get("releases", {})
-    release_data = releases.get(release, {})
+    releases = data.get("releases", {}) or {}
+    release_data = releases.get(release, {}) or {}
 
     # architecture support
     supported_archs = release_data.get("architectures", [])
@@ -70,21 +79,26 @@ def parse_desktop(yaml_dir, de_name, release, arch):
     de_pkgs = data.get("packages", [])
     primary_pkg = de_pkgs[0] if de_pkgs else ""
 
-    # output bash variables
-    print(f'DESKTOP_PACKAGES="{" ".join(final_pkgs)}"')
-    print(f'DESKTOP_PACKAGES_UNINSTALL="{" ".join(all_uninstall)}"')
-    print(f'DESKTOP_PRIMARY_PKG="{primary_pkg}"')
-    print(f'DESKTOP_DM="{data.get("display_manager", "lightdm")}"')
-    print(f'DESKTOP_STATUS="{data.get("status", "unsupported")}"')
+    # validate package lists are actually lists
+    if not isinstance(data.get("packages", []), list):
+        print(f"Error: 'packages' must be a list in '{de_name}'", file=sys.stderr)
+        sys.exit(1)
+
+    # output bash variables (shell-escaped)
+    print(f'DESKTOP_PACKAGES="{shell_escape(" ".join(final_pkgs))}"')
+    print(f'DESKTOP_PACKAGES_UNINSTALL="{shell_escape(" ".join(all_uninstall))}"')
+    print(f'DESKTOP_PRIMARY_PKG="{shell_escape(primary_pkg)}"')
+    print(f'DESKTOP_DM="{shell_escape(data.get("display_manager", "lightdm"))}"')
+    print(f'DESKTOP_STATUS="{shell_escape(data.get("status", "unsupported"))}"')
     print(f'DESKTOP_SUPPORTED="{"yes" if is_supported else "no"}"')
-    print(f'DESKTOP_DESC="{data.get("description", de_name)}"')
+    print(f'DESKTOP_DESC="{shell_escape(data.get("description", de_name))}"')
 
     # repo info
-    repo = data.get("repo", {})
+    repo = data.get("repo", {}) or {}
     if repo:
-        print(f'DESKTOP_REPO_URL="{repo.get("url", "")}"')
-        print(f'DESKTOP_REPO_KEY_URL="{repo.get("key_url", "")}"')
-        print(f'DESKTOP_REPO_KEYRING="{repo.get("keyring", "")}"')
+        print(f'DESKTOP_REPO_URL="{shell_escape(repo.get("url", ""))}"')
+        print(f'DESKTOP_REPO_KEY_URL="{shell_escape(repo.get("key_url", ""))}"')
+        print(f'DESKTOP_REPO_KEYRING="{shell_escape(repo.get("keyring", ""))}"')
 
 
 def list_desktops(yaml_dir, release, arch, fmt="tsv"):
@@ -98,12 +112,14 @@ def list_desktops(yaml_dir, release, arch, fmt="tsv"):
         fpath = os.path.join(yaml_dir, fname)
         with open(fpath) as f:
             data = yaml.safe_load(f)
+        if not isinstance(data, dict):
+            continue
         name = fname.replace(".yaml", "")
         status = data.get("status", "unsupported")
         desc = data.get("description", name)
         dm = data.get("display_manager", "lightdm")
-        releases = data.get("releases", {})
-        release_data = releases.get(release, {})
+        releases = data.get("releases", {}) or {}
+        release_data = releases.get(release, {}) or {}
         archs = release_data.get("architectures", [])
         supported = arch in archs and release in releases
 
@@ -135,9 +151,14 @@ if __name__ == "__main__":
 
     yaml_dir = sys.argv[1]
 
-    if sys.argv[2] == "--list":
-        list_desktops(yaml_dir, sys.argv[3], sys.argv[4])
-    elif sys.argv[2] == "--list-json":
-        list_desktops(yaml_dir, sys.argv[3], sys.argv[4], fmt="json")
+    if sys.argv[2] in ("--list", "--list-json"):
+        if len(sys.argv) < 5:
+            print(f"Usage: {sys.argv[0]} <yaml_dir> {sys.argv[2]} <release> <arch>", file=sys.stderr)
+            sys.exit(1)
+        fmt = "json" if sys.argv[2] == "--list-json" else "tsv"
+        list_desktops(yaml_dir, sys.argv[3], sys.argv[4], fmt=fmt)
     else:
+        if len(sys.argv) < 5:
+            print(f"Usage: {sys.argv[0]} <yaml_dir> <de_name> <release> <arch>", file=sys.stderr)
+            sys.exit(1)
         parse_desktop(yaml_dir, sys.argv[2], sys.argv[3], sys.argv[4])

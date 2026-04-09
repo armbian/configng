@@ -29,11 +29,20 @@ function module_desktop_repo() {
 			return 0
 		;;
 		*)
-			if [[ -n "$DESKTOP_REPO_URL" && -n "$DESKTOP_REPO_KEY_URL" ]]; then
+			if [[ -n "$DESKTOP_REPO_URL" && -n "$DESKTOP_REPO_KEY_URL" && -n "$DESKTOP_REPO_KEYRING" ]]; then
 				echo "Setting up repository for ${de}..." >&2
 
-				# download GPG key
-				curl -fsSL "$DESKTOP_REPO_KEY_URL" | gpg --dearmor -o "$DESKTOP_REPO_KEYRING" 2>/dev/null
+				# download and verify GPG key
+				if ! curl -fsSL "$DESKTOP_REPO_KEY_URL" | gpg --dearmor -o "$DESKTOP_REPO_KEYRING" 2>/dev/null; then
+					echo "Error: failed to download GPG key from $DESKTOP_REPO_KEY_URL" >&2
+					return 1
+				fi
+
+				if [[ ! -s "$DESKTOP_REPO_KEYRING" ]]; then
+					echo "Error: GPG keyring is empty at $DESKTOP_REPO_KEYRING" >&2
+					rm -f "$DESKTOP_REPO_KEYRING"
+					return 1
+				fi
 
 				# add source
 				cat > "/etc/apt/sources.list.d/${de}.list" <<- EOF

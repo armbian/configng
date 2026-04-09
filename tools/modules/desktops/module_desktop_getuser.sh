@@ -24,7 +24,7 @@ function module_desktop_getuser() {
 		;;
 		*)
 			local user=""
-			if [[ -n "$SUDO_USER" && "$SUDO_USER" != "root" ]]; then
+			if [[ -n "$SUDO_USER" && "$SUDO_USER" != "root" ]] && id "$SUDO_USER" > /dev/null 2>&1; then
 				user="$SUDO_USER"
 			else
 				user=$(awk -F: '$3 >= 1000 && $3 < 65534 && $7 !~ /nologin|false/ {print $1; exit}' /etc/passwd)
