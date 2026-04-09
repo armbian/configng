@@ -424,6 +424,58 @@
                             ]
                         },
                         {
+                            "id": "KDENDE",
+                            "description": "KDE Neon - latest Plasma from KDE repos (Ubuntu only)",
+                            "short": "KDE Neon",
+                            "help": "KDE Neon provides cutting-edge Plasma desktop from the KDE Neon repository. Ubuntu Noble/Plucky only.",
+                            "sub": [
+                                {
+                                    "id": "KDEN01",
+                                    "description": "KDE Neon Install",
+                                    "command": [
+                                        "module_desktop install de=kde-neon"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "! module_desktop status de=kde-neon",
+                                    "help": "KDE Neon Install"
+                                },
+                                {
+                                    "id": "KDEN02",
+                                    "description": "Uninstall",
+                                    "command": [
+                                        "module_desktop remove de=kde-neon"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "module_desktop status de=kde-neon",
+                                    "help": "Uninstall"
+                                },
+                                {
+                                    "id": "KDEN03",
+                                    "description": "Enable autologin",
+                                    "command": [
+                                        "module_desktop auto de=kde-neon"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "module_desktop status de=kde-neon && ! module_desktop login de=kde-neon",
+                                    "help": "Enable autologin"
+                                },
+                                {
+                                    "id": "KDEN04",
+                                    "description": "Disable autologin",
+                                    "command": [
+                                        "module_desktop manual de=kde-neon"
+                                    ],
+                                    "status": "Stable",
+                                    "author": "@igorpecovnik",
+                                    "condition": "module_desktop status de=kde-neon && module_desktop login de=kde-neon",
+                                    "help": "Disable autologin"
+                                }
+                            ]
+                        },
+                        {
                             "id": "XFCEDE",
                             "description": "XFCE - lightweight and fast desktop",
                             "short": "XFCE",
