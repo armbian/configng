@@ -44,23 +44,6 @@ function _desktop_yaml_parse() {
 }
 
 #
-# Check if a desktop is supported on given arch/release
-# Usage: _desktop_is_supported <de_name> [arch] [release]
-# Returns: 0 if supported, 1 if not
-#
-function _desktop_is_supported() {
-	local de="$1"
-	local yaml_dir="${script_dir}/../tools/modules/desktops/yaml"
-	local parser="${script_dir}/../tools/modules/desktops/scripts/parse_desktop_yaml.py"
-	local arch="${2:-$(dpkg --print-architecture)}"
-	local release="${3:-$DISTROID}"
-
-	local result
-	result=$(python3 "$parser" "$yaml_dir" "$de" "$release" "$arch" 2>/dev/null | grep '^DESKTOP_SUPPORTED=' | cut -d'"' -f2)
-	[[ "$result" == "yes" ]]
-}
-
-#
 # List available desktops via Python helper
 #
 function _desktop_yaml_list() {
