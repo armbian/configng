@@ -32,6 +32,7 @@ function _desktop_yaml_parse() {
 	# reset variables
 	DESKTOP_PACKAGES=""
 	DESKTOP_PACKAGES_UNINSTALL=""
+	DESKTOP_PRIMARY_PKG=""
 	DESKTOP_DM=""
 	DESKTOP_STATUS=""
 	DESKTOP_SUPPORTED=""
@@ -161,17 +162,8 @@ function module_desktops() {
 
 			_desktop_yaml_parse "$de" || return 1
 
-			# check display manager
-			if [[ -n "$DESKTOP_DM" && "$DESKTOP_DM" != "none" ]]; then
-				if systemctl is-active --quiet "$DESKTOP_DM" 2>/dev/null; then
-					echo "installed"
-					return 0
-				fi
-			fi
-
-			# fallback: check first package
-			local first_pkg=$(echo "$DESKTOP_PACKAGES" | awk '{print $1}')
-			if dpkg -l "$first_pkg" 2>/dev/null | grep -q "^ii"; then
+			# check if the primary DE package is installed
+			if [[ -n "$DESKTOP_PRIMARY_PKG" ]] && dpkg -l "$DESKTOP_PRIMARY_PKG" 2>/dev/null | grep -q "^ii"; then
 				echo "installed"
 				return 0
 			fi
@@ -194,15 +186,6 @@ function module_desktops() {
 				[[ "$result" == "[]" ]] && return 1
 				return 0
 			fi
-
-			_desktop_yaml_parse "$de" "$use_arch" "$use_release" || return 1
-			if [[ "$DESKTOP_SUPPORTED" == "yes" ]]; then
-				echo "true"
-				return 0
-			else
-				echo "false"
-				return 1
-			fi
 		;;
 
 		"${commands[4]}")
@@ -211,8 +194,7 @@ function module_desktops() {
 		;;
 
 		*)
-			show_module_help "module_desktops" "Desktops" \
-				"Examples:\n  module_desktops install de=xfce\n  module_desktops supported\n  module_desktops supported arch=arm64 release=trixie\n  module_desktops supported de=gnome" "native"
+			${module_options["module_desktops,feature"]} ${commands[4]}
 		;;
 	esac
 }

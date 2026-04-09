@@ -66,9 +66,14 @@ def parse_desktop(yaml_dir, de_name, release, arch):
     all_uninstall = base_uninstall + release_uninstall
     final_pkgs = [p for p in all_pkgs if p not in release_remove]
 
+    # primary package is the first DE-specific package (for status checks)
+    de_pkgs = data.get("packages", [])
+    primary_pkg = de_pkgs[0] if de_pkgs else ""
+
     # output bash variables
     print(f'DESKTOP_PACKAGES="{" ".join(final_pkgs)}"')
     print(f'DESKTOP_PACKAGES_UNINSTALL="{" ".join(all_uninstall)}"')
+    print(f'DESKTOP_PRIMARY_PKG="{primary_pkg}"')
     print(f'DESKTOP_DM="{data.get("display_manager", "lightdm")}"')
     print(f'DESKTOP_STATUS="{data.get("status", "unsupported")}"')
     print(f'DESKTOP_SUPPORTED="{"yes" if is_supported else "no"}"')
