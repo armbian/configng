@@ -319,59 +319,6 @@
                             ]
                         },
                         {
-                            "id": "KDENEO",
-                            "description": "KDE Neon - Plasma desktop (Ubuntu Noble only)",
-                            "short": "KDE Neon",
-                            "help": "KDE Neon provides the latest KDE Plasma desktop on Ubuntu Noble. Feature-rich with extensive customization options. Ubuntu Noble only.",
-                            "status": "Disabled",
-                            "sub": [
-                                {
-                                    "id": "KDEN01",
-                                    "description": "Kde-neon desktop Install",
-                                    "command": [
-                                        "module_desktop install de=kde-neon"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "! module_desktop status de=kde-neon",
-                                    "help": "Kde-neon desktop Install"
-                                },
-                                {
-                                    "id": "KDEN02",
-                                    "description": "Uninstall",
-                                    "command": [
-                                        "module_desktop remove de=kde-neon"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "module_desktop status de=kde-neon",
-                                    "help": "Uninstall"
-                                },
-                                {
-                                    "id": "KDEN03",
-                                    "description": "Enable autologin",
-                                    "command": [
-                                        "module_desktop auto de=kde-neon"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "module_desktop status de=kde-neon && ! module_desktop login de=kde-neon",
-                                    "help": "Enable autologin"
-                                },
-                                {
-                                    "id": "KDEN04",
-                                    "description": "Disable autologin",
-                                    "command": [
-                                        "module_desktop manual de=kde-neon"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "module_desktop status de=kde-neon && module_desktop login de=kde-neon",
-                                    "help": "Disable autologin"
-                                }
-                            ]
-                        },
-                        {
                             "id": "KDEPDE",
                             "description": "KDE Plasma - feature-rich customizable desktop",
                             "short": "KDE Plasma",
