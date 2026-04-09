@@ -24,6 +24,7 @@ function module_desktop_packages() {
 
 	# Common desktop packages
 	packages=(
+			"adwaita-icon-theme"
 			"cups"
 			"dconf-cli"
 			"profile-sync-daemon"
