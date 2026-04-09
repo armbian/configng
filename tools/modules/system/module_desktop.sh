@@ -138,6 +138,9 @@ function module_desktop() {
 	case "$1" in
 		"${commands[0]}")
 
+			# suppress interactive prompts during package installation
+			echo "encfs encfs/security-information boolean true" | debconf-set-selections 2>/dev/null || true
+
 			# update package list
 			pkg_update
 
