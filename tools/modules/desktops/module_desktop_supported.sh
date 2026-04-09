@@ -4,7 +4,7 @@ module_options+=(
 	["module_desktop_supported,desc"]="Check if a desktop is supported on this system"
 	["module_desktop_supported,example"]="module_desktop_supported xfce"
 	["module_desktop_supported,status"]="Active"
-	["module_desktop_supported,arch"]=""
+	["module_desktop_supported,arch"]="arm64 amd64 armhf riscv64"
 )
 
 #
