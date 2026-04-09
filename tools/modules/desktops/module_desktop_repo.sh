@@ -29,6 +29,12 @@ function module_desktop_repo() {
 			return 0
 		;;
 		*)
+			# sanitize de name for safe use in file paths
+			if [[ ! "$de" =~ ^[a-zA-Z0-9._-]+$ ]]; then
+				echo "Error: invalid desktop name '${de}'" >&2
+				return 1
+			fi
+
 			if [[ -n "$DESKTOP_REPO_URL" && -n "$DESKTOP_REPO_KEY_URL" && -n "$DESKTOP_REPO_KEYRING" ]]; then
 				echo "Setting up repository for ${de}..." >&2
 
