@@ -97,12 +97,8 @@ function module_desktops() {
 		"${commands[0]}")
 			# install
 			if [[ -z "$de" ]]; then
-				echo "Error: specify de=name" >&2
-				printf "%-15s %-12s %-10s %s\n" "Desktop" "Status" "Supported" "Architectures"
-				printf "%-15s %-12s %-10s %s\n" "-------" "------" "---------" "-------------"
-				_desktop_yaml_list | while IFS=$'\t' read -r name status supported archs; do
-					printf "%-15s %-12s %-10s %s\n" "$name" "$status" "$supported" "$archs"
-				done
+				local available=$(_desktop_yaml_list | cut -f1 | tr '\n' ', ' | sed 's/,$//')
+				echo "Error: specify de=name. Available: ${available}" >&2
 				return 1
 			fi
 
