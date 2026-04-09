@@ -68,9 +68,9 @@ function module_appimage() {
 				return 1
 			fi
 
-			# ensure FUSE support for AppImages (libfuse2 only, fuse3 provides fusermount3)
-			pkg_install libfuse2
-			# create fusermount symlink if only fuse3 is available
+			# ensure FUSE support for AppImages
+			pkg_install libfuse2 fuse3
+			# AppImages need fusermount but fuse3 only provides fusermount3
 			if ! command -v fusermount > /dev/null 2>&1 && command -v fusermount3 > /dev/null 2>&1; then
 				ln -sf "$(command -v fusermount3)" /usr/local/bin/fusermount
 			fi
