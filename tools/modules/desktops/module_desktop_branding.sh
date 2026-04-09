@@ -81,7 +81,7 @@ function module_desktop_branding() {
 			# SDDM theme (for desktops using sddm)
 			if [[ -d "$desktop_dir/greeters/sddm/themes" && "$DESKTOP_DM" == "sddm" ]]; then
 				mkdir -p /usr/share/sddm/themes
-				cp -R "$desktop_dir/greeters/sddm/themes/"* /usr/share/sddm/themes/
+				cp -R "$desktop_dir/greeters/sddm/themes/"* /usr/share/sddm/themes/ 2>/dev/null || true
 			fi
 
 			# DE-specific postinst script (skip inside containers / CI)

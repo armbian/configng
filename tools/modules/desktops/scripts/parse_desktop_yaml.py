@@ -34,7 +34,8 @@ def load_common(yaml_dir):
     if os.path.exists(common_file):
         with open(common_file) as f:
             data = yaml.safe_load(f)
-        return data.get("packages", [])
+        if isinstance(data, dict):
+            return data.get("packages", [])
     return []
 
 
