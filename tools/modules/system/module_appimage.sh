@@ -74,6 +74,11 @@ function module_appimage() {
 			if ! command -v fusermount > /dev/null 2>&1 && command -v fusermount3 > /dev/null 2>&1; then
 				ln -sf "$(command -v fusermount3)" /usr/local/bin/fusermount
 			fi
+			# Set FUSERMOUNT_PROG system-wide for AppImage compatibility
+			local fmount=$(command -v fusermount3 2>/dev/null || command -v fusermount 2>/dev/null)
+			if [[ -n "$fmount" ]] && ! grep -q FUSERMOUNT_PROG /etc/environment 2>/dev/null; then
+				echo "FUSERMOUNT_PROG=${fmount}" >> /etc/environment
+			fi
 
 			# get latest release download URL
 			local download_url
@@ -102,7 +107,7 @@ function module_appimage() {
 			Version=1.0
 			Type=Application
 			Name=${display_name}
-			Exec=${APPIMAGE_DIR}/${app}
+			Exec=env FUSERMOUNT_PROG=$(command -v fusermount3 || command -v fusermount) ${APPIMAGE_DIR}/${app}
 			Icon=/usr/share/pixmaps/armbian/armbian.png
 			Terminal=false
 			Categories=Utility;
