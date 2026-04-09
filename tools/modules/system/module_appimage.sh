@@ -69,7 +69,10 @@ function module_appimage() {
 			fi
 
 			# ensure FUSE support for AppImages
-			pkg_install libfuse2 fuse3
+			if ! pkg_install libfuse2 fuse3; then
+				echo "Error: failed to install FUSE packages required for AppImages" >&2
+				return 1
+			fi
 			# AppImages need fusermount but fuse3 only provides fusermount3
 			if ! command -v fusermount > /dev/null 2>&1 && command -v fusermount3 > /dev/null 2>&1; then
 				ln -sf "$(command -v fusermount3)" /usr/local/bin/fusermount
