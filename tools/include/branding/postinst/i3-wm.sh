@@ -31,6 +31,20 @@ if [ -f /etc/i3/config ]; then
 	# start dunst
 	grep -q "dunst" /etc/i3/config || \
 		echo "exec --no-startup-id dunst" >> /etc/i3/config
+
+	# copy patched config to skel so users don't get the first-run wizard
+	mkdir -p /etc/skel/.config/i3
+	cp /etc/i3/config /etc/skel/.config/i3/config
+
+	# also copy to existing users
+	for home in /home/*; do
+		user=$(basename "$home")
+		if id "$user" > /dev/null 2>&1 && [ ! -f "$home/.config/i3/config" ]; then
+			mkdir -p "$home/.config/i3"
+			cp /etc/i3/config "$home/.config/i3/config"
+			chown -R "$(id -u "$user"):$(id -g "$user")" "$home/.config/i3"
+		fi
+	done
 fi
 
 # Let NetworkManager coexist with systemd-networkd (only if networkd is active)
