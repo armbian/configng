@@ -3,11 +3,16 @@ set +e
 
 # Configure SDDM theme
 if [ -d /usr/share/sddm/themes/plasma-chili ]; then
-	mkdir -p /etc/sddm.conf.d
-	cat > /etc/sddm.conf.d/10-armbian-theme.conf <<- 'SDDMEOF'
-	[Theme]
-	Current=plasma-chili
-	SDDMEOF
+	# Override theme in main config (conf.d doesn't override main config)
+	if [ -f /etc/sddm.conf ]; then
+		sed -i 's/^Current=.*/Current=plasma-chili/' /etc/sddm.conf
+	else
+		mkdir -p /etc/sddm.conf.d
+		cat > /etc/sddm.conf.d/10-armbian-theme.conf <<- 'SDDMEOF'
+		[Theme]
+		Current=plasma-chili
+		SDDMEOF
+	fi
 fi
 
 # Set SDDM background to Armbian wallpaper
