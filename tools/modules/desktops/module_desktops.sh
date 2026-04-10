@@ -212,12 +212,15 @@ function module_desktops() {
 					EOF
 				;;
 				lightdm)
+					# map DE name to actual xsession file in /usr/share/xsessions/
+					local session="$de"
+					[[ "$session" == "i3-wm" ]] && session="i3"
 					mkdir -p /etc/lightdm/lightdm.conf.d
 					cat > /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf <<- EOF
 					[Seat:*]
 					autologin-user=${user}
 					autologin-user-timeout=0
-					user-session=${de}
+					user-session=${session}
 					EOF
 				;;
 			esac
