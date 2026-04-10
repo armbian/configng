@@ -28,6 +28,16 @@ def shell_escape(s):
     return str(s).replace('\\', '\\\\').replace('"', '\\"').replace('$', '\\$').replace('`', '\\`')
 
 
+def _as_dict(node):
+    """Return node if it's a mapping, else {} — tolerates None/empty/wrong-type YAML nodes."""
+    return node if isinstance(node, dict) else {}
+
+
+def _as_list(node):
+    """Return node if it's a list, else [] — prevents `arch in 'arm64'` substring matches when 'architectures: arm64' is written instead of '[arm64]'."""
+    return node if isinstance(node, list) else []
+
+
 def load_common(yaml_dir):
     """Load common packages from common.yaml."""
     common_file = os.path.join(yaml_dir, "common.yaml")
@@ -68,17 +78,17 @@ def parse_desktop(yaml_dir, de_name, release, arch):
     base_uninstall = data.get("packages_uninstall", [])
 
     # release-specific overrides
-    releases = data.get("releases", {}) or {}
-    release_data = releases.get(release, {}) or {}
+    releases = _as_dict(data.get("releases"))
+    release_data = _as_dict(releases.get(release))
 
     # architecture support
-    supported_archs = release_data.get("architectures", [])
+    supported_archs = _as_list(release_data.get("architectures"))
     is_supported = arch in supported_archs and release in releases
 
     # merge release overrides
-    release_pkgs = release_data.get("packages", [])
-    release_remove = release_data.get("packages_remove", [])
-    release_uninstall = release_data.get("packages_uninstall", [])
+    release_pkgs = _as_list(release_data.get("packages"))
+    release_remove = _as_list(release_data.get("packages_remove"))
+    release_uninstall = _as_list(release_data.get("packages_uninstall"))
 
     # combine and filter
     all_pkgs = base_pkgs + release_pkgs
@@ -95,7 +105,7 @@ def parse_desktop(yaml_dir, de_name, release, arch):
     print(f'DESKTOP_DESC="{shell_escape(data.get("description", de_name))}"')
 
     # repo info
-    repo = data.get("repo", {}) or {}
+    repo = _as_dict(data.get("repo"))
     if repo:
         print(f'DESKTOP_REPO_URL="{shell_escape(repo.get("url", ""))}"')
         print(f'DESKTOP_REPO_KEY_URL="{shell_escape(repo.get("key_url", ""))}"')
@@ -119,9 +129,9 @@ def list_desktops(yaml_dir, release, arch, fmt="tsv"):
         status = data.get("status", "unsupported")
         desc = data.get("description", name)
         dm = data.get("display_manager", "lightdm")
-        releases = data.get("releases", {}) or {}
-        release_data = releases.get(release, {}) or {}
-        archs = release_data.get("architectures", [])
+        releases = _as_dict(data.get("releases"))
+        release_data = _as_dict(releases.get(release))
+        archs = _as_list(release_data.get("architectures"))
         supported = arch in archs and release in releases
 
         entries.append({
