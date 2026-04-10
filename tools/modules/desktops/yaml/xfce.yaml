@@ -54,7 +54,7 @@ packages_uninstall:
 
 releases:
   bookworm:
-    architectures: [arm64, amd64]
+    architectures: [arm64, amd64, armhf]
     packages:
       - accountsservice
       - gnome-calculator
@@ -77,7 +77,7 @@ releases:
       - pulseaudio-module-bluetooth
 
   noble:
-    architectures: [arm64, amd64]
+    architectures: [arm64, amd64, armhf]
     packages:
       - polkitd
       - pkexec
@@ -94,7 +94,7 @@ releases:
       - language-selector-gnome
 
   plucky:
-    architectures: [arm64, amd64]
+    architectures: [arm64, amd64, armhf]
     packages:
       - polkitd
       - pkexec
