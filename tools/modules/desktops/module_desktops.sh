@@ -2,7 +2,7 @@ module_options+=(
 	["module_desktops,author"]="@igorpecovnik"
 	["module_desktops,feature"]="module_desktops"
 	["module_desktops,desc"]="Install and manage desktop environments (YAML-driven)"
-	["module_desktops,example"]="install remove disable enable status auto manual login supported help"
+	["module_desktops,example"]="install remove disable enable status auto manual login supported installed help"
 	["module_desktops,status"]="Active"
 	["module_desktops,arch"]=""
 	["module_desktops,help_install"]="Install desktop (de=name)"
@@ -14,6 +14,7 @@ module_options+=(
 	["module_desktops,help_manual"]="Disable auto-login (de=name)"
 	["module_desktops,help_login"]="Check auto-login status (de=name)"
 	["module_desktops,help_supported"]="JSON list or check one (de=name arch=X release=Y)"
+	["module_desktops,help_installed"]="Returns 0 if any desktop is installed (no de=)"
 )
 
 #
@@ -121,6 +122,7 @@ function module_desktops() {
 				module_desktops auto de="$de"
 			fi
 
+			unset _DESKTOPS_INSTALLED_CACHE
 			echo "${de} installed."
 		;;
 
@@ -154,6 +156,7 @@ function module_desktops() {
 			# remove AppImages
 			module_appimage remove app=armbian-imager
 
+			unset _DESKTOPS_INSTALLED_CACHE
 			echo "${de} removed."
 		;;
 
@@ -265,6 +268,32 @@ function module_desktops() {
 		;;
 
 		"${commands[9]}")
+			# installed — returns 0 if any known desktop is installed.
+			# Cached in _DESKTOPS_INSTALLED_CACHE for the lifetime of one armbian-config
+			# session so the menu condition can be re-evaluated cheaply per render.
+			# Cache is invalidated by `install` and `remove` below.
+			if [[ -n "${_DESKTOPS_INSTALLED_CACHE-}" ]]; then
+				[[ "$_DESKTOPS_INSTALLED_CACHE" == "yes" ]]
+				return $?
+			fi
+			local yaml_dir="${script_dir}/../tools/modules/desktops/yaml"
+			local parser="${script_dir}/../tools/modules/desktops/scripts/parse_desktop_yaml.py"
+			local primaries pkgs
+			primaries=$(python3 "$parser" "$yaml_dir" --primaries "$DISTROID" "$(dpkg --print-architecture)" 2>/dev/null) || {
+				_DESKTOPS_INSTALLED_CACHE=no
+				return 1
+			}
+			# Collapse '<name>\t<pkg>\n...' to a space-separated package list
+			pkgs=$(awk -F'\t' '{print $2}' <<< "$primaries" | tr '\n' ' ')
+			if [[ -n "${pkgs// /}" ]] && dpkg-query -W -f='${Status}\n' $pkgs 2>/dev/null | grep -q "install ok installed"; then
+				_DESKTOPS_INSTALLED_CACHE=yes
+				return 0
+			fi
+			_DESKTOPS_INSTALLED_CACHE=no
+			return 1
+		;;
+
+		"${commands[10]}")
 			show_module_help "module_desktops" "Desktops" \
 				"Examples:\n  module_desktops install de=xfce\n  module_desktops supported\n  module_desktops supported arch=arm64 release=trixie\n  module_desktops supported de=gnome" "native"
 		;;

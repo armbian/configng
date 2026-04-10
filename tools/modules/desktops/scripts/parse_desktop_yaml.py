@@ -131,6 +131,36 @@ def parse_desktop(yaml_dir, de_name, release, arch):
         print(f'DESKTOP_REPO_KEYRING="{shell_escape(repo.get("keyring", ""))}"')
 
 
+def list_primaries(yaml_dir, release, arch):
+    """Print '<name>\\t<primary_pkg>' for every desktop, applying release overrides.
+
+    Used by `module_desktops installed` to detect whether any desktop is currently
+    installed without spawning one Python process per desktop.
+    """
+    for fname in sorted(os.listdir(yaml_dir)):
+        if not fname.endswith(".yaml") or fname == "common.yaml":
+            continue
+        fpath = os.path.join(yaml_dir, fname)
+        if not os.path.isfile(fpath):
+            continue
+        with open(fpath) as f:
+            data = yaml.safe_load(f)
+        if not isinstance(data, dict):
+            continue
+        de_pkgs = data.get("packages", [])
+        if not isinstance(de_pkgs, list):
+            continue
+        release_data = _as_dict(_as_dict(data.get("releases")).get(release))
+        release_pkgs = _as_list(release_data.get("packages"))
+        release_remove = _as_list(release_data.get("packages_remove"))
+        # Same logic as parse_desktop's primary_pkg: first DE-specific package
+        # that survives release_remove. Common packages are excluded.
+        effective = [p for p in (de_pkgs + release_pkgs) if p not in release_remove]
+        if effective:
+            name = fname[:-len(".yaml")]
+            print(f"{name}\t{effective[0]}")
+
+
 def list_desktops(yaml_dir, release, arch, fmt="tsv"):
     """List all desktops with support status."""
     import json as jsonlib
@@ -179,6 +209,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 4:
         print(f"Usage: {sys.argv[0]} <yaml_dir> <de_name> <release> <arch>", file=sys.stderr)
         print(f"       {sys.argv[0]} <yaml_dir> --list <release> <arch>", file=sys.stderr)
+        print(f"       {sys.argv[0]} <yaml_dir> --primaries <release> <arch>", file=sys.stderr)
         sys.exit(1)
 
     yaml_dir = sys.argv[1]
@@ -189,6 +220,11 @@ if __name__ == "__main__":
             sys.exit(1)
         fmt = "json" if sys.argv[2] == "--list-json" else "tsv"
         list_desktops(yaml_dir, sys.argv[3], sys.argv[4], fmt=fmt)
+    elif sys.argv[2] == "--primaries":
+        if len(sys.argv) < 5:
+            print(f"Usage: {sys.argv[0]} <yaml_dir> --primaries <release> <arch>", file=sys.stderr)
+            sys.exit(1)
+        list_primaries(yaml_dir, sys.argv[3], sys.argv[4])
     else:
         if len(sys.argv) < 5:
             print(f"Usage: {sys.argv[0]} <yaml_dir> <de_name> <release> <arch>", file=sys.stderr)

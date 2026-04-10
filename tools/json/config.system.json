@@ -111,375 +111,312 @@
                     "short": "Desktop",
                     "sub": [
                         {
-                            "id": "CINMDE",
-                            "description": "Cinnamon - traditional layout with modern features",
-                            "short": "Cinnamon",
-                            "help": "Cinnamon is a Linux desktop forked from GNOME 3 that provides a traditional layout with modern features. Familiar taskbar and start menu for users coming from Windows.",
-                            "sub": [
-                                {
-                                    "id": "CINM01",
-                                    "description": "Cinnamon desktop Install",
-                                    "command": [
-                                        "module_desktops install de=cinnamon"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "! module_desktops status de=cinnamon",
-                                    "help": "Cinnamon desktop Install"
-                                },
-                                {
-                                    "id": "CINM02",
-                                    "description": "Cinnamon desktop uninstall",
-                                    "command": [
-                                        "module_desktops remove de=cinnamon"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "module_desktops status de=cinnamon",
-                                    "help": "Cinnamon desktop uninstall"
-                                },
-                                {
-                                    "id": "CINM03",
-                                    "description": "Enable autologin",
-                                    "command": [
-                                        "module_desktops auto de=cinnamon"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "module_desktops status de=cinnamon && ! module_desktops login de=cinnamon",
-                                    "help": "Enable autologin"
-                                },
-                                {
-                                    "id": "CINM04",
-                                    "description": "Disable autologin",
-                                    "command": [
-                                        "module_desktops manual de=cinnamon"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "module_desktops status de=cinnamon && module_desktops login de=cinnamon",
-                                    "help": "Disable autologin"
-                                }
+                            "id": "CINM01",
+                            "description": "Install Cinnamon",
+                            "command": [
+                                "module_desktops install de=cinnamon"
                             ],
-                            "condition": "module_desktop_supported cinnamon"
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported cinnamon",
+                            "help": "Install the Cinnamon desktop environment"
                         },
                         {
-                            "id": "GNOMDE",
-                            "description": "GNOME - modern, full-featured desktop",
-                            "short": "GNOME",
-                            "help": "GNOME is a modern desktop environment focused on simplicity and productivity. Uses Wayland by default with Activities overview and dynamic workspaces.",
-                            "sub": [
-                                {
-                                    "id": "GNME01",
-                                    "description": "Gnome desktop Install",
-                                    "command": [
-                                        "module_desktops install de=gnome"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "! module_desktops status de=gnome",
-                                    "help": "Gnome desktop Install"
-                                },
-                                {
-                                    "id": "GNME02",
-                                    "description": "Uninstall",
-                                    "command": [
-                                        "module_desktops remove de=gnome"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "module_desktops status de=gnome",
-                                    "help": "Uninstall"
-                                },
-                                {
-                                    "id": "GNME03",
-                                    "description": "Enable autologin",
-                                    "command": [
-                                        "module_desktops auto de=gnome"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "module_desktops status de=gnome && ! module_desktops login de=gnome",
-                                    "help": "Enable autologin"
-                                },
-                                {
-                                    "id": "GNME04",
-                                    "description": "Disable autologin",
-                                    "command": [
-                                        "module_desktops manual de=gnome"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "module_desktops status de=gnome && module_desktops login de=gnome",
-                                    "help": "Disable autologin"
-                                }
+                            "id": "GNME01",
+                            "description": "Install GNOME",
+                            "command": [
+                                "module_desktops install de=gnome"
                             ],
-                            "condition": "module_desktop_supported gnome"
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported gnome",
+                            "help": "Install the GNOME desktop environment"
                         },
                         {
-                            "id": "MATEDE",
-                            "description": "MATE - traditional GNOME 2 desktop",
-                            "short": "MATE",
-                            "help": "MATE is a continuation of GNOME 2 providing a classic two-panel desktop. Lightweight, stable, and fully customizable.",
-                            "sub": [
-                                {
-                                    "id": "MATE01",
-                                    "description": "MATE desktop Install",
-                                    "command": [
-                                        "module_desktops install de=mate"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "! module_desktops status de=mate",
-                                    "help": "MATE desktop Install"
-                                },
-                                {
-                                    "id": "MATE02",
-                                    "description": "Uninstall",
-                                    "command": [
-                                        "module_desktops remove de=mate"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "module_desktops status de=mate",
-                                    "help": "Uninstall"
-                                },
-                                {
-                                    "id": "MATE03",
-                                    "description": "Enable autologin",
-                                    "command": [
-                                        "module_desktops auto de=mate"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "module_desktops status de=mate && ! module_desktops login de=mate",
-                                    "help": "Enable autologin"
-                                },
-                                {
-                                    "id": "MATE04",
-                                    "description": "Disable autologin",
-                                    "command": [
-                                        "module_desktops manual de=mate"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "module_desktops status de=mate && module_desktops login de=mate",
-                                    "help": "Disable autologin"
-                                }
+                            "id": "MATE01",
+                            "description": "Install MATE",
+                            "command": [
+                                "module_desktops install de=mate"
                             ],
-                            "condition": "module_desktop_supported mate"
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported mate",
+                            "help": "Install the MATE desktop environment"
                         },
                         {
-                            "id": "I3WMDE",
-                            "description": "i3 - lightweight tiling window manager",
-                            "short": "i3-wm",
-                            "help": "i3 is a tiling window manager designed for power users. Keyboard-driven with minimal resource usage, ideal for developers and terminal-heavy workflows.",
-                            "sub": [
-                                {
-                                    "id": "I3WM01",
-                                    "description": "i3 desktop Install",
-                                    "command": [
-                                        "module_desktops install de=i3-wm"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "! module_desktops status de=i3-wm",
-                                    "help": "i3 desktop Install"
-                                },
-                                {
-                                    "id": "I3WM02",
-                                    "description": "i3 desktop uninstall",
-                                    "command": [
-                                        "module_desktops remove de=i3-wm"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "module_desktops status de=i3-wm",
-                                    "help": "i3 desktop uninstall"
-                                },
-                                {
-                                    "id": "I3WM03",
-                                    "description": "Enable autologin",
-                                    "command": [
-                                        "module_desktops auto de=i3-wm"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "module_desktops status de=i3-wm && ! module_desktops login de=i3-wm",
-                                    "help": "Enable autologin"
-                                },
-                                {
-                                    "id": "I3WM04",
-                                    "description": "Disable autologin",
-                                    "command": [
-                                        "module_desktops manual de=i3-wm"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "module_desktops status de=i3-wm && module_desktops login de=i3-wm",
-                                    "help": "Disable autologin"
-                                }
+                            "id": "I3WM01",
+                            "description": "Install i3",
+                            "command": [
+                                "module_desktops install de=i3-wm"
                             ],
-                            "condition": "module_desktop_supported i3-wm"
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported i3-wm",
+                            "help": "Install the i3 desktop environment"
                         },
                         {
-                            "id": "KDEPDE",
-                            "description": "KDE Plasma - feature-rich customizable desktop",
-                            "short": "KDE Plasma",
-                            "help": "KDE Plasma is a feature-rich desktop with extensive customization, widgets, and a powerful settings application. Works on both Debian and Ubuntu.",
-                            "sub": [
-                                {
-                                    "id": "KDEP01",
-                                    "description": "KDE Plasma Install",
-                                    "command": [
-                                        "module_desktops install de=kde-plasma"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "! module_desktops status de=kde-plasma",
-                                    "help": "KDE Plasma Install"
-                                },
-                                {
-                                    "id": "KDEP02",
-                                    "description": "Uninstall",
-                                    "command": [
-                                        "module_desktops remove de=kde-plasma"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "module_desktops status de=kde-plasma",
-                                    "help": "Uninstall"
-                                },
-                                {
-                                    "id": "KDEP03",
-                                    "description": "Enable autologin",
-                                    "command": [
-                                        "module_desktops auto de=kde-plasma"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "module_desktops status de=kde-plasma && ! module_desktops login de=kde-plasma",
-                                    "help": "Enable autologin"
-                                },
-                                {
-                                    "id": "KDEP04",
-                                    "description": "Disable autologin",
-                                    "command": [
-                                        "module_desktops manual de=kde-plasma"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "module_desktops status de=kde-plasma && module_desktops login de=kde-plasma",
-                                    "help": "Disable autologin"
-                                }
+                            "id": "KDEP01",
+                            "description": "Install KDE Plasma",
+                            "command": [
+                                "module_desktops install de=kde-plasma"
                             ],
-                            "condition": "module_desktop_supported kde-plasma"
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported kde-plasma",
+                            "help": "Install the KDE Plasma desktop environment"
                         },
                         {
-                            "id": "KDENDE",
-                            "description": "KDE Neon - latest Plasma from KDE repos (Ubuntu only)",
-                            "short": "KDE Neon",
-                            "help": "KDE Neon provides cutting-edge Plasma desktop from the KDE Neon repository. Ubuntu Noble/Plucky only.",
-                            "sub": [
-                                {
-                                    "id": "KDEN01",
-                                    "description": "KDE Neon Install",
-                                    "command": [
-                                        "module_desktops install de=kde-neon"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "! module_desktops status de=kde-neon",
-                                    "help": "KDE Neon Install"
-                                },
-                                {
-                                    "id": "KDEN02",
-                                    "description": "Uninstall",
-                                    "command": [
-                                        "module_desktops remove de=kde-neon"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "module_desktops status de=kde-neon",
-                                    "help": "Uninstall"
-                                },
-                                {
-                                    "id": "KDEN03",
-                                    "description": "Enable autologin",
-                                    "command": [
-                                        "module_desktops auto de=kde-neon"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "module_desktops status de=kde-neon && ! module_desktops login de=kde-neon",
-                                    "help": "Enable autologin"
-                                },
-                                {
-                                    "id": "KDEN04",
-                                    "description": "Disable autologin",
-                                    "command": [
-                                        "module_desktops manual de=kde-neon"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "module_desktops status de=kde-neon && module_desktops login de=kde-neon",
-                                    "help": "Disable autologin"
-                                }
+                            "id": "KDEN01",
+                            "description": "Install KDE Neon",
+                            "command": [
+                                "module_desktops install de=kde-neon"
                             ],
-                            "condition": "module_desktop_supported kde-neon"
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported kde-neon",
+                            "help": "Install the KDE Neon desktop environment"
                         },
                         {
-                            "id": "XFCEDE",
-                            "description": "XFCE - lightweight and fast desktop",
-                            "short": "XFCE",
-                            "help": "XFCE is a lightweight desktop environment that aims to be fast and low on system resources while remaining visually appealing. Best choice for single board computers.",
-                            "sub": [
-                                {
-                                    "id": "XFCE01",
-                                    "description": "XFCE desktop Install",
-                                    "command": [
-                                        "module_desktops install de=xfce"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "! module_desktops status de=xfce",
-                                    "help": "XFCE is a lightweight, fast, and user-friendly desktop environment for Linux, offering a classic desktop."
-                                },
-                                {
-                                    "id": "XFCE02",
-                                    "description": "Uninstall",
-                                    "command": [
-                                        "module_desktops remove de=xfce"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "module_desktops status de=xfce",
-                                    "help": "Uninstall"
-                                },
-                                {
-                                    "id": "XFCE03",
-                                    "description": "Enable autologin",
-                                    "command": [
-                                        "module_desktops auto de=xfce"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "module_desktops status de=xfce && ! module_desktops login de=xfce",
-                                    "help": "Enable autologin"
-                                },
-                                {
-                                    "id": "XFCE04",
-                                    "description": "Disable autologin",
-                                    "command": [
-                                        "module_desktops manual de=xfce"
-                                    ],
-                                    "status": "Stable",
-                                    "author": "@igorpecovnik",
-                                    "condition": "module_desktops status de=xfce && module_desktops login de=xfce",
-                                    "help": "Disable autologin"
-                                }
+                            "id": "XFCE01",
+                            "description": "Install XFCE",
+                            "command": [
+                                "module_desktops install de=xfce"
                             ],
-                            "condition": "module_desktop_supported xfce"
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported xfce",
+                            "help": "Install the XFCE desktop environment"
+                        },
+                        {
+                            "id": "CINM02",
+                            "description": "Uninstall Cinnamon",
+                            "command": [
+                                "module_desktops remove de=cinnamon"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=cinnamon",
+                            "help": "Uninstall the Cinnamon desktop environment"
+                        },
+                        {
+                            "id": "GNME02",
+                            "description": "Uninstall GNOME",
+                            "command": [
+                                "module_desktops remove de=gnome"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=gnome",
+                            "help": "Uninstall the GNOME desktop environment"
+                        },
+                        {
+                            "id": "MATE02",
+                            "description": "Uninstall MATE",
+                            "command": [
+                                "module_desktops remove de=mate"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=mate",
+                            "help": "Uninstall the MATE desktop environment"
+                        },
+                        {
+                            "id": "I3WM02",
+                            "description": "Uninstall i3",
+                            "command": [
+                                "module_desktops remove de=i3-wm"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=i3-wm",
+                            "help": "Uninstall the i3 desktop environment"
+                        },
+                        {
+                            "id": "KDEP02",
+                            "description": "Uninstall KDE Plasma",
+                            "command": [
+                                "module_desktops remove de=kde-plasma"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=kde-plasma",
+                            "help": "Uninstall the KDE Plasma desktop environment"
+                        },
+                        {
+                            "id": "KDEN02",
+                            "description": "Uninstall KDE Neon",
+                            "command": [
+                                "module_desktops remove de=kde-neon"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=kde-neon",
+                            "help": "Uninstall the KDE Neon desktop environment"
+                        },
+                        {
+                            "id": "XFCE02",
+                            "description": "Uninstall XFCE",
+                            "command": [
+                                "module_desktops remove de=xfce"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=xfce",
+                            "help": "Uninstall the XFCE desktop environment"
+                        },
+                        {
+                            "id": "CINM03",
+                            "description": "Enable autologin (Cinnamon)",
+                            "command": [
+                                "module_desktops auto de=cinnamon"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=cinnamon && ! module_desktops login de=cinnamon",
+                            "help": "Enable automatic desktop login for Cinnamon"
+                        },
+                        {
+                            "id": "GNME03",
+                            "description": "Enable autologin (GNOME)",
+                            "command": [
+                                "module_desktops auto de=gnome"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=gnome && ! module_desktops login de=gnome",
+                            "help": "Enable automatic desktop login for GNOME"
+                        },
+                        {
+                            "id": "MATE03",
+                            "description": "Enable autologin (MATE)",
+                            "command": [
+                                "module_desktops auto de=mate"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=mate && ! module_desktops login de=mate",
+                            "help": "Enable automatic desktop login for MATE"
+                        },
+                        {
+                            "id": "I3WM03",
+                            "description": "Enable autologin (i3)",
+                            "command": [
+                                "module_desktops auto de=i3-wm"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=i3-wm && ! module_desktops login de=i3-wm",
+                            "help": "Enable automatic desktop login for i3"
+                        },
+                        {
+                            "id": "KDEP03",
+                            "description": "Enable autologin (KDE Plasma)",
+                            "command": [
+                                "module_desktops auto de=kde-plasma"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=kde-plasma && ! module_desktops login de=kde-plasma",
+                            "help": "Enable automatic desktop login for KDE Plasma"
+                        },
+                        {
+                            "id": "KDEN03",
+                            "description": "Enable autologin (KDE Neon)",
+                            "command": [
+                                "module_desktops auto de=kde-neon"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=kde-neon && ! module_desktops login de=kde-neon",
+                            "help": "Enable automatic desktop login for KDE Neon"
+                        },
+                        {
+                            "id": "XFCE03",
+                            "description": "Enable autologin (XFCE)",
+                            "command": [
+                                "module_desktops auto de=xfce"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=xfce && ! module_desktops login de=xfce",
+                            "help": "Enable automatic desktop login for XFCE"
+                        },
+                        {
+                            "id": "CINM04",
+                            "description": "Disable autologin (Cinnamon)",
+                            "command": [
+                                "module_desktops manual de=cinnamon"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=cinnamon && module_desktops login de=cinnamon",
+                            "help": "Disable automatic desktop login for Cinnamon"
+                        },
+                        {
+                            "id": "GNME04",
+                            "description": "Disable autologin (GNOME)",
+                            "command": [
+                                "module_desktops manual de=gnome"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=gnome && module_desktops login de=gnome",
+                            "help": "Disable automatic desktop login for GNOME"
+                        },
+                        {
+                            "id": "MATE04",
+                            "description": "Disable autologin (MATE)",
+                            "command": [
+                                "module_desktops manual de=mate"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=mate && module_desktops login de=mate",
+                            "help": "Disable automatic desktop login for MATE"
+                        },
+                        {
+                            "id": "I3WM04",
+                            "description": "Disable autologin (i3)",
+                            "command": [
+                                "module_desktops manual de=i3-wm"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=i3-wm && module_desktops login de=i3-wm",
+                            "help": "Disable automatic desktop login for i3"
+                        },
+                        {
+                            "id": "KDEP04",
+                            "description": "Disable autologin (KDE Plasma)",
+                            "command": [
+                                "module_desktops manual de=kde-plasma"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=kde-plasma && module_desktops login de=kde-plasma",
+                            "help": "Disable automatic desktop login for KDE Plasma"
+                        },
+                        {
+                            "id": "KDEN04",
+                            "description": "Disable autologin (KDE Neon)",
+                            "command": [
+                                "module_desktops manual de=kde-neon"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=kde-neon && module_desktops login de=kde-neon",
+                            "help": "Disable automatic desktop login for KDE Neon"
+                        },
+                        {
+                            "id": "XFCE04",
+                            "description": "Disable autologin (XFCE)",
+                            "command": [
+                                "module_desktops manual de=xfce"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=xfce && module_desktops login de=xfce",
+                            "help": "Disable automatic desktop login for XFCE"
                         },
                         {
                             "id": "Xapian",
