@@ -52,6 +52,15 @@ def load_common(yaml_dir):
 def parse_desktop(yaml_dir, de_name, release, arch):
     """Parse a single desktop definition."""
     yaml_file = os.path.join(yaml_dir, f"{de_name}.yaml")
+
+    # Reject path traversal: de_name comes from CLI input on a tool that may run
+    # as root, so confine the resolved file to yaml_dir.
+    abs_yaml_dir = os.path.realpath(yaml_dir)
+    abs_yaml_file = os.path.realpath(yaml_file)
+    if os.path.commonpath([abs_yaml_dir, abs_yaml_file]) != abs_yaml_dir:
+        print(f"Error: invalid desktop name '{de_name}'", file=sys.stderr)
+        sys.exit(1)
+
     if not os.path.exists(yaml_file):
         print(f"Error: no definition for '{de_name}'", file=sys.stderr)
         sys.exit(1)
