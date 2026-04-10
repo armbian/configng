@@ -13,7 +13,7 @@ module_options+=(
 #
 function module_desktop_branding() {
 	local de="$1"
-	local desktop_dir="${script_dir}/../tools/modules/desktops"
+	local desktop_dir="${desktops_dir}"
 
 	case "$de" in
 		help|"")
