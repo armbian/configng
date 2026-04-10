@@ -72,6 +72,15 @@ function module_appimage() {
 				echo "Error: failed to install FUSE packages required for AppImages" >&2
 				return 1
 			fi
+
+			# Ensure GL/EGL/GLES runtime is present. The Armbian Imager
+			# AppImage is Qt6/RHI based and dlopen()s libGLESv2.so.2 at
+			# startup; on a system where no DE pulled in the GL stack
+			# yet (or after an aggressive autopurge) the imager fails
+			# with "libGLESv2.so.2: cannot open shared object file".
+			# These are tiny and shared with every DE, so install
+			# unconditionally.
+			pkg_install libgles2 libegl1 libgl1 libgl1-mesa-dri || true
 			# Resolve fusermount path once
 			local fmount=$(command -v fusermount3 2>/dev/null || command -v fusermount 2>/dev/null)
 			if [[ -z "$fmount" ]]; then
