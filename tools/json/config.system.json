@@ -113,6 +113,7 @@
                         {
                             "id": "CINM01",
                             "description": "Install Cinnamon",
+                            "short": "Cinnamon",
                             "command": [
                                 "module_desktops install de=cinnamon"
                             ],
@@ -124,6 +125,7 @@
                         {
                             "id": "GNME01",
                             "description": "Install GNOME",
+                            "short": "GNOME",
                             "command": [
                                 "module_desktops install de=gnome"
                             ],
@@ -135,6 +137,7 @@
                         {
                             "id": "MATE01",
                             "description": "Install MATE",
+                            "short": "MATE",
                             "command": [
                                 "module_desktops install de=mate"
                             ],
@@ -146,6 +149,7 @@
                         {
                             "id": "I3WM01",
                             "description": "Install i3",
+                            "short": "i3",
                             "command": [
                                 "module_desktops install de=i3-wm"
                             ],
@@ -157,6 +161,7 @@
                         {
                             "id": "KDEP01",
                             "description": "Install KDE Plasma",
+                            "short": "KDE Plasma",
                             "command": [
                                 "module_desktops install de=kde-plasma"
                             ],
@@ -168,6 +173,7 @@
                         {
                             "id": "KDEN01",
                             "description": "Install KDE Neon",
+                            "short": "KDE Neon",
                             "command": [
                                 "module_desktops install de=kde-neon"
                             ],
@@ -179,6 +185,7 @@
                         {
                             "id": "XFCE01",
                             "description": "Install XFCE",
+                            "short": "XFCE",
                             "command": [
                                 "module_desktops install de=xfce"
                             ],
