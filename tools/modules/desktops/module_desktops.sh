@@ -78,6 +78,14 @@ function module_desktops() {
 			# update package list
 			pkg_update
 
+			# Reset the install tracker before invoking pkg_install. pkg_install
+			# does an `apt-get -s install` dry-run and appends the resulting
+			# list of packages-to-be-newly-installed to ACTUALLY_INSTALLED.
+			# We persist this list below so that uninstall can remove the
+			# exact set we added without touching pre-existing packages
+			# (#799 design — restored after #815 dropped the persistence).
+			ACTUALLY_INSTALLED=()
+
 			# install packages
 			pkg_install -o Dpkg::Options::="--force-confold" ${DESKTOP_PACKAGES}
 
@@ -85,6 +93,17 @@ function module_desktops() {
 			if [[ -n "$DESKTOP_DM" && "$DESKTOP_DM" != "none" ]]; then
 				pkg_install -o Dpkg::Options::="--force-confold" "$DESKTOP_DM"
 				command -v "$DESKTOP_DM" > /etc/X11/default-display-manager 2>/dev/null || true
+			fi
+
+			# Save the install manifest for uninstall to consume.
+			# Don't truncate an existing manifest if this run added nothing
+			# new (e.g. a re-install of an already-installed DE) — keeping
+			# the previous manifest is more useful than overwriting it with
+			# an empty file that would make uninstall a no-op.
+			if [[ ${#ACTUALLY_INSTALLED[@]} -gt 0 ]]; then
+				mkdir -p /etc/armbian/desktop
+				printf '%s\n' "${ACTUALLY_INSTALLED[@]}" > "/etc/armbian/desktop/${de}.packages"
+				debug_log "module_desktops install: wrote ${#ACTUALLY_INSTALLED[@]} packages to /etc/armbian/desktop/${de}.packages"
 			fi
 
 			# remove unwanted packages
@@ -146,15 +165,38 @@ function module_desktops() {
 				systemctl stop display-manager 2>/dev/null || true
 			fi
 
-			# remove display manager
-			if [[ -n "$DESKTOP_DM" && "$DESKTOP_DM" != "none" ]]; then
-				pkg_remove "$DESKTOP_DM"
+			# Remove the exact set of packages that were newly installed by
+			# the install path. This list was captured at install time from
+			# `apt-get -s install` and saved to /etc/armbian/desktop/<de>.packages
+			# by the install branch below — see #799 for the original design.
+			# It correctly excludes packages that were already on the system
+			# before the desktop install (so we don't yank shared deps).
+			local desktop_pkg_file="/etc/armbian/desktop/${de}.packages"
+			local to_remove=() pkg
+			if [[ -f "$desktop_pkg_file" ]]; then
+				while IFS= read -r pkg; do
+					[[ -z "$pkg" ]] && continue
+					to_remove+=("$pkg")
+				done < "$desktop_pkg_file"
+			else
+				# Fallback for desktops installed before the tracking file
+				# existed: walk the YAML package list, keeping only what's
+				# currently installed. This is less precise (it can keep
+				# packages the system had pre-install) but it's the best we
+				# can do without the manifest.
+				echo "Warning: no install manifest at ${desktop_pkg_file}, falling back to YAML package list" >&2
+				for pkg in $DESKTOP_PACKAGES $DESKTOP_DM; do
+					[[ "$pkg" == "none" ]] && continue
+					if dpkg-query -W -f='${Status}\n' "$pkg" 2>/dev/null | grep -q "install ok installed"; then
+						to_remove+=("$pkg")
+					fi
+				done
 			fi
 
-			# remove primary DE package (autopurge handles dependencies)
-			if [[ -n "$DESKTOP_PRIMARY_PKG" ]]; then
-				pkg_remove "$DESKTOP_PRIMARY_PKG"
+			if [[ ${#to_remove[@]} -gt 0 ]]; then
+				pkg_remove "${to_remove[@]}"
 			fi
+			rm -f "$desktop_pkg_file"
 
 			# remove AppImages
 			module_appimage remove app=armbian-imager
