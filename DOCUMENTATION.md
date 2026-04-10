@@ -23,12 +23,34 @@ sudo armbian-config
 
 
   - ### Install, remove and configure desktop environments
-    - ### Cinnamon - traditional layout with modern features
-    - ### GNOME - modern, full-featured desktop
-    - ### MATE - traditional GNOME 2 desktop
-    - ### i3 - lightweight tiling window manager
-    - ### KDE Plasma - feature-rich customizable desktop
-    - ### XFCE - lightweight and fast desktop
+    - ### Install Cinnamon
+    - ### Install GNOME
+    - ### Install MATE
+    - ### Install i3
+    - ### Install KDE Plasma
+    - ### Install KDE Neon
+    - ### Install XFCE
+    - ### Uninstall Cinnamon
+    - ### Uninstall GNOME
+    - ### Uninstall MATE
+    - ### Uninstall i3
+    - ### Uninstall KDE Plasma
+    - ### Uninstall KDE Neon
+    - ### Uninstall XFCE
+    - ### Enable autologin (Cinnamon)
+    - ### Enable autologin (GNOME)
+    - ### Enable autologin (MATE)
+    - ### Enable autologin (i3)
+    - ### Enable autologin (KDE Plasma)
+    - ### Enable autologin (KDE Neon)
+    - ### Enable autologin (XFCE)
+    - ### Disable autologin (Cinnamon)
+    - ### Disable autologin (GNOME)
+    - ### Disable autologin (MATE)
+    - ### Disable autologin (i3)
+    - ### Disable autologin (KDE Plasma)
+    - ### Disable autologin (KDE Neon)
+    - ### Disable autologin (XFCE)
 
 
   - ### Install to internal media, ZFS, NFS, read-only rootfs
@@ -411,36 +433,34 @@ Outputs:
 	--cmd ODR001 - Select Odroid board configuration
 	--cmd BOOT01 - Edit the boot environment
     Desktops - Install, remove and configure desktop environments
-      CINMDE - Cinnamon - traditional layout with modern features
-	--cmd CINM01 - Cinnamon desktop Install
-	--cmd CINM02 - Cinnamon desktop uninstall
-	--cmd CINM03 - Enable autologin
-	--cmd CINM04 - Disable autologin
-      GNOMDE - GNOME - modern, full-featured desktop
-	--cmd GNME01 - Gnome desktop Install
-	--cmd GNME02 - Uninstall
-	--cmd GNME03 - Enable autologin
-	--cmd GNME04 - Disable autologin
-      MATEDE - MATE - traditional GNOME 2 desktop
-	--cmd MATE01 - MATE desktop Install
-	--cmd MATE02 - Uninstall
-	--cmd MATE03 - Enable autologin
-	--cmd MATE04 - Disable autologin
-      I3WMDE - i3 - lightweight tiling window manager
-	--cmd I3WM01 - i3 desktop Install
-	--cmd I3WM02 - i3 desktop uninstall
-	--cmd I3WM03 - Enable autologin
-	--cmd I3WM04 - Disable autologin
-      KDEPDE - KDE Plasma - feature-rich customizable desktop
-	--cmd KDEP01 - KDE Plasma Install
-	--cmd KDEP02 - Uninstall
-	--cmd KDEP03 - Enable autologin
-	--cmd KDEP04 - Disable autologin
-      XFCEDE - XFCE - lightweight and fast desktop
-	--cmd XFCE01 - XFCE desktop Install
-	--cmd XFCE02 - Uninstall
-	--cmd XFCE03 - Enable autologin
-	--cmd XFCE04 - Disable autologin
+	--cmd CINM01 - Install Cinnamon
+	--cmd GNME01 - Install GNOME
+	--cmd MATE01 - Install MATE
+	--cmd I3WM01 - Install i3
+	--cmd KDEP01 - Install KDE Plasma
+	--cmd KDEN01 - Install KDE Neon
+	--cmd XFCE01 - Install XFCE
+	--cmd CINM02 - Uninstall Cinnamon
+	--cmd GNME02 - Uninstall GNOME
+	--cmd MATE02 - Uninstall MATE
+	--cmd I3WM02 - Uninstall i3
+	--cmd KDEP02 - Uninstall KDE Plasma
+	--cmd KDEN02 - Uninstall KDE Neon
+	--cmd XFCE02 - Uninstall XFCE
+	--cmd CINM03 - Enable autologin (Cinnamon)
+	--cmd GNME03 - Enable autologin (GNOME)
+	--cmd MATE03 - Enable autologin (MATE)
+	--cmd I3WM03 - Enable autologin (i3)
+	--cmd KDEP03 - Enable autologin (KDE Plasma)
+	--cmd KDEN03 - Enable autologin (KDE Neon)
+	--cmd XFCE03 - Enable autologin (XFCE)
+	--cmd CINM04 - Disable autologin (Cinnamon)
+	--cmd GNME04 - Disable autologin (GNOME)
+	--cmd MATE04 - Disable autologin (MATE)
+	--cmd I3WM04 - Disable autologin (i3)
+	--cmd KDEP04 - Disable autologin (KDE Plasma)
+	--cmd KDEN04 - Disable autologin (KDE Neon)
+	--cmd XFCE04 - Disable autologin (XFCE)
     Storage - Install to internal media, ZFS, NFS, read-only rootfs
 	--cmd STO001 - Copy the running Armbian system to another device
 	--cmd FLASH1 - Download a fresh, official Armbian OS image and write it to a device
@@ -1076,6 +1096,7 @@ These helper functions facilitate various operations related to job management, 
 | Description | Example | Credit |
 |:----------- | ------- |:------:|
 | Generate a Help message legacy cli commands. | see_cli_legacy | @Tearran 
+| Detect first regular user for desktop setup | module_desktop_getuser | @igorpecovnik 
 | Run time variables Migrated procedures from Armbian config. | set_runtime_variables | @igorpecovnik 
 | Install Ghost CMS container | install remove purge status help | @igorpecovnik 
 | Check for (Whiptail, DIALOG, READ) tools and set the user interface. |  | Tearran 
@@ -1101,13 +1122,14 @@ These helper functions facilitate various operations related to job management, 
 | Install sonarr container | install remove purge status help | @armbian 
 | Display a yes/no dialog using the configured dialog tool | dialog_yesno "Title" "Question" | @armbian 
 | Generate Document files. | generate_readme | @Tearran 
-|  |  | @igorpecovnik 
+| Storing netplan config to tmp | store_netplan_config | @igorpecovnik 
 | Generic module help dialog for containers and native installs | show_module_help "module_headers" "Kernel Headers" "" "native" | @armbian 
 | Install PostgreSQL container (advanced relational database) | install remove purge status help | @armbian 
 | Install jellyfin container | install remove purge status help | @armbian 
 | Install jellyseerr container | install remove purge status help | @armbian 
 | Memory management and tuning interface | install remove status tune help | @igorpecovnik 
 | Needed by generate_menu | execute_command 'id' | @Tearran 
+| Check if a desktop is supported on this system | module_desktop_supported xfce | @igorpecovnik 
 | Display an input box dialog using the configured dialog tool | dialog_inputbox "Title" "Prompt" "default_value" | @armbian 
 | Display a Yes/No dialog box and process continue/exit | get_user_continue 'Do you wish to continue?' process_input | @Tearran 
 | Module for Armbian firmware manipulating | select install show hold unhold repository help | @igorpecovnik 
@@ -1123,7 +1145,6 @@ These helper functions facilitate various operations related to job management, 
 | Menu for armbianmonitor features | see_monitoring | @Tearran 
 | Install VS Code in browser container | install remove purge status help | @igorpecovnik 
 | Enable/disable device tree overlays |  | @viraniac 
-| Install and manage desktop environments | install remove disable enable status auto manual login help | @igorpecovnik 
 | Remove package | pkg_remove nmap | @dimitry-ishenko 
 | Install Immich (photo and video backup solution) | install remove purge status help |  
 | Display a message box using the configured dialog tool | dialog_msgbox "Title" "Message" | @armbian 
@@ -1131,6 +1152,7 @@ These helper functions facilitate various operations related to job management, 
 | Samba setup and service setting. | help install remove start stop enable disable configure default status | @Tearran 
 | Check when apt list was last updated and suggest updating or update | see_current_apt or see_current_apt update | @Tearran 
 | Install/uninstall/check status of portainer container | install remove purge status help | @armbian 
+| Install and manage desktop environments (YAML-driven) | install remove disable enable status auto manual login supported installed help | @igorpecovnik 
 | Install plexmediaserver from repo using apt | install remove status | @schwar3kat 
 | Display a gauge dialog for progress indication | echo 50 | dialog_gauge "Title" "Progress" 10 70 | @armbian 
 | Generate 'Armbian CPU logo' SVG for document file. | generate_svg | @Tearran 
@@ -1174,6 +1196,7 @@ These helper functions facilitate various operations related to job management, 
 | Install nextcloud container | install remove purge status help | @igorpecovnik 
 | Install navidrome container | install remove purge status help | @armbian 
 | Wait for a Docker container to be ready (default: check if running) | wait_for_container_ready "container_name" 20 3 | @armbian 
+| Install Armbian desktop branding assets | module_desktop_branding xfce | @igorpecovnik 
 | Install Openhab | install remove purge status help | @igorpecovnik 
 | Uses Avalible (Whiptail, DIALOG, READ) for the menu interface | <function_name> | Tearran 
 | Install medusa container | install remove purge status help | @armbian 
@@ -1191,17 +1214,18 @@ These helper functions facilitate various operations related to job management, 
 | Show general information about this tool | about_armbian_configng | @igorpecovnik 
 | Install unbound container | install remove purge status help | @igorpecovnik 
 | Serve the edit and debug server. | serve_doc | @Tearran 
+| Set up custom APT repository for desktop environments | module_desktop_repo kde-neon | @igorpecovnik 
 | Update JSON data with system information | update_json_data | @Tearran 
 | Check if service is active | srv_active ssh.service | @dimitry-ishenko 
 | Install nfs client | install remove servers mounts help | @igorpecovnik 
 | pipeline strings to an infobox  | show_infobox <<< 'hello world' ;  | @Tearran 
 | Install uptimekuma container | install remove purge status help | @armbian 
 | Install homepage container | install remove purge status help | @armbian 
-| Generate desktop packages list |  | @igorpecovnik 
 | Toggle IPv6 on or off | toggle_ipv6 | @Tearran 
 | Update sub-submenu descriptions based on conditions | update_sub_submenu_data MenuID SubID SubSubID CMD | @Tearran 
 | Parse json to get list of desired menu or submenu items. Can return pairs or triplets depending on --with-help flag. | parse_menu_items 'menu_options_array'
 parse_menu_items 'menu_options_array' --with-help | @viraniac 
+| Parse desktop YAML definitions | module_desktop_yamlparse xfce | @igorpecovnik 
 | Show the usage of the functions. | see_use | @Tearran 
 | Stop hostapd, clean config | default_wireless_network_config | @igorpecovnik 
 | Check if service is enabled | srv_enabled ssh.service | @dimitry-ishenko 
