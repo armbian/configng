@@ -17,9 +17,7 @@ packages:
   - dmz-cursor-theme
   - evince
   - fonts-ubuntu
-  - gdebi
   - gnome-disk-utility
-  - gnome-system-monitor
   - gtk2-engines
   - gtk2-engines-murrine
   - gtk2-engines-pixbuf
@@ -34,7 +32,6 @@ packages:
   - pulseaudio
   - pulseaudio-module-bluetooth
   - printer-driver-all
-  - spice-vdagent
   - system-config-printer
   - thunar-volman
   - viewnior
@@ -42,6 +39,7 @@ packages:
   - xdg-user-dirs-gtk
 
 packages_uninstall:
+  # original list
   - ristretto
   - xfburn
   - xfce4-clipman
@@ -51,6 +49,25 @@ packages_uninstall:
   - xfce4-notes-plugin
   - xfce4-terminal
   - xsensors
+  # niche/laptop-only xfce4-goodies plugins that are useless on a typical SBC
+  - xfce4-battery-plugin
+  - xfce4-mailwatch-plugin
+  - xfce4-wavelan-plugin
+  - xfce4-verve-plugin
+  - xfce4-smartbookmark-plugin
+  - xfce4-weather-plugin
+  - xfce4-timer-plugin
+  - xfce4-cpufreq-plugin
+  # Ubuntu crash reporter — Armbian doesn't consume apport reports
+  - apport
+  - python3-apport
+  - python3-problem-report
+  # snap support libs — Armbian does not ship snapd
+  - libsnapd-glib-2-1
+  # spellcheck stack pulled in by other packages, rarely useful on SBCs
+  - dictionaries-common
+  - hunspell-en-us
+  - emacsen-common
 
 releases:
   bookworm:
