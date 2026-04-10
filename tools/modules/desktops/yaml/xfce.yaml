@@ -49,7 +49,6 @@ packages_uninstall:
   - apport
   - python3-apport
   - python3-problem-report
-  # snap support libs — Armbian does not ship snapd
   - libsnapd-glib-2-1
 
 releases:
