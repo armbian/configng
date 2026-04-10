@@ -664,12 +664,16 @@ dialog_menu() {
 					((i++))
 				done
 			elif $use_item_help; then
-				# Triplets of tag, item, and help text
+				# Triplets of tag, item, and help text. Only print tag +
+				# item; the help text is meant for F1/hover in dialog and
+				# would just produce noisy three-segment lines like
+				#   "1. CINM01 - Install Cinnamon - Install the Cinnamon desktop environment"
+				# in this read-mode fallback.
 				local i=1
 				for ((j=0; j<${#options[@]}; j+=3)); do
 					# Remove "  -  " prefix from description for cleaner display
 					local desc="${options[j+1]#\  -\  }"
-					echo "$i. ${options[j]} - $desc - ${options[j+2]}" >&2
+					echo "$i. ${options[j]} - $desc" >&2
 					((i++))
 				done
 			else
