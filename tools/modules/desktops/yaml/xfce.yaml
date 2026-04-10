@@ -77,7 +77,7 @@ releases:
       - pulseaudio-module-bluetooth
 
   noble:
-    architectures: [arm64, amd64, armhf]
+    architectures: [arm64, amd64, armhf, riscv64]
     packages:
       - polkitd
       - pkexec
@@ -94,7 +94,7 @@ releases:
       - language-selector-gnome
 
   plucky:
-    architectures: [arm64, amd64, armhf]
+    architectures: [arm64, amd64, armhf, riscv64]
     packages:
       - polkitd
       - pkexec
