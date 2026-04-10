@@ -39,35 +39,18 @@ packages:
   - xdg-user-dirs-gtk
 
 packages_uninstall:
-  # original list
-  - ristretto
-  - xfburn
-  - xfce4-clipman
-  - xfce4-clipman-plugin
-  - xfce4-dict
-  - xfce4-notes
-  - xfce4-notes-plugin
-  - xfce4-terminal
-  - xsensors
-  # niche/laptop-only xfce4-goodies plugins that are useless on a typical SBC
-  - xfce4-battery-plugin
-  - xfce4-mailwatch-plugin
-  - xfce4-wavelan-plugin
-  - xfce4-verve-plugin
-  - xfce4-smartbookmark-plugin
-  - xfce4-weather-plugin
-  - xfce4-timer-plugin
-  - xfce4-cpufreq-plugin
+  # IMPORTANT: do NOT list any package here that is a Depends of
+  # xfce4-goodies. apt removal of such a package yanks xfce4-goodies
+  # itself, and on systems with apt's autoremove behavior enabled
+  # the cascade then takes out half the desktop (xserver-xorg,
+  # pulseaudio, cups, evince, mousepad, ...). Keep this list strictly
+  # to packages that are *orthogonal* to the xfce dep tree.
   # Ubuntu crash reporter — Armbian doesn't consume apport reports
   - apport
   - python3-apport
   - python3-problem-report
   # snap support libs — Armbian does not ship snapd
   - libsnapd-glib-2-1
-  # spellcheck stack pulled in by other packages, rarely useful on SBCs
-  - dictionaries-common
-  - hunspell-en-us
-  - emacsen-common
 
 releases:
   bookworm:
