@@ -16,8 +16,8 @@ module_options+=(
 #
 function module_desktop_yamlparse() {
 	local de="$1"
-	local yaml_dir="${script_dir}/../tools/modules/desktops/yaml"
-	local parser="${script_dir}/../tools/modules/desktops/scripts/parse_desktop_yaml.py"
+	local yaml_dir="${desktops_dir}/yaml"
+	local parser="${desktops_dir}/scripts/parse_desktop_yaml.py"
 	local arch="${2:-$(dpkg --print-architecture)}"
 	local release="${3:-$DISTROID}"
 
@@ -68,8 +68,8 @@ function module_desktop_yamlparse() {
 # Usage: module_desktop_yamlparse_list [arch] [release]
 #
 function module_desktop_yamlparse_list() {
-	local yaml_dir="${script_dir}/../tools/modules/desktops/yaml"
-	local parser="${script_dir}/../tools/modules/desktops/scripts/parse_desktop_yaml.py"
+	local yaml_dir="${desktops_dir}/yaml"
+	local parser="${desktops_dir}/scripts/parse_desktop_yaml.py"
 	local arch="${1:-$(dpkg --print-architecture)}"
 	local release="${2:-$DISTROID}"
 

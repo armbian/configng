@@ -259,8 +259,8 @@ function module_desktops() {
 			local use_release="${query_release:-$DISTROID}"
 
 			if [[ -z "$de" ]]; then
-				local yaml_dir="${script_dir}/../tools/modules/desktops/yaml"
-				local parser="${script_dir}/../tools/modules/desktops/scripts/parse_desktop_yaml.py"
+				local yaml_dir="${desktops_dir}/yaml"
+				local parser="${desktops_dir}/scripts/parse_desktop_yaml.py"
 				local result
 				result=$(python3 "$parser" "$yaml_dir" "--list-json" "$use_release" "$use_arch")
 				echo "$result"
@@ -282,8 +282,8 @@ function module_desktops() {
 				[[ "$_DESKTOPS_INSTALLED_CACHE" == "yes" ]]
 				return $?
 			fi
-			local yaml_dir="${script_dir}/../tools/modules/desktops/yaml"
-			local parser="${script_dir}/../tools/modules/desktops/scripts/parse_desktop_yaml.py"
+			local yaml_dir="${desktops_dir}/yaml"
+			local parser="${desktops_dir}/scripts/parse_desktop_yaml.py"
 			local primaries pkgs
 			primaries=$(python3 "$parser" "$yaml_dir" --primaries "$DISTROID" "$(dpkg --print-architecture)" 2>/dev/null) || {
 				_DESKTOPS_INSTALLED_CACHE=no

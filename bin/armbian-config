@@ -40,6 +40,16 @@ lib_dir="$script_dir/../lib/armbian-config"
 doc_dir="$script_dir/../share/doc/armbian-config"
 json_file="$lib_dir/config.jobs.json"
 
+# Desktop module resources (yaml definitions, parser, branding, greeters, skel, postinst).
+# In a source checkout these live under tools/; the .deb installs them under
+# /usr/share/armbian-config/desktops/ (see debian.conf).
+if [[ -d "$script_dir/../tools/modules/desktops" ]]; then
+	desktops_dir="$script_dir/../tools/modules/desktops"
+else
+	desktops_dir="/usr/share/armbian-config/desktops"
+fi
+export desktops_dir
+
 #
 # Load The Bash procedure Objects
 json_data=$(<"$json_file")
