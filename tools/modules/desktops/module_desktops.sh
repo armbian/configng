@@ -70,7 +70,10 @@ function module_desktops() {
 			echo "encfs encfs/security-information boolean true" | debconf-set-selections 2>/dev/null || true
 
 			# set up custom repo if needed
-			module_desktop_repo "$de"
+			if ! module_desktop_repo "$de"; then
+				echo "Error: failed to set up repository for '${de}', aborting install" >&2
+				return 1
+			fi
 
 			# update package list
 			pkg_update
