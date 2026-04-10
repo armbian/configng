@@ -41,16 +41,18 @@ def _as_list(node):
 def load_common(yaml_dir):
     """Load common packages from common.yaml."""
     common_file = os.path.join(yaml_dir, "common.yaml")
-    if os.path.exists(common_file):
-        with open(common_file) as f:
-            data = yaml.safe_load(f)
-        if isinstance(data, dict):
-            pkgs = data.get("packages", [])
-            if not isinstance(pkgs, list):
-                print(f"Error: 'packages' in common.yaml must be a list, got {type(pkgs).__name__}", file=sys.stderr)
-                sys.exit(1)
-            return pkgs
-    return []
+    if not os.path.exists(common_file):
+        return []
+    with open(common_file) as f:
+        data = yaml.safe_load(f)
+    if not isinstance(data, dict):
+        print(f"Error: common.yaml must be a mapping (root object), got {type(data).__name__}", file=sys.stderr)
+        sys.exit(1)
+    pkgs = data.get("packages", [])
+    if not isinstance(pkgs, list):
+        print(f"Error: 'packages' in common.yaml must be a list, got {type(pkgs).__name__}", file=sys.stderr)
+        sys.exit(1)
+    return pkgs
 
 
 def parse_desktop(yaml_dir, de_name, release, arch):
