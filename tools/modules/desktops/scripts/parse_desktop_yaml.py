@@ -88,7 +88,7 @@ def parse_desktop(yaml_dir, de_name, release, arch):
     # common + base packages
     common_pkgs = load_common(yaml_dir)
     base_pkgs = common_pkgs + de_pkgs
-    base_uninstall = data.get("packages_uninstall", [])
+    base_uninstall = _as_list(data.get("packages_uninstall"))
 
     # release-specific overrides
     releases = _as_dict(data.get("releases"))
