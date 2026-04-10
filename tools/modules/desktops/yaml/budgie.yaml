@@ -1,0 +1,58 @@
+name: budgie
+description: "Budgie - elegant desktop from Solus project"
+display_manager: lightdm
+status: unsupported
+
+packages:
+  - budgie-desktop
+  - budgie-desktop-environment
+  - lightdm
+  - slick-greeter
+  - xserver-xorg
+  - blueman
+  - bluez
+  - bluez-tools
+  - dbus-x11
+  - evince
+  - gdebi
+  - gnome-disk-utility
+  - gnome-screenshot
+  - gnome-terminal
+  - gvfs-backends
+  - lm-sensors
+  - nemo
+  - numix-gtk-theme
+  - numix-icon-theme
+  - numix-icon-theme-circle
+  - pavucontrol
+  - plank
+  - printer-driver-all
+  - pulseaudio
+  - pulseaudio-module-bluetooth
+  - spice-vdagent
+  - system-config-printer
+  - viewnior
+  - xdg-user-dirs
+  - xdg-user-dirs-gtk
+
+releases:
+  bookworm:
+    architectures: [arm64, amd64]
+    packages_remove:
+      - budgie-desktop-environment
+
+  trixie:
+    architectures: [arm64, amd64]
+    packages:
+      - pipewire-audio
+      - pipewire-pulse
+      - wireplumber
+    packages_remove:
+      - pulseaudio
+      - pulseaudio-module-bluetooth
+
+  noble:
+    architectures: [arm64, amd64]
+
+  plucky:
+    architectures: [arm64, amd64]

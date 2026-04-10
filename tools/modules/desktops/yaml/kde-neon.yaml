@@ -1,0 +1,40 @@
+name: kde-neon
+description: "KDE Neon - latest Plasma from KDE repos (Ubuntu only)"
+display_manager: sddm
+status: unsupported
+repo:
+  url: "http://archive.neon.kde.org/testing"
+  key_url: "https://archive.neon.kde.org/public.key"
+  keyring: "/usr/share/keyrings/neon.gpg"
+
+packages:
+  - neon-desktop
+  - sddm
+  - sddm-theme-breeze
+  - konsole
+  - dolphin
+  - bluedevil
+  - kscreen
+  - plasma-discover
+  - plasma-nm
+  - plasma-pa
+  - plasma-vault
+  - pipewire-audio
+  - pipewire-pulse
+  - wireplumber
+  - scdaemon
+
+packages_uninstall:
+  - gnome-software
+  - gnome-keyring
+  - kdeconnect
+  - khelpcenter
+  - thunderbird
+  - libreoffice*
+
+releases:
+  noble:
+    architectures: [arm64, amd64]
+
+  plucky:
+    architectures: [arm64, amd64]

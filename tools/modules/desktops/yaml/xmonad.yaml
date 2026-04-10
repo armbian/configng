@@ -1,0 +1,56 @@
+name: xmonad
+description: "Xmonad - Haskell tiling window manager"
+display_manager: lightdm
+status: supported
+
+packages:
+  - xmonad
+  - xmobar
+  - lightdm
+  - slick-greeter
+  - xserver-xorg
+  - xterm
+  - dbus-x11
+  - dmenu
+  - dunst
+  - feh
+  - lm-sensors
+  - network-manager-gnome
+  - pavucontrol
+  - pulseaudio
+  - pulseaudio-module-bluetooth
+  - thunar
+  - xdg-user-dirs
+
+releases:
+  bookworm:
+    architectures: [arm64, amd64]
+    packages:
+      - accountsservice
+      - libu2f-udev
+
+  trixie:
+    architectures: [arm64, amd64]
+    packages:
+      - accountsservice
+      - libu2f-udev
+      - pipewire-audio
+      - pipewire-pulse
+      - wireplumber
+    packages_remove:
+      - pulseaudio
+      - pulseaudio-module-bluetooth
+
+  noble:
+    architectures: [arm64, amd64]
+    packages:
+      - polkitd
+      - pkexec
+      - libu2f-udev
+
+  plucky:
+    architectures: [arm64, amd64]
+    packages:
+      - polkitd
+      - pkexec
+      - libu2f-udev

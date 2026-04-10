@@ -1,0 +1,10 @@
+name: common
+description: "Common packages for all desktop environments"
+
+packages:
+  - adwaita-icon-theme
+  - cups
+  - dconf-cli
+  - profile-sync-daemon
+  - terminator
+  - upower

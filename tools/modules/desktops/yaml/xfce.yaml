@@ -1,0 +1,112 @@
+name: xfce
+description: "XFCE - lightweight and fast desktop"
+display_manager: lightdm
+status: supported
+
+packages:
+  - xfce4
+  - xfce4-goodies
+  - xfce4-power-manager
+  - lightdm
+  - slick-greeter
+  - xserver-xorg
+  - blueman
+  - bluez
+  - bluez-tools
+  - dbus-x11
+  - dmz-cursor-theme
+  - evince
+  - fonts-ubuntu
+  - gdebi
+  - gnome-disk-utility
+  - gnome-system-monitor
+  - gtk2-engines
+  - gtk2-engines-murrine
+  - gtk2-engines-pixbuf
+  - gvfs-backends
+  - libpam-gnome-keyring
+  - lm-sensors
+  - mousepad
+  - numix-gtk-theme
+  - numix-icon-theme
+  - numix-icon-theme-circle
+  - pavucontrol
+  - pulseaudio
+  - pulseaudio-module-bluetooth
+  - printer-driver-all
+  - spice-vdagent
+  - system-config-printer
+  - thunar-volman
+  - viewnior
+  - xdg-user-dirs
+  - xdg-user-dirs-gtk
+
+packages_uninstall:
+  - ristretto
+  - xfburn
+  - xfce4-clipman
+  - xfce4-clipman-plugin
+  - xfce4-dict
+  - xfce4-notes
+  - xfce4-notes-plugin
+  - xfce4-terminal
+  - xsensors
+
+releases:
+  bookworm:
+    architectures: [arm64, amd64]
+    packages:
+      - accountsservice
+      - gnome-calculator
+      - libu2f-udev
+    packages_remove:
+      - libfontembed1
+      - update-manager
+      - update-manager-core
+
+  trixie:
+    architectures: [arm64, amd64, armhf, riscv64]
+    packages:
+      - accountsservice
+      - libu2f-udev
+      - pipewire-audio
+      - pipewire-pulse
+      - wireplumber
+    packages_remove:
+      - pulseaudio
+      - pulseaudio-module-bluetooth
+
+  noble:
+    architectures: [arm64, amd64]
+    packages:
+      - polkitd
+      - pkexec
+      - libu2f-udev
+    packages_remove:
+      - qalculate-gtk
+      - hplip
+      - indicator-printers
+      - libfontembed1
+      - policykit-1
+      - printer-driver-all
+    packages_uninstall:
+      - ubuntu-session
+      - language-selector-gnome
+
+  plucky:
+    architectures: [arm64, amd64]
+    packages:
+      - polkitd
+      - pkexec
+      - libu2f-udev
+    packages_remove:
+      - qalculate-gtk
+      - hplip
+      - indicator-printers
+      - libfontembed1
+      - policykit-1
+      - printer-driver-all
+      - pavumeter
+    packages_uninstall:
+      - ubuntu-session
+      - language-selector-gnome

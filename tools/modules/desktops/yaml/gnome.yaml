@@ -1,0 +1,84 @@
+name: gnome
+description: "GNOME - modern, full-featured desktop"
+display_manager: gdm3
+status: supported
+
+packages:
+  - gnome-session
+  - gnome-shell
+  - gnome-control-center
+  - gnome-system-monitor
+  - gnome-disk-utility
+  - gnome-shell-extension-appindicator
+  - gdm3
+  - nautilus
+  - network-manager-gnome
+  - dbus-x11
+  - gvfs-backends
+  - lm-sensors
+  - pulseaudio
+  - pulseaudio-module-bluetooth
+  - xdg-user-dirs
+  - xdg-user-dirs-gtk
+  - xserver-xorg
+  - xwayland
+  - zenity
+
+releases:
+  bookworm:
+    architectures: [arm64, amd64]
+    packages:
+      - accountsservice
+      - gnome-calculator
+      - libu2f-udev
+    packages_remove:
+      - libfontembed1
+      - update-manager
+      - update-manager-core
+
+  trixie:
+    architectures: [arm64, amd64]
+    packages:
+      - accountsservice
+      - libu2f-udev
+      - pipewire-audio
+      - pipewire-pulse
+      - wireplumber
+    packages_remove:
+      - pulseaudio
+      - pulseaudio-module-bluetooth
+
+  noble:
+    architectures: [arm64, amd64]
+    packages:
+      - polkitd
+      - pkexec
+      - libu2f-udev
+    packages_remove:
+      - qalculate-gtk
+      - hplip
+      - indicator-printers
+      - libfontembed1
+      - policykit-1
+      - printer-driver-all
+    packages_uninstall:
+      - ubuntu-session
+      - language-selector-gnome
+
+  plucky:
+    architectures: [arm64, amd64]
+    packages:
+      - polkitd
+      - pkexec
+      - libu2f-udev
+    packages_remove:
+      - qalculate-gtk
+      - hplip
+      - indicator-printers
+      - libfontembed1
+      - policykit-1
+      - printer-driver-all
+      - pavumeter
+    packages_uninstall:
+      - ubuntu-session
+      - language-selector-gnome
