@@ -140,6 +140,8 @@ def list_desktops(yaml_dir, release, arch, fmt="tsv"):
         if not fname.endswith(".yaml") or fname == "common.yaml":
             continue
         fpath = os.path.join(yaml_dir, fname)
+        if not os.path.isfile(fpath):
+            continue  # skip directories like 'foo.yaml/' that would IsADirectoryError on open()
         with open(fpath) as f:
             data = yaml.safe_load(f)
         if not isinstance(data, dict):
