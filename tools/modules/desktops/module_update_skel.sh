@@ -16,25 +16,29 @@ function module_update_skel() {
 
 	case "$1" in
 		"${commands[0]}")
-			# install - copy skel to all regular users
+			# install - copy skel into every regular user's home, then make
+			# sure the entire home is owned by them.
+			#
+			# History: a previous refactor (#815) replaced the simple
+			#   cp -r --update=none /etc/skel/. "$home/"
+			#   chown -R "$uid:$gid" "$home/"
+			# with a per-file find/cp/chown loop. That loop is internally
+			# correct, but the old recursive chown was also serving as a
+			# safety net: any root-owned file that other package postinst
+			# scripts leaked into the user's home (caja, nemo, gnome-keyring
+			# etc. all do this on first install) used to be reclaimed here.
+			# Without it, caja and nemo refuse to start on first login with
+			# "the directory containing settings needs read and write
+			# permissions" because their ~/.config/{caja,nemo} ends up
+			# root-owned.
+			# Restore the original pattern.
 			getent passwd |
 				while IFS=: read -r username x uid gid gecos home shell; do
 					if [ ! -d "$home" ] || [ "$username" == 'root' ] || [ "$uid" -lt 1000 ] || [ "$uid" -ge 65534 ]; then
 						continue
 					fi
-					# copy new files only, then fix ownership of copied files
-					find /etc/skel -mindepth 1 | while read -r src; do
-						local dst="$home/${src#/etc/skel/}"
-						if [ ! -e "$dst" ]; then
-							if [ -d "$src" ]; then
-								mkdir -p "$dst"
-							else
-								mkdir -p "$(dirname "$dst")"
-								cp "$src" "$dst"
-							fi
-							chown "$uid:$gid" "$dst"
-						fi
-					done
+					cp -r --update=none /etc/skel/. "$home/"
+					chown -R "$uid:$gid" "$home/"
 				done
 		;;
 		"${commands[1]}")
