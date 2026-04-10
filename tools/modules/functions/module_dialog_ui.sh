@@ -653,8 +653,8 @@ dialog_menu() {
 			done
 
 			# Debug: show options array
-			[[ -n "$debug" ]] && echo "DEBUG: options array has ${#options[@]} elements" >&2
-			[[ -n "$debug" ]] && echo "DEBUG: use_item_help=$use_item_help" >&2
+			debug_log "dialog_menu(read): options array has ${#options[@]} elements"
+			debug_log "dialog_menu(read): use_item_help=$use_item_help"
 
 			if $use_no_items; then
 				# Simple list without descriptions

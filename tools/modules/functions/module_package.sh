@@ -162,13 +162,13 @@ pkg_install()
 	# Dry-run to capture the list of new packages apt will install
 	local dry_run_output
 	dry_run_output=$(apt-get -s -y install "${pkg_names[@]}" 2>&1)
-	echo "DEBUG pkg_install: dry-run for ${#pkg_names[@]} packages" >&2
+	debug_log "pkg_install: dry-run for ${#pkg_names[@]} packages"
 	local new_packages=()
 	local capture=false
 	while IFS= read -r line; do
 		if [[ "$line" == "The following NEW packages will be installed:" ]]; then
 			capture=true
-			echo "DEBUG pkg_install: found: $line" >&2
+			debug_log "pkg_install: found: $line"
 			continue
 		fi
 		# Stop capturing when we hit any other section header
@@ -186,7 +186,7 @@ pkg_install()
 			fi
 		fi
 	done <<< "$dry_run_output"
-	echo "DEBUG pkg_install: apt dry-run reports ${#new_packages[@]} new packages" >&2
+	debug_log "pkg_install: apt dry-run reports ${#new_packages[@]} new packages"
 
 	local exit_code
 	apt_operation_progress install "$@"
@@ -201,7 +201,7 @@ pkg_install()
 	# Track newly installed packages
 	if [[ $exit_code -eq 0 ]]; then
 		ACTUALLY_INSTALLED+=("${new_packages[@]}")
-		echo "DEBUG pkg_install: ACTUALLY_INSTALLED now has ${#ACTUALLY_INSTALLED[@]} entries" >&2
+		debug_log "pkg_install: ACTUALLY_INSTALLED now has ${#ACTUALLY_INSTALLED[@]} entries"
 	fi
 
 	return $exit_code

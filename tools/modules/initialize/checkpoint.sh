@@ -15,8 +15,16 @@ _checkpoint_add()
 
 	if [[ -n "$DEBUG" ]]; then
 		local time=$(date +%s)
-		printf "%-30s %4d sec\n" "$msg" $((time - _checkpoint_time))
+		local line
+		printf -v line "%-30s %4d sec" "$msg" $((time - _checkpoint_time))
 		_checkpoint_time=$time
+		# Prefer the debug_log sink (file when DEBUG_LOG is set) so checkpoint
+		# timings live alongside every other debug line.
+		if declare -f debug_log >/dev/null 2>&1; then
+			debug_log "checkpoint: $line"
+		else
+			echo "$line"
+		fi
 
 	elif [[ -n "$UXMODE" && "$type" == mark ]]; then
 		_checkpoint_time=$(date +%s)

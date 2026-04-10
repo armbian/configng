@@ -6,7 +6,44 @@ unset UXMODE
 # allows CTRL c to exit
 trap "exit" INT TERM
 
-[[ $EUID != 0 ]] && exec sudo "$0" "$@"
+# --debug[=level|=path|=level:path]: turn on script-wide debug logging
+# Examples:
+#   armbian-config --debug              # DEBUG=1, default log file
+#   armbian-config --debug=2             # DEBUG=2 (also captures set -x)
+#   armbian-config --debug=/tmp/my.log   # DEBUG=1, custom log file
+#   armbian-config --debug=2:/tmp/my.log # both
+# Strips the flag out of "$@" before the rest of the script sees it.
+_parse_debug_flag() {
+	local arg new_args=()
+	for arg in "$@"; do
+		case "$arg" in
+			--debug)
+				DEBUG=1
+				;;
+			--debug=*)
+				local v="${arg#--debug=}"
+				if [[ "$v" == *:* ]]; then
+					DEBUG="${v%%:*}"
+					DEBUG_LOG="${v#*:}"
+				elif [[ "$v" =~ ^[0-9]+$ ]]; then
+					DEBUG="$v"
+				else
+					DEBUG=1
+					DEBUG_LOG="$v"
+				fi
+				;;
+			*)
+				new_args+=("$arg")
+				;;
+		esac
+	done
+	export DEBUG DEBUG_LOG
+	_debug_argv=("${new_args[@]}")
+}
+_parse_debug_flag "$@"
+set -- "${_debug_argv[@]}"
+
+[[ $EUID != 0 ]] && exec sudo --preserve-env=DEBUG,DEBUG_LOG "$0" "$@"
 #
 # Get the script directory
 script_dir="$(dirname "$0")"
@@ -15,6 +52,11 @@ declare -A module_options
 
 # Load the initialize modules
 source "$script_dir/../lib/armbian-config/config.initialize.sh"
+
+# Open the debug log file up-front so the session header lands before any
+# checkpoint/debug_log output. No-op when DEBUG is unset.
+_debug_log_init
+debug_log "armbian-config invoked: $0 $*"
 
 # Start loading messages
 checkpoint reset
@@ -98,11 +140,18 @@ case "$1" in
      --cmd  [option]     Run a command from the menu (simple)
      --api  [option]     Run a helper command        (advanced)
      --doc               Generate the README.md file
+     --debug[=spec]      Enable debug logging to a file.
+                         spec is one of: <level> (1 or 2),
+                         <path>, or <level>:<path>.
+                         Default file: /var/log/armbian-config.log
+                         Level 2 also captures set -x via BASH_XTRACEFD.
 
      Examples:
      armbian-config --help [cmd||System||Software||Network||Localisation]
      armbian-config --cmd help
      armbian-config --api help
+     armbian-config --debug --cmd help
+     armbian-config --debug=2:/tmp/ac.log
 "
         fi
     ;;
