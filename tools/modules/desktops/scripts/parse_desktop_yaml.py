@@ -45,7 +45,11 @@ def load_common(yaml_dir):
         with open(common_file) as f:
             data = yaml.safe_load(f)
         if isinstance(data, dict):
-            return data.get("packages", [])
+            pkgs = data.get("packages", [])
+            if not isinstance(pkgs, list):
+                print(f"Error: 'packages' in common.yaml must be a list, got {type(pkgs).__name__}", file=sys.stderr)
+                sys.exit(1)
+            return pkgs
     return []
 
 
