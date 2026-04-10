@@ -83,9 +83,7 @@ def parse_desktop(yaml_dir, de_name, release, arch):
         print(f"Error: 'packages' must be a list in '{de_name}'", file=sys.stderr)
         sys.exit(1)
 
-    # primary package is the first DE-specific package (for status checks)
     de_pkgs = data.get("packages", [])
-    primary_pkg = de_pkgs[0] if de_pkgs else ""
 
     # common + base packages
     common_pkgs = load_common(yaml_dir)
@@ -109,6 +107,12 @@ def parse_desktop(yaml_dir, de_name, release, arch):
     all_pkgs = base_pkgs + release_pkgs
     all_uninstall = base_uninstall + release_uninstall
     final_pkgs = [p for p in all_pkgs if p not in release_remove]
+
+    # primary package: first DE-specific package that survives release_remove.
+    # Must NOT come from final_pkgs[0] (that's a common.yaml package and would
+    # be identical across every desktop, breaking status/remove).
+    effective_de_pkgs = [p for p in (de_pkgs + release_pkgs) if p not in release_remove]
+    primary_pkg = effective_de_pkgs[0] if effective_de_pkgs else ""
 
     # output bash variables (shell-escaped)
     print(f'DESKTOP_PACKAGES="{shell_escape(" ".join(final_pkgs))}"')
