@@ -114,9 +114,6 @@ function module_desktops() {
 			# install branding
 			module_desktop_branding "$de"
 
-			# install Armbian Imager AppImage
-			module_appimage install app=armbian-imager
-
 			# add user to desktop groups
 			for group in sudo netdev audio video dialout plugdev input bluetooth systemd-journal ssh; do
 				usermod -aG "$group" "$user" 2>/dev/null || true
@@ -197,9 +194,6 @@ function module_desktops() {
 				pkg_remove "${to_remove[@]}"
 			fi
 			rm -f "$desktop_pkg_file"
-
-			# remove AppImages
-			module_appimage remove app=armbian-imager
 
 			# Reclaim disk space: clear apt's downloaded .deb cache. A full
 			# DE removal frees hundreds of MB of installed files; the
