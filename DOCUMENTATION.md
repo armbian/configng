@@ -23,13 +23,25 @@ sudo armbian-config
 
 
   - ### Install, remove and configure desktop environments
-    - ### Install Cinnamon
-    - ### Install GNOME
-    - ### Install MATE
-    - ### Install i3
-    - ### Install KDE Plasma
+    - ### Install Cinnamon (minimal)
+    - ### Install Cinnamon (mid)
+    - ### Install Cinnamon (full)
+    - ### Install GNOME (minimal)
+    - ### Install GNOME (mid)
+    - ### Install GNOME (full)
+    - ### Install MATE (minimal)
+    - ### Install MATE (mid)
+    - ### Install MATE (full)
+    - ### Install i3 (minimal)
+    - ### Install i3 (mid)
+    - ### Install i3 (full)
+    - ### Install KDE Plasma (minimal)
+    - ### Install KDE Plasma (mid)
+    - ### Install KDE Plasma (full)
     - ### Install KDE Neon
-    - ### Install XFCE
+    - ### Install XFCE (minimal)
+    - ### Install XFCE (mid)
+    - ### Install XFCE (full)
     - ### Uninstall Cinnamon
     - ### Uninstall GNOME
     - ### Uninstall MATE
@@ -51,6 +63,24 @@ sudo armbian-config
     - ### Disable autologin (KDE Plasma)
     - ### Disable autologin (KDE Neon)
     - ### Disable autologin (XFCE)
+    - ### Change Cinnamon to minimal
+    - ### Change Cinnamon to mid
+    - ### Change Cinnamon to full
+    - ### Change GNOME to minimal
+    - ### Change GNOME to mid
+    - ### Change GNOME to full
+    - ### Change MATE to minimal
+    - ### Change MATE to mid
+    - ### Change MATE to full
+    - ### Change i3 to minimal
+    - ### Change i3 to mid
+    - ### Change i3 to full
+    - ### Change KDE Plasma to minimal
+    - ### Change KDE Plasma to mid
+    - ### Change KDE Plasma to full
+    - ### Change XFCE to minimal
+    - ### Change XFCE to mid
+    - ### Change XFCE to full
 
 
   - ### Install to internal media, ZFS, NFS, read-only rootfs
@@ -433,13 +463,25 @@ Outputs:
 	--cmd ODR001 - Select Odroid board configuration
 	--cmd BOOT01 - Edit the boot environment
     Desktops - Install, remove and configure desktop environments
-	--cmd CINM01 - Install Cinnamon
-	--cmd GNME01 - Install GNOME
-	--cmd MATE01 - Install MATE
-	--cmd I3WM01 - Install i3
-	--cmd KDEP01 - Install KDE Plasma
+	--cmd CINM01 - Install Cinnamon (minimal)
+	--cmd CINM05 - Install Cinnamon (mid)
+	--cmd CINM06 - Install Cinnamon (full)
+	--cmd GNME01 - Install GNOME (minimal)
+	--cmd GNME05 - Install GNOME (mid)
+	--cmd GNME06 - Install GNOME (full)
+	--cmd MATE01 - Install MATE (minimal)
+	--cmd MATE05 - Install MATE (mid)
+	--cmd MATE06 - Install MATE (full)
+	--cmd I3WM01 - Install i3 (minimal)
+	--cmd I3WM05 - Install i3 (mid)
+	--cmd I3WM06 - Install i3 (full)
+	--cmd KDEP01 - Install KDE Plasma (minimal)
+	--cmd KDEP05 - Install KDE Plasma (mid)
+	--cmd KDEP06 - Install KDE Plasma (full)
 	--cmd KDEN01 - Install KDE Neon
-	--cmd XFCE01 - Install XFCE
+	--cmd XFCE01 - Install XFCE (minimal)
+	--cmd XFCE05 - Install XFCE (mid)
+	--cmd XFCE06 - Install XFCE (full)
 	--cmd CINM02 - Uninstall Cinnamon
 	--cmd GNME02 - Uninstall GNOME
 	--cmd MATE02 - Uninstall MATE
@@ -461,6 +503,24 @@ Outputs:
 	--cmd KDEP04 - Disable autologin (KDE Plasma)
 	--cmd KDEN04 - Disable autologin (KDE Neon)
 	--cmd XFCE04 - Disable autologin (XFCE)
+	--cmd CINM07 - Change Cinnamon to minimal
+	--cmd CINM08 - Change Cinnamon to mid
+	--cmd CINM09 - Change Cinnamon to full
+	--cmd GNME07 - Change GNOME to minimal
+	--cmd GNME08 - Change GNOME to mid
+	--cmd GNME09 - Change GNOME to full
+	--cmd MATE07 - Change MATE to minimal
+	--cmd MATE08 - Change MATE to mid
+	--cmd MATE09 - Change MATE to full
+	--cmd I3WM07 - Change i3 to minimal
+	--cmd I3WM08 - Change i3 to mid
+	--cmd I3WM09 - Change i3 to full
+	--cmd KDEP07 - Change KDE Plasma to minimal
+	--cmd KDEP08 - Change KDE Plasma to mid
+	--cmd KDEP09 - Change KDE Plasma to full
+	--cmd XFCE07 - Change XFCE to minimal
+	--cmd XFCE08 - Change XFCE to mid
+	--cmd XFCE09 - Change XFCE to full
     Storage - Install to internal media, ZFS, NFS, read-only rootfs
 	--cmd STO001 - Copy the running Armbian system to another device
 	--cmd FLASH1 - Download a fresh, official Armbian OS image and write it to a device
@@ -1152,7 +1212,7 @@ These helper functions facilitate various operations related to job management, 
 | Samba setup and service setting. | help install remove start stop enable disable configure default status | @Tearran 
 | Check when apt list was last updated and suggest updating or update | see_current_apt or see_current_apt update | @Tearran 
 | Install/uninstall/check status of portainer container | install remove purge status help | @armbian 
-| Install and manage desktop environments (YAML-driven) | install remove disable enable status auto manual login supported installed help | @igorpecovnik 
+| Install and manage desktop environments (YAML-driven) | install remove disable enable status auto manual login supported installed help upgrade downgrade tier at-tier set-tier | @igorpecovnik 
 | Install plexmediaserver from repo using apt | install remove status | @schwar3kat 
 | Display a gauge dialog for progress indication | echo 50 | dialog_gauge "Title" "Progress" 10 70 | @armbian 
 | Generate 'Armbian CPU logo' SVG for document file. | generate_svg | @Tearran 
@@ -1168,6 +1228,7 @@ These helper functions facilitate various operations related to job management, 
 | Install package | pkg_install neovim | @dimitry-ishenko 
 | Install wireguard container | install client server remove purge qrcode status help | @armbian 
 | Display an info box using the configured dialog tool | dialog_infobox "Title" "Message" 6 80 | @armbian 
+| Write a debug message to the debug log sink | debug_log "pkg_install: ${#pkg_names[@]} packages" | @igorpecovnik 
 | Secure Web Application Gateway  | install remove purge status password help | @igorpecovnik 
 | Install deluge container | install remove purge status help | @igorpecovnik 
 | Set Armbian root filesystem to read only | install remove status help | @igorpecovnik 
@@ -1241,6 +1302,7 @@ parse_menu_items 'menu_options_array' --with-help | @viraniac
 | Stop service | srv_stop ssh.service | @dimitry-ishenko 
 | Configure an unconfigured package | pkg_configure | @dimitry-ishenko 
 | Check if a domain is reachable via IPv4 and IPv6 | module_check_ip_version google.com | @Tearran 
+| Clear apt's downloaded .deb cache (apt-get clean) | pkg_clean | @igorpecovnik 
 | Install Pi-hole container | install remove purge password status help | @armbian 
 | Generate a Help message for cli commands. | see_cmd_list [category] | @Tearran 
 | Install mariadb container | install remove purge status help | @igorpecovnik 
