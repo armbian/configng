@@ -113,14 +113,45 @@ def _merge_tier(packages, removes, source, tier):
             removes.append(pkg)
 
 
-def _resolve_browser(packages, common, arch):
-    """Substitute the literal token `browser` with the per-arch package from common.browser."""
+def _resolve_browser(packages, common, release, arch):
+    """Substitute the literal token `browser` with the right package per release+arch.
+
+    The browser map in common.yaml has two layers:
+
+      browser:
+        amd64: chromium       # default fallback for any release on this arch
+        ...
+        bookworm:
+          amd64: chromium     # per-release per-arch override
+          riscv64: firefox-esr
+
+    Lookup order:
+      1. browser.<release>.<arch>  (most specific)
+      2. browser.<arch>             (per-arch fallback)
+      3. drop the token altogether (silently — install proceeds without
+         a browser rather than failing on a literal 'browser' apt name)
+
+    The per-release layer is needed because the same arch can resolve
+    differently across releases:
+      - Debian has 'firefox-esr' but no 'firefox'
+      - Ubuntu's 'chromium' is a snap-shim deb that requires snapd
+      - 'chromium' isn't built for riscv64 in Debian or Ubuntu
+    """
     browser_map = _as_dict(common.get("browser"))
     if "browser" not in packages:
         return
-    pkg = browser_map.get(arch)
+    # Try per-release per-arch first (browser.<release> is a dict of arch->pkg).
+    release_map = _as_dict(browser_map.get(release))
+    pkg = release_map.get(arch) if release_map else None
+    # Fall back to top-level per-arch if no per-release entry exists. Only
+    # consider top-level keys that are arch names — skip release-name keys
+    # by checking that the value is a string, not a dict.
     if not pkg:
-        # No browser defined for this arch — silently drop the token rather
+        candidate = browser_map.get(arch)
+        if isinstance(candidate, str):
+            pkg = candidate
+    if not pkg:
+        # No browser defined for this combo — silently drop the token rather
         # than passing 'browser' to apt and breaking the install. The dialog
         # layer can warn the user separately if it cares.
         packages.remove("browser")
@@ -129,11 +160,42 @@ def _resolve_browser(packages, common, arch):
     packages[idx] = pkg
 
 
-def _apply_tier_overrides(packages, source, tier, arch):
-    """Apply tier_overrides.<tier>.architectures.<arch>.packages_remove from a YAML source."""
-    overrides = _as_dict(_as_dict(_as_dict(source.get("tier_overrides")).get(tier)).get("architectures"))
-    arch_block = _as_dict(overrides.get(arch))
+def _apply_tier_overrides(packages, source, tier, release, arch):
+    """Apply tier_overrides from a YAML source.
+
+    Schema:
+
+      tier_overrides:
+        <tier>:
+          architectures:
+            <arch>:
+              packages_remove: [...]   # remove on this arch in any release
+          releases:
+            <release>:
+              architectures:
+                <arch>:
+                  packages_remove: [...]   # remove on this release+arch combo
+
+    Both layers are applied. Use the per-arch layer for permanent
+    arch-wide holes (e.g. blender always missing on armhf), and the
+    per-release-per-arch layer for transient holes (e.g. loupe missing
+    on bookworm because GNOME 43 didn't have it).
+    """
+    tier_block = _as_dict(_as_dict(source.get("tier_overrides")).get(tier))
+
+    # Per-arch (any release) layer.
+    archs = _as_dict(tier_block.get("architectures"))
+    arch_block = _as_dict(archs.get(arch))
     for pkg in _as_list(arch_block.get("packages_remove")):
+        if pkg in packages:
+            packages.remove(pkg)
+
+    # Per-release-per-arch layer.
+    releases = _as_dict(tier_block.get("releases"))
+    release_block = _as_dict(releases.get(release))
+    release_archs = _as_dict(release_block.get("architectures"))
+    release_arch_block = _as_dict(release_archs.get(arch))
+    for pkg in _as_list(release_arch_block.get("packages_remove")):
         if pkg in packages:
             packages.remove(pkg)
 
@@ -175,18 +237,22 @@ def parse_desktop(yaml_dir, de_name, release, arch, tier):
 
     common = load_common(yaml_dir)
 
-    # 1. Walk tiers from minimal -> target, merging common first then DE.
+    # 1. Walk tiers from minimal -> target. At each step, merge the
+    #    tier's packages from common and the DE, then apply both
+    #    common and per-DE tier_overrides for that tier. Walking
+    #    tier_overrides in the same loop as packages means a hole
+    #    declared at the mid tier (e.g. 'loupe' missing on bookworm)
+    #    is honoured for ALL tiers >= mid, including full.
     packages = []
     removes = []
     for t in _tiers_up_to(tier):
         _merge_tier(packages, removes, common, t)
         _merge_tier(packages, removes, de_data, t)
+        _apply_tier_overrides(packages, common, t, release, arch)
+        _apply_tier_overrides(packages, de_data, t, release, arch)
 
-    # 2. Resolve the `browser` virtual token per arch.
-    _resolve_browser(packages, common, arch)
-
-    # 3. Apply per-DE tier_overrides for this arch.
-    _apply_tier_overrides(packages, de_data, tier, arch)
+    # 2. Resolve the `browser` virtual token per release+arch.
+    _resolve_browser(packages, common, release, arch)
 
     # 4. Apply the orthogonal release block — packages_remove + packages
     #    declared per release. The release block is independent of tier.
