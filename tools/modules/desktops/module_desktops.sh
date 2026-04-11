@@ -2,7 +2,7 @@ module_options+=(
 	["module_desktops,author"]="@igorpecovnik"
 	["module_desktops,feature"]="module_desktops"
 	["module_desktops,desc"]="Install and manage desktop environments (YAML-driven)"
-	["module_desktops,example"]="install remove disable enable status auto manual login supported installed help upgrade downgrade tier"
+	["module_desktops,example"]="install remove disable enable status auto manual login supported installed help upgrade downgrade tier at-tier set-tier"
 	["module_desktops,status"]="Active"
 	["module_desktops,arch"]=""
 	["module_desktops,help_install"]="Install desktop (de=name tier=minimal|mid|full)"
@@ -18,6 +18,8 @@ module_options+=(
 	["module_desktops,help_upgrade"]="Upgrade installed desktop to a higher tier (de=name tier=mid|full)"
 	["module_desktops,help_downgrade"]="Downgrade installed desktop to a lower tier (de=name tier=minimal|mid)"
 	["module_desktops,help_tier"]="Print the installed tier of a desktop, or 'not installed' (de=name)"
+	["module_desktops,help_at-tier"]="Silent gate: exit 0 if a desktop is installed AND at the given tier (de=name tier=X)"
+	["module_desktops,help_set-tier"]="Move installed desktop to a target tier; auto-detects upgrade vs downgrade (de=name tier=X)"
 )
 
 #
@@ -532,6 +534,69 @@ function module_desktops() {
 			fi
 			echo "not installed"
 			return 1
+		;;
+
+		"${commands[14]}")
+			# at-tier — silent gate. Exit 0 if the desktop is
+			# installed AND the current tier marker matches the
+			# target. Used by the dialog menu's `condition` field
+			# to hide the "Change to <tier>" entry that matches
+			# the currently-installed tier. Pure exit-code query;
+			# no stdout output, just like `status`.
+			if [[ -z "$de" || -z "$tier" ]]; then
+				echo "Error: specify de=name tier=X" >&2
+				return 1
+			fi
+			module_desktop_yamlparse "$de" || return 1
+			[[ -n "$DESKTOP_PRIMARY_PKG" ]] || return 1
+			dpkg -l "$DESKTOP_PRIMARY_PKG" 2>/dev/null | grep -q "^ii" || return 1
+			local current="minimal"
+			[[ -f "/etc/armbian/desktop/${de}.tier" ]] && current=$(< "/etc/armbian/desktop/${de}.tier")
+			[[ "$current" == "$tier" ]]
+		;;
+
+		"${commands[15]}")
+			# set-tier — direction-agnostic tier change. Reads
+			# the current tier from the marker file and dispatches
+			# to upgrade or downgrade based on which is higher.
+			# Used by the dialog menu's "Change to <tier>" entries
+			# so a single button can either upgrade or downgrade
+			# without the menu having to know the current state.
+			if [[ -z "$de" ]]; then
+				echo "Error: specify de=name" >&2
+				return 1
+			fi
+			if [[ -z "$tier" ]]; then
+				echo "Error: specify tier=minimal|mid|full" >&2
+				return 1
+			fi
+			case "$tier" in
+				minimal|mid|full) ;;
+				*)
+					echo "Error: invalid tier '${tier}'" >&2
+					return 1
+				;;
+			esac
+			if [[ ! -f "/etc/armbian/desktop/${de}.tier" ]]; then
+				echo "Error: ${de} is not installed" >&2
+				return 1
+			fi
+			local current
+			current=$(< "/etc/armbian/desktop/${de}.tier")
+			if [[ "$current" == "$tier" ]]; then
+				echo "${de} is already at tier '${tier}', nothing to do."
+				return 0
+			fi
+			# Numeric ordering for direction detection.
+			local _tier_n_minimal=1 _tier_n_mid=2 _tier_n_full=3
+			local _cur_var="_tier_n_${current}"
+			local _tgt_var="_tier_n_${tier}"
+			if [[ "${!_tgt_var}" -gt "${!_cur_var}" ]]; then
+				_module_desktops_change_tier upgrade "$de" "$tier"
+			else
+				_module_desktops_change_tier downgrade "$de" "$tier"
+			fi
+			return $?
 		;;
 
 		*)

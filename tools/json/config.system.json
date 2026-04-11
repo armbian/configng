@@ -570,6 +570,204 @@
                             "help": "Disable automatic desktop login for XFCE"
                         },
                         {
+                            "id": "CINM07",
+                            "description": "Change Cinnamon to minimal",
+                            "command": [
+                                "module_desktops set-tier de=cinnamon tier=minimal"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=cinnamon && ! module_desktops at-tier de=cinnamon tier=minimal",
+                            "help": "Downgrade Cinnamon to the minimal tier (removes mid/full extras)"
+                        },
+                        {
+                            "id": "CINM08",
+                            "description": "Change Cinnamon to mid",
+                            "command": [
+                                "module_desktops set-tier de=cinnamon tier=mid"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=cinnamon && ! module_desktops at-tier de=cinnamon tier=mid",
+                            "help": "Move Cinnamon to the mid tier (adds browser, editor, media tools; removes office apps if downgrading)"
+                        },
+                        {
+                            "id": "CINM09",
+                            "description": "Change Cinnamon to full",
+                            "command": [
+                                "module_desktops set-tier de=cinnamon tier=full"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=cinnamon && ! module_desktops at-tier de=cinnamon tier=full",
+                            "help": "Upgrade Cinnamon to the full tier (adds office, GIMP, Inkscape, etc.)"
+                        },
+                        {
+                            "id": "GNME07",
+                            "description": "Change GNOME to minimal",
+                            "command": [
+                                "module_desktops set-tier de=gnome tier=minimal"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=gnome && ! module_desktops at-tier de=gnome tier=minimal",
+                            "help": "Downgrade GNOME to the minimal tier"
+                        },
+                        {
+                            "id": "GNME08",
+                            "description": "Change GNOME to mid",
+                            "command": [
+                                "module_desktops set-tier de=gnome tier=mid"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=gnome && ! module_desktops at-tier de=gnome tier=mid",
+                            "help": "Move GNOME to the mid tier"
+                        },
+                        {
+                            "id": "GNME09",
+                            "description": "Change GNOME to full",
+                            "command": [
+                                "module_desktops set-tier de=gnome tier=full"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=gnome && ! module_desktops at-tier de=gnome tier=full",
+                            "help": "Upgrade GNOME to the full tier"
+                        },
+                        {
+                            "id": "MATE07",
+                            "description": "Change MATE to minimal",
+                            "command": [
+                                "module_desktops set-tier de=mate tier=minimal"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=mate && ! module_desktops at-tier de=mate tier=minimal",
+                            "help": "Downgrade MATE to the minimal tier"
+                        },
+                        {
+                            "id": "MATE08",
+                            "description": "Change MATE to mid",
+                            "command": [
+                                "module_desktops set-tier de=mate tier=mid"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=mate && ! module_desktops at-tier de=mate tier=mid",
+                            "help": "Move MATE to the mid tier"
+                        },
+                        {
+                            "id": "MATE09",
+                            "description": "Change MATE to full",
+                            "command": [
+                                "module_desktops set-tier de=mate tier=full"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=mate && ! module_desktops at-tier de=mate tier=full",
+                            "help": "Upgrade MATE to the full tier"
+                        },
+                        {
+                            "id": "I3WM07",
+                            "description": "Change i3 to minimal",
+                            "command": [
+                                "module_desktops set-tier de=i3-wm tier=minimal"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=i3-wm && ! module_desktops at-tier de=i3-wm tier=minimal",
+                            "help": "Downgrade i3 to the minimal tier"
+                        },
+                        {
+                            "id": "I3WM08",
+                            "description": "Change i3 to mid",
+                            "command": [
+                                "module_desktops set-tier de=i3-wm tier=mid"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=i3-wm && ! module_desktops at-tier de=i3-wm tier=mid",
+                            "help": "Move i3 to the mid tier"
+                        },
+                        {
+                            "id": "I3WM09",
+                            "description": "Change i3 to full",
+                            "command": [
+                                "module_desktops set-tier de=i3-wm tier=full"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=i3-wm && ! module_desktops at-tier de=i3-wm tier=full",
+                            "help": "Upgrade i3 to the full tier"
+                        },
+                        {
+                            "id": "KDEP07",
+                            "description": "Change KDE Plasma to minimal",
+                            "command": [
+                                "module_desktops set-tier de=kde-plasma tier=minimal"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=kde-plasma && ! module_desktops at-tier de=kde-plasma tier=minimal",
+                            "help": "Downgrade KDE Plasma to the minimal tier"
+                        },
+                        {
+                            "id": "KDEP08",
+                            "description": "Change KDE Plasma to mid",
+                            "command": [
+                                "module_desktops set-tier de=kde-plasma tier=mid"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=kde-plasma && ! module_desktops at-tier de=kde-plasma tier=mid",
+                            "help": "Move KDE Plasma to the mid tier"
+                        },
+                        {
+                            "id": "KDEP09",
+                            "description": "Change KDE Plasma to full",
+                            "command": [
+                                "module_desktops set-tier de=kde-plasma tier=full"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=kde-plasma && ! module_desktops at-tier de=kde-plasma tier=full",
+                            "help": "Upgrade KDE Plasma to the full tier"
+                        },
+                        {
+                            "id": "XFCE07",
+                            "description": "Change XFCE to minimal",
+                            "command": [
+                                "module_desktops set-tier de=xfce tier=minimal"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=xfce && ! module_desktops at-tier de=xfce tier=minimal",
+                            "help": "Downgrade XFCE to the minimal tier"
+                        },
+                        {
+                            "id": "XFCE08",
+                            "description": "Change XFCE to mid",
+                            "command": [
+                                "module_desktops set-tier de=xfce tier=mid"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=xfce && ! module_desktops at-tier de=xfce tier=mid",
+                            "help": "Move XFCE to the mid tier"
+                        },
+                        {
+                            "id": "XFCE09",
+                            "description": "Change XFCE to full",
+                            "command": [
+                                "module_desktops set-tier de=xfce tier=full"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=xfce && ! module_desktops at-tier de=xfce tier=full",
+                            "help": "Upgrade XFCE to the full tier"
+                        },
+                        {
                             "id": "Xapian",
                             "description": "Improve application search speed",
                             "command": [
