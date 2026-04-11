@@ -2,17 +2,48 @@
 """
 Parse desktop YAML definitions and output bash-compatible variables.
 
-Usage:
-  parse_desktop_yaml.py <yaml_dir> <de_name> <release> <arch>
+Tier model
+----------
+Every DE YAML defines its packages under a `tiers:` map with three tiers,
+in order of inclusion: minimal -> mid -> full. Each tier is the union of
+itself plus all lower tiers, so installing 'full' implies 'mid' implies
+'minimal'. Tiers are mandatory; there is no flat top-level `packages:`
+list anymore.
+
+common.yaml carries the per-tier defaults that apply to every desktop
+(branding, base apps, browser slot). Per-DE YAMLs can add packages to a
+tier or remove ones inherited from common, via `tiers.<tier>.packages`
+and `tiers.<tier>.packages_remove`.
+
+The literal token `browser` inside any tier resolves to the per-arch
+package name from common.yaml's `browser:` map (e.g. chromium on
+arm64/amd64/armhf, firefox on riscv64).
+
+Per-DE per-tier per-arch overrides live under `tier_overrides:`, with
+the same shape as the release block. Use this to drop packages that
+do not exist on a particular arch (e.g. blender/inkscape on armhf).
+
+Per-release deltas (architecture support, packages_remove for the
+release as a whole, extra packages per release) keep their existing
+top-level `releases:` block — the release filter is orthogonal to the
+tier filter and applies after all tier merging is done.
+
+Usage
+-----
+  parse_desktop_yaml.py <yaml_dir> <de_name> <release> <arch> --tier <tier>
   parse_desktop_yaml.py <yaml_dir> --list <release> <arch>
+  parse_desktop_yaml.py <yaml_dir> --list-json <release> <arch>
+  parse_desktop_yaml.py <yaml_dir> --primaries <release> <arch>
 
 Output (bash eval-friendly):
   DESKTOP_PACKAGES="pkg1 pkg2 ..."
   DESKTOP_PACKAGES_UNINSTALL="pkg1 pkg2 ..."
+  DESKTOP_PRIMARY_PKG="xfce4"
   DESKTOP_DM="lightdm"
   DESKTOP_STATUS="supported"
   DESKTOP_SUPPORTED="yes"
-  DESKTOP_DESC="XFCE - lightweight and fast desktop"
+  DESKTOP_DESC="..."
+  DESKTOP_TIER="full"
   DESKTOP_REPO_URL="..."       (optional, for custom repos)
   DESKTOP_REPO_KEY_URL="..."   (optional)
   DESKTOP_REPO_KEYRING="..."   (optional)
@@ -21,6 +52,9 @@ Output (bash eval-friendly):
 import sys
 import os
 import yaml
+
+
+TIERS_IN_ORDER = ("minimal", "mid", "full")
 
 
 def shell_escape(s):
@@ -38,25 +72,88 @@ def _as_list(node):
     return node if isinstance(node, list) else []
 
 
-def load_common(yaml_dir):
-    """Load common packages from common.yaml."""
-    common_file = os.path.join(yaml_dir, "common.yaml")
-    if not os.path.exists(common_file):
-        return []
-    with open(common_file) as f:
+def _tiers_up_to(target):
+    """Return the ordered list of tier names from minimal up to and including target."""
+    if target not in TIERS_IN_ORDER:
+        print(f"Error: invalid tier '{target}', must be one of {','.join(TIERS_IN_ORDER)}", file=sys.stderr)
+        sys.exit(1)
+    return list(TIERS_IN_ORDER[:TIERS_IN_ORDER.index(target) + 1])
+
+
+def _load_yaml(path):
+    if not os.path.exists(path):
+        return {}
+    with open(path) as f:
         data = yaml.safe_load(f)
-    if not isinstance(data, dict):
-        print(f"Error: common.yaml must be a mapping (root object), got {type(data).__name__}", file=sys.stderr)
-        sys.exit(1)
-    pkgs = data.get("packages", [])
-    if not isinstance(pkgs, list):
-        print(f"Error: 'packages' in common.yaml must be a list, got {type(pkgs).__name__}", file=sys.stderr)
-        sys.exit(1)
-    return pkgs
+    return data if isinstance(data, dict) else {}
 
 
-def parse_desktop(yaml_dir, de_name, release, arch):
-    """Parse a single desktop definition."""
+def load_common(yaml_dir):
+    """Load common.yaml as a dict (or empty dict if missing)."""
+    return _load_yaml(os.path.join(yaml_dir, "common.yaml"))
+
+
+def _merge_tier(packages, removes, source, tier):
+    """Merge a tier block from a YAML source into packages/removes lists.
+
+    Each tier block looks like:
+        tiers:
+          <tier>:
+            packages: [...]
+            packages_remove: [...]   # filter out from earlier tiers / common
+    """
+    tier_block = _as_dict(_as_dict(source.get("tiers")).get(tier))
+    for pkg in _as_list(tier_block.get("packages")):
+        if pkg not in packages:
+            packages.append(pkg)
+    for pkg in _as_list(tier_block.get("packages_remove")):
+        if pkg in packages:
+            packages.remove(pkg)
+        if pkg not in removes:
+            removes.append(pkg)
+
+
+def _resolve_browser(packages, common, arch):
+    """Substitute the literal token `browser` with the per-arch package from common.browser."""
+    browser_map = _as_dict(common.get("browser"))
+    if "browser" not in packages:
+        return
+    pkg = browser_map.get(arch)
+    if not pkg:
+        # No browser defined for this arch — silently drop the token rather
+        # than passing 'browser' to apt and breaking the install. The dialog
+        # layer can warn the user separately if it cares.
+        packages.remove("browser")
+        return
+    idx = packages.index("browser")
+    packages[idx] = pkg
+
+
+def _apply_tier_overrides(packages, source, tier, arch):
+    """Apply tier_overrides.<tier>.architectures.<arch>.packages_remove from a YAML source."""
+    overrides = _as_dict(_as_dict(_as_dict(source.get("tier_overrides")).get(tier)).get("architectures"))
+    arch_block = _as_dict(overrides.get(arch))
+    for pkg in _as_list(arch_block.get("packages_remove")):
+        if pkg in packages:
+            packages.remove(pkg)
+
+
+def _gather_de_pkgs_at_tier(de_data, tier):
+    """Collect just the DE-specific packages declared at a tier level (no common, no release).
+
+    Used to identify the primary package — it has to come from the DE's own
+    declarations, not from common.yaml (otherwise every DE would share the
+    same primary).
+    """
+    de_pkgs = []
+    de_removes = []
+    for t in _tiers_up_to(tier):
+        _merge_tier(de_pkgs, de_removes, de_data, t)
+    return de_pkgs
+
+
+def parse_desktop(yaml_dir, de_name, release, arch, tier):
+    """Parse a single desktop definition at the requested tier."""
     yaml_file = os.path.join(yaml_dir, f"{de_name}.yaml")
 
     # Reject path traversal: de_name comes from CLI input on a tool that may run
@@ -71,60 +168,79 @@ def parse_desktop(yaml_dir, de_name, release, arch):
         print(f"Error: no definition for '{de_name}'", file=sys.stderr)
         sys.exit(1)
 
-    with open(yaml_file) as f:
-        data = yaml.safe_load(f)
-
-    if not isinstance(data, dict):
+    de_data = _load_yaml(yaml_file)
+    if not de_data:
         print(f"Error: invalid YAML in '{de_name}'", file=sys.stderr)
         sys.exit(1)
 
-    # validate package lists are actually lists
-    if not isinstance(data.get("packages", []), list):
-        print(f"Error: 'packages' must be a list in '{de_name}'", file=sys.stderr)
-        sys.exit(1)
+    common = load_common(yaml_dir)
 
-    de_pkgs = data.get("packages", [])
+    # 1. Walk tiers from minimal -> target, merging common first then DE.
+    packages = []
+    removes = []
+    for t in _tiers_up_to(tier):
+        _merge_tier(packages, removes, common, t)
+        _merge_tier(packages, removes, de_data, t)
 
-    # common + base packages
-    common_pkgs = load_common(yaml_dir)
-    base_pkgs = common_pkgs + de_pkgs
-    base_uninstall = _as_list(data.get("packages_uninstall"))
+    # 2. Resolve the `browser` virtual token per arch.
+    _resolve_browser(packages, common, arch)
 
-    # release-specific overrides
-    releases = _as_dict(data.get("releases"))
+    # 3. Apply per-DE tier_overrides for this arch.
+    _apply_tier_overrides(packages, de_data, tier, arch)
+
+    # 4. Apply the orthogonal release block — packages_remove + packages
+    #    declared per release. The release block is independent of tier.
+    releases = _as_dict(de_data.get("releases"))
     release_data = _as_dict(releases.get(release))
-
-    # architecture support
     supported_archs = _as_list(release_data.get("architectures"))
     is_supported = arch in supported_archs and release in releases
 
-    # merge release overrides
-    release_pkgs = _as_list(release_data.get("packages"))
-    release_remove = _as_list(release_data.get("packages_remove"))
-    release_uninstall = _as_list(release_data.get("packages_uninstall"))
+    for pkg in _as_list(release_data.get("packages_remove")):
+        if pkg in packages:
+            packages.remove(pkg)
+    for pkg in _as_list(release_data.get("packages")):
+        if pkg not in packages:
+            packages.append(pkg)
 
-    # combine and filter
-    all_pkgs = base_pkgs + release_pkgs
-    all_uninstall = base_uninstall + release_uninstall
-    final_pkgs = [p for p in all_pkgs if p not in release_remove]
+    # 5. packages_uninstall is collected from minimal-tier (common + DE) +
+    #    release-level packages_uninstall. The remove path uses this to purge
+    #    packages that get pulled in transitively but we don't want.
+    uninstall = []
+    for src in (common, de_data):
+        tier_block = _as_dict(_as_dict(src.get("tiers")).get("minimal"))
+        for pkg in _as_list(tier_block.get("packages_uninstall")):
+            if pkg not in uninstall:
+                uninstall.append(pkg)
+    for pkg in _as_list(release_data.get("packages_uninstall")):
+        if pkg not in uninstall:
+            uninstall.append(pkg)
 
-    # primary package: first DE-specific package that survives release_remove.
-    # Must NOT come from final_pkgs[0] (that's a common.yaml package and would
-    # be identical across every desktop, breaking status/remove).
-    effective_de_pkgs = [p for p in (de_pkgs + release_pkgs) if p not in release_remove]
+    # 6. Primary package: first DE-specific package (not from common) that
+    #    survived all the filters. Used by `module_desktops status` to detect
+    #    whether the desktop is currently installed.
+    de_pkgs_at_tier = _gather_de_pkgs_at_tier(de_data, tier)
+    # filter against the same release_remove that applied to the main set
+    release_removes = set(_as_list(release_data.get("packages_remove")))
+    # also against tier_overrides for this arch
+    overrides = _as_dict(_as_dict(_as_dict(de_data.get("tier_overrides")).get(tier)).get("architectures"))
+    arch_block = _as_dict(overrides.get(arch))
+    arch_removes = set(_as_list(arch_block.get("packages_remove")))
+    effective_de_pkgs = [p for p in de_pkgs_at_tier
+                         if p not in release_removes and p not in arch_removes]
     primary_pkg = effective_de_pkgs[0] if effective_de_pkgs else ""
 
     # output bash variables (shell-escaped)
-    print(f'DESKTOP_PACKAGES="{shell_escape(" ".join(final_pkgs))}"')
-    print(f'DESKTOP_PACKAGES_UNINSTALL="{shell_escape(" ".join(all_uninstall))}"')
+    print(f'DESKTOP_PACKAGES="{shell_escape(" ".join(packages))}"')
+    print(f'DESKTOP_PACKAGES_UNINSTALL="{shell_escape(" ".join(uninstall))}"')
     print(f'DESKTOP_PRIMARY_PKG="{shell_escape(primary_pkg)}"')
-    print(f'DESKTOP_DM="{shell_escape(data.get("display_manager", "lightdm"))}"')
-    print(f'DESKTOP_STATUS="{shell_escape(data.get("status", "unsupported"))}"')
+    print(f'DESKTOP_DM="{shell_escape(de_data.get("display_manager", "lightdm"))}"')
+    print(f'DESKTOP_STATUS="{shell_escape(de_data.get("status", "unsupported"))}"')
     print(f'DESKTOP_SUPPORTED="{"yes" if is_supported else "no"}"')
-    print(f'DESKTOP_DESC="{shell_escape(data.get("description", de_name))}"')
+    print(f'DESKTOP_DESC="{shell_escape(de_data.get("description", de_name))}"')
+    print(f'DESKTOP_TIER="{shell_escape(tier)}"')
 
     # repo info
-    repo = _as_dict(data.get("repo"))
+    repo = _as_dict(de_data.get("repo"))
     if repo:
         print(f'DESKTOP_REPO_URL="{shell_escape(repo.get("url", ""))}"')
         print(f'DESKTOP_REPO_KEY_URL="{shell_escape(repo.get("key_url", ""))}"')
@@ -134,28 +250,31 @@ def parse_desktop(yaml_dir, de_name, release, arch):
 def list_primaries(yaml_dir, release, arch):
     """Print '<name>\\t<primary_pkg>' for every desktop, applying release overrides.
 
-    Used by `module_desktops installed` to detect whether any desktop is currently
-    installed without spawning one Python process per desktop.
+    Used by `module_desktops installed` to detect whether any desktop is
+    currently installed without spawning one Python process per desktop.
+    The primary package is computed at the minimal tier — that is enough
+    to identify "any tier of this DE is installed".
     """
+    common = load_common(yaml_dir)
     for fname in sorted(os.listdir(yaml_dir)):
         if not fname.endswith(".yaml") or fname == "common.yaml":
             continue
         fpath = os.path.join(yaml_dir, fname)
         if not os.path.isfile(fpath):
             continue
-        with open(fpath) as f:
-            data = yaml.safe_load(f)
-        if not isinstance(data, dict):
+        de_data = _load_yaml(fpath)
+        if not de_data:
             continue
-        de_pkgs = data.get("packages", [])
-        if not isinstance(de_pkgs, list):
-            continue
-        release_data = _as_dict(_as_dict(data.get("releases")).get(release))
-        release_pkgs = _as_list(release_data.get("packages"))
-        release_remove = _as_list(release_data.get("packages_remove"))
-        # Same logic as parse_desktop's primary_pkg: first DE-specific package
-        # that survives release_remove. Common packages are excluded.
-        effective = [p for p in (de_pkgs + release_pkgs) if p not in release_remove]
+
+        de_pkgs = _gather_de_pkgs_at_tier(de_data, "minimal")
+        release_data = _as_dict(_as_dict(de_data.get("releases")).get(release))
+        release_removes = set(_as_list(release_data.get("packages_remove")))
+        # release-block additions COULD contribute the primary if the DE has
+        # an empty minimal tier (no DEs do today, but be tolerant)
+        for pkg in _as_list(release_data.get("packages")):
+            if pkg not in de_pkgs:
+                de_pkgs.append(pkg)
+        effective = [p for p in de_pkgs if p not in release_removes]
         if effective:
             name = fname[:-len(".yaml")]
             print(f"{name}\t{effective[0]}")
@@ -172,15 +291,14 @@ def list_desktops(yaml_dir, release, arch, fmt="tsv"):
         fpath = os.path.join(yaml_dir, fname)
         if not os.path.isfile(fpath):
             continue  # skip directories like 'foo.yaml/' that would IsADirectoryError on open()
-        with open(fpath) as f:
-            data = yaml.safe_load(f)
-        if not isinstance(data, dict):
+        de_data = _load_yaml(fpath)
+        if not de_data:
             continue
         name = fname.replace(".yaml", "")
-        status = data.get("status", "unsupported")
-        desc = data.get("description", name)
-        dm = data.get("display_manager", "lightdm")
-        releases = _as_dict(data.get("releases"))
+        status = de_data.get("status", "unsupported")
+        desc = de_data.get("description", name)
+        dm = de_data.get("display_manager", "lightdm")
+        releases = _as_dict(de_data.get("releases"))
         release_data = _as_dict(releases.get(release))
         archs = _as_list(release_data.get("architectures"))
         supported = arch in archs and release in releases
@@ -205,28 +323,33 @@ def list_desktops(yaml_dir, release, arch, fmt="tsv"):
             print(f"{e['name']}\t{e['status']}\t{'yes' if e['supported'] else 'no'}\t{arch_str}")
 
 
+def _usage():
+    prog = sys.argv[0]
+    print(f"Usage: {prog} <yaml_dir> <de_name> <release> <arch> --tier <minimal|mid|full>", file=sys.stderr)
+    print(f"       {prog} <yaml_dir> --list <release> <arch>", file=sys.stderr)
+    print(f"       {prog} <yaml_dir> --list-json <release> <arch>", file=sys.stderr)
+    print(f"       {prog} <yaml_dir> --primaries <release> <arch>", file=sys.stderr)
+    sys.exit(1)
+
+
 if __name__ == "__main__":
     if len(sys.argv) < 4:
-        print(f"Usage: {sys.argv[0]} <yaml_dir> <de_name> <release> <arch>", file=sys.stderr)
-        print(f"       {sys.argv[0]} <yaml_dir> --list <release> <arch>", file=sys.stderr)
-        print(f"       {sys.argv[0]} <yaml_dir> --primaries <release> <arch>", file=sys.stderr)
-        sys.exit(1)
+        _usage()
 
     yaml_dir = sys.argv[1]
 
     if sys.argv[2] in ("--list", "--list-json"):
         if len(sys.argv) < 5:
-            print(f"Usage: {sys.argv[0]} <yaml_dir> {sys.argv[2]} <release> <arch>", file=sys.stderr)
-            sys.exit(1)
+            _usage()
         fmt = "json" if sys.argv[2] == "--list-json" else "tsv"
         list_desktops(yaml_dir, sys.argv[3], sys.argv[4], fmt=fmt)
     elif sys.argv[2] == "--primaries":
         if len(sys.argv) < 5:
-            print(f"Usage: {sys.argv[0]} <yaml_dir> --primaries <release> <arch>", file=sys.stderr)
-            sys.exit(1)
+            _usage()
         list_primaries(yaml_dir, sys.argv[3], sys.argv[4])
     else:
-        if len(sys.argv) < 5:
-            print(f"Usage: {sys.argv[0]} <yaml_dir> <de_name> <release> <arch>", file=sys.stderr)
-            sys.exit(1)
-        parse_desktop(yaml_dir, sys.argv[2], sys.argv[3], sys.argv[4])
+        # parse_desktop: yaml_dir de_name release arch --tier <tier>
+        # The --tier flag is mandatory in the new schema.
+        if len(sys.argv) != 7 or sys.argv[5] != "--tier":
+            _usage()
+        parse_desktop(yaml_dir, sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[6])

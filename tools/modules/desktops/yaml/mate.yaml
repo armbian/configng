@@ -3,53 +3,53 @@ description: "MATE - traditional GNOME 2 desktop"
 display_manager: lightdm
 status: supported
 
-packages:
-  - mate-desktop-environment
-  - mate-desktop-environment-extras
-  - lightdm
-  - slick-greeter
-  - xserver-xorg
-  - blueman
-  - bluez
-  - bluez-tools
-  - network-manager-gnome
-  - dbus-x11
-  - dmz-cursor-theme
-  - evince
-  - fonts-ubuntu
-  - gnome-disk-utility
-  - gnome-system-monitor
-  - gtk2-engines
-  - gtk2-engines-murrine
-  - gtk2-engines-pixbuf
-  - gvfs-backends
-  - libpam-gnome-keyring
-  - lm-sensors
-  - numix-gtk-theme
-  - numix-icon-theme
-  - numix-icon-theme-circle
-  - pavucontrol
-  - printer-driver-all
-  - pulseaudio
-  - pulseaudio-module-bluetooth
-  - spice-vdagent
-  - system-config-printer
-  - viewnior
-  - xdg-user-dirs
-  - xdg-user-dirs-gtk
-
-packages_uninstall:
-  - brisk-menu
-  - mate-indicator-applet
-  - mate-indicator-applet-common
-  - mate-applet-trash
+tiers:
+  minimal:
+    packages:
+      - mate-desktop-environment
+      - mate-desktop-environment-extras
+      - lightdm
+      - slick-greeter
+      - xserver-xorg
+      - blueman
+      - bluez
+      - bluez-tools
+      - network-manager-gnome
+      - dbus-x11
+      - dmz-cursor-theme
+      - evince
+      - fonts-ubuntu
+      - gnome-disk-utility
+      - gnome-system-monitor
+      - gtk2-engines
+      - gtk2-engines-murrine
+      - gtk2-engines-pixbuf
+      - gvfs-backends
+      - libpam-gnome-keyring
+      - lm-sensors
+      - numix-gtk-theme
+      - numix-icon-theme
+      - numix-icon-theme-circle
+      - pavucontrol
+      - printer-driver-all
+      - pulseaudio
+      - pulseaudio-module-bluetooth
+      - spice-vdagent
+      - system-config-printer
+      - viewnior
+      - xdg-user-dirs
+      - xdg-user-dirs-gtk
+    packages_uninstall:
+      - brisk-menu
+      - mate-indicator-applet
+      - mate-indicator-applet-common
+      - mate-applet-trash
 
 releases:
   bookworm:
     architectures: [arm64, amd64, armhf]
     packages:
       - accountsservice
-      - gnome-calculator
       - libu2f-udev
 
   trixie:
@@ -71,10 +71,6 @@ releases:
       - pkexec
       - libu2f-udev
     packages_uninstall:
-      # Removing ubuntu-session strips the Ubuntu desktop branding
-      # session from gdm. Do NOT add language-selector-gnome here:
-      # gnome-control-center has a hard dependency on it, so apt
-      # would yank gnome-control-center along with it.
       - ubuntu-session
 
   plucky:
@@ -84,11 +80,6 @@ releases:
       - pkexec
       - libu2f-udev
     packages_remove:
-      # pavumeter was dropped from the Ubuntu plucky archive
       - pavumeter
     packages_uninstall:
-      # Removing ubuntu-session strips the Ubuntu desktop branding
-      # session from gdm. Do NOT add language-selector-gnome here:
-      # gnome-control-center has a hard dependency on it, so apt
-      # would yank gnome-control-center along with it.
       - ubuntu-session

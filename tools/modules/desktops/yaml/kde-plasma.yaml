@@ -3,33 +3,59 @@ description: "KDE Plasma - feature-rich customizable desktop"
 display_manager: sddm
 status: supported
 
-packages:
-  - kde-plasma-desktop
-  - sddm
-  - sddm-theme-breeze
-  - konsole
-  - dolphin
-  - ark
-  - bluedevil
-  - gwenview
-  - kscreen
-  - network-manager-gnome
-  - okular
-  - plasma-nm
-  - plasma-pa
-  - xserver-xorg
-  - dbus-x11
-  - dmz-cursor-theme
-  - fonts-ubuntu
-  - gtk2-engines
-  - gtk2-engines-murrine
-  - gtk2-engines-pixbuf
-  - gvfs-backends
-  - lm-sensors
-  - pulseaudio
-  - pulseaudio-module-bluetooth
-  - spice-vdagent
-  - xdg-user-dirs
+# KDE Plasma minimal already ships its own konsole, dolphin, ark
+# (archive manager), gwenview (image viewer), okular (PDF viewer).
+# At the mid tier we override common.yaml's GTK choices to use the
+# native KDE applications instead, and at full tier we swap
+# libreoffice-gtk3 for libreoffice-kde so the office suite uses the
+# Plasma integration backend.
+tiers:
+  minimal:
+    packages:
+      - kde-plasma-desktop
+      - sddm
+      - sddm-theme-breeze
+      - konsole
+      - dolphin
+      - ark
+      - bluedevil
+      - gwenview
+      - kscreen
+      - network-manager-gnome
+      - okular
+      - plasma-nm
+      - plasma-pa
+      - xserver-xorg
+      - dbus-x11
+      - dmz-cursor-theme
+      - fonts-ubuntu
+      - gtk2-engines
+      - gtk2-engines-murrine
+      - gtk2-engines-pixbuf
+      - gvfs-backends
+      - lm-sensors
+      - pulseaudio
+      - pulseaudio-module-bluetooth
+      - spice-vdagent
+      - xdg-user-dirs
+
+  mid:
+    # Drop the GTK-stack equivalents that KDE already provides via
+    # ark/gwenview/okular at the minimal tier.
+    packages_remove:
+      - gnome-text-editor
+      - file-roller
+      - loupe
+    packages:
+      - kate
+
+  full:
+    # libreoffice-gtk3 vs libreoffice-kde: pick the KDE backend so
+    # native file pickers / theming match the rest of the desktop.
+    packages_remove:
+      - libreoffice-gtk3
+    packages:
+      - libreoffice-kde
 
 releases:
   bookworm:

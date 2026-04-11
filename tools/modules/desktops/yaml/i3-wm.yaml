@@ -3,33 +3,35 @@ description: "i3 - lightweight tiling window manager"
 display_manager: lightdm
 status: supported
 
-packages:
-  - i3
-  - i3status
-  - i3lock
-  - lightdm
-  - slick-greeter
-  - xserver-xorg
-  - xinit
-  - dbus-x11
-  - dmz-cursor-theme
-  - dunst
-  - feh
-  - fonts-ubuntu
-  - gtk2-engines
-  - gtk2-engines-murrine
-  - gtk2-engines-pixbuf
-  - lm-sensors
-  - network-manager-gnome
-  - numix-gtk-theme
-  - numix-icon-theme
-  - numix-icon-theme-circle
-  - pavucontrol
-  - pulseaudio
-  - pulseaudio-module-bluetooth
-  - rofi
-  - thunar
-  - xdg-user-dirs
+tiers:
+  minimal:
+    packages:
+      - i3
+      - i3status
+      - i3lock
+      - lightdm
+      - slick-greeter
+      - xserver-xorg
+      - xinit
+      - dbus-x11
+      - dmz-cursor-theme
+      - dunst
+      - feh
+      - fonts-ubuntu
+      - gtk2-engines
+      - gtk2-engines-murrine
+      - gtk2-engines-pixbuf
+      - lm-sensors
+      - network-manager-gnome
+      - numix-gtk-theme
+      - numix-icon-theme
+      - numix-icon-theme-circle
+      - pavucontrol
+      - pulseaudio
+      - pulseaudio-module-bluetooth
+      - rofi
+      - thunar
+      - xdg-user-dirs
 
 releases:
   bookworm:
@@ -64,5 +66,4 @@ releases:
       - pkexec
       - libu2f-udev
     packages_remove:
-      # pavumeter was dropped from the Ubuntu plucky archive
       - pavumeter

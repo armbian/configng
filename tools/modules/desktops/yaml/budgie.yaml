@@ -3,37 +3,39 @@ description: "Budgie - elegant desktop from Solus project"
 display_manager: lightdm
 status: unsupported
 
-packages:
-  - budgie-desktop
-  - budgie-desktop-environment
-  - lightdm
-  - slick-greeter
-  - xserver-xorg
-  - blueman
-  - bluez
-  - bluez-tools
-  - dbus-x11
-  - evince
-  - gdebi
-  - gnome-disk-utility
-  - gnome-screenshot
-  - gnome-terminal
-  - gvfs-backends
-  - lm-sensors
-  - nemo
-  - numix-gtk-theme
-  - numix-icon-theme
-  - numix-icon-theme-circle
-  - pavucontrol
-  - plank
-  - printer-driver-all
-  - pulseaudio
-  - pulseaudio-module-bluetooth
-  - spice-vdagent
-  - system-config-printer
-  - viewnior
-  - xdg-user-dirs
-  - xdg-user-dirs-gtk
+tiers:
+  minimal:
+    packages:
+      - budgie-desktop
+      - budgie-desktop-environment
+      - lightdm
+      - slick-greeter
+      - xserver-xorg
+      - blueman
+      - bluez
+      - bluez-tools
+      - dbus-x11
+      - evince
+      - gdebi
+      - gnome-disk-utility
+      - gnome-screenshot
+      - gnome-terminal
+      - gvfs-backends
+      - lm-sensors
+      - nemo
+      - numix-gtk-theme
+      - numix-icon-theme
+      - numix-icon-theme-circle
+      - pavucontrol
+      - plank
+      - printer-driver-all
+      - pulseaudio
+      - pulseaudio-module-bluetooth
+      - spice-vdagent
+      - system-config-printer
+      - viewnior
+      - xdg-user-dirs
+      - xdg-user-dirs-gtk
 
 releases:
   bookworm:

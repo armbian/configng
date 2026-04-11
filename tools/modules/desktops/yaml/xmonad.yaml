@@ -3,24 +3,26 @@ description: "Xmonad - Haskell tiling window manager"
 display_manager: lightdm
 status: supported
 
-packages:
-  - xmonad
-  - xmobar
-  - lightdm
-  - slick-greeter
-  - xserver-xorg
-  - xterm
-  - dbus-x11
-  - dmenu
-  - dunst
-  - feh
-  - lm-sensors
-  - network-manager-gnome
-  - pavucontrol
-  - pulseaudio
-  - pulseaudio-module-bluetooth
-  - thunar
-  - xdg-user-dirs
+tiers:
+  minimal:
+    packages:
+      - xmonad
+      - xmobar
+      - lightdm
+      - slick-greeter
+      - xserver-xorg
+      - xterm
+      - dbus-x11
+      - dmenu
+      - dunst
+      - feh
+      - lm-sensors
+      - network-manager-gnome
+      - pavucontrol
+      - pulseaudio
+      - pulseaudio-module-bluetooth
+      - thunar
+      - xdg-user-dirs
 
 releases:
   bookworm:
