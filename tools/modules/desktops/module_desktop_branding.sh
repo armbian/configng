@@ -74,27 +74,38 @@ function module_desktop_branding() {
 
 			# Distributor logo for GNOME Settings -> About (and any
 			# other DE that reads LOGO= from /etc/os-release).
-			# /etc/os-release on Armbian sets LOGO="armbian-logo", and
-			# gnome-control-center calls gtk_icon_theme_lookup_icon on
-			# that name. Without an installed icon by that name, GNOME
-			# falls back to ID=ubuntu and renders the Ubuntu mark.
-			# Install branding/pixmaps/armbian.png into the hicolor
-			# theme so the lookup succeeds. Important: the hicolor
-			# cache validates that the icon file's actual pixel
-			# dimensions match the parent directory name, so a 128x128
-			# PNG must live under 128x128/apps/ — putting it under
-			# 256x256/apps/ silently excludes it from the cache.
+			#
+			# /etc/os-release on Armbian sets LOGO="armbian-logo".
+			# gnome-control-center 46's setup_os_logo() in
+			# panels/system/about/cc-about-page.c builds an array
+			# of icon NAME candidates from LOGO=:
+			#   armbian-logo-text-dark
+			#   armbian-logo-text
+			#   armbian-logo-dark
+			#   armbian-logo
+			# and resolves them via gtk_icon_theme_lookup_by_gicon()
+			# at 192px against the hicolor theme. No path heuristic,
+			# no fallback to ID=, just the icon-theme lookup.
+			#
+			# We have to install the icon under a hicolor directory
+			# whose entry in /usr/share/icons/hicolor/index.theme is
+			# kind to PNGs at arbitrary sizes. The scalable/apps
+			# directory accepts any PNG and is always indexed.
+			# Sized directories like 128x128/apps validate that the
+			# file's actual pixel dimensions match the directory
+			# name, and even when they do, on noble the cache
+			# rebuild silently fails to register the entry — so
+			# scalable/apps is the only reliably-working target.
 			if [[ -f "$desktop_dir/branding/pixmaps/armbian.png" ]]; then
-				mkdir -p /usr/share/icons/hicolor/128x128/apps
+				mkdir -p /usr/share/icons/hicolor/scalable/apps
 				cp "$desktop_dir/branding/pixmaps/armbian.png" \
-					/usr/share/icons/hicolor/128x128/apps/armbian-logo.png
-				# Clean up any stale 256x256 install from previous
-				# (broken) versions of this branding step.
+					/usr/share/icons/hicolor/scalable/apps/armbian-logo.png
+				# Clean up stale installs from previous (broken)
+				# attempts at this step.
+				rm -f /usr/share/icons/hicolor/128x128/apps/armbian-logo.png
 				rm -f /usr/share/icons/hicolor/256x256/apps/armbian-logo.png
 				# Refresh the hicolor index so the icon is picked up
-				# without requiring a re-login. Failure is non-fatal:
-				# the lookup will still work after the next gtk cache
-				# refresh.
+				# without requiring a re-login. Failure is non-fatal.
 				gtk-update-icon-cache -q -f /usr/share/icons/hicolor 2>/dev/null || true
 			fi
 
