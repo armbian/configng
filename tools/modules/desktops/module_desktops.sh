@@ -150,6 +150,11 @@ function module_desktops() {
 				for dm in gdm3 lightdm sddm; do
 					systemctl is-active --quiet "$dm" 2>/dev/null && systemctl stop "$dm" 2>/dev/null
 				done
+				# Make graphical.target the default so the next boot
+				# brings up the display manager. Most DM postinst
+				# scripts also do this, but doing it explicitly here
+				# means a partial / re-install is always consistent.
+				systemctl set-default graphical.target 2>/dev/null || true
 				systemctl start display-manager 2>/dev/null || \
 					systemctl start "$DESKTOP_DM" 2>/dev/null || true
 				module_desktops auto de="$de"
@@ -171,9 +176,27 @@ function module_desktops() {
 			# disable auto-login
 			module_desktops manual de="$de" 2>/dev/null
 
-			# stop display manager
+			# Stop display manager and switch the default systemd
+			# target back to multi-user. Without this step, the next
+			# boot still tries to reach graphical.target — but the
+			# display manager is about to be purged below, so the
+			# system arrives at graphical.target with no DM, no
+			# getty@tty1 (it Conflicts= with display-manager), and
+			# the user gets a black tty1 with no login prompt.
+			# Switching to multi-user.target now means the next boot
+			# brings up the regular console login regardless.
+			#
+			# Isolate to multi-user.target on the running session so
+			# the user gets a console prompt on tty1 immediately
+			# after the uninstall, without needing to reboot first.
+			# Starting getty@tty1.service on its own does not work
+			# while graphical.target is still active, hence isolate.
+			# isolate is destructive (kills any open GUI sessions),
+			# but we are tearing down the GUI anyway.
 			if ! _desktop_in_container; then
 				systemctl stop display-manager 2>/dev/null || true
+				systemctl set-default multi-user.target 2>/dev/null || true
+				systemctl isolate multi-user.target 2>/dev/null || true
 			fi
 
 			# Remove the exact set of packages that were newly installed by
