@@ -37,8 +37,6 @@ releases:
     packages:
       - accountsservice
       - libu2f-udev
-    packages_remove:
-      - libfontembed1
 
   trixie:
     architectures: [arm64, amd64]
@@ -58,8 +56,6 @@ releases:
       - polkitd
       - pkexec
       - libu2f-udev
-    packages_remove:
-      - libfontembed1
 
   plucky:
     architectures: [arm64, amd64]
@@ -67,5 +63,3 @@ releases:
       - polkitd
       - pkexec
       - libu2f-udev
-    packages_remove:
-      - libfontembed1

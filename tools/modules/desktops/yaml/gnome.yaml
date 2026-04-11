@@ -31,10 +31,6 @@ releases:
       - accountsservice
       - gnome-calculator
       - libu2f-udev
-    packages_remove:
-      - libfontembed1
-      - update-manager
-      - update-manager-core
 
   trixie:
     architectures: [arm64, amd64]
@@ -54,13 +50,6 @@ releases:
       - polkitd
       - pkexec
       - libu2f-udev
-    packages_remove:
-      - qalculate-gtk
-      - hplip
-      - indicator-printers
-      - libfontembed1
-      - policykit-1
-      - printer-driver-all
     packages_uninstall:
       - ubuntu-session
       - language-selector-gnome
@@ -72,12 +61,7 @@ releases:
       - pkexec
       - libu2f-udev
     packages_remove:
-      - qalculate-gtk
-      - hplip
-      - indicator-printers
-      - libfontembed1
-      - policykit-1
-      - printer-driver-all
+      # pavumeter was dropped from the Ubuntu plucky archive
       - pavumeter
     packages_uninstall:
       - ubuntu-session
