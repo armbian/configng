@@ -44,6 +44,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
@@ -207,7 +208,18 @@ def main():
     except ImportError:
         die("anthropic SDK not installed: pip install anthropic")
 
-    client = Anthropic(api_key=api_key)
+    # Bump max_retries from the default of 2 — the GitHub Actions
+    # runner's API key is on a small per-minute input-token quota
+    # (10k tokens/minute on the lowest tier), and a multi-turn tool
+    # conversation's later turns can hit that ceiling. The SDK
+    # honours retry-after headers from 429 responses automatically;
+    # giving it more retries lets it back off across the per-minute
+    # window without us having to wrap every call in our own loop.
+    client = Anthropic(
+        api_key=api_key,
+        max_retries=8,
+        timeout=900.0,  # 15 min — long enough for several retry waits
+    )
     info(f"calling Claude ({args.model}) ...")
 
     summary = run_claude(
@@ -232,6 +244,15 @@ def main():
 
     info("post-edit validation passed")
     return 0
+
+
+# Per-minute input-token budget the script tries to stay under by
+# sleeping between turns. Set to be safely below the lowest
+# Anthropic rate-limit tier (10k tokens/minute) so the SDK's
+# retry-with-backoff path is the safety net, not the primary
+# mechanism. If your org has a higher rate limit, raising this
+# constant lets the conversation run faster.
+INPUT_TOKEN_BUDGET_PER_MINUTE = 9000
 
 
 def run_claude(*, client, model, max_tokens, system_prompt, user_prompt,
@@ -277,8 +298,35 @@ def run_claude(*, client, model, max_tokens, system_prompt, user_prompt,
     yaml_dir = configng_repo / "tools" / "modules" / "desktops" / "yaml"
     messages = [{"role": "user", "content": user_prompt}]
     final_text = ""
+    total_input_tokens = 0
+    # Sliding window of (timestamp, input_tokens) for the last 60 s.
+    # Used to throttle so we don't trip the per-minute rate limit on
+    # the next request.
+    token_window: list[tuple[float, int]] = []
 
     while True:
+        # Throttle: if firing the next request right now would put us
+        # over INPUT_TOKEN_BUDGET_PER_MINUTE in the rolling 60 s
+        # window (using the previous turn's input size as a proxy
+        # for what's coming next, since the next request includes
+        # everything we've sent so far), sleep until the oldest
+        # entry in the window ages out.
+        now = time.monotonic()
+        token_window = [(t, n) for (t, n) in token_window if now - t < 60.0]
+        window_total = sum(n for _, n in token_window)
+        # Estimate the next request's input size as the sum of all
+        # input tokens we've already sent (the conversation so far)
+        # plus a small buffer. The Anthropic billing model counts
+        # the FULL prior conversation on every turn, so this is
+        # conservative but realistic.
+        projected_next = max(total_input_tokens, 1000)
+        if window_total + projected_next > INPUT_TOKEN_BUDGET_PER_MINUTE and token_window:
+            oldest = token_window[0][0]
+            wait = max(0.0, 60.0 - (now - oldest)) + 0.5
+            info(f"throttling: window has {window_total} input tokens, "
+                 f"next call ~{projected_next}, sleeping {wait:.1f}s")
+            time.sleep(wait)
+
         resp = client.messages.create(
             model=model,
             max_tokens=8192,                         # per-response cap
@@ -286,6 +334,11 @@ def run_claude(*, client, model, max_tokens, system_prompt, user_prompt,
             tools=tools,
             messages=messages,
         )
+
+        # Record what this call cost so the next iteration can throttle.
+        if resp.usage:
+            token_window.append((time.monotonic(), resp.usage.input_tokens))
+            total_input_tokens = resp.usage.input_tokens
 
         # Collect assistant text + any tool calls.
         assistant_blocks = []
@@ -311,14 +364,22 @@ def run_claude(*, client, model, max_tokens, system_prompt, user_prompt,
 
         messages.append({"role": "user", "content": tool_results})
 
-        # Cheap budget guard: count rough total tokens used so far.
-        # The Anthropic SDK exposes usage on each response.
+        # Cheap total-budget guard: stop the conversation when the
+        # cumulative input+output tokens exceed --max-tokens. Distinct
+        # from the per-minute throttle above.
         usage = resp.usage
         if usage and (usage.input_tokens + usage.output_tokens) > max_tokens:
             warn(f"token budget exceeded ({usage.input_tokens + usage.output_tokens} > {max_tokens})")
             break
 
     return final_text or "(Claude returned no text summary)"
+
+
+# Cap individual tool results so a single read_file can't blow the
+# rate-limit budget. 32 KB ≈ 8k tokens — large enough to fit any
+# DE YAML in the repo, small enough that even three concurrent
+# reads stay well under the 10k tokens/min throttle.
+MAX_TOOL_RESULT_BYTES = 32 * 1024
 
 
 def handle_tool(name: str, args: dict, *, configng_repo: Path, yaml_dir: Path) -> str:
@@ -337,7 +398,13 @@ def handle_tool(name: str, args: dict, *, configng_repo: Path, yaml_dir: Path) -
                 return "ERROR: path outside configng repo"
             if not resolved.is_file():
                 return f"ERROR: not a file: {args['path']}"
-            return resolved.read_text()
+            text = resolved.read_text()
+            if len(text) > MAX_TOOL_RESULT_BYTES:
+                truncated = text[:MAX_TOOL_RESULT_BYTES]
+                return (truncated +
+                        f"\n\n[truncated: original is {len(text)} bytes, "
+                        f"showing first {MAX_TOOL_RESULT_BYTES}]")
+            return text
 
         if name == "write_file":
             rel = Path(args["path"])
