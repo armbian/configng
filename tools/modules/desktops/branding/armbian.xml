@@ -44,8 +44,8 @@
     <scolor>#000000</scolor>
   </wallpaper>
   <wallpaper deleted="false">
-    <name>Armbian green-retro</name>
-    <filename>/usr/share/backgrounds/armbian/armbian-4k-green-retro.jpg</filename>
+    <name>Armbian retro-green</name>
+    <filename>/usr/share/backgrounds/armbian/armbian-4k-retro-green.jpg</filename>
     <options>zoom</options>
     <pcolor>#ffffff</pcolor>
     <scolor>#000000</scolor>
@@ -79,13 +79,13 @@
     <scolor>#000000</scolor>
   </wallpaper>
   <wallpaper deleted="false">
-    <name>Armbian purple-penguine</name>
-    <filename>/usr/share/backgrounds/armbian/armbian-4k-purple-penguine.jpg</filename>
+    <name>Armbian purple-penguin</name>
+    <filename>/usr/share/backgrounds/armbian/armbian-4k-purple-penguin.jpg</filename>
     <options>zoom</options>
     <pcolor>#ffffff</pcolor>
     <scolor>#000000</scolor>
   </wallpaper>
-    <wallpaper deleted="false">
+  <wallpaper deleted="false">
     <name>Armbian purplepunk-resultado</name>
     <filename>/usr/share/backgrounds/armbian/armbian-4k-purplepunk.jpg</filename>
     <options>zoom</options>
@@ -122,7 +122,7 @@
   </wallpaper>
   <wallpaper deleted="false">
     <name>Armbian uc</name>
-    <filename>/usr/share/backgrounds/armbian/armbian-full-under-construction-3840-2160.jpg</filename>
+    <filename>/usr/share/backgrounds/armbian/armbian-full-undeer-construction-3840-2160.jpg</filename>
     <options>zoom</options>
     <pcolor>#ffffff</pcolor>
     <scolor>#000000</scolor>
