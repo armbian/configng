@@ -298,29 +298,48 @@ def run_claude(*, client, model, max_tokens, system_prompt, user_prompt,
     yaml_dir = configng_repo / "tools" / "modules" / "desktops" / "yaml"
     messages = [{"role": "user", "content": user_prompt}]
     final_text = ""
-    total_input_tokens = 0
+    last_input_tokens = 0
     # Sliding window of (timestamp, input_tokens) for the last 60 s.
     # Used to throttle so we don't trip the per-minute rate limit on
     # the next request.
     token_window: list[tuple[float, int]] = []
 
     while True:
-        # Throttle: if firing the next request right now would put us
-        # over INPUT_TOKEN_BUDGET_PER_MINUTE in the rolling 60 s
-        # window (using the previous turn's input size as a proxy
-        # for what's coming next, since the next request includes
-        # everything we've sent so far), sleep until the oldest
-        # entry in the window ages out.
+        # Throttle: predict whether the next request would exceed the
+        # per-minute input-token budget. The budget is enforced by
+        # the API as a sliding window of input tokens used in the
+        # last 60 s.
+        #
+        # The next request's input size grows with the conversation
+        # because every turn re-sends the full prior history. We
+        # estimate it as max(last_input_tokens, 1000) — the previous
+        # call's input size, with a floor for the very first call.
+        #
+        # If the next call alone exceeds the per-minute budget, the
+        # only safe pace is one call per minute regardless of the
+        # window. Sleep until the most-recent call is at least 60s
+        # old and let the SDK's retry-after handling cover any tail
+        # spike. Otherwise, sleep until the oldest entry in the
+        # rolling window ages out far enough to fit the new one.
         now = time.monotonic()
         token_window = [(t, n) for (t, n) in token_window if now - t < 60.0]
         window_total = sum(n for _, n in token_window)
-        # Estimate the next request's input size as the sum of all
-        # input tokens we've already sent (the conversation so far)
-        # plus a small buffer. The Anthropic billing model counts
-        # the FULL prior conversation on every turn, so this is
-        # conservative but realistic.
-        projected_next = max(total_input_tokens, 1000)
-        if window_total + projected_next > INPUT_TOKEN_BUDGET_PER_MINUTE and token_window:
+        projected_next = max(last_input_tokens, 1000)
+
+        if projected_next >= INPUT_TOKEN_BUDGET_PER_MINUTE:
+            # The conversation has grown larger than the per-minute
+            # budget. We can only make one call per minute. Sleep
+            # 60s flat unless the most-recent call is already older
+            # than that.
+            if token_window:
+                last_call_age = now - token_window[-1][0]
+                wait = max(0.0, 60.5 - last_call_age)
+                if wait > 0:
+                    info(f"throttling: next call ~{projected_next} tokens "
+                         f">= per-minute budget {INPUT_TOKEN_BUDGET_PER_MINUTE}, "
+                         f"sleeping {wait:.1f}s (one call per minute)")
+                    time.sleep(wait)
+        elif window_total + projected_next > INPUT_TOKEN_BUDGET_PER_MINUTE and token_window:
             oldest = token_window[0][0]
             wait = max(0.0, 60.0 - (now - oldest)) + 0.5
             info(f"throttling: window has {window_total} input tokens, "
@@ -338,7 +357,7 @@ def run_claude(*, client, model, max_tokens, system_prompt, user_prompt,
         # Record what this call cost so the next iteration can throttle.
         if resp.usage:
             token_window.append((time.monotonic(), resp.usage.input_tokens))
-            total_input_tokens = resp.usage.input_tokens
+            last_input_tokens = resp.usage.input_tokens
 
         # Collect assistant text + any tool calls.
         assistant_blocks = []
