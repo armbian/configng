@@ -426,7 +426,18 @@ function module_desktops() {
 			module_desktop_yamlparse "$de" || return 1
 
 			case "$DESKTOP_DM" in
-				gdm3)    grep -qE 'AutomaticLoginEnable\s*=\s*true' /etc/gdm3/custom.conf /etc/gdm3/daemon.conf 2>/dev/null && return 0 ;;
+				gdm3)
+					# Anchor at the line start so the stock custom.conf
+					# template's commented sample line
+					#   #  AutomaticLoginEnable = true
+					# does not match. The previous unanchored regex
+					# returned 0 (autologin enabled) on every fresh
+					# noble install where the user had never touched
+					# autologin, because the substring 'AutomaticLoginEnable
+					# = true' was present inside the comment.
+					grep -qE '^AutomaticLoginEnable[[:space:]]*=[[:space:]]*true' \
+						/etc/gdm3/custom.conf /etc/gdm3/daemon.conf 2>/dev/null && return 0
+				;;
 				sddm)    [[ -f /etc/sddm.conf.d/autologin.conf ]] && return 0 ;;
 				lightdm) [[ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]] && return 0 ;;
 			esac
