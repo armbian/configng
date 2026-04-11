@@ -95,6 +95,20 @@ function module_desktops() {
 				command -v "$DESKTOP_DM" > /etc/X11/default-display-manager 2>/dev/null || true
 			fi
 
+			# Armbian-only branding extras: install only when the Armbian
+			# apt source is configured. armbian-plymouth-theme lives in
+			# Armbian's own repo; on a non-Armbian system the apt install
+			# would hard-fail with "Unable to locate package" and abort
+			# the entire desktop install. Keep this gated and additive so
+			# the rest of the desktop install path stays distro-agnostic.
+			# Match either the legacy single-line .list file or the modern
+			# deb822 .sources file.
+			if [[ -f /etc/apt/sources.list.d/armbian.list || \
+			      -f /etc/apt/sources.list.d/armbian.sources ]]; then
+				pkg_install -o Dpkg::Options::="--force-confold" armbian-plymouth-theme || \
+					echo "Warning: armbian-plymouth-theme not installed (package not found in armbian repo)" >&2
+			fi
+
 			# Save the install manifest for uninstall to consume.
 			# Don't truncate an existing manifest if this run added nothing
 			# new (e.g. a re-install of an already-installed DE) — keeping
