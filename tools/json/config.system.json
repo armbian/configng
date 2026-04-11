@@ -112,7 +112,7 @@
                     "sub": [
                         {
                             "id": "CINM01",
-                            "description": "Install Cinnamon",
+                            "description": "Install Cinnamon (minimal)",
                             "short": "Cinnamon",
                             "command": [
                                 "module_desktops install de=cinnamon tier=minimal"
@@ -120,11 +120,35 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "! module_desktops installed && module_desktop_supported cinnamon",
-                            "help": "Install the Cinnamon desktop environment"
+                            "help": "Install Cinnamon: desktop, display manager, base utilities. ~500 MB."
+                        },
+                        {
+                            "id": "CINM05",
+                            "description": "Install Cinnamon (mid)",
+                            "short": "Cinnamon mid",
+                            "command": [
+                                "module_desktops install de=cinnamon tier=mid"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported cinnamon",
+                            "help": "Install Cinnamon: minimal + browser + everyday tools. ~1 GB."
+                        },
+                        {
+                            "id": "CINM06",
+                            "description": "Install Cinnamon (full)",
+                            "short": "Cinnamon full",
+                            "command": [
+                                "module_desktops install de=cinnamon tier=full"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported cinnamon",
+                            "help": "Install Cinnamon: mid + LibreOffice, GIMP, Inkscape, Thunderbird, Audacity. ~2.5 GB."
                         },
                         {
                             "id": "GNME01",
-                            "description": "Install GNOME",
+                            "description": "Install GNOME (minimal)",
                             "short": "GNOME",
                             "command": [
                                 "module_desktops install de=gnome tier=minimal"
@@ -132,11 +156,35 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "! module_desktops installed && module_desktop_supported gnome",
-                            "help": "Install the GNOME desktop environment"
+                            "help": "Install GNOME: desktop, display manager, base utilities. ~500 MB."
+                        },
+                        {
+                            "id": "GNME05",
+                            "description": "Install GNOME (mid)",
+                            "short": "GNOME mid",
+                            "command": [
+                                "module_desktops install de=gnome tier=mid"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported gnome",
+                            "help": "Install GNOME: minimal + browser + everyday tools. ~1 GB."
+                        },
+                        {
+                            "id": "GNME06",
+                            "description": "Install GNOME (full)",
+                            "short": "GNOME full",
+                            "command": [
+                                "module_desktops install de=gnome tier=full"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported gnome",
+                            "help": "Install GNOME: mid + LibreOffice, GIMP, Inkscape, Thunderbird, Audacity. ~2.5 GB."
                         },
                         {
                             "id": "MATE01",
-                            "description": "Install MATE",
+                            "description": "Install MATE (minimal)",
                             "short": "MATE",
                             "command": [
                                 "module_desktops install de=mate tier=minimal"
@@ -144,11 +192,35 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "! module_desktops installed && module_desktop_supported mate",
-                            "help": "Install the MATE desktop environment"
+                            "help": "Install MATE: desktop, display manager, base utilities. ~500 MB."
+                        },
+                        {
+                            "id": "MATE05",
+                            "description": "Install MATE (mid)",
+                            "short": "MATE mid",
+                            "command": [
+                                "module_desktops install de=mate tier=mid"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported mate",
+                            "help": "Install MATE: minimal + browser + everyday tools. ~1 GB."
+                        },
+                        {
+                            "id": "MATE06",
+                            "description": "Install MATE (full)",
+                            "short": "MATE full",
+                            "command": [
+                                "module_desktops install de=mate tier=full"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported mate",
+                            "help": "Install MATE: mid + LibreOffice, GIMP, Inkscape, Thunderbird, Audacity. ~2.5 GB."
                         },
                         {
                             "id": "I3WM01",
-                            "description": "Install i3",
+                            "description": "Install i3 (minimal)",
                             "short": "i3",
                             "command": [
                                 "module_desktops install de=i3-wm tier=minimal"
@@ -156,11 +228,35 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "! module_desktops installed && module_desktop_supported i3-wm",
-                            "help": "Install the i3 desktop environment"
+                            "help": "Install i3: tiling window manager, display manager, base utilities. ~400 MB."
+                        },
+                        {
+                            "id": "I3WM05",
+                            "description": "Install i3 (mid)",
+                            "short": "i3 mid",
+                            "command": [
+                                "module_desktops install de=i3-wm tier=mid"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported i3-wm",
+                            "help": "Install i3: minimal + browser + everyday tools. ~1 GB."
+                        },
+                        {
+                            "id": "I3WM06",
+                            "description": "Install i3 (full)",
+                            "short": "i3 full",
+                            "command": [
+                                "module_desktops install de=i3-wm tier=full"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported i3-wm",
+                            "help": "Install i3: mid + LibreOffice, GIMP, Inkscape, Thunderbird, Audacity. ~2.5 GB."
                         },
                         {
                             "id": "KDEP01",
-                            "description": "Install KDE Plasma",
+                            "description": "Install KDE Plasma (minimal)",
                             "short": "KDE Plasma",
                             "command": [
                                 "module_desktops install de=kde-plasma tier=minimal"
@@ -168,7 +264,31 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "! module_desktops installed && module_desktop_supported kde-plasma",
-                            "help": "Install the KDE Plasma desktop environment"
+                            "help": "Install KDE Plasma: desktop, display manager, KDE base apps. ~700 MB."
+                        },
+                        {
+                            "id": "KDEP05",
+                            "description": "Install KDE Plasma (mid)",
+                            "short": "KDE Plasma mid",
+                            "command": [
+                                "module_desktops install de=kde-plasma tier=mid"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported kde-plasma",
+                            "help": "Install KDE Plasma: minimal + browser, kate editor, calculator, vlc. ~1.2 GB."
+                        },
+                        {
+                            "id": "KDEP06",
+                            "description": "Install KDE Plasma (full)",
+                            "short": "KDE Plasma full",
+                            "command": [
+                                "module_desktops install de=kde-plasma tier=full"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported kde-plasma",
+                            "help": "Install KDE Plasma: mid + LibreOffice (KDE), GIMP, Inkscape, Thunderbird, Audacity. ~2.5 GB."
                         },
                         {
                             "id": "KDEN01",
@@ -184,7 +304,7 @@
                         },
                         {
                             "id": "XFCE01",
-                            "description": "Install XFCE",
+                            "description": "Install XFCE (minimal)",
                             "short": "XFCE",
                             "command": [
                                 "module_desktops install de=xfce tier=minimal"
@@ -192,7 +312,31 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "! module_desktops installed && module_desktop_supported xfce",
-                            "help": "Install the XFCE desktop environment"
+                            "help": "Install XFCE: desktop, display manager, base utilities. ~500 MB."
+                        },
+                        {
+                            "id": "XFCE05",
+                            "description": "Install XFCE (mid)",
+                            "short": "XFCE mid",
+                            "command": [
+                                "module_desktops install de=xfce tier=mid"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported xfce",
+                            "help": "Install XFCE: minimal + browser + everyday tools (text editor, calculator, image/PDF viewer, media player, archive, torrent). ~1 GB."
+                        },
+                        {
+                            "id": "XFCE06",
+                            "description": "Install XFCE (full)",
+                            "short": "XFCE full",
+                            "command": [
+                                "module_desktops install de=xfce tier=full"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported xfce",
+                            "help": "Install XFCE: mid + LibreOffice, GIMP, Inkscape, Thunderbird, Audacity. ~2.5 GB."
                         },
                         {
                             "id": "CINM02",
