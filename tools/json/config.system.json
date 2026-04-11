@@ -115,7 +115,7 @@
                             "description": "Install Cinnamon",
                             "short": "Cinnamon",
                             "command": [
-                                "module_desktops install de=cinnamon"
+                                "module_desktops install de=cinnamon tier=minimal"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -127,7 +127,7 @@
                             "description": "Install GNOME",
                             "short": "GNOME",
                             "command": [
-                                "module_desktops install de=gnome"
+                                "module_desktops install de=gnome tier=minimal"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -139,7 +139,7 @@
                             "description": "Install MATE",
                             "short": "MATE",
                             "command": [
-                                "module_desktops install de=mate"
+                                "module_desktops install de=mate tier=minimal"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -151,7 +151,7 @@
                             "description": "Install i3",
                             "short": "i3",
                             "command": [
-                                "module_desktops install de=i3-wm"
+                                "module_desktops install de=i3-wm tier=minimal"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -163,7 +163,7 @@
                             "description": "Install KDE Plasma",
                             "short": "KDE Plasma",
                             "command": [
-                                "module_desktops install de=kde-plasma"
+                                "module_desktops install de=kde-plasma tier=minimal"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -175,7 +175,7 @@
                             "description": "Install KDE Neon",
                             "short": "KDE Neon",
                             "command": [
-                                "module_desktops install de=kde-neon"
+                                "module_desktops install de=kde-neon tier=minimal"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
@@ -187,7 +187,7 @@
                             "description": "Install XFCE",
                             "short": "XFCE",
                             "command": [
-                                "module_desktops install de=xfce"
+                                "module_desktops install de=xfce tier=minimal"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
