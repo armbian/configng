@@ -79,11 +79,18 @@ function module_desktop_branding() {
 			# that name. Without an installed icon by that name, GNOME
 			# falls back to ID=ubuntu and renders the Ubuntu mark.
 			# Install branding/pixmaps/armbian.png into the hicolor
-			# theme so the lookup succeeds.
+			# theme so the lookup succeeds. Important: the hicolor
+			# cache validates that the icon file's actual pixel
+			# dimensions match the parent directory name, so a 128x128
+			# PNG must live under 128x128/apps/ — putting it under
+			# 256x256/apps/ silently excludes it from the cache.
 			if [[ -f "$desktop_dir/branding/pixmaps/armbian.png" ]]; then
-				mkdir -p /usr/share/icons/hicolor/256x256/apps
+				mkdir -p /usr/share/icons/hicolor/128x128/apps
 				cp "$desktop_dir/branding/pixmaps/armbian.png" \
-					/usr/share/icons/hicolor/256x256/apps/armbian-logo.png
+					/usr/share/icons/hicolor/128x128/apps/armbian-logo.png
+				# Clean up any stale 256x256 install from previous
+				# (broken) versions of this branding step.
+				rm -f /usr/share/icons/hicolor/256x256/apps/armbian-logo.png
 				# Refresh the hicolor index so the icon is picked up
 				# without requiring a re-login. Failure is non-fatal:
 				# the lookup will still work after the next gtk cache
