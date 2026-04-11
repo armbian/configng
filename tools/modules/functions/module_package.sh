@@ -13,7 +13,7 @@ module_options+=(
 # Wrapper for apt operations with progress display
 # Replaces debconf-apt-progress with dialog_gauge UI
 # Usage: apt_operation_progress <operation> [apt_args...]
-# Operations: update, upgrade, full-upgrade, install, remove, fix-broken
+# Operations: update, upgrade, full-upgrade, install, remove, fix-broken, clean
 apt_operation_progress() {
 	local operation="$1"
 	shift
@@ -40,6 +40,9 @@ apt_operation_progress() {
 			;;
 		fix-broken)
 			title="Fix Broken Packages"
+			;;
+		clean)
+			title="Clean Package Cache"
 			;;
 		*)
 			title="APT Operation"
@@ -219,6 +222,19 @@ pkg_installed()
 {
 	local status=$(dpkg -s "$1" 2>/dev/null | sed -n "s/Status: //p")
 	! [[ -z "$status" || "$status" = *deinstall* || "$status" = *not-installed* ]]
+}
+
+module_options+=(
+	["pkg_clean,author"]="@igorpecovnik"
+	["pkg_clean,desc"]="Clear apt's downloaded .deb cache (apt-get clean)"
+	["pkg_clean,example"]="pkg_clean"
+	["pkg_clean,feature"]="pkg_clean"
+	["pkg_clean,status"]="Interface"
+)
+
+pkg_clean()
+{
+	apt_operation_progress clean "$@"
 }
 
 module_options+=(
