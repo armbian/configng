@@ -2,7 +2,7 @@ module_options+=(
 	["module_desktops,author"]="@igorpecovnik"
 	["module_desktops,feature"]="module_desktops"
 	["module_desktops,desc"]="Install and manage desktop environments (YAML-driven)"
-	["module_desktops,example"]="install remove disable enable status auto manual login supported installed help upgrade downgrade"
+	["module_desktops,example"]="install remove disable enable status auto manual login supported installed help upgrade downgrade tier"
 	["module_desktops,status"]="Active"
 	["module_desktops,arch"]=""
 	["module_desktops,help_install"]="Install desktop (de=name tier=minimal|mid|full)"
@@ -17,6 +17,7 @@ module_options+=(
 	["module_desktops,help_installed"]="Returns 0 if any desktop is installed (no de=)"
 	["module_desktops,help_upgrade"]="Upgrade installed desktop to a higher tier (de=name tier=mid|full)"
 	["module_desktops,help_downgrade"]="Downgrade installed desktop to a lower tier (de=name tier=minimal|mid)"
+	["module_desktops,help_tier"]="Print the installed tier of a desktop, or 'not installed' (de=name)"
 )
 
 #
@@ -305,25 +306,18 @@ function module_desktops() {
 		;;
 
 		"${commands[4]}")
-			# status — return 0 if installed, 1 if not. When called
-			# from the dialog menu's `condition` field, dozens of
-			# these run for every menu render, and any stdout output
-			# leaks into the dialog. So this command is silent on
-			# the not-installed path; the exit code is the only
-			# signal a condition gate cares about.
-			# When installed, print the tier name (minimal/mid/full)
-			# so callers that want it can capture it via $(...).
+			# status — pure exit-code query. Returns 0 if the desktop
+			# is installed, 1 if not. SILENT on both paths: this
+			# command runs from every dialog menu entry's `condition`
+			# field, dozens of times per menu render, and any stdout
+			# output leaks into the dialog. To get the installed
+			# tier name, use the `tier` command instead.
 			if [[ -z "$de" ]]; then
 				echo "Error: specify de=name" >&2
 				return 1
 			fi
 			module_desktop_yamlparse "$de" || return 1
 			if [[ -n "$DESKTOP_PRIMARY_PKG" ]] && dpkg -l "$DESKTOP_PRIMARY_PKG" 2>/dev/null | grep -q "^ii"; then
-				if [[ -f "/etc/armbian/desktop/${de}.tier" ]]; then
-					echo "$(< "/etc/armbian/desktop/${de}.tier")"
-				else
-					echo "minimal"
-				fi
 				return 0
 			fi
 			return 1
@@ -513,6 +507,31 @@ function module_desktops() {
 			# touched.
 			_module_desktops_change_tier downgrade "$de" "$tier"
 			return $?
+		;;
+
+		"${commands[13]}")
+			# tier — value-returning getter, separate from
+			# `status` which is a silent exit-code query. Prints
+			# the installed tier name (minimal/mid/full) on
+			# stdout, or "not installed" if no marker file
+			# exists. Returns 0 if installed, 1 if not.
+			# Use this from the CLI when you want the actual
+			# tier; use `status` from menu condition gates.
+			if [[ -z "$de" ]]; then
+				echo "Error: specify de=name" >&2
+				return 1
+			fi
+			module_desktop_yamlparse "$de" || return 1
+			if [[ -n "$DESKTOP_PRIMARY_PKG" ]] && dpkg -l "$DESKTOP_PRIMARY_PKG" 2>/dev/null | grep -q "^ii"; then
+				if [[ -f "/etc/armbian/desktop/${de}.tier" ]]; then
+					cat "/etc/armbian/desktop/${de}.tier"
+				else
+					echo "minimal"
+				fi
+				return 0
+			fi
+			echo "not installed"
+			return 1
 		;;
 
 		*)
