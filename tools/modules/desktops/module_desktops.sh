@@ -86,12 +86,21 @@ function module_desktops() {
 			# (#799 design — restored after #815 dropped the persistence).
 			ACTUALLY_INSTALLED=()
 
-			# install packages
-			pkg_install -o Dpkg::Options::="--force-confold" ${DESKTOP_PACKAGES}
+			# install packages. Bail out on failure: half-installing
+			# a desktop and then flipping default.target to graphical
+			# leaves the next boot pinned to a graphical target with
+			# no working DM, which is a black-screen regression.
+			if ! pkg_install -o Dpkg::Options::="--force-confold" ${DESKTOP_PACKAGES}; then
+				echo "Error: ${de} package install failed; aborting before any system state is changed" >&2
+				return 1
+			fi
 
 			# install and register display manager
 			if [[ -n "$DESKTOP_DM" && "$DESKTOP_DM" != "none" ]]; then
-				pkg_install -o Dpkg::Options::="--force-confold" "$DESKTOP_DM"
+				if ! pkg_install -o Dpkg::Options::="--force-confold" "$DESKTOP_DM"; then
+					echo "Error: ${DESKTOP_DM} install failed; aborting before flipping systemd target" >&2
+					return 1
+				fi
 				command -v "$DESKTOP_DM" > /etc/X11/default-display-manager 2>/dev/null || true
 			fi
 
@@ -145,19 +154,22 @@ function module_desktops() {
 			# update skel to existing users
 			module_update_skel install
 
-			# display manager and auto-login (skip in containers)
+			# display manager and auto-login (skip in containers).
+			# Only flip default.target to graphical AFTER the DM has
+			# actually started — if the start fails, the next boot
+			# would otherwise pin to graphical.target with a broken
+			# DM and the user gets a black screen.
 			if ! _desktop_in_container; then
 				for dm in gdm3 lightdm sddm; do
 					systemctl is-active --quiet "$dm" 2>/dev/null && systemctl stop "$dm" 2>/dev/null
 				done
-				# Make graphical.target the default so the next boot
-				# brings up the display manager. Most DM postinst
-				# scripts also do this, but doing it explicitly here
-				# means a partial / re-install is always consistent.
-				systemctl set-default graphical.target 2>/dev/null || true
-				systemctl start display-manager 2>/dev/null || \
-					systemctl start "$DESKTOP_DM" 2>/dev/null || true
-				module_desktops auto de="$de"
+				if systemctl start display-manager 2>/dev/null || \
+				   systemctl start "$DESKTOP_DM" 2>/dev/null; then
+					systemctl set-default graphical.target 2>/dev/null || true
+					module_desktops auto de="$de"
+				else
+					echo "Warning: ${DESKTOP_DM} did not start; leaving default.target unchanged" >&2
+				fi
 			fi
 
 			unset _DESKTOPS_INSTALLED_CACHE
@@ -275,13 +287,42 @@ function module_desktops() {
 			case "$DESKTOP_DM" in
 				gdm3)
 					mkdir -p /etc/gdm3
-					local gdm_conf="/etc/gdm3/custom.conf"
-					[[ "$DISTROID" == "trixie" || "$DISTROID" == "forky" ]] && gdm_conf="/etc/gdm3/daemon.conf"
-					cat > "$gdm_conf" <<- EOF
-					[daemon]
-					AutomaticLoginEnable = true
-					AutomaticLogin = ${user}
-					EOF
+					# gdm3 has NO conf.d drop-in support upstream or
+					# in Debian/Ubuntu patches: it loads exactly one
+					# file. So we have to edit it in place. The file
+					# is /etc/gdm3/daemon.conf on Debian (any release)
+					# and /etc/gdm3/custom.conf on Ubuntu — branch on
+					# /etc/os-release ID=, not on release codename.
+					local gdm_conf="/etc/gdm3/daemon.conf"
+					if [[ -f /etc/os-release ]] && grep -q '^ID=ubuntu' /etc/os-release; then
+						gdm_conf="/etc/gdm3/custom.conf"
+					fi
+					# Idempotent in-place edit of the [daemon] section.
+					# Preserves any other sections / settings the user
+					# may have customized.
+					if [[ ! -f "$gdm_conf" ]]; then
+						cat > "$gdm_conf" <<- EOF
+						[daemon]
+						AutomaticLoginEnable = true
+						AutomaticLogin = ${user}
+						EOF
+					else
+						# Make sure [daemon] section exists.
+						grep -q '^\[daemon\]' "$gdm_conf" || \
+							printf '\n[daemon]\n' >> "$gdm_conf"
+						# Update or insert AutomaticLoginEnable.
+						if grep -q '^AutomaticLoginEnable' "$gdm_conf"; then
+							sed -i 's/^AutomaticLoginEnable.*/AutomaticLoginEnable = true/' "$gdm_conf"
+						else
+							sed -i '/^\[daemon\]/a AutomaticLoginEnable = true' "$gdm_conf"
+						fi
+						# Update or insert AutomaticLogin.
+						if grep -q '^AutomaticLogin\b' "$gdm_conf"; then
+							sed -i "s/^AutomaticLogin\b.*/AutomaticLogin = ${user}/" "$gdm_conf"
+						else
+							sed -i "/^\[daemon\]/a AutomaticLogin = ${user}" "$gdm_conf"
+						fi
+					fi
 				;;
 				sddm)
 					mkdir -p /etc/sddm.conf.d
@@ -312,7 +353,15 @@ function module_desktops() {
 			module_desktop_yamlparse "$de" || return 1
 
 			case "$DESKTOP_DM" in
-				gdm3)    sed -i 's/AutomaticLoginEnable = true/AutomaticLoginEnable = false/' /etc/gdm3/custom.conf /etc/gdm3/daemon.conf 2>/dev/null ;;
+				gdm3)
+					# Match any whitespace around the '=' so we don't
+					# care whether the file has 'Enable=true' or
+					# 'Enable = true'.
+					for f in /etc/gdm3/custom.conf /etc/gdm3/daemon.conf; do
+						[[ -f "$f" ]] || continue
+						sed -i -E 's/^(AutomaticLoginEnable)[[:space:]]*=.*/\1 = false/' "$f"
+					done
+				;;
 				sddm)    rm -f /etc/sddm.conf.d/autologin.conf ;;
 				lightdm) rm -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ;;
 			esac
