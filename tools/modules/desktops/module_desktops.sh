@@ -136,8 +136,8 @@ function module_desktops() {
 			# the rest of the desktop install path stays distro-agnostic.
 			# Match either the legacy single-line .list file or the modern
 			# deb822 .sources file.
-			if [[ -f /etc/apt/sources.list.d/armbian.list || \
-			      -f /etc/apt/sources.list.d/armbian.sources ]]; then
+			if [[ -f /etc/apt/sources.list.d/armbian.list \
+				|| -f /etc/apt/sources.list.d/armbian.sources ]]; then
 				pkg_install -o Dpkg::Options::="--force-confold" armbian-plymouth-theme || \
 					echo "Warning: armbian-plymouth-theme not installed (package not found in armbian repo)" >&2
 			fi
@@ -195,8 +195,8 @@ function module_desktops() {
 				for dm in gdm3 lightdm sddm; do
 					systemctl is-active --quiet "$dm" 2>/dev/null && systemctl stop "$dm" 2>/dev/null
 				done
-				if systemctl start display-manager 2>/dev/null || \
-				   systemctl start "$DESKTOP_DM" 2>/dev/null; then
+				if systemctl start display-manager 2>/dev/null \
+					|| systemctl start "$DESKTOP_DM" 2>/dev/null; then
 					systemctl set-default graphical.target 2>/dev/null || true
 					module_desktops auto de="$de"
 				else
