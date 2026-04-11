@@ -57,13 +57,105 @@ tiers:
       - audacity
 
 # Browser substitution table for the literal `browser` token in any
-# tier. The parser replaces `browser` with the per-arch package name
-# below, falling back to dropping the token if no entry exists for
-# the current arch. Keep this short and conservative — only ship one
-# browser per arch, and prefer in-archive native packages over
-# out-of-archive .deb installers (Google Chrome, Microsoft Edge).
+# tier. The parser replaces `browser` with the right package per
+# (release, arch).
+#
+# Lookup order:
+#   1. browser.<release>.<arch>  — most specific
+#   2. browser.<arch>             — per-arch fallback (when a release
+#                                   has no override)
+#   3. drop the token entirely (silent — install proceeds without
+#                               a browser rather than failing on a
+#                               literal 'browser' apt name)
+#
+# The per-release layer is required because the same arch can need
+# a different package across releases:
+#
+#   - Debian has 'firefox-esr' but NO 'firefox' package.
+#   - Ubuntu's 'chromium' .deb is a snap-shim wrapper that pulls in
+#     snapd. Armbian doesn't ship snapd, so the shim is broken at
+#     runtime — substitute a real GTK browser instead.
+#     epiphany-browser (GNOME Web) is small, native deb, and
+#     available on every Ubuntu arch.
+#   - 'chromium' isn't built for riscv64 in either Debian or Ubuntu.
+#
+# Verified against Debian bookworm/trixie and Ubuntu noble/plucky as
+# of 2026-04. Update this map when new releases ship or when an
+# arch dependency changes.
 browser:
-  amd64:   chromium
-  arm64:   chromium
-  armhf:   chromium
-  riscv64: firefox
+  bookworm:
+    amd64:   chromium
+    arm64:   chromium
+    armhf:   chromium
+    # bookworm has no riscv64 port — no entry needed
+  trixie:
+    amd64:   chromium
+    arm64:   chromium
+    armhf:   chromium
+    riscv64: firefox-esr     # 'firefox' does not exist in Debian
+  noble:
+    amd64:   epiphany-browser    # 'chromium' deb is a snap-shim
+    arm64:   epiphany-browser
+    armhf:   epiphany-browser
+    riscv64: epiphany-browser    # 'chromium'/'firefox' both missing
+  plucky:
+    amd64:   epiphany-browser
+    arm64:   epiphany-browser
+    armhf:   epiphany-browser
+    riscv64: epiphany-browser
+
+# Per-tier holes that exist in the upstream repos and need to be
+# stripped before they reach apt. Common.yaml carries the holes that
+# apply to every desktop; per-DE YAMLs can add their own.
+#
+# Layered:
+#   tier_overrides.<tier>.architectures.<arch>.packages_remove
+#       — apply on this arch in any release
+#   tier_overrides.<tier>.releases.<release>.architectures.<arch>.packages_remove
+#       — apply only on this release+arch combo (preferred for
+#         per-release transient holes like 'loupe' missing in bookworm)
+#
+# Verified against packages.debian.org (madison) and
+# packages.ubuntu.com / launchpad as of 2026-04. Update when releases
+# move forward or when arch dependencies change.
+tier_overrides:
+  mid:
+    releases:
+      bookworm:
+        # loupe is GNOME 46+; bookworm shipped with GNOME 43 era and
+        # has no loupe package on any arch.
+        architectures:
+          amd64:  { packages_remove: [loupe] }
+          arm64:  { packages_remove: [loupe] }
+          armhf:  { packages_remove: [loupe] }
+      plucky:
+        # loupe in plucky was dropped on armhf (GNOME 48 didn't ship
+        # an armhf build for it). Other arches still have it.
+        architectures:
+          armhf:  { packages_remove: [loupe] }
+  full:
+    releases:
+      bookworm:
+        # thunderbird is missing on bookworm/armhf.
+        architectures:
+          armhf:  { packages_remove: [thunderbird] }
+      trixie:
+        # thunderbird is missing on trixie/armhf.
+        architectures:
+          armhf:  { packages_remove: [thunderbird] }
+      noble:
+        # thunderbird on Ubuntu is a snap-shim that only exists on
+        # amd64/arm64; the deb is missing on armhf and riscv64.
+        # We strip it on EVERY arch on Ubuntu because the shim
+        # requires snapd which Armbian doesn't ship.
+        architectures:
+          amd64:    { packages_remove: [thunderbird] }
+          arm64:    { packages_remove: [thunderbird] }
+          armhf:    { packages_remove: [thunderbird] }
+          riscv64:  { packages_remove: [thunderbird] }
+      plucky:
+        architectures:
+          amd64:    { packages_remove: [thunderbird] }
+          arm64:    { packages_remove: [thunderbird] }
+          armhf:    { packages_remove: [thunderbird] }
+          riscv64:  { packages_remove: [thunderbird] }

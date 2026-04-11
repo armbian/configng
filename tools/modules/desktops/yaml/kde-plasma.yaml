@@ -50,12 +50,17 @@ tiers:
       - kate
 
   full:
-    # libreoffice-gtk3 vs libreoffice-kde: pick the KDE backend so
-    # native file pickers / theming match the rest of the desktop.
+    # KDE Plasma drops the libreoffice-gtk3 integration package
+    # because we want native KDE file pickers / theming. There used
+    # to be a 'libreoffice-kde' package but it was retired upstream
+    # and no longer exists in any Debian / Ubuntu release we support
+    # (verified against bookworm/trixie/noble/plucky as of 2026).
+    # Plain 'libreoffice' (inherited from common.yaml full) is fine
+    # — modern LibreOffice picks up KDE integration automatically
+    # via libreoffice-style-breeze when it's installed alongside
+    # Plasma.
     packages_remove:
       - libreoffice-gtk3
-    packages:
-      - libreoffice-kde
 
 releases:
   bookworm:

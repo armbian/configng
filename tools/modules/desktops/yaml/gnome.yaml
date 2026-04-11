@@ -5,8 +5,11 @@ status: supported
 
 # Minimal tier: GNOME Shell + control center + the daemons that the
 # Quick Settings tiles depend on. Mid and full tier additions are
-# inherited from common.yaml — see kde-plasma.yaml for an example
-# of how to override common-tier entries per DE.
+# mostly inherited from common.yaml — see kde-plasma.yaml for the
+# pattern of overriding common-tier entries per DE. The only thing
+# GNOME drops from the common mid set is `transmission-gtk`,
+# because GNOME ships its own torrent integration via the Files
+# / Downloads UI and a stand-alone GTK torrent client is redundant.
 tiers:
   minimal:
     packages:
@@ -48,6 +51,12 @@ tiers:
       - xserver-xorg
       - xwayland
       - zenity
+
+  mid:
+    # GNOME has its own download/torrent integration; transmission-gtk
+    # is redundant on GNOME.
+    packages_remove:
+      - transmission-gtk
 
 releases:
   bookworm:
