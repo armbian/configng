@@ -1,0 +1,187 @@
+name: "Maintenance: Desktop matrix audit"
+
+# Periodic audit of the desktop YAML matrix against:
+#   1. armbian/build's config/distributions/ — flag releases the build
+#      supports but no DE YAML covers
+#   2. packages.debian.org / packages.ubuntu.com — flag DESKTOP_PACKAGES
+#      entries that don't exist in the upstream archive for the
+#      requested (release, arch)
+#
+# When the audit finds work to do, hand the report to Claude (via the
+# Anthropic API) and let it propose YAML edits. Then open a PR with
+# whatever Claude wrote, using peter-evans/create-pull-request.
+#
+# The audit_apply.py script short-circuits when there's nothing to do,
+# so a "no changes" run never burns API tokens or opens an empty PR.
+
+on:
+  schedule:
+    # Mondays at 06:00 UTC. Weekly is enough — release / package
+    # availability changes slowly.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+    inputs:
+      tier:
+        description: "Tier to audit (minimal, mid, full, or empty for all)"
+        required: false
+        default: ""
+      release:
+        description: "Release codename to audit (empty for all)"
+        required: false
+        default: ""
+      dry_run:
+        description: "Dry run — do not call Claude or open a PR"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: desktop-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    name: "Desktop matrix audit"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout configng"
+        uses: actions/checkout@v4
+        with:
+          path: configng
+
+      - name: "Checkout armbian/build"
+        uses: actions/checkout@v4
+        with:
+          repository: armbian/build
+          path: build
+          # Only the config/distributions/ directory matters for the
+          # audit, but a sparse checkout would complicate things —
+          # the build repo is small enough to clone shallowly.
+          fetch-depth: 1
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: "Install Python dependencies"
+        run: |
+          pip install --quiet pyyaml anthropic
+
+      - name: "Run deterministic audit"
+        id: audit
+        working-directory: configng
+        run: |
+          set -euo pipefail
+          args=(
+            --build-repo "${{ github.workspace }}/build"
+            --configng-repo "${{ github.workspace }}/configng"
+            --output "${{ github.workspace }}/audit-report.json"
+          )
+          if [[ -n "${{ github.event.inputs.tier }}" ]]; then
+            args+=(--tier "${{ github.event.inputs.tier }}")
+          fi
+          if [[ -n "${{ github.event.inputs.release }}" ]]; then
+            args+=(--release "${{ github.event.inputs.release }}")
+          fi
+          python3 tools/desktops/audit.py "${args[@]}"
+
+          # Surface a summary in the workflow's job summary so reviewers
+          # can read it without downloading artifacts.
+          {
+            echo "## Desktop matrix audit"
+            echo
+            python3 - <<'PY'
+          import json
+          r = json.load(open("${{ github.workspace }}/audit-report.json"))
+          print(f"- **Desktops scanned:** {r['stats']['desktops']}")
+          print(f"- **(release, arch) combinations in scope:** {r['stats']['scope']}")
+          print(f"- **Package availability checks:** {r['stats']['package_lookups']}")
+          print(f"- **Holes found:** {r['stats']['holes']}")
+          print(f"- **Releases not covered:** {len(r['missing_releases'])}")
+          print()
+          if r['missing_releases']:
+              print("### Missing releases")
+              print()
+              print("| release | status | name | architectures |")
+              print("|---|---|---|---|")
+              for m in r['missing_releases']:
+                  print(f"| `{m['release']}` | {m['support_status']} | {m['name']} | `{','.join(m['architectures'])}` |")
+              print()
+          if r['package_holes']:
+              print("### Package holes")
+              print()
+              print("| de | release | arch | tier | missing |")
+              print("|---|---|---|---|---|")
+              for h in r['package_holes']:
+                  pkgs = ", ".join(f"`{p}`" for p in h['missing'])
+                  print(f"| `{h['de']}` | `{h['release']}` | `{h['arch']}` | `{h['tier']}` | {pkgs} |")
+          PY
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # Set step output: did we find anything actionable?
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          r = json.load(open("${{ github.workspace }}/audit-report.json"))
+          actionable = bool(r['package_holes'] or r['missing_releases'])
+          print(f"actionable={'true' if actionable else 'false'}")
+          PY
+
+      - name: "Upload audit report"
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-report
+          path: ${{ github.workspace }}/audit-report.json
+          retention-days: 30
+
+      - name: "Run Claude apply step"
+        id: apply
+        if: steps.audit.outputs.actionable == 'true' && github.event.inputs.dry_run != 'true'
+        working-directory: configng
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${ANTHROPIC_API_KEY:-}" ]]; then
+            echo "::warning::ANTHROPIC_API_KEY secret not set; skipping Claude apply step"
+            echo "skipped=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          python3 tools/desktops/audit_apply.py \
+            --report "${{ github.workspace }}/audit-report.json" \
+            --configng-repo "${{ github.workspace }}/configng" \
+            --summary-output "${{ github.workspace }}/audit-summary.md"
+          echo "skipped=false" >> "$GITHUB_OUTPUT"
+
+      - name: "Open / update pull request"
+        if: |
+          steps.audit.outputs.actionable == 'true' &&
+          github.event.inputs.dry_run != 'true' &&
+          steps.apply.outputs.skipped != 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          path: configng
+          branch: bot/desktop-matrix-audit
+          delete-branch: true
+          base: main
+          commit-message: |
+            desktops: weekly matrix audit fixes (bot)
+
+            Generated by .github/workflows/maintenance-desktop-audit.yml
+            via Claude API based on the deterministic findings of
+            tools/desktops/audit.py.
+          title: "desktops: weekly matrix audit fixes (bot)"
+          body-path: ${{ github.workspace }}/audit-summary.md
+          labels: |
+            bot
+            desktops
+            documentation
+          draft: true
