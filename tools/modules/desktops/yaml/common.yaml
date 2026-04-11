@@ -119,6 +119,25 @@ browser:
 # packages.ubuntu.com / launchpad as of 2026-04. Update when releases
 # move forward or when arch dependencies change.
 tier_overrides:
+  minimal:
+    releases:
+      bookworm:
+        # fonts-ubuntu is an Ubuntu-only package; Debian doesn't
+        # ship it. Strip it on every Debian release. The Ubuntu
+        # branding font is preserved on Ubuntu installs and the
+        # rest of the GTK font stack (fonts-noto, fonts-dejavu,
+        # whatever the DE pulls in transitively) takes over on
+        # Debian.
+        architectures:
+          amd64:  { packages_remove: [fonts-ubuntu] }
+          arm64:  { packages_remove: [fonts-ubuntu] }
+          armhf:  { packages_remove: [fonts-ubuntu] }
+      trixie:
+        architectures:
+          amd64:    { packages_remove: [fonts-ubuntu] }
+          arm64:    { packages_remove: [fonts-ubuntu] }
+          armhf:    { packages_remove: [fonts-ubuntu] }
+          riscv64:  { packages_remove: [fonts-ubuntu] }
   mid:
     releases:
       bookworm:
