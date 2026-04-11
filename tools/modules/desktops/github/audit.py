@@ -113,12 +113,43 @@ def parse_build_distributions(build_repo: Path) -> dict:
 # Desktop YAML matrix
 # ----------------------------------------------------------------------
 
-def list_desktops(yaml_dir: Path) -> list[str]:
-    """Return the list of DE names declared in tools/modules/desktops/yaml/."""
-    return sorted(
-        f.stem for f in yaml_dir.glob("*.yaml")
-        if f.name != "common.yaml"
-    )
+def list_desktops(yaml_dir: Path, include_unsupported: bool = False) -> tuple[list[str], list[str]]:
+    """Return (auditable_des, skipped_des).
+
+    By default, DEs with `status: unsupported` in their YAML are
+    excluded from the audit. These are typically vendor- or arch-
+    specific desktops (bianbu = SpacemiT riscv64, kde-neon = Ubuntu
+    only, deepin/budgie = community-maintained, often only available
+    on specific releases) where the audit script's "does this package
+    exist on every (release, arch)?" check would generate noise that
+    isn't actionable.
+
+    Pass include_unsupported=True to audit them anyway (e.g. when
+    promoting one to `status: supported`).
+    """
+    try:
+        import yaml as pyyaml
+    except ImportError:
+        warn("pyyaml not available — auditing every YAML regardless of status")
+        names = sorted(f.stem for f in yaml_dir.glob("*.yaml") if f.name != "common.yaml")
+        return names, []
+
+    auditable, skipped = [], []
+    for f in sorted(yaml_dir.glob("*.yaml")):
+        if f.name == "common.yaml":
+            continue
+        try:
+            with f.open() as fh:
+                data = pyyaml.safe_load(fh) or {}
+        except Exception as e:
+            warn(f"could not load {f.name}: {e}")
+            continue
+        status = data.get("status", "unsupported")
+        if status == "unsupported" and not include_unsupported:
+            skipped.append(f.stem)
+        else:
+            auditable.append(f.stem)
+    return auditable, skipped
 
 
 def parse_desktop_yaml(yaml_dir: Path, parser_path: Path,
@@ -221,7 +252,7 @@ def package_exists(release: str, arch: str, package: str,
 
 def audit(build_repo: Path, configng_repo: Path,
           tier_filter: str | None, release_filter: str | None,
-          skip_network: bool) -> dict:
+          skip_network: bool, include_unsupported: bool = False) -> dict:
     distributions = parse_build_distributions(build_repo)
     yaml_dir = configng_repo / "tools" / "modules" / "desktops" / "yaml"
     parser_path = (configng_repo / "tools" / "modules" / "desktops" /
@@ -229,8 +260,10 @@ def audit(build_repo: Path, configng_repo: Path,
     if not parser_path.exists():
         die(f"parser not found at {parser_path}")
 
-    desktops = list_desktops(yaml_dir)
-    info(f"found {len(desktops)} DE YAMLs: {', '.join(desktops)}")
+    desktops, skipped_desktops = list_desktops(yaml_dir, include_unsupported=include_unsupported)
+    info(f"auditing {len(desktops)} DE YAMLs: {', '.join(desktops)}")
+    if skipped_desktops:
+        info(f"skipping {len(skipped_desktops)} unsupported DE YAMLs: {', '.join(skipped_desktops)}")
 
     # Walk the build distributions and figure out which (release, arch)
     # pairs are in scope for the audit. Skip end-of-support releases.
@@ -329,8 +362,10 @@ def audit(build_repo: Path, configng_repo: Path,
         "build_distributions": distributions,
         "missing_releases": missing_releases,
         "package_holes": package_holes,
+        "skipped_desktops": skipped_desktops,
         "stats": {
             "desktops": len(desktops),
+            "skipped_desktops": len(skipped_desktops),
             "scope": len(in_scope),
             "holes": len(package_holes),
             "package_lookups": len(cache),
@@ -370,6 +405,10 @@ def main():
                     help="audit only this release codename")
     ap.add_argument("--skip-network", action="store_true",
                     help="don't actually fetch packages.* — useful for dry runs")
+    ap.add_argument("--include-unsupported", action="store_true",
+                    help="audit DEs whose YAML has 'status: unsupported' too "
+                         "(default: skip them — they are typically vendor- or "
+                         "release-specific and would generate noise)")
     args = ap.parse_args()
 
     if not args.build_repo.is_dir():
@@ -378,7 +417,8 @@ def main():
         die(f"--configng-repo not a directory: {args.configng_repo}")
 
     report = audit(args.build_repo, args.configng_repo,
-                   args.tier, args.release, args.skip_network)
+                   args.tier, args.release, args.skip_network,
+                   include_unsupported=args.include_unsupported)
 
     args.output.write_text(json.dumps(report, indent=2))
     info(f"wrote {args.output}")
