@@ -72,6 +72,25 @@ function module_desktop_branding() {
 				cp "$desktop_dir/branding/pixmaps/"* /usr/share/pixmaps/armbian/ 2>/dev/null || true
 			fi
 
+			# Distributor logo for GNOME Settings -> About (and any
+			# other DE that reads LOGO= from /etc/os-release).
+			# /etc/os-release on Armbian sets LOGO="armbian-logo", and
+			# gnome-control-center calls gtk_icon_theme_lookup_icon on
+			# that name. Without an installed icon by that name, GNOME
+			# falls back to ID=ubuntu and renders the Ubuntu mark.
+			# Install branding/pixmaps/armbian.png into the hicolor
+			# theme so the lookup succeeds.
+			if [[ -f "$desktop_dir/branding/pixmaps/armbian.png" ]]; then
+				mkdir -p /usr/share/icons/hicolor/256x256/apps
+				cp "$desktop_dir/branding/pixmaps/armbian.png" \
+					/usr/share/icons/hicolor/256x256/apps/armbian-logo.png
+				# Refresh the hicolor index so the icon is picked up
+				# without requiring a re-login. Failure is non-fatal:
+				# the lookup will still work after the next gtk cache
+				# refresh.
+				gtk-update-icon-cache -q -f /usr/share/icons/hicolor 2>/dev/null || true
+			fi
+
 			# GNOME wallpaper properties
 			if [[ -f "$desktop_dir/branding/armbian.xml" ]]; then
 				mkdir -p /usr/share/gnome-background-properties
