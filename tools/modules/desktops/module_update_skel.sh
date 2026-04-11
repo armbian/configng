@@ -16,28 +16,45 @@ function module_update_skel() {
 
 	case "$1" in
 		"${commands[0]}")
-			# install - copy skel into every regular user's home, then make
-			# sure the entire home is owned by them.
+			# install - copy skel into every regular user's home, then
+			# fix ownership of the entire home tree.
 			#
-			# History: a previous refactor (#815) replaced the simple
+			# Implementation note: we used to do
 			#   cp -r --update=none /etc/skel/. "$home/"
-			#   chown -R "$uid:$gid" "$home/"
-			# with a per-file find/cp/chown loop. That loop is internally
-			# correct, but the old recursive chown was also serving as a
-			# safety net: any root-owned file that other package postinst
-			# scripts leaked into the user's home (caja, nemo, gnome-keyring
-			# etc. all do this on first install) used to be reclaimed here.
-			# Without it, caja and nemo refuse to start on first login with
-			# "the directory containing settings needs read and write
-			# permissions" because their ~/.config/{caja,nemo} ends up
-			# root-owned.
-			# Restore the original pattern.
+			# but '--update=none' was only added in GNU coreutils 9.3
+			# (Debian bookworm ships 9.1 and rejects it). The
+			# alternative '-n' / '--no-clobber' is available on both,
+			# but on coreutils 9.2+ '-n' prints a diagnostic and
+			# exits nonzero whenever it skips a file — which on a
+			# normal repeat invocation is every file. Neither flag is
+			# portable across bookworm and noble simultaneously.
+			#
+			# Use a per-file find loop instead: walk /etc/skel and
+			# copy each entry only if it doesn't already exist at
+			# the destination. find walks parents before children, so
+			# directories are created and chowned before any of their
+			# contents arrive.
+			#
+			# After the per-file copy, chown -R the entire home
+			# anyway. This is a safety net for root-owned files that
+			# other package postinst scripts leak into the user's
+			# home (caja, nemo, gnome-keyring and others all do this
+			# on first install) — without the recursive chown, caja
+			# and nemo refuse to start on first login complaining
+			# that ~/.config/{caja,nemo} are not writable.
 			getent passwd |
 				while IFS=: read -r username x uid gid gecos home shell; do
 					if [ ! -d "$home" ] || [ "$username" == 'root' ] || [ "$uid" -lt 1000 ] || [ "$uid" -ge 65534 ]; then
 						continue
 					fi
-					cp -r --update=none /etc/skel/. "$home/"
+					find /etc/skel -mindepth 1 | while read -r src; do
+						local dst="$home/${src#/etc/skel/}"
+						if [ -d "$src" ]; then
+							[ -d "$dst" ] || mkdir "$dst"
+						elif [ ! -e "$dst" ]; then
+							cp "$src" "$dst"
+						fi
+					done
 					chown -R "$uid:$gid" "$home/"
 				done
 		;;
