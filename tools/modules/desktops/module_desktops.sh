@@ -305,8 +305,14 @@ function module_desktops() {
 		;;
 
 		"${commands[4]}")
-			# status — print the installed tier (or "not installed")
-			# and return 0 if installed, 1 if not.
+			# status — return 0 if installed, 1 if not. When called
+			# from the dialog menu's `condition` field, dozens of
+			# these run for every menu render, and any stdout output
+			# leaks into the dialog. So this command is silent on
+			# the not-installed path; the exit code is the only
+			# signal a condition gate cares about.
+			# When installed, print the tier name (minimal/mid/full)
+			# so callers that want it can capture it via $(...).
 			if [[ -z "$de" ]]; then
 				echo "Error: specify de=name" >&2
 				return 1
@@ -320,7 +326,6 @@ function module_desktops() {
 				fi
 				return 0
 			fi
-			echo "not installed"
 			return 1
 		;;
 
