@@ -103,6 +103,11 @@ browser:
     arm64:   epiphany-browser
     armhf:   epiphany-browser
     riscv64: epiphany-browser
+  resolute:
+    amd64:   epiphany-browser    # 'chromium' deb is a snap-shim
+    arm64:   epiphany-browser
+    armhf:   epiphany-browser
+    riscv64: epiphany-browser    # 'chromium'/'firefox' both missing
 
 # Per-tier holes that exist in the upstream repos and need to be
 # stripped before they reach apt. Common.yaml carries the holes that
@@ -173,6 +178,13 @@ tier_overrides:
           armhf:    { packages_remove: [thunderbird] }
           riscv64:  { packages_remove: [thunderbird] }
       plucky:
+        architectures:
+          amd64:    { packages_remove: [thunderbird] }
+          arm64:    { packages_remove: [thunderbird] }
+          armhf:    { packages_remove: [thunderbird] }
+          riscv64:  { packages_remove: [thunderbird] }
+      resolute:
+        # thunderbird on Ubuntu is a snap-shim; Armbian doesn't ship snapd.
         architectures:
           amd64:    { packages_remove: [thunderbird] }
           arm64:    { packages_remove: [thunderbird] }

@@ -67,3 +67,13 @@ releases:
       - libu2f-udev
     packages_remove:
       - pavumeter
+
+  resolute:
+    architectures: [arm64, amd64, armhf, riscv64]
+    packages:
+      - polkitd
+      - pkexec
+      - libu2f-udev
+    packages_remove:
+      # pavumeter was dropped from the Ubuntu plucky archive; assume resolute continues this.
+      - pavumeter

@@ -96,3 +96,15 @@ releases:
       - pavumeter
     packages_uninstall:
       - ubuntu-session
+
+  resolute:
+    architectures: [arm64, amd64]
+    packages:
+      - polkitd
+      - pkexec
+      - libu2f-udev
+    packages_remove:
+      # pavumeter was dropped from the Ubuntu plucky archive; assume resolute continues this.
+      - pavumeter
+    packages_uninstall:
+      - ubuntu-session

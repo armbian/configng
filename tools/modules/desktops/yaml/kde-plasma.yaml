@@ -94,3 +94,10 @@ releases:
       - polkitd
       - pkexec
       - libu2f-udev
+
+  resolute:
+    architectures: [arm64, amd64]
+    packages:
+      - polkitd
+      - pkexec
+      - libu2f-udev
