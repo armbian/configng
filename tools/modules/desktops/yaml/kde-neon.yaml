@@ -25,12 +25,23 @@ packages:
   - scdaemon
 
 packages_uninstall:
+  # IMPORTANT: do NOT list anything here that is a Depends of
+  # neon-desktop. Removing such a package triggers apt's autoremove
+  # cascade which yanks neon-desktop and a large chunk of the
+  # plasma stack along with it (same class of bug as the
+  # xfce4-goodies and language-selector-gnome cascades fixed
+  # earlier). neon-desktop Depends on kdeconnect and khelpcenter,
+  # so neither can be listed here.
+  #
+  # gnome-keyring is also unsafe — several KDE/GTK apps pull it
+  # via pam dependencies on noble.
+  #
+  # libreoffice* is bash glob syntax, not apt — apt doesn't expand
+  # globs, and bash will glob in the cwd before passing it through.
+  # If we want to drop libreoffice we have to enumerate the binary
+  # package names explicitly.
   - gnome-software
-  - gnome-keyring
-  - kdeconnect
-  - khelpcenter
   - thunderbird
-  - libreoffice*
 
 releases:
   noble:
