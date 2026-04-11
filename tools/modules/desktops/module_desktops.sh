@@ -2,19 +2,21 @@ module_options+=(
 	["module_desktops,author"]="@igorpecovnik"
 	["module_desktops,feature"]="module_desktops"
 	["module_desktops,desc"]="Install and manage desktop environments (YAML-driven)"
-	["module_desktops,example"]="install remove disable enable status auto manual login supported installed help"
+	["module_desktops,example"]="install remove disable enable status auto manual login supported installed help upgrade downgrade"
 	["module_desktops,status"]="Active"
 	["module_desktops,arch"]=""
-	["module_desktops,help_install"]="Install desktop (de=name)"
+	["module_desktops,help_install"]="Install desktop (de=name tier=minimal|mid|full)"
 	["module_desktops,help_remove"]="Remove desktop (de=name)"
 	["module_desktops,help_disable"]="Disable display manager"
 	["module_desktops,help_enable"]="Enable display manager"
-	["module_desktops,help_status"]="Check if installed (de=name)"
+	["module_desktops,help_status"]="Check if installed and at which tier (de=name)"
 	["module_desktops,help_auto"]="Enable auto-login (de=name)"
 	["module_desktops,help_manual"]="Disable auto-login (de=name)"
 	["module_desktops,help_login"]="Check auto-login status (de=name)"
 	["module_desktops,help_supported"]="JSON list or check one (de=name arch=X release=Y)"
 	["module_desktops,help_installed"]="Returns 0 if any desktop is installed (no de=)"
+	["module_desktops,help_upgrade"]="Upgrade installed desktop to a higher tier (de=name tier=mid|full)"
+	["module_desktops,help_downgrade"]="Downgrade installed desktop to a lower tier (de=name tier=minimal|mid)"
 )
 
 #
@@ -32,12 +34,14 @@ function module_desktops() {
 	local de=""
 	local query_arch=""
 	local query_release=""
+	local tier=""
 	local selected
 	for selected in "${@:2}"; do
 		IFS='=' read -r -a split <<< "${selected}"
 		[[ "${split[0]}" == "de" ]] && de="${split[1]}"
 		[[ "${split[0]}" == "arch" ]] && query_arch="${split[1]}"
 		[[ "${split[0]}" == "release" ]] && query_release="${split[1]}"
+		[[ "${split[0]}" == "tier" ]] && tier="${split[1]}"
 	done
 
 	local commands
@@ -52,13 +56,30 @@ function module_desktops() {
 				return 1
 			fi
 
+			# tier= is required. The YAML schema has no flat default
+			# packages list anymore — every install picks one of
+			# minimal/mid/full and the parser refuses to run without
+			# --tier. Reject early with a clear message instead of
+			# letting the parser bail with a generic usage error.
+			if [[ -z "$tier" ]]; then
+				echo "Error: specify tier=minimal|mid|full" >&2
+				return 1
+			fi
+			case "$tier" in
+				minimal|mid|full) ;;
+				*)
+					echo "Error: invalid tier '${tier}', must be one of minimal|mid|full" >&2
+					return 1
+				;;
+			esac
+
 			local user
 			user=$(module_desktop_getuser) || return 1
 
-			module_desktop_yamlparse "$de" || return 1
+			module_desktop_yamlparse "$de" "$(dpkg --print-architecture)" "$DISTROID" "$tier" || return 1
 
 			if [[ -z "$DESKTOP_PACKAGES" || -z "$DESKTOP_PRIMARY_PKG" ]]; then
-				echo "Error: YAML definition for '${de}' has no packages" >&2
+				echo "Error: YAML definition for '${de}' tier '${tier}' has no packages" >&2
 				return 1
 			fi
 
@@ -120,14 +141,22 @@ function module_desktops() {
 
 			# Save the install manifest for uninstall to consume.
 			# Don't truncate an existing manifest if this run added nothing
-			# new (e.g. a re-install of an already-installed DE) — keeping
-			# the previous manifest is more useful than overwriting it with
-			# an empty file that would make uninstall a no-op.
+			# new (e.g. a re-install of an already-installed DE at the
+			# same tier) — keeping the previous manifest is more useful
+			# than overwriting it with an empty file that would make
+			# uninstall a no-op.
+			mkdir -p /etc/armbian/desktop
 			if [[ ${#ACTUALLY_INSTALLED[@]} -gt 0 ]]; then
-				mkdir -p /etc/armbian/desktop
 				printf '%s\n' "${ACTUALLY_INSTALLED[@]}" > "/etc/armbian/desktop/${de}.packages"
 				debug_log "module_desktops install: wrote ${#ACTUALLY_INSTALLED[@]} packages to /etc/armbian/desktop/${de}.packages"
 			fi
+			# Always write the tier marker file. This is the source of
+			# truth for `module_desktops status` and for the upgrade /
+			# downgrade commands' "what's currently installed" check.
+			# Written even when ACTUALLY_INSTALLED is empty (re-install
+			# at the same tier) so the marker stays accurate.
+			printf '%s\n' "$tier" > "/etc/armbian/desktop/${de}.tier"
+			debug_log "module_desktops install: wrote tier=${tier} to /etc/armbian/desktop/${de}.tier"
 
 			# remove unwanted packages
 			if [[ -n "$DESKTOP_PACKAGES_UNINSTALL" ]]; then
@@ -183,7 +212,16 @@ function module_desktops() {
 				return 1
 			fi
 
-			module_desktop_yamlparse "$de" || return 1
+			# Read the installed tier from the marker file so the
+			# YAML fallback (when the manifest is missing) walks the
+			# right tier's package list. Default to 'minimal' if no
+			# marker exists, which is the safest fallback for the
+			# pre-tier era.
+			local installed_tier="minimal"
+			if [[ -f "/etc/armbian/desktop/${de}.tier" ]]; then
+				installed_tier=$(< "/etc/armbian/desktop/${de}.tier")
+			fi
+			module_desktop_yamlparse "$de" "$(dpkg --print-architecture)" "$DISTROID" "$installed_tier" || return 1
 
 			# disable auto-login
 			module_desktops manual de="$de" 2>/dev/null
@@ -242,7 +280,7 @@ function module_desktops() {
 			if [[ ${#to_remove[@]} -gt 0 ]]; then
 				pkg_remove "${to_remove[@]}"
 			fi
-			rm -f "$desktop_pkg_file"
+			rm -f "$desktop_pkg_file" "/etc/armbian/desktop/${de}.tier"
 
 			# Reclaim disk space: clear apt's downloaded .deb cache. A full
 			# DE removal frees hundreds of MB of installed files; the
@@ -267,13 +305,22 @@ function module_desktops() {
 		;;
 
 		"${commands[4]}")
-			# status
+			# status — print the installed tier (or "not installed")
+			# and return 0 if installed, 1 if not.
 			if [[ -z "$de" ]]; then
 				echo "Error: specify de=name" >&2
 				return 1
 			fi
 			module_desktop_yamlparse "$de" || return 1
-			[[ -n "$DESKTOP_PRIMARY_PKG" ]] && dpkg -l "$DESKTOP_PRIMARY_PKG" 2>/dev/null | grep -q "^ii" && return 0
+			if [[ -n "$DESKTOP_PRIMARY_PKG" ]] && dpkg -l "$DESKTOP_PRIMARY_PKG" 2>/dev/null | grep -q "^ii"; then
+				if [[ -f "/etc/armbian/desktop/${de}.tier" ]]; then
+					echo "$(< "/etc/armbian/desktop/${de}.tier")"
+				else
+					echo "minimal"
+				fi
+				return 0
+			fi
+			echo "not installed"
 			return 1
 		;;
 
@@ -429,11 +476,199 @@ function module_desktops() {
 
 		"${commands[10]}")
 			show_module_help "module_desktops" "Desktops" \
-				"Examples:\n  module_desktops install de=xfce\n  module_desktops supported\n  module_desktops supported arch=arm64 release=trixie\n  module_desktops supported de=gnome" "native"
+				"Examples:\n  module_desktops install de=xfce tier=minimal\n  module_desktops install de=gnome tier=full\n  module_desktops upgrade de=xfce tier=mid\n  module_desktops downgrade de=xfce tier=minimal\n  module_desktops status de=xfce\n  module_desktops supported arch=arm64 release=trixie" "native"
+		;;
+
+		"${commands[11]}")
+			# upgrade — install the delta from the currently
+			# installed tier up to a higher target tier. Refuses
+			# to "upgrade" to the same or a lower tier (use the
+			# downgrade command for that).
+			_module_desktops_change_tier upgrade "$de" "$tier"
+			return $?
+		;;
+
+		"${commands[12]}")
+			# downgrade — remove the delta from the currently
+			# installed tier down to a lower target tier. The
+			# removable set is intersected with the install
+			# manifest so packages the user installed manually
+			# (outside the desktop install path) are never
+			# touched.
+			_module_desktops_change_tier downgrade "$de" "$tier"
+			return $?
 		;;
 
 		*)
 			${module_options["module_desktops,feature"]} help
 		;;
 	esac
+}
+
+#
+# _module_desktops_change_tier <upgrade|downgrade> <de> <target_tier>
+#
+# Move an installed desktop from its current tier to a target tier.
+# upgrade installs the delta of (target - current); downgrade removes
+# the delta of (current - target). Refuses wrong-direction calls.
+#
+# The downgrade path intersects the removable set with the install
+# manifest at /etc/armbian/desktop/<de>.packages, so any package the
+# user installed manually after the desktop install (and which
+# happens to also be named in the YAML) is never touched.
+#
+_module_desktops_change_tier() {
+	local direction="$1"
+	local de="$2"
+	local target="$3"
+
+	if [[ -z "$de" ]]; then
+		echo "Error: specify de=name" >&2
+		return 1
+	fi
+	if [[ -z "$target" ]]; then
+		echo "Error: specify tier=minimal|mid|full" >&2
+		return 1
+	fi
+	case "$target" in
+		minimal|mid|full) ;;
+		*)
+			echo "Error: invalid tier '${target}', must be one of minimal|mid|full" >&2
+			return 1
+		;;
+	esac
+
+	# Numeric ordering for comparison.
+	local _tier_n_minimal=1 _tier_n_mid=2 _tier_n_full=3
+	local _target_n_var="_tier_n_${target}"
+	local target_n="${!_target_n_var}"
+
+	if [[ ! -f "/etc/armbian/desktop/${de}.tier" ]]; then
+		echo "Error: ${de} is not installed (no tier marker at /etc/armbian/desktop/${de}.tier)" >&2
+		return 1
+	fi
+	local current
+	current=$(< "/etc/armbian/desktop/${de}.tier")
+	local _current_n_var="_tier_n_${current}"
+	local current_n="${!_current_n_var}"
+	if [[ -z "$current_n" ]]; then
+		echo "Error: unrecognised tier '${current}' in /etc/armbian/desktop/${de}.tier" >&2
+		return 1
+	fi
+
+	if [[ "$current" == "$target" ]]; then
+		echo "${de} is already at tier '${target}', nothing to do."
+		return 0
+	fi
+	if [[ "$direction" == "upgrade" && "$target_n" -lt "$current_n" ]]; then
+		echo "Error: cannot upgrade ${de} from '${current}' to '${target}' (target is lower); use 'downgrade' instead" >&2
+		return 1
+	fi
+	if [[ "$direction" == "downgrade" && "$target_n" -gt "$current_n" ]]; then
+		echo "Error: cannot downgrade ${de} from '${current}' to '${target}' (target is higher); use 'upgrade' instead" >&2
+		return 1
+	fi
+
+	# Parse the YAML twice — once at current tier, once at target.
+	# Save and restore the parser output variables across the two
+	# calls so the install path's globals are not stomped on.
+	local _arch="$(dpkg --print-architecture)"
+	local _release="$DISTROID"
+
+	module_desktop_yamlparse "$de" "$_arch" "$_release" "$current" || return 1
+	local current_arr=()
+	read -ra current_arr <<< "$DESKTOP_PACKAGES"
+
+	module_desktop_yamlparse "$de" "$_arch" "$_release" "$target" || return 1
+	local target_arr=()
+	read -ra target_arr <<< "$DESKTOP_PACKAGES"
+
+	# Compute the set difference. Use awk with two file arguments
+	# (stdin redirection from process substitution), reading the
+	# arrays one element per line via printf so each entry is its
+	# own awk record. Plain '$current_pkgs' would put every package
+	# on one line and break the comparison.
+	local to_install=()
+	local to_remove=()
+	if [[ "$direction" == "upgrade" ]]; then
+		# packages in target but not in current
+		while IFS= read -r pkg; do
+			[[ -n "$pkg" ]] && to_install+=("$pkg")
+		done < <(awk 'NR==FNR{a[$0]=1; next} !($0 in a)' \
+			<(printf '%s\n' "${current_arr[@]}") \
+			<(printf '%s\n' "${target_arr[@]}"))
+	else
+		# downgrade: packages in current but not in target,
+		# intersected with the install manifest so user-installed
+		# packages are never touched.
+		local manifest_pkgs=()
+		if [[ -f "/etc/armbian/desktop/${de}.packages" ]]; then
+			while IFS= read -r pkg; do
+				[[ -n "$pkg" ]] && manifest_pkgs+=("$pkg")
+			done < "/etc/armbian/desktop/${de}.packages"
+		fi
+		local candidates=()
+		while IFS= read -r pkg; do
+			[[ -n "$pkg" ]] && candidates+=("$pkg")
+		done < <(awk 'NR==FNR{a[$0]=1; next} !($0 in a)' \
+			<(printf '%s\n' "${target_arr[@]}") \
+			<(printf '%s\n' "${current_arr[@]}"))
+		# intersect candidates with manifest_pkgs
+		local manifest_set=" ${manifest_pkgs[*]} "
+		for pkg in "${candidates[@]}"; do
+			if [[ "$manifest_set" == *" $pkg "* ]]; then
+				to_remove+=("$pkg")
+			fi
+		done
+	fi
+
+	# Apply the change.
+	if [[ "$direction" == "upgrade" ]]; then
+		if [[ ${#to_install[@]} -eq 0 ]]; then
+			echo "${de}: nothing to install for upgrade ${current} -> ${target}"
+		else
+			echo "Upgrading ${de} from ${current} to ${target} (${#to_install[@]} new packages)"
+			ACTUALLY_INSTALLED=()
+			if ! pkg_install -o Dpkg::Options::="--force-confold" "${to_install[@]}"; then
+				echo "Error: pkg_install failed during upgrade" >&2
+				return 1
+			fi
+			# append the newly-installed packages to the manifest
+			if [[ ${#ACTUALLY_INSTALLED[@]} -gt 0 ]]; then
+				mkdir -p /etc/armbian/desktop
+				printf '%s\n' "${ACTUALLY_INSTALLED[@]}" >> "/etc/armbian/desktop/${de}.packages"
+			fi
+		fi
+	else
+		if [[ ${#to_remove[@]} -eq 0 ]]; then
+			echo "${de}: nothing to remove for downgrade ${current} -> ${target}"
+		else
+			echo "Downgrading ${de} from ${current} to ${target} (${#to_remove[@]} packages to remove)"
+			if ! pkg_remove "${to_remove[@]}"; then
+				echo "Error: pkg_remove failed during downgrade" >&2
+				return 1
+			fi
+			# rewrite the manifest, removing the just-removed packages
+			if [[ -f "/etc/armbian/desktop/${de}.packages" ]]; then
+				local removed_set=" ${to_remove[*]} "
+				local kept=()
+				while IFS= read -r pkg; do
+					[[ -z "$pkg" ]] && continue
+					if [[ "$removed_set" != *" $pkg "* ]]; then
+						kept+=("$pkg")
+					fi
+				done < "/etc/armbian/desktop/${de}.packages"
+				if [[ ${#kept[@]} -gt 0 ]]; then
+					printf '%s\n' "${kept[@]}" > "/etc/armbian/desktop/${de}.packages"
+				else
+					rm -f "/etc/armbian/desktop/${de}.packages"
+				fi
+			fi
+		fi
+	fi
+
+	# Update the tier marker
+	printf '%s\n' "$target" > "/etc/armbian/desktop/${de}.tier"
+	debug_log "module_desktops ${direction}: ${de} ${current} -> ${target}"
+	return 0
 }
