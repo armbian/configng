@@ -39,27 +39,16 @@ system-db:local" >> $profile
 
 dconf update
 
-# Hide Canonical's "Ubuntu" panel entry from the GNOME app grid.
-# /usr/share/applications/gnome-ubuntu-panel.desktop is shipped by
-# gnome-control-center on Ubuntu. It points at the icon
-# preferences-ubuntu-panel which only exists in Ubuntu's icon theme,
-# so on a non-Ubuntu-themed install (like Armbian) it renders as a
-# broken grey-triangle icon labelled "Proxy" (the localized name of
-# the panel) in the Activities overview.
-#
-# We can't remove the .desktop file directly because dpkg owns it
-# and any gnome-control-center upgrade would put it back. Instead
-# drop a hider stub at /usr/local/share/applications/, which the
-# XDG spec gives precedence over /usr/share/applications/.
-if [ -f /usr/share/applications/gnome-ubuntu-panel.desktop ]; then
-	mkdir -p /usr/local/share/applications
-	cat > /usr/local/share/applications/gnome-ubuntu-panel.desktop <<- 'HIDEEOF'
-	[Desktop Entry]
-	Type=Application
-	NoDisplay=true
-	Hidden=true
-	HIDEEOF
-fi
+# Clean up any leftover gnome-ubuntu-panel.desktop hider stub. An
+# earlier version of this postinst dropped a NoDisplay=true stub at
+# /usr/local/share/applications/gnome-ubuntu-panel.desktop to hide
+# Canonical's broken-iconed "Ubuntu" panel entry from the GNOME app
+# grid. The stub turned out to break gnome-control-center entirely:
+# the panel is a gnome-control-center compiled-in descriptor, not a
+# normal app launcher, and on startup the panel-walk asserts on the
+# stub being a valid desktop file, abort()s, and Settings will not
+# launch at all. Strip the stub if it exists.
+rm -f /usr/local/share/applications/gnome-ubuntu-panel.desktop
 
 # Let NetworkManager coexist with systemd-networkd (only if networkd is active)
 if command -v NetworkManager > /dev/null 2>&1 && systemctl is-active --quiet systemd-networkd 2>/dev/null; then
