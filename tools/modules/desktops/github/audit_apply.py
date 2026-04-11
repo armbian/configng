@@ -96,7 +96,7 @@ without breaking the existing matrix. Specifically:
 USER_PROMPT_TEMPLATE = """\
 # Desktop matrix audit
 
-The deterministic audit script (tools/desktops/audit.py) just ran
+The deterministic audit script (tools/modules/desktops/github/audit.py) just ran
 against the current state of tools/modules/desktops/yaml/ and the
 list of supported releases in armbian/build's config/distributions/.
 Here's what it found.
