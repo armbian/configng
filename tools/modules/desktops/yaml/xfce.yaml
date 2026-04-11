@@ -78,8 +78,11 @@ releases:
       - pkexec
       - libu2f-udev
     packages_uninstall:
+      # Removing ubuntu-session strips the Ubuntu desktop branding
+      # session from gdm. Do NOT add language-selector-gnome here:
+      # gnome-control-center has a hard dependency on it, so apt
+      # would yank gnome-control-center along with it.
       - ubuntu-session
-      - language-selector-gnome
 
   plucky:
     architectures: [arm64, amd64, armhf, riscv64]
@@ -91,5 +94,8 @@ releases:
       # pavumeter was dropped from the Ubuntu plucky archive
       - pavumeter
     packages_uninstall:
+      # Removing ubuntu-session strips the Ubuntu desktop branding
+      # session from gdm. Do NOT add language-selector-gnome here:
+      # gnome-control-center has a hard dependency on it, so apt
+      # would yank gnome-control-center along with it.
       - ubuntu-session
-      - language-selector-gnome
