@@ -3,52 +3,57 @@ description: "GNOME - modern, full-featured desktop"
 display_manager: gdm3
 status: supported
 
-packages:
-  - gnome-session
-  - gnome-shell
-  - gnome-control-center
-  - gnome-system-monitor
-  - gnome-disk-utility
-  - gnome-shell-extension-appindicator
-  - gdm3
-  - nautilus
-  # Printing: cups is in common.yaml as the spooler, but without
-  # drivers the GNOME Settings → Printers panel can't add anything.
-  # printer-driver-all pulls in HPLIP/Gutenprint/Foomatic/Splix.
-  # gnome-control-center already provides the printer-add wizard,
-  # so no system-config-printer is needed.
-  - printer-driver-all
-  # Bluetooth: bluez is the daemon, gnome-bluetooth-sendto pulls
-  # libgnome-bluetooth-3.0 which gnome-shell dlopens to render
-  # the Bluetooth tile in the Quick Settings popover.
-  - bluez
-  - gnome-bluetooth-sendto
-  # Networking: gnome-shell renders the Wi-Fi/Wired tile only when
-  # the NetworkManager daemon is present. network-manager-gnome
-  # provides the legacy nm-applet GUI and is unrelated.
-  - network-manager
-  - network-manager-gnome
-  # Power profiles tile in Quick Settings — gnome-control-center
-  # only Recommends this, so under --no-install-recommends it
-  # doesn't get pulled in.
-  - power-profiles-daemon
-  - dbus-x11
-  - gvfs-backends
-  - lm-sensors
-  - pulseaudio
-  - pulseaudio-module-bluetooth
-  - xdg-user-dirs
-  - xdg-user-dirs-gtk
-  - xserver-xorg
-  - xwayland
-  - zenity
+# Minimal tier: GNOME Shell + control center + the daemons that the
+# Quick Settings tiles depend on. Mid and full tier additions are
+# inherited from common.yaml — see kde-plasma.yaml for an example
+# of how to override common-tier entries per DE.
+tiers:
+  minimal:
+    packages:
+      - gnome-session
+      - gnome-shell
+      - gnome-control-center
+      - gnome-system-monitor
+      - gnome-disk-utility
+      - gnome-shell-extension-appindicator
+      - gdm3
+      - nautilus
+      # Printing: cups is in common.yaml as the spooler, but without
+      # drivers the GNOME Settings → Printers panel can't add anything.
+      # printer-driver-all pulls in HPLIP/Gutenprint/Foomatic/Splix.
+      # gnome-control-center already provides the printer-add wizard,
+      # so no system-config-printer is needed.
+      - printer-driver-all
+      # Bluetooth: bluez is the daemon, gnome-bluetooth-sendto pulls
+      # libgnome-bluetooth-3.0 which gnome-shell dlopens to render
+      # the Bluetooth tile in the Quick Settings popover.
+      - bluez
+      - gnome-bluetooth-sendto
+      # Networking: gnome-shell renders the Wi-Fi/Wired tile only when
+      # the NetworkManager daemon is present. network-manager-gnome
+      # provides the legacy nm-applet GUI and is unrelated.
+      - network-manager
+      - network-manager-gnome
+      # Power profiles tile in Quick Settings — gnome-control-center
+      # only Recommends this, so under --no-install-recommends it
+      # doesn't get pulled in.
+      - power-profiles-daemon
+      - dbus-x11
+      - gvfs-backends
+      - lm-sensors
+      - pulseaudio
+      - pulseaudio-module-bluetooth
+      - xdg-user-dirs
+      - xdg-user-dirs-gtk
+      - xserver-xorg
+      - xwayland
+      - zenity
 
 releases:
   bookworm:
     architectures: [arm64, amd64]
     packages:
       - accountsservice
-      - gnome-calculator
       - libu2f-udev
 
   trixie:
@@ -70,11 +75,6 @@ releases:
       - pkexec
       - libu2f-udev
     packages_uninstall:
-      # Removing ubuntu-session strips the Ubuntu desktop branding
-      # session from gdm. Do NOT add language-selector-gnome here:
-      # gnome-control-center has a hard dependency on it, so apt
-      # will yank gnome-control-center along with it and the user
-      # ends up without Settings.
       - ubuntu-session
 
   plucky:
@@ -84,12 +84,6 @@ releases:
       - pkexec
       - libu2f-udev
     packages_remove:
-      # pavumeter was dropped from the Ubuntu plucky archive
       - pavumeter
     packages_uninstall:
-      # Removing ubuntu-session strips the Ubuntu desktop branding
-      # session from gdm. Do NOT add language-selector-gnome here:
-      # gnome-control-center has a hard dependency on it, so apt
-      # will yank gnome-control-center along with it and the user
-      # ends up without Settings.
       - ubuntu-session

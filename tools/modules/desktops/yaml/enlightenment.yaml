@@ -3,21 +3,23 @@ description: "Enlightenment - EFL-based desktop"
 display_manager: lightdm
 status: supported
 
-packages:
-  - enlightenment
-  - terminology
-  - lightdm
-  - slick-greeter
-  - xserver-xorg
-  - bluez
-  - dbus-x11
-  - gvfs-backends
-  - lm-sensors
-  - pavucontrol
-  - pulseaudio
-  - pulseaudio-module-bluetooth
-  - thunar
-  - xdg-user-dirs
+tiers:
+  minimal:
+    packages:
+      - enlightenment
+      - terminology
+      - lightdm
+      - slick-greeter
+      - xserver-xorg
+      - bluez
+      - dbus-x11
+      - gvfs-backends
+      - lm-sensors
+      - pavucontrol
+      - pulseaudio
+      - pulseaudio-module-bluetooth
+      - thunar
+      - xdg-user-dirs
 
 releases:
   bookworm:

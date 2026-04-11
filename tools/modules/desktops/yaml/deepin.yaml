@@ -3,36 +3,38 @@ description: "Deepin - DDE desktop environment"
 display_manager: lightdm
 status: unsupported
 
-packages:
-  - dde-control-center
-  - dde-daemon
-  - dde-desktop
-  - dde-dock
-  - dde-file-manager
-  - dde-launcher
-  - dde-polkit-agent
-  - dde-qt5integration
-  - dde-session-ui
-  - deepin-desktop-base
-  - deepin-desktop-schemas
-  - deepin-gtk-theme
-  - deepin-icon-theme
-  - deepin-sound-theme
-  - deepin-terminal
-  - deepin-wm
-  - startdde
-  - lightdm
-  - slick-greeter
-  - xserver-xorg
-  - bluez
-  - dbus-x11
-  - gvfs-backends
-  - lm-sensors
-  - pavucontrol
-  - pulseaudio
-  - pulseaudio-module-bluetooth
-  - spice-vdagent
-  - xdg-user-dirs
+tiers:
+  minimal:
+    packages:
+      - dde-control-center
+      - dde-daemon
+      - dde-desktop
+      - dde-dock
+      - dde-file-manager
+      - dde-launcher
+      - dde-polkit-agent
+      - dde-qt5integration
+      - dde-session-ui
+      - deepin-desktop-base
+      - deepin-desktop-schemas
+      - deepin-gtk-theme
+      - deepin-icon-theme
+      - deepin-sound-theme
+      - deepin-terminal
+      - deepin-wm
+      - startdde
+      - lightdm
+      - slick-greeter
+      - xserver-xorg
+      - bluez
+      - dbus-x11
+      - gvfs-backends
+      - lm-sensors
+      - pavucontrol
+      - pulseaudio
+      - pulseaudio-module-bluetooth
+      - spice-vdagent
+      - xdg-user-dirs
 
 releases:
   bookworm:

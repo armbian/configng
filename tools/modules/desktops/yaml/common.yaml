@@ -1,10 +1,69 @@
 name: common
-description: "Common packages for all desktop environments"
+description: "Packages installed for every desktop, in tiers"
 
-packages:
-  - adwaita-icon-theme
-  - cups
-  - dconf-cli
-  - profile-sync-daemon
-  - terminator
-  - upower
+# Tier model
+# ----------
+# Every desktop install is run at one of three tiers:
+#
+#   minimal — DE + display manager + base utilities. No browser, no
+#             office, no text editor beyond what the DE itself ships.
+#             Around 500 MB on a fresh install.
+#   mid     — minimal + browser + everyday user-facing tools (text
+#             editor, calculator, image/PDF viewer, media player,
+#             archive tool, torrent client). Around 1 GB.
+#   full    — mid + office suite + creative tools (LibreOffice,
+#             GIMP, Inkscape, Thunderbird, Audacity). Around 2.5 GB.
+#
+# Tiers are additive: installing 'full' implies 'mid' implies
+# 'minimal'. The parser walks them in order and accumulates packages.
+#
+# Per-DE YAMLs can add packages to a tier with `tiers.<tier>.packages`,
+# or remove ones inherited from common with `tiers.<tier>.packages_remove`.
+# See e.g. kde-plasma.yaml which swaps gnome-text-editor for kate at
+# the mid tier and libreoffice-gtk3 for libreoffice-kde at full.
+#
+# Per-DE per-tier per-arch overrides live under `tier_overrides:` in
+# the per-DE YAML. Use those to drop packages that don't exist on a
+# particular arch (e.g. blender/inkscape on armhf, libreoffice on
+# riscv64).
+
+tiers:
+  minimal:
+    packages:
+      - adwaita-icon-theme
+      - cups
+      - dconf-cli
+      - profile-sync-daemon
+      - terminator
+      - upower
+
+  mid:
+    packages:
+      - browser              # virtual — resolved per-arch from `browser:` below
+      - gnome-text-editor    # text editor (modern GTK4 successor to gedit)
+      - gnome-calculator
+      - loupe                # GTK4 image viewer; on bookworm fall back via release block
+      - vlc                  # media player
+      - file-roller          # archive manager
+      - transmission-gtk     # torrent client
+
+  full:
+    packages:
+      - libreoffice
+      - libreoffice-gtk3
+      - gimp
+      - inkscape
+      - thunderbird
+      - audacity
+
+# Browser substitution table for the literal `browser` token in any
+# tier. The parser replaces `browser` with the per-arch package name
+# below, falling back to dropping the token if no entry exists for
+# the current arch. Keep this short and conservative — only ship one
+# browser per arch, and prefer in-archive native packages over
+# out-of-archive .deb installers (Google Chrome, Microsoft Edge).
+browser:
+  amd64:   chromium
+  arm64:   chromium
+  armhf:   chromium
+  riscv64: firefox

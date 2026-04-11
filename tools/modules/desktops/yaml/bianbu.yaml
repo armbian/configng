@@ -7,22 +7,24 @@ repo:
   key_url: "https://archive.spacemit.com/bianbu-ports/bianbu-archive-keyring.gpg"
   keyring: "/usr/share/keyrings/bianbu-archive-keyring.gpg"
 
-packages:
-  - bianbu-desktop
-  - bianbu-desktop-en
-  - bianbu-desktop-zh
-  - bianbu-desktop-minimal-en
-  - bianbu-standard
-  - bianbu-development
-  - bianbu-esos
-  - img-gpu-powervr
-  - k1x-vpu-firmware
-  - k1x-cam
-  - spacemit-uart-bt
-  - spacemit-modules-usrload
-  - opensbi-spacemit
-  - u-boot-spacemit
-  - linux-image-6.1.15
+tiers:
+  minimal:
+    packages:
+      - bianbu-desktop
+      - bianbu-desktop-en
+      - bianbu-desktop-zh
+      - bianbu-desktop-minimal-en
+      - bianbu-standard
+      - bianbu-development
+      - bianbu-esos
+      - img-gpu-powervr
+      - k1x-vpu-firmware
+      - k1x-cam
+      - spacemit-uart-bt
+      - spacemit-modules-usrload
+      - opensbi-spacemit
+      - u-boot-spacemit
+      - linux-image-6.1.15
 
 releases:
   noble:
