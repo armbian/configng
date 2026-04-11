@@ -201,6 +201,12 @@ function module_desktops() {
 			# remove AppImages
 			module_appimage remove app=armbian-imager
 
+			# Reclaim disk space: clear apt's downloaded .deb cache. A full
+			# DE removal frees hundreds of MB of installed files; the
+			# matching .deb archives in /var/cache/apt/archives are no
+			# longer needed and would otherwise just sit there.
+			pkg_clean
+
 			unset _DESKTOPS_INSTALLED_CACHE
 			echo "${de} removed."
 		;;
