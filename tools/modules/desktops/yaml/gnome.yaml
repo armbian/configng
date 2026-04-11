@@ -12,6 +12,12 @@ packages:
   - gnome-shell-extension-appindicator
   - gdm3
   - nautilus
+  # Printing: cups is in common.yaml as the spooler, but without
+  # drivers the GNOME Settings → Printers panel can't add anything.
+  # printer-driver-all pulls in HPLIP/Gutenprint/Foomatic/Splix.
+  # gnome-control-center already provides the printer-add wizard,
+  # so no system-config-printer is needed.
+  - printer-driver-all
   # Bluetooth: bluez is the daemon, gnome-bluetooth-sendto pulls
   # libgnome-bluetooth-3.0 which gnome-shell dlopens to render
   # the Bluetooth tile in the Quick Settings popover.
