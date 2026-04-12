@@ -47,6 +47,10 @@ Output (bash eval-friendly):
   DESKTOP_REPO_URL="..."       (optional, for custom repos)
   DESKTOP_REPO_KEY_URL="..."   (optional)
   DESKTOP_REPO_KEYRING="..."   (optional)
+  DESKTOP_REPO_PREFS_COUNT="N" (optional; 0 when no APT pins)
+  DESKTOP_REPO_PREFS_<n>_ORIGIN="..."   (for n in 0..N-1)
+  DESKTOP_REPO_PREFS_<n>_SUITE="..."
+  DESKTOP_REPO_PREFS_<n>_PRIORITY="1200"
 """
 
 import sys
@@ -311,6 +315,30 @@ def parse_desktop(yaml_dir, de_name, release, arch, tier):
         print(f'DESKTOP_REPO_URL="{shell_escape(repo.get("url", ""))}"')
         print(f'DESKTOP_REPO_KEY_URL="{shell_escape(repo.get("key_url", ""))}"')
         print(f'DESKTOP_REPO_KEYRING="{shell_escape(repo.get("keyring", ""))}"')
+
+        # Optional APT pin preferences written to /etc/apt/preferences.d/<de>.
+        # Each entry must be a mapping with origin + suite + priority. The
+        # triple (o=<origin>, n=<suite>) is the match criterion; priority
+        # is a positive integer (apt treats >1000 as "allow downgrades").
+        prefs = _as_list(repo.get("preferences"))
+        valid_prefs = []
+        for p in prefs:
+            p = _as_dict(p)
+            origin = str(p.get("origin", "")).strip()
+            suite = str(p.get("suite", "")).strip()
+            priority = p.get("priority")
+            if not origin or not suite or not isinstance(priority, int):
+                print(
+                    f"Warning: ignoring malformed repo.preferences entry for {de_name}: {p!r}",
+                    file=sys.stderr,
+                )
+                continue
+            valid_prefs.append((origin, suite, priority))
+        print(f'DESKTOP_REPO_PREFS_COUNT="{len(valid_prefs)}"')
+        for i, (origin, suite, priority) in enumerate(valid_prefs):
+            print(f'DESKTOP_REPO_PREFS_{i}_ORIGIN="{shell_escape(origin)}"')
+            print(f'DESKTOP_REPO_PREFS_{i}_SUITE="{shell_escape(suite)}"')
+            print(f'DESKTOP_REPO_PREFS_{i}_PRIORITY="{priority}"')
 
 
 def list_primaries(yaml_dir, release, arch):
