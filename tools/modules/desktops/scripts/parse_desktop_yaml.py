@@ -327,7 +327,16 @@ def parse_desktop(yaml_dir, de_name, release, arch, tier):
             origin = str(p.get("origin", "")).strip()
             suite = str(p.get("suite", "")).strip()
             priority = p.get("priority")
-            if not origin or not suite or not isinstance(priority, int):
+            # isinstance(True, int) is True because bool subclasses int, so
+            # reject bools explicitly — `priority: true` would otherwise
+            # render `Pin-Priority: True` which apt refuses.
+            if (
+                not origin
+                or not suite
+                or isinstance(priority, bool)
+                or not isinstance(priority, int)
+                or priority <= 0
+            ):
                 print(
                     f"Warning: ignoring malformed repo.preferences entry for {de_name}: {p!r}",
                     file=sys.stderr,
