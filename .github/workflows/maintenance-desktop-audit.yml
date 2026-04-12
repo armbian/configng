@@ -39,6 +39,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  id-token: write
 
 concurrency:
   group: desktop-audit
@@ -139,6 +140,12 @@ jobs:
           python3 tools/modules/desktops/github/audit_prompt.py \
             --report "${{ github.workspace }}/audit-report.json" \
             --output "${{ github.workspace }}/claude-prompt.txt"
+          # Store the prompt content as a step output for the action
+          {
+            echo "prompt<<PROMPT_EOF"
+            cat "${{ github.workspace }}/claude-prompt.txt"
+            echo "PROMPT_EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: "Upload audit report"
         if: always()
@@ -154,8 +161,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          prompt_file: ${{ github.workspace }}/claude-prompt.txt
-          allowed_tools: "Read,Edit,Write,Glob,Grep"
+          prompt: ${{ steps.prompt.outputs.prompt }}
           # Limit turns to prevent runaway conversations
           claude_args: "--max-turns 15"
 
