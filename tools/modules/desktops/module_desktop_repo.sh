@@ -50,9 +50,13 @@ function module_desktop_repo() {
 					return 1
 				fi
 
-				# add source
+				# add source — suite defaults to ${DISTROID} and components
+				# to "main" when the parser did not supply values (older
+				# YAMLs without the optional fields).
+				local repo_suite="${DESKTOP_REPO_SUITE:-${DISTROID}}"
+				local repo_components="${DESKTOP_REPO_COMPONENTS:-main}"
 				cat > "/etc/apt/sources.list.d/${de}.list" <<- EOF
-				deb [signed-by=${DESKTOP_REPO_KEYRING}] ${DESKTOP_REPO_URL} ${DISTROID} main
+				deb [signed-by=${DESKTOP_REPO_KEYRING}] ${DESKTOP_REPO_URL} ${repo_suite} ${repo_components}
 				EOF
 
 				# Optional: APT pin preferences. Gated on the repo guard
