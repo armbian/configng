@@ -103,6 +103,43 @@ browser:
     arm64:   epiphany-browser
     armhf:   epiphany-browser
     riscv64: epiphany-browser
+  jammy:
+    # Ubuntu 22.04 LTS — same snap-shim situation as noble; the
+    # 'chromium' deb just invokes snapd which Armbian doesn't ship.
+    # epiphany-browser is a real native deb available on all arches.
+    amd64:   epiphany-browser
+    arm64:   epiphany-browser
+    armhf:   epiphany-browser
+    riscv64: epiphany-browser
+  questing:
+    # Ubuntu 25.10 — same snap-shim situation as noble/plucky.
+    amd64:   epiphany-browser
+    arm64:   epiphany-browser
+    armhf:   epiphany-browser
+    riscv64: epiphany-browser
+  resolute:
+    # Ubuntu 26.04 LTS — same snap-shim situation as noble/plucky.
+    amd64:   epiphany-browser
+    arm64:   epiphany-browser
+    armhf:   epiphany-browser
+    riscv64: epiphany-browser
+  forky:
+    # Debian 14 — same rules as trixie: 'firefox' is not a Debian
+    # package, only 'firefox-esr' exists; chromium is available for
+    # the three tier-1 arches.
+    amd64:   chromium
+    arm64:   chromium
+    armhf:   chromium
+    riscv64: firefox-esr     # 'firefox' does not exist in Debian
+  sid:
+    # Debian unstable — same rules as trixie/forky.
+    # loong64 gets firefox-esr because chromium is not yet built for
+    # this architecture in the Debian archive.
+    amd64:   chromium
+    arm64:   chromium
+    armhf:   chromium
+    riscv64: firefox-esr     # 'firefox' does not exist in Debian
+    loong64: firefox-esr     # chromium not yet built for loong64
 
 # Per-tier holes that exist in the upstream repos and need to be
 # stripped before they reach apt. Common.yaml carries the holes that
@@ -138,6 +175,23 @@ tier_overrides:
           arm64:    { packages_remove: [fonts-ubuntu] }
           armhf:    { packages_remove: [fonts-ubuntu] }
           riscv64:  { packages_remove: [fonts-ubuntu] }
+      forky:
+        # fonts-ubuntu is Ubuntu-only; Debian 14 doesn't ship it.
+        # Same restriction as bookworm/trixie.
+        architectures:
+          amd64:    { packages_remove: [fonts-ubuntu] }
+          arm64:    { packages_remove: [fonts-ubuntu] }
+          armhf:    { packages_remove: [fonts-ubuntu] }
+          riscv64:  { packages_remove: [fonts-ubuntu] }
+      sid:
+        # fonts-ubuntu is Ubuntu-only; Debian sid doesn't ship it.
+        # Includes loong64, which is a sid-only Armbian arch.
+        architectures:
+          amd64:    { packages_remove: [fonts-ubuntu] }
+          arm64:    { packages_remove: [fonts-ubuntu] }
+          armhf:    { packages_remove: [fonts-ubuntu] }
+          riscv64:  { packages_remove: [fonts-ubuntu] }
+          loong64:  { packages_remove: [fonts-ubuntu] }
   mid:
     releases:
       bookworm:
@@ -150,6 +204,23 @@ tier_overrides:
       plucky:
         # loupe in plucky was dropped on armhf (GNOME 48 didn't ship
         # an armhf build for it). Other arches still have it.
+        architectures:
+          armhf:  { packages_remove: [loupe] }
+      jammy:
+        # loupe was introduced with GNOME 44/45; Ubuntu 22.04 (jammy)
+        # shipped GNOME 42 and has no loupe package on any arch.
+        architectures:
+          amd64:    { packages_remove: [loupe] }
+          arm64:    { packages_remove: [loupe] }
+          armhf:    { packages_remove: [loupe] }
+          riscv64:  { packages_remove: [loupe] }
+      questing:
+        # loupe on armhf continues to be absent in questing — no GNOME
+        # armhf build for loupe, same gap as plucky.
+        architectures:
+          armhf:  { packages_remove: [loupe] }
+      resolute:
+        # Same loupe/armhf gap as questing.
         architectures:
           armhf:  { packages_remove: [loupe] }
   full:
@@ -178,3 +249,35 @@ tier_overrides:
           arm64:    { packages_remove: [thunderbird] }
           armhf:    { packages_remove: [thunderbird] }
           riscv64:  { packages_remove: [thunderbird] }
+      jammy:
+        # thunderbird on Ubuntu 22.04 (jammy) was migrated to a
+        # snap-shim deb; Armbian doesn't ship snapd so the shim is
+        # broken at runtime. Strip it on all arches, same as noble/plucky.
+        architectures:
+          amd64:    { packages_remove: [thunderbird] }
+          arm64:    { packages_remove: [thunderbird] }
+          armhf:    { packages_remove: [thunderbird] }
+          riscv64:  { packages_remove: [thunderbird] }
+      questing:
+        # Same snap-shim situation as noble/plucky.
+        architectures:
+          amd64:    { packages_remove: [thunderbird] }
+          arm64:    { packages_remove: [thunderbird] }
+          armhf:    { packages_remove: [thunderbird] }
+          riscv64:  { packages_remove: [thunderbird] }
+      resolute:
+        # Same snap-shim situation as noble/plucky.
+        architectures:
+          amd64:    { packages_remove: [thunderbird] }
+          arm64:    { packages_remove: [thunderbird] }
+          armhf:    { packages_remove: [thunderbird] }
+          riscv64:  { packages_remove: [thunderbird] }
+      forky:
+        # thunderbird is missing on forky/armhf — carry the trixie gap
+        # forward; other arches are fine.
+        architectures:
+          armhf:    { packages_remove: [thunderbird] }
+      sid:
+        # thunderbird is missing on sid/armhf — same gap as trixie/forky.
+        architectures:
+          armhf:    { packages_remove: [thunderbird] }

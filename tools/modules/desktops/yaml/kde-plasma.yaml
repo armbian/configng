@@ -94,3 +94,59 @@ releases:
       - polkitd
       - pkexec
       - libu2f-udev
+
+  # ── Debian 14 / Debian Sid ─────────────────────────────────────────
+
+  forky:
+    # Debian 14 — pipewire replaces pulseaudio (same as trixie).
+    architectures: [arm64, amd64]
+    packages:
+      - accountsservice
+      - libu2f-udev
+      - pipewire-audio
+      - pipewire-pulse
+      - wireplumber
+    packages_remove:
+      - pulseaudio
+      - pulseaudio-module-bluetooth
+
+  sid:
+    # Debian unstable — pipewire replaces pulseaudio (same as trixie/forky).
+    # loong64 is a 64-bit arch capable of running KDE Plasma.
+    architectures: [arm64, amd64, loong64]
+    packages:
+      - accountsservice
+      - libu2f-udev
+      - pipewire-audio
+      - pipewire-pulse
+      - wireplumber
+    packages_remove:
+      - pulseaudio
+      - pulseaudio-module-bluetooth
+
+  # ── Ubuntu 22.04 LTS / 25.10 / 26.04 ──────────────────────────────
+
+  jammy:
+    # Ubuntu 22.04 LTS — polkit split available via SRU;
+    # pulseaudio remains default on jammy.
+    architectures: [arm64, amd64]
+    packages:
+      - polkitd
+      - pkexec
+      - libu2f-udev
+
+  questing:
+    # Ubuntu 25.10 — same as plucky.
+    architectures: [arm64, amd64]
+    packages:
+      - polkitd
+      - pkexec
+      - libu2f-udev
+
+  resolute:
+    # Ubuntu 26.04 LTS — same as questing.
+    architectures: [arm64, amd64]
+    packages:
+      - polkitd
+      - pkexec
+      - libu2f-udev
