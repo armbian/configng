@@ -50,14 +50,39 @@ function module_desktop_repo() {
 					return 1
 				fi
 
-				# add source — suite defaults to ${DISTROID} and components
-				# to "main" when the parser did not supply values (older
-				# YAMLs without the optional fields).
-				local repo_suite="${DESKTOP_REPO_SUITE:-${DISTROID}}"
+				# Emit one `deb ...` line per suite. Components are shared
+				# across all lines. Written via temp + mv so a mid-write
+				# failure never leaves apt with a partial source list.
+				# Falls back to ${DISTROID} / "main" when the parser did
+				# not supply values (DE YAMLs without the optional fields).
 				local repo_components="${DESKTOP_REPO_COMPONENTS:-main}"
-				cat > "/etc/apt/sources.list.d/${de}.list" <<- EOF
-				deb [signed-by=${DESKTOP_REPO_KEYRING}] ${DESKTOP_REPO_URL} ${repo_suite} ${repo_components}
-				EOF
+				local sources_count="${DESKTOP_REPO_SUITES_COUNT:-1}"
+				local sources_file="/etc/apt/sources.list.d/${de}.list"
+				local sources_tmp="${sources_file}.tmp"
+				local i suite_var suite
+
+				if ! : > "$sources_tmp"; then
+					echo "Error: cannot create ${sources_tmp}" >&2
+					return 1
+				fi
+
+				for (( i=0; i < sources_count; i++ )); do
+					suite_var="DESKTOP_REPO_SUITE_${i}"
+					suite="${!suite_var:-${DISTROID}}"
+					if ! printf 'deb [signed-by=%s] %s %s %s\n' \
+						"$DESKTOP_REPO_KEYRING" "$DESKTOP_REPO_URL" \
+						"$suite" "$repo_components" >> "$sources_tmp"; then
+						echo "Error: failed to write sources list for ${de}" >&2
+						rm -f "$sources_tmp"
+						return 1
+					fi
+				done
+
+				if ! mv "$sources_tmp" "$sources_file"; then
+					echo "Error: failed to install ${sources_file}" >&2
+					rm -f "$sources_tmp"
+					return 1
+				fi
 
 				# Optional: APT pin preferences. Gated on the repo guard
 				# above so prefs can only land when the matching archive
