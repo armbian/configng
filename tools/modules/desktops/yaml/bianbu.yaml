@@ -29,18 +29,25 @@ repo:
 tiers:
   minimal:
     packages:
-      - bianbu-desktop
-      - bianbu-desktop-en
-      - bianbu-desktop-zh
+      # bare-bones DE + SpacemiT K1 hardware enablement
       - bianbu-desktop-minimal-en
-      - bianbu-standard
-      - bianbu-development
       - img-gpu-powervr
       - k1x-vpu-firmware
-      - k1x-cam
       - spacemit-uart-bt
       - spacemit-modules-usrload
       - opensbi-spacemit
+  mid:
+    packages:
+      # fuller desktop + optional camera stack
+      - bianbu-desktop
+      - bianbu-desktop-en
+      - bianbu-standard
+      - k1x-cam
+  full:
+    packages:
+      # extra locale + development tooling
+      - bianbu-desktop-zh
+      - bianbu-development
 
 releases:
   # Each snapshot fans out across five flavors (base, -security,
