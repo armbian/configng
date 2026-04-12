@@ -54,29 +54,44 @@ function module_desktop_repo() {
 				cat > "/etc/apt/sources.list.d/${de}.list" <<- EOF
 				deb [signed-by=${DESKTOP_REPO_KEYRING}] ${DESKTOP_REPO_URL} ${DISTROID} main
 				EOF
-			fi
 
-			# Optional: write APT pin preferences. Only the fields emitted
-			# by parse_desktop_yaml.py are trusted — no shell interpolation
-			# of raw YAML strings.
-			if [[ -n "${DESKTOP_REPO_PREFS_COUNT}" && "${DESKTOP_REPO_PREFS_COUNT}" -gt 0 ]]; then
-				local pref_file="/etc/apt/preferences.d/${de}"
-				: > "$pref_file"
-				local i origin_var suite_var prio_var origin suite prio
-				for (( i=0; i < DESKTOP_REPO_PREFS_COUNT; i++ )); do
-					origin_var="DESKTOP_REPO_PREFS_${i}_ORIGIN"
-					suite_var="DESKTOP_REPO_PREFS_${i}_SUITE"
-					prio_var="DESKTOP_REPO_PREFS_${i}_PRIORITY"
-					origin="${!origin_var}"
-					suite="${!suite_var}"
-					prio="${!prio_var}"
-					{
-						echo "Package: *"
-						echo "Pin: release o=${origin}, n=${suite}"
-						echo "Pin-Priority: ${prio}"
-						echo
-					} >> "$pref_file"
-				done
+				# Optional: APT pin preferences. Gated on the repo guard
+				# above so prefs can only land when the matching archive
+				# was actually configured. Written via temp + mv so a
+				# mid-write failure never leaves a truncated stanza that
+				# apt would misparse. Only fields emitted by
+				# parse_desktop_yaml.py are interpolated.
+				if [[ -n "${DESKTOP_REPO_PREFS_COUNT}" && "${DESKTOP_REPO_PREFS_COUNT}" -gt 0 ]]; then
+					local pref_file="/etc/apt/preferences.d/${de}"
+					local pref_tmp="${pref_file}.tmp"
+					local i origin_var suite_var prio_var origin suite prio
+
+					if ! : > "$pref_tmp"; then
+						echo "Error: cannot create ${pref_tmp}" >&2
+						return 1
+					fi
+
+					for (( i=0; i < DESKTOP_REPO_PREFS_COUNT; i++ )); do
+						origin_var="DESKTOP_REPO_PREFS_${i}_ORIGIN"
+						suite_var="DESKTOP_REPO_PREFS_${i}_SUITE"
+						prio_var="DESKTOP_REPO_PREFS_${i}_PRIORITY"
+						origin="${!origin_var}"
+						suite="${!suite_var}"
+						prio="${!prio_var}"
+						if ! printf 'Package: *\nPin: release o=%s, n=%s\nPin-Priority: %s\n\n' \
+							"$origin" "$suite" "$prio" >> "$pref_tmp"; then
+							echo "Error: failed to write preferences for ${de}" >&2
+							rm -f "$pref_tmp"
+							return 1
+						fi
+					done
+
+					if ! mv "$pref_tmp" "$pref_file"; then
+						echo "Error: failed to install ${pref_file}" >&2
+						rm -f "$pref_tmp"
+						return 1
+					fi
+				fi
 			fi
 		;;
 	esac
