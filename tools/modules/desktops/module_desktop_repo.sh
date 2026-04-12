@@ -90,8 +90,8 @@ function module_desktop_repo() {
 				# mid-write failure never leaves a truncated stanza that
 				# apt would misparse. Only fields emitted by
 				# parse_desktop_yaml.py are interpolated.
+				local pref_file="/etc/apt/preferences.d/${de}"
 				if [[ -n "${DESKTOP_REPO_PREFS_COUNT}" && "${DESKTOP_REPO_PREFS_COUNT}" -gt 0 ]]; then
-					local pref_file="/etc/apt/preferences.d/${de}"
 					local pref_tmp="${pref_file}.tmp"
 					local i origin_var suite_var prio_var origin suite prio
 
@@ -120,6 +120,12 @@ function module_desktop_repo() {
 						rm -f "$pref_tmp"
 						return 1
 					fi
+				else
+					# No pins in the current YAML: drop any stale pref
+					# file left by an earlier install whose YAML carried
+					# preferences. Install is declarative — post-state
+					# must match the YAML, whether pins are present or not.
+					rm -f "$pref_file"
 				fi
 			fi
 		;;
