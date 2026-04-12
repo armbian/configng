@@ -160,8 +160,31 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: ${{ steps.prompt.outputs.prompt }}
-          # Limit turns to prevent runaway conversations
-          claude_args: "--max-turns 30"
+          # acceptEdits: let Claude apply Edit/Write without prompting.
+          # allowed-tools: without an explicit list the action denies
+          # most tool calls — a prior run produced 3 permission denials
+          # and 0 edits. Include Bash(git:*) for read-only git inspection.
+          claude_args: >-
+            --max-turns 30
+            --permission-mode acceptEdits
+            --allowed-tools Edit,Write,Read,Glob,Grep,Bash(git:*)
+
+      - name: "Stash Claude execution log for diagnostics"
+        if: always() && steps.audit.outputs.actionable == 'true' && github.event.inputs.dry_run != 'true'
+        run: |
+          src="${RUNNER_TEMP}/claude-execution-output.json"
+          if [[ -f "$src" ]]; then
+            cp "$src" "${{ github.workspace }}/claude-execution-output.json"
+          fi
+
+      - name: "Upload Claude execution log"
+        if: always() && steps.audit.outputs.actionable == 'true' && github.event.inputs.dry_run != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-execution-output
+          path: ${{ github.workspace }}/claude-execution-output.json
+          if-no-files-found: ignore
+          retention-days: 30
 
       - name: "Clean up temp files before PR creation"
         if: |
@@ -170,7 +193,7 @@ jobs:
         run: |
           # Remove build artifacts and temp files so peter-evans
           # only commits the YAML changes Claude made.
-          rm -rf armbian-build audit-report.json claude-prompt.txt
+          rm -rf armbian-build audit-report.json claude-prompt.txt claude-execution-output.json
 
       - name: "Open / update pull request"
         if: |
