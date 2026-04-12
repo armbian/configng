@@ -50,16 +50,16 @@ jobs:
     name: "Desktop matrix audit"
     runs-on: ubuntu-latest
     steps:
+      # Checkout configng to the workspace root (no 'path:') so
+      # claude-code-action can find .git and run git config.
       - name: "Checkout configng"
         uses: actions/checkout@v4
-        with:
-          path: configng
 
       - name: "Checkout armbian/build"
         uses: actions/checkout@v4
         with:
           repository: armbian/build
-          path: build
+          path: armbian-build
           fetch-depth: 1
 
       - name: "Set up Python"
@@ -72,12 +72,11 @@ jobs:
 
       - name: "Run deterministic audit"
         id: audit
-        working-directory: configng
         run: |
           set -euo pipefail
           args=(
-            --build-repo "${{ github.workspace }}/build"
-            --configng-repo "${{ github.workspace }}/configng"
+            --build-repo "${{ github.workspace }}/armbian-build"
+            --configng-repo "${{ github.workspace }}"
             --output "${{ github.workspace }}/audit-report.json"
           )
           if [[ -n "${{ github.event.inputs.tier }}" ]]; then
@@ -134,7 +133,6 @@ jobs:
       - name: "Prepare Claude prompt"
         id: prompt
         if: steps.audit.outputs.actionable == 'true' && github.event.inputs.dry_run != 'true'
-        working-directory: configng
         run: |
           set -euo pipefail
           python3 tools/modules/desktops/github/audit_prompt.py \
@@ -171,7 +169,6 @@ jobs:
           github.event.inputs.dry_run != 'true'
         uses: peter-evans/create-pull-request@v6
         with:
-          path: configng
           branch: bot/desktop-matrix-audit
           delete-branch: true
           base: main
