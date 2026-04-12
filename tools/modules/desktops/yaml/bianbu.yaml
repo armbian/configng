@@ -35,7 +35,6 @@ tiers:
       - k1x-vpu-firmware
       - spacemit-uart-bt
       - spacemit-modules-usrload
-      - opensbi-spacemit
   mid:
     packages:
       # fuller desktop + optional camera stack
