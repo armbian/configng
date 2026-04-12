@@ -285,6 +285,14 @@ function module_desktops() {
 			fi
 			rm -f "$desktop_pkg_file" "/etc/armbian/desktop/${de}.tier"
 
+			# APT pin preferences written by module_desktop_repo apply
+			# to all packages on the system, not just the DE's — leaving
+			# the file behind would keep a third-party archive outranking
+			# the distro even after the DE is gone. Drop it on uninstall.
+			if [[ "$de" =~ ^[a-zA-Z0-9._-]+$ ]]; then
+				rm -f "/etc/apt/preferences.d/${de}"
+			fi
+
 			# Reclaim disk space: clear apt's downloaded .deb cache. A full
 			# DE removal frees hundreds of MB of installed files; the
 			# matching .deb archives in /var/cache/apt/archives are no

@@ -6,6 +6,19 @@ repo:
   url: "https://archive.spacemit.com/bianbu-ports"
   key_url: "https://archive.spacemit.com/bianbu-ports/bianbu-archive-keyring.gpg"
   keyring: "/usr/share/keyrings/bianbu-archive-keyring.gpg"
+  # APT pin preferences — SpacemiT's ported archive must outrank the
+  # distro archive for the K1 RISC-V platform bits. Priority >1000
+  # also allows downgrades from the distro to SpacemiT's version.
+  preferences:
+    - origin: Spacemit
+      suite: mantic-spacemit
+      priority: 1200
+    - origin: Spacemit
+      suite: mantic-porting
+      priority: 1100
+    - origin: Spacemit
+      suite: mantic-customization
+      priority: 1100
 
 tiers:
   minimal:

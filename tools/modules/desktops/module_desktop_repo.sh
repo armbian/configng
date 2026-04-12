@@ -55,6 +55,29 @@ function module_desktop_repo() {
 				deb [signed-by=${DESKTOP_REPO_KEYRING}] ${DESKTOP_REPO_URL} ${DISTROID} main
 				EOF
 			fi
+
+			# Optional: write APT pin preferences. Only the fields emitted
+			# by parse_desktop_yaml.py are trusted — no shell interpolation
+			# of raw YAML strings.
+			if [[ -n "${DESKTOP_REPO_PREFS_COUNT}" && "${DESKTOP_REPO_PREFS_COUNT}" -gt 0 ]]; then
+				local pref_file="/etc/apt/preferences.d/${de}"
+				: > "$pref_file"
+				local i origin_var suite_var prio_var origin suite prio
+				for (( i=0; i < DESKTOP_REPO_PREFS_COUNT; i++ )); do
+					origin_var="DESKTOP_REPO_PREFS_${i}_ORIGIN"
+					suite_var="DESKTOP_REPO_PREFS_${i}_SUITE"
+					prio_var="DESKTOP_REPO_PREFS_${i}_PRIORITY"
+					origin="${!origin_var}"
+					suite="${!suite_var}"
+					prio="${!prio_var}"
+					{
+						echo "Package: *"
+						echo "Pin: release o=${origin}, n=${suite}"
+						echo "Pin-Priority: ${prio}"
+						echo
+					} >> "$pref_file"
+				done
+			fi
 		;;
 	esac
 }
