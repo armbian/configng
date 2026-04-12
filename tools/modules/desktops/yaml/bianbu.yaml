@@ -44,10 +44,26 @@ tiers:
       - opensbi-spacemit
 
 releases:
+  # Each snapshot fans out across five flavors (base, -security,
+  # -updates, -porting, -customization) plus a floating bianbu-v<X>-
+  # updates channel. All six sources share url/keyring/components,
+  # only the suite path differs.
   noble:
     architectures: [riscv64]
-    repo_suite: "noble/snapshots/v2.2"
+    repo_suite:
+      - "noble/snapshots/v2.2"
+      - "noble-security/snapshots/v2.2"
+      - "noble-updates/snapshots/v2.2"
+      - "noble-porting/snapshots/v2.2"
+      - "noble-customization/snapshots/v2.2"
+      - "bianbu-v2.2-updates"
 
   resolute:
     architectures: [riscv64]
-    repo_suite: "resolute/snapshots/v3.0"
+    repo_suite:
+      - "resolute/snapshots/v3.0"
+      - "resolute-security/snapshots/v3.0"
+      - "resolute-updates/snapshots/v3.0"
+      - "resolute-porting/snapshots/v3.0"
+      - "resolute-customization/snapshots/v3.0"
+      - "bianbu-v3.0-updates"

@@ -47,7 +47,8 @@ Output (bash eval-friendly):
   DESKTOP_REPO_URL="..."       (optional, for custom repos)
   DESKTOP_REPO_KEY_URL="..."   (optional)
   DESKTOP_REPO_KEYRING="..."   (optional)
-  DESKTOP_REPO_SUITE="..."     (optional; defaults to the release codename)
+  DESKTOP_REPO_SUITES_COUNT="N" (optional; number of source lines to emit)
+  DESKTOP_REPO_SUITE_<n>="..."  (for n in 0..N-1)
   DESKTOP_REPO_COMPONENTS="..." (optional, space-separated; defaults to "main")
   DESKTOP_REPO_PREFS_COUNT="N" (optional; 0 when no APT pins)
   DESKTOP_REPO_PREFS_<n>_ORIGIN="..."   (for n in 0..N-1)
@@ -319,24 +320,38 @@ def parse_desktop(yaml_dir, de_name, release, arch, tier):
         print(f'DESKTOP_REPO_KEY_URL="{shell_escape(repo.get("key_url", ""))}"')
         print(f'DESKTOP_REPO_KEYRING="{shell_escape(repo.get("keyring", ""))}"')
 
-        # suite and components feed the `deb [...] <url> <suite> <components>`
-        # line. Resolution order: per-release override → repo default → the
-        # release codename (for suite) or `main` (for components). Both are
-        # regex-validated so nothing shell-weird reaches the source file;
-        # invalid values fall back to the defaults with a warning.
+        # suite and components feed one or more `deb [...] <url> <suite>
+        # <components>` lines. Resolution order: per-release override →
+        # repo default → the release codename (for suite) or `main` (for
+        # components). `repo.suite` / `releases.<r>.repo_suite` may be a
+        # string (one source line) or a list of strings (many source
+        # lines sharing url/keyring/components). Both suite and component
+        # entries are regex-validated so nothing shell-weird reaches the
+        # source file; invalid entries fall back to the defaults with a
+        # warning.
         _SUITE_RE = re.compile(r"^[A-Za-z0-9._/-]+$")
         _COMPONENT_RE = re.compile(r"^[A-Za-z0-9._-]+$")
 
-        raw_suite = release_data.get("repo_suite") or repo.get("suite") or release
-        raw_suite = str(raw_suite).strip()
-        if _SUITE_RE.match(raw_suite):
-            suite = raw_suite
+        raw_suites_src = release_data.get("repo_suite", repo.get("suite"))
+        if raw_suites_src is None:
+            raw_suites = [release]
+        elif isinstance(raw_suites_src, list):
+            raw_suites = raw_suites_src
         else:
-            print(
-                f"Warning: invalid repo suite {raw_suite!r} for {de_name}, using {release!r}",
-                file=sys.stderr,
-            )
-            suite = release
+            raw_suites = [raw_suites_src]
+
+        suites = []
+        for s in raw_suites:
+            s = str(s).strip()
+            if s and _SUITE_RE.match(s):
+                suites.append(s)
+            else:
+                print(
+                    f"Warning: ignoring invalid repo suite {s!r} for {de_name}",
+                    file=sys.stderr,
+                )
+        if not suites:
+            suites = [release]
 
         raw_components = (
             _as_list(release_data.get("repo_components"))
@@ -356,7 +371,9 @@ def parse_desktop(yaml_dir, de_name, release, arch, tier):
         if not components:
             components = ["main"]
 
-        print(f'DESKTOP_REPO_SUITE="{shell_escape(suite)}"')
+        print(f'DESKTOP_REPO_SUITES_COUNT="{len(suites)}"')
+        for i, s in enumerate(suites):
+            print(f'DESKTOP_REPO_SUITE_{i}="{shell_escape(s)}"')
         print(f'DESKTOP_REPO_COMPONENTS="{shell_escape(" ".join(components))}"')
 
         # Optional APT pin preferences written to /etc/apt/preferences.d/<de>.
