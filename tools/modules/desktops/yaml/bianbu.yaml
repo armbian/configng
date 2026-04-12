@@ -42,8 +42,6 @@ tiers:
       - spacemit-uart-bt
       - spacemit-modules-usrload
       - opensbi-spacemit
-      - u-boot-spacemit
-      - linux-image-6.1.15
 
 releases:
   noble:
