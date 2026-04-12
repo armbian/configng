@@ -3,7 +3,13 @@ description: "Bianbu - SpacemiT RISC-V desktop"
 display_manager: none
 status: unsupported
 repo:
-  url: "https://archive.spacemit.com/bianbu-ports"
+  # SpacemiT's K1 RISC-V archive is a frozen per-release snapshot — the
+  # suite path encodes the snapshot version (v2.2 on noble, v3.0 on
+  # resolute), so the per-release `repo_suite` override below carries
+  # that piece. Components are wider than the default `[main]` because
+  # SpacemiT mirrors all four Ubuntu components.
+  url: "https://archive.spacemit.com/bianbu/"
+  components: [main, universe, restricted, multiverse]
   key_url: "https://archive.spacemit.com/bianbu-ports/bianbu-archive-keyring.gpg"
   keyring: "/usr/share/keyrings/bianbu-archive-keyring.gpg"
   # APT pin preferences — SpacemiT's ported archive must outrank the
@@ -42,6 +48,8 @@ tiers:
 releases:
   noble:
     architectures: [riscv64]
+    repo_suite: "noble/snapshots/v2.2"
 
-  plucky:
+  resolute:
     architectures: [riscv64]
+    repo_suite: "resolute/snapshots/v3.0"

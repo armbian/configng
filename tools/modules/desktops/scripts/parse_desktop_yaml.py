@@ -47,6 +47,8 @@ Output (bash eval-friendly):
   DESKTOP_REPO_URL="..."       (optional, for custom repos)
   DESKTOP_REPO_KEY_URL="..."   (optional)
   DESKTOP_REPO_KEYRING="..."   (optional)
+  DESKTOP_REPO_SUITE="..."     (optional; defaults to the release codename)
+  DESKTOP_REPO_COMPONENTS="..." (optional, space-separated; defaults to "main")
   DESKTOP_REPO_PREFS_COUNT="N" (optional; 0 when no APT pins)
   DESKTOP_REPO_PREFS_<n>_ORIGIN="..."   (for n in 0..N-1)
   DESKTOP_REPO_PREFS_<n>_SUITE="..."
@@ -55,6 +57,7 @@ Output (bash eval-friendly):
 
 import sys
 import os
+import re
 import yaml
 
 
@@ -315,6 +318,46 @@ def parse_desktop(yaml_dir, de_name, release, arch, tier):
         print(f'DESKTOP_REPO_URL="{shell_escape(repo.get("url", ""))}"')
         print(f'DESKTOP_REPO_KEY_URL="{shell_escape(repo.get("key_url", ""))}"')
         print(f'DESKTOP_REPO_KEYRING="{shell_escape(repo.get("keyring", ""))}"')
+
+        # suite and components feed the `deb [...] <url> <suite> <components>`
+        # line. Resolution order: per-release override → repo default → the
+        # release codename (for suite) or `main` (for components). Both are
+        # regex-validated so nothing shell-weird reaches the source file;
+        # invalid values fall back to the defaults with a warning.
+        _SUITE_RE = re.compile(r"^[A-Za-z0-9._/-]+$")
+        _COMPONENT_RE = re.compile(r"^[A-Za-z0-9._-]+$")
+
+        raw_suite = release_data.get("repo_suite") or repo.get("suite") or release
+        raw_suite = str(raw_suite).strip()
+        if _SUITE_RE.match(raw_suite):
+            suite = raw_suite
+        else:
+            print(
+                f"Warning: invalid repo suite {raw_suite!r} for {de_name}, using {release!r}",
+                file=sys.stderr,
+            )
+            suite = release
+
+        raw_components = (
+            _as_list(release_data.get("repo_components"))
+            or _as_list(repo.get("components"))
+            or ["main"]
+        )
+        components = []
+        for c in raw_components:
+            c = str(c).strip()
+            if c and _COMPONENT_RE.match(c):
+                components.append(c)
+            else:
+                print(
+                    f"Warning: ignoring invalid repo component {c!r} for {de_name}",
+                    file=sys.stderr,
+                )
+        if not components:
+            components = ["main"]
+
+        print(f'DESKTOP_REPO_SUITE="{shell_escape(suite)}"')
+        print(f'DESKTOP_REPO_COMPONENTS="{shell_escape(" ".join(components))}"')
 
         # Optional APT pin preferences written to /etc/apt/preferences.d/<de>.
         # Each entry must be a mapping with origin + suite + priority. The
