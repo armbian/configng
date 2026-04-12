@@ -47,7 +47,12 @@ import sys
 import time
 from pathlib import Path
 
-DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
+# Haiku 4.5 has an 80k tokens/min rate limit on the lowest API tier
+# vs Sonnet's 10k — so the per-minute throttle barely fires at all.
+# The audit task (read YAMLs, apply a clear rubric, write minimal
+# edits) is well within Haiku's capability. Switch to Sonnet only
+# when the findings are complex enough to need stronger reasoning.
+DEFAULT_MODEL = "claude-haiku-4-5-20251001"
 DEFAULT_MAX_TOKENS = 50_000
 
 SYSTEM_PROMPT = """\
@@ -333,7 +338,7 @@ def run_claude(*, client, model, max_tokens, system_prompt, user_prompt,
             # than that.
             if token_window:
                 last_call_age = now - token_window[-1][0]
-                wait = max(0.0, 60.5 - last_call_age)
+                wait = max(0.0, 65.0 - last_call_age)
                 if wait > 0:
                     info(f"throttling: next call ~{projected_next} tokens "
                          f">= per-minute budget {INPUT_TOKEN_BUDGET_PER_MINUTE}, "
@@ -341,7 +346,7 @@ def run_claude(*, client, model, max_tokens, system_prompt, user_prompt,
                     time.sleep(wait)
         elif window_total + projected_next > INPUT_TOKEN_BUDGET_PER_MINUTE and token_window:
             oldest = token_window[0][0]
-            wait = max(0.0, 60.0 - (now - oldest)) + 0.5
+            wait = max(0.0, 65.0 - (now - oldest))
             info(f"throttling: window has {window_total} input tokens, "
                  f"next call ~{projected_next}, sleeping {wait:.1f}s")
             time.sleep(wait)
