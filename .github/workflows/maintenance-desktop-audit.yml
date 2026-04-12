@@ -163,6 +163,15 @@ jobs:
           # Limit turns to prevent runaway conversations
           claude_args: "--max-turns 30"
 
+      - name: "Clean up temp files before PR creation"
+        if: |
+          steps.audit.outputs.actionable == 'true' &&
+          github.event.inputs.dry_run != 'true'
+        run: |
+          # Remove build artifacts and temp files so peter-evans
+          # only commits the YAML changes Claude made.
+          rm -rf armbian-build audit-report.json claude-prompt.txt
+
       - name: "Open / update pull request"
         if: |
           steps.audit.outputs.actionable == 'true' &&
@@ -172,6 +181,7 @@ jobs:
           branch: bot/desktop-matrix-audit
           delete-branch: true
           base: main
+          add-paths: tools/modules/desktops/yaml/*
           commit-message: |
             desktops: weekly matrix audit fixes (bot)
 
