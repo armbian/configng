@@ -10,7 +10,7 @@ repo:
   # SpacemiT mirrors all four Ubuntu components.
   url: "https://archive.spacemit.com/bianbu/"
   components: [main, universe, restricted, multiverse]
-  key_url: "https://archive.spacemit.com/bianbu-ports/bianbu-archive-keyring.gpg"
+  key_url: "https://archive.spacemit.com/bianbu/bianbu-archive-keyring.gpg"
   keyring: "/usr/share/keyrings/bianbu-archive-keyring.gpg"
   # APT pin preferences — SpacemiT's ported archive must outrank the
   # distro archive for the K1 RISC-V platform bits. Priority >1000
