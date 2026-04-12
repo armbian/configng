@@ -182,7 +182,7 @@ jobs:
             via Claude Code based on the deterministic findings of
             tools/modules/desktops/github/audit.py.
           title: "desktops: weekly matrix audit fixes (bot)"
-          body: ${{ steps.claude.outputs.conclusion }}
+          body: ${{ steps.claude.outputs.structured_output }}
           labels: |
             bot
             desktops
