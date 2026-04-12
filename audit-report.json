@@ -1,0 +1,209 @@
+{
+  "scanned_releases": [
+    "bookworm",
+    "noble",
+    "plucky",
+    "trixie"
+  ],
+  "build_distributions": {
+    "bookworm": {
+      "name": "Debian 12 Bookworm",
+      "support": "csc",
+      "architectures": [
+        "arm64",
+        "armhf",
+        "amd64"
+      ]
+    },
+    "bullseye": {
+      "name": "Debian 11 Bullseye",
+      "support": "eos",
+      "architectures": [
+        "arm64",
+        "armhf",
+        "amd64"
+      ]
+    },
+    "buster": {
+      "name": "Debian 10 Buster",
+      "support": "eos",
+      "architectures": [
+        "arm64",
+        "armhf",
+        "amd64"
+      ]
+    },
+    "focal": {
+      "name": "Ubuntu Focal 20.04 LTS",
+      "support": "eos",
+      "architectures": [
+        "arm64",
+        "armhf",
+        "amd64"
+      ]
+    },
+    "forky": {
+      "name": "Debian 14 Forky",
+      "support": "csc",
+      "architectures": [
+        "arm64",
+        "armhf",
+        "riscv64",
+        "amd64"
+      ]
+    },
+    "jammy": {
+      "name": "Ubuntu jammy 22.04 LTS",
+      "support": "csc",
+      "architectures": [
+        "arm64",
+        "armhf",
+        "riscv64",
+        "amd64"
+      ]
+    },
+    "noble": {
+      "name": "Ubuntu noble 24.04",
+      "support": "supported",
+      "architectures": [
+        "arm64",
+        "armhf",
+        "riscv64",
+        "amd64"
+      ]
+    },
+    "oracular": {
+      "name": "Ubuntu oracular 24.10",
+      "support": "eos",
+      "architectures": [
+        "arm64",
+        "armhf",
+        "riscv64",
+        "amd64"
+      ]
+    },
+    "plucky": {
+      "name": "Ubuntu plucky 25.04",
+      "support": "csc",
+      "architectures": [
+        "arm64",
+        "armhf",
+        "riscv64",
+        "amd64"
+      ]
+    },
+    "questing": {
+      "name": "Ubuntu questing 25.10",
+      "support": "csc",
+      "architectures": [
+        "arm64",
+        "armhf",
+        "riscv64",
+        "amd64"
+      ]
+    },
+    "resolute": {
+      "name": "Ubuntu resolute 26.04",
+      "support": "csc",
+      "architectures": [
+        "arm64",
+        "armhf",
+        "riscv64",
+        "amd64"
+      ]
+    },
+    "sid": {
+      "name": "Debian 13 Sid",
+      "support": "csc",
+      "architectures": [
+        "arm64",
+        "armhf",
+        "riscv64",
+        "amd64",
+        "loong64"
+      ]
+    },
+    "trixie": {
+      "name": "Debian 13 Trixie",
+      "support": "supported",
+      "architectures": [
+        "arm64",
+        "armhf",
+        "riscv64",
+        "amd64"
+      ]
+    }
+  },
+  "missing_releases": [
+    {
+      "release": "forky",
+      "support_status": "csc",
+      "name": "Debian 14 Forky",
+      "architectures": [
+        "arm64",
+        "armhf",
+        "riscv64",
+        "amd64"
+      ]
+    },
+    {
+      "release": "jammy",
+      "support_status": "csc",
+      "name": "Ubuntu jammy 22.04 LTS",
+      "architectures": [
+        "arm64",
+        "armhf",
+        "riscv64",
+        "amd64"
+      ]
+    },
+    {
+      "release": "questing",
+      "support_status": "csc",
+      "name": "Ubuntu questing 25.10",
+      "architectures": [
+        "arm64",
+        "armhf",
+        "riscv64",
+        "amd64"
+      ]
+    },
+    {
+      "release": "resolute",
+      "support_status": "csc",
+      "name": "Ubuntu resolute 26.04",
+      "architectures": [
+        "arm64",
+        "armhf",
+        "riscv64",
+        "amd64"
+      ]
+    },
+    {
+      "release": "sid",
+      "support_status": "csc",
+      "name": "Debian 13 Sid",
+      "architectures": [
+        "arm64",
+        "armhf",
+        "riscv64",
+        "amd64",
+        "loong64"
+      ]
+    }
+  ],
+  "package_holes": [],
+  "skipped_desktops": [
+    "bianbu",
+    "budgie",
+    "deepin",
+    "kde-neon"
+  ],
+  "stats": {
+    "desktops": 8,
+    "skipped_desktops": 4,
+    "scope": 39,
+    "holes": 0,
+    "package_lookups": 1300
+  }
+}

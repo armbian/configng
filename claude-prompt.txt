@@ -1,0 +1,148 @@
+You are an Armbian configng maintainer. You're auditing the desktop
+YAML matrix in tools/modules/desktops/yaml/ for two kinds of problems:
+
+1. Package holes — packages that the resolved DESKTOP_PACKAGES set
+   names, but that don't actually exist in the upstream Debian/Ubuntu
+   archive for the requested (release, arch). When the install runs,
+   apt fails with "E: Unable to locate package <name>".
+
+2. Missing releases — releases that armbian/build supports but no DE
+   YAML has a release block for. These desktops can't be installed on
+   those releases at all.
+
+Your job is to propose minimal YAML edits that fix ALL the audit
+findings without breaking the existing matrix. Specifically:
+
+- Address EVERY missing release in the report, not just one. Each
+  missing release needs a release block added to every supported DE
+  YAML (the ones with `status: supported`, currently: xfce, gnome,
+  mate, cinnamon, kde-plasma, i3-wm, xmonad, enlightenment).
+
+- For package holes, prefer adding entries to common.yaml's
+  tier_overrides block (one place, applies to every DE) rather than
+  duplicating the same removal in every per-DE YAML. Use the per-
+  release-per-arch nesting (`tier_overrides.<tier>.releases.<release>.
+  architectures.<arch>.packages_remove`) for transient holes; use the
+  per-arch nesting (`tier_overrides.<tier>.architectures.<arch>.
+  packages_remove`) for permanent arch-wide holes.
+
+- For missing releases, add a release block to each currently-
+  supported DE YAML (the ones with `status: supported`). Copy the
+  shape from an existing release block (e.g. trixie or noble) and
+  adjust per-release deltas only when needed.
+
+- Always add a comment explaining WHY a hole exists. Future readers
+  should be able to tell whether the entry is a transient archive
+  hole (that may go away in a later release) or a permanent
+  upstream-port limitation.
+
+- Never edit YAML files outside tools/modules/desktops/yaml/.
+  Also update common.yaml's browser map if a new release needs
+  browser entries.
+
+- Preserve the existing tab/space indentation style. The YAML files
+  use 2-space indentation; do not introduce tabs.
+
+- When you finish, provide a summary of what you changed and why.
+
+---
+
+# Desktop matrix audit report
+
+The deterministic audit script (tools/modules/desktops/github/audit.py)
+just ran against the current state of tools/modules/desktops/yaml/ and
+the list of supported releases in armbian/build's config/distributions/.
+Here's what it found.
+
+## Package holes (0 total)
+
+These are packages that the resolved DESKTOP_PACKAGES set lists but
+that don't exist in the upstream archive for that (release, arch).
+The install would fail with `E: Unable to locate package` if it ran.
+
+```json
+[]
+```
+
+## Missing releases (5 total)
+
+These releases are listed in armbian/build's config/distributions/
+with a non-EOS status, but no DE YAML has a release block for them.
+Desktops can't be installed on these releases until we add coverage.
+
+```json
+[
+  {
+    "release": "forky",
+    "support_status": "csc",
+    "name": "Debian 14 Forky",
+    "architectures": [
+      "arm64",
+      "armhf",
+      "riscv64",
+      "amd64"
+    ]
+  },
+  {
+    "release": "jammy",
+    "support_status": "csc",
+    "name": "Ubuntu jammy 22.04 LTS",
+    "architectures": [
+      "arm64",
+      "armhf",
+      "riscv64",
+      "amd64"
+    ]
+  },
+  {
+    "release": "questing",
+    "support_status": "csc",
+    "name": "Ubuntu questing 25.10",
+    "architectures": [
+      "arm64",
+      "armhf",
+      "riscv64",
+      "amd64"
+    ]
+  },
+  {
+    "release": "resolute",
+    "support_status": "csc",
+    "name": "Ubuntu resolute 26.04",
+    "architectures": [
+      "arm64",
+      "armhf",
+      "riscv64",
+      "amd64"
+    ]
+  },
+  {
+    "release": "sid",
+    "support_status": "csc",
+    "name": "Debian 13 Sid",
+    "architectures": [
+      "arm64",
+      "armhf",
+      "riscv64",
+      "amd64",
+      "loong64"
+    ]
+  }
+]
+```
+
+## Stats
+
+- 8 DE YAMLs scanned
+- 39 (release, arch) combinations in scope
+- 1300 package availability checks performed
+
+## What I want from you
+
+Read the existing YAML files first to understand the current pattern,
+then make the edits. Address ALL missing releases and ALL package holes
+in a single pass. When done, provide a clear summary listing every
+file you changed and why.
+
+If there are no holes and no missing releases, say so explicitly
+and don't make any edits.
