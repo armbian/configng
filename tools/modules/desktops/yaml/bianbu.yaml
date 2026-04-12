@@ -35,7 +35,6 @@ tiers:
       - bianbu-desktop-minimal-en
       - bianbu-standard
       - bianbu-development
-      - bianbu-esos
       - img-gpu-powervr
       - k1x-vpu-firmware
       - k1x-cam
