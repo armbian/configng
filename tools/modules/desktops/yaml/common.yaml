@@ -46,6 +46,7 @@ tiers:
       - vlc                  # media player
       - file-roller          # archive manager
       - transmission-gtk     # torrent client
+      - armbian-imager       # SD-card image flasher (from apt.armbian.com)
 
   full:
     packages:
@@ -231,42 +232,28 @@ tier_overrides:
         architectures:
           armhf:  { packages_remove: [thunderbird] }
       noble:
-        # thunderbird on Ubuntu is a snap-shim that only exists on
-        # amd64/arm64; the deb is missing on armhf and riscv64.
-        # We strip it on EVERY arch on Ubuntu because the shim
-        # requires snapd which Armbian doesn't ship.
+        # Ubuntu's thunderbird .deb on amd64/arm64 is a snap-shim
+        # wrapper, but apt.armbian.com hosts a real thunderbird .deb
+        # for those arches that wins by version. armhf and riscv64
+        # have no upstream Ubuntu deb at all and we don't (yet) ship
+        # them via apt.armbian.com — strip on those arches only.
         architectures:
-          amd64:    { packages_remove: [thunderbird] }
-          arm64:    { packages_remove: [thunderbird] }
           armhf:    { packages_remove: [thunderbird] }
           riscv64:  { packages_remove: [thunderbird] }
       plucky:
         architectures:
-          amd64:    { packages_remove: [thunderbird] }
-          arm64:    { packages_remove: [thunderbird] }
           armhf:    { packages_remove: [thunderbird] }
           riscv64:  { packages_remove: [thunderbird] }
       jammy:
-        # thunderbird on Ubuntu 22.04 (jammy) was migrated to a
-        # snap-shim deb; Armbian doesn't ship snapd so the shim is
-        # broken at runtime. Strip it on all arches, same as noble/plucky.
         architectures:
-          amd64:    { packages_remove: [thunderbird] }
-          arm64:    { packages_remove: [thunderbird] }
           armhf:    { packages_remove: [thunderbird] }
           riscv64:  { packages_remove: [thunderbird] }
       questing:
-        # Same snap-shim situation as noble/plucky.
         architectures:
-          amd64:    { packages_remove: [thunderbird] }
-          arm64:    { packages_remove: [thunderbird] }
           armhf:    { packages_remove: [thunderbird] }
           riscv64:  { packages_remove: [thunderbird] }
       resolute:
-        # Same snap-shim situation as noble/plucky.
         architectures:
-          amd64:    { packages_remove: [thunderbird] }
-          arm64:    { packages_remove: [thunderbird] }
           armhf:    { packages_remove: [thunderbird] }
           riscv64:  { packages_remove: [thunderbird] }
       forky:
