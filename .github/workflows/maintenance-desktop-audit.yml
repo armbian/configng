@@ -199,7 +199,7 @@ jobs:
         if: |
           steps.audit.outputs.actionable == 'true' &&
           github.event.inputs.dry_run != 'true'
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           branch: bot/desktop-matrix-audit
           delete-branch: true
