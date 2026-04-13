@@ -47,15 +47,6 @@ releases:
       - pkexec
       - libu2f-udev
 
-  plucky:
-    architectures: [arm64, amd64, armhf, riscv64]
-    packages:
-      - polkitd
-      - pkexec
-      - libu2f-udev
-
-  # ── Debian 14 / Debian Sid ─────────────────────────────────────────
-
   forky:
     # Debian 14 — pipewire replaces pulseaudio (same as trixie).
     architectures: [arm64, amd64, armhf, riscv64]
@@ -88,14 +79,6 @@ releases:
   jammy:
     # Ubuntu 22.04 LTS — polkit split available via SRU;
     # pulseaudio remains default on jammy.
-    architectures: [arm64, amd64, armhf, riscv64]
-    packages:
-      - polkitd
-      - pkexec
-      - libu2f-udev
-
-  questing:
-    # Ubuntu 25.10 — same as plucky.
     architectures: [arm64, amd64, armhf, riscv64]
     packages:
       - polkitd

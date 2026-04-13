@@ -86,19 +86,6 @@ releases:
     packages_uninstall:
       - ubuntu-session
 
-  plucky:
-    architectures: [arm64, amd64]
-    packages:
-      - polkitd
-      - pkexec
-      - libu2f-udev
-    packages_remove:
-      - pavumeter
-    packages_uninstall:
-      - ubuntu-session
-
-  # ── Debian 14 / Debian Sid ─────────────────────────────────────────
-
   forky:
     # Debian 14 — pipewire replaces pulseaudio (same as trixie).
     architectures: [arm64, amd64]
@@ -136,19 +123,6 @@ releases:
       - polkitd
       - pkexec
       - libu2f-udev
-    packages_uninstall:
-      - ubuntu-session
-
-  questing:
-    # Ubuntu 25.10 — same as plucky; pavumeter absent from archive.
-    architectures: [arm64, amd64]
-    packages:
-      - polkitd
-      - pkexec
-      - libu2f-udev
-    packages_remove:
-      # pavumeter was dropped from Ubuntu in plucky and stays absent.
-      - pavumeter
     packages_uninstall:
       - ubuntu-session
 
