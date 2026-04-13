@@ -82,8 +82,8 @@ tiers:
 #     arm/riscv builds, so this is amd64-only).
 #   - 'chromium' isn't built for riscv64 in either Debian or Ubuntu.
 #
-# Verified against Debian bookworm/trixie, Ubuntu noble/plucky, and
-# apt.armbian.com as of 2026-04. Update this map when new releases
+# Verified against Debian bookworm/trixie, Ubuntu jammy/noble/resolute,
+# and apt.armbian.com as of 2026-04. Update this map when new releases
 # ship or when an arch dependency changes.
 browser:
   bookworm:
@@ -101,20 +101,9 @@ browser:
     arm64:   chromium        # apt.armbian.com real .deb (Ubuntu's is snap-shim)
     armhf:   chromium
     riscv64: firefox          # apt.armbian.com real .deb
-  plucky:
-    amd64:   google-chrome-stable
-    arm64:   chromium
-    armhf:   chromium
-    riscv64: firefox
   jammy:
     # Ubuntu 22.04 LTS — chromium / firefox apt names on Ubuntu are
     # snap-shims; apt.armbian.com hosts real .debs of the same name.
-    amd64:   google-chrome-stable
-    arm64:   chromium
-    armhf:   chromium
-    riscv64: firefox
-  questing:
-    # Ubuntu 25.10
     amd64:   google-chrome-stable
     arm64:   chromium
     armhf:   chromium
@@ -199,11 +188,6 @@ tier_overrides:
           amd64:  { packages_remove: [loupe] }
           arm64:  { packages_remove: [loupe] }
           armhf:  { packages_remove: [loupe] }
-      plucky:
-        # loupe in plucky was dropped on armhf (GNOME 48 didn't ship
-        # an armhf build for it). Other arches still have it.
-        architectures:
-          armhf:  { packages_remove: [loupe] }
       jammy:
         # loupe was introduced with GNOME 44/45; Ubuntu 22.04 (jammy)
         # shipped GNOME 42 and has no loupe package on any arch.
@@ -212,13 +196,8 @@ tier_overrides:
           arm64:    { packages_remove: [loupe] }
           armhf:    { packages_remove: [loupe] }
           riscv64:  { packages_remove: [loupe] }
-      questing:
-        # loupe on armhf continues to be absent in questing — no GNOME
-        # armhf build for loupe, same gap as plucky.
-        architectures:
-          armhf:  { packages_remove: [loupe] }
       resolute:
-        # Same loupe/armhf gap as questing.
+        # loupe/armhf still missing — no GNOME armhf build.
         architectures:
           armhf:  { packages_remove: [loupe] }
   full:
@@ -240,15 +219,7 @@ tier_overrides:
         architectures:
           armhf:    { packages_remove: [thunderbird] }
           riscv64:  { packages_remove: [thunderbird] }
-      plucky:
-        architectures:
-          armhf:    { packages_remove: [thunderbird] }
-          riscv64:  { packages_remove: [thunderbird] }
       jammy:
-        architectures:
-          armhf:    { packages_remove: [thunderbird] }
-          riscv64:  { packages_remove: [thunderbird] }
-      questing:
         architectures:
           armhf:    { packages_remove: [thunderbird] }
           riscv64:  { packages_remove: [thunderbird] }

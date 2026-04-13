@@ -56,5 +56,3 @@ releases:
   noble:
     architectures: [arm64, amd64]
 
-  plucky:
-    architectures: [arm64, amd64]
