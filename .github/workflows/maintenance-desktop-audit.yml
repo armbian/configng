@@ -53,10 +53,10 @@ jobs:
       # Checkout configng to the workspace root (no 'path:') so
       # claude-code-action can find .git and run git config.
       - name: "Checkout configng"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: "Checkout armbian/build"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: armbian/build
           path: armbian-build
