@@ -54,7 +54,7 @@
                             "short": "Device Tree Overlays",
                             "module": "module_generic",
                             "command": [
-                                "manage_dtoverlays"
+                                "module_devicetree_overlays"
                             ],
                             "status": "Stable",
                             "author": "@viraniac @igorpecovnik",
