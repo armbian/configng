@@ -5,11 +5,16 @@ module_options+=(
 ["module_devicetree_overlays,ref_link"]=""
 ["module_devicetree_overlays,feature"]="module_devicetree_overlays"
 ["module_devicetree_overlays,desc"]="Enable/disable device tree overlays"
-["module_devicetree_overlays,example"]="install overlays=uart3,spi-spidev"
+["module_devicetree_overlays,example"]="install remove edit show help"
 ["module_devicetree_overlays,status"]="Active"
 ["module_devicetree_overlays,group"]="Kernel"
 ["module_devicetree_overlays,port"]=""
 ["module_devicetree_overlays,arch"]="aarch64 armhf riscv64"
+["module_devicetree_overlays,help_install"]="Add overlays to the boot config (overlays=foo,bar — comma delimited)"
+["module_devicetree_overlays,help_remove"]="Remove overlays from the boot config (overlays=foo,bar — comma delimited)"
+["module_devicetree_overlays,help_edit"]="Interactive TUI for toggling overlays (default action)"
+["module_devicetree_overlays,help_show"]="List currently-enabled overlays"
+["module_devicetree_overlays,help_help"]="Print this help"
 )
 #
 # @description Manage device tree overlays
@@ -28,49 +33,41 @@ function module_devicetree_overlays() {
 	local cmd="${1:-edit}"
 	shift || true
 
+	# Subcommand registry — order in module_options[*,example] defines
+	# the dispatch indices below. Update both together.
+	local commands
+	IFS=' ' read -r -a commands <<< "${module_options["module_devicetree_overlays,example"]}"
+
 	case "$cmd" in
-		help)
-			_dt_overlays_help
-			return 0
-		;;
-		edit)
-			_dt_overlays_edit
-		;;
-		install)
+		"${commands[0]}")
+			# install
 			_dt_overlays_install "$@"
 		;;
-		remove)
+		"${commands[1]}")
+			# remove
 			_dt_overlays_remove "$@"
 		;;
-		show)
+		"${commands[2]}")
+			# edit
+			_dt_overlays_edit
+		;;
+		"${commands[3]}")
+			# show
 			_dt_overlays_show
+		;;
+		"${commands[4]}")
+			# help
+			show_module_help "module_devicetree_overlays" "Device Tree Overlays" \
+				"Examples:\n  module_devicetree_overlays show\n  module_devicetree_overlays install overlays=uart3,spi-spidev\n  module_devicetree_overlays remove overlays=uart3\n  module_devicetree_overlays edit\n\nNotes:\n- install validates every name against the available .dtbo set;\n  if any name is unknown the whole batch is rejected.\n- remove silently skips names that are not currently enabled.\n- The boot config (/boot/armbianEnv.txt or /boot/firmware/config.txt)\n  is rewritten atomically and the previous version kept as <name>.bak." \
+				"native"
+			return 0
 		;;
 		*)
 			echo "Error: unknown subcommand '${cmd}'" >&2
-			_dt_overlays_help >&2
+			echo "Available: ${commands[*]}" >&2
 			return 1
 		;;
 	esac
-}
-
-function _dt_overlays_help() {
-	cat <<'EOF'
-Usage: module_devicetree_overlays                              (defaults to `edit`)
-       module_devicetree_overlays edit                         interactive TUI
-       module_devicetree_overlays install overlays=foo,bar     add overlays (idempotent)
-       module_devicetree_overlays remove  overlays=foo,bar     remove overlays (idempotent)
-       module_devicetree_overlays show                         list currently-enabled overlays
-       module_devicetree_overlays help                         this message
-
-Notes:
-- install/remove take a comma-delimited list via the overlays= arg.
-- install validates every name against the available .dtbo set on the
-  board; if any name is unknown the whole batch is rejected (no
-  partial commit).
-- remove silently skips names that are not currently enabled.
-- The boot config (/boot/armbianEnv.txt or /boot/firmware/config.txt)
-  is rewritten atomically and the previous version is kept as <name>.bak.
-EOF
 }
 
 #
