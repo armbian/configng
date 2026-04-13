@@ -162,8 +162,15 @@ function module_desktops() {
 				echo "Warning: '${de}' is not supported on ${DISTROID}/$(dpkg --print-architecture)" >&2
 			fi
 
-			# suppress interactive prompts
-			echo "encfs encfs/security-information boolean true" | debconf-set-selections 2>/dev/null || true
+			# Suppress interactive prompts. The `code` (Microsoft VSCode)
+			# postinst asks whether to add the Microsoft apt repository
+			# — say no, because apt.armbian.com already hosts code and
+			# adding the parallel Microsoft source would race against
+			# our pin on every apt-get update.
+			debconf-set-selections 2>/dev/null <<- 'EOF' || true
+			encfs encfs/security-information boolean true
+			code code/add-microsoft-repo boolean false
+			EOF
 
 			# set up custom repo if needed
 			if ! module_desktop_repo "$de"; then
