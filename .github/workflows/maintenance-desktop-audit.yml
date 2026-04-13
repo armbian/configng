@@ -147,7 +147,7 @@ jobs:
 
       - name: "Upload audit report"
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: audit-report
           path: ${{ github.workspace }}/audit-report.json
@@ -179,7 +179,7 @@ jobs:
 
       - name: "Upload Claude execution log"
         if: always() && steps.audit.outputs.actionable == 'true' && github.event.inputs.dry_run != 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: claude-execution-output
           path: ${{ github.workspace }}/claude-execution-output.json
