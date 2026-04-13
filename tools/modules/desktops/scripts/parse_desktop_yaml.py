@@ -177,23 +177,29 @@ def _apply_tier_overrides(packages, source, tier, release, arch):
         <tier>:
           architectures:
             <arch>:
+              packages: [...]          # add on this arch in any release
               packages_remove: [...]   # remove on this arch in any release
           releases:
             <release>:
               architectures:
                 <arch>:
+                  packages: [...]          # add on this release+arch combo
                   packages_remove: [...]   # remove on this release+arch combo
 
     Both layers are applied. Use the per-arch layer for permanent
-    arch-wide holes (e.g. blender always missing on armhf), and the
-    per-release-per-arch layer for transient holes (e.g. loupe missing
-    on bookworm because GNOME 43 didn't have it).
+    arch-wide additions/holes (e.g. google-chrome-stable always on
+    amd64, blender always missing on armhf), and the per-release-per-
+    arch layer for transient differences (e.g. loupe missing on
+    bookworm because GNOME 43 didn't have it).
     """
     tier_block = _as_dict(_as_dict(source.get("tier_overrides")).get(tier))
 
     # Per-arch (any release) layer.
     archs = _as_dict(tier_block.get("architectures"))
     arch_block = _as_dict(archs.get(arch))
+    for pkg in _as_list(arch_block.get("packages")):
+        if pkg not in packages:
+            packages.append(pkg)
     for pkg in _as_list(arch_block.get("packages_remove")):
         if pkg in packages:
             packages.remove(pkg)
@@ -203,6 +209,9 @@ def _apply_tier_overrides(packages, source, tier, release, arch):
     release_block = _as_dict(releases.get(release))
     release_archs = _as_dict(release_block.get("architectures"))
     release_arch_block = _as_dict(release_archs.get(arch))
+    for pkg in _as_list(release_arch_block.get("packages")):
+        if pkg not in packages:
+            packages.append(pkg)
     for pkg in _as_list(release_arch_block.get("packages_remove")):
         if pkg in packages:
             packages.remove(pkg)

@@ -55,6 +55,7 @@ tiers:
       - inkscape
       - thunderbird
       - audacity
+      - code                  # vscode (from apt.armbian.com)
 
 # Browser substitution table for the literal `browser` token in any
 # tier. The parser replaces `browser` with the right package per
@@ -74,68 +75,64 @@ tiers:
 #   - Debian has 'firefox-esr' but NO 'firefox' package.
 #   - Ubuntu's 'chromium' .deb is a snap-shim wrapper that pulls in
 #     snapd. Armbian doesn't ship snapd, so the shim is broken at
-#     runtime — substitute a real GTK browser instead.
-#     epiphany-browser (GNOME Web) is small, native deb, and
-#     available on every Ubuntu arch.
+#     runtime — apt.armbian.com hosts real .debs (chromium, firefox,
+#     google-chrome-stable) used in this map instead.
+#   - amd64 always gets google-chrome-stable (Google publishes no
+#     arm/riscv builds, so this is amd64-only).
 #   - 'chromium' isn't built for riscv64 in either Debian or Ubuntu.
 #
-# Verified against Debian bookworm/trixie and Ubuntu noble/plucky as
-# of 2026-04. Update this map when new releases ship or when an
-# arch dependency changes.
+# Verified against Debian bookworm/trixie, Ubuntu noble/plucky, and
+# apt.armbian.com as of 2026-04. Update this map when new releases
+# ship or when an arch dependency changes.
 browser:
   bookworm:
-    amd64:   chromium
+    amd64:   google-chrome-stable
     arm64:   chromium
     armhf:   chromium
     # bookworm has no riscv64 port — no entry needed
   trixie:
-    amd64:   chromium
+    amd64:   google-chrome-stable
     arm64:   chromium
     armhf:   chromium
     riscv64: firefox-esr     # 'firefox' does not exist in Debian
   noble:
-    amd64:   epiphany-browser    # 'chromium' deb is a snap-shim
-    arm64:   epiphany-browser
-    armhf:   epiphany-browser
-    riscv64: epiphany-browser    # 'chromium'/'firefox' both missing
+    amd64:   google-chrome-stable
+    arm64:   chromium        # apt.armbian.com real .deb (Ubuntu's is snap-shim)
+    armhf:   chromium
+    riscv64: firefox          # apt.armbian.com real .deb
   plucky:
-    amd64:   epiphany-browser
-    arm64:   epiphany-browser
-    armhf:   epiphany-browser
-    riscv64: epiphany-browser
+    amd64:   google-chrome-stable
+    arm64:   chromium
+    armhf:   chromium
+    riscv64: firefox
   jammy:
-    # Ubuntu 22.04 LTS — same snap-shim situation as noble; the
-    # 'chromium' deb just invokes snapd which Armbian doesn't ship.
-    # epiphany-browser is a real native deb available on all arches.
-    amd64:   epiphany-browser
-    arm64:   epiphany-browser
-    armhf:   epiphany-browser
-    riscv64: epiphany-browser
+    # Ubuntu 22.04 LTS — chromium / firefox apt names on Ubuntu are
+    # snap-shims; apt.armbian.com hosts real .debs of the same name.
+    amd64:   google-chrome-stable
+    arm64:   chromium
+    armhf:   chromium
+    riscv64: firefox
   questing:
-    # Ubuntu 25.10 — same snap-shim situation as noble/plucky.
-    amd64:   epiphany-browser
-    arm64:   epiphany-browser
-    armhf:   epiphany-browser
-    riscv64: epiphany-browser
+    # Ubuntu 25.10
+    amd64:   google-chrome-stable
+    arm64:   chromium
+    armhf:   chromium
+    riscv64: firefox
   resolute:
-    # Ubuntu 26.04 LTS — same snap-shim situation as noble/plucky.
-    amd64:   epiphany-browser
-    arm64:   epiphany-browser
-    armhf:   epiphany-browser
-    riscv64: epiphany-browser
+    # Ubuntu 26.04 LTS
+    amd64:   google-chrome-stable
+    arm64:   chromium
+    armhf:   chromium
+    riscv64: firefox
   forky:
-    # Debian 14 — same rules as trixie: 'firefox' is not a Debian
-    # package, only 'firefox-esr' exists; chromium is available for
-    # the three tier-1 arches.
-    amd64:   chromium
+    # Debian 14 — same rules as trixie.
+    amd64:   google-chrome-stable
     arm64:   chromium
     armhf:   chromium
     riscv64: firefox-esr     # 'firefox' does not exist in Debian
   sid:
     # Debian unstable — same rules as trixie/forky.
-    # loong64 gets firefox-esr because chromium is not yet built for
-    # this architecture in the Debian archive.
-    amd64:   chromium
+    amd64:   google-chrome-stable
     arm64:   chromium
     armhf:   chromium
     riscv64: firefox-esr     # 'firefox' does not exist in Debian
