@@ -9,56 +9,89 @@ module_options+=(
 ["manage_dtoverlays,status"]="Active"
 ["manage_dtoverlays,group"]="Kernel"
 ["manage_dtoverlays,port"]=""
-["manage_dtoverlays,arch"]="aarch64 armhf"
+["manage_dtoverlays,arch"]="aarch64 armhf riscv64"
 )
 #
 # @description Enable/disable device tree overlays
 #
-function manage_dtoverlays () {
-	# check if user agree to enter this area
+# Usage: manage_dtoverlays
+#        manage_dtoverlays help
+#
+# Edits /boot/armbianEnv.txt (or /boot/firmware/config.txt on
+# Raspberry Pi). The file is rewritten via temp + atomic mv and
+# the previous content is preserved as <name>.bak — on an SBC a
+# corrupted boot config is a brick, so the rewrite must be all-or-
+# nothing.
+#
+function manage_dtoverlays() {
+	local arg="${1:-}"
+
+	case "$arg" in
+		help)
+			echo "Usage: manage_dtoverlays"
+			echo "       manage_dtoverlays help"
+			echo ""
+			echo "Interactive TUI for enabling/disabling device tree overlays."
+			echo "Edits /boot/armbianEnv.txt or /boot/firmware/config.txt."
+			echo "Backs up the previous file as <name>.bak before each change"
+			echo "and writes the new content atomically."
+			return 0
+		;;
+	esac
+
 	local changes="false"
-	local overlayconf="/boot/armbianEnv.txt"
+	local pi_config="/boot/firmware/config.txt"
+	local armbian_env="/boot/armbianEnv.txt"
+	local boot_scr="/boot/boot.scr"
+	local is_pi="false"
+	local overlayconf overlaydir overlay_prefix
+
 	if [[ "${LINUXFAMILY}" == "bcm2711" ]]; then
-		# Raspberry Pi has different name
-		overlayconf="/boot/firmware/config.txt"
-		local overlaydir=$(find /boot/dtb/ -maxdepth 1 -type d \( -name "overlay" -o -name "overlays" \) | head -n1)
-		local overlay_prefix=$(awk -F= '/^overlay_prefix=/ {print $2}' "$overlayconf")
+		is_pi="true"
+		overlayconf="$pi_config"
+		overlaydir=$(find /boot/dtb/ -maxdepth 1 -type d \( -name "overlay" -o -name "overlays" \) 2>/dev/null | head -n1)
 	else
-		local overlaydir="$(find /boot/dtb/ -name overlay -and -type d)"
-		local overlay_prefix=$(awk -F"=" '/overlay_prefix/ {print $2}' $overlayconf)
-	fi
-	if [[ -z $(find "$overlaydir" -name "*$overlay_prefix*" 2>/dev/null) && "$LINUXFAMILY" != "bcm2711" ]]; then
-		echo "Invalid overlay_prefix $overlay_prefix"; exit 1
+		overlayconf="$armbian_env"
+		overlaydir=$(find /boot/dtb/ -name overlay -and -type d 2>/dev/null)
 	fi
 
-	[[ ! -f "${overlayconf}" || ! -d "${overlaydir}" ]] && echo -e "Incompatible OS configuration\nArmbian device tree configuration files not found" | show_message && return 1
+	# Anchored match — the previous unanchored form would also pick
+	# up keys like `something_overlay_prefix_FOO=`.
+	overlay_prefix=$(awk -F= '/^overlay_prefix=/ {print $2}' "$overlayconf" 2>/dev/null)
 
-	# check /boot/boot.scr scenario overlay(s)/${overlay_prefix}-${overlay_name}.dtbo
-	# or overlay(s)/${overlay_name}.dtbo.
-	# scenario:
-	# 00 - The /boot/boot.scr script cannot load the overlays provided by Armbian.
-	# 01 - It is possible to load only if the full name of the overlay is written.
-	# 10 - Loading is possible only if the overlay name is written without a prefix.
-	# 11 - Both spellings will be loaded.
+	if [[ "$is_pi" != "true" ]] && [[ -z $(find "$overlaydir" -name "*${overlay_prefix}*" 2>/dev/null) ]]; then
+		echo "Invalid overlay_prefix ${overlay_prefix}" >&2
+		return 1
+	fi
+
+	if [[ ! -f "$overlayconf" || ! -d "$overlaydir" ]]; then
+		echo -e "Incompatible OS configuration\nArmbian device tree configuration files not found" | show_message
+		return 1
+	fi
+
+	# Detect what spellings /boot/boot.scr will accept:
+	#   00 — overlays cannot be loaded by boot.scr
+	#   01 — only full name (with prefix) loads
+	#   10 — only short name (without prefix) loads
+	#   11 — both spellings load
+	local scenario
 	scenario=$(
 		awk 'BEGIN{p=0;s=0}
 			/load.*overlays?\/\${overlay_prefix}-\${overlay_file}.dtbo/{p=1}
 			/load.*overlays?\/\${overlay_file}.dtbo/{s=1}
 			END{print p s}
-		' /boot/boot.scr
+		' "$boot_scr" 2>/dev/null
 	)
 
 	while true; do
 		local options=()
-		j=0
+		local available_overlays=""
+		local builtin_overlays=""
 
-		if [[ "${scenario}" == "10" ]] || [[ "${scenario}" == "11" ]]; then
-			# read overlays
+		if [[ "$scenario" == "10" || "$scenario" == "11" ]]; then
 			available_overlays=$(
-				# Find the files that match the overlay prefix pattern.
-				# Remove the overlay prefix, file extension, and path
-				# in one pass. Sort it out.
-				find "${overlaydir}"/ -name "$overlay_prefix"'*.dtbo' 2>/dev/null | \
+				set -o pipefail
+				find "$overlaydir"/ -name "${overlay_prefix}*.dtbo" 2>/dev/null | \
 				awk -F'/' -v p="${overlay_prefix}-" '{
 					gsub(p, "", $NF)
 					gsub(".dtbo", "", $NF)
@@ -67,16 +100,16 @@ function manage_dtoverlays () {
 			)
 		fi
 
-		# Check the branch in case it is not available in /etc/armbian-release
+		# Refresh BRANCH from /etc/armbian-release for the rk3588 check below.
 		update_kernel_env
 
-		# Add support for rk3588 vendor kernel overlays which don't have overlay prefix mostly
-		builtin_overlays=""
-		if [[ "${scenario}" == "01" ]] || [[ "${scenario}" == "11" ]]; then
-
-			if [[ $BOARDFAMILY == "rockchip-rk3588" ]] && [[ $BRANCH == "vendor" ]]; then
+		# rk3588 vendor kernel ships overlays without the standard prefix;
+		# pick those up so they're selectable too.
+		if [[ "$scenario" == "01" || "$scenario" == "11" ]]; then
+			if [[ "$BOARDFAMILY" == "rockchip-rk3588" && "$BRANCH" == "vendor" ]]; then
 				builtin_overlays=$(
-					find "${overlaydir}"/ -name '*.dtbo' ! -name "$overlay_prefix"'*.dtbo' 2>/dev/null | \
+					set -o pipefail
+					find "$overlaydir"/ -name '*.dtbo' ! -name "${overlay_prefix}*.dtbo" 2>/dev/null | \
 					awk -F'/' -v p="${overlay_prefix}" '{
 						if ($0 !~ p) {
 							gsub(".dtbo", "", $NF)
@@ -87,65 +120,60 @@ function manage_dtoverlays () {
 			fi
 		fi
 
-		if [[ "${scenario}" == "00" ]]; then
+		if [[ "$scenario" == "00" ]]; then
 			dialog_yesno "Manage devicetree overlays" "    The overlays provided by Armbian cannot be loaded\n    by /boot/boot.scr script.\n" "Exit" "Cancel" 11 44
-				exit_status=$?
-			if [ $exit_status == 0 ]; then
-				exit 0
+			local exit_status=$?
+			if [[ "$exit_status" == 0 ]]; then
+				return 0
 			fi
 			break
 		fi
 
+		local overlay status candidate
 		for overlay in ${available_overlays} ${builtin_overlays}; do
-			local status="OFF"
-			grep '^overlays' ${overlayconf} | grep -qw ${overlay} && status=ON
+			status="OFF"
+			# grep -F: overlay names can contain '.' / '-' which sed/grep would
+			# otherwise treat as regex metacharacters; -w keeps word boundaries.
+			grep '^overlays=' "$overlayconf" | grep -qwF -- "$overlay" && status="ON"
 			# Raspberry Pi
-			grep '^dtoverlay' ${overlayconf} | grep -qw ${overlay} && status=ON
-			# handle case where overlay_prefix is part of overlay name
-			if [[ -n $overlay_prefix ]]; then
+			grep '^dtoverlay=' "$overlayconf" | grep -qwF -- "$overlay" && status="ON"
+			if [[ -n "$overlay_prefix" ]]; then
 				candidate="${overlay#$overlay_prefix}"
-				candidate="${candidate#'-'}" # remove any trailing hyphen
+				candidate="${candidate#-}"
 			else
 				candidate="$overlay"
 			fi
-			grep '^overlays' ${overlayconf} | grep -qw ${candidate} && status=ON
-			options+=( "$overlay" "" "$status")
+			grep '^overlays=' "$overlayconf" | grep -qwF -- "$candidate" && status="ON"
+			options+=( "$overlay" "" "$status" )
 		done
+
+		local selection
 		selection=$(dialog_checklist "Manage devicetree overlays" "\nUse <space> to toggle functions and save them.\nExit when you are done.\n\n    overlay_prefix=$overlay_prefix\n " 0 0 0 --cancel-button "Back" --ok-button "Save" -- "${options[@]}")
-		exit_status=$?
-		case $exit_status in
+		local exit_status=$?
+
+		case "$exit_status" in
 			0)
 				changes="true"
-				newoverlays=$(echo $selection | sed 's/"//g')
-				# handle case where overlay_prefix is part of overlay name
+				local newoverlays
+				newoverlays=$(echo "$selection" | sed 's/"//g')
+
+				# Strip the overlay_prefix from each selected name so the
+				# stored value matches what u-boot expects in armbianEnv.txt.
+				local -a ovs
 				IFS=' ' read -r -a ovs <<< "$newoverlays"
 				newoverlays=""
-				# remove prefix, if any
+				local ov
 				for ov in "${ovs[@]}"; do
-					if [[ -n $overlay_prefix && $ov == "$overlay_prefix"* ]]; then
+					if [[ -n "$overlay_prefix" && "$ov" == "$overlay_prefix"* ]]; then
 						ov="${ov#$overlay_prefix}"
 					fi
-					# remove '-' hyphen from beginning of ov, if any
 					ov="${ov#-}"
 					newoverlays+="$ov "
 				done
 				newoverlays="${newoverlays% }"
-				# Raspberry Pi
-				if [[ "${LINUXFAMILY}" == "bcm2711" ]]; then
-					# Remove any existing Armbian config block
-					if grep -q '^# Armbian config$' "$overlayconf"; then
-						sed -i '/^# Armbian config$/,$d' "$overlayconf"
-					fi
-					# Append fresh marker and overlays atomically
-					{
-						echo "# Armbian config"
-						while IFS= read -r ov; do
-							printf 'dtoverlay=%s\n' "$ov"
-						done <<< "$newoverlays"
-					} >> "$overlayconf"
-				else
-					sed -i "s/^overlays=.*/overlays=$newoverlays/" ${overlayconf}
-					if ! grep -q "^overlays" ${overlayconf}; then echo "overlays=$newoverlays" >> ${overlayconf}; fi
+
+				if ! _dtoverlays_write_config "$overlayconf" "$is_pi" "$newoverlays"; then
+					return 1
 				fi
 				;;
 			1)
@@ -161,4 +189,56 @@ function manage_dtoverlays () {
 				;;
 		esac
 	done
+}
+
+#
+# Atomically rewrite the boot config with the new overlay selection.
+# Writes to <conf>.tmp, copies the existing <conf> to <conf>.bak (so
+# the user has one rollback hop), then mv's tmp into place. A failure
+# anywhere in the pipeline leaves the original file untouched.
+#
+function _dtoverlays_write_config() {
+	local conf="$1"
+	local is_pi="$2"
+	local newoverlays="$3"
+	local conf_tmp="${conf}.tmp"
+	local conf_bak="${conf}.bak"
+
+	if [[ "$is_pi" == "true" ]]; then
+		{
+			# Preserve everything before our managed block, then re-emit
+			# the block from scratch with the current selection.
+			if grep -q '^# Armbian config$' "$conf"; then
+				sed '/^# Armbian config$/,$d' "$conf"
+			else
+				cat "$conf"
+			fi
+			echo "# Armbian config"
+			local ov
+			while IFS= read -r ov; do
+				printf 'dtoverlay=%s\n' "$ov"
+			done <<< "$newoverlays"
+		} > "$conf_tmp"
+	else
+		if grep -q "^overlays=" "$conf"; then
+			sed "s|^overlays=.*|overlays=${newoverlays}|" "$conf" > "$conf_tmp"
+		else
+			cat "$conf" > "$conf_tmp"
+			echo "overlays=${newoverlays}" >> "$conf_tmp"
+		fi
+	fi
+
+	if [[ ! -s "$conf_tmp" ]]; then
+		echo "Error: would have written empty boot config to ${conf}" >&2
+		rm -f "$conf_tmp"
+		return 1
+	fi
+
+	cp -p "$conf" "$conf_bak" 2>/dev/null || true
+
+	if ! mv "$conf_tmp" "$conf"; then
+		echo "Error: failed to install ${conf}" >&2
+		rm -f "$conf_tmp"
+		return 1
+	fi
 }
