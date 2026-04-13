@@ -47,6 +47,9 @@ tiers:
       - file-roller          # archive manager
       - transmission-gtk     # torrent client
       - armbian-imager       # SD-card image flasher (from apt.armbian.com)
+      - cups-pk-helper       # polkit bridge — lets GNOME/KDE printer panels
+                             # unlock cups config without sudo. Other DEs
+                             # get this transitively via system-config-printer.
 
   full:
     packages:
