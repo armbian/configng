@@ -201,6 +201,11 @@ tier_overrides:
         architectures:
           armhf:  { packages_remove: [loupe] }
   full:
+    # `code` (Microsoft VSCode) is published for amd64/arm64/armhf only —
+    # no riscv64 build exists upstream. Strip arch-wide.
+    architectures:
+      riscv64:
+        packages_remove: [code]
     releases:
       bookworm:
         # thunderbird is missing on bookworm/armhf.
@@ -234,5 +239,10 @@ tier_overrides:
           armhf:    { packages_remove: [thunderbird] }
       sid:
         # thunderbird is missing on sid/armhf — same gap as trixie/forky.
+        # `code` is not tracked for sid in apt.armbian.com (Debian unstable;
+        # vendor debs may break) — strip on every sid arch.
         architectures:
-          armhf:    { packages_remove: [thunderbird] }
+          amd64:    { packages_remove: [code] }
+          arm64:    { packages_remove: [code] }
+          armhf:    { packages_remove: [code, thunderbird] }
+          riscv64:  { packages_remove: [code] }
