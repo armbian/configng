@@ -30,6 +30,78 @@ _desktop_in_container() {
 }
 
 #
+# Write the apt pin that forces apt.armbian.com .debs to win over
+# Ubuntu's snap-transitional packages for desktop apps. Idempotent —
+# writes via temp + atomic mv so a partial write never leaves apt with
+# an unparseable preferences file.
+#
+# Lives at /etc/apt/preferences.d/armbian-desktops (note: NOT the
+# legacy `armbian` filename, which is a dpkg conffile shipped by the
+# BSP — that one gets preserved on upgrade once a user has it,
+# leaving stale content on the system. By using a distinct filename
+# managed entirely by armbian-config we can update the pin via
+# configng upgrades alone, no BSP rebuild required).
+#
+# Priority 1001 (not 990) is mandatory: Ubuntu's snap-transitional
+# packages have a higher epoch than Armbian's real .debs. 990 only
+# permits upgrades; 1001 also permits the downgrade required to swap
+# the snap-shim out for the real package. The Ubuntu-side priority
+# of 50 keeps the snap-shim from ever being auto-selected when the
+# real .deb is available.
+#
+# Non-fatal: a write failure warns and returns 1 but does not abort
+# the install — apt without the pin will pick whatever wins by
+# default, which is wrong but not catastrophic.
+#
+function _module_desktops_write_apt_pin() {
+	local pin_file="/etc/apt/preferences.d/armbian-desktops"
+	local pin_tmp="${pin_file}.tmp"
+
+	# Packages where apt.armbian.com hosts a real .deb that should
+	# always win over Ubuntu's snap-transitional / older Debian
+	# version. Wildcards cover the codec / l10n meta-packages.
+	local force_pkgs="chromium chromium-* firefox firefox-esr firefox-l10n-* thunderbird thunderbird-l10n-* google-chrome-stable code microsoft-edge-stable"
+
+	# Subset to deprioritize from the Ubuntu archive — only those
+	# that have a Ubuntu equivalent. `code` and `microsoft-edge-stable`
+	# are Microsoft-only, no Ubuntu version to push down.
+	local strip_pkgs="chromium chromium-* firefox firefox-esr firefox-l10n-* thunderbird thunderbird-l10n-* google-chrome-stable"
+
+	if ! cat > "$pin_tmp" <<- EOF
+	# Managed by armbian-config (module_desktops). Do not edit by hand.
+	#
+	# Force apt.armbian.com versions of these desktop packages over
+	# Ubuntu's snap-transitional ones. Priority 1001 is required
+	# (not 990) because the snap-shim packages have a higher epoch —
+	# 990 only allows upgrades; 1001 also permits the downgrade
+	# required to replace the snap-shim with the real .deb.
+	Package: ${force_pkgs}
+	Pin: release o=Armbian
+	Pin-Priority: 1001
+
+	# Push Ubuntu's snap-shim versions below the default 500 so they
+	# are never auto-selected when the real apt.armbian.com .deb is
+	# available.
+	Package: ${strip_pkgs}
+	Pin: release o=Ubuntu
+	Pin-Priority: 50
+	EOF
+	then
+		echo "Warning: failed to write ${pin_tmp}, desktop apt pin not installed" >&2
+		rm -f "$pin_tmp"
+		return 1
+	fi
+
+	if ! mv "$pin_tmp" "$pin_file"; then
+		echo "Warning: failed to install ${pin_file}" >&2
+		rm -f "$pin_tmp"
+		return 1
+	fi
+
+	return 0
+}
+
+#
 # Module to install and manage desktop environments (YAML-driven)
 #
 function module_desktops() {
@@ -98,6 +170,12 @@ function module_desktops() {
 				echo "Error: failed to set up repository for '${de}', aborting install" >&2
 				return 1
 			fi
+
+			# Install the apt pin BEFORE pkg_update / pkg_install so apt
+			# resolves the desktop package list with apt.armbian.com .debs
+			# winning over Ubuntu's snap-transitional packages. Non-fatal:
+			# the install continues even if the pin write fails.
+			_module_desktops_write_apt_pin || true
 
 			# update package list
 			pkg_update
