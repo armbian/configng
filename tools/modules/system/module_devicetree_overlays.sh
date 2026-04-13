@@ -19,7 +19,7 @@ module_options+=(
 #
 # @description Manage device tree overlays
 #
-# Usage: module_devicetree_overlays                              (defaults to `edit`)
+# Usage: module_devicetree_overlays                              (defaults to `help`)
 #        module_devicetree_overlays edit                         interactive TUI
 #        module_devicetree_overlays install overlays=foo,bar     add overlays (idempotent)
 #        module_devicetree_overlays remove  overlays=foo,bar     remove overlays (idempotent)
@@ -30,7 +30,7 @@ module_options+=(
 # file preserved as <name>.bak — on an SBC a partial write is a brick.
 #
 function module_devicetree_overlays() {
-	local cmd="${1:-edit}"
+	local cmd="${1:-help}"
 	shift || true
 
 	# Subcommand registry — order in module_options[*,example] defines
