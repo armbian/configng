@@ -123,7 +123,12 @@ function module_desktop_branding() {
 			# the policy file regardless — it lives in a separate read-
 			# only space.
 			if [[ -d "$desktop_dir/branding/browsers/etc" ]]; then
-				cp -a "$desktop_dir/branding/browsers/etc/." /etc/
+				# --no-preserve=ownership: keep mode + timestamps from the
+				# source tree but always land as root:root in /etc/. Defends
+				# against dev/test runs where the source files might be
+				# owned by the developer's UID rather than root (in
+				# production the deb deploys them as root anyway).
+				cp -a --no-preserve=ownership "$desktop_dir/branding/browsers/etc/." /etc/
 			fi
 
 			# SDDM theme (for desktops using sddm)
