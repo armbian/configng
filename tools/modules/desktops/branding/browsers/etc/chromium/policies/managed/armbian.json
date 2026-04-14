@@ -1,0 +1,24 @@
+{
+    "_comment": "Armbian managed bookmarks for Chromium. ManagedBookmarks is a mandatory-only policy per Chrome Enterprise docs — it creates a read-only `Managed bookmarks > Armbian` folder on the bookmarks bar.",
+    "ManagedBookmarks": [
+        {
+            "toplevel_name": "Armbian"
+        },
+        {
+            "name": "Armbian",
+            "url": "https://www.armbian.com"
+        },
+        {
+            "name": "Documentation",
+            "url": "https://docs.armbian.com"
+        },
+        {
+            "name": "Forum",
+            "url": "https://forum.armbian.com"
+        },
+        {
+            "name": "GitHub",
+            "url": "https://github.com/armbian"
+        }
+    ]
+}
