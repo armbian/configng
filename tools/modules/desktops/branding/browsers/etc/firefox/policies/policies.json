@@ -11,6 +11,7 @@
         "DisableFirefoxStudies": true,
         "DisablePocket": true,
         "NoDefaultBookmarks": true,
+        "DisplayBookmarksToolbar": "always",
         "Bookmarks": [
             {
                 "Title": "Armbian",
