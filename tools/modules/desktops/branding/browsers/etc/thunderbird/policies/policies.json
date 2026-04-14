@@ -1,0 +1,8 @@
+{
+  "policies": {
+    "DisableTelemetry": true,
+    "DisableFirefoxStudies": true,
+    "AppAutoUpdate": false,
+    "StartPageURL": "https://www.armbian.com"
+  }
+}
