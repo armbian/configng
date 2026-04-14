@@ -105,10 +105,20 @@ function module_desktop_branding() {
 			# Single overlay tree under branding/browsers/etc/ rsync'd
 			# into /etc/ — each app's canonical drop-in path:
 			#   chromium:    /etc/chromium/policies/recommended/armbian.json
+			#                /etc/chromium/master_preferences
 			#   chrome:      /etc/opt/chrome/policies/recommended/armbian.json
+			#                /etc/opt/chrome/master_preferences
 			#   firefox:     /etc/firefox/policies/policies.json
 			#   firefox-esr: /etc/firefox-esr/policies/policies.json
 			#   thunderbird: /etc/thunderbird/policies/policies.json
+			#
+			# master_preferences suppresses the bundled default bookmark
+			# import on new profiles (xtradeb chromium ships Debian /
+			# Ubuntu / XtraDeb shortcuts; Google Chrome ships its own
+			# defaults). Existing profiles keep what they already have.
+			# The Armbian "Managed bookmarks" folder still appears via
+			# the policy file regardless — it lives in a separate read-
+			# only space.
 			if [[ -d "$desktop_dir/branding/browsers/etc" ]]; then
 				cp -a "$desktop_dir/branding/browsers/etc/." /etc/
 			fi
