@@ -1,0 +1,12 @@
+# Armbian: enable hardware VPU video decoder.
+#
+# Without this flag chromium falls back to software decoding even
+# when /dev/video-dec* is exposed by the BSP udev rules — works,
+# but burns CPU and limits resolution. AcceleratedVideoDecoder
+# turns on the v4l2-based path that uses the SBC's VPU.
+#
+# Sourced by the chromium launcher alongside every other file in
+# /etc/chromium.d/. Lives in its own file (not the chromium
+# package's own /etc/chromium.d/default-flags conffile) so apt
+# upgrades of chromium can never wipe this addition.
+export CHROMIUM_FLAGS="$CHROMIUM_FLAGS --enable-features=AcceleratedVideoDecoder"

@@ -107,6 +107,7 @@ function module_desktop_branding() {
 			#   chromium:    /etc/chromium/policies/recommended/armbian.json   (homepage, first-run, etc.)
 			#                /etc/chromium/policies/managed/armbian.json       (ManagedBookmarks — mandatory-only policy)
 			#                /etc/chromium/master_preferences                  (suppress bundled defaults)
+			#                /etc/chromium.d/armbian-flags                     (enable VPU hardware video decoder)
 			#   chrome:      /etc/opt/chrome/policies/recommended/armbian.json
 			#                /etc/opt/chrome/policies/managed/armbian.json
 			#                /etc/opt/chrome/master_preferences
