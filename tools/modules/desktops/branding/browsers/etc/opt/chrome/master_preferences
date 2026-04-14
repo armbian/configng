@@ -1,12 +1,12 @@
 {
-  "distribution": {
-    "import_bookmarks": false,
-    "import_history": false,
-    "import_search_engine": false,
-    "import_home_page": false,
-    "skip_first_run_ui": true,
-    "make_chrome_default": false,
-    "make_chrome_default_for_user": false,
-    "suppress_first_run_default_browser_prompt": true
-  }
+    "distribution": {
+        "import_bookmarks": false,
+        "import_history": false,
+        "import_search_engine": false,
+        "import_home_page": false,
+        "skip_first_run_ui": true,
+        "make_chrome_default": false,
+        "make_chrome_default_for_user": false,
+        "suppress_first_run_default_browser_prompt": true
+    }
 }
