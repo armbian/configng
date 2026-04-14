@@ -132,3 +132,4 @@ releases:
     packages:
       - polkitd
       - pkexec
+      - libfido2-1
