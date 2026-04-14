@@ -162,11 +162,23 @@ function module_desktops() {
 				echo "Warning: '${de}' is not supported on ${DISTROID}/$(dpkg --print-architecture)" >&2
 			fi
 
-			# Suppress interactive prompts. The `code` (Microsoft VSCode)
-			# postinst asks whether to add the Microsoft apt repository
-			# — say no, because apt.armbian.com already hosts code and
-			# adding the parallel Microsoft source would race against
-			# our pin on every apt-get update.
+			# Suppress interactive prompts end-to-end. apt + dpkg both
+			# need coaxing:
+			#   - DEBIAN_FRONTEND=noninteractive: stops apt opening a
+			#     TUI for debconf questions.
+			#   - `--force-confdef --force-confold` on pkg_install
+			#     (below): when a conffile differs from both the
+			#     shipped version AND any local edit, dpkg normally
+			#     prompts "keep / replace / diff / shell". These
+			#     flags say "always pick the default (=keep local)"
+			#     silently. Without `--force-confdef`, `--force-confold`
+			#     alone still prompts when both sides have diverged.
+			#   - debconf-set-selections pre-seeds known interactive
+			#     package questions: the `code` (Microsoft VSCode)
+			#     postinst asks about adding Microsoft's apt repo —
+			#     say no, apt.armbian.com already hosts code and a
+			#     parallel source would race against our pin.
+			export DEBIAN_FRONTEND=noninteractive
 			debconf-set-selections 2>/dev/null <<- 'EOF' || true
 			encfs encfs/security-information boolean true
 			code code/add-microsoft-repo boolean false
@@ -199,14 +211,14 @@ function module_desktops() {
 			# a desktop and then flipping default.target to graphical
 			# leaves the next boot pinned to a graphical target with
 			# no working DM, which is a black-screen regression.
-			if ! pkg_install -o Dpkg::Options::="--force-confold" ${DESKTOP_PACKAGES}; then
+			if ! pkg_install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" ${DESKTOP_PACKAGES}; then
 				echo "Error: ${de} package install failed; aborting before any system state is changed" >&2
 				return 1
 			fi
 
 			# install and register display manager
 			if [[ -n "$DESKTOP_DM" && "$DESKTOP_DM" != "none" ]]; then
-				if ! pkg_install -o Dpkg::Options::="--force-confold" "$DESKTOP_DM"; then
+				if ! pkg_install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" "$DESKTOP_DM"; then
 					echo "Error: ${DESKTOP_DM} install failed; aborting before flipping systemd target" >&2
 					return 1
 				fi
@@ -223,7 +235,7 @@ function module_desktops() {
 			# deb822 .sources file.
 			if [[ -f /etc/apt/sources.list.d/armbian.list \
 				|| -f /etc/apt/sources.list.d/armbian.sources ]]; then
-				pkg_install -o Dpkg::Options::="--force-confold" armbian-plymouth-theme || \
+				pkg_install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" armbian-plymouth-theme || \
 					echo "Warning: armbian-plymouth-theme not installed (package not found in armbian repo)" >&2
 			fi
 
@@ -822,7 +834,7 @@ _module_desktops_change_tier() {
 		else
 			echo "Upgrading ${de} from ${current} to ${target} (${#to_install[@]} new packages)"
 			ACTUALLY_INSTALLED=()
-			if ! pkg_install -o Dpkg::Options::="--force-confold" "${to_install[@]}"; then
+			if ! pkg_install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" "${to_install[@]}"; then
 				echo "Error: pkg_install failed during upgrade" >&2
 				return 1
 			fi
