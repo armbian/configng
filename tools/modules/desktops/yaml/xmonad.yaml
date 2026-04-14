@@ -94,4 +94,4 @@ releases:
     packages:
       - polkitd
       - pkexec
-      - libu2f-udev
+      - libfido2-1
