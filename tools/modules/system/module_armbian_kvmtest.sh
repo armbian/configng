@@ -110,7 +110,7 @@ function module_armbian_kvmtest () {
 	# Define image arrays for different channels
 	local qcowimages_nightly=(
 		"https://dl.armbian.com/nightly/uefi-${arch}/Forky_cloud_minimal-qcow2"
-		"https://dl.armbian.com/nightly/uefi-${arch}/Plucky_cloud_minimal-qcow2"
+		"https://dl.armbian.com/nightly/uefi-${arch}/Resolute_cloud_minimal-qcow2"
 	)
 
 	local qcowimages_stable=(
