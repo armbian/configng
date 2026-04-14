@@ -14,6 +14,7 @@ Armbian Config provides interactive and scriptable routines for:
 - Sandboxed software installation and system updates  
 - Kernel selection, switching, and firmware management  
 - Enabling and managing hardware-specific features  
+- Desktop environment installation, tiered management, and branding (XFCE, GNOME, KDE Plasma, MATE, Cinnamon, and more)  
 
 It is especially useful for single board computers (SBCs), helping users quickly prepare a ready-to-use system without manual intervention.
 
