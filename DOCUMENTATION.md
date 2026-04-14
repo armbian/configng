@@ -1171,6 +1171,7 @@ These helper functions facilitate various operations related to job management, 
 | Install HA supervised container | install remove purge status help | @armbian 
 | Display a menu from pipe | show_menu <<< armbianmonitor -h  ;  | @Tearran 
 | Start service | srv_start ssh.service | @dimitry-ishenko 
+| Enable/disable device tree overlays | install remove edit show help | @viraniac 
 | Install watchtower container | install remove purge status help | @armbian 
 | Build the main menu from a object | generate_top_menu 'json_data' | @Tearran 
 | Install bazarr container | install remove purge status help | @igorpecovnik 
@@ -1204,7 +1205,6 @@ These helper functions facilitate various operations related to job management, 
 | Install and configure automatic updates | install remove configure status defaults help | @igorpecovnik 
 | Menu for armbianmonitor features | see_monitoring | @Tearran 
 | Install VS Code in browser container | install remove purge status help | @igorpecovnik 
-| Enable/disable device tree overlays |  | @viraniac 
 | Remove package | pkg_remove nmap | @dimitry-ishenko 
 | Install Immich (photo and video backup solution) | install remove purge status help |  
 | Display a message box using the configured dialog tool | dialog_msgbox "Title" "Message" | @armbian 
