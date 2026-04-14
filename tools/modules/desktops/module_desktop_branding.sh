@@ -94,6 +94,22 @@ function module_desktop_branding() {
 				cp "$desktop_dir/branding/armbian.xml" /usr/share/gnome-background-properties/
 			fi
 
+			# Browser branding — system-wide policy files that set the
+			# Armbian welcome page on first run, an Armbian homepage,
+			# and a small bookmark folder. Files for browsers that are
+			# not installed sit harmlessly in /etc/<browser>/policies/
+			# (browsers only read them when they start up). `recommended/`
+			# means the user can change these defaults after first run.
+			# Single overlay tree under branding/browsers/etc/ rsync'd
+			# into /etc/ — each browser's canonical drop-in path:
+			#   chromium:    /etc/chromium/policies/recommended/armbian.json
+			#   chrome:      /etc/opt/chrome/policies/recommended/armbian.json
+			#   firefox:     /etc/firefox/policies/policies.json
+			#   firefox-esr: /etc/firefox-esr/policies/policies.json
+			if [[ -d "$desktop_dir/branding/browsers/etc" ]]; then
+				cp -a "$desktop_dir/branding/browsers/etc/." /etc/
+			fi
+
 			# SDDM theme (for desktops using sddm)
 			if [[ -d "$desktop_dir/greeters/sddm/themes" && "$DESKTOP_DM" == "sddm" ]]; then
 				mkdir -p /usr/share/sddm/themes
