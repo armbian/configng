@@ -94,18 +94,21 @@ function module_desktop_branding() {
 				cp "$desktop_dir/branding/armbian.xml" /usr/share/gnome-background-properties/
 			fi
 
-			# Browser branding — system-wide policy files that set the
-			# Armbian welcome page on first run, an Armbian homepage,
-			# and a small bookmark folder. Files for browsers that are
-			# not installed sit harmlessly in /etc/<browser>/policies/
-			# (browsers only read them when they start up). `recommended/`
-			# means the user can change these defaults after first run.
+			# Browser / mail branding — system-wide policy files that
+			# set the Armbian welcome page, homepage, and bookmarks for
+			# browsers, and disable telemetry / studies for Mozilla apps.
+			# Files for apps that aren't installed sit harmlessly in
+			# /etc/<app>/policies/ (each app only reads its own dir at
+			# startup). `recommended/` (Chromium-family) means the user
+			# can change defaults after first run; Mozilla's policies.json
+			# is a single combined file per app.
 			# Single overlay tree under branding/browsers/etc/ rsync'd
-			# into /etc/ — each browser's canonical drop-in path:
+			# into /etc/ — each app's canonical drop-in path:
 			#   chromium:    /etc/chromium/policies/recommended/armbian.json
 			#   chrome:      /etc/opt/chrome/policies/recommended/armbian.json
 			#   firefox:     /etc/firefox/policies/policies.json
 			#   firefox-esr: /etc/firefox-esr/policies/policies.json
+			#   thunderbird: /etc/thunderbird/policies/policies.json
 			if [[ -d "$desktop_dir/branding/browsers/etc" ]]; then
 				cp -a "$desktop_dir/branding/browsers/etc/." /etc/
 			fi
