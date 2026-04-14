@@ -132,7 +132,6 @@ releases:
     packages:
       - polkitd
       - pkexec
-      - libu2f-udev
     packages_remove:
       # pavumeter remains absent from the Ubuntu archive (dropped in plucky).
       - pavumeter

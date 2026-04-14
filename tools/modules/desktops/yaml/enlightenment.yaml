@@ -91,4 +91,3 @@ releases:
     packages:
       - polkitd
       - pkexec
-      - libu2f-udev
