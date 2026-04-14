@@ -104,9 +104,11 @@ function module_desktop_branding() {
 			# is a single combined file per app.
 			# Single overlay tree under branding/browsers/etc/ rsync'd
 			# into /etc/ — each app's canonical drop-in path:
-			#   chromium:    /etc/chromium/policies/recommended/armbian.json
-			#                /etc/chromium/master_preferences
+			#   chromium:    /etc/chromium/policies/recommended/armbian.json   (homepage, first-run, etc.)
+			#                /etc/chromium/policies/managed/armbian.json       (ManagedBookmarks — mandatory-only policy)
+			#                /etc/chromium/master_preferences                  (suppress bundled defaults)
 			#   chrome:      /etc/opt/chrome/policies/recommended/armbian.json
+			#                /etc/opt/chrome/policies/managed/armbian.json
 			#                /etc/opt/chrome/master_preferences
 			#   firefox:     /etc/firefox/policies/policies.json
 			#   firefox-esr: /etc/firefox-esr/policies/policies.json
