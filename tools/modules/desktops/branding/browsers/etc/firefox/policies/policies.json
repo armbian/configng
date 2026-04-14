@@ -10,6 +10,7 @@
     "DisableTelemetry": true,
     "DisableFirefoxStudies": true,
     "DisablePocket": true,
+    "NoDefaultBookmarks": true,
     "Bookmarks": [
       {"Title": "Armbian",       "URL": "https://www.armbian.com",     "Placement": "toolbar", "Folder": "Armbian"},
       {"Title": "Documentation", "URL": "https://docs.armbian.com",    "Placement": "toolbar", "Folder": "Armbian"},
