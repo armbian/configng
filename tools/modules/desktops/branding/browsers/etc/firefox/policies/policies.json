@@ -1,0 +1,20 @@
+{
+  "policies": {
+    "Homepage": {
+      "URL": "https://www.armbian.com",
+      "Locked": false,
+      "StartPage": "homepage"
+    },
+    "OverrideFirstRunPage": "https://www.armbian.com/welcome",
+    "OverridePostUpdatePage": "",
+    "DisableTelemetry": true,
+    "DisableFirefoxStudies": true,
+    "DisablePocket": true,
+    "Bookmarks": [
+      {"Title": "Armbian",       "URL": "https://www.armbian.com",     "Placement": "toolbar", "Folder": "Armbian"},
+      {"Title": "Documentation", "URL": "https://docs.armbian.com",    "Placement": "toolbar", "Folder": "Armbian"},
+      {"Title": "Forum",         "URL": "https://forum.armbian.com",   "Placement": "toolbar", "Folder": "Armbian"},
+      {"Title": "GitHub",        "URL": "https://github.com/armbian",  "Placement": "toolbar", "Folder": "Armbian"}
+    ]
+  }
+}

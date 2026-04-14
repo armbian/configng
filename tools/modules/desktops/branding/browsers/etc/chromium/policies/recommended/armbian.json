@@ -1,0 +1,17 @@
+{
+  "_comment": "Armbian default Chromium policies. `recommended/` means user can change these after first run. ManagedBookmarks creates a read-only Armbian folder on the bookmarks bar.",
+  "RestoreOnStartup": 4,
+  "RestoreOnStartupURLs": ["https://www.armbian.com/welcome"],
+  "HomepageLocation": "https://www.armbian.com",
+  "HomepageIsNewTabPage": false,
+  "ShowHomeButton": true,
+  "BookmarkBarEnabled": true,
+  "ManagedBookmarks": [
+    {"toplevel_name": "Armbian"},
+    {"name": "Armbian", "url": "https://www.armbian.com"},
+    {"name": "Documentation", "url": "https://docs.armbian.com"},
+    {"name": "Forum", "url": "https://forum.armbian.com"},
+    {"name": "GitHub", "url": "https://github.com/armbian"}
+  ],
+  "MetricsReportingEnabled": false
+}
