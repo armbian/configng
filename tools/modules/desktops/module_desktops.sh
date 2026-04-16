@@ -5,7 +5,7 @@ module_options+=(
 	["module_desktops,example"]="install remove disable enable status auto manual login supported installed help upgrade downgrade tier at-tier set-tier"
 	["module_desktops,status"]="Active"
 	["module_desktops,arch"]=""
-	["module_desktops,help_install"]="Install desktop (de=name tier=minimal|mid|full)"
+	["module_desktops,help_install"]="Install desktop (de=name tier=minimal|mid|full [mode=build])"
 	["module_desktops,help_remove"]="Remove desktop (de=name)"
 	["module_desktops,help_disable"]="Disable display manager"
 	["module_desktops,help_enable"]="Enable display manager"
@@ -110,6 +110,7 @@ function module_desktops() {
 	local query_arch=""
 	local query_release=""
 	local tier=""
+	local mode=""
 	local selected
 	for selected in "${@:2}"; do
 		IFS='=' read -r -a split <<< "${selected}"
@@ -117,6 +118,7 @@ function module_desktops() {
 		[[ "${split[0]}" == "arch" ]] && query_arch="${split[1]}"
 		[[ "${split[0]}" == "release" ]] && query_release="${split[1]}"
 		[[ "${split[0]}" == "tier" ]] && tier="${split[1]}"
+		[[ "${split[0]}" == "mode" ]] && mode="${split[1]}"
 	done
 
 	local commands
@@ -148,8 +150,15 @@ function module_desktops() {
 				;;
 			esac
 
-			local user
-			user=$(module_desktop_getuser) || return 1
+			# mode=build: image-build time — no real user exists yet
+			# (armbian-firstrun creates the first user on first boot).
+			# Skip user detection, group membership, skel propagation,
+			# and DM start/autologin. Package install, branding, repos,
+			# apt pin, and manifest recording run in both modes.
+			local user=""
+			if [[ "$mode" != "build" ]]; then
+				user=$(module_desktop_getuser) || return 1
+			fi
 
 			module_desktop_yamlparse "$de" "$(dpkg --print-architecture)" "$DISTROID" "$tier" || return 1
 
@@ -267,37 +276,44 @@ function module_desktops() {
 			module_desktop_branding "$de"
 
 			# add user to desktop groups
-			for group in sudo netdev audio video dialout plugdev input bluetooth systemd-journal ssh; do
-				usermod -aG "$group" "$user" 2>/dev/null || true
-			done
-
-			# set up profile sync daemon
-			local user_home
-			user_home=$(getent passwd "$user" | cut -d: -f6)
-			if command -v psd > /dev/null 2>&1; then
-				grep -q overlay-helper /etc/sudoers 2>/dev/null || \
-					echo "${user} ALL=(ALL) NOPASSWD: /usr/bin/psd-overlay-helper" >> /etc/sudoers
-				touch "${user_home}/.activate_psd"
-			fi
-
-			# update skel to existing users
-			module_update_skel install
-
-			# display manager and auto-login (skip in containers).
-			# Only flip default.target to graphical AFTER the DM has
-			# actually started — if the start fails, the next boot
-			# would otherwise pin to graphical.target with a broken
-			# DM and the user gets a black screen.
-			if ! _desktop_in_container; then
-				for dm in gdm3 lightdm sddm; do
-					systemctl is-active --quiet "$dm" 2>/dev/null && systemctl stop "$dm" 2>/dev/null
+			# User-specific setup: group membership, skel propagation,
+			# display manager start + autologin. Skipped in build mode
+			# because no real user exists at image-build time — the
+			# first user inherits /etc/skel at creation via useradd,
+			# and the build framework manages DM state separately.
+			if [[ "$mode" != "build" ]]; then
+				for group in sudo netdev audio video dialout plugdev input bluetooth systemd-journal ssh; do
+					usermod -aG "$group" "$user" 2>/dev/null || true
 				done
-				if systemctl start display-manager 2>/dev/null \
-					|| systemctl start "$DESKTOP_DM" 2>/dev/null; then
-					systemctl set-default graphical.target 2>/dev/null || true
-					module_desktops auto de="$de"
-				else
-					echo "Warning: ${DESKTOP_DM} did not start; leaving default.target unchanged" >&2
+
+				# set up profile sync daemon
+				local user_home
+				user_home=$(getent passwd "$user" | cut -d: -f6)
+				if command -v psd > /dev/null 2>&1; then
+					grep -q overlay-helper /etc/sudoers 2>/dev/null || \
+						echo "${user} ALL=(ALL) NOPASSWD: /usr/bin/psd-overlay-helper" >> /etc/sudoers
+					touch "${user_home}/.activate_psd"
+				fi
+
+				# update skel to existing users
+				module_update_skel install
+
+				# display manager and auto-login (skip in containers).
+				# Only flip default.target to graphical AFTER the DM has
+				# actually started — if the start fails, the next boot
+				# would otherwise pin to graphical.target with a broken
+				# DM and the user gets a black screen.
+				if ! _desktop_in_container; then
+					for dm in gdm3 lightdm sddm; do
+						systemctl is-active --quiet "$dm" 2>/dev/null && systemctl stop "$dm" 2>/dev/null
+					done
+					if systemctl start display-manager 2>/dev/null \
+						|| systemctl start "$DESKTOP_DM" 2>/dev/null; then
+						systemctl set-default graphical.target 2>/dev/null || true
+						module_desktops auto de="$de"
+					else
+						echo "Warning: ${DESKTOP_DM} did not start; leaving default.target unchanged" >&2
+					fi
 				fi
 			fi
 
