@@ -47,12 +47,4 @@ if [ -f /etc/i3/config ]; then
 	done
 fi
 
-# Let NetworkManager coexist with systemd-networkd (only if networkd is active)
-if command -v NetworkManager > /dev/null 2>&1 && systemctl is-active --quiet systemd-networkd 2>/dev/null; then
-	mkdir -p /etc/NetworkManager/conf.d
-	cat > /etc/NetworkManager/conf.d/10-armbian-unmanaged.conf <<- NMEOF
-	[keyfile]
-	unmanaged-devices=type:ethernet
-	NMEOF
-	systemctl restart NetworkManager 2>/dev/null || true
 fi
