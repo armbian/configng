@@ -232,6 +232,16 @@ function module_desktops() {
 					return 1
 				fi
 				command -v "$DESKTOP_DM" > /etc/X11/default-display-manager 2>/dev/null || true
+
+				# In build mode, disable services that package postinst
+				# auto-enabled. The firstrun script re-enables the DM
+				# after initial user setup completes; psd is activated
+				# per-user via ~/.activate_psd at runtime.
+				if [[ "$mode" == "build" ]]; then
+					srv_disable "$DESKTOP_DM" 2>/dev/null || true
+					srv_disable display-manager 2>/dev/null || true
+					srv_disable psd.service 2>/dev/null || true
+				fi
 			fi
 
 			# Armbian-only branding extras: install only when the Armbian
@@ -269,7 +279,7 @@ function module_desktops() {
 
 			# remove unwanted packages
 			if [[ -n "$DESKTOP_PACKAGES_UNINSTALL" ]]; then
-				apt-get remove -y --purge ${DESKTOP_PACKAGES_UNINSTALL} 2>/dev/null || true
+				pkg_remove ${DESKTOP_PACKAGES_UNINSTALL} 2>/dev/null || true
 			fi
 
 			# install branding
