@@ -183,6 +183,16 @@ tier_overrides:
           riscv64:  { packages_remove: [fonts-ubuntu] }
           loong64:  { packages_remove: [fonts-ubuntu] }
   mid:
+    # armbian-imager (apt.armbian.com) is only published for amd64
+    # and arm64 — strip it on every other arch. Arch-wide so the
+    # exclusion applies across all releases.
+    architectures:
+      armhf:
+        packages_remove: [armbian-imager]
+      riscv64:
+        packages_remove: [armbian-imager]
+      loong64:
+        packages_remove: [armbian-imager]
     releases:
       bookworm:
         # loupe is GNOME 46+; bookworm shipped with GNOME 43 era and
