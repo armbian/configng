@@ -39,11 +39,12 @@ tiers:
       - viewnior
       - xdg-user-dirs
       - xdg-user-dirs-gtk
-    packages_uninstall:
+    packages_remove:
       - brisk-menu
+      - mate-applet-trash
+    packages_uninstall:
       - mate-indicator-applet
       - mate-indicator-applet-common
-      - mate-applet-trash
 
 releases:
   bookworm:
