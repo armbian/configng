@@ -249,15 +249,18 @@ function module_desktops() {
 			fi
 
 			# Armbian-only branding extras: install only when the Armbian
-			# apt source is configured. armbian-plymouth-theme lives in
-			# Armbian's own repo; on a non-Armbian system the apt install
-			# would hard-fail with "Unable to locate package" and abort
-			# the entire desktop install. Keep this gated and additive so
-			# the rest of the desktop install path stays distro-agnostic.
+			# apt source is configured AND we're running on a live system
+			# (mode != build). armbian-plymouth-theme lives in Armbian's
+			# own repo; on a non-Armbian system the apt install would
+			# hard-fail with "Unable to locate package" and abort the
+			# entire desktop install. At image-build time (mode=build)
+			# the armbian/build framework installs this package directly
+			# from the locally-built .deb artifact — no apt fetch needed
+			# — so skip it here to avoid racing the build framework.
 			# Match either the legacy single-line .list file or the modern
 			# deb822 .sources file.
-			if [[ -f /etc/apt/sources.list.d/armbian.list \
-				|| -f /etc/apt/sources.list.d/armbian.sources ]]; then
+			if [[ "$mode" != "build" ]] && { [[ -f /etc/apt/sources.list.d/armbian.list ]] \
+				|| [[ -f /etc/apt/sources.list.d/armbian.sources ]]; }; then
 				pkg_install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" armbian-plymouth-theme || \
 					echo "Warning: armbian-plymouth-theme not installed (package not found in armbian repo)" >&2
 			fi
