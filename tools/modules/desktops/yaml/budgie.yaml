@@ -1,7 +1,7 @@
 name: budgie
 description: "Budgie - elegant desktop from Solus project"
 display_manager: lightdm
-status: unsupported
+status: community
 
 tiers:
   minimal:

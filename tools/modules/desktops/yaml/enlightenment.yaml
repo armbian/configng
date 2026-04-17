@@ -1,7 +1,7 @@
 name: enlightenment
 description: "Enlightenment - EFL-based desktop"
 display_manager: lightdm
-status: supported
+status: community
 
 tiers:
   minimal:

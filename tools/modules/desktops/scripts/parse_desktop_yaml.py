@@ -31,8 +31,8 @@ tier filter and applies after all tier merging is done.
 Usage
 -----
   parse_desktop_yaml.py <yaml_dir> <de_name> <release> <arch> --tier <tier>
-  parse_desktop_yaml.py <yaml_dir> --list <release> <arch>
-  parse_desktop_yaml.py <yaml_dir> --list-json <release> <arch>
+  parse_desktop_yaml.py <yaml_dir> --list <release> <arch> [--filter <available|unavailable|all>] [--status <csv>]
+  parse_desktop_yaml.py <yaml_dir> --list-json <release> <arch> [--filter <available|unavailable|all>] [--status <csv>]
   parse_desktop_yaml.py <yaml_dir> --primaries <release> <arch>
 
 Output (bash eval-friendly):
@@ -41,7 +41,7 @@ Output (bash eval-friendly):
   DESKTOP_PRIMARY_PKG="xfce4"
   DESKTOP_DM="lightdm"
   DESKTOP_STATUS="supported"
-  DESKTOP_SUPPORTED="yes"
+  DESKTOP_AVAILABLE="yes"
   DESKTOP_DESC="..."
   DESKTOP_TIER="full"
   DESKTOP_REPO_URL="..."       (optional, for custom repos)
@@ -276,7 +276,7 @@ def parse_desktop(yaml_dir, de_name, release, arch, tier):
     releases = _as_dict(de_data.get("releases"))
     release_data = _as_dict(releases.get(release))
     supported_archs = _as_list(release_data.get("architectures"))
-    is_supported = arch in supported_archs and release in releases
+    is_available = arch in supported_archs and release in releases
 
     for pkg in _as_list(release_data.get("packages_remove")):
         if pkg in packages:
@@ -318,7 +318,7 @@ def parse_desktop(yaml_dir, de_name, release, arch, tier):
     print(f'DESKTOP_PRIMARY_PKG="{shell_escape(primary_pkg)}"')
     print(f'DESKTOP_DM="{shell_escape(de_data.get("display_manager", "lightdm"))}"')
     print(f'DESKTOP_STATUS="{shell_escape(de_data.get("status", "unsupported"))}"')
-    print(f'DESKTOP_SUPPORTED="{"yes" if is_supported else "no"}"')
+    print(f'DESKTOP_AVAILABLE="{"yes" if is_available else "no"}"')
     print(f'DESKTOP_DESC="{shell_escape(de_data.get("description", de_name))}"')
     print(f'DESKTOP_TIER="{shell_escape(tier)}"')
 
@@ -452,8 +452,25 @@ def list_primaries(yaml_dir, release, arch):
             print(f"{name}\t{effective[0]}")
 
 
-def list_desktops(yaml_dir, release, arch, fmt="tsv"):
-    """List all desktops with support status."""
+_VALID_STATUSES = {"supported", "community", "unsupported"}
+
+
+def list_desktops(yaml_dir, release, arch, fmt="tsv", avail_filter="available", status_keep=None):
+    """List desktops with availability + editorial status.
+
+    Two independent axes are emitted per entry:
+      - "status"    : editorial label from the DE's YAML (supported / community / unsupported).
+      - "available" : computed bool — does the YAML declare this release+arch combo?
+
+    avail_filter selects on the computed `available` axis only:
+      - "available"   : only DEs whose YAML declares this release+arch (default)
+      - "unavailable" : only DEs that do NOT declare this release+arch
+      - "all"         : every DE, regardless of release+arch availability
+
+    status_keep selects on the editorial `status` axis. It is either None
+    (no filtering, keep all) or an iterable of status values to KEEP
+    (e.g. ("supported","community") drops status=unsupported).
+    """
     import json as jsonlib
 
     entries = []
@@ -473,33 +490,50 @@ def list_desktops(yaml_dir, release, arch, fmt="tsv"):
         releases = _as_dict(de_data.get("releases"))
         release_data = _as_dict(releases.get(release))
         archs = _as_list(release_data.get("architectures"))
-        supported = arch in archs and release in releases
+        available = arch in archs and release in releases
 
         entries.append({
             "name": name,
             "description": desc,
             "display_manager": dm,
             "status": status,
-            "supported": supported,
+            "available": available,
             "architectures": archs,
         })
 
-    # filter to only supported entries
-    supported_entries = [e for e in entries if e["supported"]]
+    if avail_filter == "available":
+        entries = [e for e in entries if e["available"]]
+    elif avail_filter == "unavailable":
+        entries = [e for e in entries if not e["available"]]
+    elif avail_filter != "all":
+        print(f"Error: invalid --filter '{avail_filter}', must be available|unavailable|all", file=sys.stderr)
+        sys.exit(1)
+
+    if status_keep is not None:
+        keep = set(status_keep)
+        bad = keep - _VALID_STATUSES
+        if bad:
+            print(
+                f"Error: invalid --status value(s) {sorted(bad)}, must be in "
+                f"{sorted(_VALID_STATUSES)}",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        entries = [e for e in entries if e["status"] in keep]
 
     if fmt == "json":
-        print(jsonlib.dumps(supported_entries, indent=2))
+        print(jsonlib.dumps(entries, indent=2))
     else:
-        for e in supported_entries:
+        for e in entries:
             arch_str = " ".join(e["architectures"]) if e["architectures"] else "-"
-            print(f"{e['name']}\t{e['status']}\t{'yes' if e['supported'] else 'no'}\t{arch_str}")
+            print(f"{e['name']}\t{e['status']}\t{'yes' if e['available'] else 'no'}\t{arch_str}")
 
 
 def _usage():
     prog = sys.argv[0]
     print(f"Usage: {prog} <yaml_dir> <de_name> <release> <arch> --tier <minimal|mid|full>", file=sys.stderr)
-    print(f"       {prog} <yaml_dir> --list <release> <arch>", file=sys.stderr)
-    print(f"       {prog} <yaml_dir> --list-json <release> <arch>", file=sys.stderr)
+    print(f"       {prog} <yaml_dir> --list <release> <arch> [--filter <available|unavailable|all>] [--status <csv>]", file=sys.stderr)
+    print(f"       {prog} <yaml_dir> --list-json <release> <arch> [--filter <available|unavailable|all>] [--status <csv>]", file=sys.stderr)
     print(f"       {prog} <yaml_dir> --primaries <release> <arch>", file=sys.stderr)
     sys.exit(1)
 
@@ -514,7 +548,29 @@ if __name__ == "__main__":
         if len(sys.argv) < 5:
             _usage()
         fmt = "json" if sys.argv[2] == "--list-json" else "tsv"
-        list_desktops(yaml_dir, sys.argv[3], sys.argv[4], fmt=fmt)
+        avail_filter = "available"
+        status_keep = None
+        # Optional flag pairs (order-independent): --filter <v>, --status <csv>.
+        extra = sys.argv[5:]
+        if len(extra) % 2 != 0:
+            _usage()
+        it = iter(extra)
+        for flag in it:
+            try:
+                value = next(it)
+            except StopIteration:
+                _usage()
+            if flag == "--filter":
+                avail_filter = value
+            elif flag == "--status":
+                # comma-separated list; empty entries dropped.
+                status_keep = [s.strip() for s in value.split(",") if s.strip()]
+                if not status_keep:
+                    _usage()
+            else:
+                _usage()
+        list_desktops(yaml_dir, sys.argv[3], sys.argv[4], fmt=fmt,
+                      avail_filter=avail_filter, status_keep=status_keep)
     elif sys.argv[2] == "--primaries":
         if len(sys.argv) < 5:
             _usage()

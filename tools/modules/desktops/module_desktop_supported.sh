@@ -31,7 +31,7 @@ function module_desktop_supported() {
 		;;
 		*)
 			module_desktop_yamlparse "$de" "$arch" "$release" 2>/dev/null || return 1
-			[[ "$DESKTOP_SUPPORTED" == "yes" ]]
+			[[ "$DESKTOP_AVAILABLE" == "yes" ]]
 		;;
 	esac
 }

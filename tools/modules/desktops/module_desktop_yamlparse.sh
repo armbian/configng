@@ -11,7 +11,7 @@ module_options+=(
 # Parse YAML desktop definition via Python helper
 # Usage: module_desktop_yamlparse <de_name> [arch] [release] [tier]
 # Sets: DESKTOP_PACKAGES, DESKTOP_PACKAGES_UNINSTALL, DESKTOP_PRIMARY_PKG,
-#       DESKTOP_DM, DESKTOP_STATUS, DESKTOP_SUPPORTED, DESKTOP_DESC,
+#       DESKTOP_DM, DESKTOP_STATUS, DESKTOP_AVAILABLE, DESKTOP_DESC,
 #       DESKTOP_TIER, DESKTOP_REPO_URL, DESKTOP_REPO_KEY_URL,
 #       DESKTOP_REPO_KEYRING
 #
@@ -34,7 +34,7 @@ function module_desktop_yamlparse() {
 			echo "Parse a desktop YAML definition and set package variables."
 			echo "Variables set: DESKTOP_PACKAGES, DESKTOP_PACKAGES_UNINSTALL,"
 			echo "  DESKTOP_PRIMARY_PKG, DESKTOP_DM, DESKTOP_STATUS,"
-			echo "  DESKTOP_SUPPORTED, DESKTOP_DESC, DESKTOP_TIER, DESKTOP_REPO_*"
+			echo "  DESKTOP_AVAILABLE, DESKTOP_DESC, DESKTOP_TIER, DESKTOP_REPO_*"
 			echo ""
 			echo "tier is one of minimal|mid|full, defaults to minimal."
 			echo ""
@@ -56,7 +56,7 @@ function module_desktop_yamlparse() {
 			DESKTOP_PRIMARY_PKG=""
 			DESKTOP_DM=""
 			DESKTOP_STATUS=""
-			DESKTOP_SUPPORTED=""
+			DESKTOP_AVAILABLE=""
 			DESKTOP_DESC=""
 			DESKTOP_TIER=""
 			DESKTOP_REPO_URL=""

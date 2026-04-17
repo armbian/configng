@@ -1,6 +1,6 @@
 name: bianbu
 description: "Bianbu - SpacemiT RISC-V desktop"
-display_manager: none
+display_manager: gdm3
 status: unsupported
 repo:
   # SpacemiT's K1 RISC-V archive is a frozen per-release snapshot — the

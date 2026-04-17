@@ -337,7 +337,7 @@ def audit(build_repo: Path, configng_repo: Path,
             for tier in tiers_to_check:
                 parsed = parse_desktop_yaml(yaml_dir, parser_path, de,
                                             codename, arch, tier)
-                if not parsed.get("DESKTOP_SUPPORTED") == "yes":
+                if not parsed.get("DESKTOP_AVAILABLE") == "yes":
                     # the YAML doesn't support this (DE, release, arch);
                     # skip it.
                     continue

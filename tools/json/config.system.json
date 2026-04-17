@@ -303,6 +303,54 @@
                             "help": "Install the KDE Neon desktop environment"
                         },
                         {
+                            "id": "BDGE01",
+                            "description": "Install Budgie [CSC]",
+                            "short": "Budgie [CSC]",
+                            "command": [
+                                "module_desktops install de=budgie tier=minimal"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported budgie",
+                            "help": "Install Budgie [community-supported, best-effort]."
+                        },
+                        {
+                            "id": "DEEP01",
+                            "description": "Install Deepin [CSC]",
+                            "short": "Deepin [CSC]",
+                            "command": [
+                                "module_desktops install de=deepin tier=minimal"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported deepin",
+                            "help": "Install Deepin DDE [community-supported, best-effort]."
+                        },
+                        {
+                            "id": "ENLT01",
+                            "description": "Install Enlightenment [CSC]",
+                            "short": "Enlightenment [CSC]",
+                            "command": [
+                                "module_desktops install de=enlightenment tier=minimal"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported enlightenment",
+                            "help": "Install Enlightenment (EFL-based) [community-supported, best-effort]."
+                        },
+                        {
+                            "id": "XMON01",
+                            "description": "Install Xmonad [CSC]",
+                            "short": "Xmonad [CSC]",
+                            "command": [
+                                "module_desktops install de=xmonad tier=minimal"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported xmonad",
+                            "help": "Install Xmonad tiling WM [community-supported, best-effort]."
+                        },
+                        {
                             "id": "XFCE01",
                             "description": "Install XFCE (minimal)",
                             "short": "XFCE",
@@ -405,6 +453,50 @@
                             "help": "Uninstall the KDE Neon desktop environment"
                         },
                         {
+                            "id": "BDGE02",
+                            "description": "Uninstall Budgie [CSC]",
+                            "command": [
+                                "module_desktops remove de=budgie"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=budgie",
+                            "help": "Uninstall the Budgie desktop environment"
+                        },
+                        {
+                            "id": "DEEP02",
+                            "description": "Uninstall Deepin [CSC]",
+                            "command": [
+                                "module_desktops remove de=deepin"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=deepin",
+                            "help": "Uninstall the Deepin desktop environment"
+                        },
+                        {
+                            "id": "ENLT02",
+                            "description": "Uninstall Enlightenment [CSC]",
+                            "command": [
+                                "module_desktops remove de=enlightenment"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=enlightenment",
+                            "help": "Uninstall the Enlightenment desktop environment"
+                        },
+                        {
+                            "id": "XMON02",
+                            "description": "Uninstall Xmonad [CSC]",
+                            "command": [
+                                "module_desktops remove de=xmonad"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=xmonad",
+                            "help": "Uninstall the Xmonad window manager"
+                        },
+                        {
                             "id": "XFCE02",
                             "description": "Uninstall XFCE",
                             "command": [
@@ -482,6 +574,50 @@
                             "help": "Enable automatic desktop login for KDE Neon"
                         },
                         {
+                            "id": "BDGE03",
+                            "description": "Enable autologin (Budgie) [CSC]",
+                            "command": [
+                                "module_desktops auto de=budgie"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=budgie && ! module_desktops login de=budgie",
+                            "help": "Enable automatic desktop login for Budgie"
+                        },
+                        {
+                            "id": "DEEP03",
+                            "description": "Enable autologin (Deepin) [CSC]",
+                            "command": [
+                                "module_desktops auto de=deepin"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=deepin && ! module_desktops login de=deepin",
+                            "help": "Enable automatic desktop login for Deepin"
+                        },
+                        {
+                            "id": "ENLT03",
+                            "description": "Enable autologin (Enlightenment) [CSC]",
+                            "command": [
+                                "module_desktops auto de=enlightenment"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=enlightenment && ! module_desktops login de=enlightenment",
+                            "help": "Enable automatic desktop login for Enlightenment"
+                        },
+                        {
+                            "id": "XMON03",
+                            "description": "Enable autologin (Xmonad) [CSC]",
+                            "command": [
+                                "module_desktops auto de=xmonad"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=xmonad && ! module_desktops login de=xmonad",
+                            "help": "Enable automatic desktop login for Xmonad"
+                        },
+                        {
                             "id": "XFCE03",
                             "description": "Enable autologin (XFCE)",
                             "command": [
@@ -557,6 +693,50 @@
                             "author": "@igorpecovnik",
                             "condition": "module_desktops status de=kde-neon && module_desktops login de=kde-neon",
                             "help": "Disable automatic desktop login for KDE Neon"
+                        },
+                        {
+                            "id": "BDGE04",
+                            "description": "Disable autologin (Budgie) [CSC]",
+                            "command": [
+                                "module_desktops manual de=budgie"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=budgie && module_desktops login de=budgie",
+                            "help": "Disable automatic desktop login for Budgie"
+                        },
+                        {
+                            "id": "DEEP04",
+                            "description": "Disable autologin (Deepin) [CSC]",
+                            "command": [
+                                "module_desktops manual de=deepin"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=deepin && module_desktops login de=deepin",
+                            "help": "Disable automatic desktop login for Deepin"
+                        },
+                        {
+                            "id": "ENLT04",
+                            "description": "Disable autologin (Enlightenment) [CSC]",
+                            "command": [
+                                "module_desktops manual de=enlightenment"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=enlightenment && module_desktops login de=enlightenment",
+                            "help": "Disable automatic desktop login for Enlightenment"
+                        },
+                        {
+                            "id": "XMON04",
+                            "description": "Disable autologin (Xmonad) [CSC]",
+                            "command": [
+                                "module_desktops manual de=xmonad"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=xmonad && module_desktops login de=xmonad",
+                            "help": "Disable automatic desktop login for Xmonad"
                         },
                         {
                             "id": "XFCE04",

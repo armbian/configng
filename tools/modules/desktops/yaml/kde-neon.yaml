@@ -1,7 +1,7 @@
 name: kde-neon
 description: "KDE Neon - latest Plasma from KDE repos (Ubuntu only)"
 display_manager: sddm
-status: unsupported
+status: supported
 repo:
   url: "http://archive.neon.kde.org/testing"
   key_url: "https://archive.neon.kde.org/public.key"
