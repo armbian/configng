@@ -39,6 +39,9 @@ sudo armbian-config
     - ### Install KDE Plasma (mid)
     - ### Install KDE Plasma (full)
     - ### Install KDE Neon
+    - ### Install Budgie [CSC]
+    - ### Install Deepin [CSC]
+    - ### Install Enlightenment [CSC]
     - ### Install XFCE (minimal)
     - ### Install XFCE (mid)
     - ### Install XFCE (full)
@@ -48,6 +51,9 @@ sudo armbian-config
     - ### Uninstall i3
     - ### Uninstall KDE Plasma
     - ### Uninstall KDE Neon
+    - ### Uninstall Budgie [CSC]
+    - ### Uninstall Deepin [CSC]
+    - ### Uninstall Enlightenment [CSC]
     - ### Uninstall XFCE
     - ### Enable autologin (Cinnamon)
     - ### Enable autologin (GNOME)
@@ -55,6 +61,9 @@ sudo armbian-config
     - ### Enable autologin (i3)
     - ### Enable autologin (KDE Plasma)
     - ### Enable autologin (KDE Neon)
+    - ### Enable autologin (Budgie) [CSC]
+    - ### Enable autologin (Deepin) [CSC]
+    - ### Enable autologin (Enlightenment) [CSC]
     - ### Enable autologin (XFCE)
     - ### Disable autologin (Cinnamon)
     - ### Disable autologin (GNOME)
@@ -62,6 +71,9 @@ sudo armbian-config
     - ### Disable autologin (i3)
     - ### Disable autologin (KDE Plasma)
     - ### Disable autologin (KDE Neon)
+    - ### Disable autologin (Budgie) [CSC]
+    - ### Disable autologin (Deepin) [CSC]
+    - ### Disable autologin (Enlightenment) [CSC]
     - ### Disable autologin (XFCE)
     - ### Change Cinnamon to minimal
     - ### Change Cinnamon to mid
@@ -479,6 +491,9 @@ Outputs:
 	--cmd KDEP05 - Install KDE Plasma (mid)
 	--cmd KDEP06 - Install KDE Plasma (full)
 	--cmd KDEN01 - Install KDE Neon
+	--cmd BDGE01 - Install Budgie [CSC]
+	--cmd DEEP01 - Install Deepin [CSC]
+	--cmd ENLT01 - Install Enlightenment [CSC]
 	--cmd XFCE01 - Install XFCE (minimal)
 	--cmd XFCE05 - Install XFCE (mid)
 	--cmd XFCE06 - Install XFCE (full)
@@ -488,6 +503,9 @@ Outputs:
 	--cmd I3WM02 - Uninstall i3
 	--cmd KDEP02 - Uninstall KDE Plasma
 	--cmd KDEN02 - Uninstall KDE Neon
+	--cmd BDGE02 - Uninstall Budgie [CSC]
+	--cmd DEEP02 - Uninstall Deepin [CSC]
+	--cmd ENLT02 - Uninstall Enlightenment [CSC]
 	--cmd XFCE02 - Uninstall XFCE
 	--cmd CINM03 - Enable autologin (Cinnamon)
 	--cmd GNME03 - Enable autologin (GNOME)
@@ -495,6 +513,9 @@ Outputs:
 	--cmd I3WM03 - Enable autologin (i3)
 	--cmd KDEP03 - Enable autologin (KDE Plasma)
 	--cmd KDEN03 - Enable autologin (KDE Neon)
+	--cmd BDGE03 - Enable autologin (Budgie) [CSC]
+	--cmd DEEP03 - Enable autologin (Deepin) [CSC]
+	--cmd ENLT03 - Enable autologin (Enlightenment) [CSC]
 	--cmd XFCE03 - Enable autologin (XFCE)
 	--cmd CINM04 - Disable autologin (Cinnamon)
 	--cmd GNME04 - Disable autologin (GNOME)
@@ -502,6 +523,9 @@ Outputs:
 	--cmd I3WM04 - Disable autologin (i3)
 	--cmd KDEP04 - Disable autologin (KDE Plasma)
 	--cmd KDEN04 - Disable autologin (KDE Neon)
+	--cmd BDGE04 - Disable autologin (Budgie) [CSC]
+	--cmd DEEP04 - Disable autologin (Deepin) [CSC]
+	--cmd ENLT04 - Disable autologin (Enlightenment) [CSC]
 	--cmd XFCE04 - Disable autologin (XFCE)
 	--cmd CINM07 - Change Cinnamon to minimal
 	--cmd CINM08 - Change Cinnamon to mid
