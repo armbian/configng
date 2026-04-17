@@ -1,7 +1,7 @@
 name: xmonad
 description: "Xmonad - Haskell tiling window manager"
 display_manager: lightdm
-status: community
+status: unsupported
 
 tiers:
   minimal:
