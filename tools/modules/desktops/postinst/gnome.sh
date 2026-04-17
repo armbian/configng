@@ -50,8 +50,6 @@ dconf update
 # launch at all. Strip the stub if it exists.
 rm -f /usr/local/share/applications/gnome-ubuntu-panel.desktop
 
-fi
-
 #compile schemas
 if [ -d /usr/share/glib-2.0/schemas ]; then
 	glib-compile-schemas /usr/share/glib-2.0/schemas
