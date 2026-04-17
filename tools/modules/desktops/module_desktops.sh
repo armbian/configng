@@ -13,7 +13,7 @@ module_options+=(
 	["module_desktops,help_auto"]="Enable auto-login (de=name)"
 	["module_desktops,help_manual"]="Disable auto-login (de=name)"
 	["module_desktops,help_login"]="Check auto-login status (de=name)"
-	["module_desktops,help_supported"]="JSON list or check one (de=name arch=X release=Y)"
+	["module_desktops,help_supported"]="JSON list or check one (de=name arch=X release=Y filter=available|unavailable|all status=csv-of-supported,community,unsupported)"
 	["module_desktops,help_installed"]="Returns 0 if any desktop is installed (no de=)"
 	["module_desktops,help_upgrade"]="Upgrade installed desktop to a higher tier (de=name tier=mid|full)"
 	["module_desktops,help_downgrade"]="Downgrade installed desktop to a lower tier (de=name tier=minimal|mid)"
@@ -111,6 +111,8 @@ function module_desktops() {
 	local query_release=""
 	local tier=""
 	local mode=""
+	local filter=""
+	local status=""
 	local selected
 	for selected in "${@:2}"; do
 		IFS='=' read -r -a split <<< "${selected}"
@@ -119,6 +121,8 @@ function module_desktops() {
 		[[ "${split[0]}" == "release" ]] && query_release="${split[1]}"
 		[[ "${split[0]}" == "tier" ]] && tier="${split[1]}"
 		[[ "${split[0]}" == "mode" ]] && mode="${split[1]}"
+		[[ "${split[0]}" == "filter" ]] && filter="${split[1]}"
+		[[ "${split[0]}" == "status" ]] && status="${split[1]}"
 	done
 
 	local commands
@@ -167,7 +171,7 @@ function module_desktops() {
 				return 1
 			fi
 
-			if [[ "$DESKTOP_SUPPORTED" != "yes" ]]; then
+			if [[ "$DESKTOP_AVAILABLE" != "yes" ]]; then
 				echo "Warning: '${de}' is not supported on ${DISTROID}/$(dpkg --print-architecture)" >&2
 			fi
 
@@ -579,8 +583,35 @@ function module_desktops() {
 			if [[ -z "$de" ]]; then
 				local yaml_dir="${desktops_dir}/yaml"
 				local parser="${desktops_dir}/scripts/parse_desktop_yaml.py"
+				local -a parser_args=("$yaml_dir" "--list-json" "$use_release" "$use_arch")
+				if [[ -n "$filter" ]]; then
+					case "$filter" in
+						available|unavailable|all) parser_args+=(--filter "$filter") ;;
+						*)
+							echo "Error: invalid filter '${filter}', must be available|unavailable|all" >&2
+							return 1
+						;;
+					esac
+				fi
+				if [[ -n "$status" ]]; then
+					# comma-separated keep-list of status values
+					# (supported, community, unsupported).
+					local _s _bad=0
+					IFS=',' read -r -a _s <<< "$status"
+					for _v in "${_s[@]}"; do
+						case "$_v" in
+							supported|community|unsupported) ;;
+							*) _bad=1; break ;;
+						esac
+					done
+					if (( _bad )); then
+						echo "Error: invalid status '${status}', must be CSV of supported|community|unsupported" >&2
+						return 1
+					fi
+					parser_args+=(--status "$status")
+				fi
 				local result
-				result=$(python3 "$parser" "$yaml_dir" "--list-json" "$use_release" "$use_arch")
+				result=$(python3 "$parser" "${parser_args[@]}")
 				echo "$result"
 				[[ "$result" == "[]" ]] && return 1
 				return 0
@@ -619,7 +650,7 @@ function module_desktops() {
 
 		"${commands[10]}")
 			show_module_help "module_desktops" "Desktops" \
-				"Examples:\n  module_desktops install de=xfce tier=minimal\n  module_desktops install de=gnome tier=full\n  module_desktops upgrade de=xfce tier=mid\n  module_desktops downgrade de=xfce tier=minimal\n  module_desktops status de=xfce\n  module_desktops supported arch=arm64 release=trixie" "native"
+				"Examples:\n  module_desktops install de=xfce tier=minimal\n  module_desktops install de=gnome tier=full\n  module_desktops upgrade de=xfce tier=mid\n  module_desktops downgrade de=xfce tier=minimal\n  module_desktops status de=xfce\n  module_desktops supported arch=arm64 release=trixie\n  module_desktops supported arch=arm64 release=trixie filter=all\n  module_desktops supported arch=riscv64 release=noble status=supported,community" "native"
 		;;
 
 		"${commands[11]}")
