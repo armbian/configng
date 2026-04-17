@@ -42,18 +42,6 @@ tiers:
       - viewnior
       - xdg-user-dirs
       - xdg-user-dirs-gtk
-    packages_uninstall:
-      # IMPORTANT: do NOT list any package here that is a Depends of
-      # xfce4-goodies. apt removal of such a package yanks xfce4-goodies
-      # itself, and on systems with apt's autoremove behavior enabled
-      # the cascade then takes out half the desktop (xserver-xorg,
-      # pulseaudio, cups, evince, mousepad, ...). Keep this list strictly
-      # to packages that are *orthogonal* to the xfce dep tree.
-      # Ubuntu crash reporter — Armbian doesn't consume apport reports.
-      - apport
-      - python3-apport
-      - python3-problem-report
-      - libsnapd-glib-2-1
 
 releases:
   bookworm:
