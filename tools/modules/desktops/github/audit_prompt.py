@@ -34,9 +34,11 @@ Your job is to propose minimal YAML edits that fix ALL the audit
 findings without breaking the existing matrix. Specifically:
 
 - Address EVERY missing release in the report, not just one. Each
-  missing release needs a release block added to every supported DE
-  YAML (the ones with `status: supported`, currently: xfce, gnome,
-  mate, cinnamon, kde-plasma, i3-wm, xmonad, enlightenment).
+  missing release needs a release block added to every DE YAML with
+  `status: supported`. Do NOT add release blocks to YAMLs with
+  `status: community` or `status: unsupported` — those are
+  opt-in / vendor-specific and should only grow coverage when a
+  maintainer explicitly asks for it.
 
 - For package holes, prefer adding entries to common.yaml's
   tier_overrides block (one place, applies to every DE) rather than
@@ -46,10 +48,12 @@ findings without breaking the existing matrix. Specifically:
   per-arch nesting (`tier_overrides.<tier>.architectures.<arch>.
   packages_remove`) for permanent arch-wide holes.
 
-- For missing releases, add a release block to each currently-
-  supported DE YAML (the ones with `status: supported`). Copy the
-  shape from an existing release block (e.g. trixie or noble) and
-  adjust per-release deltas only when needed.
+- For missing releases, add a release block to each DE YAML with
+  `status: supported`. Copy the shape from an existing release block
+  (e.g. trixie or noble) and adjust per-release deltas only when
+  needed. The list of currently-supported DEs can be inferred from
+  the YAMLs themselves — do not rely on hardcoded names in these
+  instructions, as the support tier of a DE can change over time.
 
 - Always add a comment explaining WHY a hole exists. Future readers
   should be able to tell whether the entry is a transient archive
