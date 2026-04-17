@@ -339,18 +339,6 @@
                             "help": "Install Enlightenment (EFL-based) [community-supported, best-effort]."
                         },
                         {
-                            "id": "XMON01",
-                            "description": "Install Xmonad [CSC]",
-                            "short": "Xmonad [CSC]",
-                            "command": [
-                                "module_desktops install de=xmonad tier=minimal"
-                            ],
-                            "status": "Stable",
-                            "author": "@igorpecovnik",
-                            "condition": "! module_desktops installed && module_desktop_supported xmonad",
-                            "help": "Install Xmonad tiling WM [community-supported, best-effort]."
-                        },
-                        {
                             "id": "XFCE01",
                             "description": "Install XFCE (minimal)",
                             "short": "XFCE",
@@ -486,17 +474,6 @@
                             "help": "Uninstall the Enlightenment desktop environment"
                         },
                         {
-                            "id": "XMON02",
-                            "description": "Uninstall Xmonad [CSC]",
-                            "command": [
-                                "module_desktops remove de=xmonad"
-                            ],
-                            "status": "Stable",
-                            "author": "@igorpecovnik",
-                            "condition": "module_desktops status de=xmonad",
-                            "help": "Uninstall the Xmonad window manager"
-                        },
-                        {
                             "id": "XFCE02",
                             "description": "Uninstall XFCE",
                             "command": [
@@ -607,17 +584,6 @@
                             "help": "Enable automatic desktop login for Enlightenment"
                         },
                         {
-                            "id": "XMON03",
-                            "description": "Enable autologin (Xmonad) [CSC]",
-                            "command": [
-                                "module_desktops auto de=xmonad"
-                            ],
-                            "status": "Stable",
-                            "author": "@igorpecovnik",
-                            "condition": "module_desktops status de=xmonad && ! module_desktops login de=xmonad",
-                            "help": "Enable automatic desktop login for Xmonad"
-                        },
-                        {
                             "id": "XFCE03",
                             "description": "Enable autologin (XFCE)",
                             "command": [
@@ -726,17 +692,6 @@
                             "author": "@igorpecovnik",
                             "condition": "module_desktops status de=enlightenment && module_desktops login de=enlightenment",
                             "help": "Disable automatic desktop login for Enlightenment"
-                        },
-                        {
-                            "id": "XMON04",
-                            "description": "Disable autologin (Xmonad) [CSC]",
-                            "command": [
-                                "module_desktops manual de=xmonad"
-                            ],
-                            "status": "Stable",
-                            "author": "@igorpecovnik",
-                            "condition": "module_desktops status de=xmonad && module_desktops login de=xmonad",
-                            "help": "Disable automatic desktop login for Xmonad"
                         },
                         {
                             "id": "XFCE04",
