@@ -194,14 +194,36 @@ jobs:
           # read test
           source "${{ matrix.server.package }}"
 
-          # Test case execution
+          # Test case execution. Capture the testcase's exit code
+          # without failing this step — we want to keep recording the
+          # per-test JSON even on failure so the aggregate report is
+          # complete. `if ...; then ... else ... fi` is exempt from
+          # bash's set -e, which GH Actions sets by default under
+          # shell: bash.
           start_time=$(date +%s)
           figlet  "RUN TEST CASE"
-          testcase
+          if testcase; then
+              result="success"
+          else
+              result="failure"
+          fi
           finish_time=$(date +%s)
+          duration=$((finish_time - start_time))
 
-          # Generate table entry
-          echo "|${{ matrix.server.os }}| ${{ matrix.server.arch }} | ${{ matrix.server.name }} | $((finish_time - start_time)) sec |" > ../test/${{ matrix.server.id }}-${{ matrix.server.os }}-${{ matrix.server.arch }}
+          # Emit a per-test JSON blob. stop job aggregates these into
+          # the final report that gets published to armbian.github.io.
+          jq -nc \
+            --arg name     "${{ matrix.server.name }}" \
+            --arg release  "${{ matrix.server.os }}" \
+            --arg arch     "${{ matrix.server.arch }}" \
+            --argjson dur  "${duration}" \
+            --arg result   "${result}" \
+            '{name:$name, release:$release, arch:$arch, duration:$dur, result:$result}' \
+            > ../test/${{ matrix.server.id }}-${{ matrix.server.os }}-${{ matrix.server.arch }}.json
+
+          # Mirror the test's exit code into the step outcome so the
+          # run's 'Run unit test' step is red on failure.
+          [[ "$result" == "success" ]] || exit 1
 
       - name: "Upload test summary"
         uses: actions/upload-artifact@v7
@@ -224,13 +246,82 @@ jobs:
           pattern: test-*
           merge-multiple: true
 
-      - name: Install
+      - name: "Aggregate per-test JSONs into a single report"
+        id: aggregate
         run: |
+          mkdir -p report
+          generated_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-          echo "# Succesful tests:" >> $GITHUB_STEP_SUMMARY
-          echo "|Release|Arch|Test name|Duration|" >> $GITHUB_STEP_SUMMARY
-          echo "|:---|:---|:---|---:|" >> $GITHUB_STEP_SUMMARY
-          cat test/* | sed '$ s/.$//' >> $GITHUB_STEP_SUMMARY
+          # Combine every test/*.json into { generated_at, tests: [...] }.
+          # Sort by release, arch, name for a stable output.
+          jq -s \
+            --arg generated_at "${generated_at}" \
+            '{
+              generated_at: $generated_at,
+              tests: (. | sort_by(.release, .arch, .name))
+            }' \
+            test/*.json 2>/dev/null > report/unit-test-results.json \
+            || echo '{"generated_at":"'"${generated_at}"'","tests":[]}' > report/unit-test-results.json
+
+          total=$(jq '.tests | length'                     report/unit-test-results.json)
+          ok=$(jq    '[.tests[] | select(.result=="success")] | length' report/unit-test-results.json)
+          ko=$(jq    '[.tests[] | select(.result=="failure")] | length' report/unit-test-results.json)
+          echo "total=${total}"   >> "$GITHUB_OUTPUT"
+          echo "success=${ok}"    >> "$GITHUB_OUTPUT"
+          echo "failure=${ko}"    >> "$GITHUB_OUTPUT"
+
+          {
+              echo "# Unit tests: ${ok}/${total} passed (${ko} failed)"
+              echo ""
+              echo "|Release|Arch|Test name|Duration|Result|"
+              echo "|:---|:---|:---|---:|:---:|"
+              jq -r '.tests[] | "|\(.release)|\(.arch)|\(.name)|\(.duration) sec|\(.result)|"' \
+                 report/unit-test-results.json
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: "Upload aggregated report as a workflow artifact"
+        uses: actions/upload-artifact@v7
+        with:
+          name: unit-test-results
+          path: report/unit-test-results.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: "Publish results to armbian/armbian.github.io data/"
+        # Only publish when there's a meaningful report AND we're
+        # running on the default branch or a scheduled/dispatch run.
+        # PRs (especially from forks) don't get the PAT and shouldn't
+        # write to the public data feed anyway.
+        if: >-
+          steps.aggregate.outputs.total != '0'
+          && (github.event_name == 'schedule'
+              || github.event_name == 'workflow_dispatch'
+              || github.event_name == 'repository_dispatch'
+              || github.ref == 'refs/heads/main')
+        env:
+          GH_PAT: ${{ secrets.ARMBIAN_GITHUB_IO_PAT }}
+        run: |
+          if [[ -z "${GH_PAT}" ]]; then
+              echo "::warning::ARMBIAN_GITHUB_IO_PAT secret is not set; skipping publish step"
+              exit 0
+          fi
+          git config --global user.name  "armbian-ci-bot"
+          git config --global user.email "armbian-ci-bot@users.noreply.github.com"
+
+          git clone --depth 1 \
+            "https://x-access-token:${GH_PAT}@github.com/armbian/armbian.github.io.git" \
+            armbian.github.io
+          mkdir -p armbian.github.io/data
+          cp report/unit-test-results.json armbian.github.io/data/unit-test-results.json
+
+          cd armbian.github.io
+          if git diff --quiet -- data/unit-test-results.json; then
+              echo "::notice::unit-test-results.json unchanged — nothing to publish"
+              exit 0
+          fi
+          git add data/unit-test-results.json
+          git commit -m "data: refresh unit-test-results.json ($(date -u +%Y-%m-%dT%H:%MZ))"
+          git push
 
       - uses: geekyeggo/delete-artifact@v6
         with:
