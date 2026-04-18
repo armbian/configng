@@ -103,20 +103,24 @@ browser:
     amd64:   google-chrome-stable
     arm64:   chromium        # apt.armbian.com real .deb (Ubuntu's is snap-shim)
     armhf:   chromium
-    riscv64: firefox          # apt.armbian.com real .deb
+    # firefox / firefox-esr are not in the Ubuntu noble archive for
+    # riscv64 (Mozilla doesn't publish riscv64 binaries, and firefox-esr
+    # is a Debian-only package name). Fall back to GNOME Web (native
+    # GTK, no snap, small footprint, built for every Ubuntu arch).
+    riscv64: epiphany-browser
   jammy:
     # Ubuntu 22.04 LTS — chromium / firefox apt names on Ubuntu are
     # snap-shims; apt.armbian.com hosts real .debs of the same name.
     amd64:   google-chrome-stable
     arm64:   chromium
     armhf:   chromium
-    riscv64: firefox
+    riscv64: epiphany-browser   # same rationale as noble
   resolute:
     # Ubuntu 26.04 LTS
     amd64:   google-chrome-stable
     arm64:   chromium
     armhf:   chromium
-    riscv64: firefox
+    riscv64: epiphany-browser   # same rationale as noble
   forky:
     # Debian 14 — same rules as trixie.
     amd64:   google-chrome-stable
