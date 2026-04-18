@@ -170,13 +170,16 @@ tier_overrides:
           armhf:    { packages_remove: [fonts-ubuntu] }
           riscv64:  { packages_remove: [fonts-ubuntu] }
       forky:
-        # fonts-ubuntu is Ubuntu-only; Debian 14 doesn't ship it.
-        # Same restriction as bookworm/trixie.
+        # fonts-ubuntu: Ubuntu-only.
+        # printer-driver-all: obsoleted in Debian 14, has no installation
+        #   candidate anymore ('referred to by another package' state).
+        # gtk2-engines-murrine: GTK2 is being phased out in Debian 14;
+        #   the murrine engine was removed from the archive.
         architectures:
-          amd64:    { packages_remove: [fonts-ubuntu] }
-          arm64:    { packages_remove: [fonts-ubuntu] }
-          armhf:    { packages_remove: [fonts-ubuntu] }
-          riscv64:  { packages_remove: [fonts-ubuntu] }
+          amd64:    { packages_remove: [fonts-ubuntu, printer-driver-all, gtk2-engines-murrine] }
+          arm64:    { packages_remove: [fonts-ubuntu, printer-driver-all, gtk2-engines-murrine] }
+          armhf:    { packages_remove: [fonts-ubuntu, printer-driver-all, gtk2-engines-murrine] }
+          riscv64:  { packages_remove: [fonts-ubuntu, printer-driver-all, gtk2-engines-murrine] }
       sid:
         # fonts-ubuntu is Ubuntu-only; Debian sid doesn't ship it.
         # Includes loong64, which is a sid-only Armbian arch.

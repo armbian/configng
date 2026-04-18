@@ -72,7 +72,6 @@ releases:
     architectures: [arm64, amd64, riscv64]
     packages:
       - accountsservice
-      - libu2f-udev
       - pipewire-audio
       - pipewire-pulse
       - wireplumber
