@@ -43,16 +43,19 @@ jobs:
 
           delimiter="$(openssl rand -hex 8)"
           echo "DEPLOYMENT_MATRIX<<${delimiter}" >> "${GITHUB_OUTPUT}"
-          # define OS variants and their Docker images - use pre-built Armbian images
-          declare -A docker_images=(
-            ["bookworm"]="ghcr.io/armbian/repository-update:bookworm-amd64"
-            ["trixie"]="ghcr.io/armbian/repository-update:trixie-amd64"
-            ["forky"]="ghcr.io/armbian/repository-update:forky-amd64"
-            ["jammy"]="ghcr.io/armbian/repository-update:jammy-amd64"
-            ["noble"]="ghcr.io/armbian/repository-update:noble-amd64"
-            ["resolute"]="ghcr.io/armbian/repository-update:resolute-amd64"
+
+          # Run each enabled test case against both amd64 and arm64 runners
+          # using the matching arch-specific Armbian image tag. The
+          # armbian/docker-armbian-build pipeline publishes a
+          # single-platform manifest per <release>-<arch> tag, so the
+          # runner arch and the image tag arch must match exactly.
+          releases=("bookworm" "trixie" "forky" "jammy" "noble" "resolute")
+          arches=("amd64" "arm64")
+          declare -A runner_for_arch=(
+            ["amd64"]="ubuntu-24.04"
+            ["arm64"]="ubuntu-24.04-arm"
           )
-          images=("bookworm" "trixie" "forky" "jammy" "noble" "resolute")
+
           # read tests cases
           # Run all tests on schedule, workflow_dispatch on main, or when no files changed
           run_all_tests=false
@@ -72,26 +75,39 @@ jobs:
                   tests=()
               fi
           fi
-          # loop enabled test cases
+
+          # Emit one matrix entry per (test × release × arch). Each
+          # entry carries the runner label and the fully-qualified image
+          # tag, consumed by the gradle job below.
+          emit_entry() {
+              local pkg="$1" testname="$2" os="$3" testid="$4" arch="$5"
+              local image="ghcr.io/armbian/repository-update:${os}-${arch}"
+              local runner="${runner_for_arch[$arch]}"
+              echo "{\"package\":\"${pkg}\",\"name\":\"${testname}\",\"os\":\"${os}\",\"arch\":\"${arch}\",\"runner\":\"${runner}\",\"id\":\"${testid}\",\"docker_image\":\"${image}\"}"
+          }
+
           for i in "${tests[@]}"; do
              unset RELEASE
              source "${i}"
              if [[ -z "${RELEASE}" || "${RELEASE}" == "all" ]]; then RELEASE=all; fi
-             # if we specify releases, we need to loop docker images and use if there is a match
+             testid=$(echo "$i" | cut -d"/" -f2 | cut -d"." -f1)
              if [[ $RELEASE != "all" ]]; then
-                for j in ${images[@]}; do
-                    elements=($(echo $RELEASE | tr ':' "\n"))
-                    testid=($(echo $i | cut -d"/" -f2 | cut -d"." -f1))
+                # Colon-separated release allow-list (e.g. RELEASE="noble:trixie")
+                elements=($(echo "$RELEASE" | tr ':' "\n"))
+                for j in "${releases[@]}"; do
                     for SELECTED_RELEASE in "${elements[@]}"; do
                         if [[ $j == *"${SELECTED_RELEASE}"* ]]; then
-                           echo "{\"package\":\"${i}\",\"name\":\"${TESTNAME}\",\"os\":\"$j\",\"id\":\"$testid\",\"docker_image\":\"${docker_images[$j]}\"}"
+                           for arch in "${arches[@]}"; do
+                              emit_entry "${i}" "${TESTNAME}" "${j}" "${testid}" "${arch}"
+                           done
                         fi
                     done
                 done
              else
-                for j in ${images[@]}; do
-                    testid=($(echo $i | cut -d"/" -f2 | cut -d"." -f1))
-                    echo "{\"package\":\"${i}\",\"name\":\"${TESTNAME}\",\"os\":\"$j\",\"id\":\"$testid\",\"docker_image\":\"${docker_images[$j]}\"}"
+                for j in "${releases[@]}"; do
+                    for arch in "${arches[@]}"; do
+                       emit_entry "${i}" "${TESTNAME}" "${j}" "${testid}" "${arch}"
+                    done
                 done
              fi
           done | jq -s >> $GITHUB_OUTPUT
@@ -105,9 +121,8 @@ jobs:
       max-parallel: 128
       matrix:
         server: ${{ fromJSON(needs.prepare.outputs.DEPLOYMENT_MATRIX) }}
-    name: "${{ matrix.server.name }} (${{ matrix.server.os }})"
-    runs-on: "ubuntu-24.04-arm"
-    #runs-on: [ docker, X64 ]
+    name: "${{ matrix.server.name }} (${{ matrix.server.os }}/${{ matrix.server.arch }})"
+    runs-on: ${{ matrix.server.runner }}
     timeout-minutes: 60
     container:
       image: ${{ matrix.server.docker_image }}
@@ -148,12 +163,12 @@ jobs:
           finish_time=$(date +%s)
 
           # Generate table entry
-          echo "|${{ matrix.server.os }}| ${{ matrix.server.name }} | $((finish_time - start_time)) sec |" > ../test/${{ matrix.server.id }}-${{ matrix.server.os }}
+          echo "|${{ matrix.server.os }}| ${{ matrix.server.arch }} | ${{ matrix.server.name }} | $((finish_time - start_time)) sec |" > ../test/${{ matrix.server.id }}-${{ matrix.server.os }}-${{ matrix.server.arch }}
 
       - name: "Upload test summary"
         uses: actions/upload-artifact@v7
         with:
-          name: test-${{ matrix.server.id }}-${{ matrix.server.os }}
+          name: test-${{ matrix.server.id }}-${{ matrix.server.os }}-${{ matrix.server.arch }}
           path: test
           if-no-files-found: ignore
 
@@ -175,8 +190,8 @@ jobs:
         run: |
 
           echo "# Succesful tests:" >> $GITHUB_STEP_SUMMARY
-          echo "|Release|Test name|Duration|" >> $GITHUB_STEP_SUMMARY
-          echo "|:---|:---|---:|" >> $GITHUB_STEP_SUMMARY
+          echo "|Release|Arch|Test name|Duration|" >> $GITHUB_STEP_SUMMARY
+          echo "|:---|:---|:---|---:|" >> $GITHUB_STEP_SUMMARY
           cat test/* | sed '$ s/.$//' >> $GITHUB_STEP_SUMMARY
 
       - uses: geekyeggo/delete-artifact@v6
