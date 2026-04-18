@@ -23,7 +23,8 @@ jobs:
     name: "Armbian configurator unit tests"
     runs-on: "ubuntu-24.04"
     outputs:
-      DEPLOYMENT_MATRIX: "${{ steps.json.outputs.DEPLOYMENT_MATRIX }}"
+      DEPLOYMENT_MATRIX_NATIVE:   "${{ steps.json.outputs.DEPLOYMENT_MATRIX_NATIVE }}"
+      DEPLOYMENT_MATRIX_EMULATED: "${{ steps.json.outputs.DEPLOYMENT_MATRIX_EMULATED }}"
     steps:
 
       - name: Checkout
@@ -41,28 +42,36 @@ jobs:
         id: json
         run: |
 
-          delimiter="$(openssl rand -hex 8)"
-          echo "DEPLOYMENT_MATRIX<<${delimiter}" >> "${GITHUB_OUTPUT}"
-
-          # Run each enabled test case against both amd64 and arm64 runners
-          # using the matching arch-specific Armbian image tag. The
-          # armbian/docker-armbian-build pipeline publishes a
-          # single-platform manifest per <release>-<arch> tag, so the
-          # runner arch and the image tag arch must match exactly.
+          # Run each enabled test case against every arch its TESTARCH
+          # declares, using the matching arch-specific Armbian image
+          # tag. armbian/docker-armbian-build publishes a single-platform
+          # manifest per <release>-<arch> tag, so runner arch and image
+          # arch must match exactly.
           #
-          # Runners:
-          #   amd64 / arm64 — self-hosted pool, selected by a label pair
-          #     (docker + arch). JSON array so runs-on: ... uses GHA's
-          #     'AND' label-list matching.
-          #   riscv64 — GH-hosted runner 'ubuntu-24.04-riscv' until the
-          #     self-hosted pool gains a riscv64 host. Single string.
-          # Both forms are accepted by runs-on: ${{ matrix.server.runner }}.
+          # Runner routing:
+          #   amd64 / arm64     → self-hosted pool, label pair
+          #                       (docker + arch) for GHA's 'AND'
+          #                       label matching. Native execution.
+          #   armhf / riscv64   → self-hosted amd64 host. Tests run
+          #                       under qemu-user emulation via
+          #                       `docker run --platform linux/<arch>`
+          #                       (see gradle-emulated job).
+          # The emulation_for_arch map below is the single source of
+          # truth: any arch with a non-empty value is emulated, any
+          # arch with an empty value is native.
           releases=("bookworm" "trixie" "forky" "jammy" "noble" "resolute")
-          arches=("amd64" "arm64" "riscv64")
+          arches=("amd64" "arm64" "armhf" "riscv64")
           declare -A runner_for_arch=(
             ["amd64"]='["docker","X64"]'
             ["arm64"]='["docker","ARM64"]'
-            ["riscv64"]='"ubuntu-24.04-riscv"'
+            ["armhf"]='["docker","X64"]'      # emulated on amd64
+            ["riscv64"]='["docker","X64"]'    # emulated on amd64
+          )
+          declare -A emulation_for_arch=(
+            ["amd64"]=""
+            ["arm64"]=""
+            ["armhf"]="linux/arm/v7"
+            ["riscv64"]="linux/riscv64"
           )
 
           # read tests cases
@@ -86,15 +95,17 @@ jobs:
           fi
 
           # Emit one matrix entry per (test × release × arch). Each
-          # entry carries the runner label and the fully-qualified image
-          # tag, consumed by the gradle job below.
+          # entry carries the runner label, the fully-qualified image
+          # tag, and the qemu platform (non-empty on emulated arches).
+          # Consumed by the gradle-native / gradle-emulated jobs below.
           emit_entry() {
               local pkg="$1" testname="$2" os="$3" testid="$4" arch="$5"
               local image="ghcr.io/armbian/repository-update:${os}-${arch}"
               # runner_json is a JSON array literal — injected unquoted
               # so the resulting matrix value is a list, not a string.
               local runner_json="${runner_for_arch[$arch]}"
-              echo "{\"package\":\"${pkg}\",\"name\":\"${testname}\",\"os\":\"${os}\",\"arch\":\"${arch}\",\"runner\":${runner_json},\"id\":\"${testid}\",\"docker_image\":\"${image}\"}"
+              local emulation="${emulation_for_arch[$arch]}"
+              echo "{\"package\":\"${pkg}\",\"name\":\"${testname}\",\"os\":\"${os}\",\"arch\":\"${arch}\",\"runner\":${runner_json},\"id\":\"${testid}\",\"docker_image\":\"${image}\",\"emulation\":\"${emulation}\"}"
           }
 
           # Build the matrix JSON into a variable first so we can log it
@@ -138,27 +149,46 @@ jobs:
             done | jq -sc .
           )
 
-          matrix_count=$(echo "${matrix_json:-[]}" | jq 'length')
-          echo "::notice::Unit-test matrix has ${matrix_count} entries"
-          if [[ "${matrix_count}" == "0" ]]; then
-              echo "::warning::No matrix entries emitted — gradle job will skip. Possible causes:"
+          # Split the flat matrix into two: entries whose `emulation`
+          # field is empty run natively in a container, entries whose
+          # field is non-empty run under qemu-user via docker run.
+          native_json=$(echo "${matrix_json:-[]}"   | jq -c '[.[] | select(.emulation == "")]')
+          emulated_json=$(echo "${matrix_json:-[]}" | jq -c '[.[] | select(.emulation != "")]')
+
+          total_count=$(echo "${matrix_json:-[]}" | jq 'length')
+          native_count=$(echo "${native_json}"    | jq 'length')
+          emulated_count=$(echo "${emulated_json}" | jq 'length')
+          echo "::notice::Unit-test matrix: ${total_count} entries (${native_count} native, ${emulated_count} emulated)"
+          if [[ "${total_count}" == "0" ]]; then
+              echo "::warning::No matrix entries emitted — both gradle jobs will skip. Possible causes:"
               echo "::warning::  - no tests/*.conf files with ENABLED=true"
               echo "::warning::  - PR touches no tests/*.conf and changed-files signalled 'changed'"
               echo "::warning::    (run_all_tests=false), so the loop iterates an empty set"
               echo "::warning::  - a test's source failed (syntax error) and bubbled up empty"
           fi
 
-          echo "${matrix_json:-[]}" >> "${GITHUB_OUTPUT}"
-          echo "${delimiter}" >> "${GITHUB_OUTPUT}"
+          {
+              delim="$(openssl rand -hex 8)"
+              echo "DEPLOYMENT_MATRIX_NATIVE<<${delim}"
+              echo "${native_json}"
+              echo "${delim}"
+              delim="$(openssl rand -hex 8)"
+              echo "DEPLOYMENT_MATRIX_EMULATED<<${delim}"
+              echo "${emulated_json}"
+              echo "${delim}"
+          } >> "${GITHUB_OUTPUT}"
 
-  gradle:
+  # Native matrix: entries whose target arch equals the runner's arch.
+  # Tests execute inside the arch-specific repository-update container
+  # with systemd running as PID-N, same as before the qemu split.
+  gradle-native:
     needs: prepare
-    if: ${{ needs.prepare.outputs.DEPLOYMENT_MATRIX != '[]' }}
+    if: ${{ needs.prepare.outputs.DEPLOYMENT_MATRIX_NATIVE != '[]' }}
     strategy:
       fail-fast: false
       max-parallel: 128
       matrix:
-        server: ${{ fromJSON(needs.prepare.outputs.DEPLOYMENT_MATRIX) }}
+        server: ${{ fromJSON(needs.prepare.outputs.DEPLOYMENT_MATRIX_NATIVE) }}
     name: "${{ matrix.server.name }} (${{ matrix.server.os }}/${{ matrix.server.arch }})"
     runs-on: ${{ matrix.server.runner }}
     timeout-minutes: 60
@@ -232,10 +262,130 @@ jobs:
           path: test
           if-no-files-found: ignore
 
+  # Emulated matrix: entries for foreign arches (armhf, riscv64) run
+  # on an amd64 host using `docker run --platform linux/<arch>` and
+  # qemu-user-static. Deliberately does NOT use GH's job-level
+  # `container:` key because:
+  #   1. GHA mounts the host's Node.js into the container at /__e/...
+  #      The host binary is amd64; Node-based actions (checkout,
+  #      upload-artifact) would fail to exec inside an armhf/riscv64
+  #      container. Running steps on the host + docker run-ing only
+  #      the test body avoids that.
+  #   2. systemd PID1 under qemu-user is unreliable; we skip it.
+  # Timeout is 3× the native budget — qemu-user emulation is
+  # typically 10–20× slower than native.
+  gradle-emulated:
+    needs: prepare
+    if: ${{ needs.prepare.outputs.DEPLOYMENT_MATRIX_EMULATED != '[]' }}
+    strategy:
+      fail-fast: false
+      max-parallel: 128
+      matrix:
+        server: ${{ fromJSON(needs.prepare.outputs.DEPLOYMENT_MATRIX_EMULATED) }}
+    name: "${{ matrix.server.name }} (${{ matrix.server.os }}/${{ matrix.server.arch }}-qemu)"
+    runs-on: ${{ matrix.server.runner }}
+    timeout-minutes: 180
+    steps:
+
+      - name: "Checkout Armbian configuration tool"
+        uses: actions/checkout@v6
+        with:
+          path: 'config'
+
+      - name: "Set up QEMU for ${{ matrix.server.emulation }}"
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: ${{ matrix.server.emulation }}
+
+      - name: "Assemble armbian-config (native)"
+        shell: bash
+        run: |
+          # config-assemble.sh only cats .sh files together — output is
+          # arch-independent. Run it on the fast amd64 host; the
+          # emulated container will mount the result.
+          (cd config && bash tools/config-assemble.sh -p)
+
+      - name: "Run unit test: ${{ matrix.server.name }} via ${{ matrix.server.package }} (emulated)"
+        shell: bash
+        run: |
+          rm -rf test; mkdir -p test
+
+          # Pre-pull the image with the right platform so we get a
+          # clean error out of this step if the image doesn't exist
+          # for the target arch (armbian/docker-armbian-build currently
+          # publishes armhf images only under separate enablement; a
+          # missing tag surfaces here rather than mid-testcase).
+          docker pull --platform "${{ matrix.server.emulation }}" \
+                      "${{ matrix.server.docker_image }}"
+
+          # Run the test body inside the emulated container. The
+          # container sees `config/` at /workspace and writes any
+          # log output to the mounted test/ dir. systemd is NOT
+          # initialised — most module_* tests don't need PID-1
+          # systemd, and qemu-user doesn't reliably support the
+          # syscalls systemd uses anyway.
+          set +e
+          docker run --rm \
+            --platform "${{ matrix.server.emulation }}" \
+            --privileged \
+            --security-opt seccomp=unconfined \
+            --tmpfs /run --tmpfs /run/lock \
+            -v "$PWD/config":/workspace:ro \
+            -v "$PWD/test":/test \
+            -w /workspace \
+            -e TERM=linux \
+            -e DBUS_SESSION_BUS_ADDRESS="unix:path=/run/bus/bus.sock" \
+            "${{ matrix.server.docker_image }}" \
+            bash -c '
+              set +e
+              source "${{ matrix.server.package }}"
+              start_time=$(date +%s)
+              figlet "RUN TEST CASE (emulated)"
+              if testcase; then result=success; else result=failure; fi
+              finish_time=$(date +%s)
+              # The per-test JSON is written from the host side so
+              # jq is always available, so just print a parsable
+              # result line here for the host to pick up.
+              echo "__RESULT__${result}__${start_time}__${finish_time}__"
+            ' | tee /tmp/emulated.log
+          docker_exit=$?
+          set -e
+
+          # Parse the tagged result line the container printed.
+          result_line=$(grep -oE '__RESULT__[^_]*__[0-9]+__[0-9]+__' /tmp/emulated.log | tail -1 || true)
+          if [[ -n "$result_line" ]]; then
+              IFS='__' read -r _ _ result _ start_time _ finish_time _ <<< "$result_line"
+              duration=$((finish_time - start_time))
+          else
+              # Container never reached the result print — docker run
+              # itself must have failed (missing image, qemu crash,
+              # etc). Record as failure with 0 duration.
+              result="failure"
+              duration=0
+          fi
+
+          jq -nc \
+            --arg name     "${{ matrix.server.name }}" \
+            --arg release  "${{ matrix.server.os }}" \
+            --arg arch     "${{ matrix.server.arch }}" \
+            --argjson dur  "${duration}" \
+            --arg result   "${result}" \
+            '{name:$name, release:$release, arch:$arch, duration:$dur, result:$result}' \
+            > test/${{ matrix.server.id }}-${{ matrix.server.os }}-${{ matrix.server.arch }}.json
+
+          [[ "$result" == "success" && $docker_exit -eq 0 ]] || exit 1
+
+      - name: "Upload test summary"
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-${{ matrix.server.id }}-${{ matrix.server.os }}-${{ matrix.server.arch }}
+          path: test
+          if-no-files-found: ignore
+
   stop:
     name: "Merge test artifacts"
     if: always()
-    needs: gradle
+    needs: [gradle-native, gradle-emulated]
     runs-on: ubuntu-24.04
     steps:
 
