@@ -227,12 +227,23 @@ jobs:
           # Test case execution. Capture the testcase's exit code
           # without failing this step — we want to keep recording the
           # per-test JSON even on failure so the aggregate report is
-          # complete. `if ...; then ... else ... fi` is exempt from
-          # bash's set -e, which GH Actions sets by default under
-          # shell: bash.
+          # complete.
+          #
+          # IMPORTANT: do NOT wrap the call as `if testcase; then ...`.
+          # Bash disables `set -e` for any command whose exit status is
+          # being tested, and that disablement propagates into subshells
+          # inside the callee — i.e. the `(set -e; ...)` body of
+          # testcase() no longer aborts on the first failed command.
+          # The first failing armbian-config call would be ignored, the
+          # second would run, and the test would report success (false
+          # positive). Call testcase bare, capture $?, then branch.
           start_time=$(date +%s)
           figlet  "RUN TEST CASE"
-          if testcase; then
+          set +e
+          testcase
+          tc_rc=$?
+          set -e
+          if [[ $tc_rc -eq 0 ]]; then
               result="success"
           else
               result="failure"
@@ -363,7 +374,15 @@ jobs:
               source "${TEST_PKG}"
               start_ts=$(date +%s)
               figlet "RUN TEST CASE (emulated)"
-              if testcase; then result="success"; else result="failure"; fi
+              # Call testcase bare. Do NOT `if testcase; then ...`:
+              # bash inhibits set -e inside any command whose exit
+              # status is being tested, and that inhibition leaks into
+              # the subshell inside testcase(), turning the first
+              # failing armbian-config call into a silent skip
+              # (false-positive).
+              testcase
+              tc_rc=$?
+              if [[ $tc_rc -eq 0 ]]; then result="success"; else result="failure"; fi
               finish_ts=$(date +%s)
               jq -nc \
                 --arg name    "${TEST_NAME}" \
