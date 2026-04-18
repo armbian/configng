@@ -97,40 +97,58 @@ jobs:
               echo "{\"package\":\"${pkg}\",\"name\":\"${testname}\",\"os\":\"${os}\",\"arch\":\"${arch}\",\"runner\":${runner_json},\"id\":\"${testid}\",\"docker_image\":\"${image}\"}"
           }
 
-          for i in "${tests[@]}"; do
-             unset RELEASE TESTARCH
-             source "${i}"
-             if [[ -z "${RELEASE}" || "${RELEASE}" == "all" ]]; then RELEASE=all; fi
-             # TESTARCH: comma-separated arch allow-list per test, e.g.
-             # TESTARCH="arm64,amd64" (default) or TESTARCH="amd64" to
-             # skip the arm64 variant. "all" / empty / unset expands to
-             # the full arch set.
-             if [[ -z "${TESTARCH}" || "${TESTARCH}" == "all" ]]; then
-                 test_arches=("${arches[@]}")
-             else
-                 IFS=',' read -ra test_arches <<< "${TESTARCH// /}"
-             fi
-             testid=$(echo "$i" | cut -d"/" -f2 | cut -d"." -f1)
-             if [[ $RELEASE != "all" ]]; then
-                # Colon-separated release allow-list (e.g. RELEASE="noble:trixie")
-                elements=($(echo "$RELEASE" | tr ':' "\n"))
-                for j in "${releases[@]}"; do
-                    for SELECTED_RELEASE in "${elements[@]}"; do
-                        if [[ $j == *"${SELECTED_RELEASE}"* ]]; then
-                           for arch in "${test_arches[@]}"; do
-                              emit_entry "${i}" "${TESTNAME}" "${j}" "${testid}" "${arch}"
-                           done
-                        fi
-                    done
-                done
-             else
-                for j in "${releases[@]}"; do
-                    for arch in "${test_arches[@]}"; do
-                       emit_entry "${i}" "${TESTNAME}" "${j}" "${testid}" "${arch}"
-                    done
-                done
-             fi
-          done | jq -s >> $GITHUB_OUTPUT
+          # Build the matrix JSON into a variable first so we can log it
+          # before handing off to GITHUB_OUTPUT. Compact form (-c) keeps
+          # the whole array on a single line — avoids any chance of the
+          # heredoc delimiter interacting with multi-line JSON.
+          matrix_json=$(
+            for i in "${tests[@]}"; do
+               unset RELEASE TESTARCH
+               source "${i}"
+               if [[ -z "${RELEASE}" || "${RELEASE}" == "all" ]]; then RELEASE=all; fi
+               # TESTARCH: comma-separated arch allow-list per test, e.g.
+               # TESTARCH="arm64,amd64" (default) or TESTARCH="amd64" to
+               # skip the arm64 variant. "all" / empty / unset expands to
+               # the full arch set.
+               if [[ -z "${TESTARCH}" || "${TESTARCH}" == "all" ]]; then
+                   test_arches=("${arches[@]}")
+               else
+                   IFS=',' read -ra test_arches <<< "${TESTARCH// /}"
+               fi
+               testid=$(echo "$i" | cut -d"/" -f2 | cut -d"." -f1)
+               if [[ $RELEASE != "all" ]]; then
+                  # Colon-separated release allow-list (e.g. RELEASE="noble:trixie")
+                  elements=($(echo "$RELEASE" | tr ':' "\n"))
+                  for j in "${releases[@]}"; do
+                      for SELECTED_RELEASE in "${elements[@]}"; do
+                          if [[ $j == *"${SELECTED_RELEASE}"* ]]; then
+                             for arch in "${test_arches[@]}"; do
+                                emit_entry "${i}" "${TESTNAME}" "${j}" "${testid}" "${arch}"
+                             done
+                          fi
+                      done
+                  done
+               else
+                  for j in "${releases[@]}"; do
+                      for arch in "${test_arches[@]}"; do
+                         emit_entry "${i}" "${TESTNAME}" "${j}" "${testid}" "${arch}"
+                      done
+                  done
+               fi
+            done | jq -sc .
+          )
+
+          matrix_count=$(echo "${matrix_json:-[]}" | jq 'length')
+          echo "::notice::Unit-test matrix has ${matrix_count} entries"
+          if [[ "${matrix_count}" == "0" ]]; then
+              echo "::warning::No matrix entries emitted — gradle job will skip. Possible causes:"
+              echo "::warning::  - no tests/*.conf files with ENABLED=true"
+              echo "::warning::  - PR touches no tests/*.conf and changed-files signalled 'changed'"
+              echo "::warning::    (run_all_tests=false), so the loop iterates an empty set"
+              echo "::warning::  - a test's source failed (syntax error) and bubbled up empty"
+          fi
+
+          echo "${matrix_json:-[]}" >> "${GITHUB_OUTPUT}"
           echo "${delimiter}" >> "${GITHUB_OUTPUT}"
 
   gradle:
