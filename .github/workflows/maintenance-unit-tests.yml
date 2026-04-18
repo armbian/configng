@@ -299,10 +299,10 @@ jobs:
               || github.event_name == 'repository_dispatch'
               || github.ref == 'refs/heads/main')
         env:
-          GH_PAT: ${{ secrets.ARMBIAN_GITHUB_IO_PAT }}
+          GH_PAT: ${{ secrets.ACCESS_TOKEN }}
         run: |
           if [[ -z "${GH_PAT}" ]]; then
-              echo "::warning::ARMBIAN_GITHUB_IO_PAT secret is not set; skipping publish step"
+              echo "::warning::ACCESS_TOKEN secret is not set; skipping publish step"
               exit 0
           fi
           git config --global user.name  "armbian-ci-bot"
