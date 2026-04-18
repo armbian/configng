@@ -266,7 +266,12 @@ jobs:
           # run's 'Run unit test' step is red on failure.
           [[ "$result" == "success" ]] || exit 1
 
+      # if: always() — the previous step exits non-zero on test failure
+      # so the JSON result blob can mark the slot red. Without always()
+      # GH skips this upload, the stop job never sees the blob, and the
+      # aggregate report silently drops the failed row entirely.
       - name: "Upload test summary"
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: test-${{ matrix.server.id }}-${{ matrix.server.os }}-${{ matrix.server.arch }}
@@ -413,7 +418,9 @@ jobs:
 
           exit $docker_exit
 
+      # See gradle-native's upload step for the reason always() is needed.
       - name: "Upload test summary"
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: test-${{ matrix.server.id }}-${{ matrix.server.os }}-${{ matrix.server.arch }}
