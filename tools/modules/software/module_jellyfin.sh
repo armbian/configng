@@ -38,7 +38,13 @@ function module_jellyfin () {
 		KERNEL=="system-uncached", MODE="0666", GROUP="video"
 		KERNEL=="system-uncached-dma32", MODE="0666", GROUP="video" RUN+="/usr/bin/chmod a+rw /dev/dma_heap"
 		EOT
-		udevadm control --reload-rules && udevadm trigger
+		# Reload only when udevd is actually running (absent in CI
+		# containers, which would otherwise exit with 'Failed to
+		# send reload request: No such file or directory' and abort
+		# the caller's set -e).
+		if [[ -S /run/udev/control ]]; then
+			udevadm control --reload-rules && udevadm trigger
+		fi
 
 		# Pack `hwacc` to expose MPP/VPU hardware to the container
 		for dev in dri dma_heap mali0 rga mpp_service \
@@ -83,9 +89,13 @@ function module_jellyfin () {
 			docker_operation_progress rm "$dockername"
 			docker_operation_progress rmi "$dockerimage"
 
-			# Drop udev rules upon removal
+			# Drop udev rules upon removal. Reload only when udevd is
+			# actually running (absent in CI containers — see install
+			# branch above for the same guard).
 			rm -f "/etc/udev/rules.d/50-rk3588-mpp.rules"
-			udevadm control --reload-rules && udevadm trigger
+			if [[ -S /run/udev/control ]]; then
+				udevadm control --reload-rules && udevadm trigger
+			fi
 		;;
 		"${commands[2]}") # purge
 			# Remove container and image first
