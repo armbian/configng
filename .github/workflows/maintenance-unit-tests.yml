@@ -324,26 +324,30 @@ jobs:
 
       - name: "Run unit test: ${{ matrix.server.name }} via ${{ matrix.server.package }} (emulated)"
         shell: bash
+        env:
+          TEST_NAME:    "${{ matrix.server.name }}"
+          TEST_RELEASE: "${{ matrix.server.os }}"
+          TEST_ARCH:    "${{ matrix.server.arch }}"
+          TEST_ID:      "${{ matrix.server.id }}"
+          TEST_PKG:     "${{ matrix.server.package }}"
+          TEST_IMAGE:   "${{ matrix.server.docker_image }}"
+          TEST_PLATFORM: "${{ matrix.server.emulation }}"
         run: |
           rm -rf test; mkdir -p test
+          json_path="test/${TEST_ID}-${TEST_RELEASE}-${TEST_ARCH}.json"
 
           # Pre-pull the image with the right platform so we get a
-          # clean error out of this step if the image doesn't exist
-          # for the target arch (armbian/docker-armbian-build currently
-          # publishes armhf images only under separate enablement; a
-          # missing tag surfaces here rather than mid-testcase).
-          docker pull --platform "${{ matrix.server.emulation }}" \
-                      "${{ matrix.server.docker_image }}"
+          # clean error if the image doesn't exist for the target arch.
+          docker pull --platform "${TEST_PLATFORM}" "${TEST_IMAGE}"
 
           # Run the test body inside the emulated container. The
-          # container sees `config/` at /workspace and writes any
-          # log output to the mounted test/ dir. systemd is NOT
-          # initialised — most module_* tests don't need PID-1
-          # systemd, and qemu-user doesn't reliably support the
-          # syscalls systemd uses anyway.
+          # container writes the per-test JSON result blob directly to
+          # the mounted test/ dir; the host just propagates the exit
+          # code and uploads what's there. systemd is NOT initialised —
+          # qemu-user doesn't reliably support the syscalls it uses.
           set +e
           docker run --rm \
-            --platform "${{ matrix.server.emulation }}" \
+            --platform "${TEST_PLATFORM}" \
             --privileged \
             --security-opt seccomp=unconfined \
             --tmpfs /run --tmpfs /run/lock \
@@ -352,45 +356,43 @@ jobs:
             -w /workspace \
             -e TERM=linux \
             -e DBUS_SESSION_BUS_ADDRESS="unix:path=/run/bus/bus.sock" \
-            "${{ matrix.server.docker_image }}" \
+            -e TEST_NAME -e TEST_RELEASE -e TEST_ARCH -e TEST_ID -e TEST_PKG \
+            "${TEST_IMAGE}" \
             bash -c '
               set +e
-              source "${{ matrix.server.package }}"
-              start_time=$(date +%s)
+              source "${TEST_PKG}"
+              start_ts=$(date +%s)
               figlet "RUN TEST CASE (emulated)"
-              if testcase; then result=success; else result=failure; fi
-              finish_time=$(date +%s)
-              # The per-test JSON is written from the host side so
-              # jq is always available, so just print a parsable
-              # result line here for the host to pick up.
-              echo "__RESULT__${result}__${start_time}__${finish_time}__"
-            ' | tee /tmp/emulated.log
+              if testcase; then result="success"; else result="failure"; fi
+              finish_ts=$(date +%s)
+              jq -nc \
+                --arg name    "${TEST_NAME}" \
+                --arg release "${TEST_RELEASE}" \
+                --arg arch    "${TEST_ARCH}" \
+                --argjson dur $((finish_ts - start_ts)) \
+                --arg result  "${result}" \
+                "{name:\$name, release:\$release, arch:\$arch, duration:\$dur, result:\$result}" \
+                > "/test/${TEST_ID}-${TEST_RELEASE}-${TEST_ARCH}.json"
+              [[ "$result" == "success" ]]
+            '
           docker_exit=$?
           set -e
 
-          # Parse the tagged result line the container printed.
-          result_line=$(grep -oE '__RESULT__[^_]*__[0-9]+__[0-9]+__' /tmp/emulated.log | tail -1 || true)
-          if [[ -n "$result_line" ]]; then
-              IFS='__' read -r _ _ result _ start_time _ finish_time _ <<< "$result_line"
-              duration=$((finish_time - start_time))
-          else
-              # Container never reached the result print — docker run
-              # itself must have failed (missing image, qemu crash,
-              # etc). Record as failure with 0 duration.
-              result="failure"
-              duration=0
+          # If the container never produced the JSON (image pull failed,
+          # qemu crash, etc), synthesise a failure blob so the stop job
+          # still sees an entry for this matrix slot.
+          if [[ ! -s "$json_path" ]]; then
+              jq -nc \
+                --arg name    "${TEST_NAME}" \
+                --arg release "${TEST_RELEASE}" \
+                --arg arch    "${TEST_ARCH}" \
+                --argjson dur 0 \
+                --arg result  "failure" \
+                '{name:$name, release:$release, arch:$arch, duration:$dur, result:$result}' \
+                > "$json_path"
           fi
 
-          jq -nc \
-            --arg name     "${{ matrix.server.name }}" \
-            --arg release  "${{ matrix.server.os }}" \
-            --arg arch     "${{ matrix.server.arch }}" \
-            --argjson dur  "${duration}" \
-            --arg result   "${result}" \
-            '{name:$name, release:$release, arch:$arch, duration:$dur, result:$result}' \
-            > test/${{ matrix.server.id }}-${{ matrix.server.os }}-${{ matrix.server.arch }}.json
-
-          [[ "$result" == "success" && $docker_exit -eq 0 ]] || exit 1
+          exit $docker_exit
 
       - name: "Upload test summary"
         uses: actions/upload-artifact@v7
