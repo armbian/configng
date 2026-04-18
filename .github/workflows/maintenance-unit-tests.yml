@@ -49,11 +49,16 @@ jobs:
           # armbian/docker-armbian-build pipeline publishes a
           # single-platform manifest per <release>-<arch> tag, so the
           # runner arch and the image tag arch must match exactly.
+          #
+          # Runners are our self-hosted pool, selected by a label pair
+          # (docker + arch). The value is a JSON array so
+          # `runs-on: ${{ matrix.server.runner }}` gets the native
+          # label-list form that GHA uses for 'AND' label matching.
           releases=("bookworm" "trixie" "forky" "jammy" "noble" "resolute")
           arches=("amd64" "arm64")
           declare -A runner_for_arch=(
-            ["amd64"]="ubuntu-24.04"
-            ["arm64"]="ubuntu-24.04-arm"
+            ["amd64"]='["docker","X64"]'
+            ["arm64"]='["docker","ARM64"]'
           )
 
           # read tests cases
@@ -82,8 +87,10 @@ jobs:
           emit_entry() {
               local pkg="$1" testname="$2" os="$3" testid="$4" arch="$5"
               local image="ghcr.io/armbian/repository-update:${os}-${arch}"
-              local runner="${runner_for_arch[$arch]}"
-              echo "{\"package\":\"${pkg}\",\"name\":\"${testname}\",\"os\":\"${os}\",\"arch\":\"${arch}\",\"runner\":\"${runner}\",\"id\":\"${testid}\",\"docker_image\":\"${image}\"}"
+              # runner_json is a JSON array literal — injected unquoted
+              # so the resulting matrix value is a list, not a string.
+              local runner_json="${runner_for_arch[$arch]}"
+              echo "{\"package\":\"${pkg}\",\"name\":\"${testname}\",\"os\":\"${os}\",\"arch\":\"${arch}\",\"runner\":${runner_json},\"id\":\"${testid}\",\"docker_image\":\"${image}\"}"
           }
 
           for i in "${tests[@]}"; do
