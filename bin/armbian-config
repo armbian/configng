@@ -185,7 +185,13 @@ case "$1" in
                 fn=$(sanitize "$2") || die
                 shift 2
                 "$fn" "$@"
+                # Preserve the API function's exit status so callers (CI
+                # tests, scripts with `set -e`) see the real result. Without
+                # this, the trailing `checkpoint total` at EOF can mask a
+                # non-zero rc and every --api call ends up looking successful.
+                _api_rc=$?
                 checkpoint debug "Finished --api call"
+                (exit $_api_rc)
             ;;
         esac
     ;;
