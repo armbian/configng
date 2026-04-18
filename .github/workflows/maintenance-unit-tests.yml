@@ -287,6 +287,23 @@ jobs:
     timeout-minutes: 180
     steps:
 
+      # Emulated and native jobs share the same self-hosted runner
+      # and the same _work/<repo>/<repo>/ path. A previous native
+      # job (which uses job-level `container:`) runs as root inside
+      # that container — files it writes on the mounted workspace
+      # land as root-owned on the host. When the next scheduled job
+      # is this emulated one (host-side, non-root runner user),
+      # actions/checkout's cleanup can't unlink those files and
+      # fails with EACCES.
+      #
+      # Wipe any prior config/ + test/ leftover via a throwaway
+      # root-in-container run before the real checkout fires.
+      - name: "Pre-clean root-owned leftovers from prior native runs"
+        shell: bash
+        run: |
+          docker run --rm -v "$PWD":/work alpine:3 \
+            sh -c 'rm -rf /work/config /work/test' || true
+
       - name: "Checkout Armbian configuration tool"
         uses: actions/checkout@v6
         with:
