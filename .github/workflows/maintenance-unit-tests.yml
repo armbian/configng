@@ -106,8 +106,8 @@ jobs:
       matrix:
         server: ${{ fromJSON(needs.prepare.outputs.DEPLOYMENT_MATRIX) }}
     name: "${{ matrix.server.name }} (${{ matrix.server.os }})"
-    #runs-on: "ubuntu-latest"
-    runs-on: [ docker, X64 ]
+    runs-on: "ubuntu-24.04-arm"
+    #runs-on: [ docker, X64 ]
     timeout-minutes: 60
     container:
       image: ${{ matrix.server.docker_image }}
