@@ -50,15 +50,19 @@ jobs:
           # single-platform manifest per <release>-<arch> tag, so the
           # runner arch and the image tag arch must match exactly.
           #
-          # Runners are our self-hosted pool, selected by a label pair
-          # (docker + arch). The value is a JSON array so
-          # `runs-on: ${{ matrix.server.runner }}` gets the native
-          # label-list form that GHA uses for 'AND' label matching.
+          # Runners:
+          #   amd64 / arm64 — self-hosted pool, selected by a label pair
+          #     (docker + arch). JSON array so runs-on: ... uses GHA's
+          #     'AND' label-list matching.
+          #   riscv64 — GH-hosted runner 'ubuntu-24.04-riscv' until the
+          #     self-hosted pool gains a riscv64 host. Single string.
+          # Both forms are accepted by runs-on: ${{ matrix.server.runner }}.
           releases=("bookworm" "trixie" "forky" "jammy" "noble" "resolute")
-          arches=("amd64" "arm64")
+          arches=("amd64" "arm64" "riscv64")
           declare -A runner_for_arch=(
             ["amd64"]='["docker","X64"]'
             ["arm64"]='["docker","ARM64"]'
+            ["riscv64"]='"ubuntu-24.04-riscv"'
           )
 
           # read tests cases
