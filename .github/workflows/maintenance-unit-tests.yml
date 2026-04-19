@@ -430,7 +430,7 @@ jobs:
   stop:
     name: "Merge test artifacts"
     if: always()
-    needs: [gradle-native, gradle-emulated]
+    needs: [prepare, gradle-native, gradle-emulated]
     runs-on: ubuntu-24.04
     steps:
 
@@ -440,6 +440,56 @@ jobs:
           path: test
           pattern: test-*
           merge-multiple: true
+
+      # Cross-check downloaded blobs against the matrix prepare
+      # emitted. A missing blob means the matrix slot ran but never
+      # wrote its result JSON — typically because the runner itself
+      # was killed mid-step (OOM, self-hosted pool reclaim, hosted
+      # 6h ceiling), which leaves GH marking the job as failure with
+      # the `Run unit test` step stuck at in_progress and
+      # `Upload test summary` stuck at pending. if: always() can't
+      # help there because no step completes on a runner that
+      # vanished.
+      #
+      # Synthesise a failure row for each missing slot so the
+      # aggregate report is authoritative: every expected
+      # (test, release, arch) triple shows up, with a note pointing
+      # at the runner-kill failure mode for triage.
+      - name: "Backfill failure blobs for matrix slots that never uploaded"
+        shell: bash
+        run: |
+          mkdir -p test
+          # Combine native + emulated matrices; this is exactly what
+          # the two gradle jobs fanned out over, so every entry here
+          # should have a matching test/<id>-<os>-<arch>.json.
+          expected_json=$(jq -s '.[0] + .[1]' \
+            <(cat <<<'${{ needs.prepare.outputs.DEPLOYMENT_MATRIX_NATIVE }}') \
+            <(cat <<<'${{ needs.prepare.outputs.DEPLOYMENT_MATRIX_EMULATED }}'))
+          expected_count=$(jq 'length' <<<"$expected_json")
+          echo "::notice::Expected ${expected_count} matrix slots; $(find test -maxdepth 1 -name '*.json' 2>/dev/null | wc -l) JSON blob(s) uploaded"
+
+          missing=0
+          while read -r entry; do
+              id=$(jq   -r '.id'   <<<"$entry")
+              os=$(jq   -r '.os'   <<<"$entry")
+              arch=$(jq -r '.arch' <<<"$entry")
+              name=$(jq -r '.name' <<<"$entry")
+              blob="test/${id}-${os}-${arch}.json"
+              if [[ ! -s "$blob" ]]; then
+                  missing=$((missing + 1))
+                  echo "::warning::No blob for ${id} ${os}/${arch} — synthesising failure row (runner likely killed mid-step)"
+                  jq -nc \
+                      --arg name    "$name" \
+                      --arg release "$os" \
+                      --arg arch    "$arch" \
+                      --argjson dur 0 \
+                      --arg result  "failure" \
+                      --arg note    "runner killed or step did not complete" \
+                      '{name:$name, release:$release, arch:$arch, duration:$dur, result:$result, note:$note}' \
+                      > "$blob"
+              fi
+          done < <(jq -c '.[]' <<<"$expected_json")
+          echo "::notice::Backfilled ${missing} missing slot(s) with synthetic failure blobs"
 
       - name: "Aggregate per-test JSONs into a single report"
         id: aggregate
@@ -468,9 +518,12 @@ jobs:
           {
               echo "# Unit tests: ${ok}/${total} passed (${ko} failed)"
               echo ""
-              echo "|Release|Arch|Test name|Duration|Result|"
-              echo "|:---|:---|:---|---:|:---:|"
-              jq -r '.tests[] | "|\(.release)|\(.arch)|\(.name)|\(.duration) sec|\(.result)|"' \
+              echo "|Release|Arch|Test name|Duration|Result|Note|"
+              echo "|:---|:---|:---|---:|:---:|:---|"
+              # .note is only set on backfilled rows — default to
+              # empty with `// ""` so normal success rows render as
+              # an empty note cell rather than `null`.
+              jq -r '.tests[] | "|\(.release)|\(.arch)|\(.name)|\(.duration) sec|\(.result)|\(.note // "")|"' \
                  report/unit-test-results.json
           } >> "$GITHUB_STEP_SUMMARY"
 
