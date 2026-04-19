@@ -15,9 +15,12 @@ common.yaml carries the per-tier defaults that apply to every desktop
 tier or remove ones inherited from common, via `tiers.<tier>.packages`
 and `tiers.<tier>.packages_remove`.
 
-The literal token `browser` inside any tier resolves to the per-arch
-package name from common.yaml's `browser:` map (e.g. chromium on
-arm64/amd64/armhf, firefox on riscv64).
+Virtual tokens (`browser`, `widevine`, ...) inside any tier resolve to
+the per-arch package name from the matching top-level map in
+common.yaml (e.g. chromium on arm64/amd64/armhf, firefox on riscv64
+for `browser`; libwidevinecdm0 on noble arm64/armhf for `widevine`).
+A token with no mapping for the current (release, arch) pair is
+silently dropped rather than passed to apt as a literal package name.
 
 Per-DE per-tier per-arch overrides live under `tier_overrides:`, with
 the same shape as the release block. Use this to drop packages that
@@ -121,50 +124,53 @@ def _merge_tier(packages, removes, source, tier):
             removes.append(pkg)
 
 
-def _resolve_browser(packages, common, release, arch):
-    """Substitute the literal token `browser` with the right package per release+arch.
+def _resolve_virtual_token(packages, common, release, arch, token):
+    """Substitute a virtual token (`browser`, `widevine`, ...) with the right
+    package per release+arch.
 
-    The browser map in common.yaml has two layers:
+    Each virtual-token map in common.yaml has two layers:
 
-      browser:
-        amd64: chromium       # default fallback for any release on this arch
+      <token>:
+        amd64: pkg-default    # default fallback for any release on this arch
         ...
-        bookworm:
-          amd64: chromium     # per-release per-arch override
-          riscv64: firefox-esr
+        <release>:
+          amd64: pkg-override # per-release per-arch override
+          riscv64: other-pkg
 
     Lookup order:
-      1. browser.<release>.<arch>  (most specific)
-      2. browser.<arch>             (per-arch fallback)
+      1. <token>.<release>.<arch>  (most specific)
+      2. <token>.<arch>             (per-arch fallback)
       3. drop the token altogether (silently — install proceeds without
-         a browser rather than failing on a literal 'browser' apt name)
+         the optional component rather than failing on a literal token
+         name that no apt repo knows about)
 
     The per-release layer is needed because the same arch can resolve
-    differently across releases:
-      - Debian has 'firefox-esr' but no 'firefox'
-      - Ubuntu's 'chromium' is a snap-shim deb that requires snapd
-      - 'chromium' isn't built for riscv64 in Debian or Ubuntu
+    differently across releases — e.g. Debian has 'firefox-esr' but no
+    'firefox'; Ubuntu's 'chromium' is a snap-shim that requires snapd;
+    'chromium' isn't built for riscv64 in Debian or Ubuntu. The same
+    mechanism lets a token like 'widevine' map only on the release+arch
+    combinations where apt.armbian.com actually hosts the .deb.
     """
-    browser_map = _as_dict(common.get("browser"))
-    if "browser" not in packages:
+    token_map = _as_dict(common.get(token))
+    if token not in packages:
         return
-    # Try per-release per-arch first (browser.<release> is a dict of arch->pkg).
-    release_map = _as_dict(browser_map.get(release))
+    # Try per-release per-arch first (<token>.<release> is a dict of arch->pkg).
+    release_map = _as_dict(token_map.get(release))
     pkg = release_map.get(arch) if release_map else None
     # Fall back to top-level per-arch if no per-release entry exists. Only
     # consider top-level keys that are arch names — skip release-name keys
     # by checking that the value is a string, not a dict.
     if not pkg:
-        candidate = browser_map.get(arch)
+        candidate = token_map.get(arch)
         if isinstance(candidate, str):
             pkg = candidate
     if not pkg:
-        # No browser defined for this combo — silently drop the token rather
-        # than passing 'browser' to apt and breaking the install. The dialog
-        # layer can warn the user separately if it cares.
-        packages.remove("browser")
+        # No mapping for this combo — silently drop the token rather than
+        # passing the literal string to apt and breaking the install. The
+        # dialog layer can warn the user separately if it cares.
+        packages.remove(token)
         return
-    idx = packages.index("browser")
+    idx = packages.index(token)
     packages[idx] = pkg
 
 
@@ -268,8 +274,9 @@ def parse_desktop(yaml_dir, de_name, release, arch, tier):
         _apply_tier_overrides(packages, common, t, release, arch)
         _apply_tier_overrides(packages, de_data, t, release, arch)
 
-    # 2. Resolve the `browser` virtual token per release+arch.
-    _resolve_browser(packages, common, release, arch)
+    # 2. Resolve virtual tokens (browser, widevine) per release+arch.
+    _resolve_virtual_token(packages, common, release, arch, "browser")
+    _resolve_virtual_token(packages, common, release, arch, "widevine")
 
     # 4. Apply the orthogonal release block — packages_remove + packages
     #    declared per release. The release block is independent of tier.
