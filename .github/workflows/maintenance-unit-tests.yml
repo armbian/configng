@@ -186,7 +186,7 @@ jobs:
     if: ${{ needs.prepare.outputs.DEPLOYMENT_MATRIX_NATIVE != '[]' }}
     strategy:
       fail-fast: false
-      max-parallel: 128
+      max-parallel: 200
       matrix:
         server: ${{ fromJSON(needs.prepare.outputs.DEPLOYMENT_MATRIX_NATIVE) }}
     name: "${{ matrix.server.name }} (${{ matrix.server.os }}/${{ matrix.server.arch }})"
