@@ -100,8 +100,13 @@ releases:
 
   sid:
     # Debian unstable — pipewire replaces pulseaudio (same as trixie/forky).
-    # loong64 is included: it is a 64-bit arch capable of running GNOME.
-    architectures: [arm64, amd64, loong64]
+    # loong64 is intentionally dropped: GNOME on loong64 isn't viable
+    # for Armbian right now. The sid/loong64 port frequently skews
+    # behind the main sid archive (e.g. gnupg2 gets bumped before
+    # dirmngr is rebuilt for loong64), which breaks rootfs bootstrap
+    # before module_desktops even runs. Keeping a lean CLI-only
+    # loong64 story until the port stabilises.
+    architectures: [arm64, amd64]
     packages:
       - accountsservice
       - libu2f-udev
