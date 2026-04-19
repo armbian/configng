@@ -270,6 +270,15 @@ jobs:
       # so the JSON result blob can mark the slot red. Without always()
       # GH skips this upload, the stop job never sees the blob, and the
       # aggregate report silently drops the failed row entirely.
+      #
+      # retention-days is kept short but non-trivial: long enough that
+      # a 'Re-run failed jobs' attempt (which only re-runs the slots
+      # that failed, not the ones that passed) can still see every
+      # passed slot's blob from the original attempt and carry it
+      # forward into the new aggregate. Without this, a rerun would
+      # find only the re-run slot's blob and the backfill step would
+      # flag every other slot as 'runner killed' — which is exactly
+      # what happened before this was added.
       - name: "Upload test summary"
         if: always()
         uses: actions/upload-artifact@v7
@@ -277,6 +286,7 @@ jobs:
           name: test-${{ matrix.server.id }}-${{ matrix.server.os }}-${{ matrix.server.arch }}
           path: test
           if-no-files-found: ignore
+          retention-days: 7
 
   # Emulated matrix: entries for foreign arches (armhf, riscv64) run
   # on an amd64 host using `docker run --platform linux/<arch>` and
@@ -418,7 +428,8 @@ jobs:
 
           exit $docker_exit
 
-      # See gradle-native's upload step for the reason always() is needed.
+      # See gradle-native's upload step for the reason always() +
+      # retention-days are needed.
       - name: "Upload test summary"
         if: always()
         uses: actions/upload-artifact@v7
@@ -426,6 +437,7 @@ jobs:
           name: test-${{ matrix.server.id }}-${{ matrix.server.os }}-${{ matrix.server.arch }}
           path: test
           if-no-files-found: ignore
+          retention-days: 7
 
   stop:
     name: "Merge test artifacts"
@@ -571,7 +583,15 @@ jobs:
           git commit -m "data: refresh unit-test-results.json ($(date -u +%Y-%m-%dT%H:%MZ))"
           git push
 
-      - uses: geekyeggo/delete-artifact@v6
-        with:
-          name: |
-            test-*
+      # Previously a geekyeggo/delete-artifact step lived here to clean
+      # up the per-test blobs after aggregation, but that made
+      # 'Re-run failed jobs' useless: only the re-run slots would
+      # upload fresh blobs, and every other slot (which didn't run
+      # again) looked missing to the rerun's stop job. The backfill
+      # then marked 67/68 slots as 'runner killed' even though they
+      # passed cleanly on the first attempt.
+      #
+      # Drop the delete step and rely on the per-blob retention-days
+      # (7d) set on each 'Upload test summary' to auto-expire the
+      # blobs. That preserves rerun fidelity while still bounding
+      # storage.
