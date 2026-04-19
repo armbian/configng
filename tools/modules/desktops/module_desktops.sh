@@ -411,7 +411,29 @@ function module_desktops() {
 			fi
 
 			if [[ ${#to_remove[@]} -gt 0 ]]; then
-				pkg_remove "${to_remove[@]}"
+				# Straight purge — do NOT use pkg_remove (which does
+				# `apt-get autopurge`). autopurge adds an orphan-cleanup
+				# cascade on top of the removal: on fresh noble/trixie
+				# images several t64-renamed libs (libext2fs2t64, libss2,
+				# logsave) are marked auto-installed, and once the DE is
+				# gone nothing manual depends on them — so apt proposes
+				# to orphan-remove the whole chain, which transitively
+				# reaches e2fsprogs (Essential). apt 2.9+/solver 3.0
+				# vetoes the transaction:
+				#   E: Essential packages were removed and -y was used
+				#      without --allow-remove-essential.
+				# Nothing actually gets removed and the DE is left fully
+				# installed. The manifest already lists every package
+				# the matching install added, so a plain purge (no
+				# cascade) is both sufficient and safe.
+				#
+				# On failure, keep the manifest so the next `remove`
+				# call retries against the same list instead of falling
+				# into the less-precise YAML-walk path.
+				if ! DEBIAN_FRONTEND=noninteractive apt-get -y purge "${to_remove[@]}"; then
+					echo "Error: package purge failed for ${de}; manifest preserved at ${desktop_pkg_file} for retry" >&2
+					return 1
+				fi
 			fi
 			rm -f "$desktop_pkg_file" "/etc/armbian/desktop/${de}.tier"
 
