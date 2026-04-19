@@ -547,11 +547,22 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: "Publish results to armbian/armbian.github.io data/"
+      - name: "Publish results to armbian/armbian.github.io data branch"
         # Only publish when there's a meaningful report AND we're
         # running on the default branch or a scheduled/dispatch run.
         # PRs (especially from forks) don't get the PAT and shouldn't
         # write to the public data feed anyway.
+        #
+        # Target the `data` branch (not main). armbian.github.io
+        # keeps site source on main and machine-generated feeds on a
+        # separate `data` branch, which:
+        #   - keeps Jekyll/site rebuilds from firing on every feed
+        #     refresh (no churn on main)
+        #   - lets humans and automation commit without racing each
+        #     other on the same branch
+        # Same principle as armbian.github.io's
+        # data-update-jira-excerpt.yml, which commits jira-*.html
+        # to `data` and then repo-dispatches a web-reload event.
         if: >-
           steps.aggregate.outputs.total != '0'
           && (github.event_name == 'schedule'
@@ -561,6 +572,7 @@ jobs:
         env:
           GH_PAT: ${{ secrets.ACCESS_TOKEN }}
         run: |
+          set -euo pipefail
           if [[ -z "${GH_PAT}" ]]; then
               echo "::warning::ACCESS_TOKEN secret is not set; skipping publish step"
               exit 0
@@ -568,20 +580,60 @@ jobs:
           git config --global user.name  "armbian-ci-bot"
           git config --global user.email "armbian-ci-bot@users.noreply.github.com"
 
-          git clone --depth 1 \
+          git clone \
             "https://x-access-token:${GH_PAT}@github.com/armbian/armbian.github.io.git" \
             armbian.github.io
-          mkdir -p armbian.github.io/data
-          cp report/unit-test-results.json armbian.github.io/data/unit-test-results.json
-
           cd armbian.github.io
-          if git diff --quiet -- data/unit-test-results.json; then
+          # Switch to the feed-only branch. --track creates a local
+          # branch tracking origin/data on the first run.
+          git fetch origin data
+          git checkout data
+
+          mkdir -p data
+          cp "${GITHUB_WORKSPACE}/report/unit-test-results.json" data/unit-test-results.json
+
+          git add data/unit-test-results.json
+          if git diff --cached --quiet; then
               echo "::notice::unit-test-results.json unchanged — nothing to publish"
               exit 0
           fi
-          git add data/unit-test-results.json
           git commit -m "data: refresh unit-test-results.json ($(date -u +%Y-%m-%dT%H:%MZ))"
-          git push
+
+          # Retry loop: pulls + rebases between attempts so a racing
+          # commit from a sibling data-feed workflow (jira excerpts,
+          # directory listing, …) doesn't blow the push.
+          max_attempts=3
+          attempt=1
+          while (( attempt <= max_attempts )); do
+              if git push origin data; then
+                  echo "Pushed unit-test-results.json to data branch on attempt ${attempt}"
+                  break
+              fi
+              echo "::warning::Push failed on attempt ${attempt}; rebasing onto origin/data and retrying"
+              git pull --rebase origin data || echo "::warning::Rebase failed, will retry push anyway"
+              attempt=$((attempt + 1))
+          done
+          if (( attempt > max_attempts )); then
+              echo "::error::Failed to push unit-test-results.json after ${max_attempts} attempts"
+              exit 1
+          fi
+
+      - name: "Trigger web reload on armbian.github.io"
+        # Data branch commits don't rebuild the site on their own.
+        # Fire the same repository_dispatch event that the other
+        # data-feed workflows use so the site picks up the new
+        # unit-test-results.json on its next directory-listing pass.
+        if: >-
+          steps.aggregate.outputs.total != '0'
+          && (github.event_name == 'schedule'
+              || github.event_name == 'workflow_dispatch'
+              || github.event_name == 'repository_dispatch'
+              || github.ref == 'refs/heads/main')
+        uses: peter-evans/repository-dispatch@v4
+        with:
+          token: ${{ secrets.ACCESS_TOKEN }}
+          repository: armbian/armbian.github.io
+          event-type: "Web: Directory listing"
 
       # Previously a geekyeggo/delete-artifact step lived here to clean
       # up the per-test blobs after aggregation, but that made
