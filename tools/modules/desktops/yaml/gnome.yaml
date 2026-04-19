@@ -117,11 +117,24 @@ releases:
   jammy:
     # Ubuntu 22.04 LTS — polkit split available via SRU;
     # pulseaudio remains default on jammy.
+    #
+    # gnome-bluetooth-sendto doesn't exist on jammy: GNOME 42 still
+    # shipped gnome-bluetooth as a single package containing the
+    # libgnome-bluetooth-3.0 library, the control-center Bluetooth
+    # panel, AND the sendto helper. The split into
+    # gnome-bluetooth + gnome-bluetooth-sendto +
+    # libgnome-bluetooth-3.0 landed with GNOME 43 (bookworm /
+    # noble+). Strip the split-out name here and pull in the
+    # monolithic package instead so the Quick Settings Bluetooth
+    # tile still has libgnome-bluetooth-3.0 to dlopen.
     architectures: [arm64, amd64]
     packages:
       - polkitd
       - pkexec
       - libu2f-udev
+      - gnome-bluetooth
+    packages_remove:
+      - gnome-bluetooth-sendto
     packages_uninstall:
       - ubuntu-session
 
