@@ -427,12 +427,53 @@ function module_desktops() {
 				# the matching install added, so a plain purge (no
 				# cascade) is both sufficient and safe.
 				#
+				# Essential filter: some base images (notably
+				# armbian/repository-update:*-armhf/*-arm64 built from
+				# debian-slim) ship *without* e2fsprogs pre-installed.
+				# A desktop that pulls in dracut-install or
+				# gnome-disk-utility transitively installs e2fsprogs
+				# during `install`, which then lands in the manifest.
+				# Purging it is what triggers the 'Essential packages
+				# will be removed' refusal. Simulate the purge, pull
+				# any packages apt flags as essential-breaking out of
+				# the list, and run the real purge without them. These
+				# packages weren't added by the user's choice of DE —
+				# they were holes in the base image — so leaving them
+				# in place is the correct outcome.
+				local essentials=()
+				mapfile -t essentials < <(
+					DEBIAN_FRONTEND=noninteractive apt-get -s -y purge "${to_remove[@]}" 2>&1 | \
+					awk '
+						/^WARNING: The following essential packages/ { capture=1; next }
+						/^This should NOT be done/ { next }
+						capture && /^[^[:space:]]/ { capture=0 }
+						capture {
+							gsub(/\(due to [^)]*\)/, "")
+							for (i=1;i<=NF;i++) print $i
+						}
+					'
+				)
+				if [[ ${#essentials[@]} -gt 0 ]]; then
+					echo "Warning: skipping packages apt flagged as essential-breaking: ${essentials[*]}" >&2
+					local filtered=() essential
+					for pkg in "${to_remove[@]}"; do
+						local skip=0
+						for essential in "${essentials[@]}"; do
+							if [[ "$pkg" == "$essential" ]]; then skip=1; break; fi
+						done
+						(( skip == 0 )) && filtered+=("$pkg")
+					done
+					to_remove=("${filtered[@]}")
+				fi
+
 				# On failure, keep the manifest so the next `remove`
 				# call retries against the same list instead of falling
 				# into the less-precise YAML-walk path.
-				if ! DEBIAN_FRONTEND=noninteractive apt-get -y purge "${to_remove[@]}"; then
-					echo "Error: package purge failed for ${de}; manifest preserved at ${desktop_pkg_file} for retry" >&2
-					return 1
+				if [[ ${#to_remove[@]} -gt 0 ]]; then
+					if ! DEBIAN_FRONTEND=noninteractive apt-get -y purge "${to_remove[@]}"; then
+						echo "Error: package purge failed for ${de}; manifest preserved at ${desktop_pkg_file} for retry" >&2
+						return 1
+					fi
 				fi
 			fi
 			rm -f "$desktop_pkg_file" "/etc/armbian/desktop/${de}.tier"
