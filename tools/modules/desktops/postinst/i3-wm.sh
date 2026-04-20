@@ -46,5 +46,3 @@ if [ -f /etc/i3/config ]; then
 		fi
 	done
 fi
-
-fi
