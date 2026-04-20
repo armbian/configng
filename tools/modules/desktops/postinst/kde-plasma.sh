@@ -40,5 +40,3 @@ for home in /etc/skel /home/*; do
 		chown "$user:$user" "$home/.config/plasma-org.kde.plasma.desktop-appletsrc" 2>/dev/null
 	fi
 done
-
-fi
