@@ -1,0 +1,18 @@
+# Installed by armbian-config module_desktops when transitioning a
+# minimal image (systemd-networkd renderer) to a desktop install
+# (NetworkManager renderer).
+#
+# Matches the netplan drop-in shipped by armbian/build's
+# extensions/network/config-nm/netplan/00-default-use-network-manager.yaml
+# so a field-installed desktop on top of a minimal image converges
+# to the same network stack an image-built desktop would have.
+#
+# Reference: https://netplan.readthedocs.io/en/stable/netplan-yaml/
+#
+# Let NetworkManager manage all devices on this system. Any device
+# will come up with DHCP once carrier is detected. This is netplan
+# passing control over to NetworkManager at boot time.
+
+network:
+  version: 2
+  renderer: NetworkManager
