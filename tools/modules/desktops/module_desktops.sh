@@ -102,6 +102,111 @@ function _module_desktops_write_apt_pin() {
 }
 
 #
+# Switch the host from systemd-networkd (the Armbian minimal image
+# baseline) to NetworkManager so the freshly-installed desktop's
+# NM-applet / Quick Settings tile actually control the network link.
+#
+# Armbian's build-time desktop images use armbian/build's
+# extensions/network/net-network-manager.sh to do this at image
+# assembly; a desktop installed after the fact on top of a minimal
+# image needs the same transition, but at runtime. This mirrors
+# those files exactly — same netplan renderer flip, same
+# NetworkManager conf.d drop-ins, same NetworkManager-wait-online
+# disable — so the two paths converge on the same end state.
+#
+# Idempotent. Safe to run on a system that is already on
+# NetworkManager (files overwrite to identical content, netplan
+# generate is a no-op). Safe to run in mode=build (skips the
+# netplan apply; the image's first boot will drive it).
+# Safe inside a container (skips apply + service start).
+#
+# Arguments: none. Uses SRC path via $desktops_dir for asset
+# resolution, same as module_desktop_branding.
+#
+function _module_desktops_configure_networking() {
+	local src_dir="${desktops_dir}/networking"
+	if [[ ! -d "$src_dir" ]]; then
+		debug_log "_module_desktops_configure_networking: no ${src_dir}, skipping"
+		return 0
+	fi
+
+	# NetworkManager binary must exist, otherwise the renderer flip
+	# would orphan the network. The minimal tier now declares
+	# network-manager in common.yaml so the pkg_install step already
+	# brought it in; this is a belt-and-suspenders check in case a
+	# YAML override ever drops it.
+	if ! command -v NetworkManager > /dev/null 2>&1; then
+		echo "Warning: NetworkManager binary not found; skipping netplan renderer flip" >&2
+		return 0
+	fi
+
+	# Drop the networkd-renderer netplan file shipped by minimal
+	# images. Leaving it in place next to our NetworkManager-renderer
+	# one makes `netplan generate` emit for both backends and the two
+	# race to claim each interface at boot.
+	if [[ -f /etc/netplan/10-dhcp-all-interfaces.yaml ]]; then
+		debug_log "_module_desktops_configure_networking: removing /etc/netplan/10-dhcp-all-interfaces.yaml (was networkd renderer)"
+		rm -f /etc/netplan/10-dhcp-all-interfaces.yaml
+	fi
+
+	# Install the NetworkManager-renderer netplan + NM conf.d drop-ins.
+	mkdir -p /etc/netplan /etc/NetworkManager/conf.d
+	cp "${src_dir}/netplan/00-default-use-network-manager.yaml" \
+		/etc/netplan/00-default-use-network-manager.yaml
+	chmod 600 /etc/netplan/00-default-use-network-manager.yaml
+
+	for conf in "${src_dir}"/NetworkManager/*.conf; do
+		[[ -f "$conf" ]] || continue
+		cp "$conf" "/etc/NetworkManager/conf.d/$(basename "$conf")"
+	done
+
+	# NetworkManager-wait-online holds boot for up to 90s waiting
+	# for carrier on every managed device — on a desktop with an
+	# unplugged Ethernet port that's 90s of visible "why is this so
+	# slow" at every boot. The NM tile in the DE catches up within
+	# seconds of login anyway.
+	srv_disable NetworkManager-wait-online.service 2>/dev/null || true
+
+	# systemd-resolved is typically already enabled on minimal images;
+	# ensure it stays that way. NetworkManager uses it as the DNS
+	# resolver/cache when /etc/resolv.conf points at the stub.
+	srv_enable systemd-resolved.service 2>/dev/null || true
+
+	# Build mode: don't apply. The image is offline; netplan will
+	# generate + apply on first boot via armbian-firstrun. We only
+	# laid the config files.
+	if [[ "$mode" == "build" ]]; then
+		debug_log "_module_desktops_configure_networking: mode=build, skipping netplan apply"
+		return 0
+	fi
+
+	# Container mode: no real network to flip, no systemd to drive
+	# NM. Just lay the files (done above) and exit.
+	if _desktop_in_container; then
+		debug_log "_module_desktops_configure_networking: in container, skipping netplan apply + NM start"
+		return 0
+	fi
+
+	# Live install. Regenerate netplan output and apply it. netplan
+	# apply stops systemd-networkd.service on interfaces it hands
+	# over to NetworkManager, so the user's current SSH session over
+	# those interfaces can stall briefly — that's expected.
+	if command -v netplan > /dev/null 2>&1; then
+		netplan generate 2>&1 || echo "Warning: netplan generate failed" >&2
+		netplan apply    2>&1 || echo "Warning: netplan apply failed" >&2
+	fi
+
+	# Make sure NM is enabled + started. On a minimal image the
+	# service was installed a moment ago and masked/not enabled by
+	# default on some distros; enabling + starting here is
+	# idempotent.
+	srv_enable NetworkManager.service 2>/dev/null || true
+	srv_start  NetworkManager.service 2>/dev/null || true
+
+	return 0
+}
+
+#
 # Module to install and manage desktop environments (YAML-driven)
 #
 function module_desktops() {
@@ -291,6 +396,14 @@ function module_desktops() {
 
 			# install branding
 			module_desktop_branding "$de"
+
+			# Flip netplan renderer from systemd-networkd to
+			# NetworkManager. On a minimal-image base the baseline
+			# is systemd-networkd; the desktop's NM-applet / Quick
+			# Settings tile needs NM to be driving the link,
+			# otherwise the UI shows an always-disconnected state
+			# even though the machine is online.
+			_module_desktops_configure_networking
 
 			# add user to desktop groups
 			# User-specific setup: group membership, skel propagation,

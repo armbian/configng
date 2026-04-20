@@ -36,6 +36,16 @@ tiers:
       - profile-sync-daemon
       - terminator
       - upower
+      # Networking stack. Armbian minimal images ship with netplan
+      # driving systemd-networkd; a desktop install flips the netplan
+      # renderer to NetworkManager (see _module_desktops_configure_networking
+      # in module_desktops.sh). The daemon and netplan itself are
+      # required system-wide; per-DE applets (network-manager-gnome
+      # for Xfce/MATE/Cinnamon/i3/etc, plasma-nm for KDE) stay in each
+      # DE's own YAML so the Wayland-native GNOME Shell doesn't pull
+      # in the GTK applet for nothing.
+      - network-manager
+      - netplan.io
 
   mid:
     packages:
