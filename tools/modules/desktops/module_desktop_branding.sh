@@ -88,12 +88,6 @@ function module_desktop_branding() {
 			rm -f /usr/share/icons/hicolor/128x128/apps/armbian-logo.png
 			rm -f /usr/share/icons/hicolor/256x256/apps/armbian-logo.png
 
-			# GNOME wallpaper properties
-			if [[ -f "$desktop_dir/branding/armbian.xml" ]]; then
-				mkdir -p /usr/share/gnome-background-properties
-				cp "$desktop_dir/branding/armbian.xml" /usr/share/gnome-background-properties/
-			fi
-
 			# Browser / mail branding — system-wide policy files that
 			# set the Armbian welcome page, homepage, and bookmarks for
 			# browsers, and disable telemetry / studies for Mozilla apps.

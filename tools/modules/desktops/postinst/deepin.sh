@@ -9,4 +9,4 @@ if [ -f /etc/pulse/default.pa ]; then sed "s/load-module module-udev-detect$/& t
 
 #remove linked file
 rm /etc/alternatives/deepin-default-background
-ln -s /usr/share/backgrounds/armbian/armbian-4k-neglated.jpg /etc/alternatives/deepin-default-background
+ln -s /usr/share/backgrounds/armbian/armbian03-Dre0x-Minum-dark-3840x2160.jpg /etc/alternatives/deepin-default-background
