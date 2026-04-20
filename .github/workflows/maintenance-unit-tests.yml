@@ -336,7 +336,7 @@ jobs:
           path: 'config'
 
       - name: "Set up QEMU for ${{ matrix.server.emulation }}"
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
         with:
           platforms: ${{ matrix.server.emulation }}
 
