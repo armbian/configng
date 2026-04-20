@@ -272,9 +272,18 @@ tier_overrides:
           armhf:    { packages_remove: [thunderbird] }
           riscv64:  { packages_remove: [thunderbird] }
       jammy:
+        # libreoffice + libreoffice-gtk3 were never built for
+        # jammy/riscv64 — Ubuntu 22.04's riscv64 port in
+        # ports.ubuntu.com/ubuntu-ports/dists/jammy/ has no
+        # libreoffice package in any component (main / universe /
+        # restricted / multiverse). Other jammy arches (amd64, arm64,
+        # armhf) ship it fine. noble/resolute riscv64 also ship it —
+        # this is a jammy-only hole. Strip on jammy/riscv64 so the
+        # full-tier install doesn't fail with 'E: Unable to locate
+        # package libreoffice'.
         architectures:
           armhf:    { packages_remove: [thunderbird] }
-          riscv64:  { packages_remove: [thunderbird] }
+          riscv64:  { packages_remove: [thunderbird, libreoffice, libreoffice-gtk3] }
       resolute:
         architectures:
           armhf:    { packages_remove: [thunderbird] }
