@@ -102,6 +102,86 @@ function _module_desktops_write_apt_pin() {
 }
 
 #
+# Enable the panthor-gpu DT overlay on Rockchip RK3588-family boards
+# running the vendor kernel, when a Wayland-capable desktop is being
+# installed. Mirrors the old extensions/network/… no, wait — mirrors
+# armbian/build's extensions/mesa-vpu.sh 'extension_prepare_config__3d'
+# hook so that install-on-minimal converges on the same overlay set
+# an image-built desktop would have.
+#
+# panthor-gpu is the Mesa panthor-kbase GPU driver overlay: required
+# for hardware-accelerated GL / Vulkan / GBM on rk3588 under Mesa +
+# vendor kernel, unused (and ignored) on everything else.
+#
+# Gating mirrors the upstream hook:
+#   - Skip on pre-bookworm / bookworm / jammy / older releases —
+#     panthor kernel bits didn't land there in a usable shape.
+#   - Skip on tier=minimal — the overlay is only useful with a
+#     compositor stack (Mesa/Vulkan loaders) that mid/full pulls in.
+#   - Skip on xfce / i3-wm — these are X11-only in our default
+#     configuration and don't benefit from a GBM GPU path.
+#   - Only fire on BOARDFAMILY rockchip-rk3588 / rk35xx and
+#     BRANCH=vendor.
+#
+# BOARDFAMILY + BRANCH are globals set at configng init time by
+# module_env_init.sh (which sources /etc/armbian-release); present
+# in the chroot under mode=build because armbian-base-files is
+# installed before module_desktops. Delegates the actual
+# armbianEnv.txt write to module_devicetree_overlays (atomic
+# temp+mv, .bak preserved, validates name against the discovered
+# .dtbo set, idempotent).
+#
+function _module_desktops_add_3d_overlay() {
+	# Board/branch gate.
+	if [[ ! "${BOARDFAMILY:-}" =~ ^(rockchip-rk3588|rk35xx)$ ]]; then
+		debug_log "_module_desktops_add_3d_overlay: BOARDFAMILY='${BOARDFAMILY:-}' — not rk3588-family, skipping"
+		return 0
+	fi
+	if [[ "${BRANCH:-}" != "vendor" ]]; then
+		debug_log "_module_desktops_add_3d_overlay: BRANCH='${BRANCH:-}' — not vendor, skipping"
+		return 0
+	fi
+
+	# Release gate — old releases ship kernels that don't have the
+	# panthor driver, or have a non-working version.
+	case "${DISTROID:-}" in
+		bookworm|bullseye|buster|focal|jammy)
+			debug_log "_module_desktops_add_3d_overlay: release '${DISTROID}' predates usable panthor, skipping"
+			return 0
+		;;
+	esac
+
+	# Tier gate — minimal doesn't install the Mesa/Vulkan stack that
+	# would use the overlay.
+	if [[ "${tier:-}" == "minimal" ]]; then
+		debug_log "_module_desktops_add_3d_overlay: tier=minimal, skipping"
+		return 0
+	fi
+
+	# X11-only DEs — no Wayland compositor, no GBM path.
+	case "${de:-}" in
+		xfce|i3-wm)
+			debug_log "_module_desktops_add_3d_overlay: de=${de} is X11-only, skipping"
+			return 0
+		;;
+	esac
+
+	# Delegate to the existing DT overlays module. It reads/writes
+	# /boot/armbianEnv.txt atomically, keeps a .bak, and silently
+	# no-ops if 'panthor-gpu' is already enabled. 'install' also
+	# validates the name against the .dtbo set discovered on the
+	# running / in-chroot system, so if the overlay isn't shipped
+	# (e.g. kernel without panthor), we get a loud error instead of
+	# a silently broken image.
+	display_alert "Enabling panthor-gpu DT overlay" "BOARDFAMILY=${BOARDFAMILY} BRANCH=vendor" "info" 2>/dev/null \
+		|| echo "Enabling panthor-gpu DT overlay (BOARDFAMILY=${BOARDFAMILY} BRANCH=vendor)"
+	module_devicetree_overlays install overlays=panthor-gpu || \
+		echo "Warning: failed to enable panthor-gpu overlay (see above)" >&2
+
+	return 0
+}
+
+#
 # Switch the host from systemd-networkd (the Armbian minimal image
 # baseline) to NetworkManager so the freshly-installed desktop's
 # NM-applet / Quick Settings tile actually control the network link.
@@ -400,6 +480,15 @@ function module_desktops() {
 			# otherwise the UI shows an always-disconnected state
 			# even though the machine is online.
 			_module_desktops_configure_networking
+
+			# Enable panthor-gpu DT overlay on rk3588-family boards
+			# running the vendor kernel when a Wayland-capable
+			# desktop is installed. No-op on every other board /
+			# branch / release / tier / DE combination. Mirrors
+			# armbian/build's extensions/mesa-vpu.sh 'Hook 1' so
+			# runtime-installed desktops converge on the same
+			# overlay set an image-built desktop would have.
+			_module_desktops_add_3d_overlay
 
 			# add user to desktop groups
 			# User-specific setup: group membership, skel propagation,
