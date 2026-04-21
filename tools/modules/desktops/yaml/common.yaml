@@ -60,6 +60,27 @@ tiers:
       - cups-pk-helper       # polkit bridge — lets GNOME/KDE printer panels
                              # unlock cups config without sudo. Other DEs
                              # get this transitively via system-config-printer.
+      # 3D / GPU runtime + diagnostics. Previously installed by
+      # armbian/build's extensions/mesa-vpu.sh on desktop builds;
+      # moved here so every mid-tier desktop install (image-built
+      # or runtime armbian-config invocation) gets the same set.
+      # Mesa runtime + Vulkan drivers give GL/Vulkan-capable DEs a
+      # hardware path instead of llvmpipe; mesa-utils + vulkan-tools
+      # are the canonical probing surface; glmark2-* are the
+      # GL/GLES bench binaries (no plain 'glmark2' / 'glmark2-es2'
+      # package exists — Debian only ships the window-system-
+      # specific variants).
+      # Verified present on Debian bookworm/trixie/forky/sid and
+      # Ubuntu jammy/noble/resolute across amd64/arm64/armhf/riscv64.
+      - libgl1-mesa-dri       # Mesa DRI drivers (OpenGL hardware path)
+      - libglx-mesa0          # Mesa GLX front-end for X11
+      - mesa-utils            # glxinfo, glxgears, es2_info, etc.
+      - mesa-vulkan-drivers   # Vulkan ICD drivers (Panfrost, Lima, Radeon, Intel, …)
+      - vulkan-tools          # vulkaninfo, vkcube
+      - glmark2-wayland       # GL benchmark — Wayland backend
+      - glmark2-es2-wayland   # GLES2 benchmark — Wayland backend
+      - glmark2-x11           # GL benchmark — X11 backend
+      - glmark2-es2-x11       # GLES2 benchmark — X11 backend
 
   full:
     packages:
