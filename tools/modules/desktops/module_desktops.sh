@@ -222,6 +222,14 @@ function _module_desktops_rockchip_multimedia() {
 		# Refresh apt with the PPA now in sources + the pin in place.
 		pkg_update
 
+		# libv4l-0 must be installed BEFORE rockchip-multimedia-config
+		# — the latter's postinst expects the V4L2 userspace library to
+		# already be on the system. Mirrors the ordering in
+		# armbian/build's extensions/mesa-vpu.sh (separate apt-get
+		# install call before the rockchip-multimedia-* batch).
+		pkg_install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" libv4l-0 || \
+			echo "Warning: libv4l-0 install failed; rockchip-multimedia postinst may fail" >&2
+
 		# Install the Rockchip multimedia + Widevine stack. These
 		# packages all come from the PPA (except libwidevinecdm0 on
 		# arm64, which the PPA specifically republishes with a
