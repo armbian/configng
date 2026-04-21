@@ -52,11 +52,11 @@ apt_operation_progress() {
 	if [[ "$DIALOG" == "read" ]]; then
 		# For read mode, just run without progress
 		if [[ "$operation" == "fix-broken" ]]; then
-			apt-get -y --fix-broken install "$@" 2>&1 | tee "$error_file"
+			DEBIAN_FRONTEND=noninteractive apt-get -y --fix-broken install "$@" 2>&1 | tee "$error_file"
 		elif [[ "$operation" == "autopurge" ]]; then
-			apt-get -y autopurge "$@" 2>&1 | tee "$error_file"
+			DEBIAN_FRONTEND=noninteractive apt-get -y autopurge "$@" 2>&1 | tee "$error_file"
 		else
-			apt-get -y "$operation" "$@" 2>&1 | tee "$error_file"
+			DEBIAN_FRONTEND=noninteractive apt-get -y "$operation" "$@" 2>&1 | tee "$error_file"
 		fi
 		exit_code=${PIPESTATUS[0]}
 	else
@@ -196,7 +196,7 @@ pkg_install()
 	exit_code=$?
 
 	if [[ $exit_code == 100 ]]; then
-		dpkg --configure -a
+		DEBIAN_FRONTEND=noninteractive dpkg --configure -a
 		apt_operation_progress install "$@"
 		exit_code=$?
 	fi
@@ -252,7 +252,7 @@ pkg_remove()
 	exit_code=$?
 
 	if [[ $exit_code == 100 ]]; then
-		dpkg --configure -a
+		DEBIAN_FRONTEND=noninteractive dpkg --configure -a
 		apt_operation_progress autopurge "$@"
 		exit_code=$?
 	fi

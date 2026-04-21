@@ -280,23 +280,19 @@ function module_desktops() {
 				echo "Warning: '${de}' is not supported on ${DISTROID}/$(dpkg --print-architecture)" >&2
 			fi
 
-			# Suppress interactive prompts end-to-end. apt + dpkg both
-			# need coaxing:
-			#   - DEBIAN_FRONTEND=noninteractive: stops apt opening a
-			#     TUI for debconf questions.
-			#   - `--force-confdef --force-confold` on pkg_install
-			#     (below): when a conffile differs from both the
-			#     shipped version AND any local edit, dpkg normally
-			#     prompts "keep / replace / diff / shell". These
-			#     flags say "always pick the default (=keep local)"
-			#     silently. Without `--force-confdef`, `--force-confold`
-			#     alone still prompts when both sides have diverged.
-			#   - debconf-set-selections pre-seeds known interactive
-			#     package questions: the `code` (Microsoft VSCode)
-			#     postinst asks about adding Microsoft's apt repo —
-			#     say no, apt.armbian.com already hosts code and a
-			#     parallel source would race against our pin.
-			export DEBIAN_FRONTEND=noninteractive
+			# Suppress interactive prompts during automated installation:
+			#   - pkg_install / apt_operation_progress handle DEBIAN_FRONTEND=noninteractive
+			#     internally to prevent apt/dpkg prompts (works in chroot and build envs)
+			#   - `--force-confdef --force-confold` on pkg_install (below): when a
+			#     conffile differs from both the shipped version AND any local edit,
+			#     dpkg normally prompts "keep / replace / diff / shell". These flags
+			#     say "always pick the default (=keep local)" silently. Without
+			#     `--force-confdef`, `--force-confold` alone still prompts when both
+			#     sides have diverged.
+			#   - debconf-set-selections pre-seeds known interactive package questions:
+			#     the `code` (Microsoft VSCode) postinst asks about adding Microsoft's
+			#     apt repo — say no, apt.armbian.com already hosts code and a parallel
+			#     source would race against our pin.
 			debconf-set-selections 2>/dev/null <<- 'EOF' || true
 			encfs encfs/security-information boolean true
 			code code/add-microsoft-repo boolean false
