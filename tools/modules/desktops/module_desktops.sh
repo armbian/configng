@@ -102,66 +102,144 @@ function _module_desktops_write_apt_pin() {
 }
 
 #
-# Enable the panthor-gpu DT overlay on Rockchip RK3588-family boards
+# Wire up the Rockchip 3D + multimedia stack on rk3588-family boards
 # running the vendor kernel, when a Wayland-capable desktop is being
-# installed. Mirrors the old extensions/network/… no, wait — mirrors
-# armbian/build's extensions/mesa-vpu.sh 'extension_prepare_config__3d'
-# hook so that install-on-minimal converges on the same overlay set
+# installed. Two stages:
+#
+#   1. On noble specifically: add amazingfated's rockchip-multimedia
+#      PPA (ppa:liujianfeng1994/rockchip-multimedia), pin it at 1001,
+#      and pull the hardware-accelerated userspace —
+#      rockchip-multimedia-config, libv4l-rkmpp (V4L2 -> MPP codec
+#      plugin), gstreamer1.0-rockchip, and libwidevinecdm0 (so
+#      Netflix/Spotify/DRM video actually plays in the PPA's
+#      chromium). The PPA ships a chromium build patched for
+#      rk3588 VPU + Widevine; pin priority 1001 is required to
+#      override apt.armbian.com and the Ubuntu archive.
+#
+#   2. On any non-legacy release: enable the panthor-gpu DT overlay.
+#      panthor-gpu is the Mesa panthor-kbase GPU driver overlay —
+#      required for hardware-accelerated GL / Vulkan / GBM on rk3588
+#      under Mesa + vendor kernel, unused (and ignored) elsewhere.
+#
+# Mirrors armbian/build's extensions/mesa-vpu.sh so a desktop
+# installed on top of a minimal image converges on the same state
 # an image-built desktop would have.
 #
-# panthor-gpu is the Mesa panthor-kbase GPU driver overlay: required
-# for hardware-accelerated GL / Vulkan / GBM on rk3588 under Mesa +
-# vendor kernel, unused (and ignored) on everything else.
+# Gating (both stages):
+#   - BOARDFAMILY rockchip-rk3588 / rk35xx, BRANCH=vendor.
+#   - Skip tier=minimal — neither the Mesa stack nor the GStreamer
+#     plugin has a consumer in minimal.
+#   - Skip xfce / i3-wm — X11-only, no GBM/Wayland path.
 #
-# Gating mirrors the upstream hook:
-#   - Skip on pre-bookworm / bookworm / jammy / older releases —
-#     panthor kernel bits didn't land there in a usable shape.
-#   - Skip on tier=minimal — the overlay is only useful with a
-#     compositor stack (Mesa/Vulkan loaders) that mid/full pulls in.
-#   - Skip on xfce / i3-wm — these are X11-only in our default
-#     configuration and don't benefit from a GBM GPU path.
-#   - Only fire on BOARDFAMILY rockchip-rk3588 / rk35xx and
-#     BRANCH=vendor.
+# Extra gating:
+#   - PPA stage: noble only. The PPA publishes against noble; on
+#     other releases the .debs would hit ABI mismatches.
+#   - Overlay stage: skip bookworm / bullseye / buster / focal /
+#     jammy — panthor kernel bits didn't land in a usable shape.
 #
 # BOARDFAMILY + BRANCH are globals set at configng init time by
 # module_env_init.sh (which sources /etc/armbian-release); present
 # in the chroot under mode=build because armbian-base-files is
-# installed before module_desktops. Delegates the actual
-# armbianEnv.txt write to module_devicetree_overlays (atomic
-# temp+mv, .bak preserved, validates name against the discovered
-# .dtbo set, idempotent).
+# installed before module_desktops. Overlay write is delegated to
+# module_devicetree_overlays (atomic temp+mv, .bak preserved,
+# validates name against the discovered .dtbo set, idempotent).
 #
-function _module_desktops_add_3d_overlay() {
-	# Board/branch gate.
+function _module_desktops_rockchip_multimedia() {
+	# Board/branch gate — shared by both stages.
 	if [[ ! "${BOARDFAMILY:-}" =~ ^(rockchip-rk3588|rk35xx)$ ]]; then
-		debug_log "_module_desktops_add_3d_overlay: BOARDFAMILY='${BOARDFAMILY:-}' — not rk3588-family, skipping"
+		debug_log "_module_desktops_rockchip_multimedia: BOARDFAMILY='${BOARDFAMILY:-}' — not rk3588-family, skipping"
 		return 0
 	fi
 	if [[ "${BRANCH:-}" != "vendor" ]]; then
-		debug_log "_module_desktops_add_3d_overlay: BRANCH='${BRANCH:-}' — not vendor, skipping"
+		debug_log "_module_desktops_rockchip_multimedia: BRANCH='${BRANCH:-}' — not vendor, skipping"
 		return 0
 	fi
 
-	# Release gate — old releases ship kernels that don't have the
-	# panthor driver, or have a non-working version.
-	case "${DISTROID:-}" in
-		bookworm|bullseye|buster|focal|jammy)
-			debug_log "_module_desktops_add_3d_overlay: release '${DISTROID}' predates usable panthor, skipping"
+	# Tier gate — minimal doesn't install the Mesa / GStreamer stack
+	# that would use any of this.
+	if [[ "${tier:-}" == "minimal" ]]; then
+		debug_log "_module_desktops_rockchip_multimedia: tier=minimal, skipping"
+		return 0
+	fi
+
+	# X11-only DEs — no Wayland compositor, no GBM path, and no
+	# chromium-in-Wayland benefit from the PPA build either.
+	case "${de:-}" in
+		xfce|i3-wm)
+			debug_log "_module_desktops_rockchip_multimedia: de=${de} is X11-only, skipping"
 			return 0
 		;;
 	esac
 
-	# Tier gate — minimal doesn't install the Mesa/Vulkan stack that
-	# would use the overlay.
-	if [[ "${tier:-}" == "minimal" ]]; then
-		debug_log "_module_desktops_add_3d_overlay: tier=minimal, skipping"
-		return 0
+	# ---------------------------------------------------------------
+	# Stage 1: amazingfated rockchip-multimedia PPA (noble only).
+	# ---------------------------------------------------------------
+	if [[ "${DISTROID:-}" == "noble" ]]; then
+		display_alert "Adding amazingfated's multimedia PPA" "liujianfeng1994/rockchip-multimedia" "info" 2>/dev/null \
+			|| echo "Adding amazingfated's multimedia PPA (liujianfeng1994/rockchip-multimedia)"
+
+		# add-apt-repository lives in software-properties-common —
+		# minimal images do not ship it. Pull it on demand; track
+		# via pkg_install so uninstall removes it.
+		if ! command -v add-apt-repository > /dev/null 2>&1; then
+			if ! pkg_install software-properties-common; then
+				echo "Warning: could not install software-properties-common; skipping rockchip-multimedia PPA" >&2
+				return 0
+			fi
+		fi
+
+		# --yes: non-interactive. --no-update: skip the implicit
+		# apt-get update — we run pkg_update ourselves once the pin
+		# is in place so the first resolution already sees priority
+		# 1001 for the PPA.
+		if ! DEBIAN_FRONTEND=noninteractive add-apt-repository --yes --no-update ppa:liujianfeng1994/rockchip-multimedia; then
+			echo "Warning: add-apt-repository ppa:liujianfeng1994/rockchip-multimedia failed; skipping multimedia packages" >&2
+			return 0
+		fi
+
+		# Pin the PPA above both apt.armbian.com and the Ubuntu
+		# archive. Priority 1001 is required (not 990) so the PPA's
+		# patched chromium can *replace* an already-installed
+		# apt.armbian.com chromium — a downgrade-across-origins that
+		# 990 would refuse.
+		display_alert "Pinning amazingfated's multimedia PPA" "priority 1001" "info" 2>/dev/null \
+			|| echo "Pinning amazingfated's multimedia PPA (priority 1001)"
+		local pin_file="/etc/apt/preferences.d/amazingfated-rk3588-rockchip-multimedia-pin"
+		local pin_tmp="${pin_file}.tmp"
+		if ! cat > "$pin_tmp" <<- EOF
+		Package: *
+		Pin: release o=LP-PPA-liujianfeng1994-rockchip-multimedia
+		Pin-Priority: 1001
+		EOF
+		then
+			echo "Warning: failed to write ${pin_tmp}; multimedia PPA left unpinned" >&2
+			rm -f "$pin_tmp"
+		elif ! mv "$pin_tmp" "$pin_file"; then
+			echo "Warning: failed to install ${pin_file}; multimedia PPA left unpinned" >&2
+			rm -f "$pin_tmp"
+		fi
+
+		# Refresh apt with the PPA now in sources + the pin in place.
+		pkg_update
+
+		# Install the Rockchip multimedia + Widevine stack. These
+		# packages all come from the PPA (except libwidevinecdm0 on
+		# arm64, which the PPA specifically republishes with a
+		# working arm64 binary). pkg_install tracks them in
+		# ACTUALLY_INSTALLED so uninstall removes them.
+		display_alert "Installing Rockchip multimedia + Widevine" "de=${de} tier=${tier}" "info" 2>/dev/null \
+			|| echo "Installing Rockchip multimedia + Widevine (de=${de} tier=${tier})"
+		pkg_install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" \
+			rockchip-multimedia-config libv4l-rkmpp gstreamer1.0-rockchip libwidevinecdm0 || \
+			echo "Warning: rockchip multimedia package install failed (see above)" >&2
 	fi
 
-	# X11-only DEs — no Wayland compositor, no GBM path.
-	case "${de:-}" in
-		xfce|i3-wm)
-			debug_log "_module_desktops_add_3d_overlay: de=${de} is X11-only, skipping"
+	# ---------------------------------------------------------------
+	# Stage 2: panthor-gpu DT overlay (any non-legacy release).
+	# ---------------------------------------------------------------
+	case "${DISTROID:-}" in
+		bookworm|bullseye|buster|focal|jammy)
+			debug_log "_module_desktops_rockchip_multimedia: release '${DISTROID}' predates usable panthor, skipping overlay"
 			return 0
 		;;
 	esac
@@ -481,14 +559,15 @@ function module_desktops() {
 			# even though the machine is online.
 			_module_desktops_configure_networking
 
-			# Enable panthor-gpu DT overlay on rk3588-family boards
-			# running the vendor kernel when a Wayland-capable
-			# desktop is installed. No-op on every other board /
+			# Wire up the Rockchip 3D + multimedia stack on
+			# rk3588-family / vendor-kernel boards: panthor-gpu DT
+			# overlay (Mesa GBM path), and — on noble — the
+			# amazingfated multimedia PPA with its hardware-
+			# accelerated chromium, gstreamer plugins, libv4l-rkmpp,
+			# and libwidevinecdm0. No-op on every other board /
 			# branch / release / tier / DE combination. Mirrors
-			# armbian/build's extensions/mesa-vpu.sh 'Hook 1' so
-			# runtime-installed desktops converge on the same
-			# overlay set an image-built desktop would have.
-			_module_desktops_add_3d_overlay
+			# armbian/build's extensions/mesa-vpu.sh.
+			_module_desktops_rockchip_multimedia
 
 			# add user to desktop groups
 			# User-specific setup: group membership, skel propagation,
@@ -683,6 +762,16 @@ function module_desktops() {
 			if [[ "$de" =~ ^[a-zA-Z0-9._-]+$ ]]; then
 				rm -f "/etc/apt/preferences.d/${de}"
 			fi
+
+			# Drop the amazingfated rockchip-multimedia PPA pin written
+			# by _module_desktops_rockchip_multimedia. Pin priority 1001
+			# overrides the distro for *every* package on the system,
+			# not just the DE's — leaving it behind after the multimedia
+			# packages are gone would keep the PPA outranking the
+			# archive on the next unrelated apt upgrade. Safe to rm
+			# unconditionally: the file is absent when the DE had no
+			# PPA stage (non-noble, non-rk3588, tier=minimal, etc.).
+			rm -f /etc/apt/preferences.d/amazingfated-rk3588-rockchip-multimedia-pin
 
 			# Reclaim disk space: clear apt's downloaded .deb cache. A full
 			# DE removal frees hundreds of MB of installed files; the
