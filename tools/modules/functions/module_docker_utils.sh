@@ -253,9 +253,20 @@ docker_operation_progress() {
 					exit 0
 				fi
 
-				# Parse and display progress from captured response
+				# Parse and display progress from captured response.
+				# NB the parens: `or` must be INSIDE select(), not
+				# outside. `select(X) or Y` is a boolean expression
+				# (select filters the stream, then `or` returns a
+				# bool) which the downstream `| if .error then ...`
+				# cannot index, producing
+				#   jq: error ... Cannot index boolean with string "error"
+				# for every JSON line in the Docker API pull stream.
+				# The original select((X) or (Y)) was mis-parenthesised
+				# and only ever worked when jq happened to emit
+				# nothing (e.g. pulls that returned zero progress
+				# lines).
 				if ! jq -r --unbuffered '
-						select(.status != null) or (.error != null) |
+						select((.status != null) or (.error != null)) |
 						if .error then
 							"ERROR\n" + .error + "\n"
 						elif .progressDetail.current and .progressDetail.total then
