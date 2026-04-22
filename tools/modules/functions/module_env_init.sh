@@ -111,6 +111,21 @@ function set_runtime_variables() {
 	[[ -f /etc/armbian-release ]] && source /etc/armbian-release && ARMBIAN="Armbian $VERSION $IMAGE_TYPE"
 	[[ -f /etc/armbian-distribution-status ]] && DISTRO_STATUS="/etc/armbian-distribution-status"
 
+	# Reconcile BRANCH (and KERNELPKG_*) against the actually
+	# installed kernel package. Some /etc/armbian-release files
+	# never had a BRANCH= line (the build template added it late
+	# and older images never got backfilled — seen in the wild on
+	# e.g. Orange Pi 5 26.2.1 images), and upgrade paths can drop
+	# it too. Modules like module_desktops, module_install_headers,
+	# module_devicetree_overlays and module_armbian_firmware gate
+	# behavior on BRANCH — without this reconcile, those gates
+	# short-circuit silently on such images and the runtime
+	# user-visible behavior diverges from what the kernel actually
+	# is. update_kernel_env() derives BRANCH from the linux-image-*
+	# package name, persists BRANCH= to /etc/armbian-release if
+	# missing, and no-ops when it already matches.
+	update_kernel_env
+
 	# Docker installatons read timezone and they will fail if this doesn't exist. This is often the case with some minimal Debian/Ubuntu installations.
 	if [[ ! -f /etc/timezone ]]; then
 		echo "America/New_York" | sudo tee /etc/timezone
@@ -162,6 +177,14 @@ function set_runtime_variables() {
 #
 function update_kernel_env() {
 	local list_of_installed_kernels=$(dpkg -l | grep '^[hi]i' | grep linux-image | head -1)
+	# No installed linux-image package: no authoritative source
+	# for BRANCH. Leave existing globals alone and return — the
+	# previous behavior blanked BRANCH / KERNELPKG_* with empty
+	# strings and then wrote `BRANCH=` into /etc/armbian-release,
+	# which would clobber a valid value on e.g. a container that
+	# legitimately has no kernel but does have a proper release
+	# file.
+	[[ -z "$list_of_installed_kernels" ]] && return
 	local new_branch=$(echo "$list_of_installed_kernels" | awk '{print $2}' | cut -d'-' -f3)
 	# these don't necessarily match the system-wide values from /etc/armbian-release
 	KERNELPKG_VERSION=$(echo "$list_of_installed_kernels" | awk '{print $3}')
