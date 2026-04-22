@@ -216,6 +216,26 @@ docker_operation_progress() {
 			local raw_response_file=$(mktemp)
 			local http_code_file=$(mktemp)
 
+			# Split `repo:tag` into separate `fromImage` + `tag` query
+			# params. Modern dockerd returns HTTP 400 when fromImage
+			# carries the tag inline — `docker pull owncloud/server:
+			# 10.16.1` works from the CLI but the same request shaped
+			# as `POST /images/create?fromImage=owncloud/server:
+			# 10.16.1` is rejected. The canonical API form passes
+			# image and tag as separate query params. Split on the
+			# LAST `:` so a registry:port prefix
+			# (registry.example.com:5000/repo:tag) stays in fromImage
+			# and only the tag goes to `tag=`. Default missing tag
+			# to `latest` to match docker CLI behavior.
+			local pull_image pull_tag
+			if [[ "$target" == *:* ]]; then
+				pull_image="${target%:*}"
+				pull_tag="${target##*:}"
+			else
+				pull_image="$target"
+				pull_tag="latest"
+			fi
+
 			(
 				echo "XXX"
 				echo "0"
@@ -224,7 +244,7 @@ docker_operation_progress() {
 
 				unbuffer curl --silent --show-error \
 					--unix-socket "$socket_path" \
-					-X POST "http://localhost/$api_version/images/create?fromImage=$target" \
+					-X POST "http://localhost/$api_version/images/create?fromImage=${pull_image}&tag=${pull_tag}" \
 					-w "%{http_code}" \
 					-o "$raw_response_file" \
 					2> "$error_file" \
