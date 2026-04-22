@@ -14,8 +14,13 @@ env:
   REPOSITORY: "apt.armbian.com"
 
 concurrency:
-  group: pipeline-pr-${{github.event.pull_request.number}}
-  cancel-in-progress: false
+  # One active run per PR (keyed by PR number) or per ref for
+  # non-PR triggers (push to main, schedule, workflow_dispatch) —
+  # falls back to github.ref when pull_request.number is empty.
+  # cancel-in-progress: superseding pushes stop the in-flight run
+  # instead of queueing behind it.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
 
