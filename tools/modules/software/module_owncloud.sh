@@ -9,7 +9,7 @@ module_options+=(
 	["module_owncloud,group"]="Database"
 	["module_owncloud,port"]="7787"
 	["module_owncloud,arch"]="x86-64 arm64"
-	["module_owncloud,dockerimage"]="owncloud/server:latest"
+	["module_owncloud,dockerimage"]="docker.io/owncloud/server:10.16.1"
 	["module_owncloud,dockername"]="owncloud"
 )
 #
