@@ -232,6 +232,58 @@ function _module_desktops_rockchip_multimedia() {
 		pkg_install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" \
 			rockchip-multimedia-config libv4l-rkmpp libwidevinecdm0 chromium-browser || \
 			echo "Warning: rockchip multimedia package install failed (see above)" >&2
+
+		# /etc/chromium.d drop-in for EME-based streaming services.
+		# Debian's chromium launcher sources every file in this
+		# directory and accumulates $CHROMIUM_FLAGS before exec.
+		#
+		# 1. --enable-unsafe-swiftshader
+		#    Chromium 128+ removed the silent software WebGL fallback
+		#    (crbug.com/242999). Modern EME players — Netflix's
+		#    "Akira" client, Disney+, Amazon Prime Video — rely on a
+		#    working WebGL context for client-side init even when
+		#    hardware acceleration is otherwise present. Without an
+		#    explicit opt-in the context creation fails silently and
+		#    the player aborts with opaque errors (Netflix surfaces
+		#    it as error code E100). No-op when hardware WebGL works;
+		#    only matters as a fallback when the GPU sandbox rejects
+		#    the context.
+		#
+		# 2. --user-agent (ChromeOS spoof)
+		#    Netflix's Akira player is the only mainstream service
+		#    that rejects the legacy Linux UA server-side —
+		#    `osname=linux` is not on its supported-platform
+		#    whitelist regardless of arch, while `osname=cros`
+		#    (ChromeOS) is. Same workaround Raspberry Pi OS
+		#    hardcodes. Safe because Chromium 107+ already freezes
+		#    navigator.platform to "Linux x86_64" on every Linux
+		#    host (UA Reduction), and Netflix doesn't query
+		#    Sec-CH-UA-Arch via Accept-CH — so the fiction is
+		#    contained to the legacy UA string; Client Hints headers
+		#    and JS APIs keep reporting the real platform.
+		#
+		# IMPORTANT: the stock Chromium launcher (/usr/bin/chromium)
+		# applies word-splitting to $CHROMIUM_FLAGS and cannot pass a
+		# flag that contains spaces — which any valid User-Agent
+		# string does. Armbian ships a drop-in replacement wrapper at
+		# /usr/bin/chromium that execs via `eval` so quoted flags
+		# survive; the upstream wrapper is preserved via dpkg-divert
+		# at /usr/bin/chromium.upstream. This drop-in is only fully
+		# effective when that wrapper is in place.
+		local chromium_d="/etc/chromium.d"
+		local chromium_flags_file="${chromium_d}/armbian-rk3588-multimedia"
+		mkdir -p "$chromium_d"
+		if ! cat > "$chromium_flags_file" <<- 'EOF'
+		# Managed by armbian-config (module_desktops). Do not edit by hand.
+		# Enables WebGL software fallback and spoofs a ChromeOS UA so
+		# Netflix / Disney+ / Prime Video work on the PPA's rk3588
+		# chromium-browser build.
+		export CHROMIUM_FLAGS="$CHROMIUM_FLAGS --enable-unsafe-swiftshader"
+		export CHROMIUM_FLAGS="$CHROMIUM_FLAGS --user-agent=\"Mozilla/5.0 (X11; CrOS aarch64 15359.58.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36\""
+		EOF
+		then
+			echo "Warning: failed to write ${chromium_flags_file}; streaming services may not work in chromium-browser" >&2
+		fi
 	fi
 
 	# ---------------------------------------------------------------
@@ -772,6 +824,14 @@ function module_desktops() {
 			# unconditionally: the file is absent when the DE had no
 			# PPA stage (non-noble, non-rk3588, tier=minimal, etc.).
 			rm -f /etc/apt/preferences.d/amazingfated-rk3588-rockchip-multimedia-pin
+
+			# Drop the /etc/chromium.d streaming drop-in written by
+			# _module_desktops_rockchip_multimedia. The spoofed
+			# ChromeOS User-Agent applies to ANY chromium launch, not
+			# just the PPA-patched build — if the desktop is being
+			# removed, the user is almost certainly done with that
+			# customisation too. Safe to rm unconditionally.
+			rm -f /etc/chromium.d/armbian-rk3588-multimedia
 
 			# Reclaim disk space: clear apt's downloaded .deb cache. A full
 			# DE removal frees hundreds of MB of installed files; the
