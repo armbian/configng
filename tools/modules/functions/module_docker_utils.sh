@@ -131,7 +131,12 @@ docker_parse_commands() {
 docker_operation_progress() {
 	local operation="$1"
 	local target="$2"
-	local api_version="v1.41"
+	# No /v1.XX/ prefix on the Docker API URL below: the daemon
+	# serves versions between MinAPIVersion and APIVersion, and any
+	# hardcoded value ages out of that window. Docker 29.x already
+	# has MinAPIVersion 1.44, so a pin at v1.41 returns HTTP 400
+	# outright. Omitting the prefix makes the daemon pick its own
+	# latest, which is backward-compatible for the endpoints we use.
 	local socket_path="/var/run/docker.sock"
 
 	# Ensure Docker is available
@@ -244,7 +249,7 @@ docker_operation_progress() {
 
 				unbuffer curl --silent --show-error \
 					--unix-socket "$socket_path" \
-					-X POST "http://localhost/$api_version/images/create?fromImage=${pull_image}&tag=${pull_tag}" \
+					-X POST "http://localhost/images/create?fromImage=${pull_image}&tag=${pull_tag}" \
 					-w "%{http_code}" \
 					-o "$raw_response_file" \
 					2> "$error_file" \
