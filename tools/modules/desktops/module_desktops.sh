@@ -110,11 +110,11 @@ function _module_desktops_write_apt_pin() {
 #      PPA (ppa:liujianfeng1994/rockchip-multimedia), pin it at 1001,
 #      and pull the hardware-accelerated userspace —
 #      rockchip-multimedia-config, libv4l-rkmpp (V4L2 -> MPP codec
-#      plugin), and libwidevinecdm0 (so Netflix/Spotify/DRM video
-#      actually plays in the PPA's chromium). The PPA ships a
-#      chromium build patched for rk3588 VPU + Widevine; pin
-#      priority 1001 is required to override apt.armbian.com and
-#      the Ubuntu archive.
+#      plugin), libwidevinecdm0 (so Netflix/Spotify/DRM video
+#      actually plays), and chromium-browser (the PPA's rk3588-VPU +
+#      Widevine patched build, distinct from the stock `chromium`
+#      package). Pin priority 1001 is required to override
+#      apt.armbian.com and the Ubuntu archive.
 #
 #   2. On any non-legacy release: enable the panthor-gpu DT overlay.
 #      panthor-gpu is the Mesa panthor-kbase GPU driver overlay —
@@ -230,7 +230,7 @@ function _module_desktops_rockchip_multimedia() {
 		display_alert "Installing Rockchip multimedia + Widevine" "de=${de} tier=${tier}" "info" 2>/dev/null \
 			|| echo "Installing Rockchip multimedia + Widevine (de=${de} tier=${tier})"
 		pkg_install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" \
-			rockchip-multimedia-config libv4l-rkmpp libwidevinecdm0 || \
+			rockchip-multimedia-config libv4l-rkmpp libwidevinecdm0 chromium-browser || \
 			echo "Warning: rockchip multimedia package install failed (see above)" >&2
 	fi
 
