@@ -42,6 +42,7 @@ sudo armbian-config
     - ### Install Budgie [CSC]
     - ### Install Deepin [CSC]
     - ### Install Enlightenment [CSC]
+    - ### Install Bianbu [CSC]
     - ### Install XFCE (minimal)
     - ### Install XFCE (mid)
     - ### Install XFCE (full)
@@ -494,6 +495,7 @@ Outputs:
 	--cmd BDGE01 - Install Budgie [CSC]
 	--cmd DEEP01 - Install Deepin [CSC]
 	--cmd ENLT01 - Install Enlightenment [CSC]
+	--cmd BIAN01 - Install Bianbu [CSC]
 	--cmd XFCE01 - Install XFCE (minimal)
 	--cmd XFCE05 - Install XFCE (mid)
 	--cmd XFCE06 - Install XFCE (full)
