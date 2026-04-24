@@ -339,6 +339,18 @@
                             "help": "Install Enlightenment (EFL-based) [community-supported, best-effort]."
                         },
                         {
+                            "id": "BIAN01",
+                            "description": "Install Bianbu [CSC]",
+                            "short": "Bianbu [CSC]",
+                            "command": [
+                                "module_desktops install de=bianbu tier=mid"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported bianbu",
+                            "help": "Install Bianbu — SpacemiT K1 RISC-V desktop (mid tier: full DE + standard utilities + K1 camera stack). riscv64 on noble/resolute only; uses SpacemiT's pinned archive (priority >1000 to override distro for K1-specific packages). [community-supported, best-effort]."
+                        },
+                        {
                             "id": "XFCE01",
                             "description": "Install XFCE (minimal)",
                             "short": "XFCE",
