@@ -36,6 +36,48 @@ tiers:
       - spice-vdagent
       - xdg-user-dirs
 
+tier_overrides:
+  minimal:
+    # The Deepin DE core packages (dde-*, deepin-wm, startdde,
+    # deepin-desktop-base/schemas/gtk-theme) were removed from the
+    # Debian and Ubuntu archives after Debian 11 (bullseye) /
+    # Ubuntu 20.04 (focal). They are absent from bookworm, trixie,
+    # and noble on all supported arches. Stripped here to prevent
+    # 'E: Unable to locate package' failures during apt install.
+    # A functional Deepin session requires a deepin-specific
+    # repository (not configured in this YAML) to be added first.
+    architectures:
+      amd64:
+        packages_remove:
+          - dde-control-center
+          - dde-daemon
+          - dde-desktop
+          - dde-dock
+          - dde-file-manager
+          - dde-launcher
+          - dde-polkit-agent
+          - dde-session-ui
+          - deepin-desktop-base
+          - deepin-desktop-schemas
+          - deepin-gtk-theme
+          - deepin-wm
+          - startdde
+      arm64:
+        packages_remove:
+          - dde-control-center
+          - dde-daemon
+          - dde-desktop
+          - dde-dock
+          - dde-file-manager
+          - dde-launcher
+          - dde-polkit-agent
+          - dde-session-ui
+          - deepin-desktop-base
+          - deepin-desktop-schemas
+          - deepin-gtk-theme
+          - deepin-wm
+          - startdde
+
 releases:
   bookworm:
     architectures: [arm64, amd64]
