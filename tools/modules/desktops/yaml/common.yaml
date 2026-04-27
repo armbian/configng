@@ -221,10 +221,15 @@ tier_overrides:
           riscv64:  { packages_remove: [fonts-ubuntu] }
           loong64:  { packages_remove: [fonts-ubuntu] }
   mid:
-    # armbian-imager (apt.armbian.com) is only published for amd64
-    # and arm64 — strip it on every other arch. Arch-wide so the
-    # exclusion applies across all releases.
+    # armbian-imager (apt.armbian.com) is published for amd64 only —
+    # the arm64 build is absent from the repo. Strip it on every non-
+    # amd64 arch so that installs don't fail with
+    # 'E: Unable to locate package armbian-imager'.
     architectures:
+      arm64:
+        # No arm64 armbian-imager build exists on apt.armbian.com;
+        # the package is amd64-only there.
+        packages_remove: [armbian-imager]
       armhf:
         packages_remove: [armbian-imager]
       riscv64:
