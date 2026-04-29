@@ -47,7 +47,6 @@ function module_homepage () {
 				-v /var/run/docker.sock:/var/run/docker.sock:ro \
 				--restart=always \
 				"$dockerimage"
-
 			# Auto-configure SWAG reverse proxy if available
 			docker_configure_swag_proxy "homepage"
 		;;
