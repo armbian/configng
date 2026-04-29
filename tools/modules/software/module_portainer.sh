@@ -49,7 +49,7 @@ function module_portainer () {
 				-v "${base_dir}/data:/data" \
 				"$dockerimage"
 			# Auto-configure SWAG reverse proxy if available
-			docker_configure_swag_proxy "portainer"
+			docker_configure_swag_proxy "portainer" "9000"
 		;;
 		"${commands[1]}") # remove
 			# Remove container and image (functions handle existence checks)

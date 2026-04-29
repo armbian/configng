@@ -60,7 +60,7 @@ function module_transmission () {
 				--restart=always \
 				"$dockerimage"
 		# Auto-configure SWAG reverse proxy if available
-		docker_configure_swag_proxy "transmission"
+		docker_configure_swag_proxy "transmission" "9091"
 			;;
 		"${commands[1]}") # remove
 			# Remove container and image (functions handle existence checks)
