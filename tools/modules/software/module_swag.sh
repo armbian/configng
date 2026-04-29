@@ -92,8 +92,9 @@ function module_swag() {
 				return 1
 			fi
 
-			# Store URL for later use (password command, help display)
-			echo "$swag_url" > "${base_dir}/config/.swag_url"
+			# Store URL globally for module-wide use (replaces IP detection)
+			# This file is used by password, help, and status commands
+			echo "$swag_url" > "${base_dir}/config/SWAG_URL"
 
 			# Restart container to initialize SSL certificates
 			dialog_infobox "Initializing SSL Certificates" \
@@ -145,10 +146,10 @@ function module_swag() {
 				return 1
 			fi
 
-			# Get stored URL for display (fallback to IP if not found)
+			# Read global SWAG_URL configuration (fallback to IP if not found)
 			local display_url="$LOCALIPADD"
-			if [[ -f "${base_dir}/config/.swag_url" ]]; then
-				display_url=$(cat "${base_dir}/config/.swag_url")
+			if [[ -f "${base_dir}/config/SWAG_URL" ]]; then
+				display_url=$(cat "${base_dir}/config/SWAG_URL")
 			fi
 
 			local swag_user
@@ -202,10 +203,10 @@ function module_swag() {
 			;;
 
 		"${commands[5]}") # help
-			# Get stored URL for display (fallback to IP if not found)
+			# Read global SWAG_URL configuration (fallback to IP if not found)
 			local stored_url="$LOCALIPADD"
-			if [[ -f "${base_dir}/config/.swag_url" ]]; then
-				stored_url=$(cat "${base_dir}/config/.swag_url")
+			if [[ -f "${base_dir}/config/SWAG_URL" ]]; then
+				stored_url=$(cat "${base_dir}/config/SWAG_URL")
 			fi
 
 			show_module_help "module_swag" "$title" \
