@@ -151,7 +151,13 @@ update_sub_submenu_data "Software" "Media" "IMM002" "http://$DISPLAY_URL:${modul
 update_sub_submenu_data "Software" "Media" "NAV002" "http://$DISPLAY_URL:${module_options["module_navidrome,port"]}"
 
 # Containers
-update_sub_submenu_data "Software" "Containers" "POR002" "http://$DISPLAY_URL:${module_options["module_portainer,port"]%% *}" # removing second port from url
+# Portainer uses HTTPS on port 9443 (not the edge agent port 9000)
+if docker container ls -a --format "{{.Names}}" 2>/dev/null | grep -q "^swag$" && \
+	docker exec swag test -f "/config/nginx/proxy-confs/portainer.subfolder.conf.enabled" 2>/dev/null; then
+	update_sub_submenu_data "Software" "Containers" "POR002" "https://$DISPLAY_URL/portainer"
+else
+	update_sub_submenu_data "Software" "Containers" "POR002" "https://$DISPLAY_URL:9443"
+fi
 
 # Backup
 update_sub_submenu_data "Software" "Backup" "DPL002" "http://$DISPLAY_URL:${module_options["module_duplicati,port"]%% *}" # removing second port from url
