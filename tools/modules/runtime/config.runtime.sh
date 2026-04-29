@@ -187,7 +187,7 @@ update_sub_submenu_data "Software" "Management" "NBOX02" "http://$DISPLAY_URL:${
 # Downloaders
 update_sub_submenu_data "Software" "Downloaders" "DOW002" "http://$DISPLAY_URL:${module_options["module_qbittorrent,port"]%% *}" # removing second port from url
 update_sub_submenu_data "Software" "Downloaders" "DEL002" "http://$DISPLAY_URL:${module_options["module_deluge,port"]%% *}" # removing second port from url
-update_sub_submenu_data "Software" "Downloaders" "TRA002" "$(get_service_url transmission ${module_options["module_transmission,port"]})" # removing second port from url
+update_sub_submenu_data "Software" "Downloaders" "TRA002" "$(get_service_url ${module_options["module_transmission,servicename"]} ${module_options["module_transmission,port"]})" # removing second port from url
 update_sub_submenu_data "Software" "Downloaders" "SABN02" "http://$DISPLAY_URL:${module_options["module_sabnzbd,port"]}"
 update_sub_submenu_data "Software" "Downloaders" "MDS002" "http://$DISPLAY_URL:${module_options["module_medusa,port"]}"
 update_sub_submenu_data "Software" "Downloaders" "SON002" "http://$DISPLAY_URL:${module_options["module_sonarr,port"]}"

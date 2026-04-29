@@ -11,6 +11,7 @@ module_options+=(
 	["module_transmission,arch"]="x86-64 arm64"
 	["module_transmission,dockerimage"]="linuxserver/transmission:latest"
 	["module_transmission,dockername"]="transmission"
+	["module_transmission,servicename"]="transmission"
 )
 #
 # Module Transmission
