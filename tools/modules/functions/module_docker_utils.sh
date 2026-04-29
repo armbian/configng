@@ -475,15 +475,17 @@ docker_operation_progress() {
 
 #
 # Configure SWAG reverse proxy for a service
-# Usage: docker_configure_swag_proxy <servicename>
+# Usage: docker_configure_swag_proxy <servicename> [port]
 #
 # Parameters:
 #   servicename - Name of the service (e.g., "transmission", "sonarr")
+#   port - Optional: Override the default port in the proxy config
 #
 # Returns: 0 on success, 1 if proxy config not found or enabling failed
 #
 docker_configure_swag_proxy() {
 	local servicename="$1"
+	local port="$2"
 
 	# Check if SWAG container exists
 	if ! docker container ls -a --format "{{.Names}}" | grep -q "^swag$"; then
@@ -498,6 +500,11 @@ docker_configure_swag_proxy() {
 		# Copy sample to actual config if it doesn't exist
 		if ! docker exec swag test -f "$proxy_actual" 2>/dev/null; then
 			docker exec swag cp "$proxy_sample" "$proxy_actual" 2>/dev/null
+		fi
+
+		# If port is specified, update it in the config
+		if [[ -n "$port" ]]; then
+			docker exec swag sed -i "s/set \\\$upstream_port [0-9]*/set \\\$upstream_port ${port}/g" "$proxy_actual" 2>/dev/null
 		fi
 
 		# Enable the proxy configuration

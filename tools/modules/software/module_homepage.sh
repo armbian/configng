@@ -51,7 +51,7 @@ function module_homepage () {
 				--restart=always \
 				"$dockerimage"
 			# Auto-configure SWAG reverse proxy if available
-			docker_configure_swag_proxy "homepage"
+			docker_configure_swag_proxy "homepage" "3000"
 		;;
 		"${commands[1]}") # remove
 			# Remove container and image (functions handle existence checks)
