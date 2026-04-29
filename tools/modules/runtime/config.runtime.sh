@@ -20,6 +20,30 @@ held_packages=$(apt-mark showhold)
 # This makes all menu URLs show the actual domain instead of IP when SWAG is installed
 DISPLAY_URL="${SWAG_URL:-$LOCALIPADD}"
 
+# Helper function to determine service URL format
+# Returns "https://DISPLAY_URL/service" if SWAG proxy is enabled, otherwise "http://DISPLAY_URL:port"
+get_service_url() {
+	local service_name="$1"
+	local service_port="$2"
+
+	# Check if SWAG is running
+	if ! docker container ls -a --format "{{.Names}}" 2>/dev/null | grep -q "^swag$"; then
+		echo "http://$DISPLAY_URL:$service_port"
+		return
+	fi
+
+	# Check if SWAG proxy is enabled for this service
+	local proxy_enabled_file="/config/nginx/proxy-confs/${service_name}.subfolder.conf.enabled"
+	if ! docker exec swag test -f "$proxy_enabled_file" 2>/dev/null; then
+		echo "http://$DISPLAY_URL:$service_port"
+		return
+	fi
+
+	# SWAG proxy is enabled - return subfolder URL
+	echo "https://$DISPLAY_URL/$service_name"
+}
+
+
 module_options+=(
 	["update_json_data,author"]="@Tearran"
 	["update_json_data,ref_link"]=""
@@ -163,7 +187,7 @@ update_sub_submenu_data "Software" "Management" "NBOX02" "http://$DISPLAY_URL:${
 # Downloaders
 update_sub_submenu_data "Software" "Downloaders" "DOW002" "http://$DISPLAY_URL:${module_options["module_qbittorrent,port"]%% *}" # removing second port from url
 update_sub_submenu_data "Software" "Downloaders" "DEL002" "http://$DISPLAY_URL:${module_options["module_deluge,port"]%% *}" # removing second port from url
-update_sub_submenu_data "Software" "Downloaders" "TRA002" "http://$DISPLAY_URL:${module_options["module_transmission,port"]%% *}" # removing second port from url
+update_sub_submenu_data "Software" "Downloaders" "TRA002" "$(get_service_url transmission ${module_options["module_transmission,port"]})" # removing second port from url
 update_sub_submenu_data "Software" "Downloaders" "SABN02" "http://$DISPLAY_URL:${module_options["module_sabnzbd,port"]}"
 update_sub_submenu_data "Software" "Downloaders" "MDS002" "http://$DISPLAY_URL:${module_options["module_medusa,port"]}"
 update_sub_submenu_data "Software" "Downloaders" "SON002" "http://$DISPLAY_URL:${module_options["module_sonarr,port"]}"
