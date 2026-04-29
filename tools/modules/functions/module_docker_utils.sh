@@ -142,6 +142,11 @@ docker_operation_progress() {
 	# Ensure Docker is available
 	docker_ensure_docker
 
+	# Ensure unbuffer is available (for real-time pull progress)
+	if ! command -v unbuffer >/dev/null 2>&1; then
+		pkg_install expect
+	fi
+
 	# Argument validation
 	if [[ -z "$operation" || -z "$target" ]]; then
 		dialog_msgbox "Usage Error" "Usage: docker_operation_progress <pull|rm|rmi> <target>\n\n  pull <image>   - Pull Docker image\n  rm <container> - Remove container\n  rmi <image>    - Remove image" 12 60
