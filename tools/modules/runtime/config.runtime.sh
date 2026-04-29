@@ -176,3 +176,4 @@ update_sub_submenu_data "Software" "Downloaders" "JEL002" "http://$DISPLAY_URL:$
 
 # web
 update_sub_submenu_data "Software" "WebHosting" "GHOST2" "http://$DISPLAY_URL:${module_options["module_ghost,port"]}/ghost"
+update_sub_submenu_data "Software" "WebHosting" "SWAG01" "https://$DISPLAY_URL"
