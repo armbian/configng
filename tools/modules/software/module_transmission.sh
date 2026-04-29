@@ -9,7 +9,7 @@ module_options+=(
 	["module_transmission,group"]="Downloaders"
 	["module_transmission,port"]="9091"
 	["module_transmission,arch"]="x86-64 arm64"
-	["module_transmission,dockerimage"]="lscr.io/linuxserver/transmission:latest"
+	["module_transmission,dockerimage"]="linuxserver/transmission:latest"
 	["module_transmission,dockername"]="transmission"
 )
 #

@@ -9,7 +9,7 @@ module_options+=(
 	["module_swag,group"]="WebHosting"
 	["module_swag,port"]="443"
 	["module_swag,arch"]="x86-64 arm64"
-	["module_swag,dockerimage"]="lscr.io/linuxserver/swag:latest"
+	["module_swag,dockerimage"]="linuxserver/swag:latest"
 	["module_swag,dockername"]="swag"
 )
 
@@ -159,7 +159,7 @@ function module_swag() {
 				"Use Generated" "Enter Own" 12 70; then
 				swag_password="$default_password"
 			else
-				sway_password=$(dialog_passwordbox "Enter Custom Password" \
+				swag_password=$(dialog_passwordbox "Enter Custom Password" \
 					"Enter a secure password for ${swag_user}\n\nMinimum 8 characters recommended" 10 70)
 
 				if [[ -z "$swag_password" ]]; then
