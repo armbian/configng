@@ -11,6 +11,7 @@ module_options+=(
 	["module_portainer,arch"]="x86-64 arm64"
 	["module_portainer,dockerimage"]="portainer/portainer-ce:latest"
 	["module_portainer,dockername"]="portainer"
+	["module_portainer,servicename"]="portainer"
 )
 #
 # Module Portainer
@@ -47,6 +48,8 @@ function module_portainer () {
 				-v /run/docker.sock:/var/run/docker.sock \
 				-v "${base_dir}/data:/data" \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "portainer"
 		;;
 		"${commands[1]}") # remove
 			# Remove container and image (functions handle existence checks)
