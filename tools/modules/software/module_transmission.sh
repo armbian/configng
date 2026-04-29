@@ -63,13 +63,28 @@ function module_transmission () {
 			# Use global SWAG_URL if available, otherwise LOCALIPADD
 			local swag_url="${SWAG_URL:-$LOCALIPADD}"
 
-			if docker exec swag test -f "/config/nginx/proxy-confs/transmission.subfolder.conf" 2>/dev/null; then
-				docker exec swag touch "/config/nginx/proxy-confs/transmission.subfolder.conf.enabled" 2>/dev/null
-				docker exec swag nginx -s reload >/dev/null 2>&1
+			# Check if SWAG has transmission proxy config (sample or actual)
+			local proxy_sample="/config/nginx/proxy-confs/transmission.subfolder.conf.sample"
+			local proxy_actual="/config/nginx/proxy-confs/transmission.subfolder.conf"
 
-				dialog_infobox "SWAG Proxy Enabled" \
-					"Transmission accessible at:\nhttps://${swag_url}/transmission\n\nUser: ${transmission_user}\nPass: ${transmission_pass}" 14 70
-				sleep 5
+			if docker exec swag test -f "$proxy_sample" 2>/dev/null; then
+				# Copy sample to actual config if it doesn't exist
+				if ! docker exec swag test -f "$proxy_actual" 2>/dev/null; then
+					docker exec swag cp "$proxy_sample" "$proxy_actual" 2>/dev/null
+				fi
+
+				# Enable the proxy configuration
+				if docker exec swag touch "/config/nginx/proxy-confs/transmission.subfolder.conf.enabled" 2>/dev/null; then
+					# Reload nginx to apply
+					docker exec swag nginx -s reload >/dev/null 2>&1
+
+					dialog_infobox "SWAG Proxy Enabled" \
+						"Transmission accessible at:\nhttps://${swag_url}/transmission\n\nUser: ${transmission_user}\nPass: ${transmission_pass}" 14 70
+					sleep 5
+				fi
+			else
+				dialog_msgbox "SWAG Proxy Config Not Found" \
+					"SWAG doesn't have a proxy config for Transmission.\n\nCheck: /config/nginx/proxy-confs/" 10 60
 			fi
 		fi
 		;;
