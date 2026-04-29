@@ -60,8 +60,8 @@ function module_transmission () {
 				"$dockerimage"
 		# Auto-configure SWAG reverse proxy if available
 		if docker container ls -a --format "{{.Names}}" | grep -q "^swag$"; then
-			local swag_url="$LOCALIPADD"
-			[[ -f "${SOFTWARE_FOLDER}/swag/config/SWAG_URL" ]] && swag_url=$(cat "${SOFTWARE_FOLDER}/swag/config/SWAG_URL}")
+			# Use global SWAG_URL if available, otherwise LOCALIPADD
+			local swag_url="${SWAG_URL:-$LOCALIPADD}"
 
 			if docker exec swag test -f "/config/nginx/proxy-confs/transmission.subfolder.conf" 2>/dev/null; then
 				docker exec swag touch "/config/nginx/proxy-confs/transmission.subfolder.conf.enabled" 2>/dev/null
