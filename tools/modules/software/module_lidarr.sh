@@ -9,7 +9,7 @@ module_options+=(
 	["module_lidarr,group"]="Downloaders"
 	["module_lidarr,port"]="8686"
 	["module_lidarr,arch"]="x86-64 arm64"
-	["module_lidarr,dockerimage"]="lscr.io/linuxserver/lidarr:latest"
+	["module_lidarr,dockerimage"]="linuxserver/lidarr:latest"
 	["module_lidarr,dockername"]="lidarr"
 )
 #

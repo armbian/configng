@@ -9,7 +9,7 @@ module_options+=(
 	["module_radarr,group"]="Downloaders"
 	["module_radarr,port"]="7878"
 	["module_radarr,arch"]="x86-64 arm64"
-	["module_radarr,dockerimage"]="lscr.io/linuxserver/radarr:latest"
+	["module_radarr,dockerimage"]="linuxserver/radarr:latest"
 	["module_radarr,dockername"]="radarr"
 )
 #

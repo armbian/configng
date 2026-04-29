@@ -9,7 +9,7 @@ module_options+=(
 	["module_prowlarr,group"]="Database"
 	["module_prowlarr,port"]="9696"
 	["module_prowlarr,arch"]="x86-64 arm64"
-	["module_prowlarr,dockerimage"]="lscr.io/linuxserver/prowlarr:latest"
+	["module_prowlarr,dockerimage"]="linuxserver/prowlarr:latest"
 	["module_prowlarr,dockername"]="prowlarr"
 )
 #
