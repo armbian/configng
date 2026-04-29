@@ -11,6 +11,7 @@ module_options+=(
 	["module_netbox,arch"]="x86-64 arm64"
 	["module_netbox,dockerimage"]="netboxcommunity/netbox:latest"
 	["module_netbox,dockername"]="netbox"
+	["module_netbox,servicename"]="netbox"
 )
 
 #
@@ -142,6 +143,9 @@ function module_netbox () {
 					fi
 				done
 			fi
+
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "netbox" "8080"
 
 			# Delete default API Token
 			docker exec -i "$dockername" /opt/netbox/netbox/manage.py shell -c "from users.models import Token;Token.objects.filter(key='0123456789abcdef0123456789abcdef01234567').delete();"

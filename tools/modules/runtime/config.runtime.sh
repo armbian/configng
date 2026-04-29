@@ -188,7 +188,7 @@ update_sub_submenu_data "Software" "Monitoring" "PRO002" "http://$DISPLAY_URL:${
 # Management
 update_sub_submenu_data "Software" "Management" "CPT002" "https://$DISPLAY_URL:${module_options["module_cockpit,port"]}"
 update_sub_submenu_data "Software" "Management" "HPG002" "http://$DISPLAY_URL:${module_options["module_homepage,port"]}"
-update_sub_submenu_data "Software" "Management" "NBOX02" "http://$DISPLAY_URL:${module_options["module_netbox,port"]}"
+	update_sub_submenu_data "Software" "Management" "NBOX02" "$(get_service_url "netbox" "${module_options["module_netbox,port"]}")"
 
 # Downloaders
 update_sub_submenu_data "Software" "Downloaders" "DOW002" "http://$DISPLAY_URL:${module_options["module_qbittorrent,port"]%% *}" # removing second port from url
