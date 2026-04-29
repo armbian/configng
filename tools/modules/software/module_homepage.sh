@@ -11,6 +11,7 @@ module_options+=(
 	["module_homepage,arch"]=""
 	["module_homepage,dockerimage"]="ghcr.io/gethomepage/homepage:latest"
 	["module_homepage,dockername"]="homepage"
+	["module_homepage,servicename"]="homepage"
 )
 #
 # Module Homepage
@@ -46,6 +47,9 @@ function module_homepage () {
 				-v /var/run/docker.sock:/var/run/docker.sock:ro \
 				--restart=always \
 				"$dockerimage"
+
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "homepage"
 		;;
 		"${commands[1]}") # remove
 			# Remove container and image (functions handle existence checks)
