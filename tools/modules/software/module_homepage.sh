@@ -43,6 +43,8 @@ function module_homepage () {
 				-e PGID="${DOCKER_GROUPUID}" \
 				-e TZ="$(cat /etc/timezone)" \
 				-e HOMEPAGE_ALLOWED_HOSTS="${LOCALIPADD}:${port},homepage.local:${port},localhost:${port}" \
+				-e HOMEPAGE_VAR_LOCALIPADD="${LOCALIPADD}" \
+				-e HOMEPAGE_VAR_SWAG_URL="${SWAG_URL:-}" \
 				-p "${port}:3000" \
 				-v "${base_dir}/config:/app/config" \
 				-v /var/run/docker.sock:/var/run/docker.sock:ro \
