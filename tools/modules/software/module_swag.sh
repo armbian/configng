@@ -32,49 +32,49 @@ function module_swag() {
 		"${commands[0]}") # install
 			# Get URL via dialog
 			local swag_url
-			swag_url=$(dialog_inputbox "Secure Web Application Gateway URL" \
+			swag_url=$(dialog_inputbox "Secure Web Application Gateway - URL" \
 				"Enter your fully qualified domain name\n\nExamples:\n  - myhome.domain.org\n  - example.com\n\nNote: Ports 80 and 443 must be exposed to the internet" \
-				"" 10 80)
+				"" 15 90)
 
 			# Check if user cancelled or entered empty value
 			if [[ -z "$swag_url" ]]; then
 				dialog_msgbox "Installation Cancelled" \
-					"A fully qualified domain name is required for SWAG to function properly." 8 60
+					"A fully qualified domain name is required for SWAG to function properly." 10 70
 				return 1
 			fi
 
 			# Clean URL (remove protocol if present)
-			sway_url=$(echo "$swag_url" | sed -E 's|^\s*https?://||' | sed 's|/.*$||')
+			swag_url=$(echo "$swag_url" | sed -E 's|^\s*https?://||' | sed 's|/.*$||')
 
 			# Optional: Adjust system hostname
-			if dialog_yesno "Update Hostname" \
+			if dialog_yesno "Update System Hostname" \
 				"SWAG works best when the system hostname matches your domain.\n\nUpdate system hostname to: ${swag_url}?\n\nThis requires root privileges." \
-				"Update" "Keep" 12 70; then
+				"Update" "Keep" 15 80; then
 				if ! hostnamectl set-hostname "${swag_url}" 2>/dev/null; then
-					dialog_msgbox "Warning" \
-						"Failed to update hostname.\n\nYou can set it manually with:\n  sudo hostnamectl set-hostname ${swag_url}\n\nContinuing with installation..." 10 60
+					dialog_msgbox "Hostname Update Failed" \
+						"Failed to update hostname.\n\nYou can set it manually with:\n  sudo hostnamectl set-hostname ${swag_url}\n\nContinuing with installation..." 12 70
 				fi
 			fi
 
 			# Pull image
 			if ! docker_operation_progress pull "$dockerimage"; then
 				dialog_msgbox "Installation Failed" \
-					"Failed to pull Docker image:\n  $dockerimage\n\nPlease check your internet connection and try again." 10 60
+					"Failed to pull Docker image:\n  $dockerimage\n\nPlease check your internet connection and try again." 12 70
 				return 1
 			fi
 
 			# Create base directory
 			if ! docker_manage_base_dir create "$base_dir"; then
 				dialog_msgbox "Installation Failed" \
-					"Failed to create directory:\n  $base_dir" 8 50
+					"Failed to create directory:\n  $base_dir" 10 60
 				return 1
 			fi
 
 			# Ensure lsio network exists
 			if ! docker network ls --format "{{.Name}}" | grep -q "^lsio$"; then
 				if ! docker network create lsio 2>/dev/null; then
-					dialog_msgbox "Warning" \
-						"Failed to create 'lsio' Docker network.\n\nSWAG will use the default bridge network." 8 60
+					dialog_msgbox "Network Creation Warning" \
+						"Failed to create 'lsio' Docker network.\n\nSWAG will use the default bridge network instead." 10 70
 				fi
 			fi
 
@@ -95,15 +95,11 @@ function module_swag() {
 				--restart unless-stopped \
 				"$dockerimage"; then
 				dialog_msgbox "Installation Failed" \
-					"Failed to start SWAG container.\n\nCheck logs with:\n  docker logs $dockername" 10 60
+					"Failed to start SWAG container.\n\nCheck logs with:\n  docker logs $dockername" 12 70
 				return 1
 			fi
 
-			# Prompt for password setup
-			dialog_msgbox "SWAG Installed Successfully" \
-				"SWAG has been installed and configured for:\n  ${swag_url}\n\nWeb Interface: https://${LOCALIPADD}\n\nNext step: Set up .htaccess authentication" 12 70
-
-			# Set password
+			# Set password (skip redundant success dialog)
 			${module_options["module_swag,feature"]} ${commands[4]}
 			;;
 
@@ -116,13 +112,13 @@ function module_swag() {
 			# Remove container and image first
 			if ! ${module_options["module_swag,feature"]} ${commands[1]}; then
 				dialog_msgbox "Purge Failed" \
-					"Failed to remove SWAG container and/or image.\n\nData directory preserved at:\n  $base_dir" 10 60
+					"Failed to remove SWAG container and/or image.\n\nData directory preserved at:\n  $base_dir" 12 70
 				return 1
 			fi
 			# Only remove data directory if container/image removal succeeded
 			docker_manage_base_dir remove "$base_dir"
 			dialog_msgbox "Purge Complete" \
-				"SWAG has been completely removed, including all data." 8 50
+				"SWAG has been completely removed, including all data." 10 60
 			;;
 
 		"${commands[3]}") # status
@@ -133,18 +129,18 @@ function module_swag() {
 			# Check if container is running
 			if ! docker_get_container_id "$dockername" >/dev/null 2>&1; then
 				dialog_msgbox "Container Not Running" \
-					"SWAG container is not running.\n\nPlease install SWAG first:\n  ${module_options["module_swag,feature"]} ${commands[0]}" 10 60
+					"SWAG container is not running.\n\nPlease install SWAG first:\n  ${module_options["module_swag,feature"]} ${commands[0]}" 12 70
 				return 1
 			fi
 
 			local swag_user
 			swag_user=$(dialog_inputbox "Configure .htaccess Authentication" \
 				"Enter username for .htaccess authentication\n\nThis will secure web access to your services" \
-				"armbian" 10 70)
+				"armbian" 12 80)
 
 			if [[ -z "$swag_user" ]]; then
 				dialog_msgbox "Operation Cancelled" \
-					"Username cannot be empty. Operation cancelled." 8 50
+					"Username cannot be empty. Operation cancelled." 10 60
 				return 1
 			fi
 
@@ -156,15 +152,15 @@ function module_swag() {
 			local swag_password
 			if dialog_yesno "Password Configuration" \
 				"Auto-generated password for '${swag_user}':\n\n  ${default_password}\n\nUse this secure password?" \
-				"Use Generated" "Enter Own" 12 70; then
+				"Use Generated" "Enter Own" 15 80; then
 				swag_password="$default_password"
 			else
 				swag_password=$(dialog_passwordbox "Enter Custom Password" \
-					"Enter a secure password for ${swag_user}\n\nMinimum 8 characters recommended" 10 70)
+					"Enter a secure password for ${swag_user}\n\nMinimum 8 characters recommended" 12 80)
 
 				if [[ -z "$swag_password" ]]; then
 					dialog_msgbox "Operation Cancelled" \
-						"Password cannot be empty. Operation cancelled." 8 50
+						"Password cannot be empty. Operation cancelled." 10 60
 					return 1
 				fi
 			fi
@@ -176,13 +172,13 @@ function module_swag() {
 
 				# Show success message with credentials
 				dialog_infobox "Password Configuration Complete" \
-					"Username: ${swag_user}\nPassword: ${swag_password}\n\nWeb Interface: https://${LOCALIPADD}\n\nPlease save these credentials!" 10 70
+					"Username: ${swag_user}\nPassword: ${swag_password}\n\nWeb Interface: https://${LOCALIPADD}\n\nPlease save these credentials!" 15 80
 
 				# Keep the info box visible for 5 seconds
 				sleep 5
 			else
 				dialog_msgbox "Password Configuration Failed" \
-					"Failed to set .htaccess password.\n\nCheck container logs with:\n  docker logs $dockername" 10 60
+					"Failed to set .htaccess password.\n\nCheck container logs with:\n  docker logs $dockername" 12 70
 				return 1
 			fi
 			;;
