@@ -70,13 +70,6 @@ function module_swag() {
 				return 1
 			fi
 
-			# Ensure lsio network exists
-			if ! docker network ls --format "{{.Name}}" | grep -q "^lsio$"; then
-				if ! docker network create lsio 2>/dev/null; then
-					dialog_msgbox "Network Creation Warning" \
-						"Failed to create 'lsio' Docker network.\n\nSWAG will use the default bridge network instead." 10 70
-				fi
-			fi
 
 			# Run container
 			if ! docker_operation_progress run "$dockername" \
