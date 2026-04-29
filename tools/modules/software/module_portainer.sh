@@ -40,6 +40,7 @@ function module_portainer () {
 
 			docker_operation_progress run "$dockername" \
 				-d \
+				--net=lsio \
 				--name="$dockername" \
 				--restart=always \
 				-p 9000:9000 \
@@ -49,7 +50,7 @@ function module_portainer () {
 				-v "${base_dir}/data:/data" \
 				"$dockerimage"
 			# Auto-configure SWAG reverse proxy if available
-			docker_configure_swag_proxy "portainer" "9000"
+			docker_configure_swag_proxy "portainer" "9443" "https"
 		;;
 		"${commands[1]}") # remove
 			# Remove container and image (functions handle existence checks)
