@@ -58,6 +58,20 @@ function module_transmission () {
 				-v "${base_dir}/watch:/watch" \
 				--restart=always \
 				"$dockerimage"
+		# Auto-configure SWAG reverse proxy if available
+		if docker container ls -a --format "{{.Names}}" | grep -q "^swag$"; then
+			local swag_url="$LOCALIPADD"
+			[[ -f "${SOFTWARE_FOLDER}/swag/config/SWAG_URL" ]] && swag_url=$(cat "${SOFTWARE_FOLDER}/swag/config/SWAG_URL}")
+
+			if docker exec swag test -f "/config/nginx/proxy-confs/transmission.subfolder.conf" 2>/dev/null; then
+				docker exec swag touch "/config/nginx/proxy-confs/transmission.subfolder.conf.enabled" 2>/dev/null
+				docker exec swag nginx -s reload >/dev/null 2>&1
+
+				dialog_infobox "SWAG Proxy Enabled" \
+					"Transmission accessible at:\nhttps://${swag_url}/transmission\n\nUser: ${transmission_user}\nPass: ${transmission_pass}" 14 70
+				sleep 5
+			fi
+		fi
 		;;
 		"${commands[1]}") # remove
 			# Remove container and image (functions handle existence checks)
