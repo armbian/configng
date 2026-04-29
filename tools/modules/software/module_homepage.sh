@@ -41,6 +41,7 @@ function module_homepage () {
 				--name="$dockername" \
 				-e PUID="${DOCKER_USERUID}" \
 				-e PGID="${DOCKER_GROUPUID}" \
+				-e TZ="$(cat /etc/timezone)" \
 				-e HOMEPAGE_ALLOWED_HOSTS="${LOCALIPADD}:${port},homepage.local:${port},localhost:${port}" \
 				-p "${port}:3000" \
 				-v "${base_dir}/config:/app/config" \
