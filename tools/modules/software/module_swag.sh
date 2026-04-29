@@ -99,7 +99,26 @@ function module_swag() {
 				return 1
 			fi
 
-			# Set password (skip redundant success dialog)
+			# Store URL for later use (password command, help display)
+			echo "$swag_url" > "${base_dir}/config/.swag_url"
+
+			# Restart container to initialize SSL certificates
+			dialog_infobox "Initializing SSL Certificates" \
+				"SWAG installed. Restarting to initialize SSL certificates for:\n  ${swag_url}\n\nPlease wait..." 12 70
+			sleep 2
+			docker restart "$dockername" >/dev/null 2>&1
+
+			# Wait for SSL certificate initialization (up to 30 seconds)
+			local wait_count=0
+			while [[ $wait_count -lt 30 ]]; do
+				if docker exec "$dockername" test -f /config/nginx/dynamicssl.conf 2>/dev/null; then
+					break
+				fi
+				sleep 1
+				((wait_count++))
+			done
+
+			# Set password
 			${module_options["module_swag,feature"]} ${commands[4]}
 			;;
 
@@ -131,6 +150,12 @@ function module_swag() {
 				dialog_msgbox "Container Not Running" \
 					"SWAG container is not running.\n\nPlease install SWAG first:\n  ${module_options["module_swag,feature"]} ${commands[0]}" 12 70
 				return 1
+			fi
+
+			# Get stored URL for display (fallback to IP if not found)
+			local display_url="$LOCALIPADD"
+			if [[ -f "${base_dir}/config/.swag_url" ]]; then
+				display_url=$(cat "${base_dir}/config/.swag_url")
 			fi
 
 			local swag_user
@@ -170,9 +195,9 @@ function module_swag() {
 				# Restart container to apply changes
 				docker restart "$dockername" >/dev/null 2>&1
 
-				# Show success message with credentials
+				# Show success message with credentials (using domain URL, not IP)
 				dialog_infobox "Password Configuration Complete" \
-					"Username: ${swag_user}\nPassword: ${swag_password}\n\nWeb Interface: https://${LOCALIPADD}\n\nPlease save these credentials!" 15 80
+					"Username: ${swag_user}\nPassword: ${swag_password}\n\nWeb Interface: https://${display_url}\n\nPlease save these credentials!" 15 80
 
 				# Keep the info box visible for 5 seconds
 				sleep 5
@@ -184,8 +209,14 @@ function module_swag() {
 			;;
 
 		"${commands[5]}") # help
+			# Get stored URL for display (fallback to IP if not found)
+			local stored_url="$LOCALIPADD"
+			if [[ -f "${base_dir}/config/.swag_url" ]]; then
+				stored_url=$(cat "${base_dir}/config/.swag_url")
+			fi
+
 			show_module_help "module_swag" "$title" \
-				"Web Interface: https://${LOCALIPADD}\nPorts: 80, 443\nDocker Image: $dockerimage\n\nThis module requires a domain name during install.\n\nDocumentation: ${module_options["module_swag,doc_link"]}"
+				"Web Interface: https://${stored_url}\nPorts: 80, 443\nDocker Image: $dockerimage\n\nThis module requires a domain name during install.\n\nDocumentation: ${module_options["module_swag,doc_link"]}"
 			;;
 
 		*)
