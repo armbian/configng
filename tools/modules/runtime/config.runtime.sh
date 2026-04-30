@@ -147,7 +147,7 @@ update_sub_submenu_data "Software" "Media" "STC002" "http://$DISPLAY_URL:${modul
 update_sub_submenu_data "Software" "Media" "NCT002" "https://$DISPLAY_URL:${module_options["module_nextcloud,port"]}"
 update_sub_submenu_data "Software" "Media" "OWC002" "http://$DISPLAY_URL:${module_options["module_owncloud,port"]}"
 update_sub_submenu_data "Software" "Media" "JMS002" "http://$DISPLAY_URL:${module_options["module_jellyfin,port"]}"
-update_sub_submenu_data "Software" "Media" "IMM002" "http://$DISPLAY_URL:${module_options["module_immich,port"]}"
+	update_sub_submenu_data "Software" "Media" "IMM002" "$(get_service_url "immich" "${module_options["module_immich,port"]}")"
 update_sub_submenu_data "Software" "Media" "NAV002" "http://$DISPLAY_URL:${module_options["module_navidrome,port"]}"
 
 # Containers
