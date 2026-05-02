@@ -581,14 +581,26 @@ function module_desktops() {
 			# a desktop and then flipping default.target to graphical
 			# leaves the next boot pinned to a graphical target with
 			# no working DM, which is a black-screen regression.
-			if ! pkg_install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" ${DESKTOP_PACKAGES}; then
+			#
+			# --allow-downgrades is required for DEs whose per-DE pin
+			# (written by module_desktop_repo above) outranks the distro
+			# at priority >1000 — the whole point of those pins is to
+			# pull packages from a vendor archive even when the distro
+			# ships a *newer* version. Without --allow-downgrades, apt
+			# refuses with "Packages were downgraded and -y was used
+			# without --allow-downgrades" and the install aborts.
+			# Bianbu / SpacemiT K1 hits this with libdrm pulled from
+			# archive.spacemit.com. Flag is a no-op for DEs without a
+			# pin, since apt only picks a downgrade when explicitly
+			# directed to.
+			if ! pkg_install --allow-downgrades -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" ${DESKTOP_PACKAGES}; then
 				echo "Error: ${de} package install failed; aborting before any system state is changed" >&2
 				return 1
 			fi
 
 			# install and register display manager
 			if [[ -n "$DESKTOP_DM" && "$DESKTOP_DM" != "none" ]]; then
-				if ! pkg_install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" "$DESKTOP_DM"; then
+				if ! pkg_install --allow-downgrades -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" "$DESKTOP_DM"; then
 					echo "Error: ${DESKTOP_DM} install failed; aborting before flipping systemd target" >&2
 					return 1
 				fi
@@ -1346,7 +1358,11 @@ _module_desktops_change_tier() {
 		else
 			echo "Upgrading ${de} from ${current} to ${target} (${#to_install[@]} new packages)"
 			ACTUALLY_INSTALLED=()
-			if ! pkg_install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" "${to_install[@]}"; then
+			# --allow-downgrades for the same reason as the initial
+			# install path: the per-DE pin (still in effect during a
+			# tier upgrade) can resolve some packages to an older
+			# vendor-archive version, and apt -y refuses without it.
+			if ! pkg_install --allow-downgrades -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" "${to_install[@]}"; then
 				echo "Error: pkg_install failed during upgrade" >&2
 				return 1
 			fi
