@@ -68,6 +68,13 @@ tiers:
       - libgl1-mesa-dri
       - libglx-mesa0
       - mesa-vulkan-drivers
+    packages_uninstall:
+      # GNOME's first-run wizard (Welcome / account setup) is pulled in
+      # as a dep of Bianbu's GNOME stack. Armbian images already do
+      # their own first-boot user setup via the firstrun service, so
+      # the GNOME wizard is redundant and confuses users with a second
+      # account-creation prompt. Purged after install.
+      - gnome-initial-setup
   mid:
     packages:
       # fuller desktop + optional camera stack
