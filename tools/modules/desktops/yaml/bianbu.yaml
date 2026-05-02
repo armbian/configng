@@ -12,19 +12,43 @@ repo:
   components: [main, universe, restricted, multiverse]
   key_url: "https://archive.spacemit.com/bianbu/bianbu-archive-keyring.gpg"
   keyring: "/usr/share/keyrings/bianbu-archive-keyring.gpg"
-  # APT pin preferences — SpacemiT's ported archive must outrank the
-  # distro archive for the K1 RISC-V platform bits. Priority >1000
-  # also allows downgrades from the distro to SpacemiT's version.
+  # APT pin preferences — Bianbu's archive ships a Mesa fork (24.01bbx)
+  # with the PVR DRI backend that GNOME Shell needs on the SpacemiT K1.
+  # The upstream Mesa in the distro archive lacks that backend, so the
+  # whole Mesa/EGL/DRM stack must be resolved from archive.spacemit.com.
+  #
+  # We pin by archive hostname rather than by Suite/Origin: Bianbu's
+  # Release files set `Suite:` to the full snapshot path
+  # (e.g. `noble/snapshots/v2.3`), which changes every snapshot bump,
+  # and the snapshot version is encoded per release in this file's
+  # `releases:` block — pinning by host stays correct across version
+  # bumps. Priority >1000 lets apt downgrade if the distro archive
+  # ever ships a newer Mesa.
   preferences:
-    - origin: Spacemit
-      suite: mantic-spacemit
-      priority: 1200
-    - origin: Spacemit
-      suite: mantic-porting
-      priority: 1100
-    - origin: Spacemit
-      suite: mantic-customization
-      priority: 1100
+    # Glob-based to cover both runtime libs and their -dev variants. Mesa's
+    # internal packaging uses strict =-version dependencies between the
+    # runtime and the -dev side, so pinning only the runtime makes any
+    # request for a -dev package (transitively, e.g. via bianbu-development
+    # in the full tier) unsatisfiable. Pinning the full glob keeps every
+    # Mesa-stack version coherent.
+    #
+    # Bianbu doesn't ship every name these globs match (e.g. libxatracker*,
+    # libegl1-amdgpu-mesa-drivers); those entries are inert — apt only
+    # applies the pin when the package actually exists in the pinned
+    # archive, otherwise it resolves at default priority.
+    - packages:
+        - "libgl1*"      # libgl1, libgl1-mesa-dri, libgl1-mesa-dev, libgl1-amber-dri
+        - "libegl*"      # libegl1, libegl-mesa0, libegl-dev, libegl1-mesa-dev
+        - "libglx*"      # libglx0, libglx-mesa0, libglx-dev
+        - "libgbm*"      # libgbm1, libgbm-dev
+        - "libglvnd*"    # libglvnd0, libglvnd-dev, libglvnd-core-dev
+        - "libgles*"     # libgles1, libgles2, libgles-dev, libgles2-mesa-dev
+        - "libosmesa*"   # libosmesa6, libosmesa6-dev
+        - "libglapi*"    # libglapi-mesa
+        - "libdrm*"      # libdrm2, libdrm-{amdgpu1,common,nouveau2,radeon1,dev}
+        - "mesa-*"       # mesa-{vulkan,vdpau}-drivers, mesa-common-dev
+      origin_host: archive.spacemit.com
+      priority: 1001
 
 tiers:
   minimal:
@@ -35,6 +59,15 @@ tiers:
       - k1x-vpu-firmware
       - spacemit-uart-bt
       - spacemit-modules-usrload
+      # Mesa/EGL from Bianbu (24.01bbx) — contains the PVR DRI backend
+      # that GNOME Shell needs (libEGL → Mesa DRI → img-gpu-powervr).
+      # The upstream Mesa in Armbian does not ship this backend.
+      - libegl-mesa0
+      - libglapi-mesa
+      - libgbm1
+      - libgl1-mesa-dri
+      - libglx-mesa0
+      - mesa-vulkan-drivers
   mid:
     packages:
       # fuller desktop + optional camera stack
