@@ -142,6 +142,11 @@ docker_operation_progress() {
 	# Ensure Docker is available
 	docker_ensure_docker
 
+	# Ensure unbuffer is available (for real-time pull progress)
+	if ! command -v unbuffer >/dev/null 2>&1; then
+		pkg_install expect
+	fi
+
 	# Argument validation
 	if [[ -z "$operation" || -z "$target" ]]; then
 		dialog_msgbox "Usage Error" "Usage: docker_operation_progress <pull|rm|rmi> <target>\n\n  pull <image>   - Pull Docker image\n  rm <container> - Remove container\n  rmi <image>    - Remove image" 12 60
@@ -466,4 +471,57 @@ docker_operation_progress() {
 	rm -f "$error_file" "$rc_file"
 
 	return 0
+}
+
+#
+# Configure SWAG reverse proxy for a service
+# Usage: docker_configure_swag_proxy <servicename> [port] [protocol]
+#
+# Parameters:
+#   servicename - Name of the service (e.g., "transmission", "sonarr")
+#   port - Optional: Override the default port in the proxy config
+#   protocol - Optional: Override the protocol (http/https) in the proxy config
+#
+# Returns: 0 on success, 1 if proxy config not found or enabling failed
+#
+docker_configure_swag_proxy() {
+	local servicename="$1"
+	local port="$2"
+	local protocol="$3"
+
+	# Check if SWAG container exists
+	if ! docker container ls -a --format "{{.Names}}" | grep -q "^swag$"; then
+		return 2
+	fi
+
+	# Check if SWAG has proxy config for this service (sample or actual)
+	local proxy_sample="/config/nginx/proxy-confs/${servicename}.subfolder.conf.sample"
+	local proxy_actual="/config/nginx/proxy-confs/${servicename}.subfolder.conf"
+
+	if docker exec swag test -f "$proxy_sample" 2>/dev/null; then
+		# Copy sample to actual config if it doesn't exist
+		if ! docker exec swag test -f "$proxy_actual" 2>/dev/null; then
+			docker exec swag cp "$proxy_sample" "$proxy_actual" 2>/dev/null
+		fi
+
+		# If port is specified, update it in the config
+		if [[ -n "$port" ]]; then
+			docker exec swag sed -i "s/set \\\$upstream_port [0-9]*/set \\\$upstream_port ${port}/g" "$proxy_actual" 2>/dev/null
+		fi
+
+		# If protocol is specified, update it in the config
+		if [[ -n "$protocol" ]]; then
+			docker exec swag sed -i "s/set \\\$upstream_proto [a-z]*/set \\\$upstream_proto ${protocol}/g" "$proxy_actual" 2>/dev/null
+		fi
+
+		# Enable the proxy configuration
+		if docker exec swag touch "/config/nginx/proxy-confs/${servicename}.subfolder.conf.enabled" 2>/dev/null; then
+			# Reload nginx to apply
+			docker exec swag nginx -s reload >/dev/null 2>&1
+			return 0
+		fi
+		return 1
+	fi
+
+	return 1
 }

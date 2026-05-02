@@ -9,7 +9,7 @@ module_options+=(
 	["module_bazarr,group"]="Downloaders"
 	["module_bazarr,port"]="6767"
 	["module_bazarr,arch"]="x86-64 arm64"
-	["module_bazarr,dockerimage"]="lscr.io/linuxserver/bazarr:latest"
+	["module_bazarr,dockerimage"]="linuxserver/bazarr:latest"
 	["module_bazarr,dockername"]="bazarr"
 )
 #

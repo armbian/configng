@@ -9,7 +9,7 @@ module_options+=(
 	["module_deluge,group"]="Downloaders"
 	["module_deluge,port"]="8112"
 	["module_deluge,arch"]="x86-64 arm64"
-	["module_deluge,dockerimage"]="lscr.io/linuxserver/deluge:latest"
+	["module_deluge,dockerimage"]="linuxserver/deluge:latest"
 	["module_deluge,dockername"]="deluge"
 )
 #

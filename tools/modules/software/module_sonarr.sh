@@ -9,7 +9,7 @@ module_options+=(
 	["module_sonarr,group"]="Downloaders"
 	["module_sonarr,port"]="8989"
 	["module_sonarr,arch"]="x86-64 arm64"
-	["module_sonarr,dockerimage"]="lscr.io/linuxserver/sonarr:latest"
+	["module_sonarr,dockerimage"]="linuxserver/sonarr:latest"
 	["module_sonarr,dockername"]="sonarr"
 )
 #

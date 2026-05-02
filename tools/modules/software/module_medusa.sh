@@ -9,7 +9,7 @@ module_options+=(
 	["module_medusa,group"]="Downloaders"
 	["module_medusa,port"]="8081"
 	["module_medusa,arch"]="x86-64 arm64"
-	["module_medusa,dockerimage"]="lscr.io/linuxserver/medusa:latest"
+	["module_medusa,dockerimage"]="linuxserver/medusa:latest"
 	["module_medusa,dockername"]="medusa"
 )
 #

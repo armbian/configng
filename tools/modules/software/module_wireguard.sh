@@ -9,7 +9,7 @@ module_options+=(
 	["module_wireguard,group"]="Network"
 	["module_wireguard,port"]="51820"
 	["module_wireguard,arch"]="x86-64 arm64"
-	["module_wireguard,dockerimage"]="lscr.io/linuxserver/wireguard:latest"
+	["module_wireguard,dockerimage"]="linuxserver/wireguard:latest"
 	["module_wireguard,dockername"]="wireguard"
 )
 
@@ -292,7 +292,7 @@ function module_wireguard () {
 			if [[ "$2" == server && -f "${base_dir}/config/wg_confs/client.conf" ]]; then
 				return 1
 			fi
-			docker_is_installed "wireguard" "lscr.io/linuxserver/wireguard"
+			docker_is_installed "wireguard" "linuxserver/wireguard"
 		;;
 		"${commands[7]}")
 			show_module_help "module_wireguard" "$title" \

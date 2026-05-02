@@ -9,7 +9,7 @@ module_options+=(
 	["module_jellyfin,group"]="Media"
 	["module_jellyfin,port"]="8096"
 	["module_jellyfin,arch"]="x86-64 arm64"
-	["module_jellyfin,dockerimage"]="lscr.io/linuxserver/jellyfin:latest"
+	["module_jellyfin,dockerimage"]="linuxserver/jellyfin:latest"
 	["module_jellyfin,dockername"]="jellyfin"
 )
 #

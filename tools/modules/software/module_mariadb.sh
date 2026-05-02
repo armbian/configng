@@ -9,7 +9,7 @@ module_options+=(
 	["module_mariadb,group"]="Database"
 	["module_mariadb,port"]="3307"
 	["module_mariadb,arch"]="x86-64 arm64"
-	["module_mariadb,dockerimage"]="lscr.io/linuxserver/mariadb:latest"
+	["module_mariadb,dockerimage"]="linuxserver/mariadb:latest"
 	["module_mariadb,dockername"]="mariadb"
 )
 #
