@@ -40,3 +40,23 @@ dconf update
 if [ -d /usr/share/glib-2.0/schemas ]; then
 	glib-compile-schemas /usr/share/glib-2.0/schemas
 fi
+
+# Re-enable systemd suspend. SpacemiT ships a sleep.conf with
+# AllowSuspend=no on the K1 so `systemctl suspend` fails with
+# "Sleep verb 'suspend' is disabled by config". Suspend does work
+# on shipped K1 boards (verified on musebook), so drop a drop-in
+# that re-enables it. Path is sleep.conf.d/ so an upgrade of the
+# Bianbu-shipped config doesn't clobber the override.
+install -d /etc/systemd/sleep.conf.d
+cat > /etc/systemd/sleep.conf.d/99-armbian-allow-suspend.conf <<- 'EOF'
+	# Managed by armbian-config (module_desktops, bianbu postinst).
+	# Re-enables suspend on Bianbu/K1 — SpacemiT's stock sleep.conf
+	# disables it. Remove this file to fall back to the SpacemiT
+	# default.
+	[Sleep]
+	AllowSuspend=yes
+EOF
+# Pick up the new value without forcing a daemon-reload that would
+# disturb running units in the chrooted build environment; logind
+# re-reads sleep.conf on each `systemctl suspend` invocation, so the
+# override is live on first boot regardless.
