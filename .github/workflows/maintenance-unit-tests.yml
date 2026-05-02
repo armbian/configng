@@ -242,11 +242,28 @@ jobs:
           docker system df || true
           echo "::endgroup::"
 
-          # Once we know the pattern (e.g. images matching
-          # ghcr.io/armbian/repository-update:* and stopped containers
-          # whose Names begin with the test ids we generate) the
-          # removal commands go here. Same step location as in
-          # gradle-emulated.
+          echo "::group::Cleanup: orphaned 'Created' containers (image ref is bare hash)"
+          # Pattern: stopped-but-never-started containers whose Image
+          # column is a 12-char hex ID (no repo:tag). These are
+          # leftovers from prior runs whose image was already removed
+          # but whose container record is stuck in 'Created'. Tagged
+          # images are deliberately skipped — a 'Created' container
+          # with a tagged image (e.g. mysql:lts) may belong to the
+          # host operator and is mid-'docker create'.
+          #
+          # xargs -r no-ops on empty input; '|| true' so a transient
+          # docker hiccup doesn't fail the job.
+          docker ps -a --filter 'status=created' --format '{{.ID}} {{.Image}}' \
+            | awk '$2 ~ /^[0-9a-f]{12}$/ { print $1 }' \
+            | xargs -r docker rm \
+            || true
+          echo "::endgroup::"
+
+          # Future cleanups (test-image purge after tests finish,
+          # dangling-volume prune) belong in the 'stop' job — they're
+          # whole-workflow operations, not per-slot, and would
+          # otherwise race sibling matrix slots that still need the
+          # images.
 
       - name: "Initialize systemd"
         run: |
@@ -395,12 +412,28 @@ jobs:
           docker system df || true
           echo "::endgroup::"
 
-          # Once we know the pattern (e.g. images matching
-          # ghcr.io/armbian/repository-update:* and stopped containers
-          # whose Names begin with the test ids we generate) the
-          # removal commands go here, before the runner picks up the
-          # next job. Keep the listing too — it's cheap and helps
-          # debug "why did the cleanup not delete X" cases.
+          echo "::group::Cleanup: orphaned 'Created' containers (image ref is bare hash)"
+          # Pattern: stopped-but-never-started containers whose Image
+          # column is a 12-char hex ID (no repo:tag). These are
+          # leftovers from prior runs whose image was already removed
+          # but whose container record is stuck in 'Created'. Tagged
+          # images are deliberately skipped — a 'Created' container
+          # with a tagged image (e.g. mysql:lts) may belong to the
+          # host operator and is mid-'docker create'.
+          #
+          # xargs -r no-ops on empty input; '|| true' so a transient
+          # docker hiccup doesn't fail the job.
+          docker ps -a --filter 'status=created' --format '{{.ID}} {{.Image}}' \
+            | awk '$2 ~ /^[0-9a-f]{12}$/ { print $1 }' \
+            | xargs -r docker rm \
+            || true
+          echo "::endgroup::"
+
+          # Future cleanups (test-image purge after tests finish,
+          # dangling-volume prune) belong in the 'stop' job — they're
+          # whole-workflow operations, not per-slot, and would
+          # otherwise race sibling matrix slots that still need the
+          # images.
 
       # Emulated and native jobs share the same self-hosted runner
       # and the same _work/<repo>/<repo>/ path. A previous native
