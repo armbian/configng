@@ -340,15 +340,39 @@
                         },
                         {
                             "id": "BIAN01",
-                            "description": "Install Bianbu [CSC]",
+                            "description": "Install Bianbu (minimal) [CSC]",
                             "short": "Bianbu [CSC]",
+                            "command": [
+                                "module_desktops install de=bianbu tier=minimal"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported bianbu",
+                            "help": "Install Bianbu — SpacemiT K1 RISC-V desktop (minimal tier: bare DE + K1 hardware enablement: img-gpu-powervr, k1x-vpu-firmware, spacemit-uart-bt, kernel modules, Mesa stack pinned to SpacemiT's archive for PVR DRI). riscv64 on noble/resolute only. [community-supported, best-effort]."
+                        },
+                        {
+                            "id": "BIAN05",
+                            "description": "Install Bianbu (mid) [CSC]",
+                            "short": "Bianbu mid [CSC]",
                             "command": [
                                 "module_desktops install de=bianbu tier=mid"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "! module_desktops installed && module_desktop_supported bianbu",
-                            "help": "Install Bianbu — SpacemiT K1 RISC-V desktop (mid tier: full DE + standard utilities + K1 camera stack). riscv64 on noble/resolute only; uses SpacemiT's pinned archive (priority >1000 to override distro for K1-specific packages). [community-supported, best-effort]."
+                            "help": "Install Bianbu (mid tier): minimal + full Bianbu desktop apps + standard utilities + K1 camera stack (k1x-cam). riscv64 on noble/resolute only. [community-supported, best-effort]."
+                        },
+                        {
+                            "id": "BIAN06",
+                            "description": "Install Bianbu (full) [CSC]",
+                            "short": "Bianbu full [CSC]",
+                            "command": [
+                                "module_desktops install de=bianbu tier=full"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported bianbu",
+                            "help": "Install Bianbu (full tier): mid + Chinese locale (bianbu-desktop-zh) + development tooling (bianbu-development). riscv64 on noble/resolute only. [community-supported, best-effort]."
                         },
                         {
                             "id": "XFCE01",
@@ -407,6 +431,17 @@
                             "author": "@igorpecovnik",
                             "condition": "module_desktops status de=gnome",
                             "help": "Uninstall the GNOME desktop environment"
+                        },
+                        {
+                            "id": "BIAN02",
+                            "description": "Uninstall Bianbu",
+                            "command": [
+                                "module_desktops remove de=bianbu"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=bianbu",
+                            "help": "Uninstall the Bianbu desktop environment"
                         },
                         {
                             "id": "MATE02",
@@ -519,6 +554,17 @@
                             "help": "Enable automatic desktop login for GNOME"
                         },
                         {
+                            "id": "BIAN03",
+                            "description": "Enable autologin (Bianbu)",
+                            "command": [
+                                "module_desktops auto de=bianbu"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=bianbu && ! module_desktops login de=bianbu",
+                            "help": "Enable automatic desktop login for Bianbu"
+                        },
+                        {
                             "id": "MATE03",
                             "description": "Enable autologin (MATE)",
                             "command": [
@@ -627,6 +673,17 @@
                             "author": "@igorpecovnik",
                             "condition": "module_desktops status de=gnome && module_desktops login de=gnome",
                             "help": "Disable automatic desktop login for GNOME"
+                        },
+                        {
+                            "id": "BIAN04",
+                            "description": "Disable autologin (Bianbu)",
+                            "command": [
+                                "module_desktops manual de=bianbu"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=bianbu && module_desktops login de=bianbu",
+                            "help": "Disable automatic desktop login for Bianbu"
                         },
                         {
                             "id": "MATE04",
@@ -761,6 +818,17 @@
                             "help": "Downgrade GNOME to the minimal tier"
                         },
                         {
+                            "id": "BIAN07",
+                            "description": "Change Bianbu to minimal",
+                            "command": [
+                                "module_desktops set-tier de=bianbu tier=minimal"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=bianbu && ! module_desktops at-tier de=bianbu tier=minimal",
+                            "help": "Downgrade Bianbu to the minimal tier (bare DE + K1 hardware enablement)"
+                        },
+                        {
                             "id": "GNME08",
                             "description": "Change GNOME to mid",
                             "command": [
@@ -772,6 +840,17 @@
                             "help": "Move GNOME to the mid tier"
                         },
                         {
+                            "id": "BIAN08",
+                            "description": "Change Bianbu to mid",
+                            "command": [
+                                "module_desktops set-tier de=bianbu tier=mid"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=bianbu && ! module_desktops at-tier de=bianbu tier=mid",
+                            "help": "Move Bianbu to the mid tier (full DE + standard utilities + K1 camera stack)"
+                        },
+                        {
                             "id": "GNME09",
                             "description": "Change GNOME to full",
                             "command": [
@@ -781,6 +860,17 @@
                             "author": "@igorpecovnik",
                             "condition": "module_desktops status de=gnome && ! module_desktops at-tier de=gnome tier=full",
                             "help": "Upgrade GNOME to the full tier"
+                        },
+                        {
+                            "id": "BIAN09",
+                            "description": "Change Bianbu to full",
+                            "command": [
+                                "module_desktops set-tier de=bianbu tier=full"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=bianbu && ! module_desktops at-tier de=bianbu tier=full",
+                            "help": "Upgrade Bianbu to the full tier (adds zh locale and development tooling)"
                         },
                         {
                             "id": "MATE07",
