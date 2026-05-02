@@ -42,12 +42,15 @@ sudo armbian-config
     - ### Install Budgie [CSC]
     - ### Install Deepin [CSC]
     - ### Install Enlightenment [CSC]
-    - ### Install Bianbu [CSC]
+    - ### Install Bianbu (minimal) [CSC]
+    - ### Install Bianbu (mid) [CSC]
+    - ### Install Bianbu (full) [CSC]
     - ### Install XFCE (minimal)
     - ### Install XFCE (mid)
     - ### Install XFCE (full)
     - ### Uninstall Cinnamon
     - ### Uninstall GNOME
+    - ### Uninstall Bianbu
     - ### Uninstall MATE
     - ### Uninstall i3
     - ### Uninstall KDE Plasma
@@ -58,6 +61,7 @@ sudo armbian-config
     - ### Uninstall XFCE
     - ### Enable autologin (Cinnamon)
     - ### Enable autologin (GNOME)
+    - ### Enable autologin (Bianbu)
     - ### Enable autologin (MATE)
     - ### Enable autologin (i3)
     - ### Enable autologin (KDE Plasma)
@@ -68,6 +72,7 @@ sudo armbian-config
     - ### Enable autologin (XFCE)
     - ### Disable autologin (Cinnamon)
     - ### Disable autologin (GNOME)
+    - ### Disable autologin (Bianbu)
     - ### Disable autologin (MATE)
     - ### Disable autologin (i3)
     - ### Disable autologin (KDE Plasma)
@@ -80,8 +85,11 @@ sudo armbian-config
     - ### Change Cinnamon to mid
     - ### Change Cinnamon to full
     - ### Change GNOME to minimal
+    - ### Change Bianbu to minimal
     - ### Change GNOME to mid
+    - ### Change Bianbu to mid
     - ### Change GNOME to full
+    - ### Change Bianbu to full
     - ### Change MATE to minimal
     - ### Change MATE to mid
     - ### Change MATE to full
@@ -495,12 +503,15 @@ Outputs:
 	--cmd BDGE01 - Install Budgie [CSC]
 	--cmd DEEP01 - Install Deepin [CSC]
 	--cmd ENLT01 - Install Enlightenment [CSC]
-	--cmd BIAN01 - Install Bianbu [CSC]
+	--cmd BIAN01 - Install Bianbu (minimal) [CSC]
+	--cmd BIAN05 - Install Bianbu (mid) [CSC]
+	--cmd BIAN06 - Install Bianbu (full) [CSC]
 	--cmd XFCE01 - Install XFCE (minimal)
 	--cmd XFCE05 - Install XFCE (mid)
 	--cmd XFCE06 - Install XFCE (full)
 	--cmd CINM02 - Uninstall Cinnamon
 	--cmd GNME02 - Uninstall GNOME
+	--cmd BIAN02 - Uninstall Bianbu
 	--cmd MATE02 - Uninstall MATE
 	--cmd I3WM02 - Uninstall i3
 	--cmd KDEP02 - Uninstall KDE Plasma
@@ -511,6 +522,7 @@ Outputs:
 	--cmd XFCE02 - Uninstall XFCE
 	--cmd CINM03 - Enable autologin (Cinnamon)
 	--cmd GNME03 - Enable autologin (GNOME)
+	--cmd BIAN03 - Enable autologin (Bianbu)
 	--cmd MATE03 - Enable autologin (MATE)
 	--cmd I3WM03 - Enable autologin (i3)
 	--cmd KDEP03 - Enable autologin (KDE Plasma)
@@ -521,6 +533,7 @@ Outputs:
 	--cmd XFCE03 - Enable autologin (XFCE)
 	--cmd CINM04 - Disable autologin (Cinnamon)
 	--cmd GNME04 - Disable autologin (GNOME)
+	--cmd BIAN04 - Disable autologin (Bianbu)
 	--cmd MATE04 - Disable autologin (MATE)
 	--cmd I3WM04 - Disable autologin (i3)
 	--cmd KDEP04 - Disable autologin (KDE Plasma)
@@ -533,8 +546,11 @@ Outputs:
 	--cmd CINM08 - Change Cinnamon to mid
 	--cmd CINM09 - Change Cinnamon to full
 	--cmd GNME07 - Change GNOME to minimal
+	--cmd BIAN07 - Change Bianbu to minimal
 	--cmd GNME08 - Change GNOME to mid
+	--cmd BIAN08 - Change Bianbu to mid
 	--cmd GNME09 - Change GNOME to full
+	--cmd BIAN09 - Change Bianbu to full
 	--cmd MATE07 - Change MATE to minimal
 	--cmd MATE08 - Change MATE to mid
 	--cmd MATE09 - Change MATE to full
