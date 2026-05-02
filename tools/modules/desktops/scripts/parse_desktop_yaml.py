@@ -51,8 +51,10 @@ Output (bash eval-friendly):
   DESKTOP_REPO_SUITE_<n>="..."  (for n in 0..N-1)
   DESKTOP_REPO_COMPONENTS="..." (optional, space-separated; defaults to "main")
   DESKTOP_REPO_PREFS_COUNT="N" (optional; 0 when no APT pins)
-  DESKTOP_REPO_PREFS_<n>_ORIGIN="..."   (for n in 0..N-1)
-  DESKTOP_REPO_PREFS_<n>_SUITE="..."
+  DESKTOP_REPO_PREFS_<n>_ORIGIN="..."        (for n in 0..N-1; empty when origin_host pin)
+  DESKTOP_REPO_PREFS_<n>_SUITE="..."         (empty when origin_host pin)
+  DESKTOP_REPO_PREFS_<n>_ORIGIN_HOST="..."   (empty when release/origin+suite pin)
+  DESKTOP_REPO_PREFS_<n>_PACKAGES="..."      (space-separated; empty means "*")
   DESKTOP_REPO_PREFS_<n>_PRIORITY="1200"
 """
 
@@ -386,36 +388,88 @@ def parse_desktop(yaml_dir, de_name, release, arch, tier):
         print(f'DESKTOP_REPO_COMPONENTS="{shell_escape(" ".join(components))}"')
 
         # Optional APT pin preferences written to /etc/apt/preferences.d/<de>.
-        # Each entry must be a mapping with origin + suite + priority. The
-        # triple (o=<origin>, n=<suite>) is the match criterion; priority
-        # is a positive integer (apt treats >1000 as "allow downgrades").
+        # Each entry must be a mapping with priority and exactly one of:
+        #   - origin + suite       → renders `Pin: release o=<origin>, n=<suite>`
+        #   - origin_host          → renders `Pin: origin <host>` (matches archive
+        #                            hostname; useful when the Suite field is
+        #                            unstable or the upstream archive carries
+        #                            its own non-standard Suite values)
+        # The optional `packages` list narrows the stanza to specific package
+        # names (apt globs allowed, e.g. "libdrm*"); when omitted, the stanza
+        # applies to every package (`Package: *`). Priority is a positive
+        # integer (apt treats >1000 as "allow downgrades").
+        _PKG_RE = re.compile(r"^[A-Za-z0-9._:+*-]+$")
+        _HOST_RE = re.compile(r"^[A-Za-z0-9._-]+$")
         prefs = _as_list(repo.get("preferences"))
         valid_prefs = []
         for p in prefs:
             p = _as_dict(p)
             origin = str(p.get("origin", "")).strip()
             suite = str(p.get("suite", "")).strip()
+            origin_host = str(p.get("origin_host", "")).strip()
+            raw_packages = p.get("packages")
             priority = p.get("priority")
+
             # isinstance(True, int) is True because bool subclasses int, so
             # reject bools explicitly — `priority: true` would otherwise
             # render `Pin-Priority: True` which apt refuses.
-            if (
-                not origin
-                or not suite
-                or isinstance(priority, bool)
-                or not isinstance(priority, int)
-                or priority <= 0
-            ):
+            priority_ok = (
+                not isinstance(priority, bool)
+                and isinstance(priority, int)
+                and priority > 0
+            )
+            uses_release_pin = bool(origin and suite)
+            uses_host_pin = bool(origin_host) and _HOST_RE.match(origin_host) is not None
+            # Exactly one of the two pin styles must be present. Mixing them
+            # would produce two Pin: lines, which apt rejects.
+            pin_style_ok = uses_release_pin ^ uses_host_pin
+
+            if not priority_ok or not pin_style_ok:
                 print(
                     f"Warning: ignoring malformed repo.preferences entry for {de_name}: {p!r}",
                     file=sys.stderr,
                 )
                 continue
-            valid_prefs.append((origin, suite, priority))
+
+            packages = []
+            if raw_packages is not None:
+                for pkg in _as_list(raw_packages):
+                    pkg = str(pkg).strip()
+                    if pkg and _PKG_RE.match(pkg):
+                        packages.append(pkg)
+                    else:
+                        print(
+                            f"Warning: ignoring invalid package name {pkg!r} in repo.preferences for {de_name}",
+                            file=sys.stderr,
+                        )
+                # `packages:` was provided but every entry failed validation
+                # (or the list was empty to begin with). Falling through to
+                # the renderer would emit `Package: *`, silently widening
+                # the pin to every package — opposite of the user's intent
+                # of narrowing scope. Drop the whole entry with a warning so
+                # the misconfiguration surfaces.
+                if not packages:
+                    print(
+                        f"Warning: ignoring repo.preferences entry for {de_name}: packages={raw_packages!r} produced no valid names",
+                        file=sys.stderr,
+                    )
+                    continue
+
+            valid_prefs.append(
+                (
+                    origin if uses_release_pin else "",
+                    suite if uses_release_pin else "",
+                    origin_host if uses_host_pin else "",
+                    " ".join(packages),
+                    priority,
+                )
+            )
         print(f'DESKTOP_REPO_PREFS_COUNT="{len(valid_prefs)}"')
-        for i, (origin, suite, priority) in enumerate(valid_prefs):
+        for i, (origin, suite, origin_host, packages, priority) in enumerate(valid_prefs):
             print(f'DESKTOP_REPO_PREFS_{i}_ORIGIN="{shell_escape(origin)}"')
             print(f'DESKTOP_REPO_PREFS_{i}_SUITE="{shell_escape(suite)}"')
+            print(f'DESKTOP_REPO_PREFS_{i}_ORIGIN_HOST="{shell_escape(origin_host)}"')
+            print(f'DESKTOP_REPO_PREFS_{i}_PACKAGES="{shell_escape(packages)}"')
             print(f'DESKTOP_REPO_PREFS_{i}_PRIORITY="{priority}"')
 
 

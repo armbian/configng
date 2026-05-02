@@ -100,18 +100,38 @@ function module_desktop_repo() {
 						return 1
 					fi
 
+					local origin_host_var pkgs_var origin_host pkgs
 					for (( i=0; i < DESKTOP_REPO_PREFS_COUNT; i++ )); do
 						origin_var="DESKTOP_REPO_PREFS_${i}_ORIGIN"
 						suite_var="DESKTOP_REPO_PREFS_${i}_SUITE"
+						origin_host_var="DESKTOP_REPO_PREFS_${i}_ORIGIN_HOST"
+						pkgs_var="DESKTOP_REPO_PREFS_${i}_PACKAGES"
 						prio_var="DESKTOP_REPO_PREFS_${i}_PRIORITY"
 						origin="${!origin_var}"
 						suite="${!suite_var}"
+						origin_host="${!origin_host_var}"
+						pkgs="${!pkgs_var}"
 						prio="${!prio_var}"
-						if ! printf 'Package: *\nPin: release o=%s, n=%s\nPin-Priority: %s\n\n' \
-							"$origin" "$suite" "$prio" >> "$pref_tmp"; then
-							echo "Error: failed to write preferences for ${de}" >&2
-							rm -f "$pref_tmp"
-							return 1
+						# Empty packages list means "every package": apt's
+						# Package: line wants a glob, never blank.
+						[[ -z "$pkgs" ]] && pkgs="*"
+						# The parser guarantees exactly one pin style is set,
+						# so origin_host non-empty selects the host form,
+						# everything else falls back to release o=,n=.
+						if [[ -n "$origin_host" ]]; then
+							if ! printf 'Package: %s\nPin: origin %s\nPin-Priority: %s\n\n' \
+								"$pkgs" "$origin_host" "$prio" >> "$pref_tmp"; then
+								echo "Error: failed to write preferences for ${de}" >&2
+								rm -f "$pref_tmp"
+								return 1
+							fi
+						else
+							if ! printf 'Package: %s\nPin: release o=%s, n=%s\nPin-Priority: %s\n\n' \
+								"$pkgs" "$origin" "$suite" "$prio" >> "$pref_tmp"; then
+								echo "Error: failed to write preferences for ${de}" >&2
+								rm -f "$pref_tmp"
+								return 1
+							fi
 						fi
 					done
 
