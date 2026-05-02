@@ -242,6 +242,57 @@ jobs:
           docker system df || true
           echo "::endgroup::"
 
+          echo "::group::Cleanup: stop and remove named test-service containers (uptime > 2h)"
+          # Tests that exercise module_postgres / module_redis /
+          # module_immich (and friends) spawn long-running service
+          # containers and only tear them down if the test reaches
+          # its `remove` stage. A test that's interrupted, or one
+          # that only calls `install`, leaves these wedged on the
+          # runner; the diagnostic above showed postgres-immich and
+          # mysql 'Up 7 days' for that reason.
+          #
+          # Skip containers that have been up less than 2h — they
+          # could be a sibling matrix slot's test currently in
+          # flight (native timeout-minutes is 90, emulated 210, so
+          # 2h is comfortably below "real test still running" and
+          # well above "leftover from a prior run").
+          #
+          # Stopped / Created containers are left to the
+          # orphaned-Created sweep below (which uses the bare-hash
+          # filter to avoid the same false-positive concern).
+          #
+          # Exact-match anchored names (^name$) so a future sibling
+          # like 'mysql-readonly' or 'postgres-staging' isn't caught.
+          # Runs *before* the orphaned-Created sweep so a freshly
+          # stopped service isn't briefly seen as orphan in the same
+          # pass. 'docker stop --time 30' gives postgres / mysql a
+          # chance to flush before SIGKILL; '|| true' on each step
+          # so a transient hiccup doesn't fail the test slot.
+          now_epoch=$(date +%s)
+          threshold=$(( 2 * 3600 ))
+          for c in postgres-immich mysql redis postgres; do
+            if ! docker ps -a --filter "name=^${c}$" --format '{{.Names}}' | grep -q "^${c}$"; then
+              echo "  absent : $c"
+              continue
+            fi
+            running=$(docker inspect "$c" --format '{{.State.Running}}' 2>/dev/null || echo false)
+            if [[ "$running" != "true" ]]; then
+              echo "  stopped (skip — orphan sweep handles below): $c"
+              continue
+            fi
+            started=$(docker inspect "$c" --format '{{.State.StartedAt}}' 2>/dev/null)
+            started_epoch=$(date -d "$started" +%s 2>/dev/null || echo "$now_epoch")
+            age=$(( now_epoch - started_epoch ))
+            if (( age < threshold )); then
+              printf "  recent <2h (skip): %s (up %dm)\n" "$c" $(( age / 60 ))
+              continue
+            fi
+            docker stop --time 30 "$c" >/dev/null 2>&1 || true
+            docker rm           "$c" >/dev/null 2>&1 || true
+            printf "  stop+rm: %s (up %dh)\n" "$c" $(( age / 3600 ))
+          done
+          echo "::endgroup::"
+
           echo "::group::Cleanup: orphaned 'Created' containers (image ref is bare hash)"
           # Pattern: stopped-but-never-started containers whose Image
           # column is a 12-char hex ID (no repo:tag). These are
@@ -410,6 +461,57 @@ jobs:
 
           echo "::group::Disk usage (docker system df)"
           docker system df || true
+          echo "::endgroup::"
+
+          echo "::group::Cleanup: stop and remove named test-service containers (uptime > 2h)"
+          # Tests that exercise module_postgres / module_redis /
+          # module_immich (and friends) spawn long-running service
+          # containers and only tear them down if the test reaches
+          # its `remove` stage. A test that's interrupted, or one
+          # that only calls `install`, leaves these wedged on the
+          # runner; the diagnostic above showed postgres-immich and
+          # mysql 'Up 7 days' for that reason.
+          #
+          # Skip containers that have been up less than 2h — they
+          # could be a sibling matrix slot's test currently in
+          # flight (native timeout-minutes is 90, emulated 210, so
+          # 2h is comfortably below "real test still running" and
+          # well above "leftover from a prior run").
+          #
+          # Stopped / Created containers are left to the
+          # orphaned-Created sweep below (which uses the bare-hash
+          # filter to avoid the same false-positive concern).
+          #
+          # Exact-match anchored names (^name$) so a future sibling
+          # like 'mysql-readonly' or 'postgres-staging' isn't caught.
+          # Runs *before* the orphaned-Created sweep so a freshly
+          # stopped service isn't briefly seen as orphan in the same
+          # pass. 'docker stop --time 30' gives postgres / mysql a
+          # chance to flush before SIGKILL; '|| true' on each step
+          # so a transient hiccup doesn't fail the test slot.
+          now_epoch=$(date +%s)
+          threshold=$(( 2 * 3600 ))
+          for c in postgres-immich mysql redis postgres; do
+            if ! docker ps -a --filter "name=^${c}$" --format '{{.Names}}' | grep -q "^${c}$"; then
+              echo "  absent : $c"
+              continue
+            fi
+            running=$(docker inspect "$c" --format '{{.State.Running}}' 2>/dev/null || echo false)
+            if [[ "$running" != "true" ]]; then
+              echo "  stopped (skip — orphan sweep handles below): $c"
+              continue
+            fi
+            started=$(docker inspect "$c" --format '{{.State.StartedAt}}' 2>/dev/null)
+            started_epoch=$(date -d "$started" +%s 2>/dev/null || echo "$now_epoch")
+            age=$(( now_epoch - started_epoch ))
+            if (( age < threshold )); then
+              printf "  recent <2h (skip): %s (up %dm)\n" "$c" $(( age / 60 ))
+              continue
+            fi
+            docker stop --time 30 "$c" >/dev/null 2>&1 || true
+            docker rm           "$c" >/dev/null 2>&1 || true
+            printf "  stop+rm: %s (up %dh)\n" "$c" $(( age / 3600 ))
+          done
           echo "::endgroup::"
 
           echo "::group::Cleanup: orphaned 'Created' containers (image ref is bare hash)"
