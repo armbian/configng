@@ -318,6 +318,46 @@ jobs:
     timeout-minutes: 210
     steps:
 
+      # Diagnostic only for now — list docker state on the runner so
+      # we can see which containers / images survive across runs and
+      # pick a precise removal pattern before adding any cleanup.
+      # gradle-emulated is the right place: its steps run on the
+      # self-hosted host (no job-level `container:`) and can talk to
+      # the host docker daemon. gradle-native's steps run inside a
+      # container and only see that container's filesystem, so a
+      # listing there would be empty.
+      #
+      # Output is grouped under `::group::` so each section is
+      # collapsed-by-default in the GHA log UI; expand the section
+      # whose pattern you want to inspect. `|| true` on every command
+      # so a missing socket / docker daemon outage doesn't fail the
+      # job — this step is observational, not load-bearing.
+      - name: "Show docker state on the runner"
+        shell: bash
+        run: |
+          echo "::group::Running containers (docker ps)"
+          docker ps --format 'table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Names}}\t{{.RunningFor}}' || true
+          echo "::endgroup::"
+
+          echo "::group::All containers, incl. stopped (docker ps -a)"
+          docker ps -a --format 'table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Names}}\t{{.RunningFor}}' || true
+          echo "::endgroup::"
+
+          echo "::group::Images (docker images)"
+          docker images --format 'table {{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.CreatedSince}}\t{{.Size}}' || true
+          echo "::endgroup::"
+
+          echo "::group::Disk usage (docker system df)"
+          docker system df || true
+          echo "::endgroup::"
+
+          # Once we know the pattern (e.g. images matching
+          # ghcr.io/armbian/repository-update:* and stopped containers
+          # whose Names begin with the test ids we generate) the
+          # removal commands go here, before the runner picks up the
+          # next job. Keep the listing too — it's cheap and helps
+          # debug "why did the cleanup not delete X" cases.
+
       # Emulated and native jobs share the same self-hosted runner
       # and the same _work/<repo>/<repo>/ path. A previous native
       # job (which uses job-level `container:`) runs as root inside
