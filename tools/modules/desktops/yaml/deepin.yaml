@@ -36,6 +36,55 @@ tiers:
       - spice-vdagent
       - xdg-user-dirs
 
+tier_overrides:
+  minimal:
+    # The core DDE shell packages listed below are absent from the standard
+    # Debian/Ubuntu archive on every release and arch supported by this YAML
+    # (verified via packages.debian.org / packages.ubuntu.com as of 2026-05).
+    # They require deepin's own community repository, but no `repo:` section
+    # has been added to this YAML yet because a maintained, cross-distro
+    # deepin repo URL for bookworm / noble / trixie has not been confirmed.
+    #
+    # Until a working `repo:` is confirmed and added here, strip these packages
+    # so the install does not abort with 'E: Unable to locate package'.  The
+    # packages that DO live in the Debian/Ubuntu archive (dde-qt5integration,
+    # deepin-icon-theme, deepin-sound-theme, deepin-terminal) are unaffected
+    # and will install normally from the standard archive.
+    #
+    # This is a permanent arch-wide hole until the `repo:` entry is added.
+    # Revisit when a deepin community maintainer provides the correct repo URL.
+    architectures:
+      amd64:
+        packages_remove:
+          - dde-control-center
+          - dde-daemon
+          - dde-desktop
+          - dde-dock
+          - dde-file-manager
+          - dde-launcher
+          - dde-polkit-agent
+          - dde-session-ui
+          - deepin-desktop-base
+          - deepin-desktop-schemas
+          - deepin-gtk-theme
+          - deepin-wm
+          - startdde
+      arm64:
+        packages_remove:
+          - dde-control-center
+          - dde-daemon
+          - dde-desktop
+          - dde-dock
+          - dde-file-manager
+          - dde-launcher
+          - dde-polkit-agent
+          - dde-session-ui
+          - deepin-desktop-base
+          - deepin-desktop-schemas
+          - deepin-gtk-theme
+          - deepin-wm
+          - startdde
+
 releases:
   bookworm:
     architectures: [arm64, amd64]
