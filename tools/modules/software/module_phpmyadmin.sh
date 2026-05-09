@@ -47,6 +47,8 @@ function module_phpmyadmin () {
 				-v "${base_dir}/config:/config" \
 				--restart=always \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "80"
 		;;
 		"${commands[1]}") # remove
 			docker_operation_progress rm "$dockername"

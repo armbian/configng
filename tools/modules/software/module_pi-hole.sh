@@ -70,6 +70,8 @@ function module_pi_hole () {
 				-e FTLCONF_LOCAL_IPV4="${LOCALIPADD}" \
 				-e FTLCONF_dns_upstreams="unbound#5335" \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "80"
 
 			# Add container IP to DNS configuration after container is running
 			if srv_active systemd-resolved; then

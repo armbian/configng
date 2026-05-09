@@ -56,6 +56,8 @@ function module_netdata () {
 				--cap-add SYS_ADMIN \
 				--security-opt apparmor=unconfined \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "19999"
 		;;
 		"${commands[1]}") # remove
 			# Remove container and image (functions handle existence checks)

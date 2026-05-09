@@ -45,6 +45,8 @@ function module_grafana () {
 				-v "${base_dir}:/var/lib/grafana" \
 				--restart=always \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "3000"
 		;;
 		"${commands[1]}") # remove
 			# Remove container and image (functions handle existence checks)

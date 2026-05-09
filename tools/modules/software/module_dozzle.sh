@@ -44,6 +44,8 @@ function module_dozzle () {
 				-p "${port}:8080" \
 				--restart unless-stopped \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "8080"
 
 			# Wait for container to be ready
 			wait_for_container_ready "$dockername" 30 3 "running"

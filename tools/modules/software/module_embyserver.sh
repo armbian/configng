@@ -51,6 +51,8 @@ function module_embyserver () {
 				-v "${base_dir}/tvshows:/tvshows" \
 				--restart=always \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "8096"
 		;;
 		"${commands[1]}") # remove
 			docker_operation_progress rm "$dockername"

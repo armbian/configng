@@ -83,6 +83,8 @@ function module_jellyfin () {
 				-v "${base_dir}/movies:/data/movies" \
 				--restart=always \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "8096"
 		;;
 		"${commands[1]}") # remove
 			# Remove container and image (functions handle existence checks)

@@ -50,6 +50,8 @@ function module_qbittorrent () {
 				-v "${base_dir}/downloads:/downloads" \
 				--restart=always \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "8090"
 
 			# Get temporary password from logs
 			local temp_password

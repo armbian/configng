@@ -51,6 +51,8 @@ function module_medusa () {
 				-v "${base_dir}/downloads/tv:/tv" \
 				--restart=always \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "8081"
 		;;
 		"${commands[1]}") # remove
 			docker_operation_progress rm "$dockername"

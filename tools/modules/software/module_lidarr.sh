@@ -47,6 +47,8 @@ function module_lidarr () {
 				-v "${base_dir}/downloads:/downloads" \
 				--restart=always \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "8686"
 		;;
 		"${commands[1]}") # remove
 			# Remove container and image (functions handle existence checks)
