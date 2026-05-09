@@ -31,7 +31,8 @@ function module_netbox () {
 	local DATABASE_PASSWORD="netbox"
 	local DATABASE_NAME="netbox"
 	local DATABASE_HOST="postgres-netbox"
-	local DATABASE_IMAGE="postgres:17-alpine"
+	local DATABASE_IMAGE="postgres"
+	local DATABASE_TAG="17-alpine"
 	local DATABASE_PORT="5432"
 
 	local commands
@@ -59,7 +60,11 @@ function module_netbox () {
 				module_redis install
 			fi
 			if ! docker container ls -a --format '{{.Names}}' | grep -q "^$DATABASE_HOST$"; then
-				module_postgres install $DATABASE_USER $DATABASE_PASSWORD $DATABASE_NAME $DATABASE_IMAGE $DATABASE_HOST
+				# module_postgres install <user> <password> <db> <image-repo> <image-tag> <container-name>
+				# (six positional args; image and tag must be passed separately, the
+				# previous five-arg form fused them and produced
+				# "postgres:17-alpine:postgres-netbox" — Docker 404 on pull.)
+				module_postgres install "$DATABASE_USER" "$DATABASE_PASSWORD" "$DATABASE_NAME" "$DATABASE_IMAGE" "$DATABASE_TAG" "$DATABASE_HOST"
 			fi
 
 			# Generate a random secret key (50+ chars)
