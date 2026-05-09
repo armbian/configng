@@ -6,9 +6,13 @@ set +e
 # we want to leave those alone. The only piece we override is the
 # wallpaper, so an installed image actually looks like Armbian.
 #
-# picture-uri-dark is set explicitly because Bianbu defaults to dark
-# mode under GNOME 46; without it the override only takes effect in
-# light mode and the user keeps seeing Bianbu's stock background.
+# Both picture-uri (light) and picture-uri-dark (dark) are set
+# explicitly. Bianbu defaults to dark mode under GNOME, and on
+# GNOME 42+ the shell reads picture-uri-dark when the appearance is
+# dark and ignores picture-uri entirely — without picture-uri-dark the
+# Armbian override only takes effect in light mode and the user keeps
+# seeing Bianbu's stock background. Light and dark Armbian variants
+# track GNOME's color-scheme automatically.
 
 keys=/etc/dconf/db/local.d/00-bg
 profile=/etc/dconf/profile/user
@@ -19,7 +23,7 @@ install -Dv /dev/null "$profile"
 cat >> "$keys" <<- EOF
 
 	[org/gnome/desktop/background]
-	picture-uri='file:///usr/share/backgrounds/armbian/armbian03-Dre0x-Minum-dark-3840x2160.jpg'
+	picture-uri='file:///usr/share/backgrounds/armbian/armbian18-Dre0x-Minum-light-3840x2160.jpg'
 	picture-uri-dark='file:///usr/share/backgrounds/armbian/armbian03-Dre0x-Minum-dark-3840x2160.jpg'
 	picture-options='zoom'
 	primary-color='#456789'
