@@ -37,6 +37,16 @@ function module_stirling () {
 			# Create subdirectories
 			mkdir -p "${base_dir}/trainingData" "${base_dir}/extraConfigs" "${base_dir}/logs" "${base_dir}/customFiles"
 
+			# When SWAG is on this host, tell Stirling PDF (Spring
+			# Boot) its base path via SERVER_SERVLET_CONTEXT_PATH so
+			# the app emits /stirling-pdf/-prefixed asset URLs and
+			# routes its own endpoints under that prefix. LSIO's
+			# stock subfolder.conf-sample expects exactly this.
+			local -a stirling_extra_env=()
+			if docker container ls -a --format "{{.Names}}" 2>/dev/null | grep -q "^swag$"; then
+				stirling_extra_env+=(-e "SERVER_SERVLET_CONTEXT_PATH=/stirling-pdf")
+			fi
+
 			# Run container
 			docker_operation_progress run "$dockername" \
 				-d \
@@ -50,8 +60,12 @@ function module_stirling () {
 				-e DOCKER_ENABLE_SECURITY=false \
 				-e INSTALL_BOOK_AND_ADVANCED_HTML_OPS=false \
 				-e LANGS=en_GB \
+				"${stirling_extra_env[@]}" \
 				--restart=always \
 				"$dockerimage"
+
+			# Auto-configure SWAG reverse proxy if available.
+			docker_configure_swag_proxy "$dockername" "8080"
 		;;
 		"${commands[1]}") # remove
 			docker_operation_progress rm "$dockername"

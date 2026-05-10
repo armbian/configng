@@ -149,7 +149,7 @@ update_sub_submenu_data "Software" "Media" "OMV002" "http://$LOCALIPADD:${module
 update_sub_submenu_data "Software" "Media" "MED002" "$(get_service_url "plex" "${module_options["module_plexmediaserver,port"]}")"
 update_sub_submenu_data "Software" "Media" "EMB002" "$(get_service_url "emby" "${module_options["module_embyserver,port"]}")"
 update_sub_submenu_data "Software" "Media" "FIL002" "$(get_service_url "filebrowser" "${module_options["module_filebrowser,port"]}")"
-update_sub_submenu_data "Software" "Media" "STR002" "http://$LOCALIPADD:${module_options["module_stirling,port"]}"
+update_sub_submenu_data "Software" "Media" "STR002" "$(get_service_url "stirling-pdf" "${module_options["module_stirling,port"]}")"
 update_sub_submenu_data "Software" "Media" "STC002" "$(get_service_url "syncthing" "${module_options["module_syncthing,port"]%% *}")" # removing second port from url
 update_sub_submenu_data "Software" "Media" "NCT002" "https://$LOCALIPADD:${module_options["module_nextcloud,port"]}"
 update_sub_submenu_data "Software" "Media" "OWC002" "http://$LOCALIPADD:${module_options["module_owncloud,port"]}"
