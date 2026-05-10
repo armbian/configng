@@ -46,6 +46,45 @@ function module_swag() {
 			# Clean URL (remove protocol if present)
 			swag_url=$(echo "$swag_url" | sed -E 's|^\s*https?://||' | sed 's|/.*$||')
 
+			# DNS sanity check. Let's Encrypt's HTTP-01 challenge can
+			# only succeed if the user's FQDN resolves to this host's
+			# public IPv4. Detect mismatches early so the user can fix
+			# DNS before we pull a 200 MB image and discover the cert
+			# request fails. We don't hard-block — split-horizon DNS,
+			# users mid-DNS-propagation, or test deployments are
+			# legitimate cases for proceeding anyway.
+			local resolved_ip="" public_ip=""
+			# getent uses the system resolver (libc) — same resolver
+			# Docker/SWAG will use at runtime. Take only the first
+			# IPv4 to keep the comparison meaningful for users with
+			# split AAAA/A records.
+			resolved_ip=$(getent ahostsv4 "$swag_url" 2>/dev/null \
+				| awk 'NR==1 {print $1}')
+			# Try a few outbound endpoints; abort the loop on the
+			# first valid IPv4 response. Skip the comparison entirely
+			# if all fail (firewalled outbound, no internet) — better
+			# than a false-positive warning.
+			local endpoint
+			for endpoint in https://api.ipify.org https://ifconfig.me https://icanhazip.com; do
+				public_ip=$(curl -sS --max-time 4 -4 "$endpoint" 2>/dev/null | tr -d '[:space:]')
+				[[ "$public_ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] && break
+				public_ip=""
+			done
+
+			if [[ -z "$resolved_ip" ]]; then
+				if ! dialog_yesno "DNS Resolution Failed" \
+					"${swag_url} did not resolve to any IPv4 address.\n\nLet's Encrypt cannot issue a certificate until the domain points at this host.\n\nProceed anyway?\n  (cert acquisition will retry on next container restart)" \
+					"Proceed" "Cancel" 14 80; then
+					return 1
+				fi
+			elif [[ -n "$public_ip" && "$resolved_ip" != "$public_ip" ]]; then
+				if ! dialog_yesno "DNS Mismatch" \
+					"${swag_url} resolves to:\n  ${resolved_ip}\n\nThis host's public IP is:\n  ${public_ip}\n\nLet's Encrypt's HTTP-01 challenge will land on ${resolved_ip}, not this host. Cert acquisition will fail.\n\nProceed anyway?" \
+					"Proceed" "Cancel" 18 80; then
+					return 1
+				fi
+			fi
+
 			# Optional: Adjust system hostname
 			if dialog_yesno "Update System Hostname" \
 				"SWAG works best when the system hostname matches your domain.\n\nUpdate system hostname to: ${swag_url}?\n\nThis requires root privileges." \
