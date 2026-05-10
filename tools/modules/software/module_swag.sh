@@ -85,14 +85,15 @@ function module_swag() {
 				fi
 			fi
 
-			# Optional: Adjust system hostname
-			if dialog_yesno "Update System Hostname" \
-				"SWAG works best when the system hostname matches your domain.\n\nUpdate system hostname to: ${swag_url}?\n\nThis requires root privileges." \
-				"Update" "Keep" 15 80; then
-				if ! hostnamectl set-hostname "${swag_url}" 2>/dev/null; then
-					dialog_msgbox "Hostname Update Failed" \
-						"Failed to update hostname.\n\nYou can set it manually with:\n  sudo hostnamectl set-hostname ${swag_url}\n\nContinuing with installation..." 12 70
-				fi
+			# Align the system hostname with the SWAG domain. armbian-config
+			# already runs with root, so do this silently rather than
+			# prompting — the original yes/no dialog was just noise on
+			# the install path. Only surface a message if the call
+			# fails (e.g. hostnamectl missing in a CI minimal image),
+			# in which case we continue without aborting the install.
+			if ! hostnamectl set-hostname "${swag_url}" 2>/dev/null; then
+				dialog_msgbox "Hostname Update Failed" \
+					"Could not set the system hostname to:\n  ${swag_url}\n\nSet it manually after install:\n  sudo hostnamectl set-hostname ${swag_url}\n\nContinuing with installation..." 12 70
 			fi
 
 			# Pull image
