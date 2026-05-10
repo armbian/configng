@@ -39,6 +39,17 @@ function module_filebrowser () {
 			mkdir -p "${base_dir}/database"
 			chown -R "${DOCKER_USERUID}:${DOCKER_GROUPUID}" "${base_dir}/database"
 
+			# When SWAG is on this host, tell filebrowser its base URL
+			# via --baseurl. LSIO's stock subfolder.conf forwards
+			# /filebrowser/ as-is to the upstream — without this flag,
+			# filebrowser serves at / and its frontend JS calls /api/…
+			# which 404s through the proxy, leaving the page stuck on
+			# the loading spinner.
+			local -a filebrowser_extra_args=()
+			if docker container ls -a --format "{{.Names}}" 2>/dev/null | grep -q "^swag$"; then
+				filebrowser_extra_args+=(--baseurl /filebrowser)
+			fi
+
 			docker_operation_progress run "$dockername" \
 				-d \
 				--net=lsio \
@@ -53,7 +64,8 @@ function module_filebrowser () {
 				-p "${port}:80" \
 				--restart=always \
 				"$dockerimage" \
-				--database /database/filebrowser.db
+				--database /database/filebrowser.db \
+				"${filebrowser_extra_args[@]}"
 
 			# Auto-configure SWAG reverse proxy if available
 			docker_configure_swag_proxy "$dockername" "80"
