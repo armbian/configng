@@ -50,8 +50,15 @@ function module_zsh() {
 				return 1
 			fi
 
-			# Move root + every existing user still on bash.
-			usermod --shell /bin/zsh root
+			# Move root first as a canary: if usermod rejects /bin/zsh
+			# (e.g. it isn't listed in /etc/shells, pam_shells would
+			# block logins anyway), abort BEFORE the blanket sed
+			# flips every other user — otherwise we'd lock the whole
+			# system out instead of just leaving root unchanged.
+			if ! usermod --shell /bin/zsh root; then
+				echo "Error: usermod --shell /bin/zsh root failed; /etc/passwd left unchanged" >&2
+				return 1
+			fi
 			sed -i 's|/bash$|/zsh|' /etc/passwd
 		;;
 
