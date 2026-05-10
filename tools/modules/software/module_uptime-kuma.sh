@@ -74,12 +74,12 @@ function module_uptimekuma () {
 
 				proxy_pass $upstream_proto://$upstream_app:$upstream_port;
 
-				## Socket.IO live updates need an extended read
-				## timeout — LSIO's proxy.conf already handles the
-				## WebSocket Upgrade/Connection/HTTP-1.1 set; declaring
-				## those again here triggers nginx 'duplicate
-				## directive' errors. Just override the timeout.
-				proxy_read_timeout 86400;
+				## LSIO's proxy.conf (included above) already sets
+				## proxy_read_timeout, the WebSocket Upgrade /
+				## Connection headers, and proxy_http_version 1.1 —
+				## redeclaring any of them here triggers nginx
+				## 'duplicate directive' emerg errors and the reload
+				## silently keeps the previous (broken) config.
 
 				## sub_filter operates on uncompressed bytes only;
 				## strip Accept-Encoding so the upstream returns plain

@@ -88,12 +88,12 @@ function module_beszel () {
 
 				proxy_pass $upstream_proto://$upstream_app:$upstream_port;
 
-				## PocketBase realtime uses SSE — extend read timeout
-				## so the long-poll connection isn't reaped. LSIO's
-				## proxy.conf already sets the WebSocket Upgrade /
-				## Connection / HTTP-1.1 headers; redeclaring them here
-				## triggers nginx 'duplicate directive' errors.
-				proxy_read_timeout 86400;
+				## LSIO's proxy.conf (included above) already sets
+				## proxy_read_timeout, the WebSocket Upgrade /
+				## Connection headers, and proxy_http_version 1.1 —
+				## redeclaring any of them here triggers nginx
+				## 'duplicate directive' emerg errors and the reload
+				## silently keeps the previous (broken) config.
 
 				## sub_filter operates on uncompressed bytes only;
 				## strip Accept-Encoding so the upstream returns plain
