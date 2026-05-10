@@ -141,15 +141,43 @@ function module_swag() {
 			sleep 2
 			docker restart "$dockername" >/dev/null 2>&1
 
-			# Wait for SSL certificate initialization (up to 30 seconds)
+			# Wait for the actual cert file to appear, not for
+			# dynamicssl.conf — the latter is created during nginx
+			# config setup regardless of whether Let's Encrypt
+			# succeeded or failed, so the previous check passed for
+			# every install including ones that ended with no cert.
+			# 90 s is the practical upper bound: ACME provisioning
+			# typically completes within 15 s, but rate-limit holdoffs
+			# and slow LE acks can push to a minute.
 			local wait_count=0
-			while [[ $wait_count -lt 30 ]]; do
-				if docker exec "$dockername" test -f /config/nginx/dynamicssl.conf 2>/dev/null; then
+			local cert_path="/config/keys/letsencrypt/fullchain.pem"
+			while [[ $wait_count -lt 90 ]]; do
+				if docker exec "$dockername" test -f "$cert_path" 2>/dev/null; then
 					break
 				fi
 				sleep 1
 				((wait_count++))
 			done
+
+			# Verify the cert was actually issued. If not, pull the
+			# tail of the container log and grep for the typical ACME
+			# failure markers so the user sees *why* it failed instead
+			# of an opaque "installed" dialog. Don't return non-zero —
+			# SWAG itself is running and the user can fix DNS / unblock
+			# port 80 and `docker restart swag` to retry without
+			# reinstalling.
+			if ! docker exec "$dockername" test -f "$cert_path" 2>/dev/null; then
+				local cert_failure_excerpt
+				cert_failure_excerpt=$(docker logs --tail=200 "$dockername" 2>&1 \
+					| grep -iE 'error|failed|challenge|timeout|rate limit|invalid|unauthorized|connection refused' \
+					| tail -10)
+				if [[ -z "$cert_failure_excerpt" ]]; then
+					cert_failure_excerpt="(no obvious error markers found in last 200 log lines — run 'docker logs swag' for the full output)"
+				fi
+				dialog_msgbox "SSL Certificate Not Issued" \
+					"Waited 90 s but no Let's Encrypt cert appeared at:\n  ${cert_path}\n\nMost common causes:\n  - ${swag_url} doesn't resolve to this host's public IP\n  - Port 80 isn't reachable from the internet (firewall/NAT)\n  - Let's Encrypt rate-limit hit (5 cert/week per registered domain)\n\nLog excerpt:\n${cert_failure_excerpt}\n\nFix the underlying issue and run:\n  docker restart ${dockername}\nto retry. SWAG itself is running — services proxied through it will work once a cert is in place." \
+					25 100
+			fi
 
 			# Set password
 			${module_options["module_swag,feature"]} ${commands[4]}
