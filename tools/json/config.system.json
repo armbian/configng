@@ -1508,11 +1508,11 @@
                             "module": "module_generic",
                             "about": "This will switch system wide shell to ZSH",
                             "command": [
-                                "manage_zsh enable"
+                                "module_zsh install"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"bash\" ]]",
+                            "condition": "! module_zsh status",
                             "help": "ZSH is a powerful and customizable shell designed to be an enhanced replacement for BASH."
                         },
                         {
@@ -1520,11 +1520,11 @@
                             "description": "Change shell system wide to BASH",
                             "about": "This will switch system wide shell to BASH",
                             "command": [
-                                "manage_zsh disable"
+                                "module_zsh remove"
                             ],
                             "status": "Stable",
                             "author": "@igorpecovnik",
-                            "condition": "[[ $(cat /etc/passwd | grep \"^root:\" | rev | cut -d\":\" -f1 | cut -d\"/\" -f1| rev) == \"zsh\" ]]",
+                            "condition": "module_zsh status",
                             "help": "Change shell system wide to BASH"
                         },
                         {
