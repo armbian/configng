@@ -6,7 +6,11 @@ on:
   schedule:
     - cron: '0 2 * * *'
   pull_request:
-    types: [opened, reopened, edited, synchronize, review_requested]
+    # `ready_for_review` is the draft → ready transition; without it,
+    # a PR opened as a draft and later marked ready would never trigger
+    # the suite. The job-level `if:` below filters out drafts so opens
+    # / synchronizes that arrive while still in draft are skipped.
+    types: [opened, reopened, edited, synchronize, review_requested, ready_for_review]
 
 env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -26,6 +30,13 @@ jobs:
 
   prepare:
     name: "Armbian configurator unit tests"
+    # Skip draft PRs — gate the whole pipeline on the prepare job, so
+    # gradle-native / gradle-emulated / stop (which all `needs: prepare`)
+    # are skipped automatically too. For non-PR triggers (schedule,
+    # workflow_dispatch, repository_dispatch) `pull_request` is null,
+    # `draft` evaluates to null, and the condition stays true so the
+    # nightly cron and ad-hoc reruns are unaffected.
+    if: ${{ github.event.pull_request.draft != true }}
     runs-on: "ubuntu-24.04"
     outputs:
       DEPLOYMENT_MATRIX_NATIVE:   "${{ steps.json.outputs.DEPLOYMENT_MATRIX_NATIVE }}"
