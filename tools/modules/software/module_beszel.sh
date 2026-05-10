@@ -101,7 +101,9 @@ function module_beszel () {
 				proxy_set_header Accept-Encoding "";
 
 				sub_filter_once off;
-				sub_filter_types text/html text/css application/javascript;
+				## text/html is always processed by default; listing it
+				## here triggers a 'duplicate MIME type' nginx warn.
+				sub_filter_types text/css application/javascript;
 				sub_filter 'href="/'    'href="/beszel/';
 				sub_filter "href='/"    "href='/beszel/";
 				sub_filter 'src="/'     'src="/beszel/';
