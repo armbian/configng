@@ -59,7 +59,13 @@ function module_zsh() {
 				echo "Error: usermod --shell /bin/zsh root failed; /etc/passwd left unchanged" >&2
 				return 1
 			fi
-			sed -i 's|/bash$|/zsh|' /etc/passwd
+			# Anchor to the 7th colon-delimited field (login shell)
+			# rather than just `/bash$` so we can't accidentally
+			# rewrite anything else that happens to end with the
+			# string. [^:]* keeps the match inside field 7. Handles
+			# any path ending in /bash (/bin/bash, /usr/local/bin/bash,
+			# etc.).
+			sed -i -E 's|^(([^:]*:){6}[^:]*)/bash$|\1/zsh|' /etc/passwd
 		;;
 
 		"${commands[1]}") # remove
@@ -75,7 +81,7 @@ function module_zsh() {
 				echo "Error: usermod --shell /bin/bash root failed; /etc/passwd left unchanged" >&2
 				return 1
 			fi
-			sed -i 's|/zsh$|/bash|' /etc/passwd
+			sed -i -E 's|^(([^:]*:){6}[^:]*)/zsh$|\1/bash|' /etc/passwd
 
 			# Remove packages last — flipping the shell pointer
 			# first means the post-removal hook can't disturb a
