@@ -34,6 +34,19 @@ function module_beszel () {
 			# Create base directory
 			docker_manage_base_dir create "$base_dir" || return 1
 
+			# When SWAG is on this host, tell Beszel its public URL via
+			# APP_URL. Beszel parses the URL and derives BASE_PATH
+			# (the path component) and HUB_URL (the full URL),
+			# injecting both into the served index.html — without
+			# this, the frontend JS builds API calls against / and
+			# they 404 through the proxy. Subpath deployment is
+			# officially supported (https://beszel.dev/guide/reverse-proxy);
+			# with APP_URL set, LSIO's stock subfolder.conf works as-is.
+			local -a beszel_extra_env=()
+			if [[ -n "${SWAG_URL:-}" ]]; then
+				beszel_extra_env+=(-e "APP_URL=https://${SWAG_URL}/beszel")
+			fi
+
 			# Run container — Beszel hub on port 8090 (its default).
 			# --net=lsio so SWAG can resolve the container by name on
 			# the LSIO bridge (LSIO ships a stock proxy-conf that
@@ -43,80 +56,20 @@ function module_beszel () {
 				--name="$dockername" \
 				--net=lsio \
 				-e TZ="$(cat /etc/timezone)" \
+				"${beszel_extra_env[@]}" \
 				-p "${port}:8090" \
 				-v "${base_dir}:/beszel_data" \
 				--restart=always \
 				"$dockerimage"
 
-			# Auto-configure SWAG reverse proxy if available — best
-			# effort. linuxserver/reverse-proxy-confs:master ships a
-			# stock beszel.subfolder.conf.sample, but it assumes Beszel
-			# is configured to serve at /beszel/. Beszel (PocketBase +
-			# SvelteKit frontend) has no base-path support: the served
-			# HTML emits absolute asset paths like /static/… and
-			# /_app/…, so the browser asks SWAG for those at the root
-			# and the page renders blank. We replace LSIO's stock
-			# sample with one that strips /beszel/ at the upstream and
-			# sub_filters the served HTML/CSS/JS so absolute asset
-			# URLs are rewritten back to /beszel/-prefixed paths.
-			# Subdomain proxying is the unbroken path; subfolder is
-			# best-effort (runtime-built URLs in JS modules may still
-			# 404). set/rewrite ordering matters — set vars must
-			# precede `rewrite … break;`.
-			if docker container ls -a --format "{{.Names}}" 2>/dev/null | grep -q "^swag$"; then
-				docker exec swag rm -f \
-					/config/nginx/proxy-confs/beszel.subfolder.conf \
-					/config/nginx/proxy-confs/beszel.subfolder.conf.sample \
-					/config/nginx/proxy-confs/beszel.subfolder.conf.enabled \
-					2>/dev/null || true
-			fi
-			docker_seed_swag_proxy_conf "$dockername" <<- 'NGINX'
-				## Custom Armbian seed — beszel subfolder proxy.
-				## Best-effort: Beszel/PocketBase is not subpath-aware.
-				## Subdomain proxying is the recommended path.
-				location = /beszel { return 301 /beszel/; }
-
-				location ^~ /beszel/ {
-				include /config/nginx/proxy.conf;
-				include /config/nginx/resolver.conf;
-
-				set $upstream_app beszel;
-				set $upstream_port 8090;
-				set $upstream_proto http;
-
-				rewrite ^/beszel/(.*)$ /$1 break;
-
-				proxy_pass $upstream_proto://$upstream_app:$upstream_port;
-
-				## LSIO's proxy.conf (included above) already sets
-				## proxy_read_timeout, the WebSocket Upgrade /
-				## Connection headers, and proxy_http_version 1.1 —
-				## redeclaring any of them here triggers nginx
-				## 'duplicate directive' emerg errors and the reload
-				## silently keeps the previous (broken) config.
-
-				## sub_filter operates on uncompressed bytes only;
-				## strip Accept-Encoding so the upstream returns plain
-				## text we can rewrite.
-				proxy_set_header Accept-Encoding "";
-
-				sub_filter_once off;
-				## text/html is always processed by default; listing it
-				## here triggers a 'duplicate MIME type' nginx warn.
-				sub_filter_types text/css application/javascript;
-				sub_filter 'href="/'    'href="/beszel/';
-				sub_filter "href='/"    "href='/beszel/";
-				sub_filter 'src="/'     'src="/beszel/';
-				sub_filter "src='/"     "src='/beszel/";
-				sub_filter 'action="/'  'action="/beszel/';
-				sub_filter 'url(/'      'url(/beszel/';
-				}
-			NGINX
+			# LSIO ships a stock beszel.subfolder.conf.sample that
+			# works as-is once APP_URL is set on the container.
 			docker_configure_swag_proxy "$dockername" "8090"
-			# Note: Beszel's own settings (Application URL) need to
-			# be set to https://<swag-host>/beszel/ in the admin UI
-			# after first login so emailed alerts and share links
-			# line up; there's no bake-it-at-install env var for that.
+			# Note: Shoutrrr alert links use PocketBase's own
+			# Application URL (Settings → Application URL in the
+			# admin UI), which is independent of APP_URL. Set it to
+			# https://<swag-host>/beszel after first login so emailed
+			# alerts and share links line up.
 		;;
 		"${commands[1]}") # remove
 			docker_operation_progress rm "$dockername"
