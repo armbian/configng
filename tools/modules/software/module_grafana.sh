@@ -34,6 +34,29 @@ function module_grafana () {
 			# Create base directory
 			docker_manage_base_dir create "$base_dir" || return 1
 
+			# When SWAG is on this host, set GF_SERVER_ROOT_URL /
+			# GF_SERVER_DOMAIN so Grafana emits absolute URLs under
+			# /grafana/ (login redirects, public assets, dashboard
+			# share links, etc.). Without these, the rendered HTML
+			# carries /public/… paths that 404 once SWAG strips them
+			# at /grafana.
+			#
+			# Do NOT set GF_SERVER_SERVE_FROM_SUB_PATH=true here. The
+			# LSIO proxy-conf rewrites '^/grafana/(.*)$ /$1 break',
+			# so Grafana receives the bare path. With sub-path mode
+			# enabled Grafana would 302 every '/' back to '/grafana/',
+			# which the proxy strips again — ERR_TOO_MANY_REDIRECTS.
+			# GF_SERVER_DOMAIN is the hostname only (no scheme); the
+			# scheme/path live in GF_SERVER_ROOT_URL.
+			local -a grafana_extra_env=()
+			if docker container ls -a --format "{{.Names}}" 2>/dev/null | grep -q "^swag$" \
+				&& [[ -n "${SWAG_URL:-}" ]]; then
+				grafana_extra_env+=(
+					-e "GF_SERVER_ROOT_URL=https://${SWAG_URL}/grafana/"
+					-e "GF_SERVER_DOMAIN=${SWAG_URL}"
+				)
+			fi
+
 			docker_operation_progress run "$dockername" \
 				-d \
 				--name="$dockername" \
@@ -41,10 +64,21 @@ function module_grafana () {
 				--net=lsio \
 				--user 0 \
 				-e TZ="$(cat /etc/timezone)" \
+				"${grafana_extra_env[@]}" \
 				-p "${port}:3000" \
 				-v "${base_dir}:/var/lib/grafana" \
 				--restart=always \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "3000"
+
+			# Restart so Grafana picks up the GF_SERVER_* env on a
+			# clean process (matches the netbox/octoprint pattern —
+			# no-op if the container isn't running, e.g. SWAG-less
+			# install where no env vars were added).
+			if docker container ls --format '{{.Names}}' 2>/dev/null | grep -q "^${dockername}$"; then
+				docker restart "$dockername" >/dev/null 2>&1 || true
+			fi
 		;;
 		"${commands[1]}") # remove
 			# Remove container and image (functions handle existence checks)

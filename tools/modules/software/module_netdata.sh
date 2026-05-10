@@ -56,6 +56,12 @@ function module_netdata () {
 				--cap-add SYS_ADMIN \
 				--security-opt apparmor=unconfined \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available.
+			# --network=host: LSIO's stock netdata.subfolder.conf
+			# resolves the upstream by container name on the lsio
+			# bridge, which misses host-network containers and 502s.
+			# Point the upstream at the host's IP instead.
+			docker_configure_swag_proxy "$dockername" "19999" "" "${LOCALIPADD}"
 		;;
 		"${commands[1]}") # remove
 			# Remove container and image (functions handle existence checks)

@@ -9,7 +9,7 @@ module_options+=(
 	["module_syncthing,group"]="Media"
 	["module_syncthing,port"]="8884 22000 21027"
 	["module_syncthing,arch"]="x86-64 arm64"
-	["module_syncthing,dockerimage"]="lscr.io/linuxserver/syncthing:latest"
+	["module_syncthing,dockerimage"]="linuxserver/syncthing:latest"
 	["module_syncthing,dockername"]="syncthing"
 )
 #
@@ -55,6 +55,8 @@ function module_syncthing () {
 				-v "${base_dir}/data2:/data2" \
 				--restart=always \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "8384"
 		;;
 		"${commands[1]}") # remove
 			docker_operation_progress rm "$dockername"

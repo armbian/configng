@@ -9,7 +9,7 @@ module_options+=(
 	["module_duplicati,group"]="Backup"
 	["module_duplicati,port"]="8200"
 	["module_duplicati,arch"]="x86-64 arm64"
-	["module_duplicati,dockerimage"]="lscr.io/linuxserver/duplicati:latest"
+	["module_duplicati,dockerimage"]="linuxserver/duplicati:latest"
 	["module_duplicati,dockername"]="duplicati"
 )
 #
@@ -78,6 +78,8 @@ function module_duplicati () {
 				-v "${base_dir}/backups:/backups" \
 				-v /:/source:ro \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "8200"
 		;;
 		"${commands[1]}") # remove
 			docker_operation_progress rm "$dockername"

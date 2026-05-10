@@ -2106,6 +2106,45 @@
                             "author": "@armbian",
                             "condition": "module_dozzle status",
                             "help": "Dozzle purge"
+                        },
+                        {
+                            "id": "BSZ001",
+                            "description": "Beszel lightweight server monitoring hub",
+                            "short": "Beszel",
+                            "module": "module_beszel",
+                            "about": "This operation will install Beszel",
+                            "command": [
+                                "module_beszel install"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "! module_beszel status",
+                            "container_type": "docker",
+                            "help": "Beszel is a lightweight monitoring hub for SBC servers and Docker containers. https://beszel.dev"
+                        },
+                        {
+                            "id": "BSZ002",
+                            "description": "Beszel remove",
+                            "about": "This operation will remove Beszel",
+                            "command": [
+                                "module_beszel remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_beszel status",
+                            "help": "Beszel remove"
+                        },
+                        {
+                            "id": "BSZ003",
+                            "description": "Beszel purge",
+                            "about": "This operation will purge Beszel",
+                            "command": [
+                                "module_beszel purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@armbian",
+                            "condition": "module_beszel status",
+                            "help": "Beszel purge"
                         }
                     ],
                     "help": "Real-time monitoring, collecting metrics, up-time status"

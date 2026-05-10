@@ -16,6 +16,41 @@ locale_setting="$LANG"
 installed_software="$(see_current_apt)"
 held_packages=$(apt-mark showhold)
 
+# Use SWAG domain URL if available, otherwise fall back to local IP
+# This makes all menu URLs show the actual domain instead of IP when SWAG is installed
+DISPLAY_URL="${SWAG_URL:-$LOCALIPADD}"
+
+# Helper function to determine service URL format.
+#   - SWAG container missing OR proxy-conf for this service not
+#     enabled → http://$LOCALIPADD:<port>. The non-proxied backend
+#     listens on the host's LAN IP, NOT on the public SWAG domain
+#     (which only serves SWAG itself on 443) — DISPLAY_URL would be
+#     the wrong host here when SWAG_URL is set.
+#   - Proxy-conf enabled → https://$DISPLAY_URL/<service>. DISPLAY_URL
+#     resolves to SWAG_URL whenever it's set, which is exactly the
+#     public domain we want for the SWAG-fronted path.
+get_service_url() {
+	local service_name="$1"
+	local service_port="$2"
+
+	# Check if SWAG is running
+	if ! docker container ls -a --format "{{.Names}}" 2>/dev/null | grep -q "^swag$"; then
+		echo "http://$LOCALIPADD:$service_port"
+		return
+	fi
+
+	# Check if SWAG proxy is enabled for this service
+	local proxy_enabled_file="/config/nginx/proxy-confs/${service_name}.subfolder.conf.enabled"
+	if ! docker exec swag test -f "$proxy_enabled_file" 2>/dev/null; then
+		echo "http://$LOCALIPADD:$service_port"
+		return
+	fi
+
+	# SWAG proxy is enabled - return subfolder URL
+	echo "https://$DISPLAY_URL/$service_name"
+}
+
+
 module_options+=(
 	["update_json_data,author"]="@Tearran"
 	["update_json_data,ref_link"]=""
@@ -103,7 +138,7 @@ update_sub_submenu_data "System" "Storage" "NFS04" "$NFS_CLIENTS_NUMBER"
 
 # Database
 update_sub_submenu_data "Software" "Database" "DAT002" "Server: $LOCALIPADD"
-update_sub_submenu_data "Software" "Database" "MYA002" "http://$LOCALIPADD:${module_options["module_phpmyadmin,port"]}"
+update_sub_submenu_data "Software" "Database" "MYA002" "$(get_service_url "phpmyadmin" "${module_options["module_phpmyadmin,port"]}")"
 
 # Finance
 update_sub_submenu_data "Software" "Finance" "ABU002" "http://$LOCALIPADD:${module_options["module_actualbudget,port"]}"
@@ -111,25 +146,31 @@ update_sub_submenu_data "Software" "Finance" "WAL002" "http://$LOCALIPADD:${modu
 
 # Media
 update_sub_submenu_data "Software" "Media" "OMV002" "http://$LOCALIPADD:${module_options["module_omv,port"]}"
-update_sub_submenu_data "Software" "Media" "MED002" "http://$LOCALIPADD:${module_options["module_plexmediaserver,port"]}"
-update_sub_submenu_data "Software" "Media" "EMB002" "http://$LOCALIPADD:${module_options["module_embyserver,port"]}"
-update_sub_submenu_data "Software" "Media" "FIL002" "http://$LOCALIPADD:${module_options["module_filebrowser,port"]}"
+update_sub_submenu_data "Software" "Media" "MED002" "$(get_service_url "plex" "${module_options["module_plexmediaserver,port"]}")"
+update_sub_submenu_data "Software" "Media" "EMB002" "$(get_service_url "emby" "${module_options["module_embyserver,port"]}")"
+update_sub_submenu_data "Software" "Media" "FIL002" "$(get_service_url "filebrowser" "${module_options["module_filebrowser,port"]}")"
 update_sub_submenu_data "Software" "Media" "STR002" "http://$LOCALIPADD:${module_options["module_stirling,port"]}"
-update_sub_submenu_data "Software" "Media" "STC002" "http://$LOCALIPADD:${module_options["module_syncthing,port"]%% *}" # removing second port from url
+update_sub_submenu_data "Software" "Media" "STC002" "$(get_service_url "syncthing" "${module_options["module_syncthing,port"]%% *}")" # removing second port from url
 update_sub_submenu_data "Software" "Media" "NCT002" "https://$LOCALIPADD:${module_options["module_nextcloud,port"]}"
 update_sub_submenu_data "Software" "Media" "OWC002" "http://$LOCALIPADD:${module_options["module_owncloud,port"]}"
-update_sub_submenu_data "Software" "Media" "JMS002" "http://$LOCALIPADD:${module_options["module_jellyfin,port"]}"
-update_sub_submenu_data "Software" "Media" "IMM002" "http://$LOCALIPADD:${module_options["module_immich,port"]}"
+update_sub_submenu_data "Software" "Media" "JMS002" "$(get_service_url "jellyfin" "${module_options["module_jellyfin,port"]}")"
+	update_sub_submenu_data "Software" "Media" "IMM002" "$(get_service_url "immich" "${module_options["module_immich,port"]}")"
 update_sub_submenu_data "Software" "Media" "NAV002" "http://$LOCALIPADD:${module_options["module_navidrome,port"]}"
 
 # Containers
-update_sub_submenu_data "Software" "Containers" "POR002" "http://$LOCALIPADD:${module_options["module_portainer,port"]%% *}" # removing second port from url
+# Portainer uses HTTPS on port 9443 (not the edge agent port 9000)
+if docker container ls -a --format "{{.Names}}" 2>/dev/null | grep -q "^swag$" && \
+	docker exec swag test -f "/config/nginx/proxy-confs/portainer.subfolder.conf.enabled" 2>/dev/null; then
+	update_sub_submenu_data "Software" "Containers" "POR002" "https://$DISPLAY_URL/portainer"
+else
+	update_sub_submenu_data "Software" "Containers" "POR002" "https://$LOCALIPADD:9443"
+fi
 
 # Backup
-update_sub_submenu_data "Software" "Backup" "DPL002" "http://$LOCALIPADD:${module_options["module_duplicati,port"]%% *}" # removing second port from url
+update_sub_submenu_data "Software" "Backup" "DPL002" "$(get_service_url "duplicati" "${module_options["module_duplicati,port"]%% *}")" # removing second port from url
 
 # Printing
-update_sub_submenu_data "Software" "Printing" "OCT002" "http://$LOCALIPADD:${module_options["module_octoprint,port"]}"
+update_sub_submenu_data "Software" "Printing" "OCT002" "$(get_service_url "octoprint" "${module_options["module_octoprint,port"]}")"
 
 # DevTools
 [[ -f /etc/rsyncd.conf ]] && update_sub_submenu_data "Software" "DevTools" "DEV011" "$(grep -oP '(?<=^\[).*(?=\])' /etc/rsyncd.conf | xargs)"
@@ -137,38 +178,41 @@ update_sub_submenu_data "Software" "Printing" "OCT002" "http://$LOCALIPADD:${mod
 # Home automation
 update_sub_submenu_data "Software" "HomeAutomation" "HAB002" "http://$LOCALIPADD:${module_options["module_openhab,port"]}"
 update_sub_submenu_data "Software" "HomeAutomation" "HAS002" "http://$LOCALIPADD:${module_options["module_haos,port"]}"
-update_sub_submenu_data "Software" "HomeAutomation" "DOM002" "http://$LOCALIPADD:${module_options["module_domoticz,port"]}"
+update_sub_submenu_data "Software" "HomeAutomation" "DOM002" "$(get_service_url "domoticz" "${module_options["module_domoticz,port"]}")"
 update_sub_submenu_data "Software" "HomeAutomation" "EVCC02" "http://$LOCALIPADD:${module_options["module_evcc,port"]}"
 
 # DNS
-update_sub_submenu_data "Software" "DNS" "PIH003" "http://$LOCALIPADD:${module_options["module_pi_hole,port"]%% *}/admin" # removing second port from url
+update_sub_submenu_data "Software" "DNS" "PIH003" "$(get_service_url "pihole" "${module_options["module_pi_hole,port"]%% *}")/admin" # removing second port from url
 update_sub_submenu_data "Software" "DNS" "ADG002" "http://$LOCALIPADD:${module_options["module_adguardhome,port"]%% *}" # removing second port from url
 
 # Monitoring
-update_sub_submenu_data "Software" "Monitoring" "UPK002" "http://$LOCALIPADD:${module_options["module_uptimekuma,port"]}"
-update_sub_submenu_data "Software" "Monitoring" "NTD002" "http://$LOCALIPADD:${module_options["module_netdata,port"]}"
-update_sub_submenu_data "Software" "Monitoring" "GRA002" "http://$LOCALIPADD:${module_options["module_grafana,port"]}"
-update_sub_submenu_data "Software" "Monitoring" "NAX002" "http://$LOCALIPADD:${module_options["module_netalertx,port"]}"
-update_sub_submenu_data "Software" "Monitoring" "PRO002" "http://$LOCALIPADD:${module_options["module_prometheus,port"]}"
+update_sub_submenu_data "Software" "Monitoring" "UPK002" "$(get_service_url "uptime-kuma" "${module_options["module_uptimekuma,port"]}")"
+update_sub_submenu_data "Software" "Monitoring" "NTD002" "$(get_service_url "netdata" "${module_options["module_netdata,port"]}")"
+update_sub_submenu_data "Software" "Monitoring" "GRA002" "$(get_service_url "grafana" "${module_options["module_grafana,port"]}")"
+update_sub_submenu_data "Software" "Monitoring" "NAX002" "$(get_service_url "netalertx" "${module_options["module_netalertx,port"]}")"
+update_sub_submenu_data "Software" "Monitoring" "PRO002" "$(get_service_url "prometheus" "${module_options["module_prometheus,port"]}")"
+update_sub_submenu_data "Software" "Monitoring" "DOZ002" "$(get_service_url "dozzle" "${module_options["module_dozzle,port"]}")"
+update_sub_submenu_data "Software" "Monitoring" "BSZ002" "$(get_service_url "beszel" "${module_options["module_beszel,port"]}")"
 
 # Management
 update_sub_submenu_data "Software" "Management" "CPT002" "https://$LOCALIPADD:${module_options["module_cockpit,port"]}"
-update_sub_submenu_data "Software" "Management" "HPG002" "http://$LOCALIPADD:${module_options["module_homepage,port"]}"
-update_sub_submenu_data "Software" "Management" "NBOX02" "http://$LOCALIPADD:${module_options["module_netbox,port"]}"
+update_sub_submenu_data "Software" "Management" "HPG002" "$(get_service_url "homepage" "${module_options["module_homepage,port"]}")"
+	update_sub_submenu_data "Software" "Management" "NBOX02" "$(get_service_url "netbox" "${module_options["module_netbox,port"]}")"
 
 # Downloaders
-update_sub_submenu_data "Software" "Downloaders" "DOW002" "http://$LOCALIPADD:${module_options["module_qbittorrent,port"]%% *}" # removing second port from url
-update_sub_submenu_data "Software" "Downloaders" "DEL002" "http://$LOCALIPADD:${module_options["module_deluge,port"]%% *}" # removing second port from url
-update_sub_submenu_data "Software" "Downloaders" "TRA002" "http://$LOCALIPADD:${module_options["module_transmission,port"]%% *}" # removing second port from url
-update_sub_submenu_data "Software" "Downloaders" "SABN02" "http://$LOCALIPADD:${module_options["module_sabnzbd,port"]}"
-update_sub_submenu_data "Software" "Downloaders" "MDS002" "http://$LOCALIPADD:${module_options["module_medusa,port"]}"
-update_sub_submenu_data "Software" "Downloaders" "SON002" "http://$LOCALIPADD:${module_options["module_sonarr,port"]}"
-update_sub_submenu_data "Software" "Downloaders" "RAD002" "http://$LOCALIPADD:${module_options["module_radarr,port"]}"
-update_sub_submenu_data "Software" "Downloaders" "BAZ002" "http://$LOCALIPADD:${module_options["module_bazarr,port"]}"
-update_sub_submenu_data "Software" "Downloaders" "LID002" "http://$LOCALIPADD:${module_options["module_lidarr,port"]}"
-update_sub_submenu_data "Software" "Downloaders" "RDR002" "http://$LOCALIPADD:${module_options["module_readarr,port"]}"
-update_sub_submenu_data "Software" "Downloaders" "DOW026" "http://$LOCALIPADD:${module_options["module_prowlarr,port"]}"
+update_sub_submenu_data "Software" "Downloaders" "DOW002" "$(get_service_url "qbittorrent" "${module_options["module_qbittorrent,port"]%% *}")" # removing second port from url
+update_sub_submenu_data "Software" "Downloaders" "DEL002" "$(get_service_url "deluge" "${module_options["module_deluge,port"]%% *}")" # removing second port from url
+update_sub_submenu_data "Software" "Downloaders" "TRA002" "$(get_service_url ${module_options["module_transmission,servicename"]} ${module_options["module_transmission,port"]})" # removing second port from url
+update_sub_submenu_data "Software" "Downloaders" "SABN02" "$(get_service_url "sabnzbd" "${module_options["module_sabnzbd,port"]}")"
+update_sub_submenu_data "Software" "Downloaders" "MDS002" "$(get_service_url "medusa" "${module_options["module_medusa,port"]}")"
+update_sub_submenu_data "Software" "Downloaders" "SON002" "$(get_service_url "sonarr" "${module_options["module_sonarr,port"]}")"
+update_sub_submenu_data "Software" "Downloaders" "RAD002" "$(get_service_url "radarr" "${module_options["module_radarr,port"]}")"
+update_sub_submenu_data "Software" "Downloaders" "BAZ002" "$(get_service_url "bazarr" "${module_options["module_bazarr,port"]}")"
+update_sub_submenu_data "Software" "Downloaders" "LID002" "$(get_service_url "lidarr" "${module_options["module_lidarr,port"]}")"
+update_sub_submenu_data "Software" "Downloaders" "RDR002" "$(get_service_url "readarr" "${module_options["module_readarr,port"]}")"
+update_sub_submenu_data "Software" "Downloaders" "DOW026" "$(get_service_url "prowlarr" "${module_options["module_prowlarr,port"]}")"
 update_sub_submenu_data "Software" "Downloaders" "JEL002" "http://$LOCALIPADD:${module_options["module_jellyseerr,port"]}"
 
 # web
-update_sub_submenu_data "Software" "WebHosting" "GHOST2" "http://$LOCALIPADD:${module_options["module_ghost,port"]}/ghost"
+update_sub_submenu_data "Software" "WebHosting" "GHOST2" "$(get_service_url "ghost" "${module_options["module_ghost,port"]}")/ghost"
+update_sub_submenu_data "Software" "WebHosting" "SWAG01" "https://$DISPLAY_URL"

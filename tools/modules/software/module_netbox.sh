@@ -11,6 +11,7 @@ module_options+=(
 	["module_netbox,arch"]="x86-64 arm64"
 	["module_netbox,dockerimage"]="netboxcommunity/netbox:latest"
 	["module_netbox,dockername"]="netbox"
+	["module_netbox,servicename"]="netbox"
 )
 
 #
@@ -31,7 +32,8 @@ function module_netbox () {
 	local DATABASE_PASSWORD="netbox"
 	local DATABASE_NAME="netbox"
 	local DATABASE_HOST="postgres-netbox"
-	local DATABASE_IMAGE="postgres:17-alpine"
+	local DATABASE_IMAGE="postgres"
+	local DATABASE_TAG="17-alpine"
 	local DATABASE_PORT="5432"
 
 	local commands
@@ -59,17 +61,44 @@ function module_netbox () {
 				module_redis install
 			fi
 			if ! docker container ls -a --format '{{.Names}}' | grep -q "^$DATABASE_HOST$"; then
-				module_postgres install $DATABASE_USER $DATABASE_PASSWORD $DATABASE_NAME $DATABASE_IMAGE $DATABASE_HOST
+				# module_postgres install <user> <password> <db> <image-repo> <image-tag> <container-name>
+				# (six positional args; image and tag must be passed separately, the
+				# previous five-arg form fused them and produced
+				# "postgres:17-alpine:postgres-netbox" — Docker 404 on pull.)
+				module_postgres install "$DATABASE_USER" "$DATABASE_PASSWORD" "$DATABASE_NAME" "$DATABASE_IMAGE" "$DATABASE_TAG" "$DATABASE_HOST"
 			fi
 
 			# Generate a random secret key (50+ chars)
 			NETBOX_SECRET_KEY=$(tr -dc 'A-Za-z0-9!@#$%^&*()-_=+' </dev/urandom | head -c 64)
+
+			# When SWAG is on this host, NetBox needs to know it lives
+			# at /netbox/ — otherwise Django renders absolute paths
+			# (form action="/login/?next=/netbox", static URIs like
+			# /static/…) that 404 once SWAG strips them at /netbox.
+			# Same applies to CSRF: Django rejects POSTs whose Origin
+			# header isn't in CSRF_TRUSTED_ORIGINS, so the SWAG host
+			# has to be listed there.
+			#
+			# Both settings are real Python in configuration.py, not
+			# env vars — netboxcommunity/netbox reads /etc/netbox/
+			# config/configuration.py, not BASE_PATH/CSRF_TRUSTED_*
+			# from the container env.
+			local netbox_base_path=""
+			local netbox_csrf_origins=""
+			if docker container ls -a --format "{{.Names}}" 2>/dev/null | grep -q "^swag$"; then
+				netbox_base_path="BASE_PATH = 'netbox/'"
+				if [[ -n "${SWAG_URL:-}" ]]; then
+					netbox_csrf_origins="CSRF_TRUSTED_ORIGINS = ['https://${SWAG_URL}']"
+				fi
+			fi
 
 			# Create configuration directory and file
 			mkdir -p "$base_dir/config"
 			if [[ ! -f "$base_dir/config/configuration.py" ]]; then
 				cat > "$base_dir/config/configuration.py" <<- EOT
 				ALLOWED_HOSTS = ['*']
+				${netbox_base_path}
+				${netbox_csrf_origins}
 				DATABASE = {
 					'NAME': '$DATABASE_NAME',
 					'USER': '$DATABASE_USER',
@@ -101,7 +130,10 @@ function module_netbox () {
 			# Pull image
 			docker_operation_progress pull "$dockerimage"
 
-			# Run container
+			# Run container. The BASE_PATH / CSRF_TRUSTED_ORIGINS
+			# settings that make NetBox SWAG-aware are baked into
+			# configuration.py above (env vars are not consumed by
+			# upstream NetBox).
 			if ! docker_operation_progress run "$dockername" \
 				-d \
 				--name="$dockername" \
@@ -142,6 +174,34 @@ function module_netbox () {
 					fi
 				done
 			fi
+
+			# Auto-configure SWAG reverse proxy if available.
+			# linuxserver/reverse-proxy-confs:master doesn't ship a
+			# netbox sample, so seed our own first.  No-op on hosts
+			# without SWAG, and skipped if a sample is already in
+			# place (LSIO upstream / hand-edited admin override).
+			# `<<-` strips ALL leading tabs (not spaces) from each line
+			# of the heredoc body before it reaches stdin, so the body
+			# below uses tabs to indent in source (editorconfig keeps
+			# the file tab-only) while emitting unindented nginx — the
+			# server doesn't care about whitespace inside a `location`
+			# block.
+			docker_seed_swag_proxy_conf "netbox" <<- 'NGINX'
+				## Custom Armbian seed — netbox subfolder proxy.
+				## upstream NetBox runs with BASE_PATH=netbox so the
+				## upstream URI is /netbox, not /. No path rewriting.
+				location ^~ /netbox {
+				include /config/nginx/proxy.conf;
+				include /config/nginx/resolver.conf;
+
+				set $upstream_app netbox;
+				set $upstream_port 8080;
+				set $upstream_proto http;
+
+				proxy_pass $upstream_proto://$upstream_app:$upstream_port;
+				}
+			NGINX
+			docker_configure_swag_proxy "netbox" "8080"
 
 			# Delete default API Token
 			docker exec -i "$dockername" /opt/netbox/netbox/manage.py shell -c "from users.models import Token;Token.objects.filter(key='0123456789abcdef0123456789abcdef01234567').delete();"

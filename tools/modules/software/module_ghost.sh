@@ -65,6 +65,8 @@ function module_ghost () {
 				-e url="http://$LOCALIPADD:${port}" \
 				-v "$base_dir:/var/lib/ghost/content" \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "2368"
 		;;
 		"${commands[1]}") # remove
 			docker_operation_progress rm "$dockername"

@@ -55,6 +55,9 @@ function module_filebrowser () {
 				"$dockerimage" \
 				--database /database/filebrowser.db
 
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "80"
+
 			# Wait for container to initialize and extract password from logs
 			sleep 3
 			local admin_password

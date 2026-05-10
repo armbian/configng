@@ -9,7 +9,7 @@ module_options+=(
 	["module_nextcloud,group"]="Downloaders"
 	["module_nextcloud,port"]="1443"
 	["module_nextcloud,arch"]="x86-64 arm64"
-	["module_nextcloud,dockerimage"]="lscr.io/linuxserver/nextcloud:latest"
+	["module_nextcloud,dockerimage"]="linuxserver/nextcloud:latest"
 	["module_nextcloud,dockername"]="nextcloud"
 )
 #
@@ -50,6 +50,8 @@ function module_nextcloud () {
 				-v "${base_dir}/data:/data" \
 				--restart=always \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "443" "https"
 		;;
 		"${commands[1]}") # remove
 			docker_operation_progress rm "$dockername"

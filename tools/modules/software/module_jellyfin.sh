@@ -9,7 +9,7 @@ module_options+=(
 	["module_jellyfin,group"]="Media"
 	["module_jellyfin,port"]="8096"
 	["module_jellyfin,arch"]="x86-64 arm64"
-	["module_jellyfin,dockerimage"]="lscr.io/linuxserver/jellyfin:latest"
+	["module_jellyfin,dockerimage"]="linuxserver/jellyfin:latest"
 	["module_jellyfin,dockername"]="jellyfin"
 )
 #
@@ -83,6 +83,8 @@ function module_jellyfin () {
 				-v "${base_dir}/movies:/data/movies" \
 				--restart=always \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "8096"
 		;;
 		"${commands[1]}") # remove
 			# Remove container and image (functions handle existence checks)

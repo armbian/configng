@@ -9,7 +9,7 @@ module_options+=(
 	["module_radarr,group"]="Downloaders"
 	["module_radarr,port"]="7878"
 	["module_radarr,arch"]="x86-64 arm64"
-	["module_radarr,dockerimage"]="lscr.io/linuxserver/radarr:latest"
+	["module_radarr,dockerimage"]="linuxserver/radarr:latest"
 	["module_radarr,dockername"]="radarr"
 )
 #
@@ -47,6 +47,8 @@ function module_radarr () {
 				-v "${base_dir}/downloads:/downloads" \
 				--restart=always \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "7878"
 		;;
 		"${commands[1]}") # remove
 			# Remove container and image (functions handle existence checks)
