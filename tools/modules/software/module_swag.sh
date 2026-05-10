@@ -225,8 +225,12 @@ function module_swag() {
 
 			# Set the password in the container
 			if docker exec -it "$dockername" htpasswd -b -c /config/nginx/.htpasswd "${swag_user}" "${swag_password}" >/dev/null 2>&1; then
-				# Restart container to apply changes
-				docker restart "$dockername" >/dev/null 2>&1
+				# nginx re-reads .htpasswd on every request — no
+				# reload is strictly required for the new credentials
+				# to take effect. Send SIGHUP anyway so any concurrent
+				# config edit lands at the same time, without dropping
+				# active connections (a full `docker restart` would).
+				docker exec "$dockername" nginx -s reload >/dev/null 2>&1 || true
 
 				# Show success message with credentials (using domain URL, not IP)
 				dialog_infobox "Password Configuration Complete" \
