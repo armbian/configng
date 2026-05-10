@@ -66,7 +66,15 @@ function module_zsh() {
 			sed -i "s|^SHELL=.*|SHELL=/bin/bash|" /etc/default/useradd
 			sed -i -E "s|(^\|#)DSHELL=.*|DSHELL=/bin/bash|" /etc/adduser.conf
 
-			usermod --shell /bin/bash root
+			# Same canary pattern as install: gate the blanket sed
+			# on root flipping cleanly. /bin/bash should always be
+			# present and listed, but if for any reason usermod
+			# refuses we'd otherwise leave root on zsh while every
+			# other account moved to bash — inconsistent state.
+			if ! usermod --shell /bin/bash root; then
+				echo "Error: usermod --shell /bin/bash root failed; /etc/passwd left unchanged" >&2
+				return 1
+			fi
 			sed -i 's|/zsh$|/bash|' /etc/passwd
 
 			# Remove packages last — flipping the shell pointer
