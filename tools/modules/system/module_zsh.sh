@@ -39,8 +39,16 @@ function module_zsh() {
 			sed -i -E "s|(^\|#)DSHELL=.*|DSHELL=/bin/zsh|" /etc/adduser.conf
 
 			# Refresh /etc/skel from armbian-zsh so newly created
-			# users get the matching dotfiles.
-			module_update_skel install
+			# users get the matching dotfiles. Abort on failure
+			# rather than silently leaving /etc/skel in an
+			# inconsistent state — useradd / adduser.conf already
+			# point at /bin/zsh, so a quiet skel failure would
+			# produce new accounts with bash dotfiles in a zsh
+			# shell.
+			if ! module_update_skel install; then
+				echo "Error: module_update_skel install failed; shell not changed" >&2
+				return 1
+			fi
 
 			# Move root + every existing user still on bash.
 			usermod --shell /bin/zsh root
