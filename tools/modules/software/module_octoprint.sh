@@ -43,9 +43,13 @@ function module_octoprint () {
 			fi
 
 			# Run container
+			# --net=lsio so SWAG (on the same bridge) can reach
+			# upstream by container name; otherwise the proxy-conf's
+			# `proxy_pass http://octoprint:80` would fail to resolve.
 			docker_operation_progress run "$dockername" \
 				-d \
 				--name="$dockername" \
+				--net=lsio \
 				-v "${base_dir}:/octoprint/octoprint" \
 				$device_params \
 				-e TZ="$(cat /etc/timezone)" \
@@ -53,6 +57,47 @@ function module_octoprint () {
 				-p "${port}:80" \
 				--restart=always \
 				"$dockerimage"
+
+			# Auto-configure SWAG reverse proxy if available.
+			# linuxserver/reverse-proxy-confs:master doesn't ship an
+			# octoprint sample, so seed our own first. The conf
+			# rewrites /octoprint/* to /* on the upstream side and
+			# sets X-Script-Name so OctoPrint emits URLs with the
+			# /octoprint prefix.
+			docker_seed_swag_proxy_conf "octoprint" <<- 'NGINX'
+				## Custom Armbian seed — octoprint subfolder proxy.
+				## set/rewrite ordering matters: `rewrite … break;`
+				## ends the rewrite-module phase, and `set` lives in
+				## that same phase. Any `set` *after* the break is
+				## silently skipped at request time, leaving
+				## $upstream_* empty and proxy_pass rendering "://:".
+				## Always declare set vars first.
+				location ^~ /octoprint {
+				include /config/nginx/proxy.conf;
+				include /config/nginx/resolver.conf;
+
+				set $upstream_app octoprint;
+				set $upstream_port 80;
+				set $upstream_proto http;
+
+				rewrite ^/octoprint/?(.*)$ /$1 break;
+
+				proxy_pass $upstream_proto://$upstream_app:$upstream_port;
+
+				proxy_set_header X-Script-Name /octoprint;
+				proxy_set_header X-Scheme $scheme;
+				}
+			NGINX
+			# Restart octoprint after the SWAG conf is in place. On a
+			# first install the container started under the old proxy
+			# state (or none) and gets stuck on "Loading OctoPrint's
+			# UI"; a restart picks up the X-Script-Name path and the
+			# UI loads correctly. No-op if the container isn't running
+			# (e.g. SWAG-less host where the seed/configure steps both
+			# returned non-zero).
+			if docker container ls --format '{{.Names}}' 2>/dev/null | grep -q "^${dockername}$"; then
+				docker restart "$dockername" >/dev/null 2>&1 || true
+			fi
 		;;
 		"${commands[1]}") # remove
 			docker_operation_progress rm "$dockername"

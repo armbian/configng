@@ -9,7 +9,7 @@ module_options+=(
 	["module_phpmyadmin,group"]="Database"
 	["module_phpmyadmin,port"]="8071"
 	["module_phpmyadmin,arch"]="x86-64 arm64"
-	["module_phpmyadmin,dockerimage"]="lscr.io/linuxserver/phpmyadmin:latest"
+	["module_phpmyadmin,dockerimage"]="linuxserver/phpmyadmin:latest"
 	["module_phpmyadmin,dockername"]="phpmyadmin"
 )
 #
@@ -47,6 +47,8 @@ function module_phpmyadmin () {
 				-v "${base_dir}/config:/config" \
 				--restart=always \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "80"
 		;;
 		"${commands[1]}") # remove
 			docker_operation_progress rm "$dockername"

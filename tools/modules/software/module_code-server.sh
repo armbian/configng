@@ -9,7 +9,7 @@ module_options+=(
 	["module_code-server,group"]="Development"
 	["module_code-server,port"]="8443"
 	["module_code-server,arch"]="x86-64 arm64"
-	["module_code-server,dockerimage"]="lscr.io/linuxserver/code-server:latest"
+	["module_code-server,dockerimage"]="linuxserver/code-server:latest"
 	["module_code-server,dockername"]="code-server"
 )
 #

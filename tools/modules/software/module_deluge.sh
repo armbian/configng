@@ -9,7 +9,7 @@ module_options+=(
 	["module_deluge,group"]="Downloaders"
 	["module_deluge,port"]="8112"
 	["module_deluge,arch"]="x86-64 arm64"
-	["module_deluge,dockerimage"]="lscr.io/linuxserver/deluge:latest"
+	["module_deluge,dockerimage"]="linuxserver/deluge:latest"
 	["module_deluge,dockername"]="deluge"
 )
 #
@@ -50,6 +50,8 @@ function module_deluge () {
 				-v "${base_dir}/downloads:/downloads" \
 				--restart=always \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "8112"
 		;;
 		"${commands[1]}") # remove
 			# Remove container and image (functions handle existence checks)

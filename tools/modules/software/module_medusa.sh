@@ -9,7 +9,7 @@ module_options+=(
 	["module_medusa,group"]="Downloaders"
 	["module_medusa,port"]="8081"
 	["module_medusa,arch"]="x86-64 arm64"
-	["module_medusa,dockerimage"]="lscr.io/linuxserver/medusa:latest"
+	["module_medusa,dockerimage"]="linuxserver/medusa:latest"
 	["module_medusa,dockername"]="medusa"
 )
 #
@@ -51,6 +51,8 @@ function module_medusa () {
 				-v "${base_dir}/downloads/tv:/tv" \
 				--restart=always \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "8081"
 		;;
 		"${commands[1]}") # remove
 			docker_operation_progress rm "$dockername"

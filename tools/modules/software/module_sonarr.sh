@@ -9,7 +9,7 @@ module_options+=(
 	["module_sonarr,group"]="Downloaders"
 	["module_sonarr,port"]="8989"
 	["module_sonarr,arch"]="x86-64 arm64"
-	["module_sonarr,dockerimage"]="lscr.io/linuxserver/sonarr:latest"
+	["module_sonarr,dockerimage"]="linuxserver/sonarr:latest"
 	["module_sonarr,dockername"]="sonarr"
 )
 #
@@ -47,6 +47,8 @@ function module_sonarr () {
 				-v "${base_dir}/downloads:/downloads" \
 				--restart=always \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "8989"
 		;;
 		"${commands[1]}") # remove
 			# Remove container and image (functions handle existence checks)

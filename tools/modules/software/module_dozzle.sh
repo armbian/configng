@@ -35,15 +35,30 @@ function module_dozzle () {
 			# Pull image (handles Docker installation and already-installed check)
 			docker_operation_progress pull "$dockerimage"
 
+			# When SWAG is on this host, tell Dozzle its base path
+			# via DOZZLE_BASE so the frontend emits asset URLs under
+			# /dozzle/. LSIO's stock proxy-conf header documents this
+			# requirement; without it the rendered HTML asks for
+			# /assets/… at the root, SWAG returns the default page,
+			# and the dozzle URL appears blank with no error in the
+			# nginx log (every request is a 200).
+			local -a dozzle_extra_env=()
+			if docker container ls -a --format "{{.Names}}" 2>/dev/null | grep -q "^swag$"; then
+				dozzle_extra_env+=(-e "DOZZLE_BASE=/dozzle")
+			fi
+
 			# Run Dozzle container with Docker socket mount
 			docker_operation_progress run "$dockername" \
 				-d \
 				--name "$dockername" \
 				--net lsio \
 				-v /var/run/docker.sock:/var/run/docker.sock \
+				"${dozzle_extra_env[@]}" \
 				-p "${port}:8080" \
 				--restart unless-stopped \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "8080"
 
 			# Wait for container to be ready
 			wait_for_container_ready "$dockername" 30 3 "running"

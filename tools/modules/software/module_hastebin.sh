@@ -52,6 +52,58 @@ function module_hastebin () {
 				-v "${base_dir}:/app:rw" \
 				--restart=always \
 				"$dockerimage"
+
+			# Auto-configure SWAG reverse proxy if available — best
+			# effort. Hastebin (haste-server fork) has no native
+			# subpath support: its application.js calls /documents,
+			# /raw/ and /about.md as absolute paths, and the inline
+			# JS extracts the document key via
+			# window.location.pathname.substring(1) — which under
+			# /hastebin/<key> reads "hastebin/<key>" and breaks paste
+			# viewing. We rewrite the absolute API paths in the JS
+			# bundle so paste *creation* works, but viewing existing
+			# pastes via /hastebin/<key> is broken without source
+			# patches. Subdomain proxying is the recommended path.
+			docker_seed_swag_proxy_conf "$dockername" <<- 'NGINX'
+				## Custom Armbian seed — hastebin subfolder proxy.
+				## Best-effort: hastebin is not subpath-aware. Paste
+				## creation is functional; viewing /<key> is broken.
+				## Subdomain proxying is the recommended path.
+				location = /hastebin { return 301 /hastebin/; }
+
+				location ^~ /hastebin/ {
+				include /config/nginx/proxy.conf;
+				include /config/nginx/resolver.conf;
+
+				set $upstream_app hastebin;
+				set $upstream_port 7777;
+				set $upstream_proto http;
+
+				rewrite ^/hastebin/(.*)$ /$1 break;
+
+				proxy_pass $upstream_proto://$upstream_app:$upstream_port;
+
+				## sub_filter operates on uncompressed bytes only;
+				## strip Accept-Encoding so the upstream returns
+				## plain text we can rewrite.
+				proxy_set_header Accept-Encoding "";
+
+				sub_filter_once off;
+				## text/html is always processed by default; listing it
+				## here triggers a 'duplicate MIME type' nginx warn.
+				sub_filter_types application/javascript text/css;
+				## Rewrite the absolute API paths the haste-server JS
+				## bundle uses, so they hit the proxy at /hastebin/…
+				## (which then strips back to / for the upstream).
+				sub_filter "'/documents'"  "'/hastebin/documents'";
+				sub_filter '"/documents"'  '"/hastebin/documents"';
+				sub_filter "'/raw/'"       "'/hastebin/raw/'";
+				sub_filter '"/raw/"'       '"/hastebin/raw/"';
+				sub_filter "'/about.md'"   "'/hastebin/about.md'";
+				sub_filter '"/about.md"'   '"/hastebin/about.md"';
+				}
+			NGINX
+			docker_configure_swag_proxy "$dockername" "7777"
 		;;
 		"${commands[1]}") # remove
 			docker_operation_progress rm "$dockername"

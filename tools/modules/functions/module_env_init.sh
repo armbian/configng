@@ -141,6 +141,13 @@ function set_runtime_variables() {
 	LOCALIPADD=$(ip -4 addr show dev $DEFAULT_ADAPTER | awk '/inet/ {print $2}' | cut -d'/' -f1)
 	LOCALSUBNET=$(echo ${LOCALIPADD} | cut -d"." -f1-3).0/24
 
+	# Check if SWAG is installed and use its domain URL for display
+	# This replaces LOCALIPADD with the actual domain in menu URLs
+	SWAG_URL=""
+	if [[ -f "${SOFTWARE_FOLDER}/swag/config/SWAG_URL" ]]; then
+		SWAG_URL=$(cat "${SOFTWARE_FOLDER}/swag/config/SWAG_URL")
+	fi
+
 	# create local lan and docker lan whitelist for transmission
 	TRANSMISSION_WHITELIST=$(echo ${LOCALIPADD} | cut -d"." -f1-3)".*"
 	local docker_subnet=$(docker network inspect lsio 2> /dev/null | grep Subnet | xargs | cut -d" " -f2 | cut -d"/" -f1 | cut -d"." -f1-2)

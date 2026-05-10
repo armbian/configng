@@ -9,8 +9,9 @@ module_options+=(
 	["module_transmission,group"]="Downloaders"
 	["module_transmission,port"]="9091"
 	["module_transmission,arch"]="x86-64 arm64"
-	["module_transmission,dockerimage"]="lscr.io/linuxserver/transmission:latest"
+	["module_transmission,dockerimage"]="linuxserver/transmission:latest"
 	["module_transmission,dockername"]="transmission"
+	["module_transmission,servicename"]="transmission"
 )
 #
 # Module Transmission
@@ -58,7 +59,9 @@ function module_transmission () {
 				-v "${base_dir}/watch:/watch" \
 				--restart=always \
 				"$dockerimage"
-		;;
+		# Auto-configure SWAG reverse proxy if available
+		docker_configure_swag_proxy "transmission" "9091"
+			;;
 		"${commands[1]}") # remove
 			# Remove container and image (functions handle existence checks)
 			docker_operation_progress rm "$dockername"

@@ -142,6 +142,11 @@ docker_operation_progress() {
 	# Ensure Docker is available
 	docker_ensure_docker
 
+	# Ensure unbuffer is available (for real-time pull progress)
+	if ! command -v unbuffer >/dev/null 2>&1; then
+		pkg_install expect
+	fi
+
 	# Argument validation
 	if [[ -z "$operation" || -z "$target" ]]; then
 		dialog_msgbox "Usage Error" "Usage: docker_operation_progress <pull|rm|rmi> <target>\n\n  pull <image>   - Pull Docker image\n  rm <container> - Remove container\n  rmi <image>    - Remove image" 12 60
@@ -466,4 +471,190 @@ docker_operation_progress() {
 	rm -f "$error_file" "$rc_file"
 
 	return 0
+}
+
+#
+# Configure SWAG reverse proxy for a service
+# Usage: docker_configure_swag_proxy <servicename> [port] [protocol] [upstream_host]
+#
+# Parameters:
+#   servicename    - Name of the service (e.g., "transmission", "sonarr")
+#   port           - Optional: Override the default port in the proxy config
+#   protocol       - Optional: Override the protocol (http/https) in the proxy config
+#   upstream_host  - Optional: Override 'set $upstream_app …' in the proxy
+#                    config. Stock LSIO samples assume the service is on the
+#                    'lsio' bridge and resolve by container name; modules
+#                    that run with '--network=host' can't be addressed that
+#                    way, so we point at the host's IP (or any IP the SWAG
+#                    container can route to) here. Pass $LOCALIPADD or similar.
+#
+# Returns: 0 on success, 1 if proxy config not found or enabling failed
+#
+docker_configure_swag_proxy() {
+	local servicename="$1"
+	local port="$2"
+	local protocol="$3"
+	local upstream_host="$4"
+
+	# Check if SWAG container exists
+	if ! docker container ls -a --format "{{.Names}}" | grep -q "^swag$"; then
+		return 2
+	fi
+
+	# Check if SWAG has proxy config for this service (sample or actual)
+	local proxy_sample="/config/nginx/proxy-confs/${servicename}.subfolder.conf.sample"
+	local proxy_actual="/config/nginx/proxy-confs/${servicename}.subfolder.conf"
+
+	if docker exec swag test -f "$proxy_sample" 2>/dev/null; then
+		# Copy sample to actual config if it doesn't exist
+		if ! docker exec swag test -f "$proxy_actual" 2>/dev/null; then
+			docker exec swag cp "$proxy_sample" "$proxy_actual" 2>/dev/null
+		fi
+
+		# If port is specified, update it in the config
+		if [[ -n "$port" ]]; then
+			docker exec swag sed -i "s/set \\\$upstream_port [0-9]*/set \\\$upstream_port ${port}/g" "$proxy_actual" 2>/dev/null
+		fi
+
+		# If protocol is specified, update it in the config
+		if [[ -n "$protocol" ]]; then
+			docker exec swag sed -i "s/set \\\$upstream_proto [a-z]*/set \\\$upstream_proto ${protocol}/g" "$proxy_actual" 2>/dev/null
+		fi
+
+		# If upstream_host is specified, replace the LSIO bridge name
+		# in 'set $upstream_app …'. Required for --network=host
+		# services since the docker DNS can't resolve the container
+		# name from inside SWAG's lsio namespace.
+		if [[ -n "$upstream_host" ]]; then
+			docker exec swag sed -i "s|set \\\$upstream_app [^;]*|set \\\$upstream_app ${upstream_host}|g" "$proxy_actual" 2>/dev/null
+		fi
+
+		# Enable the proxy configuration
+		if docker exec swag touch "/config/nginx/proxy-confs/${servicename}.subfolder.conf.enabled" 2>/dev/null; then
+			# Apply HTTP basic auth if the operator has run
+			# 'module_swag password' (which creates .htpasswd). We
+			# do this BEFORE the nginx reload so both changes land
+			# in a single SIGHUP and active connections aren't
+			# interrupted twice.
+			docker_swag_enable_basic_auth "$servicename"
+			# Reload nginx to apply
+			docker exec swag nginx -s reload >/dev/null 2>&1
+			return 0
+		fi
+		return 1
+	fi
+
+	return 1
+}
+
+#
+# Enable HTTP basic auth on a service's subfolder.conf.
+# Usage: docker_swag_enable_basic_auth <servicename>
+#
+# No-ops unless /config/nginx/.htpasswd exists inside SWAG (i.e. the
+# operator has already set a password via 'module_swag password').
+# Idempotent — safe to call repeatedly. Two cases:
+#   - LSIO stock confs ship `auth_basic` and `auth_basic_user_file`
+#     commented out. We uncomment them via sed.
+#   - Our docker_seed_swag_proxy_conf-seeded confs may not have those
+#     lines at all. We inject them just inside the location block.
+# We deliberately ONLY touch the htpasswd-flavoured auth_basic lines —
+# LSIO's templates also ship commented `include` lines for ldap /
+# authelia / authentik integrations which the operator may want to
+# enable separately.
+#
+# Caller is responsible for the nginx reload — this function only
+# edits the file. (Skipping the reload here lets configure_swag_proxy
+# batch its own touch+enable+reload into a single SIGHUP.)
+#
+# Returns: 0 always (best effort). 2 if SWAG not installed.
+#
+docker_swag_enable_basic_auth() {
+	local servicename="$1"
+
+	if ! docker container ls -a --format "{{.Names}}" | grep -q "^swag$"; then
+		return 2
+	fi
+
+	# No password set yet — leave the conf alone so the user can run
+	# 'module_swag password' later and have it apply retroactively.
+	if ! docker exec swag test -f /config/nginx/.htpasswd 2>/dev/null; then
+		return 0
+	fi
+
+	local conf="/config/nginx/proxy-confs/${servicename}.subfolder.conf"
+	if ! docker exec swag test -f "$conf" 2>/dev/null; then
+		return 0
+	fi
+
+	# Already active? Nothing to do.
+	if docker exec swag grep -qE '^[[:space:]]*auth_basic_user_file[[:space:]]+/config/nginx/\.htpasswd' "$conf" 2>/dev/null; then
+		return 0
+	fi
+
+	# Are the LSIO stock commented lines present? Uncomment them.
+	if docker exec swag grep -qE '^[[:space:]]*#auth_basic_user_file[[:space:]]+/config/nginx/\.htpasswd' "$conf" 2>/dev/null; then
+		docker exec swag sed -i \
+			-e 's|^\([[:space:]]*\)#\(auth_basic[[:space:]]\)|\1\2|' \
+			-e 's|^\([[:space:]]*\)#\(auth_basic_user_file[[:space:]]\)|\1\2|' \
+			"$conf" 2>/dev/null
+		return 0
+	fi
+
+	# Custom-seeded conf with no auth lines at all — inject them just
+	# inside the first `location ^~ /<service>` block.
+	docker exec swag sed -i \
+		"/^[[:space:]]*location[[:space:]]\\^~[[:space:]]\\/${servicename}/a\\
+\\tauth_basic \"Restricted\";\\
+\\tauth_basic_user_file /config/nginx/.htpasswd;" \
+		"$conf" 2>/dev/null
+
+	return 0
+}
+
+#
+# Seed a custom SWAG subfolder proxy-conf sample inside the SWAG container.
+# Usage: docker_seed_swag_proxy_conf <servicename> <<'NGINX'
+#            location ^~ /<servicename> { … }
+#        NGINX
+#
+# Used for services that linuxserver/reverse-proxy-confs:master does NOT
+# ship a stock sample for (e.g. netbox, immich). Reads the conf body from
+# stdin and writes it to:
+#   /config/nginx/proxy-confs/<servicename>.subfolder.conf.sample
+# inside the SWAG container, where docker_configure_swag_proxy() picks
+# it up on its next call.
+#
+# Behaviour:
+#   - If the SWAG container isn't installed, returns 2 (no-op).
+#   - If a `.sample` is already present (whether stock LSIO or seeded by
+#     a prior call), returns 0 without overwriting — defer to upstream
+#     when it eventually ships one, and keep an admin's hand-edited
+#     sample intact across re-installs.
+#   - Otherwise writes the body and returns 0 on success, 1 on docker
+#     exec failure.
+#
+# Returns: 0 on success / no-op skip, 1 on failure, 2 if no SWAG.
+#
+docker_seed_swag_proxy_conf() {
+	local servicename="$1"
+
+	if ! docker container ls -a --format "{{.Names}}" | grep -q "^swag$"; then
+		return 2
+	fi
+
+	local proxy_sample="/config/nginx/proxy-confs/${servicename}.subfolder.conf.sample"
+
+	# Already there — let it be (LSIO upstream may have started shipping
+	# one between releases; the admin may have hand-edited it).
+	if docker exec swag test -f "$proxy_sample" 2>/dev/null; then
+		return 0
+	fi
+
+	# `docker exec -i ... sh -c "cat > FILE"` is the portable way to
+	# stream stdin into a file inside the container.
+	if docker exec -i swag sh -c "cat > '${proxy_sample}'" 2>/dev/null; then
+		return 0
+	fi
+	return 1
 }
