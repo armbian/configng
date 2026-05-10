@@ -531,6 +531,12 @@ docker_configure_swag_proxy() {
 
 		# Enable the proxy configuration
 		if docker exec swag touch "/config/nginx/proxy-confs/${servicename}.subfolder.conf.enabled" 2>/dev/null; then
+			# Apply HTTP basic auth if the operator has run
+			# 'module_swag password' (which creates .htpasswd). We
+			# do this BEFORE the nginx reload so both changes land
+			# in a single SIGHUP and active connections aren't
+			# interrupted twice.
+			docker_swag_enable_basic_auth "$servicename"
 			# Reload nginx to apply
 			docker exec swag nginx -s reload >/dev/null 2>&1
 			return 0
@@ -539,6 +545,71 @@ docker_configure_swag_proxy() {
 	fi
 
 	return 1
+}
+
+#
+# Enable HTTP basic auth on a service's subfolder.conf.
+# Usage: docker_swag_enable_basic_auth <servicename>
+#
+# No-ops unless /config/nginx/.htpasswd exists inside SWAG (i.e. the
+# operator has already set a password via 'module_swag password').
+# Idempotent — safe to call repeatedly. Two cases:
+#   - LSIO stock confs ship `auth_basic` and `auth_basic_user_file`
+#     commented out. We uncomment them via sed.
+#   - Our docker_seed_swag_proxy_conf-seeded confs may not have those
+#     lines at all. We inject them just inside the location block.
+# We deliberately ONLY touch the htpasswd-flavoured auth_basic lines —
+# LSIO's templates also ship commented `include` lines for ldap /
+# authelia / authentik integrations which the operator may want to
+# enable separately.
+#
+# Caller is responsible for the nginx reload — this function only
+# edits the file. (Skipping the reload here lets configure_swag_proxy
+# batch its own touch+enable+reload into a single SIGHUP.)
+#
+# Returns: 0 always (best effort). 2 if SWAG not installed.
+#
+docker_swag_enable_basic_auth() {
+	local servicename="$1"
+
+	if ! docker container ls -a --format "{{.Names}}" | grep -q "^swag$"; then
+		return 2
+	fi
+
+	# No password set yet — leave the conf alone so the user can run
+	# 'module_swag password' later and have it apply retroactively.
+	if ! docker exec swag test -f /config/nginx/.htpasswd 2>/dev/null; then
+		return 0
+	fi
+
+	local conf="/config/nginx/proxy-confs/${servicename}.subfolder.conf"
+	if ! docker exec swag test -f "$conf" 2>/dev/null; then
+		return 0
+	fi
+
+	# Already active? Nothing to do.
+	if docker exec swag grep -qE '^[[:space:]]*auth_basic_user_file[[:space:]]+/config/nginx/\.htpasswd' "$conf" 2>/dev/null; then
+		return 0
+	fi
+
+	# Are the LSIO stock commented lines present? Uncomment them.
+	if docker exec swag grep -qE '^[[:space:]]*#auth_basic_user_file[[:space:]]+/config/nginx/\.htpasswd' "$conf" 2>/dev/null; then
+		docker exec swag sed -i \
+			-e 's|^\([[:space:]]*\)#\(auth_basic[[:space:]]\)|\1\2|' \
+			-e 's|^\([[:space:]]*\)#\(auth_basic_user_file[[:space:]]\)|\1\2|' \
+			"$conf" 2>/dev/null
+		return 0
+	fi
+
+	# Custom-seeded conf with no auth lines at all — inject them just
+	# inside the first `location ^~ /<service>` block.
+	docker exec swag sed -i \
+		"/^[[:space:]]*location[[:space:]]\\^~[[:space:]]\\/${servicename}/a\\
+\\tauth_basic \"Restricted\";\\
+\\tauth_basic_user_file /config/nginx/.htpasswd;" \
+		"$conf" 2>/dev/null
+
+	return 0
 }
 
 #

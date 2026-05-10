@@ -254,11 +254,28 @@ function module_swag() {
 
 			# Set the password in the container
 			if docker exec -it "$dockername" htpasswd -b -c /config/nginx/.htpasswd "${swag_user}" "${swag_password}" >/dev/null 2>&1; then
+				# Retroactively enable HTTP basic auth on every
+				# service whose proxy-conf is already enabled.
+				# Newly-installed services pick up auth via
+				# docker_configure_swag_proxy directly, but services
+				# installed BEFORE the password was set still ship
+				# with auth_basic commented out — apply it now so the
+				# password actually gates everything proxied through
+				# SWAG, which is what the operator just asked for.
+				local enabled_conf service
+				while IFS= read -r enabled_conf; do
+					[[ -z "$enabled_conf" ]] && continue
+					service="${enabled_conf##*/}"
+					service="${service%.subfolder.conf.enabled}"
+					docker_swag_enable_basic_auth "$service"
+				done < <(docker exec "$dockername" sh -c 'ls /config/nginx/proxy-confs/*.subfolder.conf.enabled 2>/dev/null')
+
 				# nginx re-reads .htpasswd on every request — no
 				# reload is strictly required for the new credentials
-				# to take effect. Send SIGHUP anyway so any concurrent
-				# config edit lands at the same time, without dropping
-				# active connections (a full `docker restart` would).
+				# to take effect. Send SIGHUP anyway so the
+				# auth_basic edits above land alongside it, without
+				# dropping active connections (a full `docker restart`
+				# would).
 				docker exec "$dockername" nginx -s reload >/dev/null 2>&1 || true
 
 				# Show success message with credentials (using domain URL, not IP)
