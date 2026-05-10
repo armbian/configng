@@ -53,9 +53,17 @@ function module_jellyfin () {
 			[ -e "/dev/$dev" ] && hwacc+=" --device /dev/$dev"
 		done
 	elif [[ "${LINUXFAMILY}" == "bcm2711" ]]; then
-		hwacc="--device=/dev/video10:/dev/video10 --device=/dev/video11:/dev/video11 --device=/dev/video12:/dev/video12"
+		# Only pass devices that actually exist; bare-metal Pi
+		# exposes them, but VMs and containers without VC4 may not.
+		for dev in video10 video11 video12; do
+			[[ -e "/dev/$dev" ]] && hwacc+=" --device=/dev/$dev:/dev/$dev"
+		done
 	elif [[ "${LINUXFAMILY}" == "x86" ]]; then
-		hwacc="--device=/dev/dri:/dev/dri"
+		# /dev/dri is the Intel/AMD render node — present on
+		# bare-metal x86 with an iGPU, missing on most VPS / headless
+		# setups. Skip silently when absent rather than failing the
+		# whole install on `error gathering device information`.
+		[[ -e /dev/dri ]] && hwacc="--device=/dev/dri:/dev/dri"
 	fi
 
 	case "$1" in
