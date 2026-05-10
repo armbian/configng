@@ -156,6 +156,7 @@ update_sub_submenu_data "Software" "Media" "OWC002" "http://$LOCALIPADD:${module
 update_sub_submenu_data "Software" "Media" "JMS002" "$(get_service_url "jellyfin" "${module_options["module_jellyfin,port"]}")"
 	update_sub_submenu_data "Software" "Media" "IMM002" "$(get_service_url "immich" "${module_options["module_immich,port"]}")"
 update_sub_submenu_data "Software" "Media" "NAV002" "http://$LOCALIPADD:${module_options["module_navidrome,port"]}"
+update_sub_submenu_data "Software" "Media" "HPS002" "http://$LOCALIPADD:${module_options["module_hastebin,port"]}"
 
 # Containers
 # Portainer uses HTTPS on port 9443 (not the edge agent port 9000)
