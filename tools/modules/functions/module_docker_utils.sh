@@ -525,3 +525,50 @@ docker_configure_swag_proxy() {
 
 	return 1
 }
+
+#
+# Seed a custom SWAG subfolder proxy-conf sample inside the SWAG container.
+# Usage: docker_seed_swag_proxy_conf <servicename> <<'NGINX'
+#            location ^~ /<servicename> { … }
+#        NGINX
+#
+# Used for services that linuxserver/reverse-proxy-confs:master does NOT
+# ship a stock sample for (e.g. netbox, immich). Reads the conf body from
+# stdin and writes it to:
+#   /config/nginx/proxy-confs/<servicename>.subfolder.conf.sample
+# inside the SWAG container, where docker_configure_swag_proxy() picks
+# it up on its next call.
+#
+# Behaviour:
+#   - If the SWAG container isn't installed, returns 2 (no-op).
+#   - If a `.sample` is already present (whether stock LSIO or seeded by
+#     a prior call), returns 0 without overwriting — defer to upstream
+#     when it eventually ships one, and keep an admin's hand-edited
+#     sample intact across re-installs.
+#   - Otherwise writes the body and returns 0 on success, 1 on docker
+#     exec failure.
+#
+# Returns: 0 on success / no-op skip, 1 on failure, 2 if no SWAG.
+#
+docker_seed_swag_proxy_conf() {
+	local servicename="$1"
+
+	if ! docker container ls -a --format "{{.Names}}" | grep -q "^swag$"; then
+		return 2
+	fi
+
+	local proxy_sample="/config/nginx/proxy-confs/${servicename}.subfolder.conf.sample"
+
+	# Already there — let it be (LSIO upstream may have started shipping
+	# one between releases; the admin may have hand-edited it).
+	if docker exec swag test -f "$proxy_sample" 2>/dev/null; then
+		return 0
+	fi
+
+	# `docker exec -i ... sh -c "cat > FILE"` is the portable way to
+	# stream stdin into a file inside the container.
+	if docker exec -i swag sh -c "cat > '${proxy_sample}'" 2>/dev/null; then
+		return 0
+	fi
+	return 1
+}

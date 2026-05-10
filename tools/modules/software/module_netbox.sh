@@ -66,11 +66,34 @@ function module_netbox () {
 			# Generate a random secret key (50+ chars)
 			NETBOX_SECRET_KEY=$(tr -dc 'A-Za-z0-9!@#$%^&*()-_=+' </dev/urandom | head -c 64)
 
+			# When SWAG is on this host, NetBox needs to know it lives
+			# at /netbox/ — otherwise Django renders absolute paths
+			# (form action="/login/?next=/netbox", static URIs like
+			# /static/…) that 404 once SWAG strips them at /netbox.
+			# Same applies to CSRF: Django rejects POSTs whose Origin
+			# header isn't in CSRF_TRUSTED_ORIGINS, so the SWAG host
+			# has to be listed there.
+			#
+			# Both settings are real Python in configuration.py, not
+			# env vars — netboxcommunity/netbox reads /etc/netbox/
+			# config/configuration.py, not BASE_PATH/CSRF_TRUSTED_*
+			# from the container env.
+			local netbox_base_path=""
+			local netbox_csrf_origins=""
+			if docker container ls -a --format "{{.Names}}" 2>/dev/null | grep -q "^swag$"; then
+				netbox_base_path="BASE_PATH = 'netbox/'"
+				if [[ -n "${SWAG_URL:-}" ]]; then
+					netbox_csrf_origins="CSRF_TRUSTED_ORIGINS = ['https://${SWAG_URL}']"
+				fi
+			fi
+
 			# Create configuration directory and file
 			mkdir -p "$base_dir/config"
 			if [[ ! -f "$base_dir/config/configuration.py" ]]; then
 				cat > "$base_dir/config/configuration.py" <<- EOT
 				ALLOWED_HOSTS = ['*']
+				${netbox_base_path}
+				${netbox_csrf_origins}
 				DATABASE = {
 					'NAME': '$DATABASE_NAME',
 					'USER': '$DATABASE_USER',
@@ -102,7 +125,10 @@ function module_netbox () {
 			# Pull image
 			docker_operation_progress pull "$dockerimage"
 
-			# Run container
+			# Run container. The BASE_PATH / CSRF_TRUSTED_ORIGINS
+			# settings that make NetBox SWAG-aware are baked into
+			# configuration.py above (env vars are not consumed by
+			# upstream NetBox).
 			if ! docker_operation_progress run "$dockername" \
 				-d \
 				--name="$dockername" \
@@ -144,7 +170,26 @@ function module_netbox () {
 				done
 			fi
 
-			# Auto-configure SWAG reverse proxy if available
+			# Auto-configure SWAG reverse proxy if available.
+			# linuxserver/reverse-proxy-confs:master doesn't ship a
+			# netbox sample, so seed our own first.  No-op on hosts
+			# without SWAG, and skipped if a sample is already in
+			# place (LSIO upstream / hand-edited admin override).
+			docker_seed_swag_proxy_conf "netbox" <<- 'NGINX'
+				## Custom Armbian seed — netbox subfolder proxy.
+				## upstream NetBox runs with BASE_PATH=netbox so the
+				## upstream URI is /netbox, not /. No path rewriting.
+				location ^~ /netbox {
+				    include /config/nginx/proxy.conf;
+				    include /config/nginx/resolver.conf;
+
+				    set $upstream_app netbox;
+				    set $upstream_port 8080;
+				    set $upstream_proto http;
+
+				    proxy_pass $upstream_proto://$upstream_app:$upstream_port;
+				}
+			NGINX
 			docker_configure_swag_proxy "netbox" "8080"
 
 			# Delete default API Token
