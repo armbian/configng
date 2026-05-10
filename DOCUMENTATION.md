@@ -1246,6 +1246,7 @@ These helper functions facilitate various operations related to job management, 
 | Install domoticz container | install remove purge status help | @armbian 
 | Install and configure automatic updates | install remove configure status defaults help | @igorpecovnik 
 | Menu for armbianmonitor features | see_monitoring | @Tearran 
+| Switch system-wide login shell to ZSH | install remove status help | @igorpecovnik 
 | Install VS Code in browser container | install remove purge status help | @igorpecovnik 
 | Remove package | pkg_remove nmap | @dimitry-ishenko 
 | Install Immich (photo and video backup solution) | install remove purge status help |  
@@ -1334,7 +1335,6 @@ parse_menu_items 'menu_options_array' --with-help | @viraniac
 | Check if service is enabled | srv_enabled ssh.service | @dimitry-ishenko 
 | Download and flash Armbian OS images for selected hardware | install remove purge status help |  
 | Install adguardhome container | install remove purge status help | @igorpecovnik 
-| Set system shell to BASH | manage_zsh enable|disable | @igorpecovnik 
 | Install NetBox container (IPAM/DCIM tool) | install remove purge status help |  
 | Install sabnzbd container | install remove purge status help | @armbian 
 | Mask service | srv_mask ssh.service | @dimitry-ishenko 
