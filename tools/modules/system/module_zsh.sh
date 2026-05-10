@@ -29,7 +29,7 @@ function module_zsh() {
 			# Install before changing any shell pointer. If the
 			# install fails and we've already pointed root + users
 			# at /bin/zsh, pam_shells will lock everyone out.
-			if ! pkg_install armbian-zsh zsh-common zsh tmux; then
+			if ! pkg_install armbian-zsh zsh-common zsh; then
 				echo "Failed to install zsh packages; shell not changed"
 				return 1
 			fi
@@ -57,7 +57,7 @@ function module_zsh() {
 			# Remove packages last — flipping the shell pointer
 			# first means the post-removal hook can't disturb a
 			# logged-in user's active zsh process.
-			pkg_remove armbian-zsh zsh-common zsh tmux
+			pkg_remove armbian-zsh zsh-common zsh
 		;;
 
 		"${commands[2]}") # status
