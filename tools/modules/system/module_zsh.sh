@@ -7,7 +7,7 @@ module_options+=(
 	["module_zsh,doc_link"]=""
 	["module_zsh,group"]="User"
 	["module_zsh,status"]="Active"
-	["module_zsh,arch"]=""
+	["module_zsh,arch"]="x86-64 arm64 armhf riscv64"
 )
 
 #
