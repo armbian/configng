@@ -62,6 +62,21 @@ function module_beszel () {
 				--restart=always \
 				"$dockerimage"
 
+			# Reset the active conf so we always start from LSIO's
+			# stock sample. Required when upgrading from a prior
+			# version of this module that shipped a custom
+			# sub_filter-based seed — without this, the stale conf
+			# would double-prefix asset URLs (/beszel/beszel/...).
+			# docker_configure_swag_proxy only copies .sample to
+			# active when active is absent, so we have to drop it
+			# explicitly.
+			if docker container ls -a --format "{{.Names}}" 2>/dev/null | grep -q "^swag$"; then
+				docker exec swag rm -f \
+					/config/nginx/proxy-confs/beszel.subfolder.conf \
+					/config/nginx/proxy-confs/beszel.subfolder.conf.enabled \
+					2>/dev/null || true
+			fi
+
 			# LSIO ships a stock beszel.subfolder.conf.sample that
 			# works as-is once APP_URL is set on the container.
 			docker_configure_swag_proxy "$dockername" "8090"
