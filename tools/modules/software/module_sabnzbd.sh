@@ -9,7 +9,7 @@ module_options+=(
 	["module_sabnzbd,group"]="Downloaders"
 	["module_sabnzbd,port"]="8380"
 	["module_sabnzbd,arch"]="x86-64 arm64"
-	["module_sabnzbd,dockerimage"]="lscr.io/linuxserver/sabnzbd:latest"
+	["module_sabnzbd,dockerimage"]="linuxserver/sabnzbd:latest"
 	["module_sabnzbd,dockername"]="sabnzbd"
 )
 #

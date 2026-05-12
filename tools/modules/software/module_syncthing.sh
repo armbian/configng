@@ -9,7 +9,7 @@ module_options+=(
 	["module_syncthing,group"]="Media"
 	["module_syncthing,port"]="8884 22000 21027"
 	["module_syncthing,arch"]="x86-64 arm64"
-	["module_syncthing,dockerimage"]="lscr.io/linuxserver/syncthing:latest"
+	["module_syncthing,dockerimage"]="linuxserver/syncthing:latest"
 	["module_syncthing,dockername"]="syncthing"
 )
 #

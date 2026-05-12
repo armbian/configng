@@ -9,7 +9,7 @@ module_options+=(
 	["module_duplicati,group"]="Backup"
 	["module_duplicati,port"]="8200"
 	["module_duplicati,arch"]="x86-64 arm64"
-	["module_duplicati,dockerimage"]="lscr.io/linuxserver/duplicati:latest"
+	["module_duplicati,dockerimage"]="linuxserver/duplicati:latest"
 	["module_duplicati,dockername"]="duplicati"
 )
 #
