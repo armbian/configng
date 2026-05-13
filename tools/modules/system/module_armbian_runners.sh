@@ -163,11 +163,22 @@ function module_armbian_runners () {
 			# brings them up to date; the operator-edited conf at
 			# /etc/armbian/runner-cleanup.conf is preserved on
 			# re-install (template dropped as .conf.dist so admins
-			# can diff for new defaults). Assets live next to this
-			# module in the repo.
-			local cleanup_src
-			cleanup_src="$(dirname "${BASH_SOURCE[0]}")/runner-cleanup"
-			if [[ -d "$cleanup_src" ]]; then
+			# can diff for new defaults).
+			#
+			# Asset path resolution: in a source checkout the assets
+			# sit next to this module under tools/modules/system/.
+			# In the installed .deb they ship to
+			# /usr/share/armbian-config/runner-cleanup/ — debian.conf
+			# adds the rule, mirroring how the desktops assets are
+			# laid out. Try BASH_SOURCE-relative first (dev), fall
+			# back to the install path (production).
+			local cleanup_src=""
+			if [[ -d "$(dirname "${BASH_SOURCE[0]}")/runner-cleanup" ]]; then
+				cleanup_src="$(dirname "${BASH_SOURCE[0]}")/runner-cleanup"
+			elif [[ -d /usr/share/armbian-config/runner-cleanup ]]; then
+				cleanup_src=/usr/share/armbian-config/runner-cleanup
+			fi
+			if [[ -n "$cleanup_src" ]]; then
 				install -m 0755 "${cleanup_src}/runner-cleanup"         /usr/local/sbin/runner-cleanup
 				install -m 0644 "${cleanup_src}/runner-cleanup.service" /etc/systemd/system/runner-cleanup.service
 				install -m 0644 "${cleanup_src}/runner-cleanup.timer"   /etc/systemd/system/runner-cleanup.timer
@@ -190,7 +201,7 @@ function module_armbian_runners () {
 						echo "Error: 'systemctl start runner-cleanup.timer' failed" >&2
 				fi
 			else
-				echo "Warning: runner-cleanup assets not found at ${cleanup_src}; skipping maintenance helper install" >&2
+				echo "Warning: runner-cleanup assets not found in source tree next to module or at /usr/share/armbian-config/runner-cleanup; skipping maintenance helper install" >&2
 			fi
 
 		;;
