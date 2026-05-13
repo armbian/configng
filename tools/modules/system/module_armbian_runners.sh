@@ -119,7 +119,16 @@ function module_armbian_runners () {
 				-H "X-GitHub-Api-Version: 2022-11-28" \
 				https://api.github.com/${prefix}/${registration_url}/actions/runners/registration-token | jq -r .token)
 
-				${module_options["module_armbian_runners,feature"]} ${commands[1]} ${runner_name} "${i}"
+				if ! ${module_options["module_armbian_runners,feature"]} ${commands[1]} ${runner_name} "${i}"; then
+					# `remove` returns non-zero when GitHub refused
+					# the DELETE — almost always because the runner
+					# is currently running a job. Skip this index;
+					# the existing runner keeps doing its work
+					# untouched, and the next install pass will
+					# pick it up when it's idle.
+					echo "Skipping install of runner ${i} (${runner_name}-${i}) — currently busy on GitHub" >&2
+					continue
+				fi
 
 				adduser --quiet --disabled-password --shell /bin/bash \
 				--home /home/actions-runner-${i} --gecos "actions-runner-${i}" actions-runner-${i}
@@ -188,7 +197,16 @@ function module_armbian_runners () {
 		"${commands[1]}")
 			# delete if previous already exists
 			echo "Removing runner $3 on GitHub"
-			${module_options["module_armbian_runners,feature"]} ${commands[2]} "$2-$3"
+			if ! ${module_options["module_armbian_runners,feature"]} ${commands[2]} "$2-$3"; then
+				# Most common failure: GitHub returned 422 because
+				# the runner is currently running a job. Don't proceed
+				# with the local cleanup — that would leave a state
+				# where GitHub still thinks the runner exists, the
+				# host has no install, and the subsequent config.sh
+				# would fail with 'A runner exists with the same name'.
+				echo "Skipping local removal of actions-runner-$3 — GitHub delete failed (runner likely busy)" >&2
+				return 1
+			fi
 			echo "Removing runner $3 locally"
 			runner_home=$(getent passwd "actions-runner-${3}" | cut -d: -f6)
 			if [[ -f "${runner_home}/svc.sh" ]]; then
@@ -202,6 +220,13 @@ function module_armbian_runners () {
 		"${commands[2]}")
 			DELETE=$2
 			x=1
+			# Failure flag — set on any non-204 DELETE response. The
+			# most common case is HTTP 422 'runner is currently
+			# running a job', which we don't want to silently swallow:
+			# without it the caller proceeds with local cleanup and
+			# leaves a half-state where GitHub thinks the runner exists
+			# but the host has nothing for it.
+			local delete_failed=0
 			while [ $x -le 9 ] # need to do it different as it can be more then 9 pages
 			do
 			RUNNER=$(
@@ -218,16 +243,27 @@ function module_armbian_runners () {
 				# deleting a runner
 				if [[ $RUNNER_NAME == ${DELETE} ]]; then
 					echo "Delete existing: $RUNNER_NAME"
-					curl -s -L \
+					local resp_body http_code
+					resp_body=$(mktemp)
+					http_code=$(curl -s -L \
 					-X DELETE \
 					-H "Accept: application/vnd.github+json" \
 					-H "Authorization: Bearer ${gh_token}"\
 					-H "X-GitHub-Api-Version: 2022-11-28" \
-					https://api.github.com/${prefix}/${registration_url}/actions/runners/${RUNNER_ID}
+					-o "${resp_body}" -w '%{http_code}' \
+					https://api.github.com/${prefix}/${registration_url}/actions/runners/${RUNNER_ID})
+					if [[ "$http_code" != "204" ]]; then
+						echo "  ! DELETE ${RUNNER_NAME} returned HTTP ${http_code}:" >&2
+						cat "${resp_body}" >&2
+						echo >&2
+						delete_failed=1
+					fi
+					rm -f "${resp_body}"
 				fi
 			done <<< $RUNNER
 			x=$(( $x + 1 ))
 			done
+			return $delete_failed
 		;;
 		"${commands[3]}")
 			if [[ -z $gh_token ]]; then
