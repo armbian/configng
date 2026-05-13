@@ -1,0 +1,24 @@
+[Unit]
+Description=Hourly runner-cleanup
+Documentation=man:systemd.timer(5)
+
+[Timer]
+# Hourly. The script is heavily defensive — idle runners are the only
+# ones whose _work gets touched, Docker enforces its own in-use checks,
+# and the always-on system housekeeping bits (apt cache, journal
+# vacuum, diag-log prune, container-log truncation) don't disrupt
+# anything jobs depend on. So there's no reason to wait a whole day
+# between trims on a host that "often runs out of space".
+#
+# Most runs no-op against an idle workload in under a second; the
+# meaningful work only fires when there's actually something to clean.
+#
+# Persistent=true also runs the missed job shortly after boot if the
+# host was powered down at the scheduled time. RandomizedDelaySec
+# spreads load across multiple identically-timed hosts.
+OnCalendar=hourly
+RandomizedDelaySec=10min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

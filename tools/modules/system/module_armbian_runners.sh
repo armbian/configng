@@ -148,6 +148,42 @@ function module_armbian_runners () {
 				fi
 			done
 
+			# Install the runner-cleanup maintenance helper alongside
+			# the runners themselves. Script + systemd units are
+			# always overwritten so a `module_armbian_runners install`
+			# brings them up to date; the operator-edited conf at
+			# /etc/armbian/runner-cleanup.conf is preserved on
+			# re-install (template dropped as .conf.dist so admins
+			# can diff for new defaults). Assets live next to this
+			# module in the repo.
+			local cleanup_src
+			cleanup_src="$(dirname "${BASH_SOURCE[0]}")/runner-cleanup"
+			if [[ -d "$cleanup_src" ]]; then
+				install -m 0755 "${cleanup_src}/runner-cleanup"         /usr/local/sbin/runner-cleanup
+				install -m 0644 "${cleanup_src}/runner-cleanup.service" /etc/systemd/system/runner-cleanup.service
+				install -m 0644 "${cleanup_src}/runner-cleanup.timer"   /etc/systemd/system/runner-cleanup.timer
+				install -d /etc/armbian
+				if [[ ! -e /etc/armbian/runner-cleanup.conf ]]; then
+					install -m 0644 "${cleanup_src}/runner-cleanup.conf" /etc/armbian/runner-cleanup.conf
+				fi
+				install -m 0644 "${cleanup_src}/runner-cleanup.conf" /etc/armbian/runner-cleanup.conf.dist
+				systemctl daemon-reload
+				# Don't silence errors here — a failed timer install
+				# means the cleanup never fires and the host quietly
+				# accumulates disk. Show stderr; on the first command's
+				# failure, fall back to enable + start separately so we
+				# can pinpoint which half went wrong, and log each.
+				if ! systemctl enable --now runner-cleanup.timer; then
+					echo "Warning: 'systemctl enable --now runner-cleanup.timer' failed; retrying separately" >&2
+					systemctl enable runner-cleanup.timer || \
+						echo "Error: 'systemctl enable runner-cleanup.timer' failed" >&2
+					systemctl start  runner-cleanup.timer || \
+						echo "Error: 'systemctl start runner-cleanup.timer' failed" >&2
+				fi
+			else
+				echo "Warning: runner-cleanup assets not found at ${cleanup_src}; skipping maintenance helper install" >&2
+			fi
+
 		;;
 		"${commands[1]}")
 			# delete if previous already exists

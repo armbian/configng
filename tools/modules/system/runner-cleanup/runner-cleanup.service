@@ -1,0 +1,23 @@
+[Unit]
+Description=Clean GitHub Actions runner work dirs and Docker leftovers
+Documentation=https://github.com/armbian/configng
+After=docker.service
+Wants=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/runner-cleanup
+# Don't choke the host while pruning a large image set.
+Nice=10
+IOSchedulingClass=idle
+# Cap each run at 30 minutes. The script normally finishes well under
+# a minute even on a busy host; anything taking longer is wedged
+# (network black hole during docker pull, etc.) and should be reaped.
+# For Type=oneshot services systemd uses TimeoutStartSec= as the
+# wall-clock cap (RuntimeMaxSec= is silently ignored on oneshot).
+# SIGTERM at the cap → TimeoutStopSec grace → SIGKILL.
+TimeoutStartSec=30min
+TimeoutStopSec=30s
+
+[Install]
+WantedBy=multi-user.target

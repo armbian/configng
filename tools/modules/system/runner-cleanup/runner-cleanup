@@ -1,0 +1,412 @@
+#!/usr/bin/env bash
+#
+# runner-cleanup — maintenance for self-hosted GitHub Actions runner hosts.
+#
+# Wipes each runner's _work/ subtree and prunes Docker:
+#   - stopped containers
+#   - unused images, EXCEPT those listed in KEEP_IMAGES or referenced
+#     by an existing container (running or stopped)
+#   - dangling <none>:<none> images
+#   - unused networks
+#   - build cache
+#   - all unused volumes (including named ones — explicit choice; see
+#     PR discussion)
+#
+# Safety model: per-operation, not per-host.
+#   - Per-runner _work wipe   — only runners with NO live Runner.Worker
+#                               process. Busy runners' work dirs are
+#                               owned by an in-flight job, untouched.
+#   - Docker container/image/network/builder prune — always run.
+#                               Docker enforces in-use checks itself;
+#                               'image rm' on an image a container uses
+#                               is rejected, 'container prune' only
+#                               touches stopped containers, etc.
+#   - docker volume prune -a  — gated on the whole fleet being idle.
+#                               Between job steps a volume can briefly
+#                               appear unused; -a would yank it. Skip
+#                               while any runner is busy and pick it
+#                               up next pass.
+#
+# Config: /etc/armbian/runner-cleanup.conf (bash; must define
+# KEEP_IMAGES array). Override path with --config <path>.
+
+set -euo pipefail
+
+CONFIG="${RUNNER_CLEANUP_CONFIG:-/etc/armbian/runner-cleanup.conf}"
+DRY_RUN=0
+VERBOSE=0
+
+usage() {
+	cat <<- EOF
+		Usage: ${0##*/} [options]
+		  -n, --dry-run        Print what would happen; do not modify anything.
+		  -v, --verbose        Log each kept / removed item.
+		  -c, --config PATH    Path to KEEP_IMAGES config (default: ${CONFIG}).
+		  -h, --help           Show this help.
+	EOF
+}
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		-n|--dry-run) DRY_RUN=1; shift ;;
+		-v|--verbose) VERBOSE=1; shift ;;
+		-c|--config)
+			if [[ $# -lt 2 ]]; then
+				echo "Error: --config requires a path argument" >&2
+				usage >&2
+				exit 2
+			fi
+			CONFIG="$2"; shift 2
+			;;
+		-h|--help)    usage; exit 0 ;;
+		*) echo "Unknown argument: $1" >&2; usage >&2; exit 2 ;;
+	esac
+done
+
+# Single-instance lock. systemd already prevents two timer-triggered
+# runs of a Type=oneshot service from overlapping, but flock here
+# also guards against an admin running `./runner-cleanup` manually
+# while the timer's pass is mid-flight, and against two manual
+# invocations racing.
+#
+# -n (non-blocking): if the lock is held, exit cleanly with rc=0 —
+# the running instance is already doing the work, no need to queue
+# another. The next hourly tick will catch up.
+LOCK_FILE="/var/lock/runner-cleanup.lock"
+exec 200> "$LOCK_FILE" 2>/dev/null || {
+	echo "Error: cannot open lock file ${LOCK_FILE}" >&2
+	exit 1
+}
+if ! flock -n 200; then
+	echo "runner-cleanup: another instance is already running — exiting cleanly."
+	exit 0
+fi
+
+# Defaults live HERE, in the script, not only in the config template.
+# An installed /etc/armbian/runner-cleanup.conf carried over from an
+# older release otherwise lacks any new defaults this version adds,
+# and an empty array means "everything goes" — which is the wrong
+# default for a maintenance tool. A user who explicitly wants the
+# empty form can still set `KEEP_RUNNERS_WORK=()` or `KEEP_IMAGES=()`
+# in their conf to override us, since `source` happens after.
+KEEP_IMAGES=(
+	lscr.io/linuxserver/swag:latest
+	lscr.io/linuxserver/openssh-server:latest
+)
+KEEP_RUNNERS_WORK=(
+	actions-runner-01
+)
+RUNNER_USER_RE='^actions-runner-.+$'
+# Wall-clock ceiling for Runner.Worker processes. A Worker alive
+# longer than this is almost certainly hung (deadlocked artifact
+# upload, zombie child, network black hole) and holds GBs of RAM
+# while the Listener happily reports the job as still in progress.
+# Killing it frees the memory and the Listener requeues the job.
+# Set high enough to cover your longest legitimate build.
+RUNNER_JOB_MAX_HOURS=4
+
+if [[ -f "$CONFIG" ]]; then
+	# shellcheck source=/dev/null
+	source "$CONFIG"
+fi
+
+# Membership lookup for the runner-whitelist. Built once after the
+# config has been sourced so a user-supplied --config still wins.
+declare -A keep_work_user
+for _u in "${KEEP_RUNNERS_WORK[@]}"; do
+	keep_work_user["$_u"]=1
+done
+unset _u
+
+log()  { [[ $VERBOSE -eq 1 ]] && echo "$@" || true; }
+note() { echo "$@"; }
+run()  {
+	if [[ $DRY_RUN -eq 1 ]]; then
+		echo "[dry-run] $*"
+	else
+		"$@"
+	fi
+}
+
+# -------------------------------------------------------------------
+# 1. Partition runners into busy / idle. We DO NOT abort if some are
+#    busy — instead the cleanup operates only on what's provably safe
+#    to touch:
+#      - per-runner _work wipe: only idle runners
+#      - docker image rm / container/image/network/builder prune:
+#        always (Docker itself refuses to remove in-use resources)
+#      - docker volume prune -a:  only if NO runner is busy
+#        (volumes between job steps can disappear under a live job)
+# -------------------------------------------------------------------
+mapfile -t runner_users < <(getent passwd | awk -F: -v re="$RUNNER_USER_RE" '$1 ~ re {print $1}')
+
+if [[ ${#runner_users[@]} -eq 0 ]]; then
+	# No runners — skip the runner-scoped operations (Worker reaper,
+	# _work wipe, busy/idle partition) but still run the system
+	# housekeeping in section 4 (apt cache / journal / container
+	# logs). Those are valuable on any long-lived host, and this
+	# script is the established entry point for them.
+	note "runner-cleanup: no actions-runner-* users on this host — running housekeeping only."
+fi
+
+# Reap stuck Runner.Worker processes (older than RUNNER_JOB_MAX_HOURS)
+# BEFORE the busy/idle partition. A Worker that's been hung for hours
+# holds GBs of RAM and locks its runner out of work; killing it frees
+# both. The Listener will requeue the abandoned job onto another
+# runner. Running this first means a freshly-reaped runner is
+# correctly seen as idle by the partition below this pass — its
+# _work gets cleaned alongside everyone else's.
+max_seconds=$(( ${RUNNER_JOB_MAX_HOURS:-4} * 3600 ))
+while IFS= read -r pid; do
+	[[ -z "$pid" ]] && continue
+	etime_sec=$(ps -o etimes= -p "$pid" 2>/dev/null | tr -d ' ')
+	[[ -z "$etime_sec" ]] && continue
+	if (( etime_sec > max_seconds )); then
+		# Show whose runner it is for the log.
+		worker_user=$(ps -o user= -p "$pid" 2>/dev/null | tr -d ' ')
+		note "WARNING: killing stuck Runner.Worker pid=${pid} user=${worker_user:-?} alive=${etime_sec}s (cap ${max_seconds}s)"
+		if [[ $DRY_RUN -eq 1 ]]; then
+			echo "[dry-run] kill -TERM ${pid}"
+		else
+			kill -TERM "$pid" 2>/dev/null || true
+			# Stuck Workers often ignore SIGTERM — give a brief grace
+			# window then escalate. Listener will spawn a fresh
+			# Worker on the next job assignment.
+			sleep 5
+			if kill -0 "$pid" 2>/dev/null; then
+				note "  ! pid=${pid} survived SIGTERM; sending SIGKILL"
+				kill -KILL "$pid" 2>/dev/null || true
+			fi
+		fi
+	fi
+done < <(pgrep -f 'Runner.Worker' 2>/dev/null)
+
+# Track runners we've stopped but haven't restarted yet. If we get
+# killed (SIGTERM from systemd's RuntimeMaxSec at 30min, or operator
+# Ctrl-C) between the per-runner stop and start below, the EXIT trap
+# brings them back. Without this, a runner could be left offline
+# until the next hourly pass picks it up.
+declare -A stopped_unit_for
+restart_on_exit() {
+	local _rc=$?
+	local u
+	for u in "${!stopped_unit_for[@]}"; do
+		# Best effort — we may be in shutdown / signal handling
+		# context. Don't propagate further failures.
+		systemctl start "${u}.service" 2>/dev/null || true
+	done
+	exit $_rc
+}
+trap restart_on_exit EXIT
+
+busy=()
+idle=()
+for user in "${runner_users[@]}"; do
+	if pgrep -u "$user" -f 'Runner.Worker' > /dev/null 2>&1; then
+		busy+=("$user")
+	else
+		idle+=("$user")
+	fi
+done
+
+note "runner-cleanup: ${#idle[@]} idle, ${#busy[@]} busy runner(s); will clean idle _work and run safe Docker prunes"
+[[ ${#busy[@]} -gt 0 ]] && log "busy (work-dir untouched): ${busy[*]}"
+
+# -------------------------------------------------------------------
+# 2. For each IDLE runner: stop its systemd unit, wipe _work/, start
+#    it back. Stopping closes the window where the listener could
+#    accept a new job mid-wipe (find -delete on a multi-GB _work can
+#    easily take 30s+). systemd's graceful stop waits for any job
+#    that landed between our pgrep and the stop to finish, so no
+#    in-flight job gets aborted; it just makes this pass slower.
+#
+# Unit-name discovery: actions/runner's svc.sh installs
+# /etc/systemd/system/actions.runner.<scope>.<name>.service with the
+# matching User= line. Grep by User= to find the right one without
+# needing to know the runner's name.
+# -------------------------------------------------------------------
+find_runner_unit() {
+	local user="$1" unit_path
+	unit_path=$(grep -l "^User=${user}\$" /etc/systemd/system/actions.runner.*.service 2>/dev/null | head -1)
+	if [[ -n "$unit_path" ]]; then
+		unit_path="${unit_path##*/}"
+		echo "${unit_path%.service}"
+	fi
+}
+
+for user in "${idle[@]}"; do
+	# Per-runner whitelist: skip wipe entirely (don't even stop/start
+	# the unit — pointless churn if we're not touching the disk).
+	if [[ -n "${keep_work_user[$user]:-}" ]]; then
+		log "preserve ${user}/_work (in KEEP_RUNNERS_WORK)"
+		continue
+	fi
+
+	home=$(getent passwd "$user" | cut -d: -f6)
+	work="${home}/_work"
+	if [[ ! -d "$work" ]]; then
+		log "skip ${user} — no _work dir"
+		continue
+	fi
+
+	unit=$(find_runner_unit "$user")
+	if [[ -z "$unit" ]]; then
+		# No svc.sh-installed unit found — fall back to wipe without
+		# stop. Runner might be running in a tmux session, foreground,
+		# or under a different supervisor.
+		log "wipe ${work}/ (no systemd unit for ${user}, no stop/start)"
+		run find "$work" -mindepth 1 -delete
+		continue
+	fi
+
+	log "stop ${unit} → wipe ${work}/ → start ${unit}"
+	if run systemctl stop "${unit}.service"; then
+		# Record in the trap-tracked set BEFORE the wipe — if we
+		# get killed during wipe, the EXIT trap will restart it.
+		[[ $DRY_RUN -eq 0 ]] && stopped_unit_for["$unit"]=1
+		run find "$work" -mindepth 1 -delete
+		if run systemctl start "${unit}.service"; then
+			[[ $DRY_RUN -eq 0 ]] && unset 'stopped_unit_for[$unit]'
+		else
+			note "WARNING: failed to restart ${unit}.service after wipe — runner ${user} is offline until manual start"
+		fi
+	else
+		note "WARNING: could not stop ${unit}.service for ${user}; skipping wipe to avoid mid-job damage"
+	fi
+done
+
+# -------------------------------------------------------------------
+# 3. Docker prune.
+# -------------------------------------------------------------------
+# CLI presence + daemon reachability. A host with the CLI installed
+# but the daemon stopped / socket inaccessible would otherwise emit
+# a 'Cannot connect to the Docker daemon' for every prune below.
+if ! command -v docker > /dev/null 2>&1; then
+	log "docker not installed — skipping container/image cleanup"
+	goto_housekeeping=1
+elif ! docker info > /dev/null 2>&1; then
+	log "docker daemon unreachable — skipping container/image cleanup"
+	goto_housekeeping=1
+fi
+
+if [[ -z "${goto_housekeeping:-}" ]]; then
+
+# Keep-set: configured allowlist + every image already referenced by
+# any container (running or stopped). Collecting the second group up
+# front cleans up the log and avoids noisy "image in use" errors when
+# we try to rm them below.
+declare -A keep
+for img in "${KEEP_IMAGES[@]}"; do
+	keep["$img"]=1
+done
+while IFS= read -r img; do
+	[[ -z "$img" ]] && continue
+	keep["$img"]=1
+done < <(docker ps -a --format '{{.Image}}' 2>/dev/null | sort -u)
+
+# Pass 1: explicit per-image rm for everything not in keep-set.
+# Untagged <none>:<none> entries are caught by `docker image prune`
+# below, so skip them here.
+while IFS=$'\t' read -r repo_tag image_id; do
+	[[ "$repo_tag" == '<none>:<none>' ]] && continue
+	if [[ -n "${keep[$repo_tag]:-}" ]]; then
+		log "keep image ${repo_tag}"
+		continue
+	fi
+	log "rm image ${repo_tag} (${image_id})"
+	run docker image rm -f "$image_id" > /dev/null 2>&1 || \
+		log "  ! could not remove ${repo_tag} — likely still in use, skipped"
+done < <(docker image ls --format '{{.Repository}}:{{.Tag}}\t{{.ID}}')
+
+# Pass 2: sweep everything else. These are always safe with busy
+# runners because Docker enforces in-use checks itself:
+#   - container prune: only STOPPED containers
+#   - image prune (no -a): only dangling <none>:<none>
+#   - network prune: only unused networks
+#   - builder prune: drops build cache (cold-cache slowdown for an
+#     in-flight build, but doesn't break it)
+run docker container prune -f
+run docker image prune -f
+run docker network prune -f
+run docker builder prune -af
+
+# Volume prune -a is the one operation that CAN'T tell whether a
+# volume is "between job steps" vs genuinely abandoned. Skip when any
+# runner is busy; pick it up the next pass once the fleet is idle.
+if [[ ${#busy[@]} -eq 0 ]]; then
+	run docker volume prune -af    # -a: also remove unused NAMED volumes
+else
+	note "skip 'docker volume prune -a' — ${#busy[@]} runner(s) still busy; will retry next pass"
+fi
+
+fi  # end docker section
+
+# -------------------------------------------------------------------
+# 4. System housekeeping. Independent of runner / Docker state —
+#    targets the long-tail caches that accumulate on any long-lived
+#    host and are usually the silent cause of "out of disk space".
+#    All safe-while-jobs-run; configurable via conf:
+#      JOURNAL_MAX_SIZE       (default 500M, accepted by journalctl)
+#      DIAG_LOG_KEEP_DAYS     (default 14)
+#      DOCKER_LOG_MAX_MB      (default 512 — truncate above this size)
+#      RUN_APT_AUTOREMOVE     (default 0 — opt-in; can remove unrelated
+#                              auto-installed packages, including old
+#                              kernels)
+# -------------------------------------------------------------------
+
+# 4a. APT cache (/var/cache/apt/archives/*.deb after installs).
+if command -v apt-get > /dev/null 2>&1; then
+	log "apt-get clean"
+	run apt-get clean
+fi
+
+# 4b. journald vacuum. Caps /var/log/journal/* to a sane size while
+# keeping recent history. Often the biggest single offender on a host
+# with months of uptime.
+if command -v journalctl > /dev/null 2>&1; then
+	jmax="${JOURNAL_MAX_SIZE:-500M}"
+	log "journalctl --vacuum-size=${jmax}"
+	run journalctl --vacuum-size="$jmax" > /dev/null 2>&1 || true
+fi
+
+# 4c. Runner _diag log prune. The Listener writes per-job
+# Runner_*.log / Worker_*.log into ~/_diag — useful for troubleshoot,
+# but accumulates indefinitely. Keep the last DIAG_LOG_KEEP_DAYS of
+# them; runner's own rotation is too lazy.
+diag_days="${DIAG_LOG_KEEP_DAYS:-14}"
+for user in "${runner_users[@]}"; do
+	home=$(getent passwd "$user" | cut -d: -f6)
+	[[ -d "${home}/_diag" ]] || continue
+	log "prune ${user}/_diag (older than ${diag_days}d)"
+	run find "${home}/_diag" -type f \
+		\( -name 'Runner_*.log' -o -name 'Worker_*.log' -o -name '*.log.gz' \) \
+		-mtime "+${diag_days}" -delete
+done
+
+# 4d. Docker container log truncation. /var/lib/docker/containers/<id>/<id>-json.log
+# grows unbounded for long-running containers (SWAG, openssh-server,
+# anything with a chatty stdout). Truncating mid-flight is safe — the
+# kernel keeps the existing fd open and the daemon resumes writing
+# from offset 0.
+if command -v docker > /dev/null 2>&1; then
+	max_mb="${DOCKER_LOG_MAX_MB:-512}"
+	max_bytes=$((max_mb * 1024 * 1024))
+	while IFS= read -r -d '' log_file; do
+		size=$(stat -c '%s' "$log_file" 2>/dev/null || echo 0)
+		if (( size > max_bytes )); then
+			log "truncate ${log_file} ($((size / 1024 / 1024))MB > ${max_mb}MB)"
+			run truncate -s 0 "$log_file"
+		fi
+	done < <(find /var/lib/docker/containers -maxdepth 2 -name '*-json.log' -print0 2>/dev/null)
+fi
+
+# 4e. Opt-in: apt autoremove. Strips orphan auto-installed packages
+# (old kernels, transitive deps no longer required by anything).
+# Off by default because on rare occasions it removes something the
+# operator wanted kept and forgot to apt-mark manual.
+if [[ "${RUN_APT_AUTOREMOVE:-0}" == "1" ]] && command -v apt-get > /dev/null 2>&1; then
+	log "apt-get autoremove --purge -y"
+	run env DEBIAN_FRONTEND=noninteractive apt-get autoremove --purge -y
+fi
+
+log "runner-cleanup: done."
