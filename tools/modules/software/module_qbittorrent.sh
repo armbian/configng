@@ -51,15 +51,41 @@ function module_qbittorrent () {
 				--restart=always \
 				"$dockerimage"
 
-			# Get temporary password from logs
-			local temp_password
-			temp_password=$(docker logs "$dockername" 2>&1 | grep password | grep session | cut -d":" -f2 | xargs)
+			# Wait for the LSIO image to actually bootstrap qBittorrent
+			# and emit the per-session temporary password. The previous
+			# code read 'docker logs' the instant after 'docker run'
+			# returned — long before s6-overlay had spawned qbittorrent
+			# and printed the password line — so the dialog usually
+			# rendered with an empty password.
+			#
+			# Step 1: wait for the container to be 'running' (~1 s).
+			# Step 2: poll the log for the password marker, up to ~30 s.
+			wait_for_container_ready "$dockername" 10 1 "running" >/dev/null 2>&1 || true
+
+			local temp_password=""
+			local attempt
+			for ((attempt = 1; attempt <= 30; attempt++)); do
+				# 'A temporary password is provided for this session: <pw>'
+				# Last whitespace-separated field of the matching line.
+				temp_password=$(docker logs "$dockername" 2>&1 \
+					| awk '/temporary password is provided for this session:/ {print $NF; exit}')
+				[[ -n "$temp_password" ]] && break
+				sleep 1
+			done
+
+			local install_msg="qBittorrent is listening at http://$LOCALIPADD:${port}\n\nLogin as: admin"
+			if [[ -n "$temp_password" ]]; then
+				install_msg+="\n\nTemporary password: ${temp_password}"
+			else
+				# Don't lie to the user with a blank field — point them
+				# at where the password will appear once bootstrap finishes.
+				install_msg+="\n\nTemporary password was not in the logs yet.\nRun:\n  docker logs ${dockername} 2>&1 | grep 'temporary password'\nin a few seconds to retrieve it."
+			fi
 
 			if [[ -t 1 ]]; then
-				dialog_msgbox "qBittorrent installed" \
-					"qBittorrent is listening at http://$LOCALIPADD:${port}\n\nLogin as: admin\n\nTemporary password: ${temp_password}" 10 70
+				dialog_msgbox "qBittorrent installed" "$install_msg" 14 70
 			else
-				echo -e "\nqBittorrent is listening at http://$LOCALIPADD:${port}\nLogin as: admin\nTemporary password: ${temp_password}\n"
+				echo -e "\n${install_msg}\n"
 			fi
 		;;
 		"${commands[1]}") # remove
