@@ -36,6 +36,139 @@ tiers:
       - spice-vdagent
       - xdg-user-dirs
 
+# DDE core packages (dde-control-center, dde-desktop, dde-dock, etc.) are not
+# present in the Debian or Ubuntu mainstream archives for any currently-supported
+# release. They were last in Debian 11 (bullseye) and Ubuntu 20.04 (focal), and
+# have not been re-admitted since. Without a vendor repo (see kde-neon.yaml for
+# the pattern) apt would fail with 'E: Unable to locate package'. The
+# tier_overrides below strip them arch-wide so the install completes; the
+# result has lightdm + supporting tools but no actual DDE shell until a
+# maintainer adds a repo: block.
+#
+# Community maintainer action required: add a `repo:` block pointing to the
+# Deepin project's package repository (e.g. community-packages.deepin.com),
+# then remove the packages_remove entries in tier_overrides below.
+tier_overrides:
+  # Repeat the arch-wide packages_remove at every tier so that the
+  # parser's DESKTOP_PRIMARY_PKG output is also correct when the
+  # script is called with --tier mid or --tier full (the primary-package
+  # filter only inspects the requested tier's overrides, not the
+  # cascaded minimal overrides).
+  minimal:
+    architectures:
+      arm64:
+        packages_remove:
+          - dde-control-center
+          - dde-daemon
+          - dde-desktop
+          - dde-dock
+          - dde-file-manager
+          - dde-launcher
+          - dde-polkit-agent
+          - dde-session-ui
+          - deepin-desktop-base
+          - deepin-desktop-schemas
+          - deepin-gtk-theme
+          - deepin-wm
+          - startdde
+      amd64:
+        packages_remove:
+          - dde-control-center
+          - dde-daemon
+          - dde-desktop
+          - dde-dock
+          - dde-file-manager
+          - dde-launcher
+          - dde-polkit-agent
+          - dde-session-ui
+          - deepin-desktop-base
+          - deepin-desktop-schemas
+          - deepin-gtk-theme
+          - deepin-wm
+          - startdde
+    releases:
+      noble:
+        # dde-polkit-agent is available in Ubuntu 24.04 (noble) ubuntu/universe
+        # for arm64 (confirmed via packages.ubuntu.com). Re-include it there only;
+        # the arch-wide removal above still covers amd64 and all Debian releases.
+        architectures:
+          arm64:
+            packages: [dde-polkit-agent]
+  mid:
+    architectures:
+      arm64:
+        packages_remove:
+          - dde-control-center
+          - dde-daemon
+          - dde-desktop
+          - dde-dock
+          - dde-file-manager
+          - dde-launcher
+          - dde-polkit-agent
+          - dde-session-ui
+          - deepin-desktop-base
+          - deepin-desktop-schemas
+          - deepin-gtk-theme
+          - deepin-wm
+          - startdde
+      amd64:
+        packages_remove:
+          - dde-control-center
+          - dde-daemon
+          - dde-desktop
+          - dde-dock
+          - dde-file-manager
+          - dde-launcher
+          - dde-polkit-agent
+          - dde-session-ui
+          - deepin-desktop-base
+          - deepin-desktop-schemas
+          - deepin-gtk-theme
+          - deepin-wm
+          - startdde
+    releases:
+      noble:
+        architectures:
+          arm64:
+            packages: [dde-polkit-agent]
+  full:
+    architectures:
+      arm64:
+        packages_remove:
+          - dde-control-center
+          - dde-daemon
+          - dde-desktop
+          - dde-dock
+          - dde-file-manager
+          - dde-launcher
+          - dde-polkit-agent
+          - dde-session-ui
+          - deepin-desktop-base
+          - deepin-desktop-schemas
+          - deepin-gtk-theme
+          - deepin-wm
+          - startdde
+      amd64:
+        packages_remove:
+          - dde-control-center
+          - dde-daemon
+          - dde-desktop
+          - dde-dock
+          - dde-file-manager
+          - dde-launcher
+          - dde-polkit-agent
+          - dde-session-ui
+          - deepin-desktop-base
+          - deepin-desktop-schemas
+          - deepin-gtk-theme
+          - deepin-wm
+          - startdde
+    releases:
+      noble:
+        architectures:
+          arm64:
+            packages: [dde-polkit-agent]
+
 releases:
   bookworm:
     architectures: [arm64, amd64]
