@@ -275,6 +275,18 @@ def parse_desktop(yaml_dir, de_name, release, arch, tier):
 
     # 4. Apply the orthogonal release block — packages_remove + packages
     #    declared per release. The release block is independent of tier.
+    #    Common.yaml goes first so a per-DE release block can still
+    #    remove what common added (symmetric with how tier_overrides
+    #    works above).
+    common_releases = _as_dict(common.get("releases"))
+    common_release_data = _as_dict(common_releases.get(release))
+    for pkg in _as_list(common_release_data.get("packages_remove")):
+        if pkg in packages:
+            packages.remove(pkg)
+    for pkg in _as_list(common_release_data.get("packages")):
+        if pkg not in packages:
+            packages.append(pkg)
+
     releases = _as_dict(de_data.get("releases"))
     release_data = _as_dict(releases.get(release))
     supported_archs = _as_list(release_data.get("architectures"))
