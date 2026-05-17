@@ -394,21 +394,7 @@ if command -v journalctl > /dev/null 2>&1; then
 	run journalctl --vacuum-size="$jmax" > /dev/null 2>&1 || true
 fi
 
-# 4c. Runner _diag log prune. The Listener writes per-job
-# Runner_*.log / Worker_*.log into ~/_diag — useful for troubleshoot,
-# but accumulates indefinitely. Keep the last DIAG_LOG_KEEP_DAYS of
-# them; runner's own rotation is too lazy.
-diag_days="${DIAG_LOG_KEEP_DAYS:-14}"
-for user in "${runner_users[@]}"; do
-	home=$(getent passwd "$user" | cut -d: -f6)
-	[[ -d "${home}/_diag" ]] || continue
-	log "prune ${user}/_diag (older than ${diag_days}d)"
-	run find "${home}/_diag" -type f \
-		\( -name 'Runner_*.log' -o -name 'Worker_*.log' -o -name '*.log.gz' \) \
-		-mtime "+${diag_days}" -delete
-done
-
-# 4d. Docker container log truncation. /var/lib/docker/containers/<id>/<id>-json.log
+# 4c. Docker container log truncation. /var/lib/docker/containers/<id>/<id>-json.log
 # grows unbounded for long-running containers (SWAG, openssh-server,
 # anything with a chatty stdout). Truncating mid-flight is safe — the
 # kernel keeps the existing fd open and the daemon resumes writing
