@@ -81,6 +81,23 @@ tiers:
       - glmark2-es2-wayland   # GLES2 benchmark — Wayland backend
       - glmark2-x11           # GL benchmark — X11 backend
       - glmark2-es2-x11       # GLES2 benchmark — X11 backend
+      # Fingerprint reader stack. Standard on every modern business
+      # laptop (ThinkPad / Latitude / EliteBook / ...). Installing
+      # the packages doesn't auto-enable fingerprint auth - PAM
+      # only starts using it once the user runs
+      # `pam-auth-update --enable fprintd` and enrols a finger via
+      # `fprintd-enroll`. So this is safe to ship to every desktop
+      # mid-tier install; machines without a reader pay ~5 MB of
+      # idle daemons.
+      #
+      # libfprint-2-tod1 hosts vendor "Touch OEM Driver" plugins -
+      # required for several Goodix/Synaptics sensors where no
+      # open-source driver exists. The host alone is a no-op until
+      # a TOD plugin gets installed alongside it.
+      - fprintd
+      - libfprint-2-2
+      - libfprint-2-tod1
+      - libpam-fprintd
 
   full:
     packages:
