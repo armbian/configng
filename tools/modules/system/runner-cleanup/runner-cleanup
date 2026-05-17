@@ -249,6 +249,17 @@ for user in "${idle[@]}"; do
 		continue
 	fi
 
+	# Stale diagnostic pages under _diag/pages/ accumulate when the
+	# runner is killed mid-job (OOM, hard reboot, ...). The agent uses
+	# a deterministic page ID derived from the parent run + step UUID,
+	# so on the next pull-request a workflow that hashes to the same ID
+	# tries to create a log file at a path that already exists and
+	# crashes in the "Initialize containers" step with:
+	#   The file '/home/actions-runner-NN/_diag/pages/<uuid>.log' already exists.
+	# Wiping _diag/pages/ when the runner is idle is safe — the agent
+	# regenerates a fresh page directory on its next start.
+	diag_pages="${home}/_diag/pages"
+
 	unit=$(find_runner_unit "$user")
 	if [[ -z "$unit" ]]; then
 		# No svc.sh-installed unit found — fall back to wipe without
@@ -256,15 +267,17 @@ for user in "${idle[@]}"; do
 		# or under a different supervisor.
 		log "wipe ${work}/ (no systemd unit for ${user}, no stop/start)"
 		run find "$work" -mindepth 1 -delete
+		[[ -d "$diag_pages" ]] && run find "$diag_pages" -mindepth 1 -delete
 		continue
 	fi
 
-	log "stop ${unit} → wipe ${work}/ → start ${unit}"
+	log "stop ${unit} → wipe ${work}/ + ${diag_pages}/ → start ${unit}"
 	if run systemctl stop "${unit}.service"; then
 		# Record in the trap-tracked set BEFORE the wipe — if we
 		# get killed during wipe, the EXIT trap will restart it.
 		[[ $DRY_RUN -eq 0 ]] && stopped_unit_for["$unit"]=1
 		run find "$work" -mindepth 1 -delete
+		[[ -d "$diag_pages" ]] && run find "$diag_pages" -mindepth 1 -delete
 		if run systemctl start "${unit}.service"; then
 			[[ $DRY_RUN -eq 0 ]] && unset 'stopped_unit_for[$unit]'
 		else
