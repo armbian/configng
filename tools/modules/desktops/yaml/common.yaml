@@ -90,13 +90,14 @@ tiers:
       # mid-tier install; machines without a reader pay ~5 MB of
       # idle daemons.
       #
-      # libfprint-2-tod1 hosts vendor "Touch OEM Driver" plugins -
-      # required for several Goodix/Synaptics sensors where no
-      # open-source driver exists. The host alone is a no-op until
-      # a TOD plugin gets installed alongside it.
+      # The TOD plugin host (libfprint-2-tod1) is Ubuntu-only and
+      # mostly only useful when the user also installs a vendor TOD
+      # blob - keep it out of the default set so Debian installs
+      # don't fail with "Unable to locate package". Ubuntu users who
+      # need it can `apt install libfprint-2-tod1` plus the matching
+      # vendor plugin manually.
       - fprintd
       - libfprint-2-2
-      - libfprint-2-tod1
       - libpam-fprintd
 
   full:
@@ -252,10 +253,38 @@ tier_overrides:
       bookworm:
         # loupe is GNOME 46+; bookworm shipped with GNOME 43 era and
         # has no loupe package on any arch.
+        # libfprint-2-tod1 is Ubuntu-only (the TOD framework was added
+        # via a Lenovo/Ubuntu patch that Debian never picked up). Strip
+        # it on every Debian release; fprintd / libpam-fprintd /
+        # libfprint-2-2 stay in place and work fine with the in-tree
+        # libfprint drivers - users just lose access to closed-source
+        # vendor TOD plugins.
         architectures:
-          amd64:  { packages_remove: [loupe] }
-          arm64:  { packages_remove: [loupe] }
-          armhf:  { packages_remove: [loupe] }
+          amd64:  { packages_remove: [loupe, libfprint-2-tod1] }
+          arm64:  { packages_remove: [loupe, libfprint-2-tod1] }
+          armhf:  { packages_remove: [loupe, libfprint-2-tod1] }
+      trixie:
+        # libfprint-2-tod1: Ubuntu-only (see bookworm note).
+        architectures:
+          amd64:    { packages_remove: [libfprint-2-tod1] }
+          arm64:    { packages_remove: [libfprint-2-tod1] }
+          armhf:    { packages_remove: [libfprint-2-tod1] }
+          riscv64:  { packages_remove: [libfprint-2-tod1] }
+      forky:
+        # libfprint-2-tod1: Ubuntu-only (see bookworm note).
+        architectures:
+          amd64:    { packages_remove: [libfprint-2-tod1] }
+          arm64:    { packages_remove: [libfprint-2-tod1] }
+          armhf:    { packages_remove: [libfprint-2-tod1] }
+          riscv64:  { packages_remove: [libfprint-2-tod1] }
+      sid:
+        # libfprint-2-tod1: Ubuntu-only (see bookworm note).
+        architectures:
+          amd64:    { packages_remove: [libfprint-2-tod1] }
+          arm64:    { packages_remove: [libfprint-2-tod1] }
+          armhf:    { packages_remove: [libfprint-2-tod1] }
+          riscv64:  { packages_remove: [libfprint-2-tod1] }
+          loong64:  { packages_remove: [libfprint-2-tod1] }
       jammy:
         # loupe was introduced with GNOME 44/45; Ubuntu 22.04 (jammy)
         # shipped GNOME 42 and has no loupe package on any arch.
