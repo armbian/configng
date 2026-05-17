@@ -341,6 +341,39 @@ function _module_desktops_rockchip_multimedia() {
 # Arguments: none. Uses SRC path via $desktops_dir for asset
 # resolution, same as module_desktop_branding.
 #
+#
+# Wire fprintd into PAM so fingerprint login / sudo / screen-unlock
+# works as soon as the user enrols a finger. libpam-fprintd installs
+# the PAM module but does NOT enable it by default - pam-auth-update
+# is the standard Debian/Ubuntu way to flip it on idempotently.
+#
+# Safe to call unconditionally: pam-auth-update is a no-op when the
+# fprintd module is already enabled, and libpam-fprintd's PAM
+# fragment falls back to password auth when no finger is enrolled,
+# so machines without a reader still log in normally.
+#
+# Skipped in build mode (no real users yet) and on hosts where the
+# fprintd userspace didn't actually install (older releases / arches
+# stripped via tier_overrides).
+#
+function _module_desktops_configure_fprintd() {
+	local mode="${1:-}"
+	if [[ "$mode" == "build" ]]; then
+		debug_log "_module_desktops_configure_fprintd: mode=build, skipping pam-auth-update"
+		return 0
+	fi
+	if ! command -v fprintd-enroll > /dev/null 2>&1; then
+		debug_log "_module_desktops_configure_fprintd: fprintd not installed, skipping"
+		return 0
+	fi
+	if ! command -v pam-auth-update > /dev/null 2>&1; then
+		debug_log "_module_desktops_configure_fprintd: pam-auth-update missing, skipping"
+		return 0
+	fi
+	debug_log "_module_desktops_configure_fprintd: enabling fprintd PAM module"
+	DEBIAN_FRONTEND=noninteractive pam-auth-update --enable fprintd 2> /dev/null || true
+}
+
 function _module_desktops_configure_networking() {
 	local src_dir="${desktops_dir}/networking"
 	if [[ ! -d "$src_dir" ]]; then
@@ -668,6 +701,12 @@ function module_desktops() {
 			# otherwise the UI shows an always-disconnected state
 			# even though the machine is online.
 			_module_desktops_configure_networking
+
+			# Enable fprintd in PAM so fingerprint login works once
+			# the user enrols a finger via `fprintd-enroll`. Inert on
+			# hosts without a reader (libpam-fprintd falls back to
+			# password) and on tiers/arches that stripped fprintd.
+			_module_desktops_configure_fprintd "$mode"
 
 			# Wire up the Rockchip 3D + multimedia stack on
 			# rk3588-family / vendor-kernel boards: panthor-gpu DT
