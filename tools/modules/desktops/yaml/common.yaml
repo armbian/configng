@@ -50,6 +50,7 @@ tiers:
   mid:
     packages:
       - browser              # virtual — resolved per-arch from `browser:` below
+      - widevine             # virtual — resolved per-arch from `widevine:` below
       - gnome-text-editor    # text editor (modern GTK4 successor to gedit)
       - gnome-calculator
       - loupe                # GTK4 image viewer; on bookworm fall back via release block
@@ -165,6 +166,33 @@ browser:
     armhf:   chromium
     riscv64: firefox-esr     # 'firefox' does not exist in Debian
     loong64: firefox-esr     # chromium not yet built for loong64
+
+# Widevine CDM substitution table for the literal `widevine` token in
+# any tier. Same lookup rules as `browser:` above:
+#   1. widevine.<release>.<arch>  — most specific
+#   2. widevine.<arch>             — per-arch fallback
+#   3. drop the token entirely (silent — install proceeds without
+#                               the CDM rather than failing on a literal
+#                               'widevine' apt name)
+#
+# Widevine is Google's proprietary HTML5 Encrypted Media Extensions
+# (EME) decryption module — required by Netflix, Disney+, Amazon Prime
+# Video, Spotify Web Player and similar streaming services that gate
+# their content behind DRM. The .so binary is licensed by Google for
+# redistribution only to OEM partners; the Raspberry Pi Foundation
+# maintains the only arm64/armhf glibc-compatible build (David Turner
+# at archive.raspberrypi.com, currently 4.10.2662.3 with the
+# Hector Martin glibc fixup applied). apt.armbian.com mirrors that
+# .deb so installs do not need to add a third-party PPA.
+#
+# Coverage as of 2026-04: noble arm64/armhf only. Every other
+# (release, arch) combination has no entry here, so the parser
+# silently drops the token and the install proceeds CDM-less. Update
+# this map as more releases are published on apt.armbian.com.
+widevine:
+  noble:
+    arm64:   libwidevinecdm0
+    armhf:   libwidevinecdm0
 
 # Per-tier holes that exist in the upstream repos and need to be
 # stripped before they reach apt. Common.yaml carries the holes that
