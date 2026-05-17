@@ -198,6 +198,30 @@ browser:
 # Verified against packages.debian.org (madison) and
 # packages.ubuntu.com / launchpad as of 2026-04. Update when releases
 # move forward or when arch dependencies change.
+
+# Cross-DE per-release additions/removals, applied AFTER tiers + the
+# `browser` substitution + tier_overrides. Mirrors the per-DE
+# `releases:` block in yaml/<de>.yaml but applies to every desktop.
+#
+# Use this for packages that:
+#   - only exist on a subset of releases, AND
+#   - we want on every desktop where they DO exist
+#
+# Cheaper than enumerating Debian strips when the package is Ubuntu-only,
+# and avoids touching each per-DE yaml.
+releases:
+  noble:
+    # libfprint-2-tod1 is Ubuntu-only - hosts vendor "Touch OEM Driver"
+    # plugins for several Goodix / Synaptics fingerprint sensors with
+    # no open-source path. Inert on its own; pairs with whichever
+    # vendor TOD .deb a user installs for their reader (e.g.
+    # libfprint-2-tod1-goodix-550a).
+    packages:
+      - libfprint-2-tod1
+  resolute:
+    packages:
+      - libfprint-2-tod1
+
 tier_overrides:
   minimal:
     releases:
