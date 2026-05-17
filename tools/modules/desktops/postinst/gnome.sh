@@ -36,6 +36,26 @@ cat >> "$keys" <<- EOF
 	[org/gnome/settings-daemon/plugins/power]
 	sleep-inactive-ac-timeout='0'
 
+	# Clickpad right-click. Modern Lenovo / Dell / HP laptops use
+	# clickpads (no separate physical buttons under the touchpad), and
+	# GNOME's per-arch defaults sometimes leave new users without a
+	# working right-click out of the box.
+	#
+	# tap-to-click=true: single-finger tap → left click.
+	# click-method='areas': physical press in the bottom-right corner
+	#                       of the touchpad → right-click. Verified
+	#                       working on a current-gen Lenovo where the
+	#                       'fingers' (two-finger tap) default did not
+	#                       reliably trigger BTN_RIGHT.
+	#
+	# Alternative (single-valued, so only one of the two): swap the
+	# line below to click-method='fingers' if you prefer two-finger
+	# tap. The system-wide default here is just a default — users can
+	# override per-account via 'gsettings set …' or GNOME Settings.
+	[org/gnome/desktop/peripherals/touchpad]
+	tap-to-click=true
+	click-method='areas'
+
 	[org/gnome/desktop/background]
 	picture-uri='file:///usr/share/backgrounds/armbian/armbian18-Dre0x-Minum-light-3840x2160.jpg'
 	picture-uri-dark='file:///usr/share/backgrounds/armbian/armbian03-Dre0x-Minum-dark-3840x2160.jpg'
