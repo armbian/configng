@@ -53,6 +53,19 @@ tiers:
       - zenity
 
   mid:
+    # GNOME Software stack — graphical "Software" app for browsing apt
+    # + flatpak apps, applying firmware updates via fwupd, and showing
+    # rich app metadata. Plugins drag in gnome-software itself via
+    # Depends, so the explicit listing here is just packagekit (the
+    # backend daemon) + the plugins + appstream (the metadata library
+    # the UI consumes). Lives in mid so casual desktop installs get a
+    # real software manager out of the box; minimal stays headless-
+    # adjacent and skips it.
+    packages:
+      - packagekit
+      - gnome-software-plugin-flatpak
+      - gnome-software-plugin-fwupd
+      - appstream
     # GNOME has its own download/torrent integration; transmission-gtk
     # is redundant on GNOME.
     packages_remove:
