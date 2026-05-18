@@ -83,6 +83,16 @@ releases:
       - polkitd
       - pkexec
       - libu2f-udev
+      # GNOME Software stack — graphical "Software" app for browsing
+      # apt + flatpak apps and showing rich app metadata. On noble
+      # the fwupd plugin doesn't exist as a separate package —
+      # gnome-software has fwupd integration built in. The standalone
+      # gnome-software-plugin-fwupd .deb first appears in oracular
+      # (25.04) and resolute (26.04). Adding it here would fail with
+      # "Unable to locate package".
+      - packagekit
+      - gnome-software-plugin-flatpak
+      - appstream
     packages_uninstall:
       - ubuntu-session
 
@@ -150,6 +160,11 @@ releases:
       - polkitd
       - pkexec
       - libfido2-1
+      # GNOME Software stack (see noble block above for rationale).
+      - packagekit
+      - gnome-software-plugin-flatpak
+      - gnome-software-plugin-fwupd
+      - appstream
     packages_remove:
       # pavumeter remains absent from the Ubuntu archive (dropped in plucky).
       - pavumeter

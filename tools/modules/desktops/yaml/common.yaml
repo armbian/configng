@@ -56,6 +56,16 @@ tiers:
       - pipewire-libcamera
       - gstreamer1.0-libcamera
       - v4l-utils
+      # ALSA Use Case Manager profiles. Without this package, PipeWire /
+      # wireplumber see a complex sound card (Intel SOF on Lunar/Meteor/
+      # Panther Lake laptops, Qualcomm Snapdragon X, AMD ACP DSP, …)
+      # but have no per-machine recipe for which PCM device is the speaker
+      # output, which controls to unmute, or how to route on jack-insert.
+      # Result: ALSA-level audio works (`speaker-test -D plughw:0,2`
+      # plays), but GNOME / KDE Sound shows "Dummy Output" only.
+      # Architecture: all package, ~1 MB on disk, inert on simpler audio
+      # chains (HDMI-only SBCs, USB DAC, etc.), so safe at minimal tier.
+      - alsa-ucm-conf
 
   mid:
     packages:
