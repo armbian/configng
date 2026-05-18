@@ -32,7 +32,15 @@ function module_cockpit() {
 
 			## install cockpit
 			pkg_update
-			pkg_install cockpit cockpit-ws cockpit-system cockpit-storaged cockpit-machines dnsmasq virtinst qemu-kvm qemu-utils qemu-system
+			# qemu-kvm is a legacy meta that's only published for amd64
+			# and arm64 (and Ubuntu carries it as a x86-leaning shim
+			# pulling qemu-system-x86). It has no installation
+			# candidate on riscv64, causing the cockpit install to
+			# fail with "Package 'qemu-kvm' has no installation
+			# candidate". qemu-system below is the modern arch-agnostic
+			# meta - on each host it pulls qemu-system-<host-arch>,
+			# which is what libvirt + cockpit-machines actually need.
+			pkg_install cockpit cockpit-ws cockpit-system cockpit-storaged cockpit-machines dnsmasq virtinst qemu-utils qemu-system
 
 			usermod -a -G libvirt libvirtdbus
 			usermod -a -G libvirt libvirt-qemu
@@ -67,7 +75,7 @@ function module_cockpit() {
 				virsh net-destroy ${bridge}
 				virsh net-undefine ${bridge}
 			done
-			pkg_remove cockpit cockpit-ws cockpit-system cockpit-storaged cockpit-machines dnsmasq virtinst qemu-kvm qemu-utils qemu-system
+			pkg_remove cockpit cockpit-ws cockpit-system cockpit-storaged cockpit-machines dnsmasq virtinst qemu-utils qemu-system
 
 		;;
 		"${commands[2]}")
