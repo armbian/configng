@@ -1,0 +1,28 @@
+#!/bin/bash
+# runner-clean-pages — wipe ~/_diag/pages/ for the runner user that
+# systemd invoked us as. Designed to be wired in as ExecStartPre
+# + ExecStopPost on every actions.runner.*.service unit via a
+# drop-in (see install-runner-hooks).
+#
+# Why: stale per-job page files cause "Initialize containers" to die
+# on the next job with:
+#   The file '/home/actions-runner-NN/_diag/pages/<uuid>.log' already exists.
+# The hourly runner-cleanup timer eventually clears it, but a runner
+# that restarts within the hour hits the collision. systemd hooks
+# clear it event-driven instead.
+#
+# Idempotent. Logs to journald (systemd-cat) for visibility.
+
+set -e
+
+home="${HOME:?HOME is not set; runner-clean-pages must run as the runner user}"
+diag_pages="${home}/_diag/pages"
+
+[ -d "$diag_pages" ] || exit 0
+
+if find "$diag_pages" -mindepth 1 -delete 2>/dev/null; then
+	echo "runner-clean-pages: wiped ${diag_pages}/" | \
+		systemd-cat -t runner-clean-pages -p info 2>/dev/null || true
+fi
+
+exit 0

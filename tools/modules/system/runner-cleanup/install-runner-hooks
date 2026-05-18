@@ -1,0 +1,63 @@
+#!/bin/bash
+# install-runner-hooks — wire ExecStartPre + ExecStopPost into every
+# actions.runner.*.service so each runner self-cleans its _diag/pages/
+# on start AND on stop (including SIGKILL / OOM / hard reboot).
+#
+# Idempotent: re-running just rewrites the drop-in files.
+#
+# Run once on the runner host as root after the runner-cleanup
+# scripts are deployed. Hourly runner-cleanup keeps running in
+# parallel; this is the event-driven layer on top.
+
+set -e
+
+if [[ "$EUID" -ne 0 ]]; then
+	echo "install-runner-hooks: must run as root" >&2
+	exit 1
+fi
+
+# Locate ourselves so the drop-in can point at the right runner-clean-pages
+# path. Default to /usr/local/bin which is where the cleanup helper
+# ends up if the operator copies things by hand; override via env.
+HELPER_PATH="${RUNNER_CLEAN_PAGES_PATH:-/usr/local/bin/runner-clean-pages}"
+
+if [[ ! -x "$HELPER_PATH" ]]; then
+	echo "install-runner-hooks: ${HELPER_PATH} not found or not executable" >&2
+	echo "  copy this directory's runner-clean-pages there first, or set" >&2
+	echo "  RUNNER_CLEAN_PAGES_PATH=/path/to/runner-clean-pages" >&2
+	exit 1
+fi
+
+shopt -s nullglob
+declare -a units=( /etc/systemd/system/actions.runner.*.service )
+shopt -u nullglob
+
+if (( ${#units[@]} == 0 )); then
+	echo "install-runner-hooks: no actions.runner.*.service units found on this host"
+	exit 0
+fi
+
+declare -i installed=0
+for unit_path in "${units[@]}"; do
+	unit_name="${unit_path##*/}"
+	unit_name="${unit_name%.service}"
+	drop_dir="/etc/systemd/system/${unit_name}.service.d"
+	mkdir -p "$drop_dir"
+
+	cat > "${drop_dir}/10-clean-pages.conf" <<- EOF
+		# Installed by runner-cleanup/install-runner-hooks.
+		# Wipes ~/_diag/pages/ on every start AND every stop so the
+		# next job never collides on a stale page UUID. Both hooks
+		# are prefixed with '-' so any failure is non-fatal (the
+		# runner unit must still start / stop even if cleanup fails).
+		[Service]
+		ExecStartPre=-${HELPER_PATH}
+		ExecStopPost=-${HELPER_PATH}
+	EOF
+
+	echo "install-runner-hooks: ${drop_dir}/10-clean-pages.conf"
+	installed=$(( installed + 1 ))
+done
+
+systemctl daemon-reload
+echo "install-runner-hooks: ${installed} unit(s) updated; daemon-reload done"
