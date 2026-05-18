@@ -53,19 +53,6 @@ tiers:
       - zenity
 
   mid:
-    # GNOME Software stack — graphical "Software" app for browsing apt
-    # + flatpak apps, applying firmware updates via fwupd, and showing
-    # rich app metadata. Plugins drag in gnome-software itself via
-    # Depends, so the explicit listing here is just packagekit (the
-    # backend daemon) + the plugins + appstream (the metadata library
-    # the UI consumes). Lives in mid so casual desktop installs get a
-    # real software manager out of the box; minimal stays headless-
-    # adjacent and skips it.
-    packages:
-      - packagekit
-      - gnome-software-plugin-flatpak
-      - gnome-software-plugin-fwupd
-      - appstream
     # GNOME has its own download/torrent integration; transmission-gtk
     # is redundant on GNOME.
     packages_remove:
@@ -96,6 +83,19 @@ releases:
       - polkitd
       - pkexec
       - libu2f-udev
+      # GNOME Software stack — graphical "Software" app for browsing
+      # apt + flatpak apps, applying firmware updates via fwupd, and
+      # showing rich app metadata. Plugins drag in gnome-software
+      # itself via Depends. Scoped to noble + resolute because:
+      # gnome-software-plugin-fwupd doesn't exist on Debian bookworm,
+      # and the other releases either don't ship a working combo
+      # (jammy too old for current GNOME Software) or aren't actively
+      # tested for desktop builds. Easy to extend to trixie/forky/sid
+      # once we verify the stack works there end-to-end.
+      - packagekit
+      - gnome-software-plugin-flatpak
+      - gnome-software-plugin-fwupd
+      - appstream
     packages_uninstall:
       - ubuntu-session
 
@@ -163,6 +163,11 @@ releases:
       - polkitd
       - pkexec
       - libfido2-1
+      # GNOME Software stack (see noble block above for rationale).
+      - packagekit
+      - gnome-software-plugin-flatpak
+      - gnome-software-plugin-fwupd
+      - appstream
     packages_remove:
       # pavumeter remains absent from the Ubuntu archive (dropped in plucky).
       - pavumeter
