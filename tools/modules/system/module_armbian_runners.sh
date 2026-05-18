@@ -187,6 +187,14 @@ function module_armbian_runners () {
 					install -m 0644 "${cleanup_src}/runner-cleanup.conf" /etc/armbian/runner-cleanup.conf
 				fi
 				install -m 0644 "${cleanup_src}/runner-cleanup.conf" /etc/armbian/runner-cleanup.conf.dist
+				# Event-driven per-runner _diag/pages cleanup. The hourly
+				# runner-cleanup timer is the catch-all; this layer fires
+				# on every runner unit start/stop so collisions never
+				# survive a quick restart cycle. install-runner-hooks
+				# scans every actions.runner.*.service installed by the
+				# svc.sh step above and drops in ExecStartPre/StopPost
+				# wired to /usr/local/sbin/runner-clean-pages.
+				install -m 0755 "${cleanup_src}/runner-clean-pages"     /usr/local/sbin/runner-clean-pages
 				systemctl daemon-reload
 				# Don't silence errors here — a failed timer install
 				# means the cleanup never fires and the host quietly
@@ -199,6 +207,15 @@ function module_armbian_runners () {
 						echo "Error: 'systemctl enable runner-cleanup.timer' failed" >&2
 					systemctl start  runner-cleanup.timer || \
 						echo "Error: 'systemctl start runner-cleanup.timer' failed" >&2
+				fi
+				# Wire up the systemd drop-ins for every runner unit
+				# that the svc.sh loop above just installed. Runs after
+				# daemon-reload so the new drop-ins take effect on the
+				# next runner restart cycle. Non-fatal — runner units
+				# already started above keep working without hooks
+				# until the operator restarts them.
+				if ! bash "${cleanup_src}/install-runner-hooks"; then
+					echo "Warning: install-runner-hooks failed; runner-clean-pages systemd hooks not in place" >&2
 				fi
 			else
 				echo "Warning: runner-cleanup assets not found in source tree next to module or at /usr/share/armbian-config/runner-cleanup; skipping maintenance helper install" >&2

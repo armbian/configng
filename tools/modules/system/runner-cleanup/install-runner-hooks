@@ -19,7 +19,7 @@ fi
 # Locate ourselves so the drop-in can point at the right runner-clean-pages
 # path. Default to /usr/local/bin which is where the cleanup helper
 # ends up if the operator copies things by hand; override via env.
-HELPER_PATH="${RUNNER_CLEAN_PAGES_PATH:-/usr/local/bin/runner-clean-pages}"
+HELPER_PATH="${RUNNER_CLEAN_PAGES_PATH:-/usr/local/sbin/runner-clean-pages}"
 
 if [[ ! -x "$HELPER_PATH" ]]; then
 	echo "install-runner-hooks: ${HELPER_PATH} not found or not executable" >&2
