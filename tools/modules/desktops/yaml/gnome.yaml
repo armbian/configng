@@ -84,17 +84,14 @@ releases:
       - pkexec
       - libu2f-udev
       # GNOME Software stack — graphical "Software" app for browsing
-      # apt + flatpak apps, applying firmware updates via fwupd, and
-      # showing rich app metadata. Plugins drag in gnome-software
-      # itself via Depends. Scoped to noble + resolute because:
-      # gnome-software-plugin-fwupd doesn't exist on Debian bookworm,
-      # and the other releases either don't ship a working combo
-      # (jammy too old for current GNOME Software) or aren't actively
-      # tested for desktop builds. Easy to extend to trixie/forky/sid
-      # once we verify the stack works there end-to-end.
+      # apt + flatpak apps and showing rich app metadata. On noble
+      # the fwupd plugin doesn't exist as a separate package —
+      # gnome-software has fwupd integration built in. The standalone
+      # gnome-software-plugin-fwupd .deb first appears in oracular
+      # (25.04) and resolute (26.04). Adding it here would fail with
+      # "Unable to locate package".
       - packagekit
       - gnome-software-plugin-flatpak
-      - gnome-software-plugin-fwupd
       - appstream
     packages_uninstall:
       - ubuntu-session
