@@ -131,14 +131,25 @@ function module_desktop_branding() {
 				cp -R "$desktop_dir/greeters/sddm/themes/"* /usr/share/sddm/themes/ 2>/dev/null || true
 			fi
 
-			# DE-specific postinst script (skip inside containers / CI)
+			# DE-specific postinst script. Runs unconditionally — including
+			# inside the build chroot. The skip-in-container guard that used
+			# to wrap this block silently dropped wallpaper / dconf / theme
+			# setup on GHA rootfs builds: the postinst scripts here are
+			# almost entirely file writes (dconf overrides, sed-edits of
+			# /etc/*.conf, schema recompiles) — chroot-safe by design and
+			# precisely what we want baked into the rootfs cache.
+			#
+			# Anything that genuinely needs a live system (systemctl,
+			# gsettings against a running dbus, netplan apply) is handled
+			# in module_desktops.sh under explicit _desktop_in_container
+			# guards; this code path never touched runtime services to
+			# begin with. The dialog_infobox call is the one user-facing
+			# bit, so keep it gated on "not inside container" so CI
+			# doesn't try to render an ncurses dialog.
 			if [[ -f "$desktop_dir/postinst/${de}.sh" ]]; then
-				if _desktop_in_container 2>/dev/null; then
-					echo "Skipping ${de} postinst (running inside container/CI)" >&2
-				else
+				_desktop_in_container 2>/dev/null || \
 					dialog_infobox "Desktop" "Running ${de} post-install configuration..."
-					bash "$desktop_dir/postinst/${de}.sh" || true
-				fi
+				bash "$desktop_dir/postinst/${de}.sh" || true
 			fi
 		;;
 	esac
