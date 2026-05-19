@@ -46,6 +46,16 @@ tiers:
       # in the GTK applet for nothing.
       - network-manager
       - netplan.io
+      # Camera userspace: PipeWire + GStreamer libcamera shims so apps
+      # (GNOME Snapshot / Cheese / Firefox / Chrome) can see V4L2 /
+      # libcamera devices end-to-end. v4l-utils ships `v4l2-ctl` for
+      # troubleshooting. Kernel-side enumeration of /dev/video* is not
+      # enough on modern laptops with complex ISPs (Intel IPU3/6/7,
+      # Qualcomm Snapdragon X) - apps need the userspace pipeline.
+      # Inert on machines without a camera (small daemons only).
+      - pipewire-libcamera
+      - gstreamer1.0-libcamera
+      - v4l-utils
       # ALSA Use Case Manager profiles. Without this package, PipeWire /
       # wireplumber see a complex sound card (Intel SOF on Lunar/Meteor/
       # Panther Lake laptops, Qualcomm Snapdragon X, AMD ACP DSP, …)
