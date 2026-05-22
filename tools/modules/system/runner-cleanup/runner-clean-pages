@@ -15,7 +15,20 @@
 
 set -e
 
-home="${HOME:?HOME is not set; runner-clean-pages must run as the runner user}"
+# Derive home directory from current user instead of relying on $HOME
+# which may not be set in systemd ExecStartPre/ExecStopPost hooks
+if [[ -n "$HOME" ]]; then
+	home="$HOME"
+else
+	# HOME not set — derive from passwd using current UID
+	user=$(id -un)
+	home=$(getent passwd "$user" | cut -d: -f6)
+	if [[ -z "$home" ]]; then
+		echo "runner-clean-pages: cannot determine home directory for user $user" | \
+			systemd-cat -t runner-clean-pages -p err 2>/dev/null || true
+		exit 1
+	fi
+fi
 diag_pages="${home}/_diag/pages"
 
 [ -d "$diag_pages" ] || exit 0

@@ -147,3 +147,59 @@ rm image ubuntu:24.04 (sha256:...)
 systemctl list-timers runner-cleanup.timer
 journalctl -u runner-cleanup.service --since '1 day ago'
 ```
+
+## Per-job _diag/pages/ cleanup
+
+GitHub Actions runners create per-job diagnostic page files under
+`~/_diag/pages/`. If a runner restarts (crash, OOM, manual restart) while
+a job page file still exists, the next job fails with:
+
+```
+The file '/home/actions-runner-NN/_diag/pages/<uuid>.log' already exists.
+```
+
+The **hourly** `runner-cleanup.timer` eventually clears these, but a runner
+that restarts within the hour still hits the collision.
+
+### Event-driven layer: systemd hooks
+
+`install-runner-hooks` wires `ExecStartPre` and `ExecStopPost` into every
+`actions.runner.*.service` unit. These hooks run `runner-clean-pages` on
+every runner start **and** stop (including SIGKILL / OOM / hard reboot),
+clearing `~/_diag/pages/` event-driven instead of waiting for the hourly
+timer.
+
+#### Installation
+
+```sh
+# Copy the helper script to a system path
+sudo install -m 0755 runner-clean-pages /usr/local/sbin/runner-clean-pages
+
+# Run the hook installer (creates drop-ins for all runner units)
+sudo ./install-runner-hooks
+```
+
+#### How it works
+
+`install-runner-hooks` scans `/etc/systemd/system/actions.runner.*.service`
+and creates a drop-in `10-clean-pages.conf` for each unit:
+
+```ini
+[Service]
+ExecStartPre=-/usr/local/sbin/runner-clean-pages
+ExecStopPost=-/usr/local/sbin/runner-clean-pages
+```
+
+The `-` prefix makes cleanup failures non-fatal — the runner unit must still
+start/stop even if the cleanup script has an issue. All failures log to
+journald under `runner-clean-pages` for visibility.
+
+#### Environment handling
+
+`runner-clean-pages` determines the runner's home directory by:
+1. Using `$HOME` if set (typical when run manually)
+2. Falling back to `getent passwd $(id -un)` when `$HOME` is unset
+
+This fallback handles the case where systemd doesn't propagate `HOME` in
+`ExecStartPre`/`ExecStopPost` hooks, even though the service runs as the
+correct user.
