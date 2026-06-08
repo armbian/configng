@@ -148,14 +148,22 @@ function module_zotcache () {
 				local tmp_creds
 				tmp_creds=$(mktemp /etc/zot/.sync-credentials.json.XXXXXX) || return 1
 				chmod 0600 "$tmp_creds"
-				jq -n --arg user "$gh_user" --arg pass "$gh_pat" \
-					'{"ghcr.io": {"username": $user, "password": $pass}}' > "$tmp_creds" || {
-						rm -f "$tmp_creds"
-						echo "❌ Failed to write $creds_file"
-						return 1
-					}
-				mv "$tmp_creds" "$creds_file"
-				chmod 0600 "$creds_file"
+				if ! jq -n --arg user "$gh_user" --arg pass "$gh_pat" \
+					'{"ghcr.io": {"username": $user, "password": $pass}}' > "$tmp_creds"
+				then
+					rm -f "$tmp_creds"
+					echo "❌ Failed to write $creds_file (jq)"
+					return 1
+				fi
+				if ! mv "$tmp_creds" "$creds_file"; then
+					rm -f "$tmp_creds"
+					echo "❌ Failed to install $creds_file (mv)"
+					return 1
+				fi
+				chmod 0600 "$creds_file" || {
+					echo "❌ Failed to chmod 0600 $creds_file"
+					return 1
+				}
 				gh_user=""
 				gh_pat=""
 			fi
@@ -345,10 +353,25 @@ function module_zotcache () {
 						local tmp_creds
 						tmp_creds=$(mktemp /etc/zot/.sync-credentials.json.XXXXXX) || return 1
 						chmod 0600 "$tmp_creds"
-						jq -n --arg user "$gh_user" --arg pass "$gh_pat" \
+						if ! jq -n --arg user "$gh_user" --arg pass "$gh_pat" \
 							'{"ghcr.io": {"username": $user, "password": $pass}}' > "$tmp_creds"
-						mv "$tmp_creds" "$creds_file"
-						chmod 0600 "$creds_file"
+						then
+							rm -f "$tmp_creds"
+							echo "❌ Failed to rewrite $creds_file (jq)"
+							gh_user=""; gh_pat=""
+							return 1
+						fi
+						if ! mv "$tmp_creds" "$creds_file"; then
+							rm -f "$tmp_creds"
+							echo "❌ Failed to install $creds_file (mv)"
+							gh_user=""; gh_pat=""
+							return 1
+						fi
+						chmod 0600 "$creds_file" || {
+							echo "❌ Failed to chmod 0600 $creds_file"
+							gh_user=""; gh_pat=""
+							return 1
+						}
 					fi
 					gh_user=""
 					gh_pat=""
