@@ -9,7 +9,7 @@ module_options+=(
 	["module_lidarr,group"]="Downloaders"
 	["module_lidarr,port"]="8686"
 	["module_lidarr,arch"]="x86-64 arm64"
-	["module_lidarr,dockerimage"]="lscr.io/linuxserver/lidarr:latest"
+	["module_lidarr,dockerimage"]="linuxserver/lidarr:latest"
 	["module_lidarr,dockername"]="lidarr"
 )
 #
@@ -47,6 +47,8 @@ function module_lidarr () {
 				-v "${base_dir}/downloads:/downloads" \
 				--restart=always \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "8686"
 		;;
 		"${commands[1]}") # remove
 			# Remove container and image (functions handle existence checks)

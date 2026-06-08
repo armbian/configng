@@ -9,7 +9,7 @@ module_options+=(
 	["module_sabnzbd,group"]="Downloaders"
 	["module_sabnzbd,port"]="8380"
 	["module_sabnzbd,arch"]="x86-64 arm64"
-	["module_sabnzbd,dockerimage"]="lscr.io/linuxserver/sabnzbd:latest"
+	["module_sabnzbd,dockerimage"]="linuxserver/sabnzbd:latest"
 	["module_sabnzbd,dockername"]="sabnzbd"
 )
 #
@@ -47,6 +47,8 @@ function module_sabnzbd () {
 				-v "${base_dir}/incomplete:/incomplete-downloads" \
 				--restart=always \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "8080"
 		;;
 		"${commands[1]}") # remove
 			# Remove container and image (functions handle existence checks)

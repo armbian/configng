@@ -9,7 +9,7 @@ module_options+=(
 	["module_bazarr,group"]="Downloaders"
 	["module_bazarr,port"]="6767"
 	["module_bazarr,arch"]="x86-64 arm64"
-	["module_bazarr,dockerimage"]="lscr.io/linuxserver/bazarr:latest"
+	["module_bazarr,dockerimage"]="linuxserver/bazarr:latest"
 	["module_bazarr,dockername"]="bazarr"
 )
 #
@@ -47,6 +47,8 @@ function module_bazarr () {
 				-v "${base_dir}/tv:/tv" \
 				--restart=always \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "6767"
 		;;
 		"${commands[1]}") # remove
 			# Remove container and image (functions handle existence checks)

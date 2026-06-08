@@ -9,7 +9,7 @@ module_options+=(
 	["module_qbittorrent,group"]="Downloaders"
 	["module_qbittorrent,port"]="8090"
 	["module_qbittorrent,arch"]="x86-64 arm64"
-	["module_qbittorrent,dockerimage"]="lscr.io/linuxserver/qbittorrent:latest"
+	["module_qbittorrent,dockerimage"]="linuxserver/qbittorrent:latest"
 	["module_qbittorrent,dockername"]="qbittorrent"
 )
 #
@@ -50,6 +50,8 @@ function module_qbittorrent () {
 				-v "${base_dir}/downloads:/downloads" \
 				--restart=always \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "$dockername" "8090"
 
 			# Wait for the LSIO image to actually bootstrap qBittorrent
 			# and emit the per-session temporary password. The previous

@@ -37,6 +37,16 @@ function module_stirling () {
 			# Create subdirectories
 			mkdir -p "${base_dir}/trainingData" "${base_dir}/extraConfigs" "${base_dir}/logs" "${base_dir}/customFiles"
 
+			# When SWAG is on this host, tell Stirling PDF (Spring
+			# Boot) its base path via SERVER_SERVLET_CONTEXT_PATH so
+			# the app emits /stirling-pdf/-prefixed asset URLs and
+			# routes its own endpoints under that prefix. LSIO's
+			# stock subfolder.conf-sample expects exactly this.
+			local -a stirling_extra_env=()
+			if docker container ls -a --format "{{.Names}}" 2>/dev/null | grep -q "^swag$"; then
+				stirling_extra_env+=(-e "SERVER_SERVLET_CONTEXT_PATH=/stirling-pdf")
+			fi
+
 			# Run container
 			docker_operation_progress run "$dockername" \
 				-d \
@@ -50,8 +60,39 @@ function module_stirling () {
 				-e DOCKER_ENABLE_SECURITY=false \
 				-e INSTALL_BOOK_AND_ADVANCED_HTML_OPS=false \
 				-e LANGS=en_GB \
+				"${stirling_extra_env[@]}" \
 				--restart=always \
 				"$dockerimage"
+
+			# Auto-configure SWAG reverse proxy if available.
+			# linuxserver/reverse-proxy-confs:master doesn't ship a
+			# stirling-pdf sample, so we seed our own. Stirling PDF
+			# (Spring Boot) is configured via SERVER_SERVLET_CONTEXT_PATH
+			# above to serve at /stirling-pdf, so the upstream URI
+			# matches the request URI 1:1 — no rewrite needed.
+			# client_max_body_size is bumped because Stirling's PDF
+			# upload tools push multi-hundred-MB files; SWAG's default
+			# 2M would 413 on anything larger than a small report.
+			docker_seed_swag_proxy_conf "$dockername" <<- 'NGINX'
+				## Custom Armbian seed — stirling-pdf subfolder proxy.
+				## Pairs with SERVER_SERVLET_CONTEXT_PATH=/stirling-pdf
+				## set on the container.
+				location = /stirling-pdf { return 301 /stirling-pdf/; }
+
+				location ^~ /stirling-pdf/ {
+				include /config/nginx/proxy.conf;
+				include /config/nginx/resolver.conf;
+
+				set $upstream_app stirling-pdf;
+				set $upstream_port 8080;
+				set $upstream_proto http;
+
+				client_max_body_size 0;
+
+				proxy_pass $upstream_proto://$upstream_app:$upstream_port;
+				}
+			NGINX
+			docker_configure_swag_proxy "$dockername" "8080"
 		;;
 		"${commands[1]}") # remove
 			docker_operation_progress rm "$dockername"
