@@ -105,7 +105,7 @@ function module_armbian_runners () {
 			trap '{ rm -rf -- "$temp_dir"; }' EXIT
 			[[ "$ARCH" == "x86_64" ]] && local arch=x64 || local arch=arm64
 			local LATEST=$(curl -sL https://api.github.com/repos/actions/runner/tags | jq -r '.[0].zipball_url' | rev | cut -d"/" -f1 | rev | sed "s/v//g")
-			curl --progress-bar --create-dir --output-dir ${temp_dir} -o \
+			curl --progress-bar --create-dirs --output-dir ${temp_dir} -o \
 			actions-runner-linux-${ARCH}-${LATEST}.tar.gz -L \
 			https://github.com/actions/runner/releases/download/v${LATEST}/actions-runner-linux-${arch}-${LATEST}.tar.gz
 
