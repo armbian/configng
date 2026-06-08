@@ -53,3 +53,47 @@ releases:
   noble:
     architectures: [arm64, amd64]
 
+tier_overrides:
+  minimal:
+    # Core DDE packages are NOT present in the official Debian/Ubuntu archives on
+    # any of deepin's currently-supported releases (bookworm/noble/trixie). They
+    # were removed from Debian in the bookworm cycle due to security/maintenance
+    # concerns and were never promoted to Ubuntu main. Unlike kde-neon or bianbu,
+    # this YAML has no repo: block configured that would supply them. Until a
+    # maintainer adds a repo: block pointing at a Deepin community overlay
+    # (see kde-neon.yaml for the pattern), stripping these packages prevents an
+    # "E: Unable to locate package" failure at install time. The remaining
+    # minimal-tier packages (deepin-icon-theme, deepin-terminal, lightdm, etc.)
+    # ARE in the standard archive and continue to be installed.
+    architectures:
+      amd64:
+        packages_remove:
+          - dde-control-center
+          - dde-daemon
+          - dde-desktop
+          - dde-dock
+          - dde-file-manager
+          - dde-launcher
+          - dde-polkit-agent
+          - dde-session-ui
+          - deepin-desktop-base
+          - deepin-desktop-schemas
+          - deepin-gtk-theme
+          - deepin-wm
+          - startdde
+      arm64:
+        packages_remove:
+          - dde-control-center
+          - dde-daemon
+          - dde-desktop
+          - dde-dock
+          - dde-file-manager
+          - dde-launcher
+          - dde-polkit-agent
+          - dde-session-ui
+          - deepin-desktop-base
+          - deepin-desktop-schemas
+          - deepin-gtk-theme
+          - deepin-wm
+          - startdde
+
