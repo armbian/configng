@@ -11,6 +11,7 @@ module_options+=(
 	["module_immich,arch"]="x86-64 arm64"
 	["module_immich,dockerimage"]="ghcr.io/imagegenius/immich:latest"
 	["module_immich,dockername"]="immich"
+	["module_immich,servicename"]="immich"
 )
 #
 # Module immich
@@ -144,6 +145,9 @@ function module_immich () {
 				done
 				echo "XXX"; echo "100"; echo "Timed out waiting for Immich"; echo "XXX"
 			) | dialog_gauge "$title" "Starting Immich..." 8 60
+
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "immich" "8080"
 
 			# Verify Immich is responding
 			if ! curl -sf http://localhost:${port}/ > /dev/null; then

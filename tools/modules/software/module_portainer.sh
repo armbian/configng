@@ -7,10 +7,11 @@ module_options+=(
 	["module_portainer,status"]="Active"
 	["module_portainer,doc_link"]="https://docs.portainer.io/"
 	["module_portainer,group"]="Containers"
-	["module_portainer,port"]="9000"
+	["module_portainer,port"]="9443"
 	["module_portainer,arch"]="x86-64 arm64"
 	["module_portainer,dockerimage"]="portainer/portainer-ce:latest"
 	["module_portainer,dockername"]="portainer"
+	["module_portainer,servicename"]="portainer"
 )
 #
 # Module Portainer
@@ -39,6 +40,7 @@ function module_portainer () {
 
 			docker_operation_progress run "$dockername" \
 				-d \
+				--net=lsio \
 				--name="$dockername" \
 				--restart=always \
 				-p 9000:9000 \
@@ -47,6 +49,8 @@ function module_portainer () {
 				-v /run/docker.sock:/var/run/docker.sock \
 				-v "${base_dir}/data:/data" \
 				"$dockerimage"
+			# Auto-configure SWAG reverse proxy if available
+			docker_configure_swag_proxy "portainer" "9443" "https"
 		;;
 		"${commands[1]}") # remove
 			# Remove container and image (functions handle existence checks)

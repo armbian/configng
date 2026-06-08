@@ -9,7 +9,7 @@ module_options+=(
 	["module_embyserver,group"]="Media"
 	["module_embyserver,port"]="8091"
 	["module_embyserver,arch"]="x86-64 arm64"
-	["module_embyserver,dockerimage"]="lscr.io/linuxserver/emby:latest"
+	["module_embyserver,dockerimage"]="linuxserver/emby:latest"
 	["module_embyserver,dockername"]="emby"
 )
 #
