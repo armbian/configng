@@ -320,6 +320,13 @@ function module_zotcache () {
 				return 1
 			fi
 
+			# Snapshot runtime-affecting values BEFORE prompts. Changes to
+			# either need a container recreate (new --publish / --volume),
+			# not just a restart — restart re-reads config.json but cannot
+			# alter the port mapping or bind mount baked in at run time.
+			local old_port="$ZOT_PORT"
+			local old_storage="$ZOT_STORAGE"
+
 			if [[ -t 1 ]]; then
 				ZOT_STORAGE=$(dialog_inputbox "Storage path"   "Host directory for the registry blob store." "$ZOT_STORAGE")
 				ZOT_PORT=$(dialog_inputbox    "HTTPS port"     "Port the registry listens on (TLS)." "$ZOT_PORT")
@@ -421,12 +428,66 @@ function module_zotcache () {
 				ZOT_ADMIN_USER="$ZOT_ADMIN_USER"
 			EOT
 
-			echo "Restarting zot-cache to apply changes ..."
-			docker restart "$dockername" >/dev/null || {
-				echo "❌ docker restart $dockername failed"
-				return 1
-			}
-			echo "✅ zot-cache reconciled."
+			# Port or storage change → full recreate (new -p / -v flags can't
+			# be applied to an existing container). Everything else (poll,
+			# prefix, tag regex, htpasswd, PAT) is in config.json or in
+			# bind-mounted files, so a restart is enough.
+			if [[ "$ZOT_PORT" != "$old_port" || "$ZOT_STORAGE" != "$old_storage" ]]; then
+				if [[ "$ZOT_STORAGE" != "$old_storage" ]]; then
+					echo "⚠️  Storage path changed: $old_storage → $ZOT_STORAGE"
+					echo "    Existing blobs at $old_storage are NOT migrated automatically."
+					install -d -m 0755 "$ZOT_STORAGE" || {
+						echo "❌ Failed to create $ZOT_STORAGE"
+						return 1
+					}
+				fi
+
+				# Re-detect uid:gid (image may have been updated since install).
+				local id_out zot_uid zot_gid
+				id_out=$(docker run --rm --entrypoint id "$dockerimage" 2>/dev/null || true)
+				zot_uid=$(echo "$id_out" | grep -oE 'uid=[0-9]+' | head -1 | cut -d= -f2)
+				zot_gid=$(echo "$id_out" | grep -oE 'gid=[0-9]+' | head -1 | cut -d= -f2)
+				zot_uid="${zot_uid:-1000}"
+				zot_gid="${zot_gid:-1000}"
+				chown -R "${zot_uid}:${zot_gid}" "$ZOT_STORAGE" || {
+					echo "❌ Failed to chown $ZOT_STORAGE to ${zot_uid}:${zot_gid}"
+					return 1
+				}
+
+				echo "Recreating zot-cache container (port / storage changed) ..."
+				docker rm -f "$dockername" >/dev/null 2>&1 || true
+				if ! docker_operation_progress run "$dockername" \
+					-d \
+					--name="$dockername" \
+					--init \
+					--net=lsio \
+					--restart=unless-stopped \
+					--user="${zot_uid}:${zot_gid}" \
+					--publish "${ZOT_PORT}:${ZOT_PORT}" \
+					--volume "${ZOT_STORAGE}:/var/lib/registry" \
+					--volume "${cfg_file}:/etc/zot/config.json:ro" \
+					--volume "${ht_file}:/etc/zot/htpasswd:ro" \
+					--volume "${creds_file}:/etc/zot/sync-credentials.json:ro" \
+					--volume "${cert_dir}:/etc/zot/certs:ro" \
+					--health-cmd "/usr/local/bin/zot verify /etc/zot/config.json" \
+					--health-interval=30s \
+					--health-timeout=5s \
+					--health-retries=3 \
+					"$dockerimage" \
+					serve /etc/zot/config.json
+				then
+					echo "❌ Failed to recreate zot-cache container."
+					return 1
+				fi
+				echo "✅ zot-cache recreated on https://${LOCALIPADD:-localhost}:${ZOT_PORT}/"
+			else
+				echo "Restarting zot-cache to apply changes ..."
+				docker restart "$dockername" >/dev/null || {
+					echo "❌ docker restart $dockername failed"
+					return 1
+				}
+				echo "✅ zot-cache reconciled."
+			fi
 		;;
 
 		"${commands[2]}") # status
