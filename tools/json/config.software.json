@@ -1414,6 +1414,45 @@
                             "help": "NetBox purge with data folder"
                         },
                         {
+                            "id": "APT001",
+                            "description": "apt-cacher-ng caching proxy install",
+                            "short": "apt-cacher-ng",
+                            "module": "module_aptcacherng",
+                            "about": "This operation will install apt-cacher-ng, a caching proxy for Debian/Ubuntu apt repositories",
+                            "command": [
+                                "module_aptcacherng install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_aptcacherng status",
+                            "container_type": "docker",
+                            "help": "apt-cacher-ng caches .deb files on your LAN so each apt-get install / dist-upgrade across multiple hosts only downloads each package once from the upstream mirror."
+                        },
+                        {
+                            "id": "APT002",
+                            "description": "apt-cacher-ng remove",
+                            "about": "This operation will remove the apt-cacher-ng container",
+                            "command": [
+                                "module_aptcacherng remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_aptcacherng status",
+                            "help": "apt-cacher-ng remove"
+                        },
+                        {
+                            "id": "APT003",
+                            "description": "apt-cacher-ng purge with cache folder",
+                            "about": "This operation will purge apt-cacher-ng cache data and remove the container",
+                            "command": [
+                                "module_aptcacherng purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_aptcacherng status",
+                            "help": "apt-cacher-ng purge with cache folder"
+                        },
+                        {
                             "id": "SMB001",
                             "description": "SAMBA Remote File share",
                             "short": "Samba",
