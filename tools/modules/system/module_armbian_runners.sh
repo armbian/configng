@@ -68,7 +68,7 @@ function module_armbian_runners () {
 
 			if [[ -z $gh_token ]]; then
 				echo "Error: Github token is mandatory"
-				${module_options["module_armbian_runners,feature"]} ${commands[6]}
+				${module_options["module_armbian_runners,feature"]} ${commands[5]}
 				exit 1
 			fi
 
@@ -296,7 +296,7 @@ function module_armbian_runners () {
 		"${commands[3]}")
 			if [[ -z $gh_token ]]; then
 				echo "Error: Github token is mandatory"
-				${module_options["module_armbian_runners,feature"]} ${commands[6]}
+				${module_options["module_armbian_runners,feature"]} ${commands[5]}
 				exit 1
 			fi
 			for i in $(seq -w $start $stop); do
@@ -304,19 +304,22 @@ function module_armbian_runners () {
 			done
 		;;
 		"${commands[4]}")
-			if [[ $(systemctl list-units --type=service 2>/dev/null | grep actions.runner) -gt 0 ]]; then
+			if [[ $(systemctl list-units --type=service --no-legend 2>/dev/null | grep -c actions.runner) -gt 0 ]]; then
 				return 0
 			else
 				return 1
 			fi
 		;;
-		"${commands[6]}")
+		"${commands[5]}")
 			echo -e "\nUsage: ${module_options["module_armbian_runners,feature"]} <command> [switches]"
-			echo -e "Commands:  install purge"
+			echo -e "Commands:  install remove remove_online purge status help"
 			echo -e "Available commands:\n"
 			echo -e "\tinstall\t\t- Install or reinstall $title."
+			echo -e "\tremove\t\t- Remove a single runner (locally and on GitHub)."
+			echo -e "\tremove_online\t- Remove matching runners on GitHub only."
 			echo -e "\tpurge\t\t- Purge $title."
 			echo -e "\tstatus\t\t- Status of $title."
+			echo -e "\thelp\t\t- Show this help."
 			echo -e "\nAvailable switches:\n"
 			echo -e "\tgh_token\t- token with rights to admin runners."
 			echo -e "\trunner_name\t- name of the runner (series)."
@@ -330,7 +333,7 @@ function module_armbian_runners () {
 			echo ""
 		;;
 		*)
-			${module_options["module_armbian_runners,feature"]} ${commands[6]}
+			${module_options["module_armbian_runners,feature"]} ${commands[5]}
 		;;
 	esac
 }
