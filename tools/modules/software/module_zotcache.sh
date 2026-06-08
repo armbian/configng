@@ -552,8 +552,12 @@ function module_zotcache () {
 				echo "/v2/_catalog: skipped (export ZOT_BUILDER_PASSWORD or ZOT_ADMIN_PASSWORD to probe)"
 			fi
 
-			# Healthy = running AND (healthy or not yet reported).
-			[[ "$state" == "running" && ( "$health" == "healthy" || -z "$health" ) ]]
+			# Presence check (not health check). The menu's "remove"/"purge"
+			# items gate on `condition: "module_zotcache status"`, so a 0
+			# return must mean "this thing exists and the operator may need
+			# to act on it" — even when stopped, restarting, dead, or
+			# unhealthy. The non-existence case already returned 1 above.
+			[[ -n "$state" ]]
 		;;
 
 		"${commands[3]}") # logs
