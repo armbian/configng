@@ -8,8 +8,8 @@ module_options+=(
 	["module_git_cdn,doc_link"]="https://gitlab.com/grouperenault/git_cdn"
 	["module_git_cdn,group"]="Utilities"
 	["module_git_cdn,port"]="8000"
-	["module_git_cdn,arch"]="x86-64"
-	["module_git_cdn,dockerimage"]="registry.gitlab.com/grouperenault/git_cdn:latest"
+	["module_git_cdn,arch"]="x86-64 arm64"
+	["module_git_cdn,dockerimage"]="ghcr.io/armbian/git_cdn:latest"
 	["module_git_cdn,dockername"]="git_cdn"
 	["module_git_cdn,upstream"]="https://github.com/"
 )
@@ -77,7 +77,7 @@ function module_git_cdn () {
 		;;
 		"${commands[4]}") # help
 			show_module_help "module_git_cdn" "$title" \
-				"Caching git+http(s) proxy / CDN that mirrors one upstream git server near your CI workers, reducing WAN usage on repeated clones.\n\nUpstream: ${upstream}\nProxy port: ${port}\nDocker Image: ${dockerimage}\nCache directory: ${base_dir}/cache\n\nNote: the upstream image is x86-64 only.\n\nClient configuration — on each git host:\n  git config --global url.\"http://<server>:${port}/\".insteadOf ${upstream}\n\nThen clone normally:\n  git clone ${upstream}<owner>/<repo>.git"
+				"Caching git+http(s) proxy / CDN that mirrors one upstream git server near your CI workers, reducing WAN usage on repeated clones.\n\nUpstream: ${upstream}\nProxy port: ${port}\nDocker Image: ${dockerimage}\nCache directory: ${base_dir}/cache\n\nClient configuration — on each git host:\n  git config --global url.\"http://<server>:${port}/\".insteadOf ${upstream}\n\nThen clone normally:\n  git clone ${upstream}<owner>/<repo>.git"
 		;;
 		*)
 			${module_options["module_git_cdn,feature"]} ${commands[4]}
