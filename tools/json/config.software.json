@@ -1453,6 +1453,45 @@
                             "help": "apt-cacher-ng purge with cache folder"
                         },
                         {
+                            "id": "GCDN001",
+                            "description": "git_cdn GitHub caching proxy install",
+                            "short": "git_cdn",
+                            "module": "module_git_cdn",
+                            "about": "This operation will install git_cdn, a caching git+http proxy that mirrors GitHub near your CI workers (x86-64 only)",
+                            "command": [
+                                "module_git_cdn install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_git_cdn status",
+                            "container_type": "docker",
+                            "help": "git_cdn is a git+http(s) proxy that mirrors an upstream git server (GitHub) on your LAN, so repeated clones/fetches of the same repo across multiple hosts only pull new objects from upstream once. The upstream Docker image is x86-64 only."
+                        },
+                        {
+                            "id": "GCDN002",
+                            "description": "git_cdn remove",
+                            "about": "This operation will remove the git_cdn container",
+                            "command": [
+                                "module_git_cdn remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_git_cdn status",
+                            "help": "git_cdn remove"
+                        },
+                        {
+                            "id": "GCDN003",
+                            "description": "git_cdn purge with cache folder",
+                            "about": "This operation will purge git_cdn cache data and remove the container",
+                            "command": [
+                                "module_git_cdn purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_git_cdn status",
+                            "help": "git_cdn purge with cache folder"
+                        },
+                        {
                             "id": "SMB001",
                             "description": "SAMBA Remote File share",
                             "short": "Samba",
