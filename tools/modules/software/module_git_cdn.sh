@@ -38,7 +38,7 @@ function module_git_cdn () {
 
 			# git_cdn mirrors a single upstream git server (GITSERVER_UPSTREAM)
 			# and caches it under WORKING_DIRECTORY, served over http on :8000.
-			docker_operation_progress run "$dockername" \
+			if ! docker_operation_progress run "$dockername" \
 				-d \
 				--name="$dockername" \
 				--init \
@@ -48,7 +48,10 @@ function module_git_cdn () {
 				--env GITSERVER_UPSTREAM="$upstream" \
 				--env WORKING_DIRECTORY="/git-data" \
 				--volume "${base_dir}/cache:/git-data" \
-				"$dockerimage"
+				"$dockerimage"; then
+				echo -e "\nFailed to start ${dockername} (${dockerimage})\n" >&2
+				return 1
+			fi
 
 			local install_msg="git_cdn is proxying ${upstream} on port ${port}\n\nPoint git at this server on each consumer host:\n\n  git config --global url.\"http://${LOCALIPADD}:${port}/\".insteadOf ${upstream}\n\nThen clone GitHub repos as usual — fetches are served from the local cache:\n\n  git clone ${upstream}<owner>/<repo>.git"
 
