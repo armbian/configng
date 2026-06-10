@@ -334,6 +334,12 @@ sudo armbian-config
     - ### NetBox infrastructure resource modeling install
     - ### NetBox remove
     - ### NetBox purge with data folder
+    - ### apt-cacher-ng caching proxy install
+    - ### apt-cacher-ng remove
+    - ### apt-cacher-ng purge with cache folder
+    - ### git_cdn GitHub caching proxy install
+    - ### git_cdn remove
+    - ### git_cdn purge with cache folder
     - ### SAMBA Remote File share
     - ### Webmin web-based management tool
 
@@ -751,6 +757,12 @@ Outputs:
 	--cmd NBOX01 - NetBox infrastructure resource modeling install
 	--cmd NBOX02 - NetBox remove (http://localhost:8222)
 	--cmd NBOX03 - NetBox purge with data folder
+	--cmd APT001 - apt-cacher-ng caching proxy install
+	--cmd APT002 - apt-cacher-ng remove (http://localhost:3142/acng-report.html)
+	--cmd APT003 - apt-cacher-ng purge with cache folder
+	--cmd GCDN001 - git_cdn GitHub caching proxy install
+	--cmd GCDN002 - git_cdn remove
+	--cmd GCDN003 - git_cdn purge with cache folder
 	--cmd SMB001 - SAMBA Remote File share
 	--cmd WBM001 - Webmin web-based management tool
     Media - Media servers, organizers and editors
@@ -1225,7 +1237,7 @@ These helper functions facilitate various operations related to job management, 
 | Install sonarr container | install remove purge status help | @armbian 
 | Display a yes/no dialog using the configured dialog tool | dialog_yesno "Title" "Question" | @armbian 
 | Generate Document files. | generate_readme | @Tearran 
-| Storing netplan config to tmp | store_netplan_config | @igorpecovnik 
+|  |  | @igorpecovnik 
 | Generic module help dialog for containers and native installs | show_module_help "module_headers" "Kernel Headers" "" "native" | @armbian 
 | Install PostgreSQL container (advanced relational database) | install remove purge status help | @armbian 
 | Install jellyfin container | install remove purge status help | @armbian 
@@ -1276,6 +1288,7 @@ These helper functions facilitate various operations related to job management, 
 | Install deluge container | install remove purge status help | @igorpecovnik 
 | Set Armbian root filesystem to read only | install remove status help | @igorpecovnik 
 | Cockpit setup and service setting. | install remove purge status help | @tearran 
+| Install apt-cacher-ng container (caching proxy for Debian/Ubuntu apt repos) | install remove purge status help | @igorpecovnik 
 | Generate a submenu from a parent_id | generate_menu 'parent_id' | @Tearran 
 | Generate a markdown list json objects using jq. | see_jq_menu_list | @Tearran 
 | Install octoprint container | install remove purge status help | @armbian 
@@ -1327,6 +1340,7 @@ These helper functions facilitate various operations related to job management, 
 | Install homepage container | install remove purge status help | @armbian 
 | Toggle IPv6 on or off | toggle_ipv6 | @Tearran 
 | Update sub-submenu descriptions based on conditions | update_sub_submenu_data MenuID SubID SubSubID CMD | @Tearran 
+| Install git_cdn container (caching git+http proxy for GitHub clones) | install remove purge status help | @igorpecovnik 
 | Parse json to get list of desired menu or submenu items. Can return pairs or triplets depending on --with-help flag. | parse_menu_items 'menu_options_array'
 parse_menu_items 'menu_options_array' --with-help | @viraniac 
 | Parse desktop YAML definitions | module_desktop_yamlparse xfce | @igorpecovnik 
