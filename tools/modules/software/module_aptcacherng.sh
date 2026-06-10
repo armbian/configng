@@ -1,5 +1,5 @@
 module_options+=(
-	["module_aptcacherng,author"]="@sameersbn"
+	["module_aptcacherng,author"]="@igorpecovnik"
 	["module_aptcacherng,maintainer"]="@igorpecovnik"
 	["module_aptcacherng,feature"]="module_aptcacherng"
 	["module_aptcacherng,example"]="install remove purge status help"
@@ -9,7 +9,7 @@ module_options+=(
 	["module_aptcacherng,group"]="Utilities"
 	["module_aptcacherng,port"]="3142"
 	["module_aptcacherng,arch"]="x86-64 arm64"
-	["module_aptcacherng,dockerimage"]="sameersbn/apt-cacher-ng:3.3-20200524"
+	["module_aptcacherng,dockerimage"]="ghcr.io/armbian/apt-cacher-ng:latest"
 	["module_aptcacherng,dockername"]="apt-cacher-ng"
 )
 #
