@@ -12,6 +12,8 @@ module_options+=(
 	["module_git_cdn,dockerimage"]="ghcr.io/armbian/git_cdn:latest"
 	["module_git_cdn,dockername"]="git_cdn"
 	["module_git_cdn,upstream"]="https://github.com/"
+	["module_git_cdn,cache_size_gb"]="500"
+	["module_git_cdn,workers"]="12"
 )
 #
 # Module git_cdn — git+http(s) caching proxy / CDN (Groupe Renault)
@@ -22,6 +24,8 @@ function module_git_cdn () {
 	local dockername="${module_options["module_git_cdn,dockername"]}"
 	local port="${module_options["module_git_cdn,port"]}"
 	local upstream="${module_options["module_git_cdn,upstream"]}"
+	local cache_size_gb="${module_options["module_git_cdn,cache_size_gb"]}"
+	local workers="${module_options["module_git_cdn,workers"]}"
 
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_git_cdn,example"]}"
@@ -47,6 +51,10 @@ function module_git_cdn () {
 				--publish "${port}:8000" \
 				--env GITSERVER_UPSTREAM="$upstream" \
 				--env WORKING_DIRECTORY="/git-data" \
+				--env GUNICORN_WORKER="$workers" \
+				--env PACK_CACHE_SIZE_GB="$cache_size_gb" \
+				--env PACK_CACHE_DEPTH="true" \
+				--env CDN_BUNDLE_URL="" \
 				--volume "${base_dir}/cache:/git-data" \
 				"$dockerimage"; then
 				echo -e "\nFailed to start ${dockername} (${dockerimage})\n" >&2
@@ -80,7 +88,7 @@ function module_git_cdn () {
 		;;
 		"${commands[4]}") # help
 			show_module_help "module_git_cdn" "$title" \
-				"Caching git+http(s) proxy / CDN that mirrors one upstream git server near your CI workers, reducing WAN usage on repeated clones.\n\nUpstream: ${upstream}\nProxy port: ${port}\nDocker Image: ${dockerimage}\nCache directory: ${base_dir}/cache\n\nClient configuration — on each git host:\n  git config --global url.\"http://<server>:${port}/\".insteadOf ${upstream}\n\nThen clone normally:\n  git clone ${upstream}<owner>/<repo>.git"
+				"Caching git+http(s) proxy / CDN that mirrors one upstream git server near your CI workers, reducing WAN usage on repeated clones.\n\nUpstream: ${upstream}\nProxy port: ${port}\nDocker Image: ${dockerimage}\nCache directory: ${base_dir}/cache\nPack cache size: ${cache_size_gb} GB\nWorkers: ${workers}\n\nClient configuration — on each git host:\n  git config --global url.\"http://<server>:${port}/\".insteadOf ${upstream}\n\nThen clone normally:\n  git clone ${upstream}<owner>/<repo>.git"
 		;;
 		*)
 			${module_options["module_git_cdn,feature"]} ${commands[4]}
