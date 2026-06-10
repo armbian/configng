@@ -1457,7 +1457,7 @@
                             "description": "git_cdn GitHub caching proxy install",
                             "short": "git_cdn",
                             "module": "module_git_cdn",
-                            "about": "This operation will install git_cdn, a caching git+http proxy that mirrors GitHub near your CI workers (x86-64 only)",
+                            "about": "This operation will install git_cdn, a caching git+http proxy that mirrors GitHub near your CI workers",
                             "command": [
                                 "module_git_cdn install"
                             ],
@@ -1465,7 +1465,7 @@
                             "author": "@igorpecovnik",
                             "condition": "! module_git_cdn status",
                             "container_type": "docker",
-                            "help": "git_cdn is a git+http(s) proxy that mirrors an upstream git server (GitHub) on your LAN, so repeated clones/fetches of the same repo across multiple hosts only pull new objects from upstream once. The upstream Docker image is x86-64 only."
+                            "help": "git_cdn is a git+http(s) proxy that mirrors an upstream git server (GitHub) on your LAN, so repeated clones/fetches of the same repo across multiple hosts only pull new objects from upstream once."
                         },
                         {
                             "id": "GCDN002",
