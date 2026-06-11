@@ -5,6 +5,7 @@ This module deploys it as an **in-memory LRU cache with RDB persistence** — an
 - Extremely fast performance with in-memory storage
 - RDB snapshot on shutdown (AOF disabled) — survives planned restarts with minimal runtime I/O
 - Bounded memory with `allkeys-lru` eviction (default `maxmemory` 64 GB)
+- Throughput-tuned for high concurrency: threaded network I/O, background (lazyfree) eviction, active defragmentation
 - Raised open-files limit for many concurrent connections
 - Simple API and wide client support
 

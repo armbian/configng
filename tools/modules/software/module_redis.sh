@@ -13,7 +13,9 @@ module_options+=(
 	["module_redis,dockername"]="redis"
 	["module_redis,maxmemory"]="64gb"
 	["module_redis,maxmemory_policy"]="allkeys-lru"
+	["module_redis,maxmemory_samples"]="10"
 	["module_redis,nofile"]="100000"
+	["module_redis,io_threads"]="4"
 	["module_redis,save"]="86400 1"
 	["module_redis,stop_timeout"]="300"
 )
@@ -27,7 +29,9 @@ function module_redis () {
 	local port="${module_options["module_redis,port"]}"
 	local maxmemory="${module_options["module_redis,maxmemory"]}"
 	local maxmemory_policy="${module_options["module_redis,maxmemory_policy"]}"
+	local maxmemory_samples="${module_options["module_redis,maxmemory_samples"]}"
 	local nofile="${module_options["module_redis,nofile"]}"
+	local io_threads="${module_options["module_redis,io_threads"]}"
 	local save="${module_options["module_redis,save"]}"
 	local stop_timeout="${module_options["module_redis,stop_timeout"]}"
 
@@ -54,6 +58,15 @@ function module_redis () {
 			# `docker stop` keeps the data. --stop-timeout raises Docker's 10s
 			# SIGTERM grace period so a large snapshot can finish before SIGKILL.
 			# Eviction keeps memory bounded at maxmemory.
+			#
+			# Throughput tuning for the ccache remote-storage workload (many
+			# runners pushing/pulling large object blobs over a fast link):
+			#   - io-threads (+do-reads): parallelize network read/write, the
+			#     real bottleneck for big payloads over a fat pipe
+			#   - lazyfree-*: evict/free large values on a background thread so
+			#     eviction under allkeys-lru never stalls the event loop
+			#   - maxmemory-samples: more accurate LRU so hot objects survive
+			#   - activedefrag: reclaim fragmentation in a long-running cache
 			docker_operation_progress run "$dockername" \
 				-d \
 				--name="$dockername" \
@@ -67,6 +80,13 @@ function module_redis () {
 				redis-server \
 				--maxmemory "$maxmemory" \
 				--maxmemory-policy "$maxmemory_policy" \
+				--maxmemory-samples "$maxmemory_samples" \
+				--io-threads "$io_threads" \
+				--io-threads-do-reads yes \
+				--lazyfree-lazy-eviction yes \
+				--lazyfree-lazy-expire yes \
+				--lazyfree-lazy-server-del yes \
+				--activedefrag yes \
 				--appendonly no \
 				--save "$save"
 		;;
@@ -89,7 +109,7 @@ function module_redis () {
 		;;
 		"${commands[4]}") # help
 			show_module_help "module_redis" "$title" \
-				"In-memory LRU cache with RDB persistence — an RDB snapshot is written on graceful shutdown and reloaded on start, so planned restarts keep the data (a hard crash may lose writes since the last snapshot).\n\nPort: ${port}\nDocker Image: ${dockerimage}\nMax memory: ${maxmemory}\nEviction policy: ${maxmemory_policy}\nOpen files limit: ${nofile}\nSave points: ${save}\nStop timeout: ${stop_timeout}s\nData directory: ${base_dir}/data"
+				"In-memory LRU cache with RDB persistence — an RDB snapshot is written on graceful shutdown and reloaded on start, so planned restarts keep the data (a hard crash may lose writes since the last snapshot). Tuned for the ccache remote-storage workload: threaded network I/O, background (lazyfree) eviction and active defragmentation.\n\nPort: ${port}\nDocker Image: ${dockerimage}\nMax memory: ${maxmemory}\nEviction policy: ${maxmemory_policy} (samples ${maxmemory_samples})\nIO threads: ${io_threads}\nOpen files limit: ${nofile}\nSave points: ${save}\nStop timeout: ${stop_timeout}s\nData directory: ${base_dir}/data"
 		;;
 		*)
 			${module_options["module_redis,feature"]} ${commands[4]}
