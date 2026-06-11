@@ -31,6 +31,17 @@ function module_armbian_runners () {
 	local commands
 	IFS=' ' read -r -a commands <<< "${module_options["module_armbian_runners,example"]}"
 
+	# Derive the GitHub registration target (org or owner/repo) for ALL
+	# subcommands — not just install — so remove/remove_online/purge can
+	# reach the API too. Previously these lived inside the install case, so
+	# every other subcommand built a malformed '//actions/runners' URL.
+	local registration_url="${organisation:-armbian}"
+	local prefix="orgs"
+	if [[ -n "${owner}" && -n "${repository}" ]]; then
+		registration_url="${owner}/${repository}"
+		prefix="repos"
+	fi
+
 	case "$1" in
 
 		"${commands[0]}")
@@ -86,14 +97,6 @@ function module_armbian_runners () {
 			# workaround. Remove when parameters handling is fixed
 			local label_primary=$(echo $label_primary | sed "s/_/,/g") # convert
 			local label_secondary=$(echo $label_secondary | sed "s/_/,/g") # convert
-
-			# we can generate per org or per repo
-			local registration_url="${organisation}"
-			local prefix="orgs"
-			if [[ -n "${owner}" && -n "${repository}" ]]; then
-				registration_url="${owner}/${repository}"
-				prefix=repos
-			fi
 
 			# Docker preinstall is needed for our build framework
 			pkg_installed docker-ce || module_docker install
@@ -223,27 +226,59 @@ function module_armbian_runners () {
 
 		;;
 		"${commands[1]}")
-			# delete if previous already exists
-			echo "Removing runner $3 on GitHub"
-			if ! ${module_options["module_armbian_runners,feature"]} ${commands[2]} "$2-$3"; then
-				# Most common failure: GitHub returned 422 because
-				# the runner is currently running a job. Don't proceed
-				# with the local cleanup — that would leave a state
-				# where GitHub still thinks the runner exists, the
-				# host has no install, and the subsequent config.sh
-				# would fail with 'A runner exists with the same name'.
-				echo "Skipping local removal of actions-runner-$3 — GitHub delete failed (runner likely busy)" >&2
-				return 1
+			# `remove` is called two ways:
+			#   * internally by install/purge with positional args:
+			#       remove <runner_name> <index>
+			#   * directly via --api with named params and an index range:
+			#       remove runner_name=<n> start=<a> stop=<b> [organisation=..]
+			# A bare (no '=') $2 is the positional form; otherwise the named
+			# params parsed above drive a start..stop range.
+			local rm_name rm_indices
+			if [[ -n "$2" && "$2" != *=* ]]; then
+				rm_name="$2"
+				rm_indices="$3"
+			else
+				rm_name="${runner_name:-armbian}"
+				if [[ -n "${start}" || -n "${stop}" ]]; then
+					rm_indices="$(seq -w "${start:-01}" "${stop:-01}")"
+				fi
 			fi
-			echo "Removing runner $3 locally"
-			runner_home=$(getent passwd "actions-runner-${3}" | cut -d: -f6)
-			if [[ -f "${runner_home}/svc.sh" ]]; then
-				sh -c "cd ${runner_home} ; sudo ./svc.sh stop actions-runner-$3 >/dev/null; sudo ./svc.sh uninstall actions-runner-$3 >/dev/null"
-			fi
-			userdel -r -f actions-runner-$3 2>/dev/null
-			groupdel actions-runner-$3 2>/dev/null
-			sed -i "/^actions-runner-$3.*/d" /etc/sudoers
-			[[ ${runner_home} != "/" ]] && rm -rf "${runner_home}"
+
+			local rm_failed=0 idx target runner_home
+			for idx in ${rm_indices:-__bare__}; do
+				if [[ "$idx" == "__bare__" ]]; then
+					target="${rm_name}"
+				else
+					target="${rm_name}-${idx}"
+				fi
+
+				echo "Removing runner ${target} on GitHub"
+				if ! ${module_options["module_armbian_runners,feature"]} ${commands[2]} "${target}"; then
+					# Most common failure: GitHub returned 422 because
+					# the runner is currently running a job. Don't proceed
+					# with the local cleanup — that would leave a state
+					# where GitHub still thinks the runner exists, the
+					# host has no install, and the subsequent config.sh
+					# would fail with 'A runner exists with the same name'.
+					echo "Skipping local removal of actions-runner-${idx} — GitHub delete failed (runner likely busy)" >&2
+					rm_failed=1
+					continue
+				fi
+
+				# Without an index we can't map to a local user — GitHub-only.
+				[[ "$idx" == "__bare__" ]] && continue
+
+				echo "Removing runner ${idx} locally"
+				runner_home=$(getent passwd "actions-runner-${idx}" | cut -d: -f6)
+				if [[ -f "${runner_home}/svc.sh" ]]; then
+					sh -c "cd ${runner_home} ; sudo ./svc.sh stop actions-runner-${idx} >/dev/null; sudo ./svc.sh uninstall actions-runner-${idx} >/dev/null"
+				fi
+				userdel -r -f actions-runner-${idx} 2>/dev/null
+				groupdel actions-runner-${idx} 2>/dev/null
+				sed -i "/^actions-runner-${idx}.*/d" /etc/sudoers
+				[[ -n "${runner_home}" && ${runner_home} != "/" ]] && rm -rf "${runner_home}"
+			done
+			return $rm_failed
 		;;
 		"${commands[2]}")
 			DELETE=$2
@@ -300,7 +335,7 @@ function module_armbian_runners () {
 				exit 1
 			fi
 			for i in $(seq -w $start $stop); do
-				${module_options["module_armbian_runners,feature"]} ${commands[1]} ${runner_name}
+				${module_options["module_armbian_runners,feature"]} ${commands[1]} ${runner_name} ${i}
 			done
 		;;
 		"${commands[4]}")
