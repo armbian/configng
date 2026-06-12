@@ -203,7 +203,12 @@ function module_armbian_runners () {
 				# cleanup. The runner runs this after every job via
 				# ACTIONS_RUNNER_HOOK_JOB_COMPLETED (wired into each
 				# runner's .env below).
-				install -m 0755 "${cleanup_src}/runner-job-completed"   /usr/local/sbin/runner-job-completed
+				# The GitHub runner validates the hook path and rejects it
+				# unless it ends in .sh/.ps1/.js, so the installed name keeps
+				# the .sh extension. Remove the old extensionless copy left by
+				# earlier installs.
+				install -m 0755 "${cleanup_src}/runner-job-completed.sh" /usr/local/sbin/runner-job-completed.sh
+				rm -f /usr/local/sbin/runner-job-completed
 				systemctl daemon-reload
 				# Don't silence errors here — a failed timer install
 				# means the cleanup never fires and the host quietly
@@ -233,7 +238,7 @@ function module_armbian_runners () {
 				# passwordless sudo) after each job. Idempotent; covers
 				# already-installed runners too. Takes effect on each runner's
 				# next (re)start, so we don't force-restart busy ones here.
-				local job_hook_path="/usr/local/sbin/runner-job-completed"
+				local job_hook_path="/usr/local/sbin/runner-job-completed.sh"
 				local runner_home runner_owner env_file
 				for runner_home in /home/actions-runner-*; do
 					[[ -d "$runner_home" ]] || continue
