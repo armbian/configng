@@ -198,6 +198,12 @@ function module_armbian_runners () {
 				# svc.sh step above and drops in ExecStartPre/StopPost
 				# wired to /usr/local/sbin/runner-clean-pages.
 				install -m 0755 "${cleanup_src}/runner-clean-pages"     /usr/local/sbin/runner-clean-pages
+				# Per-job workspace chown. Docker builds leave root-owned
+				# files under _work that break the next job's checkout
+				# cleanup. The runner runs this after every job via
+				# ACTIONS_RUNNER_HOOK_JOB_COMPLETED (wired into each
+				# runner's .env below).
+				install -m 0755 "${cleanup_src}/runner-job-completed"   /usr/local/sbin/runner-job-completed
 				systemctl daemon-reload
 				# Don't silence errors here — a failed timer install
 				# means the cleanup never fires and the host quietly
@@ -220,6 +226,27 @@ function module_armbian_runners () {
 				if ! bash "${cleanup_src}/install-runner-hooks"; then
 					echo "Warning: install-runner-hooks failed; runner-clean-pages systemd hooks not in place" >&2
 				fi
+
+				# Wire the post-job chown hook into every runner's .env. The
+				# runner loads ACTIONS_RUNNER_HOOK_JOB_COMPLETED from .env at
+				# service start and runs it (as the runner user, which has
+				# passwordless sudo) after each job. Idempotent; covers
+				# already-installed runners too. Takes effect on each runner's
+				# next (re)start, so we don't force-restart busy ones here.
+				local job_hook_path="/usr/local/sbin/runner-job-completed"
+				local runner_home runner_owner env_file
+				for runner_home in /home/actions-runner-*; do
+					[[ -d "$runner_home" ]] || continue
+					runner_owner="$(stat -c '%U' "$runner_home")"
+					env_file="${runner_home}/.env"
+					touch "$env_file"
+					if grep -q '^ACTIONS_RUNNER_HOOK_JOB_COMPLETED=' "$env_file"; then
+						sed -i "s#^ACTIONS_RUNNER_HOOK_JOB_COMPLETED=.*#ACTIONS_RUNNER_HOOK_JOB_COMPLETED=${job_hook_path}#" "$env_file"
+					else
+						echo "ACTIONS_RUNNER_HOOK_JOB_COMPLETED=${job_hook_path}" >> "$env_file"
+					fi
+					chown "${runner_owner}:${runner_owner}" "$env_file"
+				done
 			else
 				echo "Warning: runner-cleanup assets not found in source tree next to module or at /usr/share/armbian-config/runner-cleanup; skipping maintenance helper install" >&2
 			fi
