@@ -93,9 +93,24 @@ KEEP_IMAGES=(
 	lscr.io/linuxserver/swag:latest
 	lscr.io/linuxserver/openssh-server:latest
 )
+# Like KEEP_IMAGES, but matched as a *repository prefix* (any tag), so a whole
+# family of tags is preserved without enumerating each. Protects the Armbian
+# build images the runners depend on: the base image (many distro/release
+# tags) and the local per-build images (unique tags). Without this they are
+# not in any keep list, so Pass 1 below force-removes them between builds —
+# triggering base-image re-pulls, the ':initial' "already exists / No such
+# image" collision, and cold-cache rebuilds.
+KEEP_IMAGE_PREFIXES=(
+	ghcr.io/armbian/docker-armbian-build
+	armbian.local.only/armbian-build
+)
 KEEP_RUNNERS_WORK=(
 	actions-runner-01
 )
+# Only drop the (expensive to rebuild) Docker/BuildKit build cache when the
+# disk is genuinely filling. Wiping it every pass makes every following build
+# cold. Percentage of the busiest filesystem at/above which to prune it.
+DISK_PRUNE_PERCENT=90
 RUNNER_USER_RE='^actions-runner-.+$'
 # Wall-clock ceiling for Runner.Worker processes. A Worker alive
 # longer than this is almost certainly hung (deadlocked artifact
@@ -329,6 +344,18 @@ while IFS= read -r img; do
 	keep["$img"]=1
 done < <(docker ps -a --format '{{.Image}}' 2>/dev/null | sort -u)
 
+# Returns 0 if repo:tag starts with any KEEP_IMAGE_PREFIXES entry. A repo
+# prefix is also a prefix of "repo:tag", so we can match against repo_tag
+# directly without splitting off the tag.
+keep_by_prefix() {
+	(( ${#KEEP_IMAGE_PREFIXES[@]} )) || return 1
+	local rt="$1" p
+	for p in "${KEEP_IMAGE_PREFIXES[@]}"; do
+		[[ "$rt" == "$p"* ]] && return 0
+	done
+	return 1
+}
+
 # Pass 1: explicit per-image rm for everything not in keep-set.
 # Untagged <none>:<none> entries are caught by `docker image prune`
 # below, so skip them here.
@@ -336,6 +363,10 @@ while IFS=$'\t' read -r repo_tag image_id; do
 	[[ "$repo_tag" == '<none>:<none>' ]] && continue
 	if [[ -n "${keep[$repo_tag]:-}" ]]; then
 		log "keep image ${repo_tag}"
+		continue
+	fi
+	if keep_by_prefix "$repo_tag"; then
+		log "keep image ${repo_tag} (prefix)"
 		continue
 	fi
 	log "rm image ${repo_tag} (${image_id})"
@@ -348,12 +379,21 @@ done < <(docker image ls --format '{{.Repository}}:{{.Tag}}\t{{.ID}}')
 #   - container prune: only STOPPED containers
 #   - image prune (no -a): only dangling <none>:<none>
 #   - network prune: only unused networks
-#   - builder prune: drops build cache (cold-cache slowdown for an
-#     in-flight build, but doesn't break it)
 run docker container prune -f
 run docker image prune -f
 run docker network prune -f
-run docker builder prune -af
+
+# Build cache is expensive to recreate, so unlike the prunes above we DON'T
+# drop it every pass — that would make every following build cold. Only prune
+# it under real disk pressure. (Legacy-builder builds cache via image layers,
+# which KEEP_IMAGE_PREFIXES already protects; this covers BuildKit cache.)
+disk_pct="$(df --total --output=pcent 2>/dev/null | tail -1 | tr -dc '0-9')"
+if [[ -n "$disk_pct" && "$disk_pct" -ge "${DISK_PRUNE_PERCENT:-90}" ]]; then
+	note "disk at ${disk_pct}% (>= ${DISK_PRUNE_PERCENT:-90}%) — pruning build cache"
+	run docker builder prune -af
+else
+	log "keeping build cache — disk ${disk_pct:-?}% < ${DISK_PRUNE_PERCENT:-90}% threshold"
+fi
 
 # Volume prune -a is the one operation that CAN'T tell whether a
 # volume is "between job steps" vs genuinely abandoned. Skip when any
