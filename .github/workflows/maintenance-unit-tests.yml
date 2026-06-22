@@ -44,7 +44,7 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Get changed files
         id: changed-files
@@ -337,7 +337,7 @@ jobs:
           export container=docker
 
       - name: "Checkout Armbian configuration tool"
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: 'config'
 
@@ -566,7 +566,7 @@ jobs:
             sh -c 'rm -rf /work/config /work/test' || true
 
       - name: "Checkout Armbian configuration tool"
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: 'config'
 
