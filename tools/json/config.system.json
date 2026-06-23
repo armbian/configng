@@ -1599,7 +1599,7 @@
                             "command": [
                                 "module_armbian_firmware repository stable"
                             ],
-                            "status": "Stable",
+                            "status": "Rolling",
                             "author": "@igorpecovnik",
                             "condition": "module_armbian_firmware repository rolling status",
                             "help": "The stable repository provides thoroughly tested packages intended for production use."
