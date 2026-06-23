@@ -226,23 +226,38 @@ function module_armbian_firmware() {
 			# The "hide" parameter suppresses output since we're using the list programmatically
 			${module_options["module_armbian_firmware,feature"]} ${commands[2]} "${branch}" "${version}" "hide" "" "$linuxfamily"
 
-			# Install each package with proper error handling
-			# For each package: remove existing version, then install new version
+			# CRITICAL ORDERING: never remove the running kernel before its
+			# replacement is safely on disk. A generated image can carry a kernel
+			# that is not present in any repository; removing it first and only then
+			# discovering the new one can't be fetched leaves the board with NO
+			# kernel (unbootable). So: validate -> download EVERYTHING -> only then
+			# remove the old and install the new from the local cache.
+
+			# Nothing resolved to install (e.g. the running kernel's branch/family
+			# has no package in the selected repo) — abort, current kernel untouched.
+			if [[ ${#packages[@]} -eq 0 || -z "${packages[*]// }" ]]; then
+				echo "Error: no ${branch}-${linuxfamily} kernel packages found in the selected repository — current kernel left untouched."
+				return 1
+			fi
+
+			# Actually download every target package (NOT --simulate) into apt's
+			# cache. If any can't be located or fetched, apt returns non-zero and we
+			# bail out here, BEFORE anything is removed.
+			if ! apt-get install --download-only --allow-downgrades -y ${packages[@]} > /dev/null 2>&1; then
+				echo "Error: could not download kernel packages (${packages[*]}) — network / repository problem. Current kernel left untouched; try again later and report to Armbian forums."
+				return 1
+			fi
+
+			# Downloads succeeded and are cached. Only now is it safe to remove the
+			# old kernel variants and install the new ones — served from the local
+			# cache, so a network blip can no longer strand the board kernel-less.
 			for pkg in ${packages[@]}; do
-				# Test if package installation is possible (dependencies exist, network available)
-				# This fails gracefully before attempting actual installation
-				if [[ -z $(LC_ALL=C apt-get install --simulate --download-only --allow-downgrades --reinstall "${pkg}" 2>/dev/null | grep "not possible") ]]; then
-					# Convert specific package name to wildcard pattern for removal
-					# e.g., "linux-image-current-meson64=1.2.3" -> "linux-image*"
-					purge_pkg=$(echo $pkg | sed -e 's/linux-image.*/linux-image*/;s/linux-dtb.*/linux-dtb*/;s/linux-headers.*/linux-headers*/;s/armbian-firmware-*/armbian-firmware*/')
-					pkg_remove ${purge_pkg}
-					pkg_install --allow-downgrades ${pkg}
-				else
-					# Package installation failed - likely network or repository issue
-					echo "Error: Package ${pkg} install not possible due to network / repository problem. Try again later and report to Armbian forums"
-					return 1
-				fi
+				# Convert specific package name to wildcard pattern for removal
+				# e.g., "linux-image-current-meson64=1.2.3" -> "linux-image*"
+				purge_pkg=$(echo $pkg | sed -e 's/linux-image.*/linux-image*/;s/linux-dtb.*/linux-dtb*/;s/linux-headers.*/linux-headers*/;s/armbian-firmware-*/armbian-firmware*/')
+				pkg_remove ${purge_pkg}
 			done
+			pkg_install --allow-downgrades ${packages[@]}
 
 			# Clean up the temporary APT policy file
 			rm -f /etc/apt/preferences.d/armbian-upgrade-policy
