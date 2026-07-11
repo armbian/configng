@@ -66,6 +66,13 @@ tiers:
       # Architecture: all package, ~1 MB on disk, inert on simpler audio
       # chains (HDMI-only SBCs, USB DAC, etc.), so safe at minimal tier.
       - alsa-ucm-conf
+      # PipeWire Bluetooth SPA plugin. PipeWire pulls in the core media
+      # session, but A2DP/HSP/HFP audio routing to Bluetooth headsets
+      # lives in this separate SPA plugin. Without it PipeWire enumerates
+      # the paired BT device but Sound settings offer no audio profile,
+      # so headphones pair yet play nothing. Small plugin, inert when no
+      # BT adapter is present, so safe out-of-the-box at minimal tier.
+      - libspa-0.2-bluetooth
 
   mid:
     packages:
