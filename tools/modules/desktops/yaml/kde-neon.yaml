@@ -38,6 +38,6 @@ tiers:
       - thunderbird
 
 releases:
-  noble:
+  resolute:
     architectures: [arm64, amd64]
 
