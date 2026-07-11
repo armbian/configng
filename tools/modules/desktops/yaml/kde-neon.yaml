@@ -37,7 +37,10 @@ tiers:
       - gnome-software
       - thunderbird
 
-releases:
-  resolute:
-    architectures: [arm64, amd64]
+# Disabled: KDE Neon is broken on resolute (neon's testing archive does
+# not publish against Ubuntu 26.04) and noble is no longer the base. With
+# no release declared the desktop is never "available", so it is not
+# offered in the menu. Restore a release entry (and status: supported)
+# once the neon repo carries a working base.
+releases: {}
 
