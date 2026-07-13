@@ -104,6 +104,23 @@ partitioner_mode_desc() {
 	esac
 }
 
+# Ensure mkfs.<fs> is available (the engine refuses to wipe without it). Offers
+# to install the providing package. interactive=1 uses dialogs, 0 prints/plain.
+# Returns 0 when the tool is usable.
+partitioner_ensure_fs_tool() {
+	local fs="$1" interactive="${2:-1}" pkg=""
+	command -v "mkfs.$fs" >/dev/null 2>&1 && return 0
+	case "$fs" in btrfs) pkg="btrfs-progs" ;; f2fs) pkg="f2fs-tools" ;; *) return 1 ;; esac
+	if [[ "$interactive" == 1 ]]; then
+		dialog_yesno " Install $pkg " "\nmkfs.$fs is not installed.\n\nInstall $pkg now?" "Install" "Cancel" 9 60 || return 1
+		dialog_infobox " Armbian installer " "\nInstalling $pkg ..." 5 44 2>/dev/null
+	else
+		echo "Installing $pkg ..."
+	fi
+	pkg_install "$pkg" >>"${INSTALL_LOG:-/dev/null}" 2>&1
+	command -v "mkfs.$fs" >/dev/null 2>&1
+}
+
 # ---- interactive TUI --------------------------------------------------------
 
 partitioner_tui() {
@@ -150,6 +167,10 @@ partitioner_tui() {
 		btrfs "Copy-on-write, compression, snapshots" \
 		f2fs "Flash-friendly log-structured fs")
 	[[ -z "$fs" ]] && return "$INSTALL_EX_OK"
+	if ! partitioner_ensure_fs_tool "$fs" 1; then
+		dialog_msgbox " $title " "\nCannot format as $fs: mkfs.$fs is unavailable.\n\nInstall the package and try again."
+		return "$INSTALL_EX_TOOL"
+	fi
 
 	# 4) dual-boot needs a size; other modes erase the whole disk.
 	local want_bytes=0
@@ -212,6 +233,10 @@ partitioner_cli_install() {
 	if [[ "$assume_yes" -ne 1 ]]; then
 		echo "armbian-install: refusing to modify $target without --yes" >&2
 		return "$INSTALL_EX_USAGE"
+	fi
+	if ! partitioner_ensure_fs_tool "$fs" 0; then
+		echo "armbian-install: mkfs.$fs unavailable; install its package and retry" >&2
+		return "$INSTALL_EX_TOOL"
 	fi
 
 	if [[ "$boot" == uefi-dualboot ]]; then

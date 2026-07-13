@@ -22,7 +22,7 @@ jobs:
       section: "default"
       priority: "optional"
       compile: "tools/config-assemble.sh -p"
-      depends: "bash, jq, whiptail, sudo, procps, systemd, lsb-release, iproute2, debconf, libtext-iconv-perl, gpg, xz-utils, pv, python3-yaml, expect-dev"
+      depends: "bash, jq, whiptail, sudo, procps, systemd, lsb-release, iproute2, debconf, libtext-iconv-perl, gpg, xz-utils, pv, python3-yaml, expect-dev, rsync, parted, dosfstools, e2fsprogs, btrfs-progs, f2fs-tools, ntfs-3g"
       description: "Armbian config: The Next Generation"
 
     secrets:

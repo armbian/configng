@@ -130,6 +130,19 @@ setup() {
 	unset -f write_uboot_platform
 }
 
+@test "fs tools: ext4 always available; missing fs reports its package" {
+	# ext4 tools are part of the base system.
+	run install_check_fs_tools ext4
+	[ "$status" -eq 0 ]
+	# For a filesystem whose tool is absent, the package name is reported so the
+	# pre-flight can refuse before wiping (the mkfs.f2fs-missing scenario).
+	if ! command -v mkfs.f2fs >/dev/null 2>&1; then
+		run install_check_fs_tools f2fs
+		[ "$status" -ne 0 ]
+		[ "$output" = "f2fs-tools" ]
+	fi
+}
+
 @test "bootloader available: grub modes depend on grub-install presence" {
 	if command -v grub-install >/dev/null 2>&1; then
 		run install_bootloader_available bios; [ "$status" -eq 0 ]
