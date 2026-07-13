@@ -109,17 +109,17 @@ install_detect_targets() {
 		# and device-mapper (dm-) nodes.
 		| select(.name | test("^(zram|ram|loop|sr|fd|dm-)[0-9-]") | not)
 		| { n: .name, t: (.tran // ""), sz: (.size // 0),
-		    ps: (."phy-sec" // 512), ro: (.rota // false), md: ((.model // "") | gsub("\t"; " ")) }
+			ps: (."phy-sec" // 512), ro: (.rota // false), md: ((.model // "") | gsub("\t"; " ")) }
 		| .role = ( if   (.n | test("^nvme"))     then "nvme"
-		            elif (.n | test("^mmcblk"))   then "mmc"
-		            elif (.n | test("^mtdblock")) then "mtd"
-		            elif (.t == "usb")            then "usb"
-		            elif (.t == "sata" or .t == "ata") then "sata"
-		            else "disk" end )
+			elif (.n | test("^mmcblk"))   then "mmc"
+			elif (.n | test("^mtdblock")) then "mtd"
+			elif (.t == "usb")            then "usb"
+			elif (.t == "sata" or .t == "ata") then "sata"
+			else "disk" end )
 		| [ .n, .role, (.sz|tostring), (.ps|tostring),
-		    (if .t  == "" then "-" else .t  end),
-		    (.ro|tostring),
-		    (if .md == "" then "-" else .md end) ]
+			(if .t  == "" then "-" else .t  end),
+			(.ro|tostring),
+			(if .md == "" then "-" else .md end) ]
 		| @tsv
 	'
 }
@@ -632,12 +632,12 @@ install_detect_windows() {
 	json="$(lsblk -b -po NAME,FSTYPE,PARTTYPENAME,SIZE --json "$disk" 2>/dev/null)"
 	esp="$(echo "$json" | jq -r '
 		[.blockdevices[]?.children[]?
-		 | select(((.parttypename // "") | test("EFI";"i")) or (.fstype == "vfat"))
-		 | .name] | first // empty')"
+			| select(((.parttypename // "") | test("EFI";"i")) or (.fstype == "vfat"))
+			| .name] | first // empty')"
 	win="$(echo "$json" | jq -r '
 		[.blockdevices[]?.children[]?
-		 | select(.fstype == "ntfs")]
-		 | sort_by(.size) | reverse | (.[0].name // empty)')"
+			| select(.fstype == "ntfs")]
+			| sort_by(.size) | reverse | (.[0].name // empty)')"
 	[[ -n "$esp" && -n "$win" ]] || { install_log ERR "detect_windows: no ESP+NTFS pair on $disk"; return "$INSTALL_EX_NODEV"; }
 	echo "esp=$esp"
 	echo "windows=$win"
