@@ -40,7 +40,14 @@ setup() {
 }
 
 teardown() {
-	[[ -n "${LOOP:-}" ]] && losetup -d "$LOOP" 2>/dev/null || true
+	# A failed assertion can abort a test before its own umount runs, leaving a
+	# partition mounted and the loop device busy. Unmount everything we create
+	# first, then detach - and don't silently swallow a still-busy device.
+	local m
+	for m in "$BATS_TEST_TMPDIR/verify" "$BATS_TEST_TMPDIR/mnt"; do
+		mountpoint -q "$m" && umount "$m"
+	done
+	[[ -n "${LOOP:-}" ]] && losetup -d "$LOOP"
 }
 
 @test "dualboot: detect_windows finds the ESP and the NTFS volume" {
