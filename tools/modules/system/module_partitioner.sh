@@ -160,12 +160,13 @@ partitioner_tui() {
 		[[ -z "$boot" ]] && return "$INSTALL_EX_OK"
 	fi
 
-	# 3) filesystem
+	# 3) filesystem - only offer what the running kernel can actually mount
+	# (mkfs.f2fs can succeed on a kernel with no f2fs driver, then mount fails).
 	local fs
-	fs=$(dialog_menu " $title " "\nRoot filesystem for /dev/$disk:" 0 60 6 -- \
-		ext4 "Default, most compatible" \
-		btrfs "Copy-on-write, compression, snapshots" \
-		f2fs "Flash-friendly log-structured fs")
+	local -a fsmenu=(ext4 "Default, most compatible")
+	install_fs_kernel_supported btrfs && fsmenu+=(btrfs "Copy-on-write, compression, snapshots")
+	install_fs_kernel_supported f2fs  && fsmenu+=(f2fs "Flash-friendly log-structured fs")
+	fs=$(dialog_menu " $title " "\nRoot filesystem for /dev/$disk:" 0 60 6 -- "${fsmenu[@]}")
 	[[ -z "$fs" ]] && return "$INSTALL_EX_OK"
 	if ! partitioner_ensure_fs_tool "$fs" 1; then
 		dialog_msgbox " $title " "\nCannot format as $fs: mkfs.$fs is unavailable.\n\nInstall the package and try again."
