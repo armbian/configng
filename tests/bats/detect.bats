@@ -12,13 +12,31 @@ setup() {
 @test "detect: one TSV record per disk, no concatenation (build#8738)" {
 	run install_detect_targets "" "$(cat "$FIX/lsblk_multidisk.json")"
 	[ "$status" -eq 0 ]
-	# Three disks in the fixture -> exactly three lines.
+	# Six entries in the fixture, but zram0/zram1/loop0 are filtered out -> three.
 	[ "${#lines[@]}" -eq 3 ]
 	# No line may contain two device names glued together.
 	for line in "${lines[@]}"; do
 		name="${line%%$'\t'*}"
 		[[ "$name" != *" "* ]]
 	done
+}
+
+@test "detect: excludes zram / loop / ram pseudo-devices" {
+	run install_detect_targets "" "$(cat "$FIX/lsblk_multidisk.json")"
+	[ "$status" -eq 0 ]
+	[[ "$output" != *"zram"* ]]
+	[[ "$output" != *"loop"* ]]
+}
+
+@test "detect: emits a '-' placeholder for an absent bus so fields never shift" {
+	# mmcblk0 has tran=null; the bus column must be "-", not empty, and the row
+	# must still parse into 7 tab-separated fields with role=mmc.
+	run install_detect_targets "" "$(cat "$FIX/lsblk_multidisk.json")"
+	local row; row=$(printf '%s\n' "${lines[@]}" | grep '^mmcblk0')
+	IFS=$'\t' read -r n role sz sec bus rota model <<<"$row"
+	[ "$role" = "mmc" ]
+	[ "$bus" = "-" ]
+	[ "$rota" = "false" ]
 }
 
 @test "detect: excludes the running-root disk" {
