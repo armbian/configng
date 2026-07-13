@@ -306,6 +306,18 @@ install_check_fs_tools() {
 	return "$INSTALL_EX_TOOL"
 }
 
+install_fs_kernel_supported() {
+	# install_fs_kernel_supported <fs> - true if the RUNNING kernel can mount it.
+	# The mkfs tool can exist while the kernel lacks the driver (e.g. f2fs on a
+	# cloud kernel): mkfs succeeds but the subsequent mount fails. Try to load the
+	# module, then check /proc/filesystems.
+	local fs="$1"
+	case "$fs" in ext2|ext3|ext4|vfat|msdos) return 0 ;; esac   # always built in
+	grep -qw "$fs" /proc/filesystems && return 0
+	modprobe "$fs" >/dev/null 2>&1 || true
+	grep -qw "$fs" /proc/filesystems
+}
+
 install_make_filesystems() {
 	# install_make_filesystems <mapfile>
 	# mapfile lines: "<role> <device_partition> <fstype>". Creates each fs after a
@@ -711,6 +723,8 @@ install_run_scenario() {
 		|| { install_log ERR "scenario: no bootloader method for '$boot_mode' on this system (u-boot hooks or grub-install missing) - refusing to modify $disk"; return "$INSTALL_EX_BOOTLOADER"; }
 	install_check_fs_tools "$fs" >/dev/null \
 		|| { install_log ERR "scenario: mkfs.$fs not installed (need $(_install_fs_pkg "$fs")) - refusing to modify $disk"; return "$INSTALL_EX_TOOL"; }
+	install_fs_kernel_supported "$fs" \
+		|| { install_log ERR "scenario: running kernel cannot mount $fs (no driver) - refusing to modify $disk"; return "$INSTALL_EX_TOOL"; }
 
 	# Geometry + firmware context feed the pure planner.
 	local cap sec is_uefi=0 has_swap=0
@@ -818,6 +832,7 @@ install_run_dualboot() {
 	[[ "$want" =~ ^[0-9]+$ && "$want" -gt 0 ]] || { install_log ERR "dualboot: bad size '$want'"; return "$INSTALL_EX_USAGE"; }
 	command -v ntfsresize >/dev/null 2>&1 || { install_log ERR "dualboot: ntfsresize missing - install the ntfs-3g package"; return "$INSTALL_EX_TOOL"; }
 	install_check_fs_tools "$fs" >/dev/null || { install_log ERR "dualboot: mkfs.$fs not installed (need $(_install_fs_pkg "$fs")) - refusing to modify $disk"; return "$INSTALL_EX_TOOL"; }
+	install_fs_kernel_supported "$fs" || { install_log ERR "dualboot: running kernel cannot mount $fs (no driver) - refusing to modify $disk"; return "$INSTALL_EX_TOOL"; }
 	command -v grub-install >/dev/null 2>&1 || { install_log ERR "dualboot: grub-install missing - refusing to modify $disk"; return "$INSTALL_EX_BOOTLOADER"; }
 
 	# 1) locate the existing Windows ESP + NTFS volume (nothing is touched yet).

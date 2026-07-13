@@ -143,6 +143,13 @@ setup() {
 	fi
 }
 
+@test "fs kernel support: ext4 always supported; a bogus fs is not" {
+	run install_fs_kernel_supported ext4
+	[ "$status" -eq 0 ]
+	run install_fs_kernel_supported notafs_zzz
+	[ "$status" -ne 0 ]
+}
+
 @test "bootloader available: grub modes depend on grub-install presence" {
 	if command -v grub-install >/dev/null 2>&1; then
 		run install_bootloader_available bios; [ "$status" -eq 0 ]
