@@ -33,6 +33,16 @@ setup() {
 	[[ "$output" == *"subvol=@"* ]]
 }
 
+@test "fstab: a swap partition UUID produces a swap entry" {
+	run install_gen_fstab "UUID=root1" btrfs "UUID=boot1" ext4 "" "UUID=swap1"
+	[[ "$output" == *"UUID=swap1	none	swap	sw"* ]]
+}
+
+@test "fstab: no swap UUID emits no swap entry" {
+	run install_gen_fstab "UUID=root1" ext4
+	[[ "$output" != *"	swap	"* ]]
+}
+
 # --- armbianEnv rewrite ------------------------------------------------------
 
 @test "bootenv: existing rootdev/rootfstype are replaced in place" {

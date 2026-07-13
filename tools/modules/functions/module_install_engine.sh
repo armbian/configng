@@ -407,11 +407,11 @@ install_rewrite_bootenv() {
 }
 
 install_gen_fstab() {
-	# install_gen_fstab <root_uuid> <root_fs> [boot_uuid] [boot_fs] [esp_uuid]
+	# install_gen_fstab <root_uuid> <root_fs> [boot_uuid] [boot_fs] [esp_uuid] [swap_uuid]
 	# Emit a fresh fstab on stdout. root_* required; boot_* optional (separate
-	# /boot); esp_uuid optional (UEFI /boot/efi). Mirrors the mount option set
-	# the image ships with.
-	local root_uuid="$1" root_fs="$2" boot_uuid="${3:-}" boot_fs="${4:-ext4}" esp_uuid="${5:-}"
+	# /boot); esp_uuid optional (UEFI /boot/efi); swap_uuid optional (a dedicated
+	# swap partition). Mirrors the mount option set the image ships with.
+	local root_uuid="$1" root_fs="$2" boot_uuid="${3:-}" boot_fs="${4:-ext4}" esp_uuid="${5:-}" swap_uuid="${6:-}"
 	local root_opts boot_opts
 	case "$root_fs" in
 		btrfs) root_opts="defaults,commit=120,compress=lzo,x-gvfs-hide,subvol=@	0	2" ;;
@@ -425,6 +425,7 @@ install_gen_fstab() {
 	echo "${root_uuid}	/	${root_fs}	${root_opts}"
 	[[ -n "$boot_uuid" ]] && echo "${boot_uuid}	/boot	${boot_fs}	${boot_opts}"
 	[[ -n "$esp_uuid" ]]  && echo "${esp_uuid}	/boot/efi	vfat	defaults	0	2"
+	[[ -n "$swap_uuid" ]] && echo "${swap_uuid}	none	swap	sw	0	0"
 	return 0
 }
 
@@ -816,13 +817,18 @@ install_run_scenario() {
 		install_populate_boot "$mp" "$copy_boot" || { rc=$INSTALL_EX_BOOTCFG; break; }
 
 		# fstab from the real, freshly-created UUIDs.
-		local root_uuid boot_uuid="" esp_uuid=""
+		local root_uuid boot_uuid="" esp_uuid="" swap_uuid=""
 		root_uuid="$(install_uuid "$root_dev")"
 		[[ -n "$boot_dev" ]] && boot_uuid="$(install_uuid "$boot_dev")"
 		[[ -n "$esp_dev" ]]  && esp_uuid="$(install_uuid "$esp_dev")"
-		install_gen_fstab "$root_uuid" "$fs" "$boot_uuid" ext4 "$esp_uuid" >"$mp/etc/fstab" \
+		[[ -n "$swap_dev" ]] && swap_uuid="$(install_uuid "$swap_dev")"
+		install_gen_fstab "$root_uuid" "$fs" "$boot_uuid" ext4 "$esp_uuid" "$swap_uuid" >"$mp/etc/fstab" \
 			|| { rc=$INSTALL_EX_BOOTCFG; break; }
-		grep -q '^tmpfs.*swap' /etc/fstab 2>/dev/null && grep swap /etc/fstab >>"$mp/etc/fstab"
+		# No dedicated swap partition -> carry over the host's swap entries (e.g. a
+		# /var/swap swapfile) so the target keeps swap.
+		if [[ -z "$swap_dev" ]] && grep -qE '^[^#].*[[:space:]]swap[[:space:]]' /etc/fstab 2>/dev/null; then
+			grep -E '^[^#].*[[:space:]]swap[[:space:]]' /etc/fstab >>"$mp/etc/fstab"
+		fi
 
 		# Point the board's boot env at the new root (u-boot scenarios only; GRUB
 		# modes are handled by grub-mkconfig).
