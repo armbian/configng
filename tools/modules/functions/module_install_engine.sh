@@ -705,9 +705,12 @@ install_run_scenario() {
 	export LC_ALL=C LANG=C
 	[[ -b "$disk" ]] || { install_log ERR "scenario: '$disk' is not a block device"; return "$INSTALL_EX_NODEV"; }
 	[[ -f "$exclude" ]] || { install_log ERR "scenario: exclude file '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
-	# Pre-flight: confirm we can make the target bootable BEFORE wiping anything.
+	# Pre-flight: confirm we can make the target bootable AND format it BEFORE
+	# wiping anything - never destroy a disk we cannot finish installing to.
 	install_bootloader_available "$boot_mode" \
 		|| { install_log ERR "scenario: no bootloader method for '$boot_mode' on this system (u-boot hooks or grub-install missing) - refusing to modify $disk"; return "$INSTALL_EX_BOOTLOADER"; }
+	install_check_fs_tools "$fs" >/dev/null \
+		|| { install_log ERR "scenario: mkfs.$fs not installed (need $(_install_fs_pkg "$fs")) - refusing to modify $disk"; return "$INSTALL_EX_TOOL"; }
 
 	# Geometry + firmware context feed the pure planner.
 	local cap sec is_uefi=0 has_swap=0
@@ -814,6 +817,8 @@ install_run_dualboot() {
 	[[ -f "$exclude" ]] || { install_log ERR "dualboot: exclude '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
 	[[ "$want" =~ ^[0-9]+$ && "$want" -gt 0 ]] || { install_log ERR "dualboot: bad size '$want'"; return "$INSTALL_EX_USAGE"; }
 	command -v ntfsresize >/dev/null 2>&1 || { install_log ERR "dualboot: ntfsresize missing - install the ntfs-3g package"; return "$INSTALL_EX_TOOL"; }
+	install_check_fs_tools "$fs" >/dev/null || { install_log ERR "dualboot: mkfs.$fs not installed (need $(_install_fs_pkg "$fs")) - refusing to modify $disk"; return "$INSTALL_EX_TOOL"; }
+	command -v grub-install >/dev/null 2>&1 || { install_log ERR "dualboot: grub-install missing - refusing to modify $disk"; return "$INSTALL_EX_BOOTLOADER"; }
 
 	# 1) locate the existing Windows ESP + NTFS volume (nothing is touched yet).
 	local wi esp win
