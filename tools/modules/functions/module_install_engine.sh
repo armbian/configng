@@ -796,8 +796,6 @@ install_run_scenario() {
 	# Mount the freshly-formatted target.
 	local mp; mp="$(mktemp -d /mnt/armbian-install.XXXXXX)" || return "$INSTALL_EX_TRANSFER"
 	mount "$root_dev" "$mp" || { install_log ERR "scenario: mount root failed"; rmdir "$mp"; return "$INSTALL_EX_TRANSFER"; }
-	# A separate boot partition mounts at /boot; /boot is then synced onto it.
-	if [[ -n "$boot_dev" ]]; then mkdir -p "$mp/boot"; mount "$boot_dev" "$mp/boot"; fi
 	if [[ -n "$esp_dev" ]]; then mkdir -p "$mp/boot/efi"; fi
 
 	# One-shot loop so a failing step can `break` straight to teardown. The bar is
@@ -807,6 +805,14 @@ install_run_scenario() {
 	while :; do
 		install_transfer_rootfs "$mp" "$exclude" 1 / 0 90 || { rc=$INSTALL_EX_TRANSFER; break; }
 		echo 92
+		# A separate boot partition must be mounted before /boot is synced onto it;
+		# a silent mount failure would leave the boot partition empty (unbootable),
+		# mirroring the ESP mount guard below.
+		if [[ -n "$boot_dev" ]]; then
+			mkdir -p "$mp/boot"
+			mount "$boot_dev" "$mp/boot" \
+				|| { install_log ERR "scenario: mount boot partition $boot_dev failed"; rc=$INSTALL_EX_BOOTCFG; break; }
+		fi
 		install_populate_boot "$mp" "$copy_boot" || { rc=$INSTALL_EX_BOOTCFG; break; }
 
 		# fstab from the real, freshly-created UUIDs.
