@@ -88,6 +88,29 @@ setup() {
 	[ "$status" -eq 0 ]
 }
 
+# --- populate /boot (synced separately from the main rootfs rsync) -----------
+
+@test "populate_boot: copies the kernel into the target /boot and verifies" {
+	src="$TMP/srcboot"; mkdir -p "$src"; : >"$src/vmlinuz-test"; : >"$src/boot.scr"
+	rootfs="$TMP/rootfs"; mkdir -p "$rootfs"
+	run install_populate_boot "$rootfs" 1 "$src"
+	[ "$status" -eq 0 ]
+	[ -f "$rootfs/boot/vmlinuz-test" ]
+	# The populated /boot must pass the bootable check (regression for the empty
+	# /boot that produced verify code 73 on the x86 BIOS install).
+	run install_verify_boot_dir "$rootfs/boot"
+	[ "$status" -eq 0 ]
+}
+
+@test "populate_boot: copy=0 leaves /boot empty (sd mode, boot on removable)" {
+	src="$TMP/srcboot"; mkdir -p "$src"; : >"$src/vmlinuz-test"
+	rootfs="$TMP/rootfs"; mkdir -p "$rootfs"
+	run install_populate_boot "$rootfs" 0 "$src"
+	[ "$status" -eq 0 ]
+	[ -d "$rootfs/boot" ]
+	[ ! -f "$rootfs/boot/vmlinuz-test" ]
+}
+
 # --- bootloader capability pre-flight ----------------------------------------
 
 @test "bootloader available: u-boot modes need write_uboot_platform (x86 has none)" {
