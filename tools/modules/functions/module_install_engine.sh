@@ -341,26 +341,29 @@ install_transfer_rootfs() {
 	# install_transfer_rootfs <target_rootfs_mount> <exclude_file> [progress_fd]
 	# rsync / -> target with the exclude list, emitting integer percentages to
 	# progress_fd (default 1) for a gauge. Returns INSTALL_EX_TRANSFER on failure.
-	local dest="$1" exclude="$2" pfd="${3:-1}"
+	# src defaults to "/" (the running rootfs); overridable for tests.
+	local dest="$1" exclude="$2" pfd="${3:-1}" src="${4:-/}"
 	[[ -d "$dest" ]] || { install_log ERR "transfer: '$dest' is not a directory"; return "$INSTALL_EX_TRANSFER"; }
 	[[ -f "$exclude" ]] || { install_log ERR "transfer: exclude file '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
 
-	local todo
-	todo=$(rsync -anx --delete --stats --exclude-from="$exclude" / "$dest" 2>/dev/null \
-		| awk '/Number of files:/ {gsub(/[.,]/,"",$4); print $4; exit}')
-	[[ "$todo" =~ ^[0-9]+$ && "$todo" -gt 0 ]] || todo=1
-
+	# Use rsync's own overall byte percentage (--info=progress2) rather than
+	# counting output lines against a dry-run file count, which drifts out of
+	# sync. --no-inc-recursive builds the full file list first so the percentage
+	# is accurate and monotonic from the start (a short pause at 0% up front).
+	# progress2 rewrites its line with \r; split on \r, pull the "NN%" token.
 	local rc_file; rc_file="$(mktemp)"
 	{
-		rsync -avx --delete --exclude-from="$exclude" / "$dest" \
-			| stdbuf -oL awk -v todo="$todo" '{ p=int(100*NR/todo); if(p>100)p=100; print p; fflush() }' >&"$pfd"
+		rsync -ax --delete --info=progress2 --no-inc-recursive --exclude-from="$exclude" "$src" "$dest" \
+			| stdbuf -oL tr '\r' '\n' \
+			| stdbuf -oL grep --line-buffered -oE '[0-9]+%' \
+			| stdbuf -oL sed -u 's/%//' >&"$pfd"
 		echo "${PIPESTATUS[0]}" >"$rc_file"
 	}
 	local rc; rc="$(cat "$rc_file")"; rm -f "$rc_file"
 	[[ "$rc" == "0" ]] || { install_log ERR "transfer: rsync exit $rc"; return "$INSTALL_EX_TRANSFER"; }
 
 	# Second, quiet pass to catch files that changed during the first copy.
-	rsync -ax --delete --exclude-from="$exclude" / "$dest" >>"$INSTALL_LOG" 2>&1 || true
+	rsync -ax --delete --exclude-from="$exclude" "$src" "$dest" >>"$INSTALL_LOG" 2>&1 || true
 }
 
 # ---- boot configuration -----------------------------------------------------
