@@ -24,10 +24,10 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Install bats and helpers
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq bats jq parted dosfstools
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq bats jq parted dosfstools ntfs-3g
 
       - name: Unit tests (pure functions, no privileges)
-        run: bats tests/bats/plan.bats tests/bats/detect.bats tests/bats/bootconfig.bats
+        run: bats tests/bats/plan.bats tests/bats/detect.bats tests/bats/bootconfig.bats tests/bats/dualboot.bats
 
-      - name: Integration tests (loopback block device, needs root)
-        run: sudo bats tests/bats/integration_loopback.bats
+      - name: Integration tests (loopback block device + Windows dual-boot, needs root)
+        run: sudo bats tests/bats/integration_loopback.bats tests/bats/integration_dualboot.bats

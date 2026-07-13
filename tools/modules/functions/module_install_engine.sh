@@ -471,10 +471,15 @@ install_write_bootloader() {
 }
 
 install_grub_install() {
-	# install_grub_install <rootfs_mount>
+	# install_grub_install <rootfs_mount> [mode]
 	# Bind-mount /dev,/proc,/sys and run grub-install + grub-mkconfig in the
 	# target. The ESP must already be mounted at <rootfs>/boot/efi.
-	local rootfs="$1" arch_target
+	#   mode=solo     (default) sole-OS install: --removable, so it boots even
+	#                 without a working NVRAM entry (typical for wiped disks).
+	#   mode=dualboot keep an existing OS (Windows): NO --removable (leave the
+	#                 /EFI/BOOT fallback alone) and turn on os-prober so the
+	#                 GRUB menu offers the other OS.
+	local rootfs="$1" mode="${2:-solo}" arch_target
 	mountpoint -q "$rootfs/boot/efi" || { install_log ERR "grub: ESP not mounted at $rootfs/boot/efi"; return "$INSTALL_EX_BOOTLOADER"; }
 	mkdir -p "$rootfs"/{dev,proc,sys}
 	mount --bind /dev "$rootfs/dev"
@@ -482,8 +487,14 @@ install_grub_install() {
 	mount --bind /proc "$rootfs/proc"
 	mount --make-rslave --rbind /sys "$rootfs/sys"
 	arch_target=$([[ "$(arch)" == x86_64 ]] && echo "x86_64-efi" || echo "arm64-efi")
+	local grub_opts="--target=$arch_target --efi-directory=/boot/efi --bootloader-id=Armbian"
+	if [[ "$mode" == dualboot ]]; then
+		install_enable_os_prober "$rootfs"
+	else
+		grub_opts+=" --removable"
+	fi
 	local rc=0
-	chroot "$rootfs" /bin/bash -c "grub-install --target=$arch_target --efi-directory=/boot/efi --bootloader-id=Armbian --removable" >>"$INSTALL_LOG" 2>&1 || rc=1
+	chroot "$rootfs" /bin/bash -c "grub-install $grub_opts" >>"$INSTALL_LOG" 2>&1 || rc=1
 	chroot "$rootfs" /bin/bash -c "grub-mkconfig -o /boot/grub/grub.cfg" >>"$INSTALL_LOG" 2>&1 || rc=1
 	# Unwind the API mounts regardless of outcome.
 	awk -v r="$rootfs/sys" '$2 ~ "^"r {print $2}' /proc/mounts | sort -r | xargs -r umount -n 2>/dev/null
@@ -491,6 +502,130 @@ install_grub_install() {
 	umount "$rootfs/dev/pts" 2>/dev/null
 	umount "$rootfs/dev" 2>/dev/null
 	[[ "$rc" == 0 ]] || { install_log ERR "grub: install failed"; return "$INSTALL_EX_BOOTLOADER"; }
+}
+
+install_enable_os_prober() {
+	# install_enable_os_prober <rootfs_mount>
+	# Make grub-mkconfig scan for other operating systems (Windows). GRUB 2.06+
+	# disables os-prober by default; re-enable it via the armbian drop-in.
+	local rootfs="$1"
+	mkdir -p "$rootfs/etc/default/grub.d"
+	echo "GRUB_DISABLE_OS_PROBER=false" >>"$rootfs/etc/default/grub.d/98-armbian.cfg"
+	command -v os-prober >/dev/null 2>&1 || chroot "$rootfs" /bin/bash -c "command -v os-prober" >/dev/null 2>&1 \
+		|| install_log WARN "os-prober not present in target; Windows may be missing from the GRUB menu"
+}
+
+# ---- Windows dual-boot ------------------------------------------------------
+
+install_detect_windows() {
+	# install_detect_windows <disk>
+	# On a GPT disk carrying a Windows install, emit:
+	#   esp=<esp_partition>          existing EFI System Partition (reused)
+	#   windows=<ntfs_partition>     the largest NTFS (Microsoft basic data) part
+	# Returns INSTALL_EX_NODEV if the disk is not a Windows/UEFI layout.
+	local disk="$1"
+	[[ -b "$disk" ]] || return "$INSTALL_EX_NODEV"
+	# GPT is required for a UEFI Windows install.
+	parted -sm "$disk" print 2>/dev/null | grep -q '^/dev/.*:gpt:' || return "$INSTALL_EX_NODEV"
+
+	local json esp win
+	json="$(lsblk -b -po NAME,FSTYPE,PARTTYPENAME,SIZE --json "$disk" 2>/dev/null)"
+	esp="$(echo "$json" | jq -r '
+		[.blockdevices[]?.children[]?
+		 | select(((.parttypename // "") | test("EFI";"i")) or (.fstype == "vfat"))
+		 | .name] | first // empty')"
+	win="$(echo "$json" | jq -r '
+		[.blockdevices[]?.children[]?
+		 | select(.fstype == "ntfs")]
+		 | sort_by(.size) | reverse | (.[0].name // empty)')"
+	[[ -n "$esp" && -n "$win" ]] || { install_log ERR "detect_windows: no ESP+NTFS pair on $disk"; return "$INSTALL_EX_NODEV"; }
+	echo "esp=$esp"
+	echo "windows=$win"
+}
+
+install_windows_min_bytes() {
+	# install_windows_min_bytes <ntfs_partition>
+	# Smallest size ntfsresize will shrink the volume to, in bytes (0 on failure).
+	local dev="$1" out
+	out="$(ntfsresize -f --info "$dev" 2>/dev/null \
+		| grep -iE 'You might resize' | grep -oE '[0-9]+ bytes' | grep -oE '[0-9]+' | head -1)"
+	[[ -z "$out" ]] && out="$(ntfsresize -f --info "$dev" 2>/dev/null \
+		| awk -F'[:(]' '/[Cc]urrent volume size/ {gsub(/[^0-9]/,"",$2); print $2; exit}')"
+	echo "${out:-0}"
+}
+
+install_dualboot_plan() {
+	# install_dualboot_plan <win_size_bytes> <win_min_bytes> <tail_free_bytes> <want_bytes>
+	# Pure: decide how small Windows must become to free <want_bytes> for Armbian,
+	# keeping a safety margin above the NTFS minimum. Echoes "shrink_to=<bytes>"
+	# (the new Windows size) or fails with INSTALL_EX_NOSPACE if it will not fit.
+	local wsize="$1" wmin="$2" tail="${3:-0}" want="$4"
+	local margin=$(( 8 * 1024 * 1024 * 1024 ))          # keep >=8GiB above the ntfs min
+	local shrinkable=$(( wsize - (wmin + margin) ))
+	(( shrinkable < 0 )) && shrinkable=0
+	local avail=$(( shrinkable + tail ))
+	if (( want > avail )); then
+		install_log ERR "dualboot: need $want bytes but only $avail free (shrinkable=$shrinkable, tail=$tail)"
+		return "$INSTALL_EX_NOSPACE"
+	fi
+	# Use any existing free tail first, only then eat into Windows.
+	local from_win=0
+	(( want > tail )) && from_win=$(( want - tail ))
+	echo "shrink_to=$(( wsize - from_win ))"
+}
+
+install_shrink_windows() {
+	# install_shrink_windows <disk> <windows_partition> <new_size_bytes>
+	# Shrink the NTFS filesystem, then pull the GPT partition end in to match.
+	# The volume must be clean (run chkdsk in Windows first) or ntfsresize aborts.
+	local disk="$1" win="$2" new_bytes="$3"
+	yes | ntfsresize -f --size "$new_bytes" "$win" >>"$INSTALL_LOG" 2>&1 \
+		|| { install_log ERR "shrink: ntfsresize of $win to $new_bytes failed (is the volume clean?)"; return "$INSTALL_EX_PARTITION"; }
+
+	local pnum start_b new_end_b
+	pnum="$(grep -oE '[0-9]+$' <<<"$win")"
+	start_b="$(parted -sm "$disk" unit B print 2>/dev/null | awk -F: -v p="$pnum" '$1==p {gsub("B","",$2); print $2}')"
+	[[ -n "$start_b" ]] || { install_log ERR "shrink: cannot read start of partition $pnum"; return "$INSTALL_EX_PARTITION"; }
+	# Leave 16MiB slack so the partition end sits safely past the shrunk fs.
+	new_end_b=$(( start_b + new_bytes + 16 * 1024 * 1024 ))
+	# parted refuses to shrink a partition non-interactively even with --script;
+	# ---pretend-input-tty lets us answer its "are you sure?" prompt with "Yes".
+	printf 'Yes\n' | parted ---pretend-input-tty "$disk" unit B resizepart "$pnum" "${new_end_b}B" >>"$INSTALL_LOG" 2>&1 \
+		|| { install_log ERR "shrink: resizepart $pnum to ${new_end_b}B failed"; return "$INSTALL_EX_PARTITION"; }
+	partprobe "$disk" >>"$INSTALL_LOG" 2>&1 || true
+	udevadm settle >>"$INSTALL_LOG" 2>&1 || true
+}
+
+install_create_free_partition() {
+	# install_create_free_partition <disk> <fs>
+	# Create one partition filling the largest free region and echo its device.
+	# Does NOT relabel or wipe - existing partitions are preserved.
+	local disk="$1" fs="$2" hint
+	hint="$(_install_parted_fs_hint "$fs")"
+	# Largest free block (MiB) from parted's free-space report.
+	local fstart fend fsize best_start="" best_size=0 line
+	while IFS=: read -r _ fstart fend fsize _; do
+		[[ "$fsize" == *MiB ]] || continue
+		local s="${fstart%MiB}" z="${fsize%MiB}"
+		s="${s%.*}"; z="${z%.*}"
+		if (( z > best_size )); then best_size="$z"; best_start="$s"; fi
+	done < <(parted -sm "$disk" unit MiB print free 2>/dev/null | grep ':free;$')
+	[[ -n "$best_start" ]] || { install_log ERR "create_free: no free space on $disk"; return "$INSTALL_EX_NOSPACE"; }
+
+	local -a mkpart_args=(mkpart primary)
+	[[ -n "$hint" ]] && mkpart_args+=("$hint")
+	mkpart_args+=("${best_start}MiB" "100%")
+	# ---pretend-input-tty + "Yes" accepts parted's alignment adjustment
+	# ("the closest location we can manage is ...") which --script would reject.
+	printf 'Yes\n' | parted ---pretend-input-tty -a optimal "$disk" unit MiB "${mkpart_args[@]}" >>"$INSTALL_LOG" 2>&1 \
+		|| { install_log ERR "create_free: mkpart failed"; return "$INSTALL_EX_PARTITION"; }
+	partprobe "$disk" >>"$INSTALL_LOG" 2>&1 || true
+	udevadm settle >>"$INSTALL_LOG" 2>&1 || true
+
+	# The new partition is the highest-numbered one.
+	local newnum
+	newnum="$(parted -sm "$disk" print 2>/dev/null | awk -F: '/^[0-9]/ {n=$1} END{print n}')"
+	echo "$(_install_part_dev "$disk" "$newnum")"
 }
 
 # ---- orchestration ----------------------------------------------------------
@@ -588,6 +723,74 @@ install_run_scenario() {
 	rmdir "$mp" 2>/dev/null
 
 	[[ "$rc" == 0 ]] && install_log INFO "scenario: $boot_mode install to $disk completed"
+	return "$rc"
+}
+
+install_run_dualboot() {
+	# install_run_dualboot <disk> <fs> <exclude_file> <armbian_bytes> [uboot_dir]
+	#
+	# Non-destructive UEFI install alongside Windows: shrink the NTFS volume,
+	# create an Armbian partition in the freed tail, reuse the existing Windows
+	# ESP, and set up GRUB + os-prober dual-boot. The disk keeps its partition
+	# table and every existing partition.
+	local disk="$1" fs="$2" exclude="$3" want="$4"
+	export LC_ALL=C LANG=C
+	[[ -b "$disk" ]] || { install_log ERR "dualboot: '$disk' not a block device"; return "$INSTALL_EX_NODEV"; }
+	[[ -f "$exclude" ]] || { install_log ERR "dualboot: exclude '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
+	[[ "$want" =~ ^[0-9]+$ && "$want" -gt 0 ]] || { install_log ERR "dualboot: bad size '$want'"; return "$INSTALL_EX_USAGE"; }
+	command -v ntfsresize >/dev/null 2>&1 || { install_log ERR "dualboot: ntfsresize missing - install the ntfs-3g package"; return "$INSTALL_EX_TOOL"; }
+
+	# 1) locate the existing Windows ESP + NTFS volume (nothing is touched yet).
+	local wi esp win
+	wi="$(install_detect_windows "$disk")" || { install_log ERR "dualboot: no Windows/UEFI layout on $disk"; return "$INSTALL_EX_NODEV"; }
+	esp="$(sed -n 's/^esp=//p' <<<"$wi")"
+	win="$(sed -n 's/^windows=//p' <<<"$wi")"
+	install_log INFO "dualboot: ESP=$esp Windows=$win on $disk"
+
+	# 2) plan how far to shrink Windows to free <want> bytes.
+	local wsize wmin new_win plan
+	wsize="$(blockdev --getsize64 "$win")"
+	wmin="$(install_windows_min_bytes "$win")"
+	plan="$(install_dualboot_plan "$wsize" "$wmin" 0 "$want")" || return "$INSTALL_EX_NOSPACE"
+	new_win="$(sed -n 's/^shrink_to=//p' <<<"$plan")"
+
+	# 3) shrink Windows (only if we must eat into it).
+	if (( new_win < wsize )); then
+		install_shrink_windows "$disk" "$win" "$new_win" || return "$INSTALL_EX_PARTITION"
+	fi
+
+	# 4) create + format the Armbian partition in the freed tail.
+	local root_dev
+	root_dev="$(install_create_free_partition "$disk" "$fs")" || return "$INSTALL_EX_PARTITION"
+	[[ -b "$root_dev" ]] || { install_log ERR "dualboot: new partition '$root_dev' missing"; return "$INSTALL_EX_PARTITION"; }
+	install_make_filesystems "root $root_dev $fs" || return "$INSTALL_EX_FORMAT"
+
+	# 5) install into it, reusing the existing ESP for GRUB.
+	local mp rc=0
+	mp="$(mktemp -d /mnt/armbian-install.XXXXXX)" || return "$INSTALL_EX_TRANSFER"
+	mount "$root_dev" "$mp" || { install_log ERR "dualboot: mount root failed"; rmdir "$mp"; return "$INSTALL_EX_TRANSFER"; }
+	mkdir -p "$mp/boot/efi"
+	while :; do
+		install_transfer_rootfs "$mp" "$exclude" || { rc=$INSTALL_EX_TRANSFER; break; }
+		install_populate_boot "$mp" || { rc=$INSTALL_EX_BOOTCFG; break; }
+		local root_uuid esp_uuid
+		root_uuid="$(install_uuid "$root_dev")"
+		esp_uuid="$(install_uuid "$esp")"
+		install_gen_fstab "$root_uuid" "$fs" "" ext4 "$esp_uuid" >"$mp/etc/fstab" || { rc=$INSTALL_EX_BOOTCFG; break; }
+		mount "$esp" "$mp/boot/efi" || { install_log ERR "dualboot: mount ESP failed"; rc=$INSTALL_EX_BOOTLOADER; break; }
+		install_grub_install "$mp" dualboot || { rc=$INSTALL_EX_BOOTLOADER; break; }
+		install_verify_boot_dir "$mp/boot" || { rc=$INSTALL_EX_VERIFY; break; }
+		install_verify_fstab "$mp/etc/fstab" || { rc=$INSTALL_EX_VERIFY; break; }
+		# The Windows volume must have survived intact.
+		[[ "$(blkid -s TYPE -o value "$win")" == ntfs ]] || { install_log ERR "dualboot: Windows NTFS vanished after install"; rc=$INSTALL_EX_VERIFY; break; }
+		break
+	done 2>>"$INSTALL_LOG"
+
+	sync
+	mountpoint -q "$mp/boot/efi" && umount "$mp/boot/efi" 2>/dev/null
+	umount "$mp" 2>/dev/null
+	rmdir "$mp" 2>/dev/null
+	[[ "$rc" == 0 ]] && install_log INFO "dualboot: Armbian installed alongside Windows on $disk"
 	return "$rc"
 }
 

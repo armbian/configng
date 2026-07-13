@@ -58,9 +58,15 @@ partitioner_disk_label() {
 
 # Boot modes that make sense for a given target role + firmware.
 partitioner_modes_for() {
-	local role="$1"
+	local role="$1" disk="$2"
 	if [[ -d /sys/firmware/efi ]]; then
-		echo "uefi"; return
+		# Offer dual-boot first when an existing Windows/UEFI layout is present.
+		if [[ -n "$disk" ]] && install_detect_windows "/dev/$disk" >/dev/null 2>&1; then
+			echo "uefi-dualboot uefi"
+		else
+			echo "uefi"
+		fi
+		return
 	fi
 	case "$role" in
 		mmc)          echo "emmc sd" ;;   # eMMC can host a full install or just root
@@ -73,7 +79,8 @@ partitioner_modes_for() {
 
 partitioner_mode_desc() {
 	case "$1" in
-		uefi) echo "UEFI install with GRUB (ESP + rootfs on this disk)" ;;
+		uefi-dualboot) echo "Dual-boot: shrink Windows, install Armbian alongside it" ;;
+		uefi) echo "UEFI install with GRUB (ERASES the disk)" ;;
 		emmc) echo "Full install to this device (boot + system)" ;;
 		sd)   echo "Keep boot on current media, system on this disk" ;;
 		mtd)  echo "Boot from SPI/MTD flash, system on this disk" ;;
@@ -104,13 +111,13 @@ partitioner_tui() {
 	done <<<"$records"
 
 	local disk
-	disk=$(dialog_menu " $title " "\nSelect the destination disk (ALL DATA WILL BE ERASED):" 0 76 10 -- "${menu[@]}")
+	disk=$(dialog_menu " $title " "\nSelect the destination disk:" 0 76 10 -- "${menu[@]}")
 	[[ -z "$disk" ]] && return "$INSTALL_EX_OK"
 	local disk_role="mmc" i
 	for i in "${!names[@]}"; do [[ "${names[$i]}" == "$disk" ]] && disk_role="${roles[$i]}"; done
 
-	# 2) boot mode
-	local -a modes; read -r -a modes <<<"$(partitioner_modes_for "$disk_role")"
+	# 2) boot mode (dual-boot is offered when Windows is detected on the disk)
+	local -a modes; read -r -a modes <<<"$(partitioner_modes_for "$disk_role" "$disk")"
 	local boot
 	if [[ "${#modes[@]}" -eq 1 ]]; then
 		boot="${modes[0]}"
@@ -129,15 +136,30 @@ partitioner_tui() {
 		f2fs "Flash-friendly log-structured fs")
 	[[ -z "$fs" ]] && return "$INSTALL_EX_OK"
 
-	# 4) confirm
-	if ! dialog_yesno " WARNING " "\nThis will ERASE /dev/$disk and install Armbian ($boot, $fs).\n\nProceed?" "Erase and install" "Cancel" 10 70; then
-		return "$INSTALL_EX_OK"
+	# 4) dual-boot needs a size; other modes erase the whole disk.
+	local want_bytes=0
+	if [[ "$boot" == uefi-dualboot ]]; then
+		local gib
+		gib=$(dialog_inputbox " $title " "\nGiB to give Armbian (taken by shrinking Windows):" "32")
+		[[ "$gib" =~ ^[0-9]+$ && "$gib" -gt 0 ]] || { dialog_msgbox " $title " "\nInvalid size."; return "$INSTALL_EX_USAGE"; }
+		want_bytes=$(( gib * 1024 * 1024 * 1024 ))
+		if ! dialog_yesno " WARNING " "\nThis will SHRINK Windows on /dev/$disk and install Armbian ($fs, ${gib}GiB) alongside it.\n\nBack up first. Proceed?" "Shrink and install" "Cancel" 11 72; then
+			return "$INSTALL_EX_OK"
+		fi
+	else
+		if ! dialog_yesno " WARNING " "\nThis will ERASE /dev/$disk and install Armbian ($boot, $fs).\n\nProceed?" "Erase and install" "Cancel" 10 70; then
+			return "$INSTALL_EX_OK"
+		fi
 	fi
 
 	# 5) run - pipe the transfer percentage into a gauge, capture the real rc.
 	local rc_file; rc_file="$(mktemp)"
 	{
-		install_run_scenario "$boot" "/dev/$disk" "$fs" "$INSTALL_EXCLUDE"
+		if [[ "$boot" == uefi-dualboot ]]; then
+			install_run_dualboot "/dev/$disk" "$fs" "$INSTALL_EXCLUDE" "$want_bytes"
+		else
+			install_run_scenario "$boot" "/dev/$disk" "$fs" "$INSTALL_EXCLUDE"
+		fi
 		echo "$?" >"$rc_file"
 	} | dialog_gauge " $title " "\nInstalling to /dev/$disk - please wait..." 10 74
 	local rc; rc="$(cat "$rc_file")"; rm -f "$rc_file"
@@ -153,31 +175,38 @@ partitioner_tui() {
 # ---- non-interactive CLI ----------------------------------------------------
 
 partitioner_cli_install() {
-	# partitioner_cli_install --target /dev/X --boot MODE --fs FS [--yes]
-	local target="" boot="" fs="ext4" assume_yes=0
+	# partitioner_cli_install --target /dev/X --boot MODE --fs FS [--size GiB] [--yes]
+	local target="" boot="" fs="ext4" assume_yes=0 size_gib=0
 	INSTALL_LOG="/var/log/armbian-install.log"
 	while [[ $# -gt 0 ]]; do
 		case "$1" in
 			--target) target="$2"; shift 2 ;;
 			--boot)   boot="$2";   shift 2 ;;
 			--fs)     fs="$2";     shift 2 ;;
+			--size)   size_gib="$2"; shift 2 ;;
 			--yes|-y) assume_yes=1; shift ;;
 			*) echo "armbian-install: unknown argument '$1'" >&2; return "$INSTALL_EX_USAGE" ;;
 		esac
 	done
 
 	[[ -b "$target" ]] || { echo "armbian-install: --target must be a block device" >&2; return "$INSTALL_EX_NODEV"; }
-	case "$boot" in uefi|emmc|sd|mtd|ufs) ;; *) echo "armbian-install: --boot must be one of uefi|emmc|sd|mtd|ufs" >&2; return "$INSTALL_EX_USAGE" ;; esac
+	case "$boot" in uefi|uefi-dualboot|emmc|sd|mtd|ufs) ;; *) echo "armbian-install: --boot must be one of uefi|uefi-dualboot|emmc|sd|mtd|ufs" >&2; return "$INSTALL_EX_USAGE" ;; esac
 	case "$fs"   in ext4|btrfs|f2fs) ;;     *) echo "armbian-install: --fs must be one of ext4|btrfs|f2fs" >&2; return "$INSTALL_EX_USAGE" ;; esac
 	[[ -f "$INSTALL_EXCLUDE" ]] || { echo "armbian-install: exclude list $INSTALL_EXCLUDE missing" >&2; return "$INSTALL_EX_TRANSFER"; }
 
 	if [[ "$assume_yes" -ne 1 ]]; then
-		echo "armbian-install: refusing to ERASE $target without --yes" >&2
+		echo "armbian-install: refusing to modify $target without --yes" >&2
 		return "$INSTALL_EX_USAGE"
 	fi
 
-	echo "Installing Armbian to $target ($boot, $fs)..."
-	install_run_scenario "$boot" "$target" "$fs" "$INSTALL_EXCLUDE"
+	if [[ "$boot" == uefi-dualboot ]]; then
+		[[ "$size_gib" =~ ^[0-9]+$ && "$size_gib" -gt 0 ]] || { echo "armbian-install: --size <GiB> is required for uefi-dualboot" >&2; return "$INSTALL_EX_USAGE"; }
+		echo "Installing Armbian alongside Windows on $target (${size_gib}GiB, $fs)..."
+		install_run_dualboot "$target" "$fs" "$INSTALL_EXCLUDE" $(( size_gib * 1024 * 1024 * 1024 ))
+	else
+		echo "Installing Armbian to $target ($boot, $fs)..."
+		install_run_scenario "$boot" "$target" "$fs" "$INSTALL_EXCLUDE"
+	fi
 	local rc=$?
 	[[ "$rc" == 0 ]] && echo "Done." || echo "Failed (code $rc). See ${INSTALL_LOG:-install log}." >&2
 	return "$rc"
@@ -222,9 +251,13 @@ partitioner_help() {
 
 	Non-interactive:
 	  armbian-install --target /dev/sdX --boot <mode> --fs <fs> --yes
-	    --boot   uefi | emmc | sd | mtd | ufs
+	    --boot   uefi | uefi-dualboot | emmc | sd | mtd | ufs
 	    --fs     ext4 | btrfs | f2fs
-	    --yes    required to actually erase the target
+	    --size   GiB for Armbian (uefi-dualboot only; shrinks Windows)
+	    --yes    required to actually modify the target
+
+	Dual-boot with Windows 10/11 (UEFI):
+	  armbian-install --target /dev/sdX --boot uefi-dualboot --fs ext4 --size 32 --yes
 
 	Machine-readable:
 	  armbian-install --api detect
