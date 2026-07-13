@@ -6,6 +6,9 @@
 # - and asserts Windows survives intact. Needs root + ntfsprogs; skips otherwise.
 
 setup() {
+	# Run under pipefail so a masked-exit-code bug (e.g. `yes | ntfsresize`
+	# reporting failure on SIGPIPE) is caught, mirroring a strict caller.
+	set -o pipefail
 	declare -A module_options
 	source "${BATS_TEST_DIRNAME}/../../tools/modules/functions/module_install_engine.sh"
 	INSTALL_LOG=/dev/null

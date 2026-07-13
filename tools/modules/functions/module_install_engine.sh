@@ -579,8 +579,11 @@ install_shrink_windows() {
 	# Shrink the NTFS filesystem, then pull the GPT partition end in to match.
 	# The volume must be clean (run chkdsk in Windows first) or ntfsresize aborts.
 	local disk="$1" win="$2" new_bytes="$3"
-	yes | ntfsresize -f --size "$new_bytes" "$win" >>"$INSTALL_LOG" 2>&1 \
-		|| { install_log ERR "shrink: ntfsresize of $win to $new_bytes failed (is the volume clean?)"; return "$INSTALL_EX_PARTITION"; }
+	# Feed the "Are you sure?" answer with a here-string, NOT `yes |`: an infinite
+	# `yes` producer dies of SIGPIPE when ntfsresize exits, which under a caller's
+	# `set -o pipefail` would mask ntfsresize's real (successful) exit code.
+	ntfsresize -f --size "$new_bytes" "$win" <<<'y' >>"$INSTALL_LOG" 2>&1 \
+		|| { install_log ERR "shrink: ntfsresize of $win to $new_bytes failed (is the volume clean? boot Windows and disable Fast Startup / run chkdsk)"; return "$INSTALL_EX_PARTITION"; }
 
 	local pnum start_b new_end_b
 	pnum="$(grep -oE '[0-9]+$' <<<"$win")"
