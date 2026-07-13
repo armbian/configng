@@ -27,7 +27,7 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y -qq bats jq parted dosfstools ntfs-3g
 
       - name: Unit tests (pure functions, no privileges)
-        run: bats tests/bats/plan.bats tests/bats/detect.bats tests/bats/bootconfig.bats tests/bats/dualboot.bats
+        run: bats tests/bats/plan.bats tests/bats/detect.bats tests/bats/bootconfig.bats tests/bats/dualboot.bats tests/bats/transfer.bats
 
       - name: Integration tests (loopback block device + Windows dual-boot, needs root)
         run: sudo bats tests/bats/integration_loopback.bats tests/bats/integration_dualboot.bats
