@@ -342,21 +342,26 @@ install_transfer_rootfs() {
 	# rsync / -> target with the exclude list, emitting integer percentages to
 	# progress_fd (default 1) for a gauge. Returns INSTALL_EX_TRANSFER on failure.
 	# src defaults to "/" (the running rootfs); overridable for tests.
-	local dest="$1" exclude="$2" pfd="${3:-1}" src="${4:-/}"
+	# lo/hi scale the emitted percentage into a band, so the caller can reserve
+	# the tail of the bar for the post-copy stages (grub, verify, ...).
+	local dest="$1" exclude="$2" pfd="${3:-1}" src="${4:-/}" lo="${5:-0}" hi="${6:-100}"
 	[[ -d "$dest" ]] || { install_log ERR "transfer: '$dest' is not a directory"; return "$INSTALL_EX_TRANSFER"; }
 	[[ -f "$exclude" ]] || { install_log ERR "transfer: exclude file '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
 
-	# Use rsync's own overall byte percentage (--info=progress2) rather than
-	# counting output lines against a dry-run file count, which drifts out of
-	# sync. --no-inc-recursive builds the full file list first so the percentage
-	# is accurate and monotonic from the start (a short pause at 0% up front).
-	# progress2 rewrites its line with \r; split on \r, pull the "NN%" token.
+	# Track rsync's file-count progress (to-chk=REMAIN/TOTAL from --info=progress2)
+	# rather than its byte percentage: for a rootfs (mostly small files) the byte
+	# percentage rushes then crawls through the long small-file tail, while the
+	# file count advances linearly. --no-inc-recursive fixes TOTAL up front so the
+	# fraction is stable. progress2 rewrites its line with \r; split on \r.
 	local rc_file; rc_file="$(mktemp)"
 	{
 		rsync -ax --delete --info=progress2 --no-inc-recursive --exclude-from="$exclude" "$src" "$dest" \
 			| stdbuf -oL tr '\r' '\n' \
-			| stdbuf -oL grep --line-buffered -oE '[0-9]+%' \
-			| stdbuf -oL sed -u 's/%//' >&"$pfd"
+			| stdbuf -oL sed -u -n 's/.*to-chk=\([0-9]*\)\/\([0-9]*\).*/\1 \2/p' \
+			| stdbuf -oL awk -v lo="$lo" -v hi="$hi" '
+				{ if ($2 > 0) { p = lo + int((hi-lo)*($2-$1)/$2);
+				                if (p > hi) p = hi;
+				                if (p != last) { print p; fflush(); last = p } } }' >&"$pfd"
 		echo "${PIPESTATUS[0]}" >"$rc_file"
 	}
 	local rc; rc="$(cat "$rc_file")"; rm -f "$rc_file"
@@ -744,10 +749,13 @@ install_run_scenario() {
 	if [[ -n "$boot_dev" ]]; then mkdir -p "$mp/boot"; mount "$boot_dev" "$mp/boot"; fi
 	if [[ -n "$esp_dev" ]]; then mkdir -p "$mp/boot/efi"; fi
 
-	# One-shot loop so a failing step can `break` straight to teardown.
+	# One-shot loop so a failing step can `break` straight to teardown. The bar is
+	# staged: rsync fills 0-90, the remaining steps advance it to 100 so it never
+	# freezes at ~90% during /boot sync, grub-install and verification.
 	local rc=0
 	while :; do
-		install_transfer_rootfs "$mp" "$exclude" || { rc=$INSTALL_EX_TRANSFER; break; }
+		install_transfer_rootfs "$mp" "$exclude" 1 / 0 90 || { rc=$INSTALL_EX_TRANSFER; break; }
+		echo 92
 		install_populate_boot "$mp" "$copy_boot" || { rc=$INSTALL_EX_BOOTCFG; break; }
 
 		# fstab from the real, freshly-created UUIDs.
@@ -767,15 +775,18 @@ install_run_scenario() {
 				[[ -f "$env_file" ]] && install_rewrite_bootenv "$env_file" "$root_uuid" "$fs" ;;
 		esac
 
+		echo 95
 		# ESP must be mounted before GRUB runs.
 		[[ -n "$esp_dev" ]] && { mount "$esp_dev" "$mp/boot/efi" || { rc=$INSTALL_EX_BOOTLOADER; break; }; }
 		install_write_bootloader "$boot_mode" "$disk" "$mp" "$uboot_dir" "${INSTALL_MTD_LIST:-}" "${INSTALL_UFS_BOOT_LUN:-}" \
 			|| { rc=$INSTALL_EX_BOOTLOADER; break; }
 
+		echo 99
 		# Refuse to declare success on an unbootable result. (sd mode boots from
 		# the removable media, so the target has no local /boot to verify.)
 		[[ "$copy_boot" == 1 ]] && { install_verify_boot_dir "$mp/boot" || { rc=$INSTALL_EX_VERIFY; break; }; }
 		install_verify_fstab "$mp/etc/fstab" || { rc=$INSTALL_EX_VERIFY; break; }
+		echo 100
 		break
 	done 2>>"$INSTALL_LOG"
 
@@ -835,18 +846,22 @@ install_run_dualboot() {
 	mount "$root_dev" "$mp" || { install_log ERR "dualboot: mount root failed"; rmdir "$mp"; return "$INSTALL_EX_TRANSFER"; }
 	mkdir -p "$mp/boot/efi"
 	while :; do
-		install_transfer_rootfs "$mp" "$exclude" || { rc=$INSTALL_EX_TRANSFER; break; }
+		install_transfer_rootfs "$mp" "$exclude" 1 / 0 90 || { rc=$INSTALL_EX_TRANSFER; break; }
+		echo 92
 		install_populate_boot "$mp" || { rc=$INSTALL_EX_BOOTCFG; break; }
 		local root_uuid esp_uuid
 		root_uuid="$(install_uuid "$root_dev")"
 		esp_uuid="$(install_uuid "$esp")"
 		install_gen_fstab "$root_uuid" "$fs" "" ext4 "$esp_uuid" >"$mp/etc/fstab" || { rc=$INSTALL_EX_BOOTCFG; break; }
+		echo 95
 		mount "$esp" "$mp/boot/efi" || { install_log ERR "dualboot: mount ESP failed"; rc=$INSTALL_EX_BOOTLOADER; break; }
 		install_grub_install "$mp" dualboot || { rc=$INSTALL_EX_BOOTLOADER; break; }
+		echo 99
 		install_verify_boot_dir "$mp/boot" || { rc=$INSTALL_EX_VERIFY; break; }
 		install_verify_fstab "$mp/etc/fstab" || { rc=$INSTALL_EX_VERIFY; break; }
 		# The Windows volume must have survived intact.
 		[[ "$(blkid -s TYPE -o value "$win")" == ntfs ]] || { install_log ERR "dualboot: Windows NTFS vanished after install"; rc=$INSTALL_EX_VERIFY; break; }
+		echo 100
 		break
 	done 2>>"$INSTALL_LOG"
 
