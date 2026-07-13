@@ -97,10 +97,17 @@ install_detect_targets() {
 	[[ -z "$json" ]] && json="$(_install_lsblk_raw)"
 	[[ -z "$json" ]] && return "$INSTALL_EX_NODEV"
 
+	# Note: empty fields are emitted as "-" (never ""), because a `read` loop with
+	# IFS=$'\t' collapses consecutive tabs (tab is IFS-whitespace) and an empty
+	# column would shift every field after it.
 	echo "$json" | jq -r --arg root "$root_disk" '
 		.blockdevices[]?
 		| select(.type == "disk")
 		| select(.name != $root)
+		# Drop pseudo/virtual block devices that are never install targets:
+		# zram (compressed RAM swap), ram disks, loop, optical (sr), floppy (fd),
+		# and device-mapper (dm-) nodes.
+		| select(.name | test("^(zram|ram|loop|sr|fd|dm-)[0-9-]") | not)
 		| { n: .name, t: (.tran // ""), sz: (.size // 0),
 		    ps: (."phy-sec" // 512), ro: (.rota // false), md: ((.model // "") | gsub("\t"; " ")) }
 		| .role = ( if   (.n | test("^nvme"))     then "nvme"
@@ -109,7 +116,10 @@ install_detect_targets() {
 		            elif (.t == "usb")            then "usb"
 		            elif (.t == "sata" or .t == "ata") then "sata"
 		            else "disk" end )
-		| [ .n, .role, (.sz|tostring), (.ps|tostring), .t, (.ro|tostring), .md ]
+		| [ .n, .role, (.sz|tostring), (.ps|tostring),
+		    (if .t  == "" then "-" else .t  end),
+		    (.ro|tostring),
+		    (if .md == "" then "-" else .md end) ]
 		| @tsv
 	'
 }

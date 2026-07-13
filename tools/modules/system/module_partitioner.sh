@@ -50,9 +50,10 @@ partitioner_disk_label() {
 	local name="$1" role="$2" size_bytes="$3" bus="$4" model="$5"
 	local human
 	human=$(numfmt --to=iec --suffix=B "$size_bytes" 2>/dev/null || echo "${size_bytes}B")
+	# "-" is the detect placeholder for an absent bus/model column.
 	local info="$role"
-	[[ -n "$bus" && "$bus" != "null" ]] && info="$bus $role"
-	[[ -n "$model" && "$model" != "null" ]] && info="$model"
+	[[ -n "$bus" && "$bus" != "null" && "$bus" != "-" ]] && info="$bus $role"
+	[[ -n "$model" && "$model" != "null" && "$model" != "-" ]] && info="$model"
 	printf '%-10s %8s  %s' "/dev/$name" "$human" "$info"
 }
 

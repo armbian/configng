@@ -1,5 +1,8 @@
 {
    "blockdevices": [
+      {"name":"zram0","type":"disk","size":2147483648,"phy-sec":4096,"tran":null,"rota":false,"model":null},
+      {"name":"zram1","type":"disk","size":52428800,"phy-sec":4096,"tran":null,"rota":false,"model":null},
+      {"name":"loop0","type":"disk","size":134217728,"phy-sec":512,"tran":null,"rota":false,"model":null},
       {"name":"mmcblk0","type":"disk","size":31914983424,"phy-sec":512,"tran":null,"rota":false,"model":null},
       {"name":"nvme0n1","type":"disk","size":512110190592,"phy-sec":512,"tran":"nvme","rota":false,"model":"Samsung SSD 970 EVO"},
       {"name":"sda","type":"disk","size":1000204886016,"phy-sec":512,"tran":"usb","rota":true,"model":"Generic USB3.0"}
