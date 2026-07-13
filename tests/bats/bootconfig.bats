@@ -87,3 +87,31 @@ setup() {
 	run install_verify_boot_dir "$d"
 	[ "$status" -eq 0 ]
 }
+
+# --- bootloader capability pre-flight ----------------------------------------
+
+@test "bootloader available: u-boot modes need write_uboot_platform (x86 has none)" {
+	# No write_uboot_platform defined -> u-boot modes must report unavailable, so
+	# the installer refuses before wiping (the code-72-after-wipe scenario).
+	unset -f write_uboot_platform 2>/dev/null || true
+	run install_bootloader_available sd
+	[ "$status" -ne 0 ]
+	run install_bootloader_available emmc
+	[ "$status" -ne 0 ]
+}
+
+@test "bootloader available: u-boot modes ok once the hook exists" {
+	write_uboot_platform() { :; }
+	run install_bootloader_available sd
+	[ "$status" -eq 0 ]
+	unset -f write_uboot_platform
+}
+
+@test "bootloader available: grub modes depend on grub-install presence" {
+	if command -v grub-install >/dev/null 2>&1; then
+		run install_bootloader_available bios; [ "$status" -eq 0 ]
+		run install_bootloader_available uefi; [ "$status" -eq 0 ]
+	else
+		run install_bootloader_available bios; [ "$status" -ne 0 ]
+	fi
+}

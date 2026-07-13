@@ -153,6 +153,17 @@ install_plan_layout() {
 			parts+=("esp:512MiB:vfat:esp,boot")
 			parts+=("root:100%:${fs}:")
 			;;
+		bios)
+			# x86 legacy BIOS install with GRUB (grub-pc). On GPT a 1MiB BIOS boot
+			# partition is required for GRUB to embed core.img; on MBR it embeds in
+			# the post-MBR gap, so the root partition just carries the boot flag.
+			if [[ "$table" == "gpt" ]]; then
+				parts+=("biosboot:1MiB::bios_grub")
+				parts+=("root:100%:${fs}:")
+			else
+				parts+=("root:100%:${fs}:boot")
+			fi
+			;;
 		emmc)
 			if [[ "$fs" == "btrfs" || "$fs" == "f2fs" ]]; then
 				# u-boot cannot read btrfs/f2fs -> a dedicated ext4 /boot.
@@ -251,6 +262,10 @@ install_apply_partitions() {
 			else
 				parted -s "$device" set "$idx" boot on >>"$INSTALL_LOG" 2>&1 || true
 			fi
+		fi
+		# BIOS boot partition on GPT: where GRUB embeds core.img (no filesystem).
+		if [[ ",$flags," == *",bios_grub,"* ]]; then
+			parted -s "$device" set "$idx" bios_grub on >>"$INSTALL_LOG" 2>&1 || true
 		fi
 
 		[[ "$size" != "100%" ]] && start_mib=$(( start_mib + ${size%MiB} ))
@@ -454,6 +469,20 @@ install_verify_fstab() {
 
 # ---- bootloader -------------------------------------------------------------
 
+install_bootloader_available() {
+	# install_bootloader_available <boot_mode>
+	# True if the bootloader method for this mode can actually run on this system.
+	# Called BEFORE any destructive step so we never wipe a disk we can't make
+	# bootable (e.g. a u-boot mode on x86, which has no write_uboot_platform).
+	case "$1" in
+		uefi|uefi-dualboot|bios) command -v grub-install >/dev/null 2>&1 ;;
+		emmc|sd) [[ "$(type -t write_uboot_platform)" == function ]] ;;
+		mtd)     [[ "$(type -t write_uboot_platform_mtd)" == function ]] ;;
+		ufs)     [[ "$(type -t write_uboot_platform_ufs)" == function ]] ;;
+		*)       return 1 ;;
+	esac
+}
+
 install_write_bootloader() {
 	# install_write_bootloader <boot_mode> <target_disk> <rootfs_mount> [uboot_dir] [mtd_list] [ufs_boot_lun]
 	# Dispatches to the board-provided u-boot hooks (sourced at runtime from
@@ -462,7 +491,9 @@ install_write_bootloader() {
 	local boot_mode="$1" disk="$2" rootfs="$3" uboot_dir="${4:-${DIR:-}}" mtd_list="${5:-}" ufs_boot="${6:-}"
 	case "$boot_mode" in
 		uefi)
-			install_grub_install "$rootfs" ;;
+			install_grub_install "$rootfs" solo ;;
+		bios)
+			install_grub_install "$rootfs" bios "$disk" ;;
 		mtd)
 			[[ "$(type -t write_uboot_platform_mtd)" == function ]] || { install_log ERR "bootloader: write_uboot_platform_mtd missing"; return "$INSTALL_EX_BOOTLOADER"; }
 			write_uboot_platform_mtd "$uboot_dir" "/dev/${mtd_list%% *}" "$INSTALL_LOG" "$mtd_list" \
@@ -481,30 +512,37 @@ install_write_bootloader() {
 }
 
 install_grub_install() {
-	# install_grub_install <rootfs_mount> [mode]
+	# install_grub_install <rootfs_mount> [mode] [disk]
 	# Bind-mount /dev,/proc,/sys and run grub-install + grub-mkconfig in the
-	# target. The ESP must already be mounted at <rootfs>/boot/efi.
-	#   mode=solo     (default) sole-OS install: --removable, so it boots even
-	#                 without a working NVRAM entry (typical for wiped disks).
+	# target.
+	#   mode=solo     (default) sole-OS UEFI install: --removable, so it boots
+	#                 even without a working NVRAM entry (typical for wiped disks).
+	#                 The ESP must already be mounted at <rootfs>/boot/efi.
 	#   mode=dualboot keep an existing OS (Windows): NO --removable (leave the
 	#                 /EFI/BOOT fallback alone) and turn on os-prober so the
-	#                 GRUB menu offers the other OS.
-	local rootfs="$1" mode="${2:-solo}" arch_target
-	mountpoint -q "$rootfs/boot/efi" || { install_log ERR "grub: ESP not mounted at $rootfs/boot/efi"; return "$INSTALL_EX_BOOTLOADER"; }
+	#                 GRUB menu offers the other OS. ESP mounted at /boot/efi.
+	#   mode=bios     x86 legacy BIOS: grub-pc to <disk>'s MBR, no ESP.
+	local rootfs="$1" mode="${2:-solo}" disk="${3:-}" arch_target grub_cmd
+	if [[ "$mode" == bios ]]; then
+		[[ -b "$disk" ]] || { install_log ERR "grub: bios install needs a disk"; return "$INSTALL_EX_BOOTLOADER"; }
+		grub_cmd="grub-install --target=i386-pc --recheck $disk"
+	else
+		mountpoint -q "$rootfs/boot/efi" || { install_log ERR "grub: ESP not mounted at $rootfs/boot/efi"; return "$INSTALL_EX_BOOTLOADER"; }
+		arch_target=$([[ "$(arch)" == x86_64 ]] && echo "x86_64-efi" || echo "arm64-efi")
+		grub_cmd="grub-install --target=$arch_target --efi-directory=/boot/efi --bootloader-id=Armbian"
+		if [[ "$mode" == dualboot ]]; then
+			install_enable_os_prober "$rootfs"
+		else
+			grub_cmd+=" --removable"
+		fi
+	fi
 	mkdir -p "$rootfs"/{dev,proc,sys}
 	mount --bind /dev "$rootfs/dev"
 	mount --make-rslave --bind /dev/pts "$rootfs/dev/pts"
 	mount --bind /proc "$rootfs/proc"
 	mount --make-rslave --rbind /sys "$rootfs/sys"
-	arch_target=$([[ "$(arch)" == x86_64 ]] && echo "x86_64-efi" || echo "arm64-efi")
-	local grub_opts="--target=$arch_target --efi-directory=/boot/efi --bootloader-id=Armbian"
-	if [[ "$mode" == dualboot ]]; then
-		install_enable_os_prober "$rootfs"
-	else
-		grub_opts+=" --removable"
-	fi
 	local rc=0
-	chroot "$rootfs" /bin/bash -c "grub-install $grub_opts" >>"$INSTALL_LOG" 2>&1 || rc=1
+	chroot "$rootfs" /bin/bash -c "$grub_cmd" >>"$INSTALL_LOG" 2>&1 || rc=1
 	chroot "$rootfs" /bin/bash -c "grub-mkconfig -o /boot/grub/grub.cfg" >>"$INSTALL_LOG" 2>&1 || rc=1
 	# Unwind the API mounts regardless of outcome.
 	awk -v r="$rootfs/sys" '$2 ~ "^"r {print $2}' /proc/mounts | sort -r | xargs -r umount -n 2>/dev/null
@@ -662,6 +700,9 @@ install_run_scenario() {
 	export LC_ALL=C LANG=C
 	[[ -b "$disk" ]] || { install_log ERR "scenario: '$disk' is not a block device"; return "$INSTALL_EX_NODEV"; }
 	[[ -f "$exclude" ]] || { install_log ERR "scenario: exclude file '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
+	# Pre-flight: confirm we can make the target bootable BEFORE wiping anything.
+	install_bootloader_available "$boot_mode" \
+		|| { install_log ERR "scenario: no bootloader method for '$boot_mode' on this system (u-boot hooks or grub-install missing) - refusing to modify $disk"; return "$INSTALL_EX_BOOTLOADER"; }
 
 	# Geometry + firmware context feed the pure planner.
 	local cap sec is_uefi=0 has_swap=0

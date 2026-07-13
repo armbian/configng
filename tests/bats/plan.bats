@@ -48,6 +48,23 @@ setup() {
 	[[ "$output" == *"table=gpt"* ]]
 }
 
+# --- bios (x86 legacy) layout ------------------------------------------------
+
+@test "plan bios: msdos disk -> single boot-flagged root, no bios boot partition" {
+	run install_plan_layout bios ext4 0 $(( 20 * GIB )) 512 0
+	[ "$status" -eq 0 ]
+	[[ "$output" == *"table=msdos"* ]]
+	[[ "$output" == *"part=root:100%:ext4:boot"* ]]
+	[[ "$output" != *"biosboot"* ]]
+}
+
+@test "plan bios: gpt disk (>2TiB) -> 1MiB bios_grub partition + root" {
+	run install_plan_layout bios ext4 0 $(( 4 * TIB )) 512 0
+	[[ "$output" == *"table=gpt"* ]]
+	[[ "$output" == *"part=biosboot:1MiB::bios_grub"* ]]
+	[[ "$output" == *"part=root:100%:ext4:"* ]]
+}
+
 # --- emmc full install -------------------------------------------------------
 
 @test "plan emmc ext4: single boot-flagged root partition" {
