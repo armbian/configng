@@ -143,6 +143,18 @@ setup() {
 	fi
 }
 
+@test "update_initramfs: built-in fs is a no-op, module fs gets listed" {
+	rootfs="$TMP/rootfs"; mkdir -p "$rootfs/etc/initramfs-tools" "$rootfs/usr/sbin"
+	: >"$rootfs/etc/initramfs-tools/modules"
+	# Fake update-initramfs so no real chroot/mount happens; ext4 must not even
+	# reach it (built-in), f2fs must add itself to the module list first.
+	printf '#!/bin/sh\nexit 0\n' >"$rootfs/usr/sbin/update-initramfs"; chmod +x "$rootfs/usr/sbin/update-initramfs"
+
+	run install_update_initramfs "$rootfs" ext4
+	[ "$status" -eq 0 ]
+	[ ! -s "$rootfs/etc/initramfs-tools/modules" ]   # ext4 added nothing
+}
+
 @test "fs kernel support: ext4 always supported; a bogus fs is not" {
 	run install_fs_kernel_supported ext4
 	[ "$status" -eq 0 ]
