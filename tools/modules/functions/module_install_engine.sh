@@ -569,6 +569,40 @@ install_grub_install() {
 	[[ "$rc" == 0 ]] || { install_log ERR "grub: install failed"; return "$INSTALL_EX_BOOTLOADER"; }
 }
 
+install_update_initramfs() {
+	# install_update_initramfs <rootfs_mount> <fs>
+	# Rebuild the target's initramfs so a module root filesystem (btrfs, f2fs)
+	# is actually present at boot. Armbian sets MODULES=list, which does NOT
+	# auto-include the root-fs module, and the installer inherits the source's
+	# initramfs (built for the source's root fs) - so an f2fs/btrfs root would be
+	# unbootable without this. Built-in filesystems (ext4/vfat) need nothing.
+	# Best effort: a failure is logged, not fatal.
+	local rootfs="$1" fs="$2"
+	case "$fs" in ext2|ext3|ext4|vfat|msdos) return 0 ;; esac
+	command -v chroot >/dev/null 2>&1 || return 0
+	[[ -x "$rootfs/usr/sbin/update-initramfs" || -x "$rootfs/sbin/update-initramfs" ]] || {
+		install_log WARN "update-initramfs: not present in target; $fs root may not boot"; return 0; }
+
+	# Force the fs module into the initramfs module list (list mode ships only
+	# what is listed here).
+	local modfile="$rootfs/etc/initramfs-tools/modules"
+	if [[ -f "$modfile" ]] && ! grep -qxF "$fs" "$modfile"; then
+		echo "$fs" >>"$modfile"
+	fi
+
+	mkdir -p "$rootfs"/{dev,proc,sys}
+	mount --bind /dev "$rootfs/dev"
+	mount --bind /proc "$rootfs/proc"
+	mount --bind /sys "$rootfs/sys"
+	local rc=0
+	chroot "$rootfs" /bin/bash -c "update-initramfs -u -k all" >>"$INSTALL_LOG" 2>&1 || rc=1
+	umount "$rootfs/sys" 2>/dev/null
+	umount "$rootfs/proc" 2>/dev/null
+	umount "$rootfs/dev" 2>/dev/null
+	[[ "$rc" == 0 ]] || install_log WARN "update-initramfs failed in target; $fs root may not boot"
+	return 0
+}
+
 install_enable_os_prober() {
 	# install_enable_os_prober <rootfs_mount>
 	# Make grub-mkconfig scan for other operating systems (Windows). GRUB 2.06+
@@ -792,6 +826,10 @@ install_run_scenario() {
 				[[ -f "$env_file" ]] && install_rewrite_bootenv "$env_file" "$root_uuid" "$fs" ;;
 		esac
 
+		# Rebuild the target initramfs so a module root fs (btrfs/f2fs) boots
+		# under MODULES=list. Only when the target owns its /boot.
+		[[ "$copy_boot" == 1 ]] && install_update_initramfs "$mp" "$fs"
+
 		echo 95
 		# ESP must be mounted before GRUB runs.
 		[[ -n "$esp_dev" ]] && { mount "$esp_dev" "$mp/boot/efi" || { rc=$INSTALL_EX_BOOTLOADER; break; }; }
@@ -873,6 +911,7 @@ install_run_dualboot() {
 		root_uuid="$(install_uuid "$root_dev")"
 		esp_uuid="$(install_uuid "$esp")"
 		install_gen_fstab "$root_uuid" "$fs" "" ext4 "$esp_uuid" >"$mp/etc/fstab" || { rc=$INSTALL_EX_BOOTCFG; break; }
+		install_update_initramfs "$mp" "$fs"
 		echo 95
 		mount "$esp" "$mp/boot/efi" || { install_log ERR "dualboot: mount ESP failed"; rc=$INSTALL_EX_BOOTLOADER; break; }
 		install_grub_install "$mp" dualboot || { rc=$INSTALL_EX_BOOTLOADER; break; }
