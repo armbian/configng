@@ -57,31 +57,45 @@ partitioner_disk_label() {
 	printf '%-10s %8s  %s' "/dev/$name" "$human" "$info"
 }
 
-# Boot modes that make sense for a given target role + firmware.
+# Boot modes that actually work on this system for a given target, gated by
+# capability so we never offer a mode whose bootloader cannot be written:
+#   * UEFI firmware present            -> GRUB EFI (uefi, +dualboot with Windows)
+#   * u-boot board (ARM)               -> media-specific u-boot modes
+#   * x86 legacy BIOS (no EFI/u-boot)  -> GRUB BIOS (grub-pc)
 partitioner_modes_for() {
 	local role="$1" disk="$2"
+	local -a m=()
+	local have_uboot=0
+	[[ "$(type -t write_uboot_platform)" == function ]] && have_uboot=1
+
 	if [[ -d /sys/firmware/efi ]]; then
-		# Offer dual-boot first when an existing Windows/UEFI layout is present.
 		if [[ -n "$disk" ]] && install_detect_windows "/dev/$disk" >/dev/null 2>&1; then
-			echo "uefi-dualboot uefi"
-		else
-			echo "uefi"
+			m+=(uefi-dualboot)
 		fi
-		return
+		m+=(uefi)
 	fi
-	case "$role" in
-		mmc)          echo "emmc sd" ;;   # eMMC can host a full install or just root
-		nvme|sata|usb) echo "sd" ;;       # boot stays on removable media, root here
-		mtd)          echo "mtd" ;;
-		ufs)          echo "ufs" ;;
-		*)            echo "sd" ;;
-	esac
+	if [[ "$have_uboot" -eq 1 ]]; then
+		case "$role" in
+			mmc)           m+=(emmc sd) ;;   # eMMC: full install or just root
+			nvme|sata|usb) m+=(sd) ;;        # boot on removable media, root here
+			mtd)           m+=(mtd) ;;
+			ufs)           m+=(ufs) ;;
+		esac
+	fi
+	# x86 legacy BIOS: neither EFI firmware nor a u-boot board.
+	if [[ ! -d /sys/firmware/efi && "$have_uboot" -eq 0 ]] && command -v grub-install >/dev/null 2>&1; then
+		m+=(bios)
+	fi
+
+	[[ ${#m[@]} -eq 0 ]] && m+=(uefi)   # last-resort fallback
+	echo "${m[@]}"
 }
 
 partitioner_mode_desc() {
 	case "$1" in
 		uefi-dualboot) echo "Dual-boot: shrink Windows, install Armbian alongside it" ;;
 		uefi) echo "UEFI install with GRUB (ERASES the disk)" ;;
+		bios) echo "Legacy BIOS install with GRUB (ERASES the disk)" ;;
 		emmc) echo "Full install to this device (boot + system)" ;;
 		sd)   echo "Keep boot on current media, system on this disk" ;;
 		mtd)  echo "Boot from SPI/MTD flash, system on this disk" ;;
@@ -191,7 +205,7 @@ partitioner_cli_install() {
 	done
 
 	[[ -b "$target" ]] || { echo "armbian-install: --target must be a block device" >&2; return "$INSTALL_EX_NODEV"; }
-	case "$boot" in uefi|uefi-dualboot|emmc|sd|mtd|ufs) ;; *) echo "armbian-install: --boot must be one of uefi|uefi-dualboot|emmc|sd|mtd|ufs" >&2; return "$INSTALL_EX_USAGE" ;; esac
+	case "$boot" in uefi|uefi-dualboot|bios|emmc|sd|mtd|ufs) ;; *) echo "armbian-install: --boot must be one of uefi|uefi-dualboot|bios|emmc|sd|mtd|ufs" >&2; return "$INSTALL_EX_USAGE" ;; esac
 	case "$fs"   in ext4|btrfs|f2fs) ;;     *) echo "armbian-install: --fs must be one of ext4|btrfs|f2fs" >&2; return "$INSTALL_EX_USAGE" ;; esac
 	[[ -f "$INSTALL_EXCLUDE" ]] || { echo "armbian-install: exclude list $INSTALL_EXCLUDE missing" >&2; return "$INSTALL_EX_TRANSFER"; }
 
@@ -252,7 +266,7 @@ partitioner_help() {
 
 	Non-interactive:
 	  armbian-install --target /dev/sdX --boot <mode> --fs <fs> --yes
-	    --boot   uefi | uefi-dualboot | emmc | sd | mtd | ufs
+	    --boot   uefi | uefi-dualboot | bios | emmc | sd | mtd | ufs
 	    --fs     ext4 | btrfs | f2fs
 	    --size   GiB for Armbian (uefi-dualboot only; shrinks Windows)
 	    --yes    required to actually modify the target

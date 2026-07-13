@@ -74,6 +74,27 @@ root ${LOOP}p2 ext4"
 	[ "$status" -eq 0 ]
 }
 
+@test "loopback: bios msdos plan yields a single boot-flagged partition" {
+	local plan; plan="$(install_plan_layout bios ext4 0 $((8*1024*1024*1024)) 512 0)"
+	run install_apply_partitions "$LOOP" "$plan"
+	[ "$status" -eq 0 ]
+	LC_ALL=C parted -sm "$LOOP" print | grep -q '^/dev/.*:msdos:'
+	LC_ALL=C parted -sm "$LOOP" print | grep -q 'boot'
+	[ -b "${LOOP}p1" ]
+	[ ! -b "${LOOP}p2" ]
+}
+
+@test "loopback: bios gpt plan yields a bios_grub-flagged partition + root" {
+	# Force GPT via a >2TiB capacity in the plan (applied to the small loop dev).
+	local plan; plan="$(install_plan_layout bios ext4 0 $((3*1024*1024*1024*1024)) 512 0)"
+	[[ "$plan" == *"table=gpt"* ]]
+	run install_apply_partitions "$LOOP" "$plan"
+	[ "$status" -eq 0 ]
+	LC_ALL=C parted -sm "$LOOP" print | grep -q 'bios_grub'
+	[[ "$output" == *"biosboot ${LOOP}p1"* ]]
+	[[ "$output" == *"root ${LOOP}p2"* ]]
+}
+
 @test "loopback: >2TiB capacity forces GPT even in a non-uefi plan (build#9794)" {
 	# We cannot allocate 2TiB, but the planner decision is capacity-driven, so
 	# feed the large capacity to the plan and apply it to the small loop dev.
