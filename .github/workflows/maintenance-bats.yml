@@ -1,0 +1,33 @@
+name: "Maintenance: Bats unit tests"
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'tools/modules/**'
+      - 'tests/bats/**'
+      - '.github/workflows/maintenance-bats.yml'
+
+concurrency:
+  group: bats-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  bats:
+    name: "Installer engine bats"
+    runs-on: ubuntu-latest
+    if: ${{ github.repository_owner == 'Armbian' }}
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install bats and helpers
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq bats jq parted dosfstools
+
+      - name: Unit tests (pure functions, no privileges)
+        run: bats tests/bats/plan.bats tests/bats/detect.bats tests/bats/bootconfig.bats
+
+      - name: Integration tests (loopback block device, needs root)
+        run: sudo bats tests/bats/integration_loopback.bats

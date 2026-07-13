@@ -1,0 +1,6 @@
+{
+   "blockdevices": [
+      {"name":"mmcblk1","type":"disk","size":7818182656,"phy-sec":512,"tran":null,"rota":false,"model":null},
+      {"name":"nvme0n1","type":"disk","size":4000787030016,"phy-sec":4096,"tran":"nvme","rota":false,"model":"WD Black SN850 4TB"}
+   ]
+}
