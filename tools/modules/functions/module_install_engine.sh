@@ -412,23 +412,20 @@ install_gen_fstab() {
 }
 
 install_populate_boot() {
-	# install_populate_boot <target_rootfs_mount> [target_boot_mount]
-	# Ensure the target has a non-empty /boot. When a separate boot partition is
-	# mounted, copy the running /boot into it; otherwise ensure /boot exists in
-	# the rootfs. This is the guard against build#10099 (empty /boot).
-	local rootfs="$1" bootmnt="${2:-}"
+	# install_populate_boot <target_rootfs_mount> [copy:0|1] [src]
+	# Sync the running /boot into the target's /boot. The main rootfs rsync
+	# excludes /boot, so this is what actually places the kernel/dtb/boot script -
+	# onto a separate boot partition if one is mounted at <rootfs>/boot, otherwise
+	# into the rootfs itself. copy=0 leaves /boot empty (ARM "sd" mode: boot stays
+	# on the removable media). Guard against build#10099 (empty /boot).
+	local rootfs="$1" copy="${2:-1}" src="${3:-/boot}"
 	[[ -d "$rootfs" ]] || { install_log ERR "populate_boot: rootfs '$rootfs' missing"; return "$INSTALL_EX_BOOTCFG"; }
-	if [[ -n "$bootmnt" ]]; then
-		# Separate boot partition: copy the running /boot onto it.
-		[[ -d "$bootmnt" ]] || { install_log ERR "populate_boot: '$bootmnt' missing"; return "$INSTALL_EX_BOOTCFG"; }
-		rsync -aqx /boot/ "$bootmnt"/ >>"$INSTALL_LOG" 2>&1 \
-			|| { install_log ERR "populate_boot: copy to $bootmnt failed"; return "$INSTALL_EX_BOOTCFG"; }
-	else
-		# No separate boot partition: /boot rides inside the rootfs. The rsync of
-		# / already carried it (unless the exclude list dropped it), so just make
-		# sure the mount point exists for the bind/verify steps.
-		mkdir -p "$rootfs/boot"
-	fi
+	mkdir -p "$rootfs/boot"
+	[[ "$copy" == "1" ]] || return 0
+	# No -x here: on ARM /boot is often a separate mount, and one-filesystem would
+	# skip its contents. Exclude a mounted ESP (that is handled separately).
+	rsync -aq --exclude 'efi/**' "$src"/ "$rootfs/boot"/ >>"$INSTALL_LOG" 2>&1 \
+		|| { install_log ERR "populate_boot: copy $src -> $rootfs/boot failed"; return "$INSTALL_EX_BOOTCFG"; }
 	return 0
 }
 
@@ -734,9 +731,16 @@ install_run_scenario() {
 	[[ -b "$root_dev" ]] || { install_log ERR "scenario: no root partition created"; return "$INSTALL_EX_PARTITION"; }
 	install_make_filesystems "$mkfs_map" || return "$INSTALL_EX_FORMAT"
 
+	# The shipped exclude list drops /boot from the main rootfs rsync (it belongs
+	# on its own partition/tree, synced separately below). /boot is populated into
+	# the target unless boot stays on the removable media (classic ARM "sd" mode).
+	local copy_boot=1
+	[[ "$boot_mode" == sd ]] && copy_boot=0
+
 	# Mount the freshly-formatted target.
 	local mp; mp="$(mktemp -d /mnt/armbian-install.XXXXXX)" || return "$INSTALL_EX_TRANSFER"
 	mount "$root_dev" "$mp" || { install_log ERR "scenario: mount root failed"; rmdir "$mp"; return "$INSTALL_EX_TRANSFER"; }
+	# A separate boot partition mounts at /boot; /boot is then synced onto it.
 	if [[ -n "$boot_dev" ]]; then mkdir -p "$mp/boot"; mount "$boot_dev" "$mp/boot"; fi
 	if [[ -n "$esp_dev" ]]; then mkdir -p "$mp/boot/efi"; fi
 
@@ -744,7 +748,7 @@ install_run_scenario() {
 	local rc=0
 	while :; do
 		install_transfer_rootfs "$mp" "$exclude" || { rc=$INSTALL_EX_TRANSFER; break; }
-		install_populate_boot "$mp" "${boot_dev:+$mp/boot}" || { rc=$INSTALL_EX_BOOTCFG; break; }
+		install_populate_boot "$mp" "$copy_boot" || { rc=$INSTALL_EX_BOOTCFG; break; }
 
 		# fstab from the real, freshly-created UUIDs.
 		local root_uuid boot_uuid="" esp_uuid=""
@@ -755,19 +759,22 @@ install_run_scenario() {
 			|| { rc=$INSTALL_EX_BOOTCFG; break; }
 		grep -q '^tmpfs.*swap' /etc/fstab 2>/dev/null && grep swap /etc/fstab >>"$mp/etc/fstab"
 
-		# Point the board's boot env at the new root (u-boot scenarios only).
-		if [[ "$boot_mode" != uefi ]]; then
-			local env_file="$mp/boot/armbianEnv.txt"
-			[[ -f "$env_file" ]] && install_rewrite_bootenv "$env_file" "$root_uuid" "$fs"
-		fi
+		# Point the board's boot env at the new root (u-boot scenarios only; GRUB
+		# modes are handled by grub-mkconfig).
+		case "$boot_mode" in
+			emmc|sd|mtd|ufs)
+				local env_file="$mp/boot/armbianEnv.txt"
+				[[ -f "$env_file" ]] && install_rewrite_bootenv "$env_file" "$root_uuid" "$fs" ;;
+		esac
 
 		# ESP must be mounted before GRUB runs.
 		[[ -n "$esp_dev" ]] && { mount "$esp_dev" "$mp/boot/efi" || { rc=$INSTALL_EX_BOOTLOADER; break; }; }
 		install_write_bootloader "$boot_mode" "$disk" "$mp" "$uboot_dir" "${INSTALL_MTD_LIST:-}" "${INSTALL_UFS_BOOT_LUN:-}" \
 			|| { rc=$INSTALL_EX_BOOTLOADER; break; }
 
-		# Refuse to declare success on an unbootable result.
-		install_verify_boot_dir "$mp/boot" || { rc=$INSTALL_EX_VERIFY; break; }
+		# Refuse to declare success on an unbootable result. (sd mode boots from
+		# the removable media, so the target has no local /boot to verify.)
+		[[ "$copy_boot" == 1 ]] && { install_verify_boot_dir "$mp/boot" || { rc=$INSTALL_EX_VERIFY; break; }; }
 		install_verify_fstab "$mp/etc/fstab" || { rc=$INSTALL_EX_VERIFY; break; }
 		break
 	done 2>>"$INSTALL_LOG"
