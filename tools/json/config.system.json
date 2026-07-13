@@ -1026,15 +1026,15 @@
                     "sub": [
                         {
                             "id": "STO001",
-                            "description": "Copy the running Armbian system to another device",
+                            "description": "Install the running system to internal media (eMMC/NVMe/SATA/USB/UFS, or Windows dual-boot)",
                             "short": "Install",
-                            "module": "module_generic",
+                            "module": "module_partitioner",
                             "command": [
-                                "armbian-install"
+                                "module_partitioner run"
                             ],
                             "status": "Preview",
                             "author": "@igorpecovnik",
-                            "condition": "[[ -f /sbin/armbian-install || -f /usr/bin/armbian-install ]]",
+                            "condition": "",
                             "help": "Clones your current live OS installation - Keeps your settings, configuration, installed."
                         },
                         {
