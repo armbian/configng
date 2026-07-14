@@ -617,28 +617,59 @@ install_enable_os_prober() {
 
 # ---- Windows dual-boot ------------------------------------------------------
 
+_install_windows_parts() {
+	# _install_windows_parts <lsblk_json>
+	# Pure: pick the ESP and the Windows system NTFS volume from lsblk --json.
+	# The Windows volume is the LARGEST NTFS partition EXCLUDING the small Windows
+	# recovery (WinRE) NTFS partition - so we shrink C:, never the recovery part.
+	# size is sorted with tonumber (lsblk may emit it as a string, and a string
+	# sort would rank 781MB above 63GB). Emits two lines: esp=<dev|> windows=<dev|>
+	local json="$1" esp win
+	esp="$(printf '%s' "$json" | jq -r '
+		[ .blockdevices[]?.children[]?
+		  | select(((.parttypename // "") | test("EFI";"i")) or (.fstype == "vfat"))
+		  | .name ] | first // empty')"
+	win="$(printf '%s' "$json" | jq -r '
+		[ .blockdevices[]?.children[]?
+		  | select(.fstype == "ntfs")
+		  | select(((.parttypename // "") | test("recovery"; "i")) | not) ]
+		| sort_by(.size | tonumber) | reverse | (.[0].name // empty)')"
+	printf 'esp=%s\nwindows=%s\n' "$esp" "$win"
+}
+
 install_detect_windows() {
-	# install_detect_windows <disk>
+	# install_detect_windows <disk> [lsblk_json]
 	# On a GPT disk carrying a Windows install, emit:
 	#   esp=<esp_partition>          existing EFI System Partition (reused)
-	#   windows=<ntfs_partition>     the largest NTFS (Microsoft basic data) part
-	# Returns INSTALL_EX_NODEV if the disk is not a Windows/UEFI layout.
-	local disk="$1"
-	[[ -b "$disk" ]] || return "$INSTALL_EX_NODEV"
-	# GPT is required for a UEFI Windows install.
-	parted -sm "$disk" print 2>/dev/null | grep -q '^/dev/.*:gpt:' || return "$INSTALL_EX_NODEV"
+	#   windows=<ntfs_partition>     the Windows system NTFS volume (not WinRE)
+	# Returns INSTALL_EX_NODEV if the disk is not a shrinkable Windows/UEFI layout.
+	local disk="$1" json="${2:-}"
+	if [[ -z "$json" ]]; then
+		[[ -b "$disk" ]] || return "$INSTALL_EX_NODEV"
+		# GPT is required for a UEFI Windows install.
+		parted -sm "$disk" print 2>/dev/null | grep -q '^/dev/.*:gpt:' || return "$INSTALL_EX_NODEV"
+		json="$(lsblk -b -po NAME,FSTYPE,PARTTYPENAME,SIZE --json "$disk" 2>/dev/null)"
+	fi
 
-	local json esp win
-	json="$(lsblk -b -po NAME,FSTYPE,PARTTYPENAME,SIZE --json "$disk" 2>/dev/null)"
-	esp="$(echo "$json" | jq -r '
-		[.blockdevices[]?.children[]?
-			| select(((.parttypename // "") | test("EFI";"i")) or (.fstype == "vfat"))
-			| .name] | first // empty')"
-	win="$(echo "$json" | jq -r '
-		[.blockdevices[]?.children[]?
-			| select(.fstype == "ntfs")]
-			| sort_by(.size) | reverse | (.[0].name // empty)')"
-	[[ -n "$esp" && -n "$win" ]] || { install_log ERR "detect_windows: no ESP+NTFS pair on $disk"; return "$INSTALL_EX_NODEV"; }
+	local esp win parts
+	parts="$(_install_windows_parts "$json")"
+	esp="$(sed -n 's/^esp=//p' <<<"$parts")"
+	win="$(sed -n 's/^windows=//p' <<<"$parts")"
+	if [[ -z "$esp" || -z "$win" ]]; then
+		# A "Microsoft basic data" partition that is not plain NTFS is almost
+		# always BitLocker-encrypted, which ntfsresize cannot shrink - say so.
+		local enc
+		enc="$(printf '%s' "$json" | jq -r '
+			[ .blockdevices[]?.children[]?
+			  | select(((.parttypename // "") | test("basic data"; "i")) and (.fstype != "ntfs"))
+			  | .name ] | first // empty')"
+		if [[ -n "$enc" ]]; then
+			install_log ERR "detect_windows: $enc is not plain NTFS (likely BitLocker); disable device encryption in Windows to enable dual-boot"
+		else
+			install_log ERR "detect_windows: no ESP+NTFS pair on $disk"
+		fi
+		return "$INSTALL_EX_NODEV"
+	fi
 	echo "esp=$esp"
 	echo "windows=$win"
 }
