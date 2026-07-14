@@ -1,0 +1,10 @@
+{
+    "blockdevices": [
+        {"name":"/dev/sda","fstype":null,"parttypename":null,"size":68719476736,"children": [
+            {"name":"/dev/sda1","fstype":"vfat","parttypename":"EFI System","size":209715200},
+            {"name":"/dev/sda2","fstype":null,"parttypename":"Microsoft reserved","size":16777216},
+            {"name":"/dev/sda3","fstype":"ntfs","parttypename":"Microsoft basic data","size":67670851584},
+            {"name":"/dev/sda4","fstype":"ntfs","parttypename":"Windows recovery environment","size":818937856}
+        ]}
+    ]
+}
