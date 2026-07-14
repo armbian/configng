@@ -562,6 +562,9 @@ install_grub_install() {
 	local rc=0
 	chroot "$rootfs" /bin/bash -c "$grub_cmd" >>"$INSTALL_LOG" 2>&1 || rc=1
 	chroot "$rootfs" /bin/bash -c "grub-mkconfig -o /boot/grub/grub.cfg" >>"$INSTALL_LOG" 2>&1 || rc=1
+	# os-prober is unreliable inside the install chroot (it often misses Windows),
+	# so also regenerate grub.cfg once on the first real boot.
+	install_setup_grub_firstboot "$rootfs"
 	# Unwind the API mounts regardless of outcome.
 	awk -v r="$rootfs/sys" '$2 ~ "^"r {print $2}' /proc/mounts | sort -r | xargs -r umount -n 2>/dev/null
 	umount "$rootfs/proc" 2>/dev/null
@@ -602,6 +605,34 @@ install_update_initramfs() {
 	umount "$rootfs/dev" 2>/dev/null
 	[[ "$rc" == 0 ]] || install_log WARN "update-initramfs failed in target; $fs root may not boot"
 	return 0
+}
+
+install_setup_grub_firstboot() {
+	# install_setup_grub_firstboot <rootfs_mount>
+	# Install a one-shot systemd unit that runs update-grub on the first real
+	# boot, then removes itself - so os-prober picks up other OSes (Windows) that
+	# it missed while running in the install chroot.
+	local rootfs="$1"
+	[[ -d "$rootfs/etc/systemd/system" ]] || return 0
+	cat >"$rootfs/etc/systemd/system/armbian-grub-update.service" <<-'EOF'
+		[Unit]
+		Description=Regenerate GRUB config on first boot (detect other OSes)
+		ConditionPathExists=/usr/sbin/update-grub
+		After=multi-user.target
+
+		[Service]
+		Type=oneshot
+		ExecStart=/usr/sbin/update-grub
+		ExecStartPost=-/usr/bin/systemctl --no-reload disable armbian-grub-update.service
+		ExecStartPost=-/bin/rm -f /etc/systemd/system/armbian-grub-update.service
+
+		[Install]
+		WantedBy=multi-user.target
+	EOF
+	# Enable via a wants symlink (chroot `systemctl enable` is unreliable).
+	mkdir -p "$rootfs/etc/systemd/system/multi-user.target.wants"
+	ln -sf ../armbian-grub-update.service \
+		"$rootfs/etc/systemd/system/multi-user.target.wants/armbian-grub-update.service"
 }
 
 install_enable_os_prober() {

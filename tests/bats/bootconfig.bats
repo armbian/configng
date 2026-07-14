@@ -121,6 +121,15 @@ setup() {
 	[ ! -f "$rootfs/boot/vmlinuz-test" ]
 }
 
+@test "grub firstboot: installs a self-removing one-shot update-grub unit" {
+	r="$TMP/rootfs"; mkdir -p "$r/etc/systemd/system"
+	install_setup_grub_firstboot "$r"
+	[ -f "$r/etc/systemd/system/armbian-grub-update.service" ]
+	grep -q "update-grub" "$r/etc/systemd/system/armbian-grub-update.service"
+	# enabled via a wants symlink so it runs on first boot
+	[ -L "$r/etc/systemd/system/multi-user.target.wants/armbian-grub-update.service" ]
+}
+
 # --- bootloader capability pre-flight ----------------------------------------
 
 @test "bootloader available: u-boot modes need write_uboot_platform (x86 has none)" {
