@@ -729,11 +729,14 @@ install_shrink_windows() {
 	pnum="$(grep -oE '[0-9]+$' <<<"$win")"
 	start_b="$(parted -sm "$disk" unit B print 2>/dev/null | awk -F: -v p="$pnum" '$1==p {gsub("B","",$2); print $2}')"
 	[[ -n "$start_b" ]] || { install_log ERR "shrink: cannot read start of partition $pnum"; return "$INSTALL_EX_PARTITION"; }
-	# Leave 16MiB slack so the partition end sits safely past the shrunk fs.
+	# Leave 16MiB slack past the shrunk fs, then round the end UP to a 1 MiB
+	# boundary so the partition created in the freed space starts aligned
+	# (a misaligned start makes parted warn and prompt, and hurts performance).
 	new_end_b=$(( start_b + new_bytes + 16 * 1024 * 1024 ))
+	new_end_b=$(( (new_end_b + 1048575) / 1048576 * 1048576 ))
 	# parted refuses to shrink a partition non-interactively even with --script;
-	# ---pretend-input-tty lets us answer its "are you sure?" prompt with "Yes".
-	printf 'Yes\n' | parted ---pretend-input-tty "$disk" unit B resizepart "$pnum" "${new_end_b}B" >>"$INSTALL_LOG" 2>&1 \
+	# ---pretend-input-tty answers its Yes/No prompts (data-loss, closest-location).
+	printf 'Yes\nYes\n' | parted ---pretend-input-tty "$disk" unit B resizepart "$pnum" "${new_end_b}B" >>"$INSTALL_LOG" 2>&1 \
 		|| { install_log ERR "shrink: resizepart $pnum to ${new_end_b}B failed"; return "$INSTALL_EX_PARTITION"; }
 	partprobe "$disk" >>"$INSTALL_LOG" 2>&1 || true
 	udevadm settle >>"$INSTALL_LOG" 2>&1 || true
@@ -745,29 +748,39 @@ install_create_free_partition() {
 	# Does NOT relabel or wipe - existing partitions are preserved.
 	local disk="$1" fs="$2" hint
 	hint="$(_install_parted_fs_hint "$fs")"
-	# Largest free block (MiB) from parted's free-space report.
-	local fstart fend fsize best_start="" best_size=0 line
+	# Largest free block (MiB) from parted's free-space report - track its END too.
+	local fstart fend fsize best_start="" best_end="" best_size=0
 	while IFS=: read -r _ fstart fend fsize _; do
 		[[ "$fsize" == *MiB ]] || continue
-		local s="${fstart%MiB}" z="${fsize%MiB}"
-		s="${s%.*}"; z="${z%.*}"
-		if (( z > best_size )); then best_size="$z"; best_start="$s"; fi
+		local s="${fstart%MiB}" e="${fend%MiB}" z="${fsize%MiB}"
+		s="${s%.*}"; e="${e%.*}"; z="${z%.*}"
+		if (( z > best_size )); then best_size="$z"; best_start="$s"; best_end="$e"; fi
 	done < <(parted -sm "$disk" unit MiB print free 2>/dev/null | grep ':free;$')
 	[[ -n "$best_start" ]] || { install_log ERR "create_free: no free space on $disk"; return "$INSTALL_EX_NOSPACE"; }
 
+	# Record existing partition numbers: parted numbers by creation order but
+	# LISTS by position, so "the last line" is the wrong partition when the free
+	# space sits before a trailing partition (e.g. a Windows recovery at the disk
+	# end). Diff before/after to find the number that was actually created.
+	local before_nums
+	before_nums="$(parted -sm "$disk" print 2>/dev/null | awk -F: '/^[0-9]/{print $1}')"
+
+	# Fill exactly the free region (best_start..best_end), NOT 100% - 100% would
+	# collide with a trailing partition and force parted to clamp/prompt.
 	local -a mkpart_args=(mkpart primary)
 	[[ -n "$hint" ]] && mkpart_args+=("$hint")
-	mkpart_args+=("${best_start}MiB" "100%")
-	# ---pretend-input-tty + "Yes" accepts parted's alignment adjustment
-	# ("the closest location we can manage is ...") which --script would reject.
-	printf 'Yes\n' | parted ---pretend-input-tty -a optimal "$disk" unit MiB "${mkpart_args[@]}" >>"$INSTALL_LOG" 2>&1 \
+	mkpart_args+=("${best_start}MiB" "${best_end}MiB")
+	printf 'Yes\nYes\n' | parted ---pretend-input-tty -a optimal "$disk" unit MiB "${mkpart_args[@]}" >>"$INSTALL_LOG" 2>&1 \
 		|| { install_log ERR "create_free: mkpart failed"; return "$INSTALL_EX_PARTITION"; }
 	partprobe "$disk" >>"$INSTALL_LOG" 2>&1 || true
 	udevadm settle >>"$INSTALL_LOG" 2>&1 || true
 
-	# The new partition is the highest-numbered one.
-	local newnum
-	newnum="$(parted -sm "$disk" print 2>/dev/null | awk -F: '/^[0-9]/ {n=$1} END{print n}')"
+	# The new partition is the number that is present now but was not before.
+	local n newnum=""
+	while IFS= read -r n; do
+		grep -qxF "$n" <<<"$before_nums" || { newnum="$n"; break; }
+	done < <(parted -sm "$disk" print 2>/dev/null | awk -F: '/^[0-9]/{print $1}')
+	[[ -n "$newnum" ]] || { install_log ERR "create_free: cannot identify the new partition"; return "$INSTALL_EX_PARTITION"; }
 	echo "$(_install_part_dev "$disk" "$newnum")"
 }
 

@@ -23,19 +23,26 @@ setup() {
 	truncate -s 12G "$IMG"
 	LOOP="$(losetup -f --show -P "$IMG")"
 
-	# Fabricate a Windows/UEFI layout: GPT, ESP (vfat) + one big NTFS volume.
+	# Fabricate a real Windows/UEFI layout: GPT, ESP (vfat) + big NTFS (C:) + a
+	# trailing NTFS "recovery" partition at the disk END. The trailing partition
+	# is what tripped up "return the highest-numbered partition" - the free space
+	# after shrinking C: sits BEFORE it.
 	parted -s "$LOOP" mklabel gpt
 	parted -s "$LOOP" mkpart primary fat32 1MiB 301MiB
 	parted -s "$LOOP" set 1 esp on
-	parted -s "$LOOP" mkpart primary ntfs 301MiB 100%
+	parted -s "$LOOP" mkpart primary ntfs 301MiB 10GiB
+	parted -s "$LOOP" mkpart primary ntfs 10GiB 100%
 	partprobe "$LOOP"; udevadm settle
 	mkfs.vfat -F 32 "${LOOP}p1" >/dev/null 2>&1
 	mkfs.ntfs -Q -F "${LOOP}p2" >/dev/null 2>&1
+	mkfs.ntfs -Q -F "${LOOP}p3" >/dev/null 2>&1
 
-	# Drop marker files: a Windows boot manager in the ESP and payload in NTFS.
+	# Marker files: Windows boot manager in the ESP, payload in C:, marker in the
+	# trailing recovery partition (must survive untouched).
 	local m="$BATS_TEST_TMPDIR/mnt"; mkdir -p "$m"
 	mount "${LOOP}p1" "$m"; mkdir -p "$m/EFI/Microsoft/Boot"; echo bootmgr >"$m/EFI/Microsoft/Boot/bootmgfw.efi"; umount "$m"
 	mount -t ntfs-3g "${LOOP}p2" "$m"; head -c 5000000 /dev/urandom >"$m/payload.bin"; PAYSUM="$(sha256sum "$m/payload.bin" | cut -d' ' -f1)"; umount "$m"
+	mount -t ntfs-3g "${LOOP}p3" "$m"; echo winre >"$m/RECOVERY.marker"; RECSUM="$(sha256sum "$m/RECOVERY.marker" | cut -d' ' -f1)"; umount "$m"
 	udevadm settle
 }
 
@@ -44,7 +51,7 @@ teardown() {
 	# partition mounted and the loop device busy. Unmount everything we create
 	# first, then detach - and don't silently swallow a still-busy device.
 	local m
-	for m in "$BATS_TEST_TMPDIR/verify" "$BATS_TEST_TMPDIR/mnt"; do
+	for m in "$BATS_TEST_TMPDIR/verify" "$BATS_TEST_TMPDIR/rec" "$BATS_TEST_TMPDIR/mnt"; do
 		mountpoint -q "$m" && umount "$m"
 	done
 	[[ -n "${LOOP:-}" ]] && losetup -d "$LOOP"
@@ -79,12 +86,21 @@ teardown() {
 	# ...and there is now free space to carve into.
 	partprobe "$LOOP"; udevadm settle
 
-	# Create + format the Armbian partition in the freed tail.
+	# Create + format the Armbian partition in the freed GAP (between C: and the
+	# trailing recovery). It must be the NEW partition, never the recovery one.
 	local root; root="$(install_create_free_partition "$LOOP" ext4)"
 	[ -b "$root" ]
+	[ "$root" != "${LOOP}p3" ]          # regression: not the trailing recovery part
 	run install_make_filesystems "root $root ext4"
 	[ "$status" -eq 0 ]
 	[ "$(blkid -s TYPE -o value "$root")" = "ext4" ]
+
+	# The trailing recovery partition is untouched: still NTFS, marker intact.
+	[ "$(blkid -s TYPE -o value "${LOOP}p3")" = "ntfs" ]
+	local mr="$BATS_TEST_TMPDIR/rec"; mkdir -p "$mr"
+	mount -t ntfs-3g "${LOOP}p3" "$mr"
+	[ "$(sha256sum "$mr/RECOVERY.marker" | cut -d' ' -f1)" = "$RECSUM" ]
+	umount "$mr"
 
 	# Windows is intact: still NTFS, still consistent, payload unchanged, and the
 	# ESP still holds the Windows boot manager.
