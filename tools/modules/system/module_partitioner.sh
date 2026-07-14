@@ -150,6 +150,12 @@ partitioner_tui() {
 
 	# 2) boot mode (dual-boot is offered when Windows is detected on the disk)
 	local -a modes; read -r -a modes <<<"$(partitioner_modes_for "$disk_role" "$disk")"
+	# Explain a missing dual-boot option when the disk holds a BitLocker Windows,
+	# instead of the option silently vanishing.
+	if [[ -d /sys/firmware/efi && " ${modes[*]} " != *" uefi-dualboot "* ]] \
+		&& install_disk_has_bitlocker "/dev/$disk"; then
+		dialog_msgbox " $title " "\n/dev/$disk has a Windows install with \Zb\Z1BitLocker\Zn device encryption, which cannot be resized for dual-boot.\n\nIn Windows: turn off Device Encryption / BitLocker (or 'manage-bde -off C:'), let it fully decrypt, then run the installer again."
+	fi
 	local boot
 	if [[ "${#modes[@]}" -eq 1 ]]; then
 		boot="${modes[0]}"

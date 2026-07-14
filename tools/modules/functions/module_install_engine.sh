@@ -674,6 +674,15 @@ install_detect_windows() {
 	echo "windows=$win"
 }
 
+install_disk_has_bitlocker() {
+	# install_disk_has_bitlocker <disk> [lsblk_json]
+	# True if the disk carries a BitLocker-encrypted volume. Used to explain why
+	# dual-boot is unavailable (ntfsresize cannot shrink an encrypted volume).
+	local disk="$1" json="${2:-}"
+	[[ -z "$json" ]] && json="$(lsblk -b -po NAME,FSTYPE,PARTTYPENAME,SIZE --json "$disk" 2>/dev/null)"
+	printf '%s' "$json" | jq -e 'any(.blockdevices[]?.children[]?; (.fstype // "") | test("bitlocker"; "i"))' >/dev/null 2>&1
+}
+
 install_windows_min_bytes() {
 	# install_windows_min_bytes <ntfs_partition>
 	# Smallest size ntfsresize will shrink the volume to, in bytes (0 on failure).
