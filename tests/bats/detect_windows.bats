@@ -35,6 +35,15 @@ setup() {
 	grep -qi "BitLocker" "$BATS_TEST_TMPDIR/log"
 }
 
+@test "has_bitlocker: true when a BitLocker volume is present, false otherwise" {
+	local bl; bl="$(jq '(.blockdevices[0].children[2].fstype)="BitLocker"' "$FIX/lsblk_windows.json")"
+	run install_disk_has_bitlocker /dev/sda "$bl"
+	[ "$status" -eq 0 ]
+	# Plain NTFS Windows -> not BitLocker.
+	run install_disk_has_bitlocker /dev/sda "$(cat "$FIX/lsblk_windows.json")"
+	[ "$status" -ne 0 ]
+}
+
 @test "detect_windows: no NTFS at all is reported as no ESP+NTFS pair" {
 	# No NTFS and no "basic data" partition -> the generic message, not the
 	# BitLocker hint.
