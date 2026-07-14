@@ -150,11 +150,14 @@ partitioner_tui() {
 
 	# 2) boot mode (dual-boot is offered when Windows is detected on the disk)
 	local -a modes; read -r -a modes <<<"$(partitioner_modes_for "$disk_role" "$disk")"
-	# Explain a missing dual-boot option when the disk holds a BitLocker Windows,
-	# instead of the option silently vanishing.
+	# When the disk holds a BitLocker Windows, dual-boot is impossible (ntfsresize
+	# cannot shrink it). Explain why and let the user either cancel or wipe the
+	# whole disk, instead of the option silently vanishing.
 	if [[ -d /sys/firmware/efi && " ${modes[*]} " != *" uefi-dualboot "* ]] \
 		&& install_disk_has_bitlocker "/dev/$disk"; then
-		dialog_msgbox " $title " "\n/dev/$disk has a Windows install with \Zb\Z1BitLocker\Zn device encryption, which cannot be resized for dual-boot.\n\nIn Windows: turn off Device Encryption / BitLocker (or 'manage-bde -off C:'), let it fully decrypt, then run the installer again."
+		if ! dialog_yesno " $title " "\n/dev/$disk has a Windows install with \Zb\Z1BitLocker\Zn device encryption, which cannot be resized for dual-boot.\n\nTo dual-boot: turn off Device Encryption / BitLocker in Windows ('manage-bde -off C:'), let it fully decrypt, then re-run.\n\nOr WIPE the whole disk and install Armbian only?" "Wipe & install" "Cancel" 15 76; then
+			return "$INSTALL_EX_OK"
+		fi
 	fi
 	local boot
 	if [[ "${#modes[@]}" -eq 1 ]]; then
