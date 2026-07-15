@@ -460,7 +460,11 @@ install_verify_boot_dir() {
 	compgen -G "$d/Image*"  >/dev/null 2>&1 && have_kernel=1
 	compgen -G "$d/zImage*" >/dev/null 2>&1 && have_kernel=1
 	compgen -G "$d/uImage*" >/dev/null 2>&1 && have_kernel=1
-	[[ -f "$d/boot.scr" || -f "$d/boot.cmd" || -f "$d/extlinux/extlinux.conf" || -d "$d/grub" ]] && have_script=1
+	# Recognise every boot mechanism Armbian ships: boot.scr/boot.cmd (most
+	# u-boot), boot.ini (amlogic/odroid), uEnv.txt (k3/TI and others),
+	# extlinux.conf (distro boot), grub (x86/UEFI).
+	[[ -f "$d/boot.scr" || -f "$d/boot.cmd" || -f "$d/boot.ini" || -f "$d/uEnv.txt" \
+		|| -f "$d/extlinux/extlinux.conf" || -d "$d/grub" ]] && have_script=1
 	if (( have_kernel == 0 || have_script == 0 )); then
 		install_log ERR "verify: '$d' is not bootable (kernel=$have_kernel script=$have_script)"
 		return "$INSTALL_EX_VERIFY"
