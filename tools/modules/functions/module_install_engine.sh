@@ -511,6 +511,11 @@ install_write_bootloader() {
 	# /usr/lib/u-boot/platform_install.sh) or GRUB for UEFI. Returns
 	# INSTALL_EX_BOOTLOADER on failure.
 	local boot_mode="$1" disk="$2" rootfs="$3" uboot_dir="${4:-${DIR:-}}" mtd_list="${5:-}" ufs_boot="${6:-}"
+	# Some board u-boot hooks (notably TI k3: BeaglePlay/BeagleBone) copy files to
+	# ${MOUNT}/boot instead of dd-ing to the device. The stock installers never
+	# set MOUNT, so those files went to the RUNNING system's /boot, not the
+	# target. Point MOUNT at the target rootfs so they land in the right place.
+	export MOUNT="$rootfs"
 	case "$boot_mode" in
 		uefi)
 			install_grub_install "$rootfs" solo ;;
