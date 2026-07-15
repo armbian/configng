@@ -98,6 +98,20 @@ setup() {
 	[ "$status" -eq 0 ]
 }
 
+@test "verify boot dir: uEnv.txt counts as a boot script (k3/BeaglePlay)" {
+	d="$TMP/boot"; mkdir -p "$d"
+	: >"$d/Image"; : >"$d/uEnv.txt"
+	run install_verify_boot_dir "$d"
+	[ "$status" -eq 0 ]
+}
+
+@test "verify boot dir: boot.ini counts as a boot script (amlogic/odroid)" {
+	d="$TMP/boot"; mkdir -p "$d"
+	: >"$d/Image"; : >"$d/boot.ini"
+	run install_verify_boot_dir "$d"
+	[ "$status" -eq 0 ]
+}
+
 # --- populate /boot (synced separately from the main rootfs rsync) -----------
 
 @test "populate_boot: copies the kernel into the target /boot and verifies" {
