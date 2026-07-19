@@ -926,9 +926,24 @@ install_run_scenario() {
 		# Point the board's boot env at the new root (u-boot scenarios only; GRUB
 		# modes are handled by grub-mkconfig).
 		case "$boot_mode" in
-			emmc|sd|mtd|ufs)
+			emmc|mtd|ufs)
 				local env_file="$mp/boot/armbianEnv.txt"
 				[[ -f "$env_file" ]] && install_rewrite_bootenv "$env_file" "$root_uuid" "$fs" ;;
+			sd)
+				# Boot stays on the current media (the SD/eMMC the board booted
+				# from); only the rootfs moved to $disk. Point the CURRENT media's
+				# boot env at the new root so u-boot keeps loading the kernel from it
+				# but mounts rootfs from $disk. The target has no /boot of its own,
+				# so without this the board would keep booting its old rootfs.
+				local env_file="/boot/armbianEnv.txt"
+				if [[ -f "$env_file" ]]; then
+					install_rewrite_bootenv "$env_file" "$root_uuid" "$fs" \
+						|| { install_log ERR "scenario: failed to point current boot env ($env_file) at new root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
+					install_log INFO "scenario: pointed current boot media ($env_file) at new root $root_uuid ($fs)"
+				else
+					install_log ERR "scenario: sd mode but current boot env ($env_file) is missing; cannot make $disk bootable"
+					rc=$INSTALL_EX_BOOTCFG; break
+				fi ;;
 		esac
 
 		# Rebuild the target initramfs so a module root fs (btrfs/f2fs) boots
@@ -938,8 +953,14 @@ install_run_scenario() {
 		echo 95
 		# ESP must be mounted before GRUB runs.
 		[[ -n "$esp_dev" ]] && { mount "$esp_dev" "$mp/boot/efi" || { rc=$INSTALL_EX_BOOTLOADER; break; }; }
-		install_write_bootloader "$boot_mode" "$disk" "$mp" "$uboot_dir" "${INSTALL_MTD_LIST:-}" "${INSTALL_UFS_BOOT_LUN:-}" \
-			|| { rc=$INSTALL_EX_BOOTLOADER; break; }
+		# In sd mode the bootloader already lives on the current boot media (left
+		# untouched) and the boot env there was rewired above; writing u-boot to
+		# $disk would target the wrong device - e.g. the Rockchip bootrom cannot
+		# load u-boot from NVMe/USB/SATA, so it would silently fail to boot.
+		if [[ "$boot_mode" != sd ]]; then
+			install_write_bootloader "$boot_mode" "$disk" "$mp" "$uboot_dir" "${INSTALL_MTD_LIST:-}" "${INSTALL_UFS_BOOT_LUN:-}" \
+				|| { rc=$INSTALL_EX_BOOTLOADER; break; }
+		fi
 
 		echo 99
 		# Refuse to declare success on an unbootable result. (sd mode boots from
