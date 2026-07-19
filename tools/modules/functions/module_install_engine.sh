@@ -832,6 +832,42 @@ install_uuid() {
 	[[ -n "$u" ]] && echo "UUID=$u"
 }
 
+install_map_current_boot() {
+	# install_map_current_boot <target_fstab> <target_root_mount>
+	# For "sd" mode (boot stays on the current media, rootfs on the target):
+	# make the current media's /boot visible inside the target at /boot so kernel
+	# and initramfs upgrades on the target land where u-boot actually reads them.
+	# Mirrors the classic armbian-install behaviour:
+	#   * dedicated /boot partition  -> mount it straight at /boot
+	#   * /boot is a dir on the root -> mount that partition at /media/boot-media
+	#                                   and bind /media/boot-media/boot -> /boot
+	# All entries use nofail so a later-removed boot medium never blocks boot.
+	local fstab="$1" mp="$2"
+	local boot_src boot_uuid boot_fstype
+	boot_src="$(findmnt -no SOURCE /boot 2>/dev/null || true)"
+	if [[ -n "$boot_src" ]]; then
+		boot_uuid="$(install_uuid "$boot_src")"
+		boot_fstype="$(findmnt -no FSTYPE /boot 2>/dev/null || true)"
+		[[ -n "$boot_uuid" && -n "$boot_fstype" ]] \
+			|| { install_log ERR "boot-map: cannot resolve current /boot partition ($boot_src)"; return "$INSTALL_EX_BOOTCFG"; }
+		printf '%s\t/boot\t%s\tdefaults,nofail\t0\t2\n' "$boot_uuid" "$boot_fstype" >>"$fstab"
+		install_log INFO "boot-map: target /boot -> current boot partition $boot_src ($boot_fstype)"
+		return 0
+	fi
+	# /boot is a directory on the current media's root partition.
+	local root_src root_media_uuid root_media_fstype
+	root_src="$(findmnt -no SOURCE / 2>/dev/null || true)"
+	root_media_uuid="$(install_uuid "$root_src")"
+	root_media_fstype="$(findmnt -no FSTYPE / 2>/dev/null || true)"
+	[[ -n "$root_media_uuid" && -n "$root_media_fstype" ]] \
+		|| { install_log ERR "boot-map: cannot resolve current root partition ($root_src)"; return "$INSTALL_EX_BOOTCFG"; }
+	mkdir -p "$mp/media/boot-media" || { install_log ERR "boot-map: mkdir /media/boot-media failed"; return "$INSTALL_EX_BOOTCFG"; }
+	printf '%s\t/media/boot-media\t%s\tdefaults,nofail\t0\t2\n' "$root_media_uuid" "$root_media_fstype" >>"$fstab"
+	printf '/media/boot-media/boot\t/boot\tnone\tbind,nofail\t0\t0\n' >>"$fstab"
+	install_log INFO "boot-map: target /boot -> bind of current root $root_src (/media/boot-media/boot)"
+	return 0
+}
+
 install_run_scenario() {
 	# install_run_scenario <boot_mode> <target_disk> <fs> <exclude_file> [uboot_dir]
 	#
@@ -931,19 +967,23 @@ install_run_scenario() {
 				[[ -f "$env_file" ]] && install_rewrite_bootenv "$env_file" "$root_uuid" "$fs" ;;
 			sd)
 				# Boot stays on the current media (the SD/eMMC the board booted
-				# from); only the rootfs moved to $disk. Point the CURRENT media's
-				# boot env at the new root so u-boot keeps loading the kernel from it
-				# but mounts rootfs from $disk. The target has no /boot of its own,
-				# so without this the board would keep booting its old rootfs.
+				# from); only the rootfs moved to $disk. Two things are needed:
+				#   1. point the CURRENT media's boot env at the new root, so u-boot
+				#      (loaded from that media) keeps loading the kernel from there
+				#      but tells the kernel to mount rootfs from $disk; and
+				#   2. map that media's /boot into the target at /boot, so kernel and
+				#      initramfs upgrades on the target land where u-boot reads them.
+				# Without (1) the board keeps booting its old rootfs.
 				local env_file="/boot/armbianEnv.txt"
-				if [[ -f "$env_file" ]]; then
-					install_rewrite_bootenv "$env_file" "$root_uuid" "$fs" \
-						|| { install_log ERR "scenario: failed to point current boot env ($env_file) at new root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
-					install_log INFO "scenario: pointed current boot media ($env_file) at new root $root_uuid ($fs)"
-				else
+				if [[ ! -f "$env_file" ]]; then
 					install_log ERR "scenario: sd mode but current boot env ($env_file) is missing; cannot make $disk bootable"
 					rc=$INSTALL_EX_BOOTCFG; break
-				fi ;;
+				fi
+				install_rewrite_bootenv "$env_file" "$root_uuid" "$fs" \
+					|| { install_log ERR "scenario: failed to point current boot env ($env_file) at new root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
+				install_map_current_boot "$mp/etc/fstab" "$mp" \
+					|| { install_log ERR "scenario: failed to map current /boot into target fstab"; rc=$INSTALL_EX_BOOTCFG; break; }
+				install_log INFO "scenario: pointed current boot media ($env_file) at new root $root_uuid ($fs) and mapped its /boot into the target" ;;
 		esac
 
 		# Rebuild the target initramfs so a module root fs (btrfs/f2fs) boots
