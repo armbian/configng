@@ -203,3 +203,27 @@ setup() {
 		run install_bootloader_available bios; [ "$status" -ne 0 ]
 	fi
 }
+
+# --- sd mode: map current /boot into the target (mount + bind) ---------------
+
+@test "map current boot: dedicated /boot partition mounts straight at /boot" {
+	findmnt() { case "$3" in /boot) case "$2" in SOURCE) echo /dev/mmcblk1p1 ;; FSTYPE) echo vfat ;; esac ;; esac; }
+	install_uuid() { echo "UUID=bootpart"; }
+	f="$TMP/fstab"; : >"$f"; mp="$TMP/target"; mkdir -p "$mp"
+	run install_map_current_boot "$f" "$mp"
+	[ "$status" -eq 0 ]
+	grep -qE '^UUID=bootpart	/boot	vfat	defaults,nofail' "$f"
+	# straight mount, no bind indirection
+	! grep -q 'boot-media' "$f"
+}
+
+@test "map current boot: /boot dir on root partition uses mount + bind" {
+	findmnt() { case "$3" in /boot) return 1 ;; /) case "$2" in SOURCE) echo /dev/mmcblk1p1 ;; FSTYPE) echo ext4 ;; esac ;; esac; }
+	install_uuid() { echo "UUID=rootpart"; }
+	f="$TMP/fstab"; : >"$f"; mp="$TMP/target"; mkdir -p "$mp"
+	run install_map_current_boot "$f" "$mp"
+	[ "$status" -eq 0 ]
+	grep -qE '^UUID=rootpart	/media/boot-media	ext4	defaults,nofail' "$f"
+	grep -qE '^/media/boot-media/boot	/boot	none	bind,nofail' "$f"
+	[ -d "$mp/media/boot-media" ]
+}
