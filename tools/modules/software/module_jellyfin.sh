@@ -81,6 +81,8 @@ function module_jellyfin () {
 				-v "${base_dir}/config:/config" \
 				-v "${base_dir}/tvseries:/data/tvshows" \
 				-v "${base_dir}/movies:/data/movies" \
+				-v "${base_dir}/music:/data/music" \
+				-v "${base_dir}/books:/data/books" \
 				--restart=always \
 				"$dockerimage"
 		;;
