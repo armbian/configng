@@ -156,6 +156,7 @@ update_sub_submenu_data "Software" "Management" "CPT002" "https://$LOCALIPADD:${
 update_sub_submenu_data "Software" "Management" "HPG002" "http://$LOCALIPADD:${module_options["module_homepage,port"]}"
 update_sub_submenu_data "Software" "Management" "NBOX02" "http://$LOCALIPADD:${module_options["module_netbox,port"]}"
 update_sub_submenu_data "Software" "Management" "APT002" "http://$LOCALIPADD:${module_options["module_aptcacherng,port"]}/acng-report.html"
+update_sub_submenu_data "Software" "Management" "ZOT002" "https://$LOCALIPADD:${module_options["module_zotcache,port"]}/v2/_catalog"
 
 # Downloaders
 update_sub_submenu_data "Software" "Downloaders" "DOW002" "http://$LOCALIPADD:${module_options["module_qbittorrent,port"]%% *}" # removing second port from url

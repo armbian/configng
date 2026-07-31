@@ -1414,6 +1414,45 @@
                             "help": "NetBox purge with data folder"
                         },
                         {
+                            "id": "ZOT001",
+                            "description": "zot OCI registry pull-through cache install",
+                            "short": "zot-cache",
+                            "module": "module_zotcache",
+                            "about": "Install zot as a pull-through cache + scheduled mirror for ghcr.io/armbian/**, for a fleet of build nodes on the local network",
+                            "command": [
+                                "module_zotcache install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_zotcache status",
+                            "container_type": "docker",
+                            "help": "zot is an OCI-spec-compliant registry. Configured here as a pull-through cache for ghcr.io with a scheduled pre-warm of armbian/** so build nodes pull layers from local disk."
+                        },
+                        {
+                            "id": "ZOT002",
+                            "description": "zot-cache remove",
+                            "about": "Stop and remove the zot-cache container and image (keeps blob store)",
+                            "command": [
+                                "module_zotcache remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_zotcache status",
+                            "help": "zot-cache remove (keeps blob store)"
+                        },
+                        {
+                            "id": "ZOT003",
+                            "description": "zot-cache purge with blob store",
+                            "about": "Remove the container and delete config/secrets; prompts before deleting the cached blob store",
+                            "command": [
+                                "module_zotcache purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_zotcache status",
+                            "help": "zot-cache purge with blob store"
+                        },
+                        {
                             "id": "APT001",
                             "description": "apt-cacher-ng caching proxy install",
                             "short": "apt-cacher-ng",
