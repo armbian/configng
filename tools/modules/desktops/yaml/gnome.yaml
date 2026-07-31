@@ -21,6 +21,12 @@ tiers:
       - gnome-shell-extension-appindicator
       - gdm3
       - nautilus
+      # gnome-tweaks exposes appearance/fonts/startup settings that
+      # gnome-control-center no longer surfaces. libopengl0 provides
+      # libOpenGL.so.0 (the GLVND OpenGL dispatch library) that some
+      # GTK/GL apps and extensions dlopen at runtime.
+      - gnome-tweaks
+      - libopengl0
       # Printing: cups is in common.yaml as the spooler, but without
       # drivers the GNOME Settings → Printers panel can't add anything.
       # printer-driver-all pulls in HPLIP/Gutenprint/Foomatic/Splix.
