@@ -41,7 +41,7 @@
                     "help": "Change Keyboard layout"
                 },
                 {
-                    "id": "APT001",
+                    "id": "APM001",
                     "description": "Change APT mirrors",
                     "about": "This will change the APT mirrors",
                     "command": [
