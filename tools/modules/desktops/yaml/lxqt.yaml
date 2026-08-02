@@ -1,0 +1,38 @@
+name: lxqt
+description: "LXQT Desktop"
+display_manager: sddm
+status: supported
+tiers:
+  minimal:
+    packages:
+        - lxqt-about
+        - lxqt-admin
+        - lxqt-core
+        - lxqt-powermanagement
+        - lxqt-sudo
+        - featherpad
+        - pavucontrol-qt
+        - qlipper
+        - qterminal
+        - qps
+        - xfwm4
+        - nm-tray
+        - lxqt-branding
+  mid:
+    packages:
+         - firefox-esr
+         - qpdfview
+         - screengrab
+         - xscreensaver
+         - lxqt-archiver
+         - pulseaudio-module-bluetooth
+         - bluez
+         - blueman
+  full:
+     packages:
+           - qtpass
+           - thunderbird
+           - vlc
+           - libreoffice
+           - krita
+           - snap        
