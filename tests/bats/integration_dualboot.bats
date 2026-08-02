@@ -36,6 +36,13 @@ setup() {
 	mkfs.vfat -F 32 "${LOOP}p1" >/dev/null 2>&1
 	mkfs.ntfs -Q -F "${LOOP}p2" >/dev/null 2>&1
 	mkfs.ntfs -Q -F "${LOOP}p3" >/dev/null 2>&1
+	# Re-probe the freshly-made filesystems into the udev/blkid db. `udevadm
+	# settle` alone does not re-probe, so lsblk (used by install_detect_windows)
+	# can otherwise report empty FSTYPE for these loop partitions on newer
+	# runner images. blkid warms the cache and `udevadm trigger` re-reads it.
+	blkid "${LOOP}p1" "${LOOP}p2" "${LOOP}p3" >/dev/null 2>&1 || true
+	udevadm trigger --settle "${LOOP}p1" "${LOOP}p2" "${LOOP}p3" >/dev/null 2>&1 \
+		|| udevadm trigger --settle >/dev/null 2>&1 || true
 
 	# Marker files: Windows boot manager in the ESP, payload in C:, marker in the
 	# trailing recovery partition (must survive untouched).
