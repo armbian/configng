@@ -760,9 +760,9 @@ Outputs:
 	--cmd APT001 - apt-cacher-ng caching proxy install
 	--cmd APT002 - apt-cacher-ng remove (http://localhost:3142/acng-report.html)
 	--cmd APT003 - apt-cacher-ng purge with cache folder
-	--cmd GCDN001 - git_cdn GitHub caching proxy install
-	--cmd GCDN002 - git_cdn remove
-	--cmd GCDN003 - git_cdn purge with cache folder
+	--cmd GCD001 - git_cdn GitHub caching proxy install
+	--cmd GCD002 - git_cdn remove
+	--cmd GCD003 - git_cdn purge with cache folder
 	--cmd SMB001 - SAMBA Remote File share
 	--cmd WBM001 - Webmin web-based management tool
     Media - Media servers, organizers and editors
