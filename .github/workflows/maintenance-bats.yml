@@ -18,10 +18,14 @@ jobs:
     name: "Installer engine bats"
     runs-on: ubuntu-latest
     if: ${{ github.repository_owner == 'Armbian' }}
+    permissions:
+      contents: read
     steps:
 
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Install bats and helpers
         run: sudo apt-get update -qq && sudo apt-get install -y -qq bats jq parted dosfstools ntfs-3g

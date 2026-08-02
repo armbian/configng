@@ -23,6 +23,7 @@ setup() {
 
 @test "fstab: separate boot + ESP produce /boot and /boot/efi lines" {
 	run install_gen_fstab "UUID=root1" btrfs "UUID=boot1" ext4 "UUID=efi1"
+	[ "$status" -eq 0 ]
 	[[ "$output" == *"UUID=root1	/	btrfs"* ]]
 	[[ "$output" == *"UUID=boot1	/boot	ext4"* ]]
 	[[ "$output" == *"UUID=efi1	/boot/efi	vfat"* ]]
@@ -30,6 +31,7 @@ setup() {
 
 @test "fstab: btrfs root carries subvol=@ option" {
 	run install_gen_fstab "UUID=root1" btrfs
+	[ "$status" -eq 0 ]
 	[[ "$output" == *"subvol=@"* ]]
 }
 
@@ -61,6 +63,7 @@ setup() {
 	f="$TMP/armbianEnv.txt"
 	printf 'verbosity=1\n' >"$f"
 	run install_rewrite_bootenv "$f" "UUID=new" ext4
+	[ "$status" -eq 0 ]
 	grep -q '^rootdev=UUID=new$' "$f"
 	grep -q '^rootfstype=ext4$' "$f"
 }
