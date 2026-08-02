@@ -66,6 +66,12 @@ teardown() {
 
 @test "dualboot: detect_windows finds the ESP and the NTFS volume" {
 	run install_detect_windows "$LOOP"
+	if [ "$status" -ne 0 ]; then
+		echo "# detect_windows FAILED status=$status output=[$output]" >&3
+		echo "# lsblk: $(lsblk -b -po NAME,FSTYPE,PARTTYPENAME,SIZE --json "$LOOP" 2>&1 | tr '\n' ' ')" >&3
+		echo "# parted: $(parted -sm "$LOOP" print 2>&1 | tr '\n' '|')" >&3
+		echo "# blkid: p1=[$(blkid "${LOOP}p1" 2>&1)] p2=[$(blkid "${LOOP}p2" 2>&1)]" >&3
+	fi
 	[ "$status" -eq 0 ]
 	[[ "$output" == *"esp=${LOOP}p1"* ]]
 	[[ "$output" == *"windows=${LOOP}p2"* ]]

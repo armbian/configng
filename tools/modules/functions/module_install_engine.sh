@@ -367,6 +367,7 @@ install_transfer_rootfs() {
 	# fraction is stable. progress2 rewrites its line with \r; split on \r.
 	local rc_file; rc_file="$(mktemp)"
 	{
+		# editorconfig-checker-disable
 		rsync -ax --delete --info=progress2 --no-inc-recursive --exclude-from="$exclude" "$src" "$dest" \
 			| stdbuf -oL tr '\r' '\n' \
 			| stdbuf -oL sed -u -n 's/.*to-chk=\([0-9]*\)\/\([0-9]*\).*/\1 \2/p' \
@@ -374,6 +375,7 @@ install_transfer_rootfs() {
 				{ if ($2 > 0) { p = lo + int((hi-lo)*($2-$1)/$2);
 				                if (p > hi) p = hi;
 				                if (p != last) { print p; fflush(); last = p } } }' >&"$pfd"
+		# editorconfig-checker-enable
 		echo "${PIPESTATUS[0]}" >"$rc_file"
 	}
 	local rc; rc="$(cat "$rc_file")"; rm -f "$rc_file"
@@ -675,6 +677,7 @@ _install_windows_parts() {
 	# size is sorted with tonumber (lsblk may emit it as a string, and a string
 	# sort would rank 781MB above 63GB). Emits two lines: esp=<dev|> windows=<dev|>
 	local json="$1" esp win
+	# editorconfig-checker-disable
 	esp="$(printf '%s' "$json" | jq -r '
 		[ .blockdevices[]?.children[]?
 		  | select(((.parttypename // "") | test("EFI";"i")) or (.fstype == "vfat"))
@@ -684,6 +687,7 @@ _install_windows_parts() {
 		  | select(.fstype == "ntfs")
 		  | select(((.parttypename // "") | test("recovery"; "i")) | not) ]
 		| sort_by(.size | tonumber) | reverse | (.[0].name // empty)')"
+	# editorconfig-checker-enable
 	printf 'esp=%s\nwindows=%s\n' "$esp" "$win"
 }
 
@@ -709,10 +713,12 @@ install_detect_windows() {
 		# A "Microsoft basic data" partition that is not plain NTFS is almost
 		# always BitLocker-encrypted, which ntfsresize cannot shrink - say so.
 		local enc
+		# editorconfig-checker-disable
 		enc="$(printf '%s' "$json" | jq -r '
 			[ .blockdevices[]?.children[]?
 			  | select(((.parttypename // "") | test("basic data"; "i")) and (.fstype != "ntfs"))
 			  | .name ] | first // empty')"
+		# editorconfig-checker-enable
 		if [[ -n "$enc" ]]; then
 			install_log ERR "detect_windows: $enc is not plain NTFS (likely BitLocker); disable device encryption in Windows to enable dual-boot"
 		else

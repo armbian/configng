@@ -298,6 +298,7 @@ partitioner_api() {
 }
 
 partitioner_help() {
+	# editorconfig-checker-disable
 	cat <<-EOF
 	Armbian installer - transfer the running system to internal storage.
 
@@ -318,6 +319,7 @@ partitioner_help() {
 	  armbian-install --api detect
 	  armbian-install --api plan --target /dev/sdX --boot uefi --fs ext4
 	EOF
+	# editorconfig-checker-enable
 }
 
 # ---- dispatch ---------------------------------------------------------------
