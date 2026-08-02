@@ -1,8 +1,8 @@
 #!/usr/bin/env bats
 #
-# Tests for install_transfer_rootfs progress reporting. The gauge must track
-# rsync's real byte progress (monotonic 0..100, reaching 100) rather than an
-# out-of-sync line count. No privileges needed - it rsyncs a temp tree.
+# Tests for install_transfer_rootfs progress reporting. The gauge tracks rsync's
+# real file-count progress (to-chk=REMAIN/TOTAL from --info=progress2, monotonic
+# 0..100, reaching 100). No privileges needed - it rsyncs a temp tree.
 
 setup() {
 	declare -A module_options

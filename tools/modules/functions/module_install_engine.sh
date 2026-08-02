@@ -33,8 +33,8 @@ module_options+=(
 #     (build#9454, #9794, #6905).
 #   * install_apply_partitions lays partitions in MiB units so alignment is
 #     valid on both 512-byte and 4Kn media (build#9454).
-#   * install_write_bootconfig always populates the target /boot and
-#     install_verify refuses an empty /boot -> unbootable installs
+#   * install_populate_boot always populates the target /boot and
+#     install_verify_boot_dir refuses an empty /boot -> unbootable installs
 #     (build#10099, #10064).
 #
 
@@ -140,7 +140,7 @@ install_plan_layout() {
 	#   table=gpt|msdos
 	#   part=<role>:<size>:<fstype>:<flags>       (one line per partition, in order)
 	# where size is an absolute "<N>MiB" or "100%" (fill), and flags is a
-	# comma-separated subset of {esp,boot} ("" for none). Pure: no device I/O.
+	# comma-separated subset of {esp,boot,bios_grub} ("" for none). Pure: no device I/O.
 	local boot_mode="$1" fs="$2" is_uefi="$3" cap="${4:-0}" sec="${5:-512}" has_swap="${6:-0}"
 	local table
 	table="$(install_table_type "$is_uefi" "$cap" "$sec")"
@@ -555,7 +555,14 @@ install_grub_install() {
 		grub_cmd="grub-install --target=i386-pc --recheck $disk"
 	else
 		mountpoint -q "$rootfs/boot/efi" || { install_log ERR "grub: ESP not mounted at $rootfs/boot/efi"; return "$INSTALL_EX_BOOTLOADER"; }
-		arch_target=$([[ "$(arch)" == x86_64 ]] && echo "x86_64-efi" || echo "arm64-efi")
+		case "$(uname -m)" in
+			x86_64) arch_target="x86_64-efi" ;;
+			i?86) arch_target="i386-efi" ;;
+			aarch64|arm64) arch_target="arm64-efi" ;;
+			arm*) arch_target="arm-efi" ;;
+			riscv64) arch_target="riscv64-efi" ;;
+			*) install_log ERR "grub: unsupported UEFI architecture $(uname -m)"; return "$INSTALL_EX_BOOTLOADER" ;;
+		esac
 		grub_cmd="grub-install --target=$arch_target --efi-directory=/boot/efi --bootloader-id=Armbian"
 		if [[ "$mode" == dualboot ]]; then
 			install_enable_os_prober "$rootfs"
@@ -650,7 +657,10 @@ install_enable_os_prober() {
 	# disables os-prober by default; re-enable it via the armbian drop-in.
 	local rootfs="$1"
 	mkdir -p "$rootfs/etc/default/grub.d"
-	echo "GRUB_DISABLE_OS_PROBER=false" >>"$rootfs/etc/default/grub.d/98-armbian.cfg"
+	local cfg="$rootfs/etc/default/grub.d/98-armbian.cfg"
+	# idempotent: repeated installs must not accumulate duplicate lines
+	grep -qxF "GRUB_DISABLE_OS_PROBER=false" "$cfg" 2>/dev/null \
+		|| echo "GRUB_DISABLE_OS_PROBER=false" >>"$cfg"
 	command -v os-prober >/dev/null 2>&1 || chroot "$rootfs" /bin/bash -c "command -v os-prober" >/dev/null 2>&1 \
 		|| install_log WARN "os-prober not present in target; Windows may be missing from the GRUB menu"
 }

@@ -87,7 +87,8 @@ partitioner_modes_for() {
 		m+=(bios)
 	fi
 
-	[[ ${#m[@]} -eq 0 ]] && m+=(uefi)   # last-resort fallback
+	# No writable boot mode for this firmware/disk: emit nothing so the caller
+	# can show a clear error rather than offer a mode guaranteed to fail.
 	echo "${m[@]}"
 }
 
@@ -150,6 +151,10 @@ partitioner_tui() {
 
 	# 2) boot mode (dual-boot is offered when Windows is detected on the disk)
 	local -a modes; read -r -a modes <<<"$(partitioner_modes_for "$disk_role" "$disk")"
+	if [[ ${#modes[@]} -eq 0 ]]; then
+		dialog_msgbox " $title " "\nNo bootable install method is available for /dev/$disk on this system (no EFI firmware, no GRUB, and no board u-boot support)."
+		return "$INSTALL_EX_BOOTLOADER"
+	fi
 	# When the disk holds a BitLocker Windows, dual-boot is impossible (ntfsresize
 	# cannot shrink it). Explain why and let the user either cancel or wipe the
 	# whole disk, instead of the option silently vanishing.
@@ -226,10 +231,10 @@ partitioner_cli_install() {
 	INSTALL_LOG="/var/log/armbian-install.log"
 	while [[ $# -gt 0 ]]; do
 		case "$1" in
-			--target) target="$2"; shift 2 ;;
-			--boot)   boot="$2";   shift 2 ;;
-			--fs)     fs="$2";     shift 2 ;;
-			--size)   size_gib="$2"; shift 2 ;;
+			--target) [[ $# -ge 2 ]] || { echo "armbian-install: --target requires a value" >&2; return "$INSTALL_EX_USAGE"; }; target="$2"; shift 2 ;;
+			--boot)   [[ $# -ge 2 ]] || { echo "armbian-install: --boot requires a value" >&2; return "$INSTALL_EX_USAGE"; }; boot="$2"; shift 2 ;;
+			--fs)     [[ $# -ge 2 ]] || { echo "armbian-install: --fs requires a value" >&2; return "$INSTALL_EX_USAGE"; }; fs="$2"; shift 2 ;;
+			--size)   [[ $# -ge 2 ]] || { echo "armbian-install: --size requires a value" >&2; return "$INSTALL_EX_USAGE"; }; size_gib="$2"; shift 2 ;;
 			--yes|-y) assume_yes=1; shift ;;
 			*) echo "armbian-install: unknown argument '$1'" >&2; return "$INSTALL_EX_USAGE" ;;
 		esac

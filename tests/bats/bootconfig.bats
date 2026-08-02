@@ -40,6 +40,7 @@ setup() {
 
 @test "fstab: no swap UUID emits no swap entry" {
 	run install_gen_fstab "UUID=root1" ext4
+	[ "$status" -eq 0 ]
 	[[ "$output" != *"	swap	"* ]]
 }
 
@@ -186,6 +187,17 @@ setup() {
 	run install_update_initramfs "$rootfs" ext4
 	[ "$status" -eq 0 ]
 	[ ! -s "$rootfs/etc/initramfs-tools/modules" ]   # ext4 added nothing
+}
+
+@test "update_initramfs: a module fs (f2fs) is added to the module list" {
+	rootfs="$TMP/rootfs-mod"; mkdir -p "$rootfs/etc/initramfs-tools" "$rootfs/usr/sbin"
+	: >"$rootfs/etc/initramfs-tools/modules"
+	printf '#!/bin/sh\nexit 0\n' >"$rootfs/usr/sbin/update-initramfs"; chmod +x "$rootfs/usr/sbin/update-initramfs"
+	# f2fs is a module root fs: it must be added to the initramfs module list.
+	# That add happens before the chroot step, which may fail unprivileged on
+	# the mount --bind, so assert on the module list rather than the exit status.
+	install_update_initramfs "$rootfs" f2fs || true
+	grep -qxF f2fs "$rootfs/etc/initramfs-tools/modules"
 }
 
 @test "fs kernel support: ext4 always supported; a bogus fs is not" {
