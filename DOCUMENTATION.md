@@ -105,7 +105,7 @@ sudo armbian-config
 
 
   - ### Install to internal media, ZFS, NFS, read-only rootfs
-    - ### Copy the running Armbian system to another device
+    - ### Install the running system to internal media (eMMC/NVMe/SATA/USB/UFS, or Windows dual-boot)
     - ### Download a fresh, official Armbian OS image and write it to a device
     - ### Remove all downloaded Armbian images
     - ### Enable read only filesystem
@@ -570,7 +570,7 @@ Outputs:
 	--cmd XFCE08 - Change XFCE to mid
 	--cmd XFCE09 - Change XFCE to full
     Storage - Install to internal media, ZFS, NFS, read-only rootfs
-	--cmd STO001 - Copy the running Armbian system to another device
+	--cmd STO001 - Install the running system to internal media (eMMC/NVMe/SATA/USB/UFS, or Windows dual-boot)
 	--cmd FLASH1 - Download a fresh, official Armbian OS image and write it to a device
 	--cmd FLASH2 - Remove all downloaded Armbian images
 	--cmd ROO001 - Enable read only filesystem
@@ -1222,6 +1222,7 @@ These helper functions facilitate various operations related to job management, 
 | Reload service | srv_reload ssh.service | @dimitry-ishenko 
 | Revert network config back to Armbian defaults | default_network_config | @igorpecovnik 
 | Webmin setup and service setting. | help install remove start stop enable disable status check | @Tearran 
+| Armbian installer engine (backend library, no UI) | detect plan | @igorpecovnik 
 | Install HA supervised container | install remove purge status help | @armbian 
 | Display a menu from pipe | show_menu <<< armbianmonitor -h  ;  | @Tearran 
 | Start service | srv_start ssh.service | @dimitry-ishenko 
@@ -1324,6 +1325,7 @@ These helper functions facilitate various operations related to job management, 
 | Install Zerotier | help install remove start stop enable disable status check | @jnovos 
 | Install grafana container | install remove purge status help | @armbian 
 | Select optimised Odroid board configuration | select | @GeoffClements 
+| Armbian installer (transfer rootfs to eMMC/NVMe/SATA/USB/UFS) | run install detect plan help | @igorpecovnik 
 | Install owncloud container | install remove purge status help | @armbian 
 | Install netdata container | install remove purge status help | @armbian 
 | Change the background color of the terminal or dialog box | set_colors 0-7 | @Tearran 
