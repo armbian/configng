@@ -108,6 +108,11 @@ install_detect_targets() {
 		# zram (compressed RAM swap), ram disks, loop, optical (sr), floppy (fd),
 		# and device-mapper (dm-) nodes.
 		| select(.name | test("^(zram|ram|loop|sr|fd|dm-)[0-9-]") | not)
+		# eMMC exposes its read-only boot areas (mmcblkXboot0/boot1) and the
+		# RPMB partition as their own TYPE=disk block devices. They are ~4 MB,
+		# not writable as normal storage, and never valid install targets, so
+		# drop them - only the main mmcblkX user-data device is a candidate.
+		| select(.name | test("^mmcblk[0-9]+(boot[0-9]+|rpmb)$") | not)
 		| { n: .name, t: (.tran // ""), sz: (.size // 0),
 			ps: (."phy-sec" // 512), ro: (.rota // false), md: ((.model // "") | gsub("\t"; " ")) }
 		| .role = ( if   (.n | test("^nvme"))     then "nvme"

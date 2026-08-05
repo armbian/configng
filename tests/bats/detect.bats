@@ -56,6 +56,19 @@ setup() {
 	echo "$output" | grep -qP '^sda\tusb\t'
 }
 
+@test "detect: excludes eMMC boot0/boot1/rpmb hardware partitions" {
+	# An eMMC exposes read-only boot areas and an RPMB partition as their own
+	# TYPE=disk devices (see the installer's destination menu). Only the main
+	# mmcblk0 user-data device may be offered as an install target.
+	run install_detect_targets "" "$(cat "$FIX/lsblk_emmc.json")"
+	[ "$status" -eq 0 ]
+	[ "${#lines[@]}" -eq 1 ]
+	echo "$output" | grep -qP '^mmcblk0\tmmc\t'
+	[[ "$output" != *"boot0"* ]]
+	[[ "$output" != *"boot1"* ]]
+	[[ "$output" != *"rpmb"* ]]
+}
+
 @test "detect: surfaces sector size and model" {
 	run install_detect_targets "" "$(cat "$FIX/lsblk_4kn_large.json")"
 	# 4Kn NVMe reports phy-sec 4096 in field 4.
