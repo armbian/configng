@@ -42,6 +42,14 @@ function module_cockpit() {
 			# which is what libvirt + cockpit-machines actually need.
 			pkg_install cockpit cockpit-ws cockpit-system cockpit-storaged cockpit-machines dnsmasq virtinst qemu-utils qemu-system
 
+			# On a desktop, also install the virt-manager GUI so VMs can be
+			# managed locally, not just through Cockpit's web UI. Headless
+			# servers skip it to avoid pulling in GTK and its dependencies.
+			check_desktop
+			if [[ -n "${DESKTOP_INSTALLED}" ]]; then
+				pkg_install virt-manager
+			fi
+
 			usermod -a -G libvirt libvirtdbus
 			usermod -a -G libvirt libvirt-qemu
 
@@ -75,6 +83,7 @@ function module_cockpit() {
 				virsh net-destroy ${bridge}
 				virsh net-undefine ${bridge}
 			done
+			pkg_installed virt-manager && pkg_remove virt-manager
 			pkg_remove cockpit cockpit-ws cockpit-system cockpit-storaged cockpit-machines dnsmasq virtinst qemu-utils qemu-system
 
 		;;
