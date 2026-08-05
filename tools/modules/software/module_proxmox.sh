@@ -57,12 +57,14 @@ function module_proxmox() {
 			# cluster stack. Warn, but let the user proceed and fix /etc/hosts later.
 			local host_ip
 			host_ip=$(hostname --ip-address 2>/dev/null | awk '{print $1}')
-			if [[ -z "${host_ip}" || "${host_ip}" == 127.* ]]; then
+			if [[ -z "${host_ip}" || "${host_ip}" == 127.* || "${host_ip}" == "::1" ]]; then
 				if ! dialog_yesno " Hostname check " \
 					"The hostname does not resolve to a non-loopback IP (got: ${host_ip:-none}).\n\nProxmox needs a valid /etc/hosts entry mapping the hostname to a LAN IP, otherwise the web UI and clustering may not work.\n\nContinue anyway?" \
 					"Continue" "Cancel" 12 60; then
 					return 1
 				fi
+				# A loopback address is useless for the web-UI URL; fall back to a placeholder.
+				host_ip=""
 			fi
 
 			# Add the Proxmox release key and verify its checksum.
@@ -106,8 +108,11 @@ function module_proxmox() {
 			fi
 
 			if pkg_installed pve-manager; then
+				# Bracket IPv6 literals so host:port stays valid in the URL.
+				local host_disp="${host_ip:-<board-ip>}"
+				[[ "${host_disp}" == *:* ]] && host_disp="[${host_disp}]"
 				dialog_msgbox "${title} installed" \
-					"Proxmox VE is installed on the Armbian kernel.\n\nWeb UI: https://${host_ip:-<board-ip>}:${module_options["module_proxmox,port"]}\nLog in as 'root' with your system password." 10 66
+					"Proxmox VE is installed on the Armbian kernel.\n\nWeb UI: https://${host_disp}:${module_options["module_proxmox,port"]}\nLog in as 'root' with your system password." 10 66
 			fi
 		;;
 
