@@ -40,7 +40,19 @@ function module_cockpit() {
 			# candidate". qemu-system below is the modern arch-agnostic
 			# meta - on each host it pulls qemu-system-<host-arch>,
 			# which is what libvirt + cockpit-machines actually need.
-			pkg_install cockpit cockpit-ws cockpit-system cockpit-storaged cockpit-machines dnsmasq virtinst qemu-utils qemu-system
+			# UEFI guest firmware. The package is arch-specific: ovmf is
+			# x86 only, while arm64/armhf guests can boot *only* via UEFI and
+			# need the matching AAVMF build. riscv64 has no OVMF equivalent,
+			# so it is simply left without one (same "no candidate" trap as
+			# qemu-kvm above).
+			local host_arch uefi_fw=""
+			host_arch="$(dpkg --print-architecture)"
+			case "${host_arch}" in
+				amd64) uefi_fw="ovmf" ;;
+				arm64) uefi_fw="qemu-efi-aarch64" ;;
+				armhf) uefi_fw="qemu-efi-arm" ;;
+			esac
+			pkg_install cockpit cockpit-ws cockpit-system cockpit-storaged cockpit-machines dnsmasq virtinst qemu-utils qemu-system ${uefi_fw}
 
 			# On a desktop, also install the virt-manager GUI so VMs can be
 			# managed locally, not just through Cockpit's web UI. Headless
@@ -69,6 +81,52 @@ function module_cockpit() {
 					virsh net-autostart hostbridge-${intf}
 				fi
 			done
+
+			# Default new VMs to UEFI. arm64/armhf guests are UEFI-only
+			# already; x86 still defaults to SeaBIOS, so - gated to amd64 -
+			# install a libvirt qemu hook that flips firmware-less x86 domains
+			# to UEFI (firmware='efi') at prepare time. cockpit-machines and
+			# virt-install create BIOS guests otherwise; domains that already
+			# picked a firmware/loader (UEFI or an explicit BIOS choice) are
+			# left untouched.
+			if [[ "${host_arch}" == amd64 ]]; then
+				mkdir -p /etc/libvirt/hooks
+				cat > /etc/libvirt/hooks/qemu <<'HOOK'
+#!/usr/bin/env python3
+# Managed by Armbian config (module_cockpit) - changes may be overwritten.
+# libvirt qemu hook: on the "prepare" phase, default firmware-less x86 guests
+# to UEFI so newly created VMs boot UEFI (OVMF) instead of SeaBIOS.
+import sys
+import xml.etree.ElementTree as ET
+
+op = sys.argv[2] if len(sys.argv) > 2 else ""
+data = sys.stdin.read()
+# Only the prepare phase transforms the XML libvirt then uses; every other
+# phase must leave things alone (its stdout is ignored anyway).
+if op != "prepare" or not data.strip():
+    sys.exit(0)
+try:
+    dom = ET.fromstring(data)
+except ET.ParseError:
+    sys.stdout.write(data)
+    sys.exit(0)
+os_el = dom.find("os")
+type_el = os_el.find("type") if os_el is not None else None
+arch = type_el.get("arch", "") if type_el is not None else ""
+# skip when the domain already commits to a firmware/loader, or isn't x86
+already = (os_el is None or os_el.get("firmware")
+           or os_el.find("loader") is not None
+           or os_el.find("nvram") is not None)
+if arch in ("x86_64", "i686") and not already:
+    os_el.set("firmware", "efi")
+    sys.stdout.write(ET.tostring(dom, encoding="unicode"))
+else:
+    sys.stdout.write(data)
+HOOK
+				chmod +x /etc/libvirt/hooks/qemu
+				systemctl restart libvirtd 2>/dev/null || systemctl restart libvirt 2>/dev/null || true
+			fi
+
 			if dialog_yesno " Reboot required " "A reboot is required to start $title properly. Shall we reboot now?" "Reboot" "Cancel" 7 34; then
 				reboot
 			fi
@@ -84,6 +142,10 @@ function module_cockpit() {
 				virsh net-undefine ${bridge}
 			done
 			pkg_installed virt-manager && pkg_remove virt-manager
+			rm -f /etc/libvirt/hooks/qemu
+			for fw in ovmf qemu-efi-aarch64 qemu-efi-arm; do
+				pkg_installed "$fw" && pkg_remove "$fw"
+			done
 			pkg_remove cockpit cockpit-ws cockpit-system cockpit-storaged cockpit-machines dnsmasq virtinst qemu-utils qemu-system
 
 		;;
