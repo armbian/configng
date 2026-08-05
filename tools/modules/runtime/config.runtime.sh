@@ -153,6 +153,7 @@ update_sub_submenu_data "Software" "Monitoring" "PRO002" "http://$LOCALIPADD:${m
 
 # Management
 update_sub_submenu_data "Software" "Management" "CPT002" "https://$LOCALIPADD:${module_options["module_cockpit,port"]}"
+update_sub_submenu_data "Software" "Management" "PVE002" "https://$LOCALIPADD:${module_options["module_proxmox,port"]}"
 update_sub_submenu_data "Software" "Management" "HPG002" "http://$LOCALIPADD:${module_options["module_homepage,port"]}"
 update_sub_submenu_data "Software" "Management" "NBOX02" "http://$LOCALIPADD:${module_options["module_netbox,port"]}"
 update_sub_submenu_data "Software" "Management" "APT002" "http://$LOCALIPADD:${module_options["module_aptcacherng,port"]}/acng-report.html"

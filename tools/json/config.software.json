@@ -1339,6 +1339,41 @@
                             "help": "Purge Cockpit with virtual machines"
                         },
                         {
+                            "id": "PVE001",
+                            "description": "Proxmox VE virtualization platform (keeps the Armbian kernel)",
+                            "short": "Proxmox VE",
+                            "module": "module_proxmox",
+                            "command": [
+                                "module_proxmox install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_proxmox status",
+                            "help": "Install Proxmox VE 9 from the official repo on Debian trixie (amd64/arm64), without the Proxmox kernel."
+                        },
+                        {
+                            "id": "PVE002",
+                            "description": "Remove Proxmox VE",
+                            "command": [
+                                "module_proxmox remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_proxmox status",
+                            "help": "Remove Proxmox VE"
+                        },
+                        {
+                            "id": "PVE003",
+                            "description": "Purge Proxmox VE with cluster data",
+                            "command": [
+                                "module_proxmox purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_proxmox status",
+                            "help": "Purge Proxmox VE with cluster data"
+                        },
+                        {
                             "id": "HPG001",
                             "description": "Install Homepage startpage / application dashboard",
                             "short": "Homepage",
