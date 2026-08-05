@@ -12,7 +12,9 @@
     This install intentionally omits the Proxmox kernel and runs on the board's
     Armbian kernel:
 
-    - KVM virtual machines and LXC containers work normally.
+    - KVM virtual machines and LXC containers work provided the running kernel
+      offers the needed support (KVM / `/dev/kvm` and container
+      cgroups/namespaces) — which the Armbian kernels for these arches normally do.
     - This module **installs ZFS** for you (via DKMS, built against the Armbian
       kernel), so ZFS storage pools work out of the box; only ZFS-on-**root**
       (boot) is out of scope.
