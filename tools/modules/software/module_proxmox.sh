@@ -4,7 +4,7 @@ module_options+=(
 	["module_proxmox,feature"]="module_proxmox"
 	["module_proxmox,example"]="install remove purge status help"
 	["module_proxmox,desc"]="Proxmox VE on top of the Armbian kernel (Debian trixie)"
-	["module_proxmox,status"]="Stable"
+	["module_proxmox,status"]="Active"
 	["module_proxmox,doc_link"]="https://pve.proxmox.com/wiki/Install_Proxmox_VE_on_Debian_13_Trixie"
 	["module_proxmox,group"]="Management"
 	["module_proxmox,port"]="8006"
@@ -134,7 +134,8 @@ function module_proxmox() {
 
 		"${commands[4]}")
 			show_module_help "module_proxmox" "${title}" \
-				"Architecture: ${module_options["module_proxmox,arch"]} | OS: Debian trixie | Keeps the Armbian kernel"
+				"Architecture: ${module_options["module_proxmox,arch"]} | OS: Debian trixie | Keeps the Armbian kernel" \
+				"native"
 		;;
 
 		*)
