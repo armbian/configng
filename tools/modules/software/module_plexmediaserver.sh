@@ -1,8 +1,8 @@
 module_options+=(
 	["module_plexmediaserver,author"]="@schwar3kat"
 	["module_plexmediaserver,maintainer"]="@igorpecovnik"
-	["module_plexmediaserver,feature"]="Install plexmediaserver"
-	["module_plexmediaserver,example"]="install remove status"
+	["module_plexmediaserver,feature"]="module_plexmediaserver"
+	["module_plexmediaserver,example"]="install remove status help"
 	["module_plexmediaserver,desc"]="Install plexmediaserver from repo using apt"
 	["module_plexmediaserver,status"]="Active"
 	["module_plexmediaserver,doc_link"]="https://www.plex.tv/"
@@ -49,13 +49,7 @@ module_plexmediaserver() {
 			fi
 		;;
 		"${commands[3]}")
-			echo -e "\nUsage: ${module_options["module_portainer,feature"]} <command>"
-			echo -e "Commands:  ${module_options["module_portainer,example"]}"
-			echo "Available commands:"
-			echo -e "\tinstall\t- Install $title."
-			echo -e "\tstatus\t- Installation status $title."
-			echo -e "\tremove\t- Remove $title."
-			echo
+			show_module_help "module_plexmediaserver" "$title" "" "native"
 		;;
 		*)
 			${module_options["module_plexmediaserver,feature"]} ${commands[3]}
