@@ -7,6 +7,7 @@ This module installs Proxmox VE 9 from the official *no-subscription* repository
 - **KVM virtual machines**: Full hardware-accelerated VMs via the board's KVM-enabled Armbian kernel.
 - **LXC containers**: Lightweight, fast system containers alongside your VMs.
 - **Web management**: Manage guests, storage, backups and networking from `https://<ip>:8006`.
+- **ZFS storage**: Installs ZFS (via DKMS, built against the Armbian kernel) so you can create ZFS pools and datasets for VM/container storage.
 - **Keeps your kernel**: Installs `pve-manager` (no kernel dependency) rather than the `proxmox-ve` meta, so your Armbian kernel and DTBs stay in place.
 - **No subscription needed**: Uses the public `pve-no-subscription` repository.
 

@@ -13,8 +13,9 @@
     Armbian kernel:
 
     - KVM virtual machines and LXC containers work normally.
-    - **ZFS** is installed via DKMS (built against the Armbian kernel), so ZFS
-      storage pools work; only ZFS-on-**root** (boot) is out of scope.
+    - This module **installs ZFS** for you (via DKMS, built against the Armbian
+      kernel), so ZFS storage pools work out of the box; only ZFS-on-**root**
+      (boot) is out of scope.
 
 === "Requirements"
 
