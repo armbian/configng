@@ -59,7 +59,7 @@ function module_docker() {
 				if pkg_installed docker-compose-plugin; then pkg_remove docker-compose-plugin; fi
 				rm -f /etc/apt/sources.list.d/docker.list
 				# install new
-				pkg_install docker.io docker-cli docker-compose
+				pkg_install docker.io docker-cli docker-compose docker-buildx
 			fi
 			groupadd docker 2>/dev/null || true
 			if [[ -n "${SUDO_USER}" ]]; then
@@ -162,7 +162,7 @@ function module_docker() {
 				pkg_remove docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 				rm -f /etc/apt/sources.list.d/docker.list
 			else
-				pkg_remove docker.io docker-cli docker-compose
+				pkg_remove docker.io docker-cli docker-compose docker-buildx
 			fi
 			# Remove docker0 bridge interface if it exists
 			if ip link show docker0 &>/dev/null; then
