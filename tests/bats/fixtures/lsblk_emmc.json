@@ -1,0 +1,8 @@
+{
+    "blockdevices": [
+        {"name":"mmcblk0","type":"disk","size":63316279296,"phy-sec":512,"tran":null,"rota":false,"model":"mmc"},
+        {"name":"mmcblk0boot0","type":"disk","size":4194304,"phy-sec":512,"tran":null,"rota":false,"model":"mmc"},
+        {"name":"mmcblk0boot1","type":"disk","size":4194304,"phy-sec":512,"tran":null,"rota":false,"model":"mmc"},
+        {"name":"mmcblk0rpmb","type":"disk","size":4194304,"phy-sec":512,"tran":null,"rota":false,"model":"mmc"}
+    ]
+}
