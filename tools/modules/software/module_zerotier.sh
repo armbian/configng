@@ -53,9 +53,9 @@ function module_zerotier() {
 			## remove zerotier-one
 			srv_disable zerotier-one
 			pkg_remove zerotier-one
-			rm -R /var/lib/zerotier-one
-			rm /etc/apt/trusted.gpg.d/zerotier.gpg
-			rm /etc/apt/sources.list.d/zerotier.list
+			rm -rf /var/lib/zerotier-one
+			rm -f /etc/apt/trusted.gpg.d/zerotier.gpg
+			rm -f /etc/apt/sources.list.d/zerotier.list
 			pkg_update
 			echo "Zerotier removed successfully."
 		;;
@@ -93,7 +93,7 @@ function module_zerotier() {
 			if srv_active zerotier-one; then
 				echo "Zerotier service is active."
 				return 0
-			elif ! srv_enabled zerotier-one ]]; then
+			elif ! srv_enabled zerotier-one; then
 				echo "Zerotier service is disabled."
 				return 1
 			else
