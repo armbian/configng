@@ -19,7 +19,7 @@
 
 === "Requirements"
 
-    - Debian **13 (trixie)** on **amd64** or **arm64** (enforced by the installer).
+    - **Armbian Trixie** (Debian 13) on **amd64** or **arm64** (enforced by the installer).
     - **Recommended:** the hostname should resolve to a non-loopback IP in
       `/etc/hosts`, e.g.:
 
