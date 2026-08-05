@@ -98,6 +98,13 @@ function module_proxmox() {
 			# Install the PVE userspace WITHOUT the Proxmox kernel (see header note).
 			pkg_install pve-manager postfix open-iscsi chrony
 
+			# Proxmox's default storage stack expects ZFS. Provide it through the
+			# Armbian ZFS module (kernel headers + zfs-dkms + tools, built against
+			# the running kernel) when it is not already present.
+			if ! module_zfs status >/dev/null 2>&1; then
+				module_zfs install
+			fi
+
 			if pkg_installed pve-manager; then
 				dialog_msgbox "${title} installed" \
 					"Proxmox VE is installed on the Armbian kernel.\n\nWeb UI: https://${host_ip:-<board-ip>}:${module_options["module_proxmox,port"]}\nLog in as 'root' with your system password." 10 66
