@@ -47,6 +47,9 @@ teardown() {
 	LC_ALL=C parted -sm "$LOOP" print | grep -q 'boot'
 	[ -b "${LOOP}p1" ]
 	[ ! -b "${LOOP}p2" ]
+	# p1 must start at 16MiB so it clears the on-device u-boot region
+	# (idbloader@32KiB + u-boot.itb@8MiB); starting at 1MiB corrupts boot.
+	LC_ALL=C parted -sm "$LOOP" unit MiB print | grep -qE '^1:16\.0MiB:'
 }
 
 @test "loopback: apply_partitions echoes role->device for each partition" {

@@ -190,6 +190,17 @@ install_plan_layout() {
 			;;
 	esac
 
+	# First-partition start offset, in MiB. emmc is the only mode that writes
+	# u-boot to raw sectors of this same device (idbloader at 32KiB, u-boot.itb
+	# at 8MiB on Rockchip et al.), so its first partition must clear that region
+	# or the filesystem and the bootloader overwrite each other and the board
+	# won't boot. 16MiB matches the classic installer's FIRSTSECTOR=32768 and
+	# covers every SoC's bootloader area. All other modes keep u-boot off this
+	# device (SPI/UFS) or on removable media, so 1MiB alignment is fine.
+	local start_mib=1
+	[[ "$boot_mode" == emmc ]] && start_mib=16
+
+	echo "start=$start_mib"
 	echo "table=$table"
 	local p
 	for p in "${parts[@]}"; do
@@ -221,11 +232,12 @@ install_apply_partitions() {
 	[[ -z "$plan" ]] && plan="$(cat)"
 	[[ -b "$device" ]] || { install_log ERR "apply_partitions: '$device' is not a block device"; return "$INSTALL_EX_NODEV"; }
 
-	local table="" ; local -a parts=()
+	local table="" start_override="" ; local -a parts=()
 	local line
 	while IFS= read -r line; do
 		case "$line" in
 			table=*) table="${line#table=}" ;;
+			start=*) start_override="${line#start=}" ;;
 			part=*)  parts+=("${line#part=}") ;;
 		esac
 	done <<<"$plan"
@@ -236,7 +248,9 @@ install_apply_partitions() {
 	parted -s "$device" mklabel "$table" >>"$INSTALL_LOG" 2>&1 \
 		|| { install_log ERR "apply_partitions: mklabel $table failed"; return "$INSTALL_EX_PARTITION"; }
 
-	local start_mib=1 idx=0
+	# Honour the plan's start offset (emmc reserves 16MiB for on-device u-boot);
+	# default to 1MiB when a plan predates the directive.
+	local start_mib="${start_override:-1}" idx=0
 	local spec role size fstype flags hint end
 	for spec in "${parts[@]}"; do
 		IFS=':' read -r role size fstype flags <<<"$spec"

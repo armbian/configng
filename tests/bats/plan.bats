@@ -76,6 +76,23 @@ setup() {
 	[[ "$output" != *"part=boot:"* ]]
 }
 
+@test "plan emmc: reserves 16MiB before the first partition for on-device u-boot" {
+	# emmc dd's idbloader (32KiB) + u-boot.itb (8MiB) to raw sectors of this same
+	# device, so the first partition must start at 16MiB (classic FIRSTSECTOR=32768)
+	# or the filesystem and the bootloader clobber each other and the board won't boot.
+	run install_plan_layout emmc ext4 0 $(( 16 * GIB )) 512 0
+	[[ "$output" == *"start=16"* ]]
+}
+
+@test "plan: non-emmc modes keep the 1MiB start (u-boot lives off this device)" {
+	run install_plan_layout uefi ext4 1 $(( 16 * GIB )) 512 0
+	[[ "$output" == *"start=1"* ]]
+	run install_plan_layout sd ext4 0 $(( 500 * GIB )) 512 0
+	[[ "$output" == *"start=1"* ]]
+	run install_plan_layout bios ext4 0 $(( 20 * GIB )) 512 0
+	[[ "$output" == *"start=1"* ]]
+}
+
 @test "plan emmc btrfs: separate ext4 boot + btrfs root (u-boot can't read btrfs)" {
 	run install_plan_layout emmc btrfs 0 $(( 16 * GIB )) 512 0
 	[[ "$output" == *"part=boot:512MiB:ext4:boot"* ]]
