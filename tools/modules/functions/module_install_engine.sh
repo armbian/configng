@@ -816,20 +816,24 @@ install_dualboot_blocker() {
 	# nothing and returns 0 when the disk is ready. The frontends show this text
 	# directly (dialog / message) so the user is told what to do without reading
 	# the install log.
-	local disk="$1" wi win
-	wi="$(install_detect_windows "$disk")" || {
-		echo "No Windows/UEFI install was found on $disk - there is nothing to dual-boot alongside. Use a normal (erase) install instead, or pick the disk that has Windows on it."
-		return 1
-	}
-	win="$(sed -n 's/^windows=//p' <<<"$wi")"
-	# BitLocker vs merely-dirty are different fixes, so distinguish them and check
-	# BitLocker FIRST (an encrypted volume also fails the ntfsresize probe below,
-	# and must not be reported as "dirty"). Detect it two ways: lsblk/blkid fstype,
-	# and the volume boot sector's "-FVE-FS-" signature at offset 3 (a plain NTFS
-	# volume has "NTFS" there) - so a locked volume is caught even if lsblk didn't
-	# tag it.
-	if install_disk_has_bitlocker "$disk" \
-		|| dd if="$win" bs=512 count=1 2>/dev/null | tr -d '\0' | grep -qa 'FVE-FS'; then
+	local disk="$1" wi win json winpart
+	# Identify the Windows system partition INDEPENDENTLY OF FILESYSTEM TYPE first:
+	# a BitLocker volume's fstype is "BitLocker", not "ntfs", so install_detect_
+	# windows (which keys on ntfs) fails on it - and we must still report BitLocker,
+	# not "no Windows". Pick the largest "Microsoft basic data" partition, minus the
+	# WinRE recovery one.
+	json="$(lsblk -b -po NAME,FSTYPE,PARTTYPENAME,SIZE --json "$disk" 2>/dev/null)"
+	winpart="$(printf '%s' "$json" | jq -r '
+		[ .blockdevices[]?.children[]?
+		  | select(((.parttypename // "") | test("basic data"; "i")))
+		  | select(((.parttypename // "") | test("recovery"; "i")) | not) ]
+		| sort_by(.size | tonumber) | reverse | (.[0].name // empty)' 2>/dev/null)"
+	# BitLocker FIRST (an encrypted volume also fails the ntfsresize probe below and
+	# must not be reported as "dirty"), scoped to THAT partition only: its lsblk/blkid
+	# fstype, or its boot sector's "-FVE-FS-" signature (a plain NTFS volume has
+	# "NTFS" there) - so a locked volume is caught even if lsblk didn't tag it.
+	if [[ -n "$winpart" ]] && { [[ "$(lsblk -no FSTYPE "$winpart" 2>/dev/null)" == *[Bb]it[Ll]ocker* ]] \
+		|| dd if="$winpart" bs=512 count=1 2>/dev/null | tr -d '\0' | grep -qa 'FVE-FS'; }; then
 		printf '%s\n' \
 			"The Windows volume on $disk is BitLocker-encrypted, so it cannot be resized for dual-boot." \
 			"" \
@@ -838,8 +842,14 @@ install_dualboot_blocker() {
 			"2) Wait until it reports fully decrypted."
 		return 1
 	fi
-	# Not BitLocker: ntfsresize refuses a hibernated / Fast-Startup / unclean
-	# volume ("NTFS is inconsistent"). This is the most common blocker.
+	# Not BitLocker: need a real (shrinkable) Windows/UEFI layout to proceed.
+	wi="$(install_detect_windows "$disk")" || {
+		echo "No Windows/UEFI install was found on $disk - there is nothing to dual-boot alongside. Use a normal (erase) install instead, or pick the disk that has Windows on it."
+		return 1
+	}
+	win="$(sed -n 's/^windows=//p' <<<"$wi")"
+	# ntfsresize refuses a hibernated / Fast-Startup / unclean volume ("NTFS is
+	# inconsistent"). This is the most common blocker.
 	if ! ntfsresize -f --info "$win" >/dev/null 2>&1; then
 		printf '%s\n' \
 			"The Windows volume on $disk is hibernated or has Fast Startup enabled, so it cannot be shrunk for dual-boot." \
