@@ -238,6 +238,13 @@ partitioner_tui() {
 	# 4) dual-boot needs a size; other modes erase the whole disk.
 	local want_bytes=0
 	if [[ "$boot" == uefi-dualboot ]]; then
+		# Tell the user up-front (and before touching the disk) if Windows can't be
+		# shrunk - BitLocker or an unclean/hibernated NTFS - with the exact fix.
+		local blocker
+		if ! blocker="$(install_dualboot_blocker "/dev/$disk")"; then
+			dialog_msgbox " Cannot dual-boot yet " "\n$blocker"
+			return "$INSTALL_EX_USAGE"
+		fi
 		local gib
 		gib=$(dialog_inputbox " $title " "\nGiB to give Armbian (taken by shrinking Windows):" "32")
 		[[ "$gib" =~ ^[0-9]+$ && "$gib" -gt 0 ]] || { dialog_msgbox " $title " "\nInvalid size."; return "$INSTALL_EX_USAGE"; }
@@ -317,6 +324,12 @@ partitioner_cli_install() {
 
 	if [[ "$boot" == uefi-dualboot ]]; then
 		[[ "$size_gib" =~ ^[0-9]+$ && "$size_gib" -gt 0 ]] || { echo "armbian-install: --size <GiB> is required for uefi-dualboot" >&2; return "$INSTALL_EX_USAGE"; }
+		# Explain up-front (before touching the disk) if Windows can't be shrunk.
+		local blocker
+		if ! blocker="$(install_dualboot_blocker "$target")"; then
+			echo "$blocker" >&2
+			return "$INSTALL_EX_USAGE"
+		fi
 		echo "Installing Armbian alongside Windows on $target (${size_gib}GiB, $fs)..."
 		install_run_dualboot "$target" "$fs" "$INSTALL_EXCLUDE" $(( size_gib * 1024 * 1024 * 1024 ))
 	elif [[ "$boot" == split-emmc ]]; then

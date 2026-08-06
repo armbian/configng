@@ -809,6 +809,50 @@ install_disk_has_bitlocker() {
 	printf '%s' "$json" | jq -e 'any(.blockdevices[]?.children[]?; (.fstype // "") | test("bitlocker"; "i"))' >/dev/null 2>&1
 }
 
+install_dualboot_blocker() {
+	# install_dualboot_blocker <disk>
+	# If the disk's Windows volume cannot be shrunk for a dual-boot install, echo
+	# a plain, user-facing reason AND the exact fix, and return non-zero. Prints
+	# nothing and returns 0 when the disk is ready. The frontends show this text
+	# directly (dialog / message) so the user is told what to do without reading
+	# the install log.
+	local disk="$1" wi win
+	wi="$(install_detect_windows "$disk")" || {
+		echo "No Windows/UEFI install was found on $disk - there is nothing to dual-boot alongside. Use a normal (erase) install instead, or pick the disk that has Windows on it."
+		return 1
+	}
+	win="$(sed -n 's/^windows=//p' <<<"$wi")"
+	# BitLocker vs merely-dirty are different fixes, so distinguish them and check
+	# BitLocker FIRST (an encrypted volume also fails the ntfsresize probe below,
+	# and must not be reported as "dirty"). Detect it two ways: lsblk/blkid fstype,
+	# and the volume boot sector's "-FVE-FS-" signature at offset 3 (a plain NTFS
+	# volume has "NTFS" there) - so a locked volume is caught even if lsblk didn't
+	# tag it.
+	if install_disk_has_bitlocker "$disk" \
+		|| dd if="$win" bs=512 count=1 2>/dev/null | tr -d '\0' | grep -qa 'FVE-FS'; then
+		printf '%s\n' \
+			"The Windows partition on $disk is BitLocker-encrypted and cannot be resized." \
+			"" \
+			"Fix it in Windows, then run the installer again:" \
+			"  1. Turn off Device Encryption / BitLocker:  manage-bde -off C:" \
+			"  2. Wait until it reports fully decrypted."
+		return 1
+	fi
+	# Not BitLocker: ntfsresize refuses a hibernated / Fast-Startup / unclean
+	# volume ("NTFS is inconsistent"). This is the most common blocker.
+	if ! ntfsresize -f --info "$win" >/dev/null 2>&1; then
+		printf '%s\n' \
+			"The Windows partition on $disk is not clean (hibernated, Fast Startup, or an unclean shutdown), so it cannot be shrunk." \
+			"" \
+			"Fix it in Windows, then run the installer again:" \
+			"  1. Disable Fast Startup:  powercfg /h off   (admin Command Prompt)" \
+			"  2. Check the disk:        chkdsk /f C:       (reboot when it asks)" \
+			"  3. Shut Windows down fully (not restart)."
+		return 1
+	fi
+	return 0
+}
+
 install_windows_min_bytes() {
 	# install_windows_min_bytes <ntfs_partition>
 	# Smallest size ntfsresize will shrink the volume to, in bytes (0 on failure).
@@ -1270,6 +1314,11 @@ install_run_dualboot() {
 	esp="$(sed -n 's/^esp=//p' <<<"$wi")"
 	win="$(sed -n 's/^windows=//p' <<<"$wi")"
 	install_log INFO "dualboot: ESP=$esp Windows=$win on $disk"
+	# Backstop for direct engine callers (the TUI/CLI already surface this to the
+	# user before we get here): refuse - before any change - if Windows can't be
+	# shrunk (BitLocker / unclean NTFS), logging the actionable reason.
+	local blocker; blocker="$(install_dualboot_blocker "$disk")" \
+		|| { install_log ERR "dualboot: cannot shrink Windows on $disk"$'\n'"$blocker"; return "$INSTALL_EX_PARTITION"; }
 
 	# 2) plan how far to shrink Windows to free <want> bytes.
 	local wsize wmin new_win plan
