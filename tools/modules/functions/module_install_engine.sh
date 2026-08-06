@@ -831,23 +831,23 @@ install_dualboot_blocker() {
 	if install_disk_has_bitlocker "$disk" \
 		|| dd if="$win" bs=512 count=1 2>/dev/null | tr -d '\0' | grep -qa 'FVE-FS'; then
 		printf '%s\n' \
-			"The Windows partition on $disk is BitLocker-encrypted and cannot be resized." \
+			"The Windows volume on $disk is BitLocker-encrypted, so it cannot be resized for dual-boot." \
 			"" \
 			"Fix it in Windows, then run the installer again:" \
-			"  1. Turn off Device Encryption / BitLocker:  manage-bde -off C:" \
-			"  2. Wait until it reports fully decrypted."
+			"1) Turn off BitLocker / Device Encryption: manage-bde -off C:" \
+			"2) Wait until it reports fully decrypted."
 		return 1
 	fi
 	# Not BitLocker: ntfsresize refuses a hibernated / Fast-Startup / unclean
 	# volume ("NTFS is inconsistent"). This is the most common blocker.
 	if ! ntfsresize -f --info "$win" >/dev/null 2>&1; then
 		printf '%s\n' \
-			"The Windows partition on $disk is not clean (hibernated, Fast Startup, or an unclean shutdown), so it cannot be shrunk." \
+			"The Windows volume on $disk is hibernated or has Fast Startup enabled, so it cannot be shrunk for dual-boot." \
 			"" \
 			"Fix it in Windows, then run the installer again:" \
-			"  1. Disable Fast Startup:  powercfg /h off   (admin Command Prompt)" \
-			"  2. Check the disk:        chkdsk /f C:       (reboot when it asks)" \
-			"  3. Shut Windows down fully (not restart)."
+			"1) In an admin Command Prompt, run: powercfg /h off" \
+			"2) Then run: chkdsk /f C:  (reboot if it asks)" \
+			"3) Shut Windows down fully (not Restart)."
 		return 1
 	fi
 	return 0
