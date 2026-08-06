@@ -145,11 +145,14 @@ install_detect_targets() {
 		# not writable as normal storage, and never valid install targets, so
 		# drop them - only the main mmcblkX user-data device is a candidate.
 		| select(.name | test("^mmcblk[0-9]+(boot[0-9]+|rpmb)$") | not)
+		# SPI/MTD flash (mtdblockN) holds the bootloader, not a root filesystem -
+		# it is a *boot* device (offered via the mtd boot mode after picking a
+		# real target), never an install destination, so keep it out of the list.
+		| select(.name | test("^mtdblock[0-9]+$") | not)
 		| { n: .name, t: (.tran // ""), sz: (.size // 0),
 			ps: (."phy-sec" // 512), ro: (.rota // false), md: ((.model // "") | gsub("\t"; " ")) }
 		| .role = ( if   (.n | test("^nvme"))     then "nvme"
 			elif (.n | test("^mmcblk"))   then "mmc"
-			elif (.n | test("^mtdblock")) then "mtd"
 			elif (.t == "usb")            then "usb"
 			elif (.t == "sata" or .t == "ata") then "sata"
 			else "disk" end )
