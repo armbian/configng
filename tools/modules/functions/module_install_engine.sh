@@ -87,17 +87,22 @@ install_table_type() {
 }
 
 install_source_table_type() {
-	# Echo the partition-table type (gpt|msdos) of the disk the running system
+	# Echo the partition-table type (gpt|msdos) of the disk the board actually
 	# boots from, or nothing if it can't be determined. An eMMC/SD install must
 	# replicate this so the board's bootloader can read the result: Rockchip
 	# vendor u-boot (2017.09) parses GPT only - an MBR eMMC gives endless
 	# "Invalid GPT" and never finds the kernel - while Allwinner needs MBR
 	# because its SPL at sector 16 (8KiB) overlaps a GPT partition-entry array.
-	# Impure: reads the live block layout.
-	local rootsrc disk ptt
-	rootsrc="$(findmnt -no SOURCE / 2>/dev/null)" || return 0
-	[[ -n "$rootsrc" ]] || return 0
-	disk="$(lsblk -no PKNAME "$rootsrc" 2>/dev/null | head -1)"
+	#
+	# Prefer the device that holds /boot: that is the one u-boot reads, and it can
+	# be a different disk with a different table than / (e.g. SD /boot + NVMe root).
+	# Fall back to / when /boot is not its own mount. --nofsroot strips any bind or
+	# subvolume suffix so lsblk gets a bare device. Impure: reads the live layout.
+	local src disk ptt
+	src="$(findmnt -no SOURCE --nofsroot /boot 2>/dev/null)"
+	[[ "$src" == /dev/* ]] || src="$(findmnt -no SOURCE --nofsroot / 2>/dev/null)"
+	[[ "$src" == /dev/* ]] || return 0
+	disk="$(lsblk -no PKNAME "$src" 2>/dev/null | head -1)"
 	[[ -n "$disk" ]] || return 0
 	ptt="$(lsblk -ndo PTTYPE "/dev/$disk" 2>/dev/null | head -1)"
 	case "$ptt" in

@@ -69,6 +69,32 @@ setup() {
 	[[ "$output" != *"rpmb"* ]]
 }
 
+@test "source table: selects the /boot device's type, not /'s, when they differ" {
+	# SD /boot (gpt) + NVMe root (msdos): u-boot reads /boot, so the target must
+	# replicate the /boot device's table (gpt), not the root device's.
+	findmnt() { case "$*" in *' /boot'*) echo /dev/mmcblk0p1 ;; *) echo /dev/nvme0n1p1 ;; esac; }
+	lsblk()   {
+		local a="$*"
+		if [[ "$a" == *PKNAME* ]]; then
+			[[ "$a" == *mmcblk0p1* ]] && echo mmcblk0
+			[[ "$a" == *nvme0n1p1* ]] && echo nvme0n1
+		elif [[ "$a" == *PTTYPE* ]]; then
+			[[ "$a" == *mmcblk0* ]] && echo gpt
+			[[ "$a" == *nvme0n1* ]] && echo dos
+		fi
+	}
+	run install_source_table_type
+	[ "$output" = "gpt" ]
+}
+
+@test "source table: falls back to / when /boot is not a separate mount" {
+	# /boot is a dir on / (no mount) -> use the root device's table.
+	findmnt() { case "$*" in *' /boot'*) echo "" ;; *) echo /dev/mmcblk0p1 ;; esac; }
+	lsblk()   { case "$*" in *PKNAME*) echo mmcblk0 ;; *PTTYPE*) echo dos ;; esac; }
+	run install_source_table_type
+	[ "$output" = "msdos" ]
+}
+
 @test "detect: surfaces sector size and model" {
 	run install_detect_targets "" "$(cat "$FIX/lsblk_4kn_large.json")"
 	# 4Kn NVMe reports phy-sec 4096 in field 4.
