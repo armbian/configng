@@ -1269,7 +1269,7 @@ These helper functions facilitate various operations related to job management, 
 | Check when apt list was last updated and suggest updating or update | see_current_apt or see_current_apt update | @Tearran 
 | Install/uninstall/check status of portainer container | install remove purge status help | @armbian 
 | Install and manage desktop environments (YAML-driven) | install remove disable enable status auto manual login supported installed help upgrade downgrade tier at-tier set-tier | @igorpecovnik 
-| Install plexmediaserver from repo using apt | install remove status | @schwar3kat 
+| Install plexmediaserver from repo using apt | install remove status help | @schwar3kat 
 | Display a gauge dialog for progress indication | echo 50 | dialog_gauge "Title" "Progress" 10 70 | @armbian 
 | Generate 'Armbian CPU logo' SVG for document file. | generate_svg | @Tearran 
 | Copy /etc/skel files into existing user home directories | install help | @igorpecovnik 
