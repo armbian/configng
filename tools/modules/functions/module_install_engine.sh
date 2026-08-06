@@ -66,17 +66,44 @@ install_log() {
 readonly INSTALL_TWO_TIB=$(( 2 * 1024 * 1024 * 1024 * 1024 ))
 
 install_table_type() {
-	# install_table_type <is_uefi> <capacity_bytes> <sector_size>
+	# install_table_type <is_uefi> <capacity_bytes> <sector_size> [preferred]
 	# GPT when firmware is UEFI, the disk is larger than the MBR ceiling, or the
-	# medium is 4Kn; msdos otherwise. Pure - no device access.
-	local is_uefi="$1" cap="${2:-0}" sec="${3:-512}"
+	# medium is 4Kn - these are hard requirements and override everything. When
+	# none of those force the choice, honour <preferred> (gpt|msdos) if given -
+	# this is how an eMMC/SD install replicates the running image's table type so
+	# the board's u-boot can actually read it. Falls back to msdos. Pure - no
+	# device access.
+	local is_uefi="$1" cap="${2:-0}" sec="${3:-512}" preferred="${4:-}"
 	if [[ "$is_uefi" == "1" || "$is_uefi" == "uefi" ]] \
 		|| (( cap > INSTALL_TWO_TIB )) \
 		|| (( sec == 4096 )); then
 		echo "gpt"
-	else
-		echo "msdos"
+		return 0
 	fi
+	case "$preferred" in
+		gpt|msdos) echo "$preferred" ;;
+		*)         echo "msdos" ;;
+	esac
+}
+
+install_source_table_type() {
+	# Echo the partition-table type (gpt|msdos) of the disk the running system
+	# boots from, or nothing if it can't be determined. An eMMC/SD install must
+	# replicate this so the board's bootloader can read the result: Rockchip
+	# vendor u-boot (2017.09) parses GPT only - an MBR eMMC gives endless
+	# "Invalid GPT" and never finds the kernel - while Allwinner needs MBR
+	# because its SPL at sector 16 (8KiB) overlaps a GPT partition-entry array.
+	# Impure: reads the live block layout.
+	local rootsrc disk ptt
+	rootsrc="$(findmnt -no SOURCE / 2>/dev/null)" || return 0
+	[[ -n "$rootsrc" ]] || return 0
+	disk="$(lsblk -no PKNAME "$rootsrc" 2>/dev/null | head -1)"
+	[[ -n "$disk" ]] || return 0
+	ptt="$(lsblk -ndo PTTYPE "/dev/$disk" 2>/dev/null | head -1)"
+	case "$ptt" in
+		gpt) echo "gpt" ;;
+		dos) echo "msdos" ;;
+	esac
 }
 
 # ---- detection --------------------------------------------------------------
@@ -132,7 +159,11 @@ install_detect_targets() {
 # ---- partition planning (pure) ---------------------------------------------
 
 install_plan_layout() {
-	# install_plan_layout <boot_mode> <fs> <is_uefi> <capacity_bytes> <sector_size> [has_swap]
+	# install_plan_layout <boot_mode> <fs> <is_uefi> <capacity_bytes> <sector_size> [has_swap] [table_pref]
+	#
+	# table_pref (gpt|msdos): preferred partition table when capacity/sector/uefi
+	# don't force GPT - used to replicate the running image's table type on an
+	# eMMC/SD target so the board's u-boot can read it. Empty = default (msdos).
 	#
 	# boot_mode: uefi | emmc | sd | mtd | ufs
 	#   uefi  - full install to an internal disk with an ESP + GRUB
@@ -146,9 +177,9 @@ install_plan_layout() {
 	#   part=<role>:<size>:<fstype>:<flags>       (one line per partition, in order)
 	# where size is an absolute "<N>MiB" or "100%" (fill), and flags is a
 	# comma-separated subset of {esp,boot,bios_grub} ("" for none). Pure: no device I/O.
-	local boot_mode="$1" fs="$2" is_uefi="$3" cap="${4:-0}" sec="${5:-512}" has_swap="${6:-0}"
+	local boot_mode="$1" fs="$2" is_uefi="$3" cap="${4:-0}" sec="${5:-512}" has_swap="${6:-0}" table_pref="${7:-}"
 	local table
-	table="$(install_table_type "$is_uefi" "$cap" "$sec")"
+	table="$(install_table_type "$is_uefi" "$cap" "$sec" "$table_pref")"
 
 	local -a parts=()
 	case "$boot_mode" in
@@ -932,7 +963,17 @@ install_run_scenario() {
 	[[ "$boot_mode" == uefi ]] && is_uefi=1
 	grep -q swap /etc/fstab 2>/dev/null && has_swap=1
 
-	local plan; plan="$(install_plan_layout "$boot_mode" "$fs" "$is_uefi" "$cap" "$sec" "$has_swap")" \
+	# eMMC/SD installs must use the same partition-table type as the running
+	# image so the board's u-boot can read the result (Rockchip vendor u-boot
+	# reads GPT only; Allwinner needs MBR). Replicate the source; the planner
+	# still upgrades to GPT when capacity/sector size demand it.
+	local table_pref=""
+	case "$boot_mode" in
+		emmc|sd) table_pref="$(install_source_table_type)"
+			[[ -n "$table_pref" ]] && install_log INFO "scenario: inheriting source partition table '$table_pref' for $boot_mode" ;;
+	esac
+
+	local plan; plan="$(install_plan_layout "$boot_mode" "$fs" "$is_uefi" "$cap" "$sec" "$has_swap" "$table_pref")" \
 		|| { install_log ERR "scenario: planning failed"; return "$INSTALL_EX_PARTITION"; }
 	install_log INFO "scenario: $boot_mode on $disk (${cap}B, ${sec}B sectors) fs=$fs"$'\n'"$plan"
 

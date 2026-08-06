@@ -33,6 +33,25 @@ setup() {
 	[ "$output" = "gpt" ]
 }
 
+@test "table: honours a gpt preference when nothing forces the choice" {
+	# eMMC/SD installs replicate the running image's table so the board's u-boot
+	# can read it - Rockchip vendor u-boot (2017.09) parses GPT only.
+	run install_table_type 0 $(( 16 * GIB )) 512 gpt
+	[ "$output" = "gpt" ]
+}
+
+@test "table: honours an msdos preference (Allwinner: SPL at 8KiB clashes with GPT)" {
+	run install_table_type 0 $(( 16 * GIB )) 512 msdos
+	[ "$output" = "msdos" ]
+}
+
+@test "table: hard requirements override the preference (4Kn / >2TiB still gpt)" {
+	run install_table_type 0 $(( 16 * GIB )) 4096 msdos
+	[ "$output" = "gpt" ]
+	run install_table_type 0 $(( 4 * TIB )) 512 msdos
+	[ "$output" = "gpt" ]
+}
+
 # --- uefi layout -------------------------------------------------------------
 
 @test "plan uefi: gpt, ESP first with esp+boot flags, root fills rest" {
@@ -74,6 +93,19 @@ setup() {
 	[[ "$output" == *"part=root:100%:ext4:boot"* ]]
 	# ext4 keeps /boot as a directory: no separate boot partition.
 	[[ "$output" != *"part=boot:"* ]]
+}
+
+@test "plan emmc: replicates a gpt source table so Rockchip vendor u-boot can read it" {
+	# Regression: an MBR eMMC made the RK3588 vendor u-boot loop on
+	# "Invalid GPT" and never find the kernel. Passing the source's gpt through
+	# must yield a gpt target.
+	run install_plan_layout emmc ext4 0 $(( 16 * GIB )) 512 0 gpt
+	[[ "$output" == *"table=gpt"* ]]
+}
+
+@test "plan emmc: an msdos source stays msdos (Allwinner)" {
+	run install_plan_layout emmc ext4 0 $(( 16 * GIB )) 512 0 msdos
+	[[ "$output" == *"table=msdos"* ]]
 }
 
 @test "plan emmc: reserves 16MiB before the first partition for on-device u-boot" {
