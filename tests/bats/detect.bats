@@ -95,6 +95,16 @@ setup() {
 	[ "$output" = "msdos" ]
 }
 
+@test "detect: excludes SPI/MTD flash (mtdblockN) - a boot device, not a target" {
+	# Odroid M1: 5 tiny mtdblock SPI partitions + one NVMe. Only the NVMe is a
+	# valid root destination; the SPI is offered later via the mtd boot mode.
+	run install_detect_targets "" "$(cat "$FIX/lsblk_mtd.json")"
+	[ "$status" -eq 0 ]
+	[ "${#lines[@]}" -eq 1 ]
+	[[ "$output" != *"mtdblock"* ]]
+	echo "$output" | grep -qP '^nvme0n1\tnvme\t'
+}
+
 @test "detect: surfaces sector size and model" {
 	run install_detect_targets "" "$(cat "$FIX/lsblk_4kn_large.json")"
 	# 4Kn NVMe reports phy-sec 4096 in field 4.

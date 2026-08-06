@@ -1,0 +1,10 @@
+{
+    "blockdevices": [
+        {"name":"mtdblock0","type":"disk","size":917504,"phy-sec":512,"tran":null,"rota":false,"model":null},
+        {"name":"mtdblock1","type":"disk","size":131072,"phy-sec":512,"tran":null,"rota":false,"model":null},
+        {"name":"mtdblock2","type":"disk","size":2097152,"phy-sec":512,"tran":null,"rota":false,"model":null},
+        {"name":"mtdblock3","type":"disk","size":1048576,"phy-sec":512,"tran":null,"rota":false,"model":null},
+        {"name":"mtdblock4","type":"disk","size":12582912,"phy-sec":512,"tran":null,"rota":false,"model":null},
+        {"name":"nvme0n1","type":"disk","size":256060514304,"phy-sec":512,"tran":"nvme","rota":false,"model":"PM981 NVMe Samsung 256GB"}
+    ]
+}
