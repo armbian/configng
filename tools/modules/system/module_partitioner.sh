@@ -242,7 +242,9 @@ partitioner_tui() {
 		# shrunk - BitLocker or an unclean/hibernated NTFS - with the exact fix.
 		local blocker
 		if ! blocker="$(install_dualboot_blocker "/dev/$disk")"; then
-			dialog_msgbox " Cannot dual-boot yet " "\n$blocker"
+			# dialog honours literal "\n" but collapses real newlines - convert so
+			# the numbered steps render on separate lines.
+			dialog_msgbox " Cannot dual-boot yet " "\n${blocker//$'\n'/\\n}"
 			return "$INSTALL_EX_USAGE"
 		fi
 		local gib
