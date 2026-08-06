@@ -38,11 +38,22 @@ module_options+=(
 
 # Which whole disk hosts the currently running rootfs (excluded as a target).
 partitioner_root_disk() {
-	local root_uuid root_part
+	local root_uuid root_part disk medium
 	root_uuid=$(sed -e 's/^.*root=//' -e 's/ .*$//' </proc/cmdline)
 	root_part=$(blkid | tr -d '":' | grep -w "${root_uuid#UUID=}" | awk '{print $1}' | head -1)
 	[[ -z "$root_part" ]] && root_part=$(findmnt -no SOURCE / 2>/dev/null)
-	lsblk -ndo pkname "$root_part" 2>/dev/null
+	disk=$(lsblk -ndo pkname "$root_part" 2>/dev/null | head -1)
+	# Live ISO: / is an overlay over a squashfs, with no backing disk, so the above
+	# is empty. Exclude the boot MEDIUM instead - the USB/disk the ISO is running
+	# from - so we never offer to wipe the device we booted from.
+	if [[ -z "$disk" ]]; then
+		medium=$(findmnt -no SOURCE /run/live/medium 2>/dev/null)
+		if [[ -n "$medium" ]]; then
+			disk=$(lsblk -ndo pkname "$medium" 2>/dev/null | head -1)   # medium is a partition
+			[[ -z "$disk" ]] && disk=$(lsblk -ndo name "$medium" 2>/dev/null | head -1)  # ...or a whole disk
+		fi
+	fi
+	echo "$disk"
 }
 
 # A human label for one detect record (TSV: name role size sector bus rota model).
