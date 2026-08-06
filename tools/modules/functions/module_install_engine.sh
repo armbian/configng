@@ -66,17 +66,49 @@ install_log() {
 readonly INSTALL_TWO_TIB=$(( 2 * 1024 * 1024 * 1024 * 1024 ))
 
 install_table_type() {
-	# install_table_type <is_uefi> <capacity_bytes> <sector_size>
+	# install_table_type <is_uefi> <capacity_bytes> <sector_size> [preferred]
 	# GPT when firmware is UEFI, the disk is larger than the MBR ceiling, or the
-	# medium is 4Kn; msdos otherwise. Pure - no device access.
-	local is_uefi="$1" cap="${2:-0}" sec="${3:-512}"
+	# medium is 4Kn - these are hard requirements and override everything. When
+	# none of those force the choice, honour <preferred> (gpt|msdos) if given -
+	# this is how an eMMC/SD install replicates the running image's table type so
+	# the board's u-boot can actually read it. Falls back to msdos. Pure - no
+	# device access.
+	local is_uefi="$1" cap="${2:-0}" sec="${3:-512}" preferred="${4:-}"
 	if [[ "$is_uefi" == "1" || "$is_uefi" == "uefi" ]] \
 		|| (( cap > INSTALL_TWO_TIB )) \
 		|| (( sec == 4096 )); then
 		echo "gpt"
-	else
-		echo "msdos"
+		return 0
 	fi
+	case "$preferred" in
+		gpt|msdos) echo "$preferred" ;;
+		*)         echo "msdos" ;;
+	esac
+}
+
+install_source_table_type() {
+	# Echo the partition-table type (gpt|msdos) of the disk the board actually
+	# boots from, or nothing if it can't be determined. An eMMC/SD install must
+	# replicate this so the board's bootloader can read the result: Rockchip
+	# vendor u-boot (2017.09) parses GPT only - an MBR eMMC gives endless
+	# "Invalid GPT" and never finds the kernel - while Allwinner needs MBR
+	# because its SPL at sector 16 (8KiB) overlaps a GPT partition-entry array.
+	#
+	# Prefer the device that holds /boot: that is the one u-boot reads, and it can
+	# be a different disk with a different table than / (e.g. SD /boot + NVMe root).
+	# Fall back to / when /boot is not its own mount. --nofsroot strips any bind or
+	# subvolume suffix so lsblk gets a bare device. Impure: reads the live layout.
+	local src disk ptt
+	src="$(findmnt -no SOURCE --nofsroot /boot 2>/dev/null)"
+	[[ "$src" == /dev/* ]] || src="$(findmnt -no SOURCE --nofsroot / 2>/dev/null)"
+	[[ "$src" == /dev/* ]] || return 0
+	disk="$(lsblk -no PKNAME "$src" 2>/dev/null | head -1)"
+	[[ -n "$disk" ]] || return 0
+	ptt="$(lsblk -ndo PTTYPE "/dev/$disk" 2>/dev/null | head -1)"
+	case "$ptt" in
+		gpt) echo "gpt" ;;
+		dos) echo "msdos" ;;
+	esac
 }
 
 # ---- detection --------------------------------------------------------------
@@ -132,7 +164,11 @@ install_detect_targets() {
 # ---- partition planning (pure) ---------------------------------------------
 
 install_plan_layout() {
-	# install_plan_layout <boot_mode> <fs> <is_uefi> <capacity_bytes> <sector_size> [has_swap]
+	# install_plan_layout <boot_mode> <fs> <is_uefi> <capacity_bytes> <sector_size> [has_swap] [table_pref]
+	#
+	# table_pref (gpt|msdos): preferred partition table when capacity/sector/uefi
+	# don't force GPT - used to replicate the running image's table type on an
+	# eMMC/SD target so the board's u-boot can read it. Empty = default (msdos).
 	#
 	# boot_mode: uefi | emmc | sd | mtd | ufs
 	#   uefi  - full install to an internal disk with an ESP + GRUB
@@ -146,9 +182,9 @@ install_plan_layout() {
 	#   part=<role>:<size>:<fstype>:<flags>       (one line per partition, in order)
 	# where size is an absolute "<N>MiB" or "100%" (fill), and flags is a
 	# comma-separated subset of {esp,boot,bios_grub} ("" for none). Pure: no device I/O.
-	local boot_mode="$1" fs="$2" is_uefi="$3" cap="${4:-0}" sec="${5:-512}" has_swap="${6:-0}"
+	local boot_mode="$1" fs="$2" is_uefi="$3" cap="${4:-0}" sec="${5:-512}" has_swap="${6:-0}" table_pref="${7:-}"
 	local table
-	table="$(install_table_type "$is_uefi" "$cap" "$sec")"
+	table="$(install_table_type "$is_uefi" "$cap" "$sec" "$table_pref")"
 
 	local -a parts=()
 	case "$boot_mode" in
@@ -180,6 +216,16 @@ install_plan_layout() {
 				parts+=("root:100%:ext4:boot")
 			fi
 			;;
+		emmc-boot)
+			# eMMC used as the BOOT device in a split install: the root filesystem
+			# lives on another disk (e.g. NVMe, which the SoC bootrom cannot load
+			# u-boot from). eMMC carries u-boot in the 16MiB gap, a dedicated ext4
+			# /boot the board's u-boot can always read, and the remainder as a data
+			# partition auto-mounted at /emmc_storage (the fs is fixed to ext4 here;
+			# the <fs> argument applies to the root device, planned separately).
+			parts+=("boot:512MiB:ext4:boot")
+			parts+=("storage:100%:ext4:")
+			;;
 		sd|mtd|ufs)
 			# Only the rootfs lands here; boot lives elsewhere.
 			parts+=("root:100%:${fs}:boot")
@@ -190,6 +236,17 @@ install_plan_layout() {
 			;;
 	esac
 
+	# First-partition start offset, in MiB. emmc is the only mode that writes
+	# u-boot to raw sectors of this same device (idbloader at 32KiB, u-boot.itb
+	# at 8MiB on Rockchip et al.), so its first partition must clear that region
+	# or the filesystem and the bootloader overwrite each other and the board
+	# won't boot. 16MiB matches the classic installer's FIRSTSECTOR=32768 and
+	# covers every SoC's bootloader area. All other modes keep u-boot off this
+	# device (SPI/UFS) or on removable media, so 1MiB alignment is fine.
+	local start_mib=1
+	[[ "$boot_mode" == emmc || "$boot_mode" == emmc-boot ]] && start_mib=16
+
+	echo "start=$start_mib"
 	echo "table=$table"
 	local p
 	for p in "${parts[@]}"; do
@@ -221,11 +278,12 @@ install_apply_partitions() {
 	[[ -z "$plan" ]] && plan="$(cat)"
 	[[ -b "$device" ]] || { install_log ERR "apply_partitions: '$device' is not a block device"; return "$INSTALL_EX_NODEV"; }
 
-	local table="" ; local -a parts=()
+	local table="" start_override="" ; local -a parts=()
 	local line
 	while IFS= read -r line; do
 		case "$line" in
 			table=*) table="${line#table=}" ;;
+			start=*) start_override="${line#start=}" ;;
 			part=*)  parts+=("${line#part=}") ;;
 		esac
 	done <<<"$plan"
@@ -236,7 +294,9 @@ install_apply_partitions() {
 	parted -s "$device" mklabel "$table" >>"$INSTALL_LOG" 2>&1 \
 		|| { install_log ERR "apply_partitions: mklabel $table failed"; return "$INSTALL_EX_PARTITION"; }
 
-	local start_mib=1 idx=0
+	# Honour the plan's start offset (emmc reserves 16MiB for on-device u-boot);
+	# default to 1MiB when a plan predates the directive.
+	local start_mib="${start_override:-1}" idx=0
 	local spec role size fstype flags hint end
 	for spec in "${parts[@]}"; do
 		IFS=':' read -r role size fstype flags <<<"$spec"
@@ -918,7 +978,17 @@ install_run_scenario() {
 	[[ "$boot_mode" == uefi ]] && is_uefi=1
 	grep -q swap /etc/fstab 2>/dev/null && has_swap=1
 
-	local plan; plan="$(install_plan_layout "$boot_mode" "$fs" "$is_uefi" "$cap" "$sec" "$has_swap")" \
+	# eMMC/SD installs must use the same partition-table type as the running
+	# image so the board's u-boot can read the result (Rockchip vendor u-boot
+	# reads GPT only; Allwinner needs MBR). Replicate the source; the planner
+	# still upgrades to GPT when capacity/sector size demand it.
+	local table_pref=""
+	case "$boot_mode" in
+		emmc|sd) table_pref="$(install_source_table_type)"
+			[[ -n "$table_pref" ]] && install_log INFO "scenario: inheriting source partition table '$table_pref' for $boot_mode" ;;
+	esac
+
+	local plan; plan="$(install_plan_layout "$boot_mode" "$fs" "$is_uefi" "$cap" "$sec" "$has_swap" "$table_pref")" \
 		|| { install_log ERR "scenario: planning failed"; return "$INSTALL_EX_PARTITION"; }
 	install_log INFO "scenario: $boot_mode on $disk (${cap}B, ${sec}B sectors) fs=$fs"$'\n'"$plan"
 
@@ -1040,6 +1110,124 @@ install_run_scenario() {
 	rmdir "$mp" 2>/dev/null
 
 	[[ "$rc" == 0 ]] && install_log INFO "scenario: $boot_mode install to $disk completed"
+	return "$rc"
+}
+
+install_run_split() {
+	# install_run_split <boot_disk> <root_disk> <fs> <exclude_file> [uboot_dir]
+	#
+	# "Split" ARM install: the SoC bootrom cannot load u-boot from NVMe/SATA/USB,
+	# so boot lives on an internal eMMC while the root filesystem lives on the
+	# fast/large target. The eMMC gets u-boot (raw sectors) + a dedicated ext4
+	# /boot that the board's u-boot can always read + the remaining space as a
+	# data partition auto-mounted at /emmc_storage. The target disk gets only the
+	# rootfs; its fstab mounts /boot from the eMMC boot partition. Restores the
+	# classic installer's "Boot from eMMC - system on SATA/USB/NVMe".
+	local boot_disk="$1" root_disk="$2" fs="$3" exclude="$4" uboot_dir="${5:-${DIR:-}}"
+	export LC_ALL=C LANG=C
+	[[ -b "$boot_disk" ]] || { install_log ERR "split: boot device '$boot_disk' is not a block device"; return "$INSTALL_EX_NODEV"; }
+	[[ -b "$root_disk" ]] || { install_log ERR "split: root device '$root_disk' is not a block device"; return "$INSTALL_EX_NODEV"; }
+	[[ "$boot_disk" != "$root_disk" ]] || { install_log ERR "split: boot and root device must differ ('$boot_disk')"; return "$INSTALL_EX_USAGE"; }
+	[[ -f "$exclude" ]] || { install_log ERR "split: exclude file '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
+	# Pre-flight: u-boot hook + filesystem tooling must exist BEFORE we wipe.
+	[[ "$(type -t write_uboot_platform)" == function ]] \
+		|| { install_log ERR "split: write_uboot_platform hook missing - refusing to modify $boot_disk"; return "$INSTALL_EX_BOOTLOADER"; }
+	install_check_fs_tools "$fs" >/dev/null \
+		|| { install_log ERR "split: mkfs.$fs not installed (need $(_install_fs_pkg "$fs")) - refusing to modify $root_disk"; return "$INSTALL_EX_TOOL"; }
+	install_fs_kernel_supported "$fs" \
+		|| { install_log ERR "split: running kernel cannot mount $fs - refusing to modify $root_disk"; return "$INSTALL_EX_TOOL"; }
+
+	# Geometry for each device feeds the pure planner.
+	local bcap bsec rcap rsec
+	bcap="$(blockdev --getsize64 "$boot_disk" 2>/dev/null || echo 0)"
+	bsec="$(cat "/sys/block/$(basename "$boot_disk")/queue/physical_block_size" 2>/dev/null || echo 512)"
+	rcap="$(blockdev --getsize64 "$root_disk" 2>/dev/null || echo 0)"
+	rsec="$(cat "/sys/block/$(basename "$root_disk")/queue/physical_block_size" 2>/dev/null || echo 512)"
+	# eMMC must carry a table its u-boot can read (Rockchip vendor = GPT only);
+	# replicate the running image's table type.
+	local table_pref; table_pref="$(install_source_table_type)"
+
+	local bplan rplan
+	bplan="$(install_plan_layout emmc-boot ext4 0 "$bcap" "$bsec" 0 "$table_pref")" \
+		|| { install_log ERR "split: eMMC boot planning failed"; return "$INSTALL_EX_PARTITION"; }
+	rplan="$(install_plan_layout sd "$fs" 0 "$rcap" "$rsec" 0 "$table_pref")" \
+		|| { install_log ERR "split: root planning failed"; return "$INSTALL_EX_PARTITION"; }
+	install_log INFO "split: boot device $boot_disk"$'\n'"$bplan"$'\n'"split: root device $root_disk"$'\n'"$rplan"
+
+	# Partition both devices before formatting anything.
+	local bpartmap rpartmap
+	bpartmap="$(install_apply_partitions "$boot_disk" "$bplan")" || return "$INSTALL_EX_PARTITION"
+	rpartmap="$(install_apply_partitions "$root_disk" "$rplan")" || return "$INSTALL_EX_PARTITION"
+
+	local boot_part="" storage_part="" root_part="" role dev mkfs_map=""
+	while read -r role dev; do
+		[[ -n "$dev" ]] || continue
+		case "$role" in
+			boot)    boot_part="$dev";    mkfs_map+="boot $dev ext4"$'\n' ;;
+			storage) storage_part="$dev"; mkfs_map+="storage $dev ext4"$'\n' ;;
+		esac
+	done <<<"$bpartmap"
+	while read -r role dev; do
+		[[ -n "$dev" ]] || continue
+		[[ "$role" == root ]] && { root_part="$dev"; mkfs_map+="root $dev $fs"$'\n'; }
+	done <<<"$rpartmap"
+	[[ -b "$boot_part" && -b "$root_part" ]] || { install_log ERR "split: expected boot+root partitions not created"; return "$INSTALL_EX_PARTITION"; }
+	install_make_filesystems "$mkfs_map" || return "$INSTALL_EX_FORMAT"
+
+	local mp; mp="$(mktemp -d /mnt/armbian-install.XXXXXX)" || return "$INSTALL_EX_TRANSFER"
+	mount "$root_part" "$mp" || { install_log ERR "split: mount root $root_part failed"; rmdir "$mp"; return "$INSTALL_EX_TRANSFER"; }
+
+	local rc=0
+	while :; do
+		install_transfer_rootfs "$mp" "$exclude" 1 / 0 90 || { rc=$INSTALL_EX_TRANSFER; break; }
+		echo 92
+		# The eMMC boot partition carries /boot (kernel, dtb, boot script); mount it
+		# before populating or the files land on the rootfs and u-boot never sees them.
+		mkdir -p "$mp/boot"
+		mount "$boot_part" "$mp/boot" || { install_log ERR "split: mount boot $boot_part failed"; rc=$INSTALL_EX_BOOTCFG; break; }
+		install_populate_boot "$mp" 1 || { rc=$INSTALL_EX_BOOTCFG; break; }
+
+		local root_uuid boot_uuid storage_uuid
+		root_uuid="$(install_uuid "$root_part")"
+		boot_uuid="$(install_uuid "$boot_part")"
+		storage_uuid="$(install_uuid "$storage_part")"
+
+		# fstab: root on the target, /boot from the eMMC boot partition, and the
+		# eMMC data partition at /emmc_storage (nofail - never block boot on it).
+		install_gen_fstab "$root_uuid" "$fs" "$boot_uuid" ext4 "" "" >"$mp/etc/fstab" \
+			|| { rc=$INSTALL_EX_BOOTCFG; break; }
+		if [[ -n "$storage_uuid" ]]; then
+			mkdir -p "$mp/emmc_storage"
+			printf '%s\t/emmc_storage\text4\tdefaults,nofail\t0\t2\n' "$storage_uuid" >>"$mp/etc/fstab"
+		fi
+
+		# Point the eMMC boot env at the root that now lives on the target device.
+		local env_file="$mp/boot/armbianEnv.txt"
+		[[ -f "$env_file" ]] && { install_rewrite_bootenv "$env_file" "$root_uuid" "$fs" \
+			|| { install_log ERR "split: failed to point $env_file at root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }; }
+
+		# Module root fs (btrfs/f2fs) needs its driver in the eMMC /boot initramfs.
+		install_update_initramfs "$mp" "$fs"
+
+		echo 95
+		# u-boot goes to the eMMC whole device (raw sectors), never the target.
+		install_write_bootloader emmc "$boot_disk" "$mp" "$uboot_dir" \
+			|| { rc=$INSTALL_EX_BOOTLOADER; break; }
+
+		echo 99
+		install_verify_boot_dir "$mp/boot" || { rc=$INSTALL_EX_VERIFY; break; }
+		install_verify_fstab "$mp/etc/fstab" || { rc=$INSTALL_EX_VERIFY; break; }
+		echo 100
+		break
+	done 2>>"$INSTALL_LOG"
+
+	# Teardown (best effort).
+	sync
+	mountpoint -q "$mp/boot" && umount "$mp/boot" 2>/dev/null
+	umount "$mp" 2>/dev/null
+	rmdir "$mp" 2>/dev/null
+
+	[[ "$rc" == 0 ]] && install_log INFO "split: boot on $boot_disk, root on $root_disk completed"
 	return "$rc"
 }
 

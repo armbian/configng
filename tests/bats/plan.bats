@@ -33,6 +33,25 @@ setup() {
 	[ "$output" = "gpt" ]
 }
 
+@test "table: honours a gpt preference when nothing forces the choice" {
+	# eMMC/SD installs replicate the running image's table so the board's u-boot
+	# can read it - Rockchip vendor u-boot (2017.09) parses GPT only.
+	run install_table_type 0 $(( 16 * GIB )) 512 gpt
+	[ "$output" = "gpt" ]
+}
+
+@test "table: honours an msdos preference (Allwinner: SPL at 8KiB clashes with GPT)" {
+	run install_table_type 0 $(( 16 * GIB )) 512 msdos
+	[ "$output" = "msdos" ]
+}
+
+@test "table: hard requirements override the preference (4Kn / >2TiB still gpt)" {
+	run install_table_type 0 $(( 16 * GIB )) 4096 msdos
+	[ "$output" = "gpt" ]
+	run install_table_type 0 $(( 4 * TIB )) 512 msdos
+	[ "$output" = "gpt" ]
+}
+
 # --- uefi layout -------------------------------------------------------------
 
 @test "plan uefi: gpt, ESP first with esp+boot flags, root fills rest" {
@@ -76,6 +95,36 @@ setup() {
 	[[ "$output" != *"part=boot:"* ]]
 }
 
+@test "plan emmc: replicates a gpt source table so Rockchip vendor u-boot can read it" {
+	# Regression: an MBR eMMC made the RK3588 vendor u-boot loop on
+	# "Invalid GPT" and never find the kernel. Passing the source's gpt through
+	# must yield a gpt target.
+	run install_plan_layout emmc ext4 0 $(( 16 * GIB )) 512 0 gpt
+	[[ "$output" == *"table=gpt"* ]]
+}
+
+@test "plan emmc: an msdos source stays msdos (Allwinner)" {
+	run install_plan_layout emmc ext4 0 $(( 16 * GIB )) 512 0 msdos
+	[[ "$output" == *"table=msdos"* ]]
+}
+
+@test "plan emmc: reserves 16MiB before the first partition for on-device u-boot" {
+	# emmc dd's idbloader (32KiB) + u-boot.itb (8MiB) to raw sectors of this same
+	# device, so the first partition must start at 16MiB (classic FIRSTSECTOR=32768)
+	# or the filesystem and the bootloader clobber each other and the board won't boot.
+	run install_plan_layout emmc ext4 0 $(( 16 * GIB )) 512 0
+	[[ "$output" == *"start=16"* ]]
+}
+
+@test "plan: non-emmc modes keep the 1MiB start (u-boot lives off this device)" {
+	run install_plan_layout uefi ext4 1 $(( 16 * GIB )) 512 0
+	[[ "$output" == *"start=1"* ]]
+	run install_plan_layout sd ext4 0 $(( 500 * GIB )) 512 0
+	[[ "$output" == *"start=1"* ]]
+	run install_plan_layout bios ext4 0 $(( 20 * GIB )) 512 0
+	[[ "$output" == *"start=1"* ]]
+}
+
 @test "plan emmc btrfs: separate ext4 boot + btrfs root (u-boot can't read btrfs)" {
 	run install_plan_layout emmc btrfs 0 $(( 16 * GIB )) 512 0
 	[[ "$output" == *"part=boot:512MiB:ext4:boot"* ]]
@@ -92,6 +141,28 @@ setup() {
 @test "plan emmc ext4 has no swap partition (swapfile stays on ext4)" {
 	run install_plan_layout emmc ext4 0 $(( 16 * GIB )) 512 1
 	[[ "$output" != *"part=swap:"* ]]
+}
+
+# --- split install: eMMC boot device (root lives on NVMe/SATA/USB) -----------
+
+@test "plan emmc-boot: u-boot gap + ext4 /boot + /emmc_storage data partition" {
+	run install_plan_layout emmc-boot ext4 0 $(( 58 * GIB )) 512 0 gpt
+	[ "$status" -eq 0 ]
+	# 16MiB reserve so u-boot (raw sectors) clears the first partition
+	[[ "$output" == *"start=16"* ]]
+	# a small boot-flagged ext4 /boot the board's u-boot can read...
+	[[ "$output" == *"part=boot:512MiB:ext4:boot"* ]]
+	# ...and the rest as an ext4 data partition (mounted at /emmc_storage)
+	[[ "$output" == *"part=storage:100%:ext4:"* ]]
+	# root does NOT live on the eMMC in this mode
+	[[ "$output" != *"part=root:"* ]]
+}
+
+@test "plan emmc-boot: replicates the source table type (gpt for Rockchip vendor u-boot)" {
+	run install_plan_layout emmc-boot ext4 0 $(( 58 * GIB )) 512 0 gpt
+	[[ "$output" == *"table=gpt"* ]]
+	run install_plan_layout emmc-boot ext4 0 $(( 58 * GIB )) 512 0 msdos
+	[[ "$output" == *"table=msdos"* ]]
 }
 
 # --- rootfs-only layouts (boot lives elsewhere) ------------------------------

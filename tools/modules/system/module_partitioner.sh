@@ -57,6 +57,21 @@ partitioner_disk_label() {
 	printf '%-10s %8s  %s' "/dev/$name" "$human" "$info"
 }
 
+# Echo the eMMC whole-disk device (empty if none). eMMC exposes a boot0 hardware
+# boot partition and/or reports device type MMC; SD cards report type SD and have
+# no boot0. Used to offer "boot from eMMC, root on NVMe/SATA/USB" only when an
+# eMMC actually exists.
+partitioner_emmc_device() {
+	local d n
+	for d in /dev/mmcblk[0-9]; do
+		[[ -b "$d" ]] || continue
+		n="${d#/dev/}"
+		if [[ -b "${d}boot0" || "$(cat "/sys/block/$n/device/type" 2>/dev/null)" == "MMC" ]]; then
+			echo "$d"; return 0
+		fi
+	done
+}
+
 # Boot modes that actually work on this system for a given target, gated by
 # capability so we never offer a mode whose bootloader cannot be written:
 #   * UEFI firmware present            -> GRUB EFI (uefi, +dualboot with Windows)
@@ -77,7 +92,13 @@ partitioner_modes_for() {
 	if [[ "$have_uboot" -eq 1 ]]; then
 		case "$role" in
 			mmc)           m+=(emmc sd) ;;   # eMMC: full install or just root
-			nvme|sata|usb) m+=(sd) ;;        # boot on removable media, root here
+			nvme|sata|usb)
+				m+=(sd)                       # boot on current media, root here
+				# The SoC bootrom can't load u-boot from NVMe/SATA/USB, so offer
+				# booting from an internal eMMC (if present and not the target).
+				local emmc; emmc="$(partitioner_emmc_device)"
+				[[ -n "$emmc" && "/dev/$disk" != "$emmc" ]] && m+=(split-emmc)
+				;;
 			mtd)           m+=(mtd) ;;
 			ufs)           m+=(ufs) ;;
 		esac
@@ -99,6 +120,7 @@ partitioner_mode_desc() {
 		bios) echo "Legacy BIOS install with GRUB (ERASES the disk)" ;;
 		emmc) echo "Full install to this device (boot + system)" ;;
 		sd)   echo "Keep boot on current media, system on this disk" ;;
+		split-emmc) echo "Boot from eMMC, system on this disk (+ /emmc_storage)" ;;
 		mtd)  echo "Boot from SPI/MTD flash, system on this disk" ;;
 		ufs)  echo "Boot idblock on UFS boot LUN, system on UFS" ;;
 		*)    echo "$1" ;;
@@ -197,6 +219,11 @@ partitioner_tui() {
 		if ! dialog_yesno " WARNING " "\nThis will SHRINK Windows on /dev/$disk and install Armbian ($fs, ${gib}GiB) alongside it.\n\nBack up first. Proceed?" "Shrink and install" "Cancel" 11 72; then
 			return "$INSTALL_EX_OK"
 		fi
+	elif [[ "$boot" == split-emmc ]]; then
+		local emmc; emmc="$(partitioner_emmc_device)"
+		if ! dialog_yesno " WARNING " "\nThis will ERASE BOTH devices:\n  $emmc (eMMC) -> u-boot + /boot + /emmc_storage\n  /dev/$disk -> Armbian root ($fs)\n\nProceed?" "Erase and install" "Cancel" 12 74; then
+			return "$INSTALL_EX_OK"
+		fi
 	else
 		if ! dialog_yesno " WARNING " "\nThis will ERASE /dev/$disk and install Armbian ($boot, $fs).\n\nProceed?" "Erase and install" "Cancel" 10 70; then
 			return "$INSTALL_EX_OK"
@@ -208,6 +235,8 @@ partitioner_tui() {
 	{
 		if [[ "$boot" == uefi-dualboot ]]; then
 			install_run_dualboot "/dev/$disk" "$fs" "$INSTALL_EXCLUDE" "$want_bytes"
+		elif [[ "$boot" == split-emmc ]]; then
+			install_run_split "$(partitioner_emmc_device)" "/dev/$disk" "$fs" "$INSTALL_EXCLUDE"
 		else
 			install_run_scenario "$boot" "/dev/$disk" "$fs" "$INSTALL_EXCLUDE"
 		fi
@@ -241,7 +270,7 @@ partitioner_cli_install() {
 	done
 
 	[[ -b "$target" ]] || { echo "armbian-install: --target must be a block device" >&2; return "$INSTALL_EX_NODEV"; }
-	case "$boot" in uefi|uefi-dualboot|bios|emmc|sd|mtd|ufs) ;; *) echo "armbian-install: --boot must be one of uefi|uefi-dualboot|bios|emmc|sd|mtd|ufs" >&2; return "$INSTALL_EX_USAGE" ;; esac
+	case "$boot" in uefi|uefi-dualboot|bios|emmc|sd|mtd|ufs|split-emmc) ;; *) echo "armbian-install: --boot must be one of uefi|uefi-dualboot|bios|emmc|sd|mtd|ufs|split-emmc" >&2; return "$INSTALL_EX_USAGE" ;; esac
 	case "$fs"   in ext4|btrfs|f2fs) ;;     *) echo "armbian-install: --fs must be one of ext4|btrfs|f2fs" >&2; return "$INSTALL_EX_USAGE" ;; esac
 	[[ -f "$INSTALL_EXCLUDE" ]] || { echo "armbian-install: exclude list $INSTALL_EXCLUDE missing" >&2; return "$INSTALL_EX_TRANSFER"; }
 
@@ -258,6 +287,12 @@ partitioner_cli_install() {
 		[[ "$size_gib" =~ ^[0-9]+$ && "$size_gib" -gt 0 ]] || { echo "armbian-install: --size <GiB> is required for uefi-dualboot" >&2; return "$INSTALL_EX_USAGE"; }
 		echo "Installing Armbian alongside Windows on $target (${size_gib}GiB, $fs)..."
 		install_run_dualboot "$target" "$fs" "$INSTALL_EXCLUDE" $(( size_gib * 1024 * 1024 * 1024 ))
+	elif [[ "$boot" == split-emmc ]]; then
+		local emmc; emmc="$(partitioner_emmc_device)"
+		[[ -n "$emmc" ]] || { echo "armbian-install: --boot split-emmc needs an eMMC, none detected" >&2; return "$INSTALL_EX_NODEV"; }
+		[[ "$emmc" != "$target" ]] || { echo "armbian-install: --boot split-emmc target must differ from the eMMC ($emmc)" >&2; return "$INSTALL_EX_USAGE"; }
+		echo "Installing Armbian: boot on $emmc (eMMC), root on $target ($fs), data at /emmc_storage..."
+		install_run_split "$emmc" "$target" "$fs" "$INSTALL_EXCLUDE"
 	else
 		echo "Installing Armbian to $target ($boot, $fs)..."
 		install_run_scenario "$boot" "$target" "$fs" "$INSTALL_EXCLUDE"
@@ -307,7 +342,9 @@ partitioner_help() {
 
 	Non-interactive:
 	  armbian-install --target /dev/sdX --boot <mode> --fs <fs> --yes
-	    --boot   uefi | uefi-dualboot | bios | emmc | sd | mtd | ufs
+	    --boot   uefi | uefi-dualboot | bios | emmc | sd | mtd | ufs | split-emmc
+	             split-emmc: boot from eMMC, root on --target (NVMe/SATA/USB),
+	                         eMMC remainder mounted at /emmc_storage
 	    --fs     ext4 | btrfs | f2fs
 	    --size   GiB for Armbian (uefi-dualboot only; shrinks Windows)
 	    --yes    required to actually modify the target
