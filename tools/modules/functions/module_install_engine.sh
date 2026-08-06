@@ -122,8 +122,10 @@ install_detect_targets() {
 	# install_detect_targets [root_disk] [lsblk_json]
 	# Emit one TAB-separated record per candidate whole disk:
 	#   name <TAB> role <TAB> size_bytes <TAB> sector_size <TAB> bus <TAB> rota <TAB> model
-	# role in {nvme,mmc,mtd,usb,sata,disk}. The disk hosting the running rootfs
-	# (root_disk, a bare kernel name such as "mmcblk0") is excluded.
+	# role in {nvme,mmc,usb,sata,disk}. The disk hosting the running rootfs
+	# (root_disk, a bare kernel name such as "mmcblk0") is excluded, as is SPI/MTD
+	# flash (mtdblockN) - a boot device, not a target; it is offered as the mtd
+	# boot mode once a real target is picked (see INSTALL_MTD_LIST).
 	local root_disk="${1:-}"
 	local json="${2:-}"
 	[[ -z "$json" ]] && json="$(_install_lsblk_raw)"
@@ -964,11 +966,20 @@ install_run_scenario() {
 	# The scenario is a terminal operation, so exporting here is fine.
 	export LC_ALL=C LANG=C
 	[[ -b "$disk" ]] || { install_log ERR "scenario: '$disk' is not a block device"; return "$INSTALL_EX_NODEV"; }
+	# SPI/MTD flash (mtdblockN) is a boot device, never a root target. Detection
+	# filters it from the menu, but refuse it here too so an explicit
+	# --target /dev/mtdblockN (or a TUI selection) can't repartition the SPI.
+	[[ "$disk" != /dev/mtdblock* ]] || { install_log ERR "scenario: '$disk' is SPI/MTD flash, not a valid install target"; return "$INSTALL_EX_NODEV"; }
 	[[ -f "$exclude" ]] || { install_log ERR "scenario: exclude file '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
 	# Pre-flight: confirm we can make the target bootable AND format it BEFORE
 	# wiping anything - never destroy a disk we cannot finish installing to.
 	install_bootloader_available "$boot_mode" \
 		|| { install_log ERR "scenario: no bootloader method for '$boot_mode' on this system (u-boot hooks or grub-install missing) - refusing to modify $disk"; return "$INSTALL_EX_BOOTLOADER"; }
+	# mtd mode flashes u-boot to the SPI/MTD device list; refuse before wiping the
+	# target if the frontend handed us an empty list (e.g. the device vanished
+	# between menu and run) rather than failing after partitioning.
+	[[ "$boot_mode" != mtd || -n "${INSTALL_MTD_LIST:-}" ]] \
+		|| { install_log ERR "scenario: mtd boot but no MTD/SPI device (INSTALL_MTD_LIST empty) - refusing to modify $disk"; return "$INSTALL_EX_NODEV"; }
 	install_check_fs_tools "$fs" >/dev/null \
 		|| { install_log ERR "scenario: mkfs.$fs not installed (need $(_install_fs_pkg "$fs")) - refusing to modify $disk"; return "$INSTALL_EX_TOOL"; }
 	install_fs_kernel_supported "$fs" \
@@ -1131,6 +1142,7 @@ install_run_split() {
 	export LC_ALL=C LANG=C
 	[[ -b "$boot_disk" ]] || { install_log ERR "split: boot device '$boot_disk' is not a block device"; return "$INSTALL_EX_NODEV"; }
 	[[ -b "$root_disk" ]] || { install_log ERR "split: root device '$root_disk' is not a block device"; return "$INSTALL_EX_NODEV"; }
+	[[ "$root_disk" != /dev/mtdblock* ]] || { install_log ERR "split: root device '$root_disk' is SPI/MTD flash, not a valid install target"; return "$INSTALL_EX_NODEV"; }
 	[[ "$boot_disk" != "$root_disk" ]] || { install_log ERR "split: boot and root device must differ ('$boot_disk')"; return "$INSTALL_EX_USAGE"; }
 	[[ -f "$exclude" ]] || { install_log ERR "split: exclude file '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
 	# Pre-flight: u-boot hook + filesystem tooling must exist BEFORE we wipe.
