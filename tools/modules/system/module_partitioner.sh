@@ -72,6 +72,22 @@ partitioner_emmc_device() {
 	done
 }
 
+# Echo the SPI/MTD device+partition list the board's u-boot lives on (empty if
+# none), space-separated, in the format write_uboot_platform_mtd expects: the
+# mtdblock whole-devices first, then any char-device SPL/boot partitions as
+# "mtdN:label" (e.g. "mtdblock0 mtd0:uboot"). Mirrors the classic installer's
+# mtdcheck. Used to offer "boot from SPI/MTD, root on NVMe/SATA/USB" and to feed
+# INSTALL_MTD_LIST to the engine.
+partitioner_mtd_list() {
+	local list chr
+	list="$(grep 'mtdblock' /proc/partitions 2>/dev/null | awk '{print $NF}' | xargs)"
+	if [[ -f /proc/mtd ]]; then
+		chr="$(grep -iE '^mtd[0-9]+:.*(spl|boot|uboot).*' /proc/mtd 2>/dev/null | awk '{print $1$NF}' | sed 's/"//g' | xargs)"
+		list="${list}${list:+ }${chr}"
+	fi
+	echo "$list" | xargs 2>/dev/null   # trim
+}
+
 # Boot modes that actually work on this system for a given target, gated by
 # capability so we never offer a mode whose bootloader cannot be written:
 #   * UEFI firmware present            -> GRUB EFI (uefi, +dualboot with Windows)
@@ -98,8 +114,10 @@ partitioner_modes_for() {
 				# booting from an internal eMMC (if present and not the target).
 				local emmc; emmc="$(partitioner_emmc_device)"
 				[[ -n "$emmc" && "/dev/$disk" != "$emmc" ]] && m+=(split-emmc)
+				# ...or from SPI/MTD flash, when the board can write u-boot there
+				# and an MTD device is present (e.g. Odroid M1 SPI + NVMe root).
+				[[ "$(type -t write_uboot_platform_mtd)" == function && -n "$(partitioner_mtd_list)" ]] && m+=(mtd)
 				;;
-			mtd)           m+=(mtd) ;;
 			ufs)           m+=(ufs) ;;
 		esac
 	fi
@@ -224,6 +242,10 @@ partitioner_tui() {
 		if ! dialog_yesno " WARNING " "\nThis will ERASE BOTH devices:\n  $emmc (eMMC) -> u-boot + /boot + /emmc_storage\n  /dev/$disk -> Armbian root ($fs)\n\nProceed?" "Erase and install" "Cancel" 12 74; then
 			return "$INSTALL_EX_OK"
 		fi
+	elif [[ "$boot" == mtd ]]; then
+		if ! dialog_yesno " WARNING " "\nThis will ERASE /dev/$disk (Armbian root, $fs) AND overwrite the bootloader on SPI/MTD flash:\n  [ $(partitioner_mtd_list) ]\n\nProceed?" "Erase and install" "Cancel" 12 74; then
+			return "$INSTALL_EX_OK"
+		fi
 	else
 		if ! dialog_yesno " WARNING " "\nThis will ERASE /dev/$disk and install Armbian ($boot, $fs).\n\nProceed?" "Erase and install" "Cancel" 10 70; then
 			return "$INSTALL_EX_OK"
@@ -238,6 +260,8 @@ partitioner_tui() {
 		elif [[ "$boot" == split-emmc ]]; then
 			install_run_split "$(partitioner_emmc_device)" "/dev/$disk" "$fs" "$INSTALL_EXCLUDE"
 		else
+			# mtd mode writes u-boot to SPI/MTD; hand the engine the device list.
+			[[ "$boot" == mtd ]] && export INSTALL_MTD_LIST="$(partitioner_mtd_list)"
 			install_run_scenario "$boot" "/dev/$disk" "$fs" "$INSTALL_EXCLUDE"
 		fi
 		echo "$?" >"$rc_file"
@@ -294,7 +318,13 @@ partitioner_cli_install() {
 		echo "Installing Armbian: boot on $emmc (eMMC), root on $target ($fs), data at /emmc_storage..."
 		install_run_split "$emmc" "$target" "$fs" "$INSTALL_EXCLUDE"
 	else
-		echo "Installing Armbian to $target ($boot, $fs)..."
+		if [[ "$boot" == mtd ]]; then
+			export INSTALL_MTD_LIST="$(partitioner_mtd_list)"
+			[[ -n "$INSTALL_MTD_LIST" ]] || { echo "armbian-install: --boot mtd but no MTD/SPI device found (need mtdblock or /proc/mtd spl/boot)" >&2; return "$INSTALL_EX_NODEV"; }
+			echo "Installing Armbian: boot on MTD/SPI [$INSTALL_MTD_LIST], root on $target ($fs)..."
+		else
+			echo "Installing Armbian to $target ($boot, $fs)..."
+		fi
 		install_run_scenario "$boot" "$target" "$fs" "$INSTALL_EXCLUDE"
 	fi
 	local rc=$?
