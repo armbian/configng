@@ -52,6 +52,18 @@ teardown() {
 	LC_ALL=C parted -sm "$LOOP" unit MiB print | grep -qE '^1:16\.0MiB:'
 }
 
+@test "loopback: emmc-boot plan yields /boot + /emmc_storage, p1 at 16MiB" {
+	local plan; plan="$(install_plan_layout emmc-boot ext4 0 $((8*1024*1024*1024)) 512 0 gpt)"
+	run install_apply_partitions "$LOOP" "$plan"
+	[ "$status" -eq 0 ]
+	[[ "$output" == *"boot ${LOOP}p1"* ]]
+	[[ "$output" == *"storage ${LOOP}p2"* ]]
+	[ -b "${LOOP}p1" ]
+	[ -b "${LOOP}p2" ]
+	# boot partition clears the u-boot region and is ~512MiB; storage fills the rest
+	LC_ALL=C parted -sm "$LOOP" unit MiB print | grep -qE '^1:16\.0MiB:528'
+}
+
 @test "loopback: apply_partitions echoes role->device for each partition" {
 	local plan; plan="$(install_plan_layout uefi ext4 1 $((8*1024*1024*1024)) 512 0)"
 	run install_apply_partitions "$LOOP" "$plan"

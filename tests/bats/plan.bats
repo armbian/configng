@@ -143,6 +143,28 @@ setup() {
 	[[ "$output" != *"part=swap:"* ]]
 }
 
+# --- split install: eMMC boot device (root lives on NVMe/SATA/USB) -----------
+
+@test "plan emmc-boot: u-boot gap + ext4 /boot + /emmc_storage data partition" {
+	run install_plan_layout emmc-boot ext4 0 $(( 58 * GIB )) 512 0 gpt
+	[ "$status" -eq 0 ]
+	# 16MiB reserve so u-boot (raw sectors) clears the first partition
+	[[ "$output" == *"start=16"* ]]
+	# a small boot-flagged ext4 /boot the board's u-boot can read...
+	[[ "$output" == *"part=boot:512MiB:ext4:boot"* ]]
+	# ...and the rest as an ext4 data partition (mounted at /emmc_storage)
+	[[ "$output" == *"part=storage:100%:ext4:"* ]]
+	# root does NOT live on the eMMC in this mode
+	[[ "$output" != *"part=root:"* ]]
+}
+
+@test "plan emmc-boot: replicates the source table type (gpt for Rockchip vendor u-boot)" {
+	run install_plan_layout emmc-boot ext4 0 $(( 58 * GIB )) 512 0 gpt
+	[[ "$output" == *"table=gpt"* ]]
+	run install_plan_layout emmc-boot ext4 0 $(( 58 * GIB )) 512 0 msdos
+	[[ "$output" == *"table=msdos"* ]]
+}
+
 # --- rootfs-only layouts (boot lives elsewhere) ------------------------------
 
 @test "plan sd: single boot-flagged root partition" {

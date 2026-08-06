@@ -216,6 +216,16 @@ install_plan_layout() {
 				parts+=("root:100%:ext4:boot")
 			fi
 			;;
+		emmc-boot)
+			# eMMC used as the BOOT device in a split install: the root filesystem
+			# lives on another disk (e.g. NVMe, which the SoC bootrom cannot load
+			# u-boot from). eMMC carries u-boot in the 16MiB gap, a dedicated ext4
+			# /boot the board's u-boot can always read, and the remainder as a data
+			# partition auto-mounted at /emmc_storage (the fs is fixed to ext4 here;
+			# the <fs> argument applies to the root device, planned separately).
+			parts+=("boot:512MiB:ext4:boot")
+			parts+=("storage:100%:ext4:")
+			;;
 		sd|mtd|ufs)
 			# Only the rootfs lands here; boot lives elsewhere.
 			parts+=("root:100%:${fs}:boot")
@@ -234,7 +244,7 @@ install_plan_layout() {
 	# covers every SoC's bootloader area. All other modes keep u-boot off this
 	# device (SPI/UFS) or on removable media, so 1MiB alignment is fine.
 	local start_mib=1
-	[[ "$boot_mode" == emmc ]] && start_mib=16
+	[[ "$boot_mode" == emmc || "$boot_mode" == emmc-boot ]] && start_mib=16
 
 	echo "start=$start_mib"
 	echo "table=$table"
@@ -1100,6 +1110,124 @@ install_run_scenario() {
 	rmdir "$mp" 2>/dev/null
 
 	[[ "$rc" == 0 ]] && install_log INFO "scenario: $boot_mode install to $disk completed"
+	return "$rc"
+}
+
+install_run_split() {
+	# install_run_split <boot_disk> <root_disk> <fs> <exclude_file> [uboot_dir]
+	#
+	# "Split" ARM install: the SoC bootrom cannot load u-boot from NVMe/SATA/USB,
+	# so boot lives on an internal eMMC while the root filesystem lives on the
+	# fast/large target. The eMMC gets u-boot (raw sectors) + a dedicated ext4
+	# /boot that the board's u-boot can always read + the remaining space as a
+	# data partition auto-mounted at /emmc_storage. The target disk gets only the
+	# rootfs; its fstab mounts /boot from the eMMC boot partition. Restores the
+	# classic installer's "Boot from eMMC - system on SATA/USB/NVMe".
+	local boot_disk="$1" root_disk="$2" fs="$3" exclude="$4" uboot_dir="${5:-${DIR:-}}"
+	export LC_ALL=C LANG=C
+	[[ -b "$boot_disk" ]] || { install_log ERR "split: boot device '$boot_disk' is not a block device"; return "$INSTALL_EX_NODEV"; }
+	[[ -b "$root_disk" ]] || { install_log ERR "split: root device '$root_disk' is not a block device"; return "$INSTALL_EX_NODEV"; }
+	[[ "$boot_disk" != "$root_disk" ]] || { install_log ERR "split: boot and root device must differ ('$boot_disk')"; return "$INSTALL_EX_USAGE"; }
+	[[ -f "$exclude" ]] || { install_log ERR "split: exclude file '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
+	# Pre-flight: u-boot hook + filesystem tooling must exist BEFORE we wipe.
+	[[ "$(type -t write_uboot_platform)" == function ]] \
+		|| { install_log ERR "split: write_uboot_platform hook missing - refusing to modify $boot_disk"; return "$INSTALL_EX_BOOTLOADER"; }
+	install_check_fs_tools "$fs" >/dev/null \
+		|| { install_log ERR "split: mkfs.$fs not installed (need $(_install_fs_pkg "$fs")) - refusing to modify $root_disk"; return "$INSTALL_EX_TOOL"; }
+	install_fs_kernel_supported "$fs" \
+		|| { install_log ERR "split: running kernel cannot mount $fs - refusing to modify $root_disk"; return "$INSTALL_EX_TOOL"; }
+
+	# Geometry for each device feeds the pure planner.
+	local bcap bsec rcap rsec
+	bcap="$(blockdev --getsize64 "$boot_disk" 2>/dev/null || echo 0)"
+	bsec="$(cat "/sys/block/$(basename "$boot_disk")/queue/physical_block_size" 2>/dev/null || echo 512)"
+	rcap="$(blockdev --getsize64 "$root_disk" 2>/dev/null || echo 0)"
+	rsec="$(cat "/sys/block/$(basename "$root_disk")/queue/physical_block_size" 2>/dev/null || echo 512)"
+	# eMMC must carry a table its u-boot can read (Rockchip vendor = GPT only);
+	# replicate the running image's table type.
+	local table_pref; table_pref="$(install_source_table_type)"
+
+	local bplan rplan
+	bplan="$(install_plan_layout emmc-boot ext4 0 "$bcap" "$bsec" 0 "$table_pref")" \
+		|| { install_log ERR "split: eMMC boot planning failed"; return "$INSTALL_EX_PARTITION"; }
+	rplan="$(install_plan_layout sd "$fs" 0 "$rcap" "$rsec" 0 "$table_pref")" \
+		|| { install_log ERR "split: root planning failed"; return "$INSTALL_EX_PARTITION"; }
+	install_log INFO "split: boot device $boot_disk"$'\n'"$bplan"$'\n'"split: root device $root_disk"$'\n'"$rplan"
+
+	# Partition both devices before formatting anything.
+	local bpartmap rpartmap
+	bpartmap="$(install_apply_partitions "$boot_disk" "$bplan")" || return "$INSTALL_EX_PARTITION"
+	rpartmap="$(install_apply_partitions "$root_disk" "$rplan")" || return "$INSTALL_EX_PARTITION"
+
+	local boot_part="" storage_part="" root_part="" role dev mkfs_map=""
+	while read -r role dev; do
+		[[ -n "$dev" ]] || continue
+		case "$role" in
+			boot)    boot_part="$dev";    mkfs_map+="boot $dev ext4"$'\n' ;;
+			storage) storage_part="$dev"; mkfs_map+="storage $dev ext4"$'\n' ;;
+		esac
+	done <<<"$bpartmap"
+	while read -r role dev; do
+		[[ -n "$dev" ]] || continue
+		[[ "$role" == root ]] && { root_part="$dev"; mkfs_map+="root $dev $fs"$'\n'; }
+	done <<<"$rpartmap"
+	[[ -b "$boot_part" && -b "$root_part" ]] || { install_log ERR "split: expected boot+root partitions not created"; return "$INSTALL_EX_PARTITION"; }
+	install_make_filesystems "$mkfs_map" || return "$INSTALL_EX_FORMAT"
+
+	local mp; mp="$(mktemp -d /mnt/armbian-install.XXXXXX)" || return "$INSTALL_EX_TRANSFER"
+	mount "$root_part" "$mp" || { install_log ERR "split: mount root $root_part failed"; rmdir "$mp"; return "$INSTALL_EX_TRANSFER"; }
+
+	local rc=0
+	while :; do
+		install_transfer_rootfs "$mp" "$exclude" 1 / 0 90 || { rc=$INSTALL_EX_TRANSFER; break; }
+		echo 92
+		# The eMMC boot partition carries /boot (kernel, dtb, boot script); mount it
+		# before populating or the files land on the rootfs and u-boot never sees them.
+		mkdir -p "$mp/boot"
+		mount "$boot_part" "$mp/boot" || { install_log ERR "split: mount boot $boot_part failed"; rc=$INSTALL_EX_BOOTCFG; break; }
+		install_populate_boot "$mp" 1 || { rc=$INSTALL_EX_BOOTCFG; break; }
+
+		local root_uuid boot_uuid storage_uuid
+		root_uuid="$(install_uuid "$root_part")"
+		boot_uuid="$(install_uuid "$boot_part")"
+		storage_uuid="$(install_uuid "$storage_part")"
+
+		# fstab: root on the target, /boot from the eMMC boot partition, and the
+		# eMMC data partition at /emmc_storage (nofail - never block boot on it).
+		install_gen_fstab "$root_uuid" "$fs" "$boot_uuid" ext4 "" "" >"$mp/etc/fstab" \
+			|| { rc=$INSTALL_EX_BOOTCFG; break; }
+		if [[ -n "$storage_uuid" ]]; then
+			mkdir -p "$mp/emmc_storage"
+			printf '%s\t/emmc_storage\text4\tdefaults,nofail\t0\t2\n' "$storage_uuid" >>"$mp/etc/fstab"
+		fi
+
+		# Point the eMMC boot env at the root that now lives on the target device.
+		local env_file="$mp/boot/armbianEnv.txt"
+		[[ -f "$env_file" ]] && { install_rewrite_bootenv "$env_file" "$root_uuid" "$fs" \
+			|| { install_log ERR "split: failed to point $env_file at root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }; }
+
+		# Module root fs (btrfs/f2fs) needs its driver in the eMMC /boot initramfs.
+		install_update_initramfs "$mp" "$fs"
+
+		echo 95
+		# u-boot goes to the eMMC whole device (raw sectors), never the target.
+		install_write_bootloader emmc "$boot_disk" "$mp" "$uboot_dir" \
+			|| { rc=$INSTALL_EX_BOOTLOADER; break; }
+
+		echo 99
+		install_verify_boot_dir "$mp/boot" || { rc=$INSTALL_EX_VERIFY; break; }
+		install_verify_fstab "$mp/etc/fstab" || { rc=$INSTALL_EX_VERIFY; break; }
+		echo 100
+		break
+	done 2>>"$INSTALL_LOG"
+
+	# Teardown (best effort).
+	sync
+	mountpoint -q "$mp/boot" && umount "$mp/boot" 2>/dev/null
+	umount "$mp" 2>/dev/null
+	rmdir "$mp" 2>/dev/null
+
+	[[ "$rc" == 0 ]] && install_log INFO "split: boot on $boot_disk, root on $root_disk completed"
 	return "$rc"
 }
 
