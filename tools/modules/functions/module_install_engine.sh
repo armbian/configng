@@ -978,13 +978,14 @@ install_run_scenario() {
 	[[ "$boot_mode" == uefi ]] && is_uefi=1
 	grep -q swap /etc/fstab 2>/dev/null && has_swap=1
 
-	# eMMC/SD installs must use the same partition-table type as the running
+	# eMMC/SD/MTD installs must use the same partition-table type as the running
 	# image so the board's u-boot can read the result (Rockchip vendor u-boot
-	# reads GPT only; Allwinner needs MBR). Replicate the source; the planner
-	# still upgrades to GPT when capacity/sector size demand it.
+	# reads GPT only; Allwinner needs MBR). For mtd the /boot lands on the target
+	# and is read by the SPI u-boot, so it matters there too. Replicate the
+	# source; the planner still upgrades to GPT when capacity/sector size demand.
 	local table_pref=""
 	case "$boot_mode" in
-		emmc|sd) table_pref="$(install_source_table_type)"
+		emmc|sd|mtd) table_pref="$(install_source_table_type)"
 			[[ -n "$table_pref" ]] && install_log INFO "scenario: inheriting source partition table '$table_pref' for $boot_mode" ;;
 	esac
 
