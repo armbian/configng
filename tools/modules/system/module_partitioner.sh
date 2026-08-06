@@ -78,6 +78,14 @@ partitioner_emmc_device() {
 # "mtdN:label" (e.g. "mtdblock0 mtd0:uboot"). Mirrors the classic installer's
 # mtdcheck. Used to offer "boot from SPI/MTD, root on NVMe/SATA/USB" and to feed
 # INSTALL_MTD_LIST to the engine.
+#
+# Contract for board-provided write_uboot_platform_mtd (in /usr/lib/u-boot/
+# platform_install.sh): the engine calls it as
+#   write_uboot_platform_mtd "$DIR" "/dev/<first-entry>" "$LOG" "$INSTALL_MTD_LIST"
+# i.e. the FIRST list entry (with any ":label" stripped) is the primary boot
+# device, and the FULL list is passed as the last argument. Implementations
+# should accept both the "mtdblockN" and "mtdN:label" forms and pick the right
+# partition(s) to flash from the full list.
 partitioner_mtd_list() {
 	local list chr
 	list="$(grep 'mtdblock' /proc/partitions 2>/dev/null | awk '{print $NF}' | xargs)"
