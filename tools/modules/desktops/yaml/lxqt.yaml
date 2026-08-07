@@ -1,38 +1,124 @@
 name: lxqt
-description: "LXQT Desktop"
+description: "LXQt - lightweight Qt desktop"
 display_manager: sddm
 status: supported
+
+# LXQt is a lightweight Qt desktop. `lxqt-core` pulls the session
+# (lxqt-session, lxqt-panel, lxqt-config, pcmanfm-qt, openbox, ...); the
+# rest of minimal adds the Qt-native base apps plus the same X / theme /
+# audio base every desktop shares. Mid and full are inherited additively
+# from common.yaml - only LXQt-specific extras and GTK->Qt swaps live
+# here (see kde-plasma.yaml for the same pattern).
 tiers:
   minimal:
     packages:
-        - lxqt-about
-        - lxqt-admin
-        - lxqt-core
-        - lxqt-powermanagement
-        - lxqt-sudo
-        - featherpad
-        - pavucontrol-qt
-        - qlipper
-        - qterminal
-        - qps
-        - xfwm4
-        - nm-tray
-        - lxqt-branding
+      - lxqt-core
+      - lxqt-about
+      - lxqt-admin
+      - lxqt-powermanagement
+      - lxqt-sudo
+      - pcmanfm-qt
+      - qterminal
+      - featherpad
+      - qps
+      - qlipper
+      - screengrab
+      - pavucontrol-qt
+      - nm-tray
+      - openbox
+      - sddm
+      - xserver-xorg
+      - dbus-x11
+      - dmz-cursor-theme
+      - fonts-ubuntu
+      - gtk2-engines
+      - gtk2-engines-murrine
+      - gtk2-engines-pixbuf
+      - gvfs-backends
+      - lm-sensors
+      - pulseaudio
+      - pulseaudio-module-bluetooth
+      - spice-vdagent
+      - xdg-user-dirs
+
   mid:
+    # LXQt ships featherpad (editor) and adds lxqt-archiver here, so drop
+    # the GTK equivalents inherited from common.yaml's mid tier.
+    packages_remove:
+      - gnome-text-editor
+      - file-roller
     packages:
-         - firefox-esr
-         - qpdfview
-         - screengrab
-         - xscreensaver
-         - lxqt-archiver
-         - pulseaudio-module-bluetooth
-         - bluez
-         - blueman
+      - lxqt-archiver
+      - qpdfview
+
   full:
-     packages:
-           - qtpass
-           - thunderbird
-           - vlc
-           - libreoffice
-           - krita
-           - snap        
+    # Qt-native creative app alongside the GIMP/Inkscape from common.
+    packages:
+      - krita
+
+releases:
+  bookworm:
+    architectures: [arm64, amd64]
+    packages:
+      - accountsservice
+      - libu2f-udev
+
+  trixie:
+    architectures: [arm64, amd64]
+    packages:
+      - accountsservice
+      - libu2f-udev
+      - pipewire-audio
+      - pipewire-pulse
+      - wireplumber
+    packages_remove:
+      - pulseaudio
+      - pulseaudio-module-bluetooth
+
+  noble:
+    architectures: [arm64, amd64]
+    packages:
+      - polkitd
+      - pkexec
+      - libu2f-udev
+
+  forky:
+    # Debian 14 - pipewire replaces pulseaudio (same as trixie).
+    architectures: [arm64, amd64]
+    packages:
+      - accountsservice
+      - pipewire-audio
+      - pipewire-pulse
+      - wireplumber
+    packages_remove:
+      - pulseaudio
+      - pulseaudio-module-bluetooth
+
+  sid:
+    # Debian unstable - pipewire replaces pulseaudio (same as trixie/forky).
+    architectures: [arm64, amd64, loong64]
+    packages:
+      - accountsservice
+      - libu2f-udev
+      - pipewire-audio
+      - pipewire-pulse
+      - wireplumber
+    packages_remove:
+      - pulseaudio
+      - pulseaudio-module-bluetooth
+
+  jammy:
+    # Ubuntu 22.04 LTS - pulseaudio remains default.
+    architectures: [arm64, amd64]
+    packages:
+      - polkitd
+      - pkexec
+      - libu2f-udev
+
+  resolute:
+    # Ubuntu 26.04 LTS.
+    architectures: [arm64, amd64]
+    packages:
+      - polkitd
+      - pkexec
+      - libfido2-1
