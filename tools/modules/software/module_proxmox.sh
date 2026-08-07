@@ -85,17 +85,23 @@ function module_proxmox() {
 				esac
 			done
 
-			# Add the Proxmox release key and verify its checksum.
+			# Add the Proxmox release key and verify its checksum. Stage to a temp
+			# file first and only publish it to key_file once verified, so a failed
+			# download or checksum mismatch can't clobber an already-valid keyring
+			# that the repo config + pkg_update still rely on.
 			pkg_install curl ca-certificates
 			install -m 0755 -d /usr/share/keyrings
-			curl -fsSL "${key_url}" -o "${key_file}"
-			if ! echo "${key_sha256}  ${key_file}" | sha256sum -c - >/dev/null 2>&1; then
+			local key_tmp
+			key_tmp="$(mktemp)"
+			if ! curl -fsSL "${key_url}" -o "${key_tmp}" \
+				|| ! echo "${key_sha256}  ${key_tmp}" | sha256sum -c - >/dev/null 2>&1; then
+				rm -f "${key_tmp}"
 				dialog_msgbox "Key verification failed" \
-					"The Proxmox release key checksum did not match the expected value.\n\nInstallation aborted." 9 60
-				rm -f "${key_file}"
+					"The Proxmox release key could not be downloaded or its checksum did not match the expected value.\n\nInstallation aborted." 9 60
 				return 1
 			fi
-			chmod a+r "${key_file}"
+			install -m 0644 "${key_tmp}" "${key_file}"
+			rm -f "${key_tmp}"
 
 			# no-subscription repository (DEB822 format).
 			cat <<- EOF > "${repo_file}"
