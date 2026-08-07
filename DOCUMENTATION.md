@@ -328,6 +328,9 @@ sudo armbian-config
     - ### Cockpit OS and VM management tool
     - ### Remove Cockpit
     - ### Purge Cockpit with virtual machines
+    - ### Proxmox VE virtualization platform (keeps the Armbian kernel)
+    - ### Remove Proxmox VE
+    - ### Purge Proxmox VE with cluster data
     - ### Install Homepage startpage / application dashboard
     - ### Remove Homepage
     - ### Purge Homepage with data folder
@@ -751,6 +754,9 @@ Outputs:
 	--cmd CPT001 - Cockpit OS and VM management tool
 	--cmd CPT002 - Remove Cockpit (https://localhost:9890)
 	--cmd CPT003 - Purge Cockpit with virtual machines
+	--cmd PVE001 - Proxmox VE virtualization platform (keeps the Armbian kernel)
+	--cmd PVE002 - Remove Proxmox VE (https://localhost:8006)
+	--cmd PVE003 - Purge Proxmox VE with cluster data
 	--cmd HPG001 - Install Homepage startpage / application dashboard
 	--cmd HPG002 - Remove Homepage (http://localhost:3021)
 	--cmd HPG003 - Purge Homepage with data folder
@@ -1230,6 +1236,7 @@ These helper functions facilitate various operations related to job management, 
 | Install watchtower container | install remove purge status help | @armbian 
 | Build the main menu from a object | generate_top_menu 'json_data' | @Tearran 
 | Install bazarr container | install remove purge status help | @igorpecovnik 
+| Proxmox VE on top of the Armbian kernel (Debian trixie) | install remove purge status help | @igorpecovnik 
 | Install kernel headers for building kernel modules | install remove status help | @armbian 
 | Migrated procedures from Armbian config. | is_package_manager_running | @armbian 
 | Migrated procedures from Armbian config. | check_desktop | @armbian 
