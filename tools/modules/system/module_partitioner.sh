@@ -128,14 +128,17 @@ partitioner_modes_for() {
 		case "$role" in
 			mmc)           m+=(emmc sd) ;;   # eMMC: full install or just root
 			nvme|sata|usb)
-				m+=(sd)                       # boot on current media, root here
-				# The SoC bootrom can't load u-boot from NVMe/SATA/USB, so offer
-				# booting from an internal eMMC (if present and not the target).
+				# The SoC bootrom can't load u-boot from NVMe/SATA/USB, so boot
+				# lives elsewhere. Prefer SPI/MTD flash when the board can write
+				# u-boot there and an MTD device is present (e.g. Odroid M1 SPI +
+				# NVMe root): the board then boots straight from internal flash,
+				# independent of the removable media staying inserted — so offer
+				# it FIRST (top / default).
+				[[ "$(type -t write_uboot_platform_mtd)" == function && -n "$(partitioner_mtd_list)" ]] && m+=(mtd)
+				m+=(sd)                       # keep boot on current media, root here
+				# ...or from an internal eMMC (if present and not the target).
 				local emmc; emmc="$(partitioner_emmc_device)"
 				[[ -n "$emmc" && "/dev/$disk" != "$emmc" ]] && m+=(split-emmc)
-				# ...or from SPI/MTD flash, when the board can write u-boot there
-				# and an MTD device is present (e.g. Odroid M1 SPI + NVMe root).
-				[[ "$(type -t write_uboot_platform_mtd)" == function && -n "$(partitioner_mtd_list)" ]] && m+=(mtd)
 				;;
 			ufs)           m+=(ufs) ;;
 		esac
