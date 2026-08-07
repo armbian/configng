@@ -54,18 +54,36 @@ function module_proxmox() {
 			esac
 
 			# PVE needs the hostname to resolve to a real (non-loopback) IP for its
-			# cluster stack. Warn, but let the user proceed and fix /etc/hosts later.
+			# cluster stack + web-UI cert. When it only resolves to loopback, offer
+			# to fix the hostname right here: change_system_hostname sets a new name
+			# that isn't pinned to a loopback line in /etc/hosts, so nss-myhostname
+			# then resolves it to the LAN IP (which is what the user's manual
+			# armbian-config hostname change did). Re-check after each attempt.
 			local host_ip
 			host_ip=$(hostname --ip-address 2>/dev/null | awk '{print $1}')
-			if [[ -z "${host_ip}" || "${host_ip}" == 127.* || "${host_ip}" == "::1" ]]; then
-				if ! dialog_yesno " Hostname check " \
-					"The hostname does not resolve to a non-loopback IP (got: ${host_ip:-none}).\n\nProxmox needs a valid /etc/hosts entry mapping the hostname to a LAN IP, otherwise the web UI and clustering may not work.\n\nContinue anyway?" \
-					"Continue" "Cancel" 12 60; then
-					return 1
-				fi
-				# A loopback address is useless for the web-UI URL; fall back to a placeholder.
-				host_ip=""
-			fi
+			while [[ -z "${host_ip}" || "${host_ip}" == 127.* || "${host_ip}" == "::1" ]]; do
+				local hn_choice
+				hn_choice=$(dialog_menu " Hostname check " \
+					"The hostname does not resolve to a non-loopback IP (got: ${host_ip:-none}).\n\nProxmox needs the hostname to map to a LAN IP, otherwise the web UI and clustering may not work." \
+					16 70 3 -- \
+					"fix"      "Set the hostname now (recommended)" \
+					"continue" "Continue anyway (fix it later)" \
+					"cancel"   "Abort installation")
+				case "${hn_choice}" in
+					fix)
+						change_system_hostname
+						host_ip=$(hostname --ip-address 2>/dev/null | awk '{print $1}')
+						;;
+					continue)
+						# A loopback address is useless for the web-UI URL; fall back to a placeholder.
+						host_ip=""
+						break
+						;;
+					*)
+						return 1
+						;;
+				esac
+			done
 
 			# Add the Proxmox release key and verify its checksum.
 			pkg_install curl ca-certificates
