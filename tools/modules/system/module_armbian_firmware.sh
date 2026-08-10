@@ -248,19 +248,53 @@ function module_armbian_firmware() {
 				return 1
 			fi
 
-			# Downloads succeeded and are cached. Only now is it safe to remove the
-			# old kernel variants and install the new ones — served from the local
-			# cache, so a network blip can no longer strand the board kernel-less.
-			for pkg in ${packages[@]}; do
-				# Convert specific package name to wildcard pattern for removal
-				# e.g., "linux-image-current-meson64=1.2.3" -> "linux-image*"
-				purge_pkg=$(echo $pkg | sed -e 's/linux-image.*/linux-image*/;s/linux-dtb.*/linux-dtb*/;s/linux-headers.*/linux-headers*/;s/armbian-firmware-*/armbian-firmware*/')
-				pkg_remove ${purge_pkg}
-			done
-			pkg_install --allow-downgrades ${packages[@]}
+			# Downloads succeeded and are cached. Install the NEW kernel FIRST, as a
+			# single apt transaction served from that cache. Two reasons this order
+			# matters — reversing it (the old "purge linux-image* then install")
+			# strands the board with NO kernel:
+			#   * apt replaces the same-named packages in place, so a bootable kernel
+			#     is present at every step; if the install fails, the current kernel
+			#     is left untouched instead of already-purged.
+			#   * direct apt-get (like the download above) gives a trustworthy exit
+			#     code — pkg_install's dialog-gauge path masks apt failures, so a
+			#     failed install used to look like success right after the purge.
+			if ! DEBIAN_FRONTEND=noninteractive apt-get install --allow-downgrades -y ${packages[@]} > /dev/null 2>&1; then
+				rm -f /etc/apt/preferences.d/armbian-upgrade-policy
+				echo "Error: kernel install failed — current kernel left in place. Try again later and report to the Armbian forums."
+				return 1
+			fi
+
+			# New kernel is on disk. Now prune only the OTHER kernel packages a
+			# branch/family switch leaves behind (e.g. current -> edge), by EXACT
+			# name and explicitly excluding what we just installed. NEVER a
+			# 'linux-image*' wildcard — that also matches the kernel we just put on
+			# and is exactly what used to delete the running kernel.
+			local keep=" "
+			for pkg in ${packages[@]}; do keep+="${pkg%%=*} "; done
+			local stale=()
+			while IFS= read -r ipkg; do
+				[[ -n "$ipkg" && "$keep" != *" $ipkg "* ]] && stale+=("$ipkg")
+			done < <(dpkg-query -W -f='${Package}\n' 'linux-image-*' 'linux-dtb-*' 'linux-headers-*' 2>/dev/null)
+			if [[ ${#stale[@]} -gt 0 ]]; then
+				DEBIAN_FRONTEND=noninteractive apt-get autopurge -y "${stale[@]}" > /dev/null 2>&1 || true
+			fi
 
 			# Clean up the temporary APT policy file
 			rm -f /etc/apt/preferences.d/armbian-upgrade-policy
+
+			# Final safety net: a bootable kernel MUST remain — an installed
+			# linux-image package AND an actual image in /boot. If neither, something
+			# removed it out from under us; say so loudly and fail rather than let the
+			# caller reboot into an unbootable system.
+			# NB: match the /boot image by listing the directory and grepping — a
+			# bare `ls /boot/vmlinuz-* /boot/Image*` returns non-zero when ANY single
+			# glob has no match (e.g. no zImage on arm64), which would false-positive
+			# even with a valid kernel present.
+			if ! dpkg-query -W -f='${db:Status-Status}\n' 'linux-image-*' 2>/dev/null | grep -q '^installed' \
+				|| ! ls -1 /boot 2>/dev/null | grep -qE '^(vmlinuz-|Image|zImage)'; then
+				echo "CRITICAL: no bootable kernel present after switch — do NOT reboot; reinstall a kernel via armbian-config (System > Firmware) first."
+				return 1
+			fi
 
 			# Prompt for reboot if running interactively
 			# Kernel changes require reboot to take effect
@@ -444,9 +478,19 @@ function module_armbian_firmware() {
 				fi
 			fi
 
-			# If we're not just checking status, trigger firmware reinstallation
-			# This pulls packages from the newly-switched repository
-			[[ "$status" != "status" ]] && ${module_options["module_armbian_firmware,feature"]} ${commands[1]} "${branch}" "" "" "${linuxfamily}"
+			# If we're not just checking status, reinstall the kernel from the
+			# newly-switched repository. The install command is brick-safe (downloads
+			# first, installs the new kernel before pruning the old, and verifies a
+			# bootable kernel remains). Surface its result: on failure the source list
+			# was switched but the kernel could NOT be reinstalled from the new repo —
+			# the current kernel is left intact, so warn and return non-zero rather
+			# than reporting a clean switch the caller would then reboot into.
+			if [[ "$status" != "status" ]]; then
+				if ! ${module_options["module_armbian_firmware,feature"]} ${commands[1]} "${branch}" "" "" "${linuxfamily}"; then
+					echo "Warning: repository switched to '${repository}', but the kernel could not be reinstalled from it — current kernel left in place. Resolve the repository/kernel availability before rebooting."
+					return 1
+				fi
+			fi
 		;;
 
 
