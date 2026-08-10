@@ -451,31 +451,48 @@ function module_armbian_firmware() {
 				return 1
 			fi
 
-			# Check current repository and switch if requested
-			if grep -q 'apt.armbian.com' "$sources_file"; then
-				# Currently on STABLE repository
-				if [[ "$repository" == "rolling" && "$status" == "status" ]]; then
-					return 1  # Not on rolling
-				elif [[ "$status" == "status" ]]; then
-					return 0  # On stable
-				fi
-				# Switch to rolling repository
-				if [[ "$repository" == "rolling" ]]; then
-					sed -i 's|[a-zA-Z0-9.-]*\.armbian\.com|beta.armbian.com|g' "$sources_file"
+			# Current Armbian mirror host — what we revert to if the switch turns
+			# out to have no kernel to offer.
+			local prev_host
+			prev_host="$(grep -oE '[a-zA-Z0-9.-]*\.armbian\.com' "$sources_file" | head -1)"
+			[[ -n "$prev_host" ]] || prev_host="apt.armbian.com"
+			local on_repo=rolling
+			[[ "$prev_host" == "apt.armbian.com" ]] && on_repo=stable
+
+			# Map the requested repo to its mirror host.
+			local target_host="$prev_host"
+			case "$repository" in
+				rolling) target_host="beta.armbian.com" ;;
+				stable)  target_host="apt.armbian.com"  ;;
+			esac
+
+			# Status query: report whether we're already on the requested repo.
+			if [[ "$status" == "status" ]]; then
+				[[ "$on_repo" == "$repository" ]] && return 0 || return 1
+			fi
+
+			# Point the sources at the requested repo (no-op if already there).
+			if [[ "$prev_host" != "$target_host" ]]; then
+				sed -i "s|[a-zA-Z0-9.-]*\.armbian\.com|${target_host}|g" "$sources_file"
+				pkg_update
+			fi
+
+			# Predict the empty-repo case: verify the TARGET repo actually publishes
+			# a kernel for this board BEFORE committing to it. apt-cache show can't
+			# tell us — it also reports the currently-INSTALLED package, so an empty
+			# rolling would look populated — so use madison, which lists only versions
+			# available from a repository. If the target has none (e.g. rolling with
+			# no kernel published yet), revert the source change and keep the board on
+			# its working repo + kernel rather than stranding it on a repo it can be
+			# neither reinstalled from nor upgraded against.
+			local kpkg="linux-image-${branch}-${linuxfamily}"
+			if ! apt-cache madison "$kpkg" 2>/dev/null | grep -q "$kpkg"; then
+				echo "Error: the '${repository}' repository (${target_host}) publishes no ${kpkg} — refusing the switch and reverting to ${prev_host}; current kernel left in place."
+				if [[ "$prev_host" != "$target_host" ]]; then
+					sed -i "s|[a-zA-Z0-9.-]*\.armbian\.com|${prev_host}|g" "$sources_file"
 					pkg_update
 				fi
-			else
-				# Currently on ROLLING (beta) repository
-				if [[ "$repository" == "stable" && "$status" == "status" ]]; then
-					return 1  # Not on stable
-				elif [[ "$status" == "status" ]]; then
-					return 0  # On rolling
-				fi
-				# Switch to stable repository
-				if [[ "$repository" == "stable" ]]; then
-					sed -i 's|[a-zA-Z0-9.-]*\.armbian\.com|apt.armbian.com|g' "$sources_file"
-					pkg_update
-				fi
+				return 1
 			fi
 
 			# If we're not just checking status, reinstall the kernel from the
