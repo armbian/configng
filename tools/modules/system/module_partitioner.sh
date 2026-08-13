@@ -387,23 +387,37 @@ partitioner_flash_uboot_tui() {
 }
 
 # Top-level action picker for the interactive installer: full install vs the
-# standalone bootloader flash. The bootloader-only entry only appears when the
-# board can actually write u-boot; otherwise go straight to the install TUI.
+# standalone bootloader flash. Built from what is ACTUALLY actionable on this
+# machine - so a board with no spare install target (e.g. booting from SPI with
+# root on NVMe, nothing left to install onto) just offers the u-boot update, and
+# a board that can only install (x86, no u-boot) goes straight to install. Only
+# shows the menu when both are possible; runs the single option directly otherwise.
 partitioner_menu() {
 	local title="Armbian installer"
-	if [[ "$(type -t write_uboot_platform)" == function || "$(type -t write_uboot_platform_mtd)" == function ]]; then
-		local act
-		act=$(dialog_menu " $title " "\nWhat would you like to do?" 0 78 4 -- \
-			install    "Install Armbian to a disk (SD / eMMC / NVMe / SATA / USB)" \
-			bootloader "Flash / update the bootloader (u-boot) only") || return "$INSTALL_EX_OK"
-		case "$act" in
-			install)    partitioner_tui ;;
-			bootloader) partitioner_flash_uboot_tui ;;
-			*)          return "$INSTALL_EX_OK" ;;
-		esac
-	else
-		partitioner_tui
+	local root_disk; root_disk="$(partitioner_root_disk)"
+
+	local -a menu=(); local nact=0
+	if [[ -n "$(install_detect_targets "$root_disk")" ]]; then
+		menu+=("install" "Install Armbian to a disk (SD / eMMC / NVMe / SATA / USB)"); ((nact++))
 	fi
+	if [[ "$(type -t write_uboot_platform)" == function || "$(type -t write_uboot_platform_mtd)" == function ]]; then
+		menu+=("bootloader" "Flash / update the bootloader (u-boot) only"); ((nact++))
+	fi
+
+	local act
+	if [[ "$nact" -eq 0 ]]; then
+		partitioner_tui; return "$?"                # nothing to flash & no target -> install shows its "no targets" msg
+	elif [[ "$nact" -eq 1 ]]; then
+		act="${menu[0]}"                            # only one action possible -> run it, skip the pointless menu
+	else
+		act=$(dialog_menu " $title " "\nWhat would you like to do?" 0 78 4 -- "${menu[@]}") || return "$INSTALL_EX_OK"
+	fi
+
+	case "$act" in
+		install)    partitioner_tui ;;
+		bootloader) partitioner_flash_uboot_tui ;;
+		*)          return "$INSTALL_EX_OK" ;;
+	esac
 }
 
 # ---- non-interactive CLI ----------------------------------------------------
