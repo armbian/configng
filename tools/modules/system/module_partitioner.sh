@@ -362,12 +362,12 @@ partitioner_flash_uboot_tui() {
 
 	local mode target warn
 	if [[ "$sel" == "mtd" ]]; then
-		mode="mtd"; target="/dev/${mtd_list%% *}"; warn="SPI/MTD flash:\n  [ $mtd_list ]"
+		mode="mtd"; target="/dev/${mtd_list%% *}"; warn="the on-board SPI / MTD flash"
 	else
-		mode="sd"; target="/dev/$sel"; warn="/dev/$sel"
+		mode="sd"; target="/dev/$sel"; warn="$target"
 	fi
 
-	if ! dialog_yesno " WARNING " "\nThis OVERWRITES the bootloader (u-boot) on:\n  $warn\n\nfrom the running system's u-boot package. No partitions or data are touched.\n\nProceed?" "Flash bootloader" "Cancel" 13 76; then
+	if ! dialog_yesno " WARNING " "\nThis will OVERWRITE the bootloader (u-boot) on:\n\n  $warn\n\nwith u-boot from the running system. Your OS install and data are not touched.\n\nProceed?" "Flash bootloader" "Cancel" 13 74; then
 		return "$INSTALL_EX_OK"
 	fi
 
