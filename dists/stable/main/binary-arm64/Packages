@@ -1,15 +1,15 @@
 Package: armbian-config
-Version: 26.8.0-trunk.426.0813.173842
+Version: 26.8.0-trunk.426.0813.174349
 Architecture: all
 Replaces: armbian-configng
 Maintainer: Igor Pecovnik <igor@armbian.com>
 Depends: bash, jq, whiptail, sudo, procps, systemd, lsb-release, iproute2, debconf, libtext-iconv-perl, gpg, xz-utils, pv, python3-yaml, expect-dev, rsync, parted, dosfstools, e2fsprogs, btrfs-progs, f2fs-tools, ntfs-3g
 Priority: optional
 Section: default
-Filename: pool/main/a/armbian-config/armbian-config_26.8.0-trunk.426.0813.173842_all.deb
-Size: 1159316
-SHA256: 6d0de332cbea738f479a8aff74219663c0c6763395f5c3ca7cdd0e1c1ad9896c
-SHA1: 5159dd26deb0a2832b433cfb0c283bc647879fad
-MD5sum: d4cf31ef601f2b555236a2e006ed12d9
+Filename: pool/main/a/armbian-config/armbian-config_26.8.0-trunk.426.0813.174349_all.deb
+Size: 1159220
+SHA256: c38bafb3be5e48e47787ced4d3c62ae561ab88eb2c4c5257273069d09b643e7a
+SHA1: 01a5c08327d113facffb1c4bc6df2a487740c18c
+MD5sum: 9c86edf3207a4293f58eadb06aa7baa2
 Description: Armbian config: The Next Generation
 
