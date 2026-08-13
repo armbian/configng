@@ -342,7 +342,7 @@ partitioner_flash_uboot_tui() {
 	local mtd_list; mtd_list="$(partitioner_mtd_list)"
 	local -a menu=()
 	[[ "$(type -t write_uboot_platform_mtd)" == function && -n "$mtd_list" ]] \
-		&& menu+=("mtd" "SPI/MTD flash  [ $mtd_list ]")
+		&& menu+=("mtd" "SPI / on-board flash (u-boot)")
 	if [[ "$(type -t write_uboot_platform)" == function ]]; then
 		local name size note
 		while IFS=$'\t' read -r name size note; do
