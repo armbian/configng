@@ -491,7 +491,8 @@ partitioner_cli_flash() {
 	INSTALL_LOG="/var/log/armbian-install.log"
 	while [[ $# -gt 0 ]]; do
 		case "$1" in
-			--target) target="$2"; shift 2 ;;
+			--target) [[ $# -ge 2 ]] || { echo "armbian-install bootloader: --target requires a value" >&2; return "$INSTALL_EX_USAGE"; }
+			          target="$2"; shift 2 ;;
 			--yes|-y) assume_yes=1; shift ;;
 			*) echo "armbian-install bootloader: unknown option '$1'" >&2; return "$INSTALL_EX_USAGE" ;;
 		esac
@@ -507,6 +508,10 @@ partitioner_cli_flash() {
 	else
 		[[ "$(type -t write_uboot_platform)" == function ]] \
 			|| { echo "armbian-install bootloader: board has no write_uboot_platform hook" >&2; return "$INSTALL_EX_BOOTLOADER"; }
+		# Only whole SD/eMMC disks - u-boot is dd'd at fixed offsets, so a partition
+		# or a non-boot disk (NVMe/SATA/USB) would get its partition table clobbered.
+		[[ "$target" =~ ^/dev/mmcblk[0-9]+$ ]] \
+			|| { echo "armbian-install bootloader: '$target' is not an SD/eMMC whole device (expected /dev/mmcblkN or 'mtd')" >&2; return "$INSTALL_EX_USAGE"; }
 		[[ -b "$target" ]] || { echo "armbian-install bootloader: '$target' is not a block device" >&2; return "$INSTALL_EX_USAGE"; }
 		mode="sd"; dev="$target"
 	fi
