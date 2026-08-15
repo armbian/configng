@@ -294,8 +294,22 @@ install_apply_partitions() {
 	done <<<"$plan"
 	[[ -n "$table" && ${#parts[@]} -gt 0 ]] || { install_log ERR "apply_partitions: empty plan"; return "$INSTALL_EX_PARTITION"; }
 
+	# Rockchip parks per-unit data in sectors 7168-16383: vendor storage (MACs,
+	# serial) tagged "DVKR" at 7168, secure storage (HDCP/DRM keys) tagged
+	# "SSKR" at 8192. Nothing recreates either. Keep that window only when it
+	# is in use, so any other target is cleared exactly as before.
+	local keep_window="no"
+	[[ "$(dd if="$device" bs=1 skip=$(( 7168 * 512 )) count=4 2>/dev/null)" == "DVKR" ]] && keep_window="yes"
+	[[ "$(dd if="$device" bs=1 skip=$(( 8192 * 512 )) count=4 2>/dev/null)" == "SSKR" ]] && keep_window="yes"
+
 	wipefs -aq "$device" >>"$INSTALL_LOG" 2>&1 || true
-	dd if=/dev/zero of="$device" bs=1M count=10 conv=notrunc >>"$INSTALL_LOG" 2>&1 || true
+	if [[ "$keep_window" == "yes" ]]; then
+		install_log INFO "apply_partitions: keeping Rockchip reserved sectors 7168-16383 on $device"
+		dd if=/dev/zero of="$device" bs=512 count=7168 conv=notrunc >>"$INSTALL_LOG" 2>&1 || true
+		dd if=/dev/zero of="$device" bs=512 seek=16384 count=4096 conv=notrunc >>"$INSTALL_LOG" 2>&1 || true
+	else
+		dd if=/dev/zero of="$device" bs=1M count=10 conv=notrunc >>"$INSTALL_LOG" 2>&1 || true
+	fi
 	parted -s "$device" mklabel "$table" >>"$INSTALL_LOG" 2>&1 \
 		|| { install_log ERR "apply_partitions: mklabel $table failed"; return "$INSTALL_EX_PARTITION"; }
 
