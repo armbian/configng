@@ -39,6 +39,72 @@ teardown() {
 	[ -b "${LOOP}p2" ]
 }
 
+@test "loopback: emmc plan keeps the Rockchip reserved window, clears the loaders" {
+	# Sectors 7168-16383 hold vendor storage (MACs, serial) and secure storage
+	# (HDCP/DRM keys), provisioned per unit and never recreated. The loader areas
+	# either side of them must still be cleared. Markers sit on both edges so an
+	# off-by-one cannot pass.
+	printf 'IDB'   | dd of="$LOOP" bs=512 seek=64    conv=notrunc status=none
+	printf 'LDR0'  | dd of="$LOOP" bs=512 seek=7167  conv=notrunc status=none
+	printf 'DVKR'  | dd of="$LOOP" bs=512 seek=7168  conv=notrunc status=none
+	printf 'SSKR'  | dd of="$LOOP" bs=512 seek=8192  conv=notrunc status=none
+	printf 'RVEN'  | dd of="$LOOP" bs=512 seek=16383 conv=notrunc status=none
+	printf 'UBOOT' | dd of="$LOOP" bs=512 seek=16384 conv=notrunc status=none
+	printf 'TAIL'  | dd of="$LOOP" bs=512 seek=20479 conv=notrunc status=none
+	printf 'NEXT'  | dd of="$LOOP" bs=512 seek=20480 conv=notrunc status=none
+
+	local plan; plan="$(install_plan_layout emmc ext4 0 $((8*1024*1024*1024)) 512 0)"
+	run install_apply_partitions "$LOOP" "$plan"
+	[ "$status" -eq 0 ]
+	[ -b "${LOOP}p1" ]
+
+	# preserved: the window, both edges included
+	[ "$(dd if="$LOOP" bs=1 skip=$((7168*512))  count=4 status=none)" = "DVKR" ]
+	[ "$(dd if="$LOOP" bs=1 skip=$((8192*512))  count=4 status=none)" = "SSKR" ]
+	[ "$(dd if="$LOOP" bs=1 skip=$((16383*512)) count=4 status=none)" = "RVEN" ]
+	# cleared: the loader areas, up to the last sector the old wipe reached
+	[ -z "$(dd if="$LOOP" bs=1 skip=$((64*512))    count=3 status=none | tr -d '\0')" ]
+	[ -z "$(dd if="$LOOP" bs=1 skip=$((7167*512))  count=4 status=none | tr -d '\0')" ]
+	[ -z "$(dd if="$LOOP" bs=1 skip=$((16384*512)) count=5 status=none | tr -d '\0')" ]
+	[ -z "$(dd if="$LOOP" bs=1 skip=$((20479*512)) count=4 status=none | tr -d '\0')" ]
+	# untouched: beyond the wiped region
+	[ "$(dd if="$LOOP" bs=1 skip=$((20480*512)) count=4 status=none)" = "NEXT" ]
+}
+
+@test "loopback: without the Rockchip tags the full 10MiB is still cleared" {
+	# No DVKR/SSKR present, so this must behave exactly as before the reserved
+	# window existed - nothing in the first 10MiB survives.
+	printf 'AAAA' | dd of="$LOOP" bs=512 seek=7168  conv=notrunc status=none
+	printf 'BBBB' | dd of="$LOOP" bs=512 seek=8192  conv=notrunc status=none
+	printf 'CCCC' | dd of="$LOOP" bs=512 seek=12000 conv=notrunc status=none
+	printf 'NEXT' | dd of="$LOOP" bs=512 seek=20480 conv=notrunc status=none
+
+	local plan; plan="$(install_plan_layout emmc ext4 0 $((8*1024*1024*1024)) 512 0)"
+	run install_apply_partitions "$LOOP" "$plan"
+	[ "$status" -eq 0 ]
+
+	[ -z "$(dd if="$LOOP" bs=1 skip=$((7168*512))  count=4 status=none | tr -d '\0')" ]
+	[ -z "$(dd if="$LOOP" bs=1 skip=$((8192*512))  count=4 status=none | tr -d '\0')" ]
+	[ -z "$(dd if="$LOOP" bs=1 skip=$((12000*512)) count=4 status=none | tr -d '\0')" ]
+	[ "$(dd if="$LOOP" bs=1 skip=$((20480*512)) count=4 status=none)" = "NEXT" ]
+}
+
+@test "loopback: either Rockchip tag alone keeps the reserved window" {
+	# The gate is an OR, so each tag must work on its own. A marker inside the
+	# window that is not itself a tag shows the whole range survived.
+	for tag_sector in "DVKR 7168" "SSKR 8192"; do
+		set -- $tag_sector
+		dd if=/dev/zero of="$LOOP" bs=1M count=10 conv=notrunc status=none
+		printf '%s' "$1" | dd of="$LOOP" bs=512 seek="$2"  conv=notrunc status=none
+		printf 'MARK'    | dd of="$LOOP" bs=512 seek=12000 conv=notrunc status=none
+
+		local plan; plan="$(install_plan_layout emmc ext4 0 $((8*1024*1024*1024)) 512 0)"
+		run install_apply_partitions "$LOOP" "$plan"
+		[ "$status" -eq 0 ]
+		[ "$(dd if="$LOOP" bs=1 skip=$((12000*512)) count=4 status=none)" = "MARK" ]
+	done
+}
+
 @test "loopback: emmc ext4 plan yields a single MBR boot-flagged partition" {
 	local plan; plan="$(install_plan_layout emmc ext4 0 $((8*1024*1024*1024)) 512 0)"
 	run install_apply_partitions "$LOOP" "$plan"
