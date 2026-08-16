@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Ensure consistent regex and sorting behavior globally while preserving UTF-8
+export LC_ALL=C.UTF-8
+
 # initializes the terminal from TERM if stdin is a terminal
 unset UXMODE
 [[ -t 0 && "$1" =~ ^(|--cmd|--help)$ ]] && UXMODE="true" && tput init
