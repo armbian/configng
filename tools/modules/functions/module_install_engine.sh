@@ -1030,9 +1030,6 @@ install_run_scenario() {
 	# config -> bootloader -> verify) for one target. Side-effecting; validated by
 	# the loopback integration test and by board/KVM smoke before rollout.
 	local boot_mode="$1" disk="$2" fs="$3" exclude="$4" uboot_dir="${5:-${DIR:-}}"
-	# Deterministic tool output (parted/blkid flag names etc. are localised).
-	# The scenario is a terminal operation, so exporting here is fine.
-	export LC_ALL=C LANG=C
 	[[ -b "$disk" ]] || { install_log ERR "scenario: '$disk' is not a block device"; return "$INSTALL_EX_NODEV"; }
 	# SPI/MTD flash (mtdblockN) is a boot device, never a root target. Detection
 	# filters it from the menu, but refuse it here too so an explicit
@@ -1207,7 +1204,6 @@ install_run_split() {
 	# rootfs; its fstab mounts /boot from the eMMC boot partition. Restores the
 	# classic installer's "Boot from eMMC - system on SATA/USB/NVMe".
 	local boot_disk="$1" root_disk="$2" fs="$3" exclude="$4" uboot_dir="${5:-${DIR:-}}"
-	export LC_ALL=C LANG=C
 	[[ -b "$boot_disk" ]] || { install_log ERR "split: boot device '$boot_disk' is not a block device"; return "$INSTALL_EX_NODEV"; }
 	[[ -b "$root_disk" ]] || { install_log ERR "split: root device '$root_disk' is not a block device"; return "$INSTALL_EX_NODEV"; }
 	[[ "$root_disk" != /dev/mtdblock* ]] || { install_log ERR "split: root device '$root_disk' is SPI/MTD flash, not a valid install target"; return "$INSTALL_EX_NODEV"; }
@@ -1323,7 +1319,6 @@ install_run_dualboot() {
 	# ESP, and set up GRUB + os-prober dual-boot. The disk keeps its partition
 	# table and every existing partition.
 	local disk="$1" fs="$2" exclude="$3" want="$4"
-	export LC_ALL=C LANG=C
 	[[ -b "$disk" ]] || { install_log ERR "dualboot: '$disk' not a block device"; return "$INSTALL_EX_NODEV"; }
 	[[ -f "$exclude" ]] || { install_log ERR "dualboot: exclude '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
 	[[ "$want" =~ ^[0-9]+$ && "$want" -gt 0 ]] || { install_log ERR "dualboot: bad size '$want'"; return "$INSTALL_EX_USAGE"; }
