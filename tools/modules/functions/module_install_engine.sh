@@ -495,6 +495,61 @@ install_rewrite_bootenv() {
 	fi
 }
 
+install_rewrite_extlinux() {
+	# install_rewrite_extlinux <file> <rootdev> [rootfstype]
+	# Repoint an extlinux/syslinux config (u-boot sysboot / distro boot) at
+	# <rootdev> - a "UUID=..." string or a device path. The kernel command line
+	# lives on the "append" line(s), so root= is substituted there (added when
+	# absent), and rootfstype= the same way when a fs is given.
+	#
+	# btrfs additionally needs rootflags=subvol=@: armbianEnv.txt boards get that
+	# from boot.cmd, which extlinux boards never run, so it is set here.
+	# Idempotent: re-running with the same values is a no-op. Pure text op.
+	local file="$1" rootdev="$2" fstype="${3:-}"
+	[[ -f "$file" ]] || return "$INSTALL_EX_BOOTCFG"
+	local flags=""
+	[[ "$fstype" == "btrfs" ]] && flags="subvol=@"
+	local tmp="${file}.new"
+	awk -v root="$rootdev" -v fstype="$fstype" -v flags="$flags" '
+		function set_token(line, key, val,   re) {
+			re = "(^|[ \t])" key "=[^ \t]*"
+			if (line ~ re) { sub(re, " " key "=" val, line) } else { line = line " " key "=" val }
+			return line
+		}
+		tolower($1) == "append" {
+			$0 = set_token($0, "root", root)
+			if (fstype != "") $0 = set_token($0, "rootfstype", fstype)
+			if (flags  != "") $0 = set_token($0, "rootflags", flags)
+		}
+		{ print }
+	' "$file" >"$tmp" || { rm -f "$tmp"; return "$INSTALL_EX_BOOTCFG"; }
+	# Copy back rather than rename: keeps the original mode/owner/inode.
+	cat "$tmp" >"$file" || { rm -f "$tmp"; return "$INSTALL_EX_BOOTCFG"; }
+	rm -f "$tmp"
+	return 0
+}
+
+install_boot_cfg_file() {
+	# install_boot_cfg_file <boot_dir>
+	# Echo the boot config that <boot_dir> actually uses - armbianEnv.txt on most
+	# u-boot boards, extlinux/extlinux.conf on distro-boot ones (spacemit/riscv,
+	# some vendor kernels). Returns 1 and prints nothing when neither is present.
+	local d="$1"
+	[[ -f "$d/armbianEnv.txt" ]]        && { echo "$d/armbianEnv.txt"; return 0; }
+	[[ -f "$d/extlinux/extlinux.conf" ]] && { echo "$d/extlinux/extlinux.conf"; return 0; }
+	return 1
+}
+
+install_rewrite_bootcfg() {
+	# install_rewrite_bootcfg <file> <rootdev> [rootfstype]
+	# Point <file> at the new root, dispatching on which boot config it is.
+	local file="$1"; shift
+	case "$file" in
+		*/extlinux.conf) install_rewrite_extlinux "$file" "$@" ;;
+		*)               install_rewrite_bootenv "$file" "$@" ;;
+	esac
+}
+
 install_gen_fstab() {
 	# install_gen_fstab <root_uuid> <root_fs> [boot_uuid] [boot_fs] [esp_uuid] [swap_uuid]
 	# Emit a fresh fstab on stdout. root_* required; boot_* optional (separate
@@ -1137,8 +1192,9 @@ install_run_scenario() {
 		# modes are handled by grub-mkconfig).
 		case "$boot_mode" in
 			emmc|mtd|ufs)
-				local env_file="$mp/boot/armbianEnv.txt"
-				[[ -f "$env_file" ]] && install_rewrite_bootenv "$env_file" "$root_uuid" "$fs" ;;
+				local env_file
+				env_file="$(install_boot_cfg_file "$mp/boot")" \
+					&& install_rewrite_bootcfg "$env_file" "$root_uuid" "$fs" ;;
 			sd)
 				# Boot stays on the current media (the SD/eMMC the board booted
 				# from); only the rootfs moved to $disk. Two things are needed:
@@ -1148,12 +1204,12 @@ install_run_scenario() {
 				#   2. map that media's /boot into the target at /boot, so kernel and
 				#      initramfs upgrades on the target land where u-boot reads them.
 				# Without (1) the board keeps booting its old rootfs.
-				local env_file="/boot/armbianEnv.txt"
-				if [[ ! -f "$env_file" ]]; then
-					install_log ERR "scenario: sd mode but current boot env ($env_file) is missing; cannot make $disk bootable"
+				local env_file
+				if ! env_file="$(install_boot_cfg_file /boot)"; then
+					install_log ERR "scenario: sd mode but the current media has no boot config (/boot/armbianEnv.txt or /boot/extlinux/extlinux.conf); cannot make $disk bootable"
 					rc=$INSTALL_EX_BOOTCFG; break
 				fi
-				install_rewrite_bootenv "$env_file" "$root_uuid" "$fs" \
+				install_rewrite_bootcfg "$env_file" "$root_uuid" "$fs" \
 					|| { install_log ERR "scenario: failed to point current boot env ($env_file) at new root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
 				install_map_current_boot "$mp/etc/fstab" "$mp" \
 					|| { install_log ERR "scenario: failed to map current /boot into target fstab"; rc=$INSTALL_EX_BOOTCFG; break; }
@@ -1284,10 +1340,12 @@ install_run_split() {
 			printf '%s\t/emmc_storage\text4\tdefaults,nofail\t0\t2\n' "$storage_uuid" >>"$mp/etc/fstab"
 		fi
 
-		# Point the eMMC boot env at the root that now lives on the target device.
-		local env_file="$mp/boot/armbianEnv.txt"
-		[[ -f "$env_file" ]] && { install_rewrite_bootenv "$env_file" "$root_uuid" "$fs" \
-			|| { install_log ERR "split: failed to point $env_file at root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }; }
+		# Point the eMMC boot config at the root that now lives on the target device.
+		local env_file
+		if env_file="$(install_boot_cfg_file "$mp/boot")"; then
+			install_rewrite_bootcfg "$env_file" "$root_uuid" "$fs" \
+				|| { install_log ERR "split: failed to point $env_file at root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
+		fi
 
 		# Module root fs (btrfs/f2fs) needs its driver in the eMMC /boot initramfs.
 		install_update_initramfs "$mp" "$fs"
