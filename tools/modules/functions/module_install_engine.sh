@@ -298,9 +298,12 @@ install_apply_partitions() {
 	# serial) tagged "DVKR" at 7168, secure storage (HDCP/DRM keys) tagged
 	# "SSKR" at 8192. Nothing recreates either. Keep that window only when it
 	# is in use, so any other target is cleared exactly as before.
+	# tr -d '\0' only strips what bash would discard anyway: on a device without
+	# the magics those 4 bytes are usually NULs, and the bare substitution makes
+	# bash print "ignored null byte in input" over the installer dialog.
 	local keep_window="no"
-	[[ "$(dd if="$device" bs=1 skip=$(( 7168 * 512 )) count=4 2>/dev/null)" == "DVKR" ]] && keep_window="yes"
-	[[ "$(dd if="$device" bs=1 skip=$(( 8192 * 512 )) count=4 2>/dev/null)" == "SSKR" ]] && keep_window="yes"
+	[[ "$(dd if="$device" bs=1 skip=$(( 7168 * 512 )) count=4 2>/dev/null | tr -d '\0')" == "DVKR" ]] && keep_window="yes"
+	[[ "$(dd if="$device" bs=1 skip=$(( 8192 * 512 )) count=4 2>/dev/null | tr -d '\0')" == "SSKR" ]] && keep_window="yes"
 
 	wipefs -aq "$device" >>"$INSTALL_LOG" 2>&1 || true
 	if [[ "$keep_window" == "yes" ]]; then
