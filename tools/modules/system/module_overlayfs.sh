@@ -25,7 +25,7 @@ function module_overlayfs() {
 
 	case "$1" in
 		"${commands[0]}")
-			pkg_install --reinstall -o Dpkg::Options::="--force-confold" overlayroot
+			pkg_install --reinstall -o Dpkg::Options::="--force-confold" overlayroot busybox-static
 			cat > /etc/overlayroot.conf <<-EOT
 			# overlayroot config - managed by configng
 			overlayroot_cfgdisk="disabled"
