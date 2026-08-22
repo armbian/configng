@@ -73,6 +73,138 @@ setup() {
 	[ "$status" -eq 71 ]
 }
 
+# --- extlinux rewrite --------------------------------------------------------
+#
+# Distro-boot boards (spacemit/riscv and other vendor kernels) ship no
+# armbianEnv.txt; root= lives on the extlinux "append" line instead.
+
+# A real /boot/extlinux/extlinux.conf as written for a SpacemiT MUSE Book.
+_extlinux_fixture() {
+	cat >"$1" <<-'EOF'
+		label Armbian
+		  kernel /boot/Image
+		  initrd /boot/uInitrd
+		  fdt /boot/dtb/spacemit/k1-musebook.dtb
+		  append root=UUID=old-uuid console=ttyS0,115200 loglevel=1 rw splash
+	EOF
+}
+
+@test "extlinux: root= on the append line is repointed" {
+	f="$TMP/extlinux.conf"; _extlinux_fixture "$f"
+	run install_rewrite_extlinux "$f" "UUID=new-uuid" ext4
+	[ "$status" -eq 0 ]
+	grep -q 'root=UUID=new-uuid' "$f"
+	! grep -q 'old-uuid' "$f"
+	# every other kernel arg survives, in place
+	grep -q 'console=ttyS0,115200' "$f"
+	grep -q 'splash' "$f"
+}
+
+@test "extlinux: label/kernel/initrd/fdt lines are left alone" {
+	f="$TMP/extlinux.conf"; _extlinux_fixture "$f"
+	install_rewrite_extlinux "$f" "UUID=new-uuid" ext4
+	grep -q '^label Armbian$' "$f"
+	grep -q '^  kernel /boot/Image$' "$f"
+	grep -q '^  fdt /boot/dtb/spacemit/k1-musebook.dtb$' "$f"
+	[ "$(grep -c 'root=' "$f")" -eq 1 ]
+}
+
+@test "extlinux: rootfstype is added when absent and replaced when present" {
+	f="$TMP/extlinux.conf"; _extlinux_fixture "$f"
+	install_rewrite_extlinux "$f" "UUID=new-uuid" ext4
+	grep -q 'rootfstype=ext4' "$f"
+	# second pass with a different fs must not duplicate the token
+	install_rewrite_extlinux "$f" "UUID=new-uuid" f2fs
+	grep -q 'rootfstype=f2fs' "$f"
+	[ "$(grep -o 'rootfstype=' "$f" | wc -l)" -eq 1 ]
+}
+
+@test "extlinux: btrfs root also gets rootflags=subvol=@" {
+	# armbianEnv boards get this from boot.cmd; extlinux boards never run it, so
+	# without it a btrfs install mounts the wrong subvolume.
+	f="$TMP/extlinux.conf"; _extlinux_fixture "$f"
+	install_rewrite_extlinux "$f" "UUID=new-uuid" btrfs
+	grep -q 'rootflags=subvol=@' "$f"
+	run install_rewrite_extlinux "$f" "UUID=new-uuid" ext4
+	[ "$status" -eq 0 ]
+}
+
+@test "extlinux: rewriting twice is a no-op (idempotent)" {
+	f="$TMP/extlinux.conf"; _extlinux_fixture "$f"
+	install_rewrite_extlinux "$f" "UUID=new-uuid" ext4
+	cp "$f" "$TMP/once"
+	install_rewrite_extlinux "$f" "UUID=new-uuid" ext4
+	diff -q "$TMP/once" "$f"
+}
+
+@test "extlinux: an append line with no root= gets one" {
+	f="$TMP/extlinux.conf"
+	printf 'label Armbian\n  kernel /boot/Image\n  append console=ttyS0,115200 rw\n' >"$f"
+	run install_rewrite_extlinux "$f" "UUID=new-uuid" ext4
+	[ "$status" -eq 0 ]
+	grep -q 'root=UUID=new-uuid' "$f"
+	grep -q 'console=ttyS0,115200' "$f"
+}
+
+@test "extlinux: uppercase APPEND is handled" {
+	f="$TMP/extlinux.conf"
+	printf 'LABEL Armbian\n  APPEND root=/dev/mmcblk0p1 rw\n' >"$f"
+	install_rewrite_extlinux "$f" "UUID=new-uuid" ext4
+	grep -q 'root=UUID=new-uuid' "$f"
+	! grep -q 'mmcblk0p1' "$f"
+}
+
+@test "extlinux: file mode is preserved" {
+	f="$TMP/extlinux.conf"; _extlinux_fixture "$f"; chmod 600 "$f"
+	install_rewrite_extlinux "$f" "UUID=new-uuid" ext4
+	[ "$(stat -c '%a' "$f")" = "600" ]
+	[ ! -e "$f.new" ]
+}
+
+@test "extlinux: missing file returns bootcfg error" {
+	run install_rewrite_extlinux "$TMP/nope.conf" "UUID=new" ext4
+	[ "$status" -eq 71 ]
+}
+
+# --- boot config discovery / dispatch ----------------------------------------
+
+@test "boot cfg: armbianEnv.txt wins when both exist" {
+	d="$TMP/boot1"; mkdir -p "$d/extlinux"
+	: >"$d/armbianEnv.txt"; : >"$d/extlinux/extlinux.conf"
+	run install_boot_cfg_file "$d"
+	[ "$status" -eq 0 ]
+	[ "$output" = "$d/armbianEnv.txt" ]
+}
+
+@test "boot cfg: extlinux.conf is found when there is no armbianEnv.txt" {
+	d="$TMP/boot2"; mkdir -p "$d/extlinux"
+	: >"$d/extlinux/extlinux.conf"
+	run install_boot_cfg_file "$d"
+	[ "$status" -eq 0 ]
+	[ "$output" = "$d/extlinux/extlinux.conf" ]
+}
+
+@test "boot cfg: neither present reports failure and prints nothing" {
+	d="$TMP/boot3"; mkdir -p "$d"
+	run install_boot_cfg_file "$d"
+	[ "$status" -ne 0 ]
+	[ -z "$output" ]
+}
+
+@test "boot cfg: dispatch rewrites each format in its own syntax" {
+	d="$TMP/boot4"; mkdir -p "$d/extlinux"
+	printf 'verbosity=1\nrootdev=UUID=old\n' >"$d/armbianEnv.txt"
+	_extlinux_fixture "$d/extlinux/extlinux.conf"
+
+	install_rewrite_bootcfg "$d/armbianEnv.txt" "UUID=new" ext4
+	grep -q '^rootdev=UUID=new$' "$d/armbianEnv.txt"
+
+	install_rewrite_bootcfg "$d/extlinux/extlinux.conf" "UUID=new" ext4
+	grep -q 'root=UUID=new' "$d/extlinux/extlinux.conf"
+	# the extlinux file must not have grown armbianEnv-style keys
+	! grep -q '^rootdev=' "$d/extlinux/extlinux.conf"
+}
+
 # --- verify: bootable /boot --------------------------------------------------
 
 @test "verify boot dir: kernel + boot script passes" {
