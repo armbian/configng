@@ -107,10 +107,45 @@ function module_armbian_runners () {
 			local temp_dir=$(mktemp -d)
 			trap '{ rm -rf -- "$temp_dir"; }' EXIT
 			[[ "$ARCH" == "x86_64" ]] && local arch=x64 || local arch=arm64
-			local LATEST=$(curl -sL https://api.github.com/repos/actions/runner/tags | jq -r '.[0].zipball_url' | rev | cut -d"/" -f1 | rev | sed "s/v//g")
-			curl --progress-bar --create-dirs --output-dir ${temp_dir} -o \
-			actions-runner-linux-${ARCH}-${LATEST}.tar.gz -L \
-			https://github.com/actions/runner/releases/download/v${LATEST}/actions-runner-linux-${arch}-${LATEST}.tar.gz
+			# Ask GitHub for the latest runner release, authenticated with the
+			# same token the registration calls use: unauthenticated api.github.com
+			# allows 60 requests an hour per IP, and once that is spent the reply
+			# is an error object rather than the expected array, which used to end
+			# as `jq: Cannot index object with number` and an empty LATEST.
+			#
+			# releases/latest rather than tags[0]: it states which release is
+			# current instead of trusting the order tags come back in.
+			local LATEST
+			LATEST=$(curl -fsSL \
+				-H "Accept: application/vnd.github+json" \
+				${gh_token:+-H "Authorization: Bearer ${gh_token}"} \
+				-H "X-GitHub-Api-Version: 2022-11-28" \
+				https://api.github.com/repos/actions/runner/releases/latest | jq -r '.tag_name // empty' | sed "s/^v//")
+
+			# Everything below removes the running runners before reinstalling
+			# them, so refuse to start when the version lookup failed - otherwise
+			# a rate-limited API call deletes the fleet and cannot rebuild it.
+			if [[ ! "${LATEST}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+				echo "Could not determine the latest actions/runner release (got '${LATEST:-<empty>}')." >&2
+				echo "Pass a GitHub token if you are being rate limited; no runners were touched." >&2
+				return 1
+			fi
+
+			local runner_tarball="${temp_dir}/actions-runner-linux-${ARCH}-${LATEST}.tar.gz"
+			# --fail, or curl writes the 404 body to the file, reports 100% and
+			# leaves tar to complain that stdin is not in gzip format.
+			if ! curl --fail --progress-bar --create-dirs --output-dir ${temp_dir} -o \
+				actions-runner-linux-${ARCH}-${LATEST}.tar.gz -L \
+				https://github.com/actions/runner/releases/download/v${LATEST}/actions-runner-linux-${arch}-${LATEST}.tar.gz; then
+				echo "Download of actions-runner ${LATEST} (${arch}) failed; no runners were touched." >&2
+				return 1
+			fi
+
+			# Verify the archive before anything is removed.
+			if ! tar tzf "${runner_tarball}" >/dev/null 2>&1; then
+				echo "Downloaded actions-runner ${LATEST} archive is not a valid tarball; no runners were touched." >&2
+				return 1
+			fi
 
 			# make runners each under its own user
 			for i in $(seq -w $start $stop)
@@ -141,7 +176,7 @@ function module_armbian_runners () {
 					echo "actions-runner-${i} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 				fi
 				usermod -aG docker actions-runner-${i}
-				tar xzf ${temp_dir}/actions-runner-linux-${ARCH}-${LATEST}.tar.gz -C /home/actions-runner-${i}
+				tar xzf "${runner_tarball}" -C /home/actions-runner-${i}
 				chown -R actions-runner-${i}:actions-runner-${i} /home/actions-runner-${i}
 
 				# 1st runner has different labels
