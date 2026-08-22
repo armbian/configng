@@ -106,6 +106,12 @@ function module_armbian_runners () {
 			# download latest runner package
 			local temp_dir=$(mktemp -d)
 			trap '{ rm -rf -- "$temp_dir"; }' EXIT
+
+			# That trap is shell-scoped, not function-scoped: it fires when
+			# armbian-config exits, not when this returns. Without an explicit
+			# call the directory survives every early return, and on success the
+			# ~200MB runner tarball sits there for the rest of the session.
+			runner_temp_cleanup() { rm -rf -- "${temp_dir}"; trap - EXIT; }
 			[[ "$ARCH" == "x86_64" ]] && local arch=x64 || local arch=arm64
 			# Ask GitHub for the latest runner release, authenticated with the
 			# same token the registration calls use: unauthenticated api.github.com
@@ -128,6 +134,7 @@ function module_armbian_runners () {
 			if [[ ! "${LATEST}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 				echo "Could not determine the latest actions/runner release (got '${LATEST:-<empty>}')." >&2
 				echo "Pass a GitHub token if you are being rate limited; no runners were touched." >&2
+				runner_temp_cleanup
 				return 1
 			fi
 
@@ -138,12 +145,14 @@ function module_armbian_runners () {
 				actions-runner-linux-${ARCH}-${LATEST}.tar.gz -L \
 				https://github.com/actions/runner/releases/download/v${LATEST}/actions-runner-linux-${arch}-${LATEST}.tar.gz; then
 				echo "Download of actions-runner ${LATEST} (${arch}) failed; no runners were touched." >&2
+				runner_temp_cleanup
 				return 1
 			fi
 
 			# Verify the archive before anything is removed.
 			if ! tar tzf "${runner_tarball}" >/dev/null 2>&1; then
 				echo "Downloaded actions-runner ${LATEST} archive is not a valid tarball; no runners were touched." >&2
+				runner_temp_cleanup
 				return 1
 			fi
 
@@ -290,6 +299,8 @@ function module_armbian_runners () {
 			else
 				echo "Warning: runner-cleanup assets not found in source tree next to module or at /usr/share/armbian-config/runner-cleanup; skipping maintenance helper install" >&2
 			fi
+
+			runner_temp_cleanup
 
 		;;
 		"${commands[1]}")
