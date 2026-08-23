@@ -299,7 +299,7 @@ def render_category_index(category):
     md = [f"# {cat_desc}\n"]
     md.extend(insert_images_and_header(category))
     md.append("\nInstall and configure these applications through "
-              "[`armbian-config`](/armbian-config/) or from the pages below:\n")
+              "[`armbian-config`](/config/) or from the pages below:\n")
     for g in groups:
         short = g[0]['short']
         one_liner = (g[0].get('description') or short).strip().rstrip('.')
@@ -408,7 +408,7 @@ def render_software_group(sub_items, level=1, with_title=True, menu_path=None):
         iarg = api_cmd(install).split(None, 1)[1].strip() if ' ' in api_cmd(install) else ''
         ititle = "CLI install" if iarg == 'install' else action_label(install)
         if menu_path:
-            md.append(f"\nInstall from **[armbian-config](/armbian-config/) → {menu_path}**")
+            md.append(f"\nInstall from **[armbian-config](/config/) → {menu_path}**")
         md.append(f"\n~~~ custombash title=\"{ititle}\"\narmbian-config --cmd {install['id']}\n~~~\n")
         md.append(_footer_md(install['id']))
 
