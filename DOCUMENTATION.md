@@ -703,12 +703,12 @@ Outputs:
 	--cmd DEL001 - Deluge BitTorrent client
 	--cmd DEL002 - Deluge remove (http://localhost:8112)
 	--cmd DEL003 - Deluge purge with data folder
-	--cmd DOW001 - qBittorrent BitTorrent client 
-	--cmd DOW002 - qBittorrent remove (http://localhost:8090)
-	--cmd DOW003 - qBittorrent purge with data folder
-	--cmd DOW025 - Prowlarr index manager and proxy for PVR
-	--cmd DOW026 - Prowlarr remove (http://localhost:9696)
-	--cmd DOW027 - Prowlarr purge with data folder
+	--cmd QBT001 - qBittorrent BitTorrent client 
+	--cmd QBT002 - qBittorrent remove (http://localhost:8090)
+	--cmd QBT003 - qBittorrent purge with data folder
+	--cmd PRW001 - Prowlarr index manager and proxy for PVR
+	--cmd PRW002 - Prowlarr remove (http://localhost:9696)
+	--cmd PRW003 - Prowlarr purge with data folder
 	--cmd JEL001 - Jellyseerr Jellyfin/Emby/Plex integration install
 	--cmd JEL002 - Jellyseerr remove (http://localhost:5055)
 	--cmd JEL003 - Jellyseerr purge with data folder
@@ -1218,6 +1218,7 @@ These helper functions facilitate various operations related to job management, 
 | Generate a Help message legacy cli commands. | see_cli_legacy | @Tearran 
 | Detect first regular user for desktop setup | module_desktop_getuser | @igorpecovnik 
 | Run time variables Migrated procedures from Armbian config. | set_runtime_variables | @igorpecovnik 
+| Install git command-line tools | install remove status help | @armbian 
 | Install Ghost CMS container | install remove purge status help | @igorpecovnik 
 | Check for (Whiptail, DIALOG, READ) tools and set the user interface. |  | Tearran 
 | Toggle SSH lastlog | toggle_ssh_lastlog | @Tearran 
