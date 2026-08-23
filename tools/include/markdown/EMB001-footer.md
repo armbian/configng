@@ -1,9 +1,3 @@
-=== "Access to the web interface"
-
-    The web interface is accessible via port **8091**:
-
-    - URL: `https://<your.IP>:8091`
-
 === "Directories"
 
     - Install directory: `/armbian/emby`

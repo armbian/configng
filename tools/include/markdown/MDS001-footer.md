@@ -1,9 +1,3 @@
-=== "Access to the web interface"
-
-    The web interface is accessible via port **8081**:
-
-    - URL: `https://<your.IP>:8081`
-
 === "Directories"
 
     - Install directory: `/armbian/medusa`

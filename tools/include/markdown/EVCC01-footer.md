@@ -1,8 +1,5 @@
 === "Access to the web interface"
 
-    The web interface is accessible via port **7070**:
-
-    - URL: `https://<your.IP>:7070`
     - Admin password is generated at first web interface login
 
 === "Directories"

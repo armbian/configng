@@ -1,8 +1,5 @@
 === "Access to the web interface"
 
-    The web interface is accessible via port **8443**:
-
-    - URL: `https://<your.IP>:8443`
     - Default Login: No password required by default (see optional variables below)
 
     **Note**: Code-server uses HTTPS with a self-signed certificate by default. Your browser may show a security warning - this is normal for self-signed certificates.

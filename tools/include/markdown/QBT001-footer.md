@@ -1,8 +1,5 @@
 === "Access to the web interface"
 
-    The web interface is accessible via port **8090**:
-
-    - URL: `https://<your.IP>:8090`
     - Username/Password: admin / generate at first web interface login
 
 === "Directories"

@@ -8,6 +8,7 @@ module_options+=(
 	["module_mysql,doc_link"]="https://hub.docker.com/_/mysql"
 	["module_mysql,group"]="Database"
 	["module_mysql,port"]="3306"
+	["module_mysql,protocol"]="mysql"
 	["module_mysql,arch"]="x86-64 arm64"
 	["module_mysql,dockerimage"]="mysql:lts"
 	["module_mysql,dockername"]="mysql"

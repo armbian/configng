@@ -1,9 +1,3 @@
-=== "Access to the web interface"
-
-    The web interface is accessible via port **8200**:
-
-    - URL: `http://<your.IP>:8200`
-
 === "Directories"
 
     - Install directory: `/armbian/duplicati`

@@ -1,6 +1,6 @@
 === "Server"
 
-    1. Launch `armbian-config --cmd WRG001`.
+    1. Launch `armbian-config --api module_wireguard server`.
 
     2. When prompted, enter a comma-separated list of peer names (e.g., laptop,phone,router).
 
@@ -15,7 +15,7 @@
 
 === "Client"
 
-    1. Launch `armbian-config --cmd WRG002`.
+    1. Launch `armbian-config --api module_wireguard client`.
 
     2. You will be asked to edit or paste a valid WireGuard configuration.
 

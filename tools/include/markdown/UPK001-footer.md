@@ -1,8 +1,5 @@
 === "Access to the web interface"
 
-    The web interface is accessible via port **3001**:
-
-    - URL: `https://<your.IP>:3001`
     - Username/Password: Are set at first web interface login
 
 === "Features"
