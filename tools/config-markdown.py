@@ -375,7 +375,7 @@ def _image_md(item):
             rel = f"tools/include/images/{item['id']}.{ext}"
             alt = item.get('short', item.get('description', ''))
             return (f"\n<!--- section image START from {rel} --->\n"
-                    f"![{alt}](/images/{item['id']}.{ext})\n"
+                    f"![{alt}](/images/{item['id']}.{ext}){{ .app-logo }}\n"
                     f"<!--- section image STOP from {rel} --->\n")
     return ""
 
