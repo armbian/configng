@@ -1,8 +1,5 @@
 === "Access to the web interface"
 
-    The OpenMediaVault web interface is accessible via the default HTTP port:
-
-    - URL: `http://<your.IP>:80`
     - Username/Password: admin / openmediavault (change after first login)
 
 === "Directories"

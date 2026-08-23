@@ -8,6 +8,7 @@ module_options+=(
 	["module_samba,doc_link"]="https://www.samba.org/samba/docs/"
 	["module_samba,group"]="Networking"
 	["module_samba,port"]="445"
+	["module_samba,protocol"]="smb"
 	["module_samba,arch"]="x86-64 arm64 armhf"
 )
 

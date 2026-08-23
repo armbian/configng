@@ -8,6 +8,7 @@ module_options+=(
 	["module_postgres,doc_link"]="https://www.postgresql.org/docs/"
 	["module_postgres,group"]="Database"
 	["module_postgres,port"]="5432"
+	["module_postgres,protocol"]="postgresql"
 	["module_postgres,arch"]="x86-64 arm64"
 	["module_postgres,dockerimage"]="tensorchord/pgvecto-rs:pg14-v0.2.0"
 	["module_postgres,dockername"]="postgres"

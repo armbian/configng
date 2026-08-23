@@ -552,26 +552,27 @@
                             "id": "GIT001",
                             "description": "Install tools for cloning and managing repositories (git)",
                             "short": "Git CLI",
-                            "module": "module_generic",
+                            "module": "module_git-cli",
+                            "prompt": "This operation will install git.",
                             "command": [
-                                "get_user_continue \"This operation will install git.\n\nDo you wish to continue?\" process_input",
-                                "pkg_install git"
+                                "module_git-cli install"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "! pkg_installed git",
+                            "condition": "! module_git-cli status",
                             "help": "Command-line tool for version control and source code management"
                         },
                         {
                             "id": "GIT002",
                             "description": "Remove tools for cloning and managing repositories (git)",
+                            "module": "module_git-cli",
+                            "prompt": "This operation will remove git.",
                             "command": [
-                                "get_user_continue \"This operation will remove git.\n\nDo you wish to continue?\" process_input",
-                                "pkg_remove git"
+                                "module_git-cli remove"
                             ],
                             "status": "Stable",
                             "author": "@armbian",
-                            "condition": "pkg_installed git",
+                            "condition": "module_git-cli status",
                             "help": "Remove tools for cloning and managing repositories (git)"
                         },
                         {
@@ -699,7 +700,7 @@
                             "help": "Deluge purge with data folder"
                         },
                         {
-                            "id": "DOW001",
+                            "id": "QBT001",
                             "description": "qBittorrent BitTorrent client ",
                             "short": "qBittorrent",
                             "module": "module_qbittorrent",
@@ -714,7 +715,7 @@
                             "help": "The Qbittorrent⁠ project aims to provide an open-source software alternative to µTorrent."
                         },
                         {
-                            "id": "DOW002",
+                            "id": "QBT002",
                             "description": "qBittorrent remove",
                             "about": "This operation will remove qBittorrent BitTorrent client",
                             "command": [
@@ -726,7 +727,7 @@
                             "help": "qBittorrent remove"
                         },
                         {
-                            "id": "DOW003",
+                            "id": "QBT003",
                             "description": "qBittorrent purge with data folder",
                             "about": "This operation will remove qBittorrent BitTorrent data folder",
                             "command": [
@@ -738,7 +739,7 @@
                             "help": "qBittorrent purge with data folder"
                         },
                         {
-                            "id": "DOW025",
+                            "id": "PRW001",
                             "description": "Prowlarr index manager and proxy for PVR",
                             "short": "Prowlarr",
                             "module": "module_prowlarr",
@@ -753,7 +754,7 @@
                             "help": "Prowlarr is a indexer manager/proxy built on the popular arr."
                         },
                         {
-                            "id": "DOW026",
+                            "id": "PRW002",
                             "description": "Prowlarr remove",
                             "about": "This operation will remove Prowlarr",
                             "command": [
@@ -765,7 +766,7 @@
                             "help": "Prowlarr remove"
                         },
                         {
-                            "id": "DOW027",
+                            "id": "PRW003",
                             "description": "Prowlarr purge with data folder",
                             "about": "This operation will purge Prowlarr with data folder",
                             "command": [

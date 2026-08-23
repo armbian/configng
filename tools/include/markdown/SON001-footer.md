@@ -1,9 +1,3 @@
-=== "Access to the web interface"
-
-    The web interface is accessible via port **8989**:
-
-    - URL: `https://<your.IP>:8989`
-
 === "Directories"
 
     - Install directory: `/armbian/sonarr`

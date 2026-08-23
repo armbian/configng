@@ -8,6 +8,7 @@ module_options+=(
 	["module_cockpit,doc_link"]="https://cockpit-project.org/guide/latest/"
 	["module_cockpit,group"]="Management"
 	["module_cockpit,port"]="9890"
+	["module_cockpit,protocol"]="https"
 	["module_cockpit,arch"]="x86-64 arm64 armhf"
 )
 

@@ -1,8 +1,5 @@
 === "Access to the web interface"
 
-    The web interface is accessible via port **8006**:
-
-    - URL: `https://<your.IP>:8006`
     - Username: `root` (your system root password)
 
     Official documentation: <https://pve.proxmox.com/pve-docs/>

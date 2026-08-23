@@ -1,9 +1,3 @@
-=== "Access to the service"
-
-    Immich is accessible via HTTP on port **8077**:
-
-    - URL: `http://<your.IP>:8077`
-
 === "Default credentials"
 
     - Email: *(set during initial setup)*

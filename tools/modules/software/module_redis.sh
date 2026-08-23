@@ -8,6 +8,7 @@ module_options+=(
 	["module_redis,doc_link"]="https://redis.io/docs/"
 	["module_redis,group"]="Database"
 	["module_redis,port"]="6379"
+	["module_redis,protocol"]="redis"
 	["module_redis,arch"]="x86-64 arm64"
 	["module_redis,dockerimage"]="redis:alpine"
 	["module_redis,dockername"]="redis"

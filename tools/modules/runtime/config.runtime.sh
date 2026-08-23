@@ -159,7 +159,7 @@ update_sub_submenu_data "Software" "Management" "NBOX02" "http://$LOCALIPADD:${m
 update_sub_submenu_data "Software" "Management" "APT002" "http://$LOCALIPADD:${module_options["module_aptcacherng,port"]}/acng-report.html"
 
 # Downloaders
-update_sub_submenu_data "Software" "Downloaders" "DOW002" "http://$LOCALIPADD:${module_options["module_qbittorrent,port"]%% *}" # removing second port from url
+update_sub_submenu_data "Software" "Downloaders" "QBT002" "http://$LOCALIPADD:${module_options["module_qbittorrent,port"]%% *}" # removing second port from url
 update_sub_submenu_data "Software" "Downloaders" "DEL002" "http://$LOCALIPADD:${module_options["module_deluge,port"]%% *}" # removing second port from url
 update_sub_submenu_data "Software" "Downloaders" "TRA002" "http://$LOCALIPADD:${module_options["module_transmission,port"]%% *}" # removing second port from url
 update_sub_submenu_data "Software" "Downloaders" "SABN02" "http://$LOCALIPADD:${module_options["module_sabnzbd,port"]}"
@@ -169,7 +169,7 @@ update_sub_submenu_data "Software" "Downloaders" "RAD002" "http://$LOCALIPADD:${
 update_sub_submenu_data "Software" "Downloaders" "BAZ002" "http://$LOCALIPADD:${module_options["module_bazarr,port"]}"
 update_sub_submenu_data "Software" "Downloaders" "LID002" "http://$LOCALIPADD:${module_options["module_lidarr,port"]}"
 update_sub_submenu_data "Software" "Downloaders" "RDR002" "http://$LOCALIPADD:${module_options["module_readarr,port"]}"
-update_sub_submenu_data "Software" "Downloaders" "DOW026" "http://$LOCALIPADD:${module_options["module_prowlarr,port"]}"
+update_sub_submenu_data "Software" "Downloaders" "PRW002" "http://$LOCALIPADD:${module_options["module_prowlarr,port"]}"
 update_sub_submenu_data "Software" "Downloaders" "JEL002" "http://$LOCALIPADD:${module_options["module_jellyseerr,port"]}"
 
 # web
