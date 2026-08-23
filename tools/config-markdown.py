@@ -117,30 +117,9 @@ def create_markdown_user(item, level=1, show_meta=True, force_title=False, skip_
             md.append(f"\n{item.get('description')}\n")
         md.extend(insert_images_and_header(item))
 
-    if show_meta and level == 1:
-        if item.get('status'):
-            md.append(f"__Status:__ {item['status']}  ")
-        if item.get('module'):
-            module = item['module']
-            if module in module_options:
-                architecture = module_options[module].get('arch')
-                formatted_arch = format_arch_labels(architecture)
-                if formatted_arch:
-                    md.append(f"__Architecture:__ {formatted_arch}  ")
-                maintainer = module_options[module].get('maintainer')
-                if maintainer:
-                    md.append(f"__Maintainer:__ {maintainer}  ")
-                doc_link = module_options[module].get('doc_link')
-                if doc_link:
-                    md.append(f"__Documentation:__ [Link]({doc_link})  ")
-        # Container type badge (shown regardless of module_options)
-        container_badge = format_container_badge(item)
-        if container_badge:
-            md.append(f"__Installation:__ {container_badge}  ")
-
     if item.get('command') and not skip_commands:
         cmd = item['command'][0] if isinstance(item['command'], list) else item['command']
-        md.append(f"\n~~~ custombash\narmbian-config --cmd {item['id']}\n~~~\n")
+        md.append(f"\n~~~ bash\narmbian-config --cmd {item['id']}\n~~~\n")
 
         footer_file = Path(__file__).parent / 'include' / 'markdown' / f"{item['id']}-footer.md"
         if footer_file.is_file():
@@ -165,43 +144,12 @@ def create_markdown_user(item, level=1, show_meta=True, force_title=False, skip_
                     if sub_item.get('short') and sub_item.get('description') and sub_item.get('short') != sub_item.get('description'):
                         md.append(f"\n{sub_item.get('description')}\n")
                     md.extend(insert_images_and_header(sub_item))
-
-                    # Insert unified edit line for header/footer only once
-                    base_name = sub_item['id']
-                    edit_parts = []
-                    for section in ['footer', 'header']:
-                        section_filename = f"{base_name}-{section}.md"
-                        section_file = Path(__file__).parent / 'include' / 'markdown' / section_filename
-                        rel_path = f"tools/include/markdown/{section_filename}"
-                        edit_mode = "edit" if section_file.is_file() else "new"
-                        url = f"https://github.com/armbian/configng/{edit_mode}/main/{rel_path}"
-                        edit_parts.append(f"[{section}]({url})")
-                    md.append(f"__Edit:__ {' '.join(edit_parts)}  ")
-
-                    if sub_item.get('status'):
-                        md.append(f"__Status:__ {sub_item['status']}  ")
-                    module = sub_item.get('module')
-                    if module in module_options:
-                        arch = module_options[module].get('arch')
-                        if arch:
-                            md.append(f"__Architecture:__ {format_arch_labels(arch)}  ")
-                        maintainer = module_options[module].get('maintainer')
-                        if maintainer:
-                            md.append(f"__Maintainer:__ {maintainer}  ")
-                        doc_link = module_options[module].get('doc_link')
-                        if doc_link:
-                            md.append(f"__Documentation:__ [Link]({doc_link})  ")
-                    # Container type badge (shown regardless of module_options)
-                    container_badge = format_container_badge(sub_item)
-                    if container_badge:
-                        md.append(f"__Installation:__ {container_badge}  ")
                     first_sub = False
 
                 if sub_item.get('command'):
                     cmd = sub_item['command'][0] if isinstance(sub_item['command'], list) else sub_item['command']
-                    fence = "custombash" if first_command else "bash"
-                    title = "" if fence == "custombash" else f" title=\"{sub_item.get('short', sub_item.get('description', ''))}:\""
-                    md.append(f"\n~~~ {fence}{title}\narmbian-config --cmd {sub_item['id']}\n~~~\n")
+                    title = f" title=\"{sub_item.get('short', sub_item.get('description', ''))}\""
+                    md.append(f"\n~~~ bash{title}\narmbian-config --cmd {sub_item['id']}\n~~~\n")
                     first_command = False
 
                     footer_file = Path(__file__).parent / 'include' / 'markdown' / f"{sub_item['id']}-footer.md"
