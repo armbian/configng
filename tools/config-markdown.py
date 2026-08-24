@@ -258,7 +258,11 @@ def render_software_page(group, category):
     # People search "install <app> <board> arm64", not the category name.
     meta_desc = f"Install and run {short} on Armbian — {desc.rstrip('.')}. Runs on ARM64 and x86 single-board computers."
 
-    fm = ['---', f"title: {yaml_quote(short)}", f"description: {yaml_quote(meta_desc)}"]
+    # Browser <title> targets the real query ("install <app> on armbian"); the
+    # short nav label stays just the app name via `title`.
+    seo_title = f"Install {short} on Armbian"
+    fm = ['---', f"title: {yaml_quote(short)}", f"seo_title: {yaml_quote(seo_title)}",
+          f"description: {yaml_quote(meta_desc)}"]
     img = _page_image_path(install)
     if img:
         fm.append(f"image: {img}")
@@ -295,7 +299,9 @@ def render_category_index(category):
     groups = group_software(category.get('sub', []))
     meta_desc = f"{cat_desc} for Armbian on ARM64 and x86 single-board computers: " \
                 + ", ".join(g[0]['short'] for g in groups) + "."
-    fm = ['---', f"title: {yaml_quote(cat_short)}", f"description: {yaml_quote(meta_desc[:180])}", 'comments: true', '---', '']
+    seo_title = f"{cat_short} apps for Armbian"
+    fm = ['---', f"title: {yaml_quote(cat_short)}", f"seo_title: {yaml_quote(seo_title)}",
+          f"description: {yaml_quote(meta_desc[:180])}", 'comments: true', '---', '']
     md = [f"# {cat_desc}\n"]
     md.extend(insert_images_and_header(category))
     md.append("\nInstall and configure these applications through "
@@ -460,7 +466,9 @@ def write_software_section(top):
 
     # keep the section overview page as-is (still rsynced/linked)
     top_desc = "Browse and install third-party applications and services on Armbian single-board computers with armbian-config, as Docker containers or native packages."
-    top_fm = f"---\ndescription: {yaml_quote(top_desc)}\ncomments: true\n---\n\n"
+    top_title = "Install apps & services on Armbian"
+    top_fm = (f"---\nseo_title: {yaml_quote(top_title)}\n"
+              f"description: {yaml_quote(top_desc)}\ncomments: true\n---\n\n")
     (cat_dir / f"{top['id']}.md").write_text(top_fm + create_markdown_user(top))
 
     count = 0
@@ -507,8 +515,32 @@ def _user_meta_desc(item):
     return f"{base} on Armbian single-board computers, configured with the armbian-config utility."
 
 
+# Keyword-rich browser <title> (<= 60 chars) for the armbian-config section
+# pages. Read by the documentation theme's `seo_title` override; the short nav
+# label stays the page's own heading.
+USER_PAGE_TITLES = {
+    'Kernel':       "Armbian kernels, headers & device-tree overlays",
+    'Desktops':     "Install a desktop environment on Armbian",
+    'Storage':      "Armbian storage setup: eMMC, ZFS, NFS",
+    'Access':       "Armbian SSH daemon & 2FA remote access",
+    'User':         "Armbian login shell & MOTD settings",
+    'Updates':      "Update & upgrade Armbian",
+    'Network':      "Armbian networking: Wi-Fi & static IP",
+    'Localisation': "Armbian timezone, locale & keyboard",
+}
+
+
+def _user_seo_title(item):
+    if item['id'] in USER_PAGE_TITLES:
+        return USER_PAGE_TITLES[item['id']]
+    base = (item.get('short') or item.get('description') or item['id']).strip().rstrip('.')
+    suffix = " on Armbian"
+    return f"{base}{suffix}" if len(base) + len(suffix) <= 60 else base[:60].rstrip()
+
+
 def _user_front_matter(item):
-    return f"---\ndescription: {yaml_quote(_user_meta_desc(item))}\ncomments: true\n---\n\n"
+    return (f"---\nseo_title: {yaml_quote(_user_seo_title(item))}\n"
+            f"description: {yaml_quote(_user_meta_desc(item))}\ncomments: true\n---\n\n")
 
 
 def write_user_markdown_files(data):
