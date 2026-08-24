@@ -459,7 +459,9 @@ def write_software_section(top):
         old.unlink()
 
     # keep the section overview page as-is (still rsynced/linked)
-    (cat_dir / f"{top['id']}.md").write_text('---\ncomments: true\n---\n\n' + create_markdown_user(top))
+    top_desc = "Browse and install third-party applications and services on Armbian single-board computers with armbian-config, as Docker containers or native packages."
+    top_fm = f"---\ndescription: {yaml_quote(top_desc)}\ncomments: true\n---\n\n"
+    (cat_dir / f"{top['id']}.md").write_text(top_fm + create_markdown_user(top))
 
     count = 0
     for category in top.get('sub', []):
@@ -480,6 +482,35 @@ def write_technical_markdown_files(data):
         technical_md = create_markdown_technical(item)
         (item_dir / f"{item['id']}.technical.md").write_text('---\ncomments: true\n---\n\n' + anchors + technical_md)
 
+# Curated, keyword-rich SEO meta descriptions for the armbian-config section
+# pages (published at /config/<page>/). Keyed by menu item id: the System
+# sub-category pages plus the top-level Network/Localisation pages. Anything not
+# listed falls back to a template built from the item's own description, so new
+# pages still get a non-default description.
+USER_PAGE_DESCRIPTIONS = {
+    'Kernel':       "Switch kernels, install headers and manage device-tree overlays and the boot environment on Armbian single-board computers with armbian-config.",
+    'Desktops':     "Install, remove and configure desktop environments such as GNOME, KDE and XFCE on Armbian single-board computers with the armbian-config utility.",
+    'Storage':      "Install Armbian to eMMC, SATA or NVMe and set up ZFS, NFS and a read-only root filesystem on single-board computers using armbian-config.",
+    'Access':       "Manage the SSH daemon, harden remote access and enable two-factor authentication (2FA) on Armbian single-board computers with armbian-config.",
+    'User':         "Change the default login shell and customise the MOTD login banner on Armbian single-board computers with the armbian-config utility.",
+    'Updates':      "Apply OS updates and run Debian and Ubuntu distribution upgrades on Armbian single-board computers with the armbian-config utility.",
+    'Network':      "Configure wired and wireless networking on Armbian: Wi-Fi, static IP, DHCP and advanced bridged setups on single-board computers with armbian-config.",
+    'Localisation': "Set the timezone, system locale, language, keyboard layout and hostname on Armbian single-board computers with the armbian-config utility.",
+}
+
+
+def _user_meta_desc(item):
+    """SEO meta description for an armbian-config section page."""
+    if item['id'] in USER_PAGE_DESCRIPTIONS:
+        return USER_PAGE_DESCRIPTIONS[item['id']]
+    base = (item.get('description') or item.get('short') or item['id']).strip().rstrip('.')
+    return f"{base} on Armbian single-board computers, configured with the armbian-config utility."
+
+
+def _user_front_matter(item):
+    return f"---\ndescription: {yaml_quote(_user_meta_desc(item))}\ncomments: true\n---\n\n"
+
+
 def write_user_markdown_files(data):
     DOCS_DIR.mkdir(exist_ok=True)
     for item in data['menu']:
@@ -493,11 +524,11 @@ def write_user_markdown_files(data):
         item_dir = DOCS_DIR / item['id']
         item_dir.mkdir(exist_ok=True)
         user_md = create_markdown_user(item)
-        (item_dir / f"{item['id']}.md").write_text('---\ncomments: true\n---\n\n' + user_md)
+        (item_dir / f"{item['id']}.md").write_text(_user_front_matter(item) + user_md)
         if 'sub' in item:
             for sub_item in item['sub']:
                 sub_user_md = create_markdown_user(sub_item)
-                (item_dir / f"{sub_item['id']}.md").write_text('---\ncomments: true\n---\n\n' + sub_user_md)
+                (item_dir / f"{sub_item['id']}.md").write_text(_user_front_matter(sub_item) + sub_user_md)
 
 def main():
     parser = argparse.ArgumentParser(description="Generate Markdown documentation.")
