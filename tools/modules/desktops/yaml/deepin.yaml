@@ -36,12 +36,24 @@ tiers:
       - spice-vdagent
       - xdg-user-dirs
 
+# arm64 is intentionally absent from every architectures: list below.
+# DDE's core packages (dde-control-center, dde-daemon, dde-desktop,
+# dde-dock, dde-file-manager, dde-launcher, dde-polkit-agent,
+# dde-session-ui, deepin-desktop-base, deepin-desktop-schemas,
+# deepin-gtk-theme, deepin-wm, startdde, ...) have never been built
+# for arm64 in either the Debian or Ubuntu archive — this is a
+# permanent upstream-port limitation, not a transient archive gap
+# (verified identical across bookworm/trixie/noble). Stripping just
+# those packages via packages_remove would "fix" the apt failure but
+# leave lightdm booting into a session with no window manager or
+# shell at all, which is worse than not offering the combination.
+# Re-add arm64 here if/when Deepin ships an arm64 desktop-base port.
 releases:
   bookworm:
-    architectures: [arm64, amd64]
+    architectures: [amd64]
 
   trixie:
-    architectures: [arm64, amd64]
+    architectures: [amd64]
     packages:
       - pipewire-audio
       - pipewire-pulse
@@ -51,5 +63,5 @@ releases:
       - pulseaudio-module-bluetooth
 
   noble:
-    architectures: [arm64, amd64]
+    architectures: [amd64]
 
