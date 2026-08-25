@@ -156,7 +156,7 @@ function module_wireguard () {
 
 			local dialog_rc
 			if [[ -z $2 ]]; then
-				NUMBER_OF_PEERS=$(dialog_inputbox "Enter comma delimited peer keywords" "Valid characters: letters, numbers, hyphens, underscores" "laptop" 9 70)
+				NUMBER_OF_PEERS=$(dialog_inputbox "Enter comma delimited peer keywords" "Valid characters: letters and numbers" "laptop" 9 70)
 				dialog_rc=$?
 			else
 				NUMBER_OF_PEERS="$2"
@@ -182,8 +182,8 @@ function module_wireguard () {
 					# Skip empty peer names
 					[[ -z "$peer" ]] && continue
 					# Check for invalid characters (spaces, special chars except hyphen and underscore)
-					if [[ ! "$peer" =~ ^[a-zA-Z0-9_-]+$ ]]; then
-						dialog_msgbox "Error" "Invalid peer name: '$peer'\n\nPeer names must contain only:\n  - Letters (a-z, A-Z)\n  - Numbers (0-9)\n  - Hyphens (-)\n  - Underscores (_)\n\nSpaces, newlines and special characters are not allowed." 11 60
+					if [[ ! "$peer" =~ ^[a-zA-Z0-9]+$ ]]; then
+						dialog_msgbox "Error" "Invalid peer name: '$peer'\n\nPeer names must contain only:\n  - Letters (a-z, A-Z)\n  - Numbers (0-9)\n\nSpaces, newlines, hyphens, underscores, and special characters are not allowed." 11 60
 						exit 1
 					fi
 				done
@@ -278,8 +278,8 @@ function module_wireguard () {
 		fi
 			if [[ -n ${SELECTED_PEER} ]]; then
 				# Validate peer name to prevent command injection
-				if [[ ! "${SELECTED_PEER}" =~ ^[a-zA-Z0-9_-]+$ ]]; then
-					dialog_msgbox "Error" "Invalid peer name: '${SELECTED_PEER}'\n\nPeer names must contain only letters, numbers, hyphens, and underscores." 10 60
+				if [[ ! "${SELECTED_PEER}" =~ ^[a-zA-Z0-9]+$ ]]; then
+					dialog_msgbox "Error" "Invalid peer name: '${SELECTED_PEER}'\n\nPeer names must contain only letters and numbers" 10 60
 					return 1
 				fi
 				clear
