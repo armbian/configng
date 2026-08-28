@@ -764,6 +764,13 @@ _install_windows_parts() {
 	# size is sorted with tonumber (lsblk may emit it as a string, and a string
 	# sort would rank 781MB above 63GB). Emits two lines: esp=<dev|> windows=<dev|>
 	local json="$1" esp win
+	# The Windows volume is matched by fstype "ntfs" OR, when lsblk could not
+	# probe the filesystem (empty fstype - a real risk on freshly-attached or
+	# just-formatted disks where the udev/blkid cache has not caught up), by the
+	# GPT partition type "Microsoft basic data", which is read from the partition
+	# table and is therefore reliable when the fs probe is not. A genuinely
+	# encrypted volume (BitLocker) has a NON-empty, non-ntfs fstype, so it is not
+	# swept in here - it falls through to the BitLocker branch in the caller.
 	# editorconfig-checker-disable
 	esp="$(printf '%s' "$json" | jq -r '
 		[ .blockdevices[]?.children[]?
@@ -771,7 +778,9 @@ _install_windows_parts() {
 		  | .name ] | first // empty')"
 	win="$(printf '%s' "$json" | jq -r '
 		[ .blockdevices[]?.children[]?
-		  | select(.fstype == "ntfs")
+		  | select((.fstype == "ntfs")
+		           or (((.parttypename // "") | test("basic data"; "i"))
+		               and ((.fstype // "") == "")))
 		  | select(((.parttypename // "") | test("recovery"; "i")) | not) ]
 		| sort_by(.size | tonumber) | reverse | (.[0].name // empty)')"
 	# editorconfig-checker-enable
@@ -787,8 +796,14 @@ install_detect_windows() {
 	local disk="$1" json="${2:-}"
 	if [[ -z "$json" ]]; then
 		[[ -b "$disk" ]] || return "$INSTALL_EX_NODEV"
-		# GPT is required for a UEFI Windows install.
-		parted -sm "$disk" print 2>/dev/null | grep -q '^/dev/.*:gpt:' || return "$INSTALL_EX_NODEV"
+		# GPT is required for a UEFI Windows install. Capture parted's output and
+		# grep it separately rather than `parted | grep -q`: under `set -o pipefail`
+		# (which strict callers, and the bats suite, set) `grep -q` can exit on the
+		# first match while parted is still writing, leaving parted killed by
+		# SIGPIPE (141) and the pipeline failing on an otherwise valid GPT disk.
+		local ptbl
+		ptbl="$(parted -sm "$disk" print 2>/dev/null)" || true
+		grep -q '^/dev/.*:gpt:' <<<"$ptbl" || return "$INSTALL_EX_NODEV"
 		json="$(lsblk -b -po NAME,FSTYPE,PARTTYPENAME,SIZE --json "$disk" 2>/dev/null)"
 	fi
 
