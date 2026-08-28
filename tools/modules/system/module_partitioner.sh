@@ -492,7 +492,7 @@ partitioner_cli_flash() {
 	while [[ $# -gt 0 ]]; do
 		case "$1" in
 			--target) [[ $# -ge 2 ]] || { echo "armbian-install bootloader: --target requires a value" >&2; return "$INSTALL_EX_USAGE"; }
-			          target="$2"; shift 2 ;;
+				target="$2"; shift 2 ;;
 			--yes|-y) assume_yes=1; shift ;;
 			*) echo "armbian-install bootloader: unknown option '$1'" >&2; return "$INSTALL_EX_USAGE" ;;
 		esac
