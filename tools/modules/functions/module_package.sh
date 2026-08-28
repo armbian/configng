@@ -20,6 +20,7 @@ apt_operation_progress() {
 	local args=("$@")
 	local title="APT Operation"
 	local error_file=$(mktemp)
+	local rc_file=$(mktemp)
 	local exit_code
 
 	# Pre-flight self-heal: a previous apt/dpkg run cut short (power loss or a
@@ -94,8 +95,11 @@ apt_operation_progress() {
 				apt_cmd="DEBIAN_FRONTEND=noninteractive apt-get -y $operation ${args[*]}"
 			fi
 
-			# Run apt command and capture output
-			eval "$apt_cmd" 2>&1 | while IFS= read -r line; do
+			# Run apt command. tee preserves apt's output for the error dialog;
+			# ${PIPESTATUS[0]} preserves apt's own exit code, which the outer
+			# `... | dialog_gauge` pipeline would otherwise hide behind
+			# dialog_gauge's (always-success) status - masking a failed apt run.
+			eval "$apt_cmd" 2>&1 | tee "$error_file" | while IFS= read -r line; do
 				# Parse apt output for progress indicators
 				if [[ "$line" =~ ^(Hit|Get|Reading|Download|Fetch|Hit|Preparing|Unpacking|Setting|Selecting|Processing) ]]; then
 					echo "XXX"
@@ -109,6 +113,7 @@ apt_operation_progress() {
 					echo "XXX"
 				fi
 			done
+			echo "${PIPESTATUS[0]}" > "$rc_file"
 
 			echo "XXX"
 			echo "100"
@@ -116,7 +121,11 @@ apt_operation_progress() {
 			echo "XXX"
 		) | dialog_gauge "$title" "Processing $operation..." 8 80
 
-		exit_code=$?
+		# Recover apt's real exit code (written inside the subshell); the outer
+		# pipe makes $? reflect dialog_gauge, not apt. A missing/garbled value
+		# (e.g. the dialog was cancelled) counts as a failure.
+		exit_code="$(cat "$rc_file" 2>/dev/null)"
+		[[ "$exit_code" =~ ^[0-9]+$ ]] || exit_code=1
 	fi
 
 	# Show any errors
@@ -126,7 +135,7 @@ apt_operation_progress() {
 		fi
 	fi
 
-	rm -f "$error_file"
+	rm -f "$error_file" "$rc_file"
 	return $exit_code
 }
 
