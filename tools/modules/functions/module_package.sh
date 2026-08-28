@@ -22,6 +22,23 @@ apt_operation_progress() {
 	local error_file=$(mktemp)
 	local exit_code
 
+	# Pre-flight self-heal: a previous apt/dpkg run cut short (power loss or a
+	# reboot mid-upgrade) leaves dpkg half-configured, and apt then refuses EVERY
+	# mutating operation with "dpkg was interrupted ... run 'dpkg --configure -a'".
+	# Repair it up front so install/upgrade/remove recover a board that is only
+	# in an interrupted state instead of failing on it. The exit-100 retry in
+	# pkg_install/pkg_remove can't cover this: the dialog_gauge path masks apt's
+	# real rc, so it never fires non-interactively (DIALOG=word). Cheap no-op when
+	# nothing is pending; read-only operations (update/clean) can't hit this.
+	case "$operation" in
+		install|upgrade|full-upgrade|remove|autopurge|fix-broken)
+			if [[ -n "$(ls -A /var/lib/dpkg/updates/ 2>/dev/null)" ]] \
+				|| dpkg --audit 2>/dev/null | grep -q .; then
+				DEBIAN_FRONTEND=noninteractive dpkg --configure -a >/dev/null 2>&1 || true
+			fi
+			;;
+	esac
+
 	case "$operation" in
 		update)
 			title="Package Update"
