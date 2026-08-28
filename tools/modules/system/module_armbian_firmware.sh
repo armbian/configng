@@ -264,11 +264,25 @@ function module_armbian_firmware() {
 				return 1
 			fi
 
+			# Confirm the replacement image is actually installed BEFORE pruning
+			# the others. A broken/incomplete repo could install linux-dtb /
+			# linux-headers but omit the linux-image, leaving `keep` with no image
+			# package — the prune below would then remove every kernel. Bail here
+			# (current kernel untouched) rather than strand the board.
+			local target_image="linux-image-${branch}-${linuxfamily}"
+			if ! dpkg-query -W -f='${db:Status-Status}\n' "$target_image" 2>/dev/null | grep -qx 'installed'; then
+				rm -f /etc/apt/preferences.d/armbian-upgrade-policy
+				echo "Error: replacement kernel image ${target_image} is not installed — current kernel left in place."
+				return 1
+			fi
+
 			# New kernel is on disk. Now prune only the OTHER kernel packages a
 			# branch/family switch leaves behind (e.g. current -> edge), by EXACT
 			# name and explicitly excluding what we just installed. NEVER a
 			# 'linux-image*' wildcard — that also matches the kernel we just put on
-			# and is exactly what used to delete the running kernel.
+			# and is exactly what used to delete the running kernel. Use `purge`
+			# (not `autopurge`): autopurge would also cascade into these packages'
+			# now-unused dependencies, which is risky in a scripted -y run.
 			local keep=" "
 			for pkg in ${packages[@]}; do keep+="${pkg%%=*} "; done
 			local stale=()
@@ -276,7 +290,7 @@ function module_armbian_firmware() {
 				[[ -n "$ipkg" && "$keep" != *" $ipkg "* ]] && stale+=("$ipkg")
 			done < <(dpkg-query -W -f='${Package}\n' 'linux-image-*' 'linux-dtb-*' 'linux-headers-*' 2>/dev/null)
 			if [[ ${#stale[@]} -gt 0 ]]; then
-				DEBIAN_FRONTEND=noninteractive apt-get autopurge -y "${stale[@]}" > /dev/null 2>&1 || true
+				DEBIAN_FRONTEND=noninteractive apt-get purge -y "${stale[@]}" > /dev/null 2>&1 || true
 			fi
 
 			# Clean up the temporary APT policy file
@@ -455,7 +469,15 @@ function module_armbian_firmware() {
 			# out to have no kernel to offer.
 			local prev_host
 			prev_host="$(grep -oE '[a-zA-Z0-9.-]*\.armbian\.com' "$sources_file" | head -1)"
-			[[ -n "$prev_host" ]] || prev_host="apt.armbian.com"
+			# No *.armbian.com entry means a custom/third-party mirror we must not
+			# pretend to switch: report not-on-requested for a status query, and
+			# refuse an actual switch rather than silently reinstalling from — and
+			# reporting success on — a repo the source list was never changed to.
+			if [[ -z "$prev_host" ]]; then
+				[[ "$status" == "status" ]] && return 1
+				echo "Error: ${sources_file} has no *.armbian.com entry — refusing to switch the repository on a custom mirror."
+				return 1
+			fi
 			local on_repo=rolling
 			[[ "$prev_host" == "apt.armbian.com" ]] && on_repo=stable
 
