@@ -91,9 +91,14 @@ jobs:
           )
 
           # read tests cases
-          # Run all tests on schedule, workflow_dispatch on main, or when no files changed
+          # Full matrix runs ONLY on the nightly schedule (and a manual
+          # workflow_dispatch on main). On a pull request, run just the changed
+          # tests/*.conf — and nothing at all when none changed. Previously a PR
+          # that touched no test file (e.g. a module-only change) fell through to
+          # "run everything", which is what made every PR run the whole matrix;
+          # the nightly cron is the safety net that exercises them all.
           run_all_tests=false
-          if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.ref_name }}" == "main" && "${{ github.event_name }}" == "workflow_dispatch" ]] || [[ "${{ steps.changed-files.outputs.any_changed }}" != "true" ]]; then
+          if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.ref_name }}" == "main" && "${{ github.event_name }}" == "workflow_dispatch" ]]; then
               run_all_tests=true
           fi
 
