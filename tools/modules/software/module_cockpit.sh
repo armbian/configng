@@ -92,6 +92,7 @@ function module_cockpit() {
 			# left untouched.
 			if [[ "${host_arch}" == amd64 ]]; then
 				mkdir -p /etc/libvirt/hooks
+				# editorconfig-checker-disable
 				cat > /etc/libvirt/hooks/qemu <<'HOOK'
 #!/usr/bin/env python3
 # Managed by Armbian config (module_cockpit) - changes may be overwritten.
@@ -124,6 +125,7 @@ if arch in ("x86_64", "i686") and not already:
 else:
     sys.stdout.write(data)
 HOOK
+				# editorconfig-checker-enable
 				chmod +x /etc/libvirt/hooks/qemu
 				systemctl restart libvirtd 2>/dev/null || systemctl restart libvirt 2>/dev/null || true
 			fi

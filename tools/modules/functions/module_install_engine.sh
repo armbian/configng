@@ -842,8 +842,8 @@ install_dualboot_blocker() {
 	json="$(lsblk -b -po NAME,FSTYPE,PARTTYPENAME,SIZE --json "$disk" 2>/dev/null)"
 	winpart="$(printf '%s' "$json" | jq -r '
 		[ .blockdevices[]?.children[]?
-		  | select(((.parttypename // "") | test("basic data"; "i")))
-		  | select(((.parttypename // "") | test("recovery"; "i")) | not) ]
+		| select(((.parttypename // "") | test("basic data"; "i")))
+		| select(((.parttypename // "") | test("recovery"; "i")) | not) ]
 		| sort_by(.size | tonumber) | reverse | (.[0].name // empty)' 2>/dev/null)"
 	# BitLocker FIRST (an encrypted volume also fails the ntfsresize probe below and
 	# must not be reported as "dirty"), scoped to THAT partition only: its lsblk/blkid
