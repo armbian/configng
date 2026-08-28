@@ -113,11 +113,16 @@ apt_operation_progress() {
 					echo "XXX"
 				fi
 			done
-			echo "${PIPESTATUS[0]}" > "$rc_file"
+			local apt_exit_code=${PIPESTATUS[0]}
+			echo "$apt_exit_code" > "$rc_file"
 
 			echo "XXX"
 			echo "100"
-			echo "$operation complete!"
+			if [[ $apt_exit_code -eq 0 ]]; then
+				echo "$operation complete!"
+			else
+				echo "$operation failed."
+			fi
 			echo "XXX"
 		) | dialog_gauge "$title" "Processing $operation..." 8 80
 
