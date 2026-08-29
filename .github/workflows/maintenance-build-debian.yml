@@ -36,7 +36,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
+      - name: "Determine changed test cases"
+        id: changed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          # On a push to main, ask the API which tests/*.conf the pushed range
+          # changed, so the dispatched unit-test run exercises exactly what the
+          # merge touched (a desktop PR -> its one desktop). A manual build
+          # (workflow_dispatch) or a first push with an all-zero before-sha can't
+          # be scoped this way, so signal "all" and let the suite run in full.
+          mode="all"
+          changed=""
+          if [[ "$EVENT" == "push" && ! "$BEFORE" =~ ^0+$ ]]; then
+              mode="changed"
+              changed="$(gh api "repos/${REPO}/compare/${BEFORE}...${AFTER}" \
+                  --jq '[.files[].filename | select(startswith("tests/") and endswith(".conf"))] | join(" ")' \
+                  2>/dev/null || true)"
+          fi
+          {
+              echo "mode=${mode}"
+              echo "changed=${changed}"
+          } >> "$GITHUB_OUTPUT"
+          echo "mode=${mode} changed_tests=[${changed}]"
+
       - name: "Run unit tests action"
         uses: peter-evans/repository-dispatch@v4
         with:
           event-type: "Unit tests"
+          client-payload: '{"mode": "${{ steps.changed.outputs.mode }}", "changed_tests": "${{ steps.changed.outputs.changed }}"}'
