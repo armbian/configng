@@ -115,10 +115,17 @@ releases:
       - pkexec
       - libu2f-udev
 
-  resolute:
-    # Ubuntu 26.04 LTS.
-    architectures: [arm64, amd64]
-    packages:
-      - polkitd
-      - pkexec
-      - libfido2-1
+  # resolute (Ubuntu 26.04 LTS) is intentionally omitted so it is reported
+  # unavailable for LXQt and never enters the build matrix. Its lxqt-panel
+  # (2.3.2-0ubuntu1) and lxqt-branding-debian (0.14.0.7, pulled in as a
+  # Recommends of lxqt-core) both ship /etc/xdg/lxqt/panel.conf with no
+  # Replaces/Conflicts, so dpkg aborts the unpack and lxqt-core can't install
+  # (upstream Ubuntu packaging bug, not ours). Re-add the block below once the
+  # archive resolves the conffile conflict - see tests/LXQT01.conf.
+  #resolute:
+  #  # Ubuntu 26.04 LTS.
+  #  architectures: [arm64, amd64]
+  #  packages:
+  #    - polkitd
+  #    - pkexec
+  #    - libfido2-1
