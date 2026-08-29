@@ -56,6 +56,11 @@ jobs:
 
       - name: "Make JSON ${{ steps.changed-files.outputs.all_changed_files }}"
         id: json
+        env:
+          # repository_dispatch payload from maintenance-build-debian; read via
+          # env so it can never be interpolated into the shell body.
+          CP_MODE: ${{ github.event.client_payload.mode }}
+          CP_CHANGED: ${{ github.event.client_payload.changed_tests }}
         run: |
 
           # Run each enabled test case against every arch its TESTARCH
@@ -102,8 +107,32 @@ jobs:
               run_all_tests=true
           fi
 
+          # repository_dispatch is the post-merge trigger fired by
+          # maintenance-build-debian after a push to main. It carries a
+          # client_payload: CP_MODE="changed" with a space-separated CP_CHANGED
+          # list runs exactly what the merge touched (a desktop PR -> its one
+          # desktop); CP_MODE="all" (a manual build, or a payload-less dispatch
+          # fired by hand) runs the whole suite. Read via env, never inlined into
+          # the script, so the payload can't inject shell.
+          dispatch_changed=""
+          if [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
+              if [[ "${CP_MODE}" == "changed" ]]; then
+                  dispatch_changed="${CP_CHANGED}"
+              else
+                  run_all_tests=true
+              fi
+          fi
+
           if [[ "$run_all_tests" == "true" ]]; then
               tests=($(grep -rwl tests/*.conf -e "ENABLED=true" | cut -d":" -f1))
+          elif [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
+              # Post-merge: run just the tests the merge changed (from the payload).
+              if [[ -n "$dispatch_changed" ]]; then
+                  read -r -a changed_tests <<< "$dispatch_changed"
+                  tests=($(grep -rwl -e "ENABLED=true" -- "${changed_tests[@]}" 2>/dev/null | cut -d":" -f1))
+              else
+                  tests=()
+              fi
           else
               # Get changed test files using git to avoid parsing issues
               changed_tests=($(cd "${GITHUB_WORKSPACE}" && git diff --name-only origin/main...HEAD | grep '^tests/.*\.conf$' || true))
