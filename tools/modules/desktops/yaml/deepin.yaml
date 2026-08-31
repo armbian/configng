@@ -36,32 +36,29 @@ tiers:
       - spice-vdagent
       - xdg-user-dirs
 
-# arm64 is intentionally absent from every architectures: list below.
-# DDE's core packages (dde-control-center, dde-daemon, dde-desktop,
-# dde-dock, dde-file-manager, dde-launcher, dde-polkit-agent,
-# dde-session-ui, deepin-desktop-base, deepin-desktop-schemas,
-# deepin-gtk-theme, deepin-wm, startdde, ...) have never been built
-# for arm64 in either the Debian or Ubuntu archive — this is a
-# permanent upstream-port limitation, not a transient archive gap
-# (verified identical across bookworm/trixie/noble). Stripping just
-# those packages via packages_remove would "fix" the apt failure but
-# leave lightdm booting into a session with no window manager or
-# shell at all, which is worse than not offering the combination.
-# Re-add arm64 here if/when Deepin ships an arm64 desktop-base port.
-releases:
-  bookworm:
-    architectures: [amd64]
-
-  trixie:
-    architectures: [amd64]
-    packages:
-      - pipewire-audio
-      - pipewire-pulse
-      - wireplumber
-    packages_remove:
-      - pulseaudio
-      - pulseaudio-module-bluetooth
-
-  noble:
-    architectures: [amd64]
+# Every architectures: list below is intentionally empty — deepin has
+# no working architecture left, on any currently-supported release.
+#
+# arm64 was already excluded (DDE's core packages have never been
+# built for arm64 in either the Debian or Ubuntu archive — a permanent
+# upstream-port limitation, verified identical across bookworm/trixie/
+# noble). The 2026-08 desktop-matrix audit (tools/modules/desktops/
+# github/audit.py) now shows the same core session packages
+# (dde-daemon, dde-desktop, dde-dock, dde-session-ui, deepin-desktop-
+# base, startdde, ...) are ALSO absent from the Debian/Ubuntu archive
+# on amd64 across bookworm, trixie and noble — DDE is not part of the
+# Debian/Ubuntu archive on amd64 either, and (unlike google-chrome-
+# stable / code / armbian-imager) there is no apt.armbian.com or other
+# repo configured anywhere in this codebase to supply it (no `repo:`
+# block here, no mention in module_desktops.sh's apt-pin/force-pkgs
+# list). Stripping just the missing packages via packages_remove would
+# "fix" the apt failure but leave lightdm booting into a session with
+# no window manager, dock, launcher or shell at all — worse than not
+# offering the combination.
+#
+# Re-add an architecture/release here once a real DDE-carrying repo
+# (community.deepin.org or a Debian archive that actually ships the
+# dde-* / deepin-desktop-base packages) is wired up via a `repo:`
+# block, per kde-neon.yaml's pattern.
+releases: {}
 
