@@ -105,7 +105,7 @@ sudo armbian-config
 
 
   - ### Install to internal media, ZFS, NFS, read-only rootfs
-    - ### Install the running system to internal media (eMMC/NVMe/SATA/USB/UFS, or Windows dual-boot)
+    - ### Install the running system to internal media
     - ### Download a fresh, official Armbian OS image and write it to a device
     - ### Remove all downloaded Armbian images
     - ### Enable read only filesystem
@@ -443,8 +443,6 @@ sudo armbian-config
 
 - ## **Help** 
 
-  - ### Contribute
-
 ## Install
 Armbian installation
 ~~~
@@ -573,7 +571,7 @@ Outputs:
 	--cmd XFCE08 - Change XFCE to mid
 	--cmd XFCE09 - Change XFCE to full
     Storage - Install to internal media, ZFS, NFS, read-only rootfs
-	--cmd STO001 - Install the running system to internal media (eMMC/NVMe/SATA/USB/UFS, or Windows dual-boot)
+	--cmd STO001 - Install the running system to internal media (Windows dual-boot)
 	--cmd FLASH1 - Download a fresh, official Armbian OS image and write it to a device
 	--cmd FLASH2 - Remove all downloaded Armbian images
 	--cmd ROO001 - Enable read only filesystem
@@ -851,9 +849,7 @@ Outputs:
 	--cmd GHOST1 - Ghost CMS install
 	--cmd GHOST2 - Ghost CMS remove (http://localhost:9190/ghost)
 	--cmd GHOST3 - Ghost CMS purge with data folder
-
-  Help - About this tool
-    --cmd HLP001 - Contribute
+  --cmd Help - About this tool
 ~~~
 
 ## Legacy options
@@ -1194,16 +1190,6 @@ Jobs:
 ~~~
 No commands available
 ~~~
-
-### HLP001
-
-Contribute
-
-Jobs:
-
-~~~
-show_message <<< $(about_armbian_configng)
-~~~
 ~~~
 </details>
 
@@ -1246,7 +1232,7 @@ These helper functions facilitate various operations related to job management, 
 | Install sonarr container | install remove purge status help | @armbian 
 | Display a yes/no dialog using the configured dialog tool | dialog_yesno "Title" "Question" | @armbian 
 | Generate Document files. | generate_readme | @Tearran 
-| Storing netplan config to tmp | store_netplan_config | @igorpecovnik 
+|  |  | @igorpecovnik 
 | Generic module help dialog for containers and native installs | show_module_help "module_headers" "Kernel Headers" "" "native" | @armbian 
 | Install PostgreSQL container (advanced relational database) | install remove purge status help | @armbian 
 | Install jellyfin container | install remove purge status help | @armbian 
