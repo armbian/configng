@@ -84,6 +84,14 @@ else
 	update_submenu_data "Network" "N08" "IPV4"
 fi
 
+# Dual-booting alongside Windows is only possible on UEFI firmware, which is
+# also exactly what module_partitioner tests before offering the uefi-dualboot
+# mode. Mention it in the entry only where it can actually happen, rather than
+# advertising it on every board.
+if [ -d /sys/firmware/efi ]; then
+	update_sub_submenu_data "System" "Storage" "STO001" "Windows dual-boot"
+fi
+
 
 #
 # Sub sub menu updates

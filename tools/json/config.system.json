@@ -1026,7 +1026,7 @@
                     "sub": [
                         {
                             "id": "STO001",
-                            "description": "Install the running system to internal media (eMMC/NVMe/SATA/USB/UFS, or Windows dual-boot)",
+                            "description": "Install the running system to internal media",
                             "short": "Install",
                             "module": "module_partitioner",
                             "command": [
@@ -1035,7 +1035,7 @@
                             "status": "Preview",
                             "author": "@igorpecovnik",
                             "condition": "",
-                            "help": "Clones your current live OS installation - Keeps your settings, configuration, installed."
+                            "help": "Clones the running OS to eMMC, NVMe, SATA, USB or UFS, keeping your settings, configuration and installed packages."
                         },
                         {
                             "id": "FLASH1",
