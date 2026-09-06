@@ -159,7 +159,17 @@ generate_top_menu() {
 		if [ $exitstatus = 0 ]; then
 			[ -z "$OPTION" ] && break
 			[[ -n "$debug" ]] && echo "$OPTION"
-			generate_menu "$OPTION"
+			# A top-level entry may be a leaf (no 'sub'), in which case it runs
+			# its command directly instead of opening an empty submenu. Same
+			# test generate_menu uses for its own children.
+			local submenu_count=$(jq -r --arg id "$OPTION" '.menu[] | .. | objects | select(.id==$id) | .sub? | length' "$json_file")
+			submenu_count=${submenu_count:-0}
+			[[ "$submenu_count" == "null" ]] && submenu_count=0
+			if [ "$submenu_count" -gt 0 ]; then
+				generate_menu "$OPTION"
+			else
+				execute_command "$OPTION"
+			fi
 		fi
 	done
 }
@@ -254,7 +264,7 @@ function execute_command() {
 		.about?' "$json_file")
 
 	# If a about exists, display it and wait for user confirmation
-	if [[ "$about" != "null" && $INPUTMODE != "cmd" ]]; then
+	if [[ -n "$about" && "$about" != "null" && $INPUTMODE != "cmd" ]]; then
 		get_user_continue "\n\n$about\n\nWould you like to continue?" process_input
 	fi
 
