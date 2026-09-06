@@ -3,29 +3,12 @@
         {
             "id": "Help",
             "description": "About this tool",
-            "sub": [
-                {
-                    "id": "HLP001",
-                    "description": "Contribute",
-                    "command": [
-                        "show_message <<< $(about_armbian_configng)"
-                    ],
-                    "status": "Stable",
-                    "author": "@armbian",
-                    "help": "Contribute features and improvements to the armbian-config utility"
-                },
-                {
-                    "id": "HLP002",
-                    "description": "List of Config function(WIP)",
-                    "command": [
-                        "show_message <<< see_use"
-                    ],
-                    "status": "Disabled",
-                    "author": "@armbian",
-                    "help": "List of Config function(WIP)"
-                }
+            "help": "What armbian-config is, what each menu covers, and where to get help.",
+            "command": [
+                "show_message <<< $(about_armbian_configng)"
             ],
-            "help": "View information about this tool, documentation links, and guidance to help understand and manage system features."
+            "status": "Stable",
+            "author": "@armbian"
         }
     ]
 }
