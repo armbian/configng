@@ -24,6 +24,11 @@ function set_runtime_variables() {
 		fi
 	fi
 
+	# Draw dialog borders with Unicode box characters rather than the VT100 alternate charset:
+	# PuTTY and other emulators that report TERM=xterm but ignore that charset switch in UTF-8 mode show letters.
+	# A pre-set value wins, so a genuine non-UTF-8 terminal can opt out with NCURSES_NO_UTF8_ACS=0.
+	export NCURSES_NO_UTF8_ACS="${NCURSES_NO_UTF8_ACS:-1}"
+
 	# Check if udevadm is available
 	if ! [[ -x "$(command -v udevadm)" ]]; then
 		missing_dependencies+=("udev")
