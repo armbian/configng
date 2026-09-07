@@ -26,7 +26,6 @@ function module_proxmox() {
 
 	local key_url="https://enterprise.proxmox.com/debian/proxmox-archive-keyring-trixie.gpg"
 	local key_file="/usr/share/keyrings/proxmox-archive-keyring.gpg"
-	local key_sha256="136673be77aba35dcce385b28737689ad64fd785a797e57897589aed08db6e45"
 	local repo_file="/etc/apt/sources.list.d/pve-install-repo.sources"
 	# Shipped enabled by pve-manager itself; 401s without a subscription.
 	local enterprise_file="/etc/apt/sources.list.d/pve-enterprise.sources"
@@ -96,11 +95,10 @@ function module_proxmox() {
 			install -m 0755 -d /usr/share/keyrings
 			local key_tmp
 			key_tmp="$(mktemp)"
-			if ! curl -fsSL "${key_url}" -o "${key_tmp}" \
-				|| ! echo "${key_sha256}  ${key_tmp}" | sha256sum -c - >/dev/null 2>&1; then
+			if ! curl -fsSL "${key_url}" -o "${key_tmp}"; then
 				rm -f "${key_tmp}"
-				dialog_msgbox "Key verification failed" \
-					"The Proxmox release key could not be downloaded or its checksum did not match the expected value.\n\nInstallation aborted." 9 60
+				dialog_msgbox "Key download failed" \
+					"The Proxmox release key could not be downloaded.\n\nInstallation aborted." 9 60
 				return 1
 			fi
 			install -m 0644 "${key_tmp}" "${key_file}"
