@@ -28,6 +28,9 @@ function module_proxmox() {
 	local key_file="/usr/share/keyrings/proxmox-archive-keyring.gpg"
 	local key_sha256="136673be77aba35dcce385b28737689ad64fd785a797e57897589aed08db6e45"
 	local repo_file="/etc/apt/sources.list.d/pve-install-repo.sources"
+	# Shipped enabled by pve-manager itself; 401s without a subscription.
+	local enterprise_file="/etc/apt/sources.list.d/pve-enterprise.sources"
+	local pin_file="/etc/apt/preferences.d/armbian-proxmox-no-kernel.pref"
 
 	case "$1" in
 
@@ -112,6 +115,18 @@ function module_proxmox() {
 			Signed-By: ${key_file}
 			EOF
 
+			# Keep the Proxmox kernel out. pve-manager depends on
+			# pve-yew-mobile-gui, which *recommends* proxmox-ve, which depends
+			# on proxmox-default-kernel -- so apt installs a whole second
+			# kernel unless told otherwise. That recommendation is the only
+			# link, so blocking proxmox-ve is enough; the kernel packages are
+			# listed too in case a future release grows another path to them.
+			cat <<- EOF > "${pin_file}"
+			Package: proxmox-ve proxmox-default-kernel proxmox-kernel-* proxmox-headers-*
+			Pin: release *
+			Pin-Priority: -1
+			EOF
+
 			pkg_update
 			pkg_full_upgrade
 
@@ -123,6 +138,18 @@ function module_proxmox() {
 
 			# Install the PVE userspace WITHOUT the Proxmox kernel (see header note).
 			pkg_install pve-manager postfix open-iscsi chrony
+
+			# pve-manager ships the enterprise repository enabled. Without a
+			# subscription it answers 401 and every later apt update fails, so
+			# turn it off -- the no-subscription repo written above is the one
+			# we want. It is a conffile, hence edited rather than deleted.
+			if [[ -f "${enterprise_file}" ]]; then
+				if grep -q '^Enabled:' "${enterprise_file}"; then
+					sed -i 's/^Enabled:.*/Enabled: false/' "${enterprise_file}"
+				else
+					echo "Enabled: false" >> "${enterprise_file}"
+				fi
+			fi
 
 			# Proxmox's default storage stack expects ZFS. Provide it through the
 			# Armbian ZFS module (kernel headers + zfs-dkms + tools, built against
@@ -142,12 +169,16 @@ function module_proxmox() {
 
 		"${commands[1]}")
 			## remove
+			# proxmox-ve installs an apt hook that aborts any transaction
+			# removing the meta-package until this marker exists. Only matters
+			# on systems installed before the pin above; harmless otherwise.
+			touch /please-remove-proxmox-ve
 			pkg_installed pve-manager && pkg_remove pve-manager
 			# Drop the rest of the stack pulled in by pve-manager, if present.
 			for p in proxmox-ve qemu-server pve-container pve-qemu-kvm pve-cluster; do
 				pkg_installed "$p" && pkg_remove "$p"
 			done
-			rm -f "${repo_file}"
+			rm -f "${repo_file}" "${pin_file}" /please-remove-proxmox-ve
 			pkg_update
 		;;
 
