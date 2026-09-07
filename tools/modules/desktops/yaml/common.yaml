@@ -215,6 +215,22 @@ browser:
 # stripped before they reach apt. Common.yaml carries the holes that
 # apply to every desktop; per-DE YAMLs can add their own.
 #
+# Known audit false positive — do NOT "fix" by adding removals here:
+# armbian-imager, code, and google-chrome-stable will always be
+# reported as holes against packages.debian.org / packages.ubuntu.com
+# checks (e.g. tools/modules/desktops/github/audit.py) on every
+# release/arch, because none of the three is ever published in the
+# plain Debian/Ubuntu archive — they ship from apt.armbian.com (or,
+# for google-chrome-stable on amd64, Google's own repo), which that
+# kind of audit has no visibility into. module_desktops.sh's
+# force_pkgs/strip_pkgs pin (see module_desktops.sh) explicitly makes
+# apt.armbian.com's .debs win for `code` and `google-chrome-stable`,
+# so installs succeed in practice. Only strip these three for arches
+# where the third-party repo genuinely has no build at all (already
+# done below: armhf/riscv64/loong64 for armbian-imager, riscv64/armhf
+# for code) — never for amd64/arm64, where removing them would delete
+# working functionality to satisfy an audit blind spot.
+#
 # Layered:
 #   tier_overrides.<tier>.architectures.<arch>.packages_remove
 #       — apply on this arch in any release
