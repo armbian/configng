@@ -839,7 +839,13 @@ dialog_msgbox() {
 			;;
 		"read")
 			echo "$prompt"
-			read -p "Press Enter to continue..."
+			# A message box has nothing to cancel, so it must never fail.
+			# Non-interactive callers (--api, CI) have no tty: skip the
+			# prompt rather than let read's EOF status become the exit
+			# code of whatever module called us.
+			if [[ -t 0 ]]; then
+				read -p "Press Enter to continue..."
+			fi
 			;;
 	esac
 }
