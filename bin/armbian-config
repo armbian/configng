@@ -46,7 +46,7 @@ _parse_debug_flag() {
 _parse_debug_flag "$@"
 set -- "${_debug_argv[@]}"
 
-[[ $EUID != 0 ]] && exec sudo --preserve-env=DEBUG,DEBUG_LOG "$0" "$@"
+[[ $EUID != 0 ]] && exec sudo --preserve-env=DEBUG,DEBUG_LOG,NCURSES_NO_UTF8_ACS "$0" "$@"
 #
 # Get the script directory
 script_dir="$(dirname "$0")"
