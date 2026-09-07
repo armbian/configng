@@ -796,14 +796,12 @@ install_detect_windows() {
 	local disk="$1" json="${2:-}"
 	if [[ -z "$json" ]]; then
 		[[ -b "$disk" ]] || return "$INSTALL_EX_NODEV"
-		# GPT is required for a UEFI Windows install. Capture parted's output and
-		# grep it separately rather than `parted | grep -q`: under `set -o pipefail`
-		# (which strict callers, and the bats suite, set) `grep -q` can exit on the
-		# first match while parted is still writing, leaving parted killed by
-		# SIGPIPE (141) and the pipeline failing on an otherwise valid GPT disk.
-		local ptbl
-		ptbl="$(parted -sm "$disk" print 2>/dev/null)" || true
-		grep -q '^/dev/.*:gpt:' <<<"$ptbl" || return "$INSTALL_EX_NODEV"
+		# GPT is required for a UEFI Windows install. Read the label type with lsblk,
+		# which opens the disk read-only. parted opens it read-write even for `print`,
+		# and closing a write handle fires udev's watch rule: the partitions get
+		# re-probed, and the lsblk below sees empty FSTYPE/PARTTYPENAME while that
+		# runs, so a valid Windows disk is refused.
+		[[ "$(lsblk -ndo PTTYPE "$disk" 2>/dev/null)" == "gpt" ]] || return "$INSTALL_EX_NODEV"
 		json="$(lsblk -b -po NAME,FSTYPE,PARTTYPENAME,SIZE --json "$disk" 2>/dev/null)"
 	fi
 

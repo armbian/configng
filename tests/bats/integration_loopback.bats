@@ -5,7 +5,7 @@
 # need root + losetup, so they run under sudo in CI and skip locally otherwise.
 #
 # They exercise the exact chain the installer uses, minus the rootfs rsync and
-# bootloader write, and assert with parted/blkid/lsblk that the on-disk result
+# bootloader write, and assert with sfdisk/blkid/lsblk that the on-disk result
 # matches the plan - proving the GPT/MBR/flag/blocksize fixes end to end.
 
 setup() {
@@ -16,6 +16,7 @@ setup() {
 	if [[ "$(id -u)" -ne 0 ]]; then skip "needs root for losetup"; fi
 	command -v losetup >/dev/null || skip "losetup not available"
 	command -v parted  >/dev/null || skip "parted not available"
+	command -v sfdisk  >/dev/null || skip "sfdisk not available"
 
 	IMG="$BATS_TEST_TMPDIR/disk.img"
 	truncate -s 8G "$IMG"
@@ -26,14 +27,18 @@ teardown() {
 	[[ -n "${LOOP:-}" ]] && losetup -d "$LOOP" 2>/dev/null || true
 }
 
+# Partition-table assertions read `sfdisk -d`, which opens the disk read-only.
+# parted opens it read-write even for `print`, and closing that handle makes udev
+# re-probe the disk; `[ -b ]` node checks right after a parted call flaked on that.
+_ptable() { sfdisk -d "$LOOP" 2>/dev/null; }
+
 @test "loopback: uefi plan yields GPT with an ESP-flagged first partition" {
 	local plan; plan="$(install_plan_layout uefi ext4 1 $((8*1024*1024*1024)) 512 0)"
 	run install_apply_partitions "$LOOP" "$plan"
 	[ "$status" -eq 0 ]
-	# parted reports the label type and the esp flag (force C locale - parted
-	# translates flag names, e.g. "boot" -> "zagon" under a Slovenian locale).
-	LC_ALL=C parted -sm "$LOOP" print | grep -q '^/dev/.*:gpt:'
-	LC_ALL=C parted -sm "$LOOP" print | head -3 | grep -q 'esp'
+	# Label type and the ESP partition type GUID, straight from the on-disk table.
+	_ptable | grep -q '^label: gpt'
+	_ptable | grep -q "^${LOOP}p1 : .*type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B"
 	# Two partition nodes exist.
 	[ -b "${LOOP}p1" ]
 	[ -b "${LOOP}p2" ]
@@ -109,13 +114,13 @@ teardown() {
 	local plan; plan="$(install_plan_layout emmc ext4 0 $((8*1024*1024*1024)) 512 0)"
 	run install_apply_partitions "$LOOP" "$plan"
 	[ "$status" -eq 0 ]
-	LC_ALL=C parted -sm "$LOOP" print | grep -q '^/dev/.*:msdos:'
-	LC_ALL=C parted -sm "$LOOP" print | grep -q 'boot'
+	_ptable | grep -q '^label: dos'
+	_ptable | grep -q "^${LOOP}p1 : .*bootable"
 	[ -b "${LOOP}p1" ]
 	[ ! -b "${LOOP}p2" ]
-	# p1 must start at 16MiB so it clears the on-device u-boot region
+	# p1 must start at 16MiB (sector 32768) so it clears the on-device u-boot region
 	# (idbloader@32KiB + u-boot.itb@8MiB); starting at 1MiB corrupts boot.
-	LC_ALL=C parted -sm "$LOOP" unit MiB print | grep -qE '^1:16\.0MiB:'
+	_ptable | grep -qE "^${LOOP}p1 : start= *32768,"
 }
 
 @test "loopback: emmc-boot plan yields /boot + /emmc_storage, p1 at 16MiB" {
@@ -126,8 +131,9 @@ teardown() {
 	[[ "$output" == *"storage ${LOOP}p2"* ]]
 	[ -b "${LOOP}p1" ]
 	[ -b "${LOOP}p2" ]
-	# boot partition clears the u-boot region and is ~512MiB; storage fills the rest
-	LC_ALL=C parted -sm "$LOOP" unit MiB print | grep -qE '^1:16\.0MiB:528'
+	# boot partition clears the u-boot region (starts at sector 32768 = 16MiB) and is
+	# 512MiB (1048576 sectors); storage fills the rest
+	_ptable | grep -qE "^${LOOP}p1 : start= *32768, size= *1048576,"
 }
 
 @test "loopback: apply_partitions echoes role->device for each partition" {
@@ -159,8 +165,8 @@ root ${LOOP}p2 ext4"
 	local plan; plan="$(install_plan_layout bios ext4 0 $((8*1024*1024*1024)) 512 0)"
 	run install_apply_partitions "$LOOP" "$plan"
 	[ "$status" -eq 0 ]
-	LC_ALL=C parted -sm "$LOOP" print | grep -q '^/dev/.*:msdos:'
-	LC_ALL=C parted -sm "$LOOP" print | grep -q 'boot'
+	_ptable | grep -q '^label: dos'
+	_ptable | grep -q "^${LOOP}p1 : .*bootable"
 	[ -b "${LOOP}p1" ]
 	[ ! -b "${LOOP}p2" ]
 }
@@ -171,7 +177,7 @@ root ${LOOP}p2 ext4"
 	[[ "$plan" == *"table=gpt"* ]]
 	run install_apply_partitions "$LOOP" "$plan"
 	[ "$status" -eq 0 ]
-	LC_ALL=C parted -sm "$LOOP" print | grep -q 'bios_grub'
+	_ptable | grep -q "^${LOOP}p1 : .*type=21686148-6449-6E6F-744E-656564454649"
 	[[ "$output" == *"biosboot ${LOOP}p1"* ]]
 	[[ "$output" == *"root ${LOOP}p2"* ]]
 }
@@ -183,5 +189,5 @@ root ${LOOP}p2 ext4"
 	[[ "$plan" == *"table=gpt"* ]]
 	run install_apply_partitions "$LOOP" "$plan"
 	[ "$status" -eq 0 ]
-	LC_ALL=C parted -sm "$LOOP" print | grep -q '^/dev/.*:gpt:'
+	_ptable | grep -q '^label: gpt'
 }
