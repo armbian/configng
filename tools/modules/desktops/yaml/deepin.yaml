@@ -36,32 +36,31 @@ tiers:
       - spice-vdagent
       - xdg-user-dirs
 
-# arm64 is intentionally absent from every architectures: list below.
-# DDE's core packages (dde-control-center, dde-daemon, dde-desktop,
-# dde-dock, dde-file-manager, dde-launcher, dde-polkit-agent,
-# dde-session-ui, deepin-desktop-base, deepin-desktop-schemas,
-# deepin-gtk-theme, deepin-wm, startdde, ...) have never been built
-# for arm64 in either the Debian or Ubuntu archive — this is a
-# permanent upstream-port limitation, not a transient archive gap
-# (verified identical across bookworm/trixie/noble). Stripping just
-# those packages via packages_remove would "fix" the apt failure but
-# leave lightdm booting into a session with no window manager or
-# shell at all, which is worse than not offering the combination.
-# Re-add arm64 here if/when Deepin ships an arm64 desktop-base port.
-releases:
-  bookworm:
-    architectures: [amd64]
-
-  trixie:
-    architectures: [amd64]
-    packages:
-      - pipewire-audio
-      - pipewire-pulse
-      - wireplumber
-    packages_remove:
-      - pulseaudio
-      - pulseaudio-module-bluetooth
-
-  noble:
-    architectures: [amd64]
+# arm64 was already intentionally absent from every architectures:
+# list below — DDE's core packages (dde-control-center, dde-daemon,
+# dde-desktop, dde-dock, dde-file-manager, dde-launcher,
+# dde-polkit-agent, dde-session-ui, deepin-desktop-base,
+# deepin-desktop-schemas, deepin-gtk-theme, deepin-wm, startdde, ...)
+# have never been built for arm64 in either the Debian or Ubuntu
+# archive — a permanent upstream-port limitation, not a transient gap.
+#
+# The 2026-09 desktop audit (which checks packages.debian.org /
+# packages.ubuntu.com only) now shows those same core DDE packages are
+# ALSO absent for amd64 on bookworm, trixie, and noble — the only arch
+# this file ever offered. Unlike kde-neon.yaml/bianbu.yaml, this file
+# declares no `repo:` block, so DDE packages here really do have to
+# come from the plain distro archive, and they don't exist there on
+# any (release, arch) this YAML lists. There is currently no
+# combination where `deepin` installs successfully.
+#
+# Stripping just the missing packages via packages_remove would "fix"
+# the apt failure but leave lightdm booting into a session with no
+# window manager or shell at all — same reasoning as the arm64 gap
+# above, worse than not offering the combination. Following
+# kde-neon.yaml's precedent for the same situation, disable every
+# release below instead of shipping a broken install. Re-enable (with
+# an amd64/arm64 entry as appropriate) once DDE packages are available
+# again — most plausibly by adding a `repo:` block that points at a
+# real Deepin package repository, the way kde-neon points at KDE's.
+releases: {}
 
