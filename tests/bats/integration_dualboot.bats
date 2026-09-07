@@ -72,9 +72,8 @@ teardown() {
 		echo "# parted: $(parted -sm "$LOOP" print 2>&1 | tr '\n' '|')" >&3
 		echo "# blkid: p1=[$(blkid "${LOOP}p1" 2>&1)] p2=[$(blkid "${LOOP}p2" 2>&1)]" >&3
 		# Reproduce the function's auto-detect steps under the SAME pipefail so the
-		# log shows exactly where it bails (parted-gpt check vs. the lsblk parse).
-		parted -sm "$LOOP" print 2>/dev/null | grep -q '^/dev/.*:gpt:'
-		echo "# diag: parted|grep-q rc=$?" >&3
+		# log shows exactly where it bails (label-type check vs. the lsblk parse).
+		echo "# diag: lsblk PTTYPE=[$(lsblk -ndo PTTYPE "$LOOP" 2>/dev/null)]" >&3
 		local _j; _j="$(lsblk -b -po NAME,FSTYPE,PARTTYPENAME,SIZE --json "$LOOP" 2>/dev/null)"
 		echo "# diag: parts=[$(_install_windows_parts "$_j" | tr '\n' ' ')]" >&3
 	fi
