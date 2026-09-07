@@ -56,6 +56,10 @@ jobs:
 
       - name: "Make JSON ${{ steps.changed-files.outputs.all_changed_files }}"
         id: json
+        env:
+          # Consumed as an env var rather than interpolated into the script
+          # body, so a file name can never be treated as shell.
+          CHANGED_TESTS: "${{ steps.changed-files.outputs.all_changed_files }}"
         run: |
 
           # Run each enabled test case against every arch its TESTARCH
@@ -105,8 +109,15 @@ jobs:
           if [[ "$run_all_tests" == "true" ]]; then
               tests=($(grep -rwl tests/*.conf -e "ENABLED=true" | cut -d":" -f1))
           else
-              # Get changed test files using git to avoid parsing issues
-              changed_tests=($(cd "${GITHUB_WORKSPACE}" && git diff --name-only origin/main...HEAD | grep '^tests/.*\.conf$' || true))
+              # Take the list from tj-actions/changed-files above: it already
+              # resolved the PR base and fetched whatever history that needed.
+              # Re-deriving it here with `git diff origin/main...HEAD` dies with
+              # "no merge base" on the shallow default checkout, and the `|| true`
+              # turned that into an empty matrix that reported success.
+              changed_tests=()
+              while IFS= read -r changed_test; do
+                  [[ "${changed_test}" == tests/*.conf ]] && changed_tests+=("${changed_test}")
+              done <<< "${CHANGED_TESTS}"
               if [[ ${#changed_tests[@]} -gt 0 ]]; then
                   # Filter for ENABLED=true
                   tests=($(grep -rwl -e "ENABLED=true" -- "${changed_tests[@]}" 2>/dev/null | cut -d":" -f1))
