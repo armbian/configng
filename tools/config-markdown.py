@@ -169,6 +169,12 @@ def slugify(text):
     return re.sub(r'[^a-z0-9]+', '-', (text or '').lower()).strip('-')
 
 
+def category_slug(category):
+    """Category hub URL slug: WebHosting -> web-hosting, DNS -> dns. Hubs are
+    published next to the app pages they list, at /software/<slug>/."""
+    return slugify(re.sub(r'(?<=[a-z])(?=[A-Z])', ' ', category['id']))
+
+
 def yaml_quote(text):
     """Double-quote a value for YAML front-matter. mkdocs parses front-matter as
     YAML, where an unquoted scalar containing ': ' (colon-space) is read as a
@@ -285,7 +291,7 @@ def render_software_page(group, category):
     # Simple category back-link (plain text, no heading — so it doesn't add a
     # TOC entry). The category's other apps are already in the left nav.
     cat_name = category.get('description', category['id'])
-    body.append(f"\n---\n\n_Part of Armbian's [{cat_name}](/User-Guide_Armbian-Software/{category['id']}/) software._")
+    body.append(f"\n---\n\n_Part of Armbian's [{cat_name}](/software/{category_slug(category)}/) software._")
     return slug, '\n'.join(fm) + '\n'.join(body) + '\n'
 
 
@@ -300,8 +306,11 @@ def render_category_index(category):
     meta_desc = f"{cat_desc} for Armbian on ARM64 and x86 single-board computers: " \
                 + ", ".join(g[0]['short'] for g in groups) + "."
     seo_title = f"{cat_short} apps for Armbian"
+    # `hub: true` marks this as a category hub rather than an app page:
+    # documentation/tools/build-software-nav.py keys off it to keep hubs out of
+    # the left nav (their apps are listed there already) without warnings.
     fm = ['---', f"title: {yaml_quote(cat_short)}", f"seo_title: {yaml_quote(seo_title)}",
-          f"description: {yaml_quote(meta_desc[:180])}", 'comments: true', '---', '']
+          f"description: {yaml_quote(meta_desc[:180])}", 'hub: true', 'comments: true', '---', '']
     md = [f"# {cat_desc}\n"]
     md.extend(insert_images_and_header(category))
     md.append("\nInstall and configure these applications through "
@@ -454,26 +463,18 @@ SOFTWARE_TOP_ID = "Software"
 
 def write_software_section(top):
     """Emit, for the Software section: a per-app page docs/software/<slug>.md
-    (SEO front-matter, own URL) for every installable app, plus each category
-    page rewritten as a link hub. Returns the app page count."""
-    cat_dir = DOCS_DIR / top['id']
-    cat_dir.mkdir(parents=True, exist_ok=True)
+    (SEO front-matter, own URL) for every installable app, plus one hub page per
+    category at docs/software/<category-slug>.md linking to its apps. Returns the
+    app page count."""
     apps_dir = DOCS_DIR / 'software'
     apps_dir.mkdir(parents=True, exist_ok=True)
-    # clear stale app pages so a renamed/removed slug does not linger as an orphan
+    # clear stale pages so a renamed/removed slug does not linger as an orphan
     for old in apps_dir.glob('*.md'):
         old.unlink()
 
-    # keep the section overview page as-is (still rsynced/linked)
-    top_desc = "Browse and install third-party applications and services on Armbian single-board computers with armbian-config, as Docker containers or native packages."
-    top_title = "Install apps & services on Armbian"
-    top_fm = (f"---\nseo_title: {yaml_quote(top_title)}\n"
-              f"description: {yaml_quote(top_desc)}\ncomments: true\n---\n\n")
-    (cat_dir / f"{top['id']}.md").write_text(top_fm + create_markdown_user(top))
-
     count = 0
     for category in top.get('sub', []):
-        (cat_dir / f"{category['id']}.md").write_text(render_category_index(category))
+        (apps_dir / f"{category_slug(category)}.md").write_text(render_category_index(category))
         for group in group_software(category.get('sub', [])):
             slug, page = render_software_page(group, category)
             (apps_dir / f"{slug}.md").write_text(page)

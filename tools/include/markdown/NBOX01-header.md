@@ -2,8 +2,8 @@
 
 Requirements (installed automatically)
 
-- [Redis](/User-Guide_Armbian-Software/Database/#redis)
-- [Postgres SQL](/User-Guide_Armbian-Software/Database/#postgresql)
+- [Redis](/software/redis/)
+- [Postgres SQL](/software/postgresql/)
 
 Key Features
 
