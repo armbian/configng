@@ -37,6 +37,16 @@ function module_postgres () {
 	local dockername="$postgres_container"
 	local base_dir="${SOFTWARE_FOLDER}/${postgres_container}"
 
+	# Only the stock container publishes 5432 on the host. Modules that stand up
+	# their own database (hedgedoc, immich, netbox) pass a container name and
+	# reach it by that name over the lsio network, so they need no host port --
+	# and publishing the same one twice means the second container never starts:
+	#   Bind for 0.0.0.0:5432 failed: port is already allocated
+	local -a publish_port=()
+	if [[ "${postgres_container}" == "postgres" ]]; then
+		publish_port=(-p "${port}:5432")
+	fi
+
 	case "$1" in
 		"${commands[0]}") # install
 			# Pull image (handles Docker installation and already-installed check)
@@ -55,7 +65,7 @@ function module_postgres () {
 				-e POSTGRES_DB="${postgres_db}" \
 				-e TZ="$(cat /etc/timezone)" \
 				-v "${base_dir}/${postgres_container}/data:/var/lib/postgresql/data" \
-				-p "${port}:5432" \
+				"${publish_port[@]}" \
 				"$dockerimage"
 		;;
 		"${commands[1]}") # remove
@@ -64,8 +74,14 @@ function module_postgres () {
 			docker_operation_progress rmi "$dockerimage"
 		;;
 		"${commands[2]}") # purge
-			# Remove container and image first
-			if ! ${module_options["module_postgres,feature"]} ${commands[1]}; then
+			# Remove container and image first. The parameters have to be passed
+			# on: remove re-derives the container and image names from them, so
+			# an argument-less call falls back to the default "postgres" and
+			# removes that instead -- leaving the container actually being purged
+			# in place, which then collides on its own name at the next install.
+			if ! ${module_options["module_postgres,feature"]} ${commands[1]} \
+				"$postgres_user" "$postgres_password" "$postgres_db" \
+				"$postgres_image" "$postgres_tag" "$postgres_container"; then
 				return 1
 			fi
 			# Only remove data directory if container/image removal succeeded
