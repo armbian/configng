@@ -437,6 +437,9 @@ sudo armbian-config
     - ### Ghost CMS install
     - ### Ghost CMS remove
     - ### Ghost CMS purge with data folder
+    - ### HedgeDoc collaborative markdown editor install
+    - ### HedgeDoc remove
+    - ### HedgeDoc purge with data folder
 
 
 
@@ -849,6 +852,9 @@ Outputs:
 	--cmd GHOST1 - Ghost CMS install
 	--cmd GHOST2 - Ghost CMS remove (http://localhost:9190/ghost)
 	--cmd GHOST3 - Ghost CMS purge with data folder
+	--cmd HDOC01 - HedgeDoc collaborative markdown editor install
+	--cmd HDOC02 - HedgeDoc remove (http://localhost:3100)
+	--cmd HDOC03 - HedgeDoc purge with data folder
   --cmd Help - About this tool
 ~~~
 
@@ -1255,6 +1261,7 @@ These helper functions facilitate various operations related to job management, 
 | Menu for armbianmonitor features | see_monitoring | @Tearran 
 | Switch system-wide login shell to ZSH | install remove status help | @igorpecovnik 
 | Install VS Code in browser container | install remove purge status help | @igorpecovnik 
+| Install HedgeDoc container (real-time collaborative markdown editor) | install remove purge status help | @armbian 
 | Remove package | pkg_remove nmap | @dimitry-ishenko 
 | Install Immich (photo and video backup solution) | install remove purge status help |  
 | Display a message box using the configured dialog tool | dialog_msgbox "Title" "Message" | @armbian 
