@@ -13,6 +13,18 @@ tiers:
       - xserver-xorg
       - xterm
       - dbus-x11
+      # The xmonad package ships two sessions: xmonad.desktop, which runs
+      # the window manager bare, and gnome-flashback-xmonad.desktop, which
+      # runs it inside a GNOME Flashback session. Only the second gets a
+      # session dbus, polkit agent and session management, and it needs
+      # gnome-session-flashback present to start at all.
+      - gnome-session-flashback
+      # startx / xinit, for starting a session without the display manager
+      - xinit
+      # X has no cursor theme of its own, so without one the pointer falls
+      # back to the black X and stays that way outside GTK windows
+      - dmz-cursor-theme
+      - fonts-ubuntu
       - dmenu
       - dunst
       - feh
