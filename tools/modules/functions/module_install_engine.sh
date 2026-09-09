@@ -587,7 +587,11 @@ install_bootloader_available() {
 	# bootable (e.g. a u-boot mode on x86, which has no write_uboot_platform).
 	case "$1" in
 		uefi|uefi-dualboot|bios) command -v grub-install >/dev/null 2>&1 ;;
-		emmc|sd) [[ "$(type -t write_uboot_platform)" == function ]] ;;
+		emmc)    [[ "$(type -t write_uboot_platform)" == function ]] ;;
+		# "sd" never calls install_write_bootloader (see the boot_mode != sd
+		# guard below) — it only moves root and leaves the current boot media
+		# untouched, so it needs no board capability and is always available.
+		sd)      return 0 ;;
 		mtd)     [[ "$(type -t write_uboot_platform_mtd)" == function ]] ;;
 		ufs)     [[ "$(type -t write_uboot_platform_ufs)" == function ]] ;;
 		*)       return 1 ;;
