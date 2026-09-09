@@ -358,6 +358,36 @@ setup() {
 	! grep -q 'armbi_root' "$f"
 }
 
+@test "rewrite rpi cmdline: given a fs, also replaces a stale rootfstype=" {
+	# initramfs-tools mounts root with `mount -t "$ROOTFSTYPE"` whenever
+	# rootfstype= is set to anything but empty/auto - a stale rootfstype=ext4
+	# on a btrfs/f2fs root fails that mount with "Invalid argument" even once
+	# root= is correct and the module is present in the initrd (build report).
+	f="$TMP/cmdline.txt"
+	printf 'console=serial0,115200 root=LABEL=armbi_root rootfstype=ext4 rootwait\n' >"$f"
+	run install_rewrite_rpi_cmdline "$f" "UUID=1234-5678" btrfs
+	[ "$status" -eq 0 ]
+	grep -q 'root=UUID=1234-5678' "$f"
+	grep -q 'rootfstype=btrfs' "$f"
+	! grep -q 'rootfstype=ext4' "$f"
+}
+
+@test "rewrite rpi cmdline: given a fs, appends rootfstype= when absent" {
+	f="$TMP/cmdline.txt"
+	printf 'console=serial0,115200 root=LABEL=armbi_root rootwait\n' >"$f"
+	run install_rewrite_rpi_cmdline "$f" "UUID=1234-5678" f2fs
+	[ "$status" -eq 0 ]
+	grep -q 'rootfstype=f2fs' "$f"
+}
+
+@test "rewrite rpi cmdline: no fs argument leaves rootfstype= untouched" {
+	f="$TMP/cmdline.txt"
+	printf 'console=serial0,115200 root=LABEL=armbi_root rootfstype=ext4 rootwait\n' >"$f"
+	run install_rewrite_rpi_cmdline "$f" "UUID=1234-5678"
+	[ "$status" -eq 0 ]
+	grep -q 'rootfstype=ext4' "$f"
+}
+
 @test "rewrite rpi cmdline: missing file returns bootcfg error" {
 	run install_rewrite_rpi_cmdline "$TMP/nope-cmdline.txt" "UUID=x"
 	[ "$status" -eq 71 ]
