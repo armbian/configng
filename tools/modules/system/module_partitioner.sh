@@ -112,6 +112,9 @@ partitioner_mtd_list() {
 #   * UEFI firmware present            -> GRUB EFI (uefi, +dualboot with Windows)
 #   * u-boot board (ARM)               -> media-specific u-boot modes
 #   * x86 legacy BIOS (no EFI/u-boot)  -> GRUB BIOS (grub-pc)
+#   * none of the above (e.g. Raspberry Pi's own SoC/EEPROM firmware boot,
+#     which isn't u-boot at all)       -> "sd" only: it moves root and never
+#     touches the boot media, so it needs no board capability to be safe.
 partitioner_modes_for() {
 	local role="$1" disk="$2"
 	local -a m=()
@@ -144,8 +147,18 @@ partitioner_modes_for() {
 		esac
 	fi
 	# x86 legacy BIOS: neither EFI firmware nor a u-boot board.
+	local have_bios=0
 	if [[ ! -d /sys/firmware/efi && "$have_uboot" -eq 0 ]] && command -v grub-install >/dev/null 2>&1; then
-		m+=(bios)
+		m+=(bios); have_bios=1
+	fi
+	# No EFI, no u-boot hooks, no GRUB either: the board boots via its own
+	# firmware straight out of the current boot media (Raspberry Pi's
+	# SoC/EEPROM bootrom reading /boot/firmware is the common case) and there
+	# is no board-provided bootloader-write hook to gate on. "sd" mode is still
+	# safe here — it only moves root, leaving that boot media untouched — so
+	# offer it rather than reporting no install method at all.
+	if [[ ! -d /sys/firmware/efi && "$have_uboot" -eq 0 && "$have_bios" -eq 0 ]]; then
+		m+=(sd)
 	fi
 
 	# No writable boot mode for this firmware/disk: emit nothing so the caller
