@@ -760,11 +760,20 @@ install_update_initramfs() {
 	if [[ -d "$rootfs/boot/firmware" ]]; then
 		local newest
 		newest="$(find "$rootfs/boot" -maxdepth 1 -name 'initrd.img-*' -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)"
-		if [[ -n "$newest" ]] && ! cmp -s "$newest" "$rootfs/boot/firmware/initrd.img" 2>/dev/null; then
+		# No rebuilt initrd at all is itself a failure - update-initramfs just
+		# reported success above, so its absence means we can no longer prove
+		# ANY initrd (stale or fresh) is what boot/firmware/initrd.img holds.
+		[[ -n "$newest" ]] \
+			|| { install_log ERR "update-initramfs: no rebuilt initrd found under $rootfs/boot"; return "$INSTALL_EX_BOOTCFG"; }
+		if ! cmp -s "$newest" "$rootfs/boot/firmware/initrd.img" 2>/dev/null; then
 			install_log WARN "update-initramfs: boot/firmware/initrd.img was not refreshed by the post-update hook; copying $newest directly"
 			cp "$newest" "$rootfs/boot/firmware/initrd.img" \
 				|| { install_log ERR "update-initramfs: failed to copy $newest to boot/firmware/initrd.img"; return "$INSTALL_EX_BOOTCFG"; }
 		fi
+		# Verify rather than trust the copy: confirm boot/firmware/initrd.img
+		# now actually matches the freshly-built one before declaring success.
+		cmp -s "$newest" "$rootfs/boot/firmware/initrd.img" \
+			|| { install_log ERR "update-initramfs: boot/firmware/initrd.img still does not match the rebuilt initrd"; return "$INSTALL_EX_BOOTCFG"; }
 	fi
 	return 0
 }
@@ -1481,7 +1490,8 @@ install_run_split() {
 			|| { install_log ERR "split: failed to point $env_file at root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }; }
 
 		# Module root fs (btrfs/f2fs) needs its driver in the eMMC /boot initramfs.
-		install_update_initramfs "$mp" "$fs"
+		# Fatal on failure - see install_run_scenario's identical guard.
+		install_update_initramfs "$mp" "$fs" || { rc=$INSTALL_EX_BOOTCFG; break; }
 
 		echo 95
 		# u-boot goes to the eMMC whole device (raw sectors), never the target.
@@ -1564,7 +1574,8 @@ install_run_dualboot() {
 		root_uuid="$(install_uuid "$root_dev")"
 		esp_uuid="$(install_uuid "$esp")"
 		install_gen_fstab "$root_uuid" "$fs" "" ext4 "$esp_uuid" >"$mp/etc/fstab" || { rc=$INSTALL_EX_BOOTCFG; break; }
-		install_update_initramfs "$mp" "$fs"
+		# Fatal on failure - see install_run_scenario's identical guard.
+		install_update_initramfs "$mp" "$fs" || { rc=$INSTALL_EX_BOOTCFG; break; }
 		echo 95
 		mount "$esp" "$mp/boot/efi" || { install_log ERR "dualboot: mount ESP failed"; rc=$INSTALL_EX_BOOTLOADER; break; }
 		install_grub_install "$mp" dualboot || { rc=$INSTALL_EX_BOOTLOADER; break; }
