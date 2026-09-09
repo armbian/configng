@@ -175,12 +175,16 @@ install_plan_layout() {
 	# don't force GPT - used to replicate the running image's table type on an
 	# eMMC/SD target so the board's u-boot can read it. Empty = default (msdos).
 	#
-	# boot_mode: uefi | emmc | sd | mtd | ufs
-	#   uefi  - full install to an internal disk with an ESP + GRUB
-	#   emmc  - full self-contained install (boot + root) to eMMC/SD
-	#   sd    - boot stays on removable media, only the rootfs lands on the target
-	#   mtd   - boot lives in SPI/MTD flash, only the rootfs lands on the target
-	#   ufs   - boot idblock on a UFS boot LUN, rootfs on the UFS general LUN
+	# boot_mode: uefi | emmc | sd | mtd | ufs | native
+	#   uefi   - full install to an internal disk with an ESP + GRUB
+	#   emmc   - full self-contained install (boot + root) to eMMC/SD
+	#   sd     - boot stays on removable media, only the rootfs lands on the target
+	#   mtd    - boot lives in SPI/MTD flash, only the rootfs lands on the target
+	#   ufs    - boot idblock on a UFS boot LUN, rootfs on the UFS general LUN
+	#   native - full self-contained install (boot + root) to any disk on a board
+	#            with no u-boot/EFI/GRUB - its own firmware reads a plain FAT32
+	#            boot partition directly off whatever bus it's on (Raspberry
+	#            Pi's SoC/EEPROM bootrom). No bootloader write needed.
 	#
 	# Emits a declarative plan on stdout:
 	#   table=gpt|msdos
@@ -234,6 +238,17 @@ install_plan_layout() {
 		sd|mtd|ufs)
 			# Only the rootfs lands here; boot lives elsewhere.
 			parts+=("root:100%:${fs}:boot")
+			;;
+		native)
+			# No u-boot involved, so no raw-sector reservation and no ext4-boot-
+			# as-directory shortcut either: the board's own firmware can only
+			# read a real FAT32 partition, never a directory inside another
+			# filesystem, regardless of what <fs> is. Partition 1 mirrors the
+			# shipped image's own boot partition (mirrors its position too, so
+			# the board's firmware finds it the same way); partition 2 is a
+			# normal root with /boot as an ordinary directory.
+			parts+=("firmware:512MiB:vfat:boot")
+			parts+=("root:100%:${fs}:")
 			;;
 		*)
 			install_log ERR "install_plan_layout: unknown boot mode '$boot_mode'"
@@ -551,9 +566,12 @@ install_verify_boot_dir() {
 	compgen -G "$d/uImage*" >/dev/null 2>&1 && have_kernel=1
 	# Recognise every boot mechanism Armbian ships: boot.scr/boot.cmd (most
 	# u-boot), boot.ini (amlogic/odroid), uEnv.txt (k3/TI and others),
-	# extlinux.conf (distro boot), grub (x86/UEFI).
+	# extlinux.conf (distro boot), grub (x86/UEFI), config.txt+cmdline.txt in a
+	# nested firmware/ dir (native mode's Raspberry Pi-style FAT32 partition,
+	# mounted at boot/firmware under the directory checked here).
 	[[ -f "$d/boot.scr" || -f "$d/boot.cmd" || -f "$d/boot.ini" || -f "$d/uEnv.txt" \
-		|| -f "$d/extlinux/extlinux.conf" || -d "$d/grub" ]] && have_script=1
+		|| -f "$d/extlinux/extlinux.conf" || -d "$d/grub" \
+		|| ( -f "$d/firmware/config.txt" && -f "$d/firmware/cmdline.txt" ) ]] && have_script=1
 	if (( have_kernel == 0 || have_script == 0 )); then
 		install_log ERR "verify: '$d' is not bootable (kernel=$have_kernel script=$have_script)"
 		return "$INSTALL_EX_VERIFY"
@@ -588,10 +606,11 @@ install_bootloader_available() {
 	case "$1" in
 		uefi|uefi-dualboot|bios) command -v grub-install >/dev/null 2>&1 ;;
 		emmc)    [[ "$(type -t write_uboot_platform)" == function ]] ;;
-		# "sd" never calls install_write_bootloader (see the boot_mode != sd
-		# guard below) — it only moves root and leaves the current boot media
-		# untouched, so it needs no board capability and is always available.
-		sd)      return 0 ;;
+		# Neither "sd" nor "native" ever calls install_write_bootloader (see the
+		# boot_mode guard below) - "sd" only moves root and leaves the current
+		# boot media untouched; "native" writes a plain FAT32 boot partition the
+		# board's own firmware reads directly. Both need no board capability.
+		sd|native) return 0 ;;
 		mtd)     [[ "$(type -t write_uboot_platform_mtd)" == function ]] ;;
 		ufs)     [[ "$(type -t write_uboot_platform_ufs)" == function ]] ;;
 		*)       return 1 ;;
@@ -1042,6 +1061,40 @@ install_map_current_boot() {
 	return 0
 }
 
+install_boot_firmware_dir() {
+	# Where a raspi-firmware-style boot config (config.txt, cmdline.txt) lives:
+	# /boot/firmware if that's mounted separately (current layout), else /boot
+	# itself. Pure path logic except for the mount check.
+	if findmnt -no TARGET /boot/firmware >/dev/null 2>&1; then
+		echo /boot/firmware
+	else
+		echo /boot
+	fi
+}
+
+install_rpi_style_boot() {
+	# True if this board's firmware reads a static cmdline.txt straight off the
+	# boot partition (Raspberry Pi's SoC/EEPROM bootrom) rather than running a
+	# u-boot boot script that reads armbianEnv.txt. Detected by config.txt and
+	# cmdline.txt sitting together in the current boot tree - both are specific
+	# to this boot style and installed only by the raspi-firmware package.
+	local dir; dir="$(install_boot_firmware_dir)"
+	[[ -f "$dir/config.txt" && -f "$dir/cmdline.txt" ]]
+}
+
+install_rewrite_rpi_cmdline() {
+	# install_rewrite_rpi_cmdline <cmdline_file> <root_uuid>
+	# Point a raspi-firmware cmdline.txt's root= at <root_uuid> ("UUID=..."),
+	# replacing whatever selector (LABEL=, UUID=, PARTUUID=, a device path) is
+	# there now. UUID rather than the image's built-in LABEL=armbi_root: once
+	# two disks both carry that label (the source media is still around), a
+	# label lookup is ambiguous - a UUID is unique by construction.
+	local file="$1" root_uuid="$2"
+	[[ -f "$file" ]] || return "$INSTALL_EX_BOOTCFG"
+	grep -q 'root=' "$file" || { install_log ERR "rpi-cmdline: no root= in $file"; return "$INSTALL_EX_BOOTCFG"; }
+	sed -i -E "s|root=[^ ]+|root=${root_uuid}|" "$file"
+}
+
 install_run_scenario() {
 	# install_run_scenario <boot_mode> <target_disk> <fs> <exclude_file> [uboot_dir]
 	#
@@ -1084,7 +1137,7 @@ install_run_scenario() {
 	# source; the planner still upgrades to GPT when capacity/sector size demand.
 	local table_pref=""
 	case "$boot_mode" in
-		emmc|sd|mtd) table_pref="$(install_source_table_type)"
+		emmc|sd|mtd|native) table_pref="$(install_source_table_type)"
 			[[ -n "$table_pref" ]] && install_log INFO "scenario: inheriting source partition table '$table_pref' for $boot_mode" ;;
 	esac
 
@@ -1094,15 +1147,16 @@ install_run_scenario() {
 
 	# Partition, then build the mkfs map + remember the role->device mapping.
 	local partmap; partmap="$(install_apply_partitions "$disk" "$plan")" || return "$INSTALL_EX_PARTITION"
-	local esp_dev="" boot_dev="" root_dev="" swap_dev="" role dev
+	local esp_dev="" boot_dev="" fw_dev="" root_dev="" swap_dev="" role dev
 	local mkfs_map=""
 	while read -r role dev; do
 		[[ -n "$dev" ]] || continue
 		case "$role" in
-			esp)  esp_dev="$dev";  mkfs_map+="esp $dev vfat"$'\n' ;;
-			boot) boot_dev="$dev"; mkfs_map+="boot $dev ext4"$'\n' ;;
-			swap) swap_dev="$dev"; mkfs_map+="swap $dev swap"$'\n' ;;
-			root) root_dev="$dev"; mkfs_map+="root $dev $fs"$'\n' ;;
+			esp)      esp_dev="$dev";  mkfs_map+="esp $dev vfat"$'\n' ;;
+			boot)     boot_dev="$dev"; mkfs_map+="boot $dev ext4"$'\n' ;;
+			firmware) fw_dev="$dev";   mkfs_map+="firmware $dev vfat"$'\n' ;;
+			swap)     swap_dev="$dev"; mkfs_map+="swap $dev swap"$'\n' ;;
+			root)     root_dev="$dev"; mkfs_map+="root $dev $fs"$'\n' ;;
 		esac
 	done <<<"$partmap"
 	[[ -b "$root_dev" ]] || { install_log ERR "scenario: no root partition created"; return "$INSTALL_EX_PARTITION"; }
@@ -1134,6 +1188,17 @@ install_run_scenario() {
 			mount "$boot_dev" "$mp/boot" \
 				|| { install_log ERR "scenario: mount boot partition $boot_dev failed"; rc=$INSTALL_EX_BOOTCFG; break; }
 		fi
+		# native mode's FAT32 boot partition mounts at /boot/firmware, mirroring
+		# the running system's own layout: the default install_populate_boot
+		# rsync of /boot (below) crosses into it the same way it would on the
+		# live system, populating both tiers - the ordinary /boot directory
+		# (kernel, armbianEnv.txt, ...) and the nested firmware partition
+		# (config.txt, cmdline.txt, the active kernel/dtbs) - in one pass.
+		if [[ -n "$fw_dev" ]]; then
+			mkdir -p "$mp/boot/firmware"
+			mount "$fw_dev" "$mp/boot/firmware" \
+				|| { install_log ERR "scenario: mount firmware partition $fw_dev failed"; rc=$INSTALL_EX_BOOTCFG; break; }
+		fi
 		install_populate_boot "$mp" "$copy_boot" || { rc=$INSTALL_EX_BOOTCFG; break; }
 
 		# fstab from the real, freshly-created UUIDs.
@@ -1144,6 +1209,10 @@ install_run_scenario() {
 		[[ -n "$swap_dev" ]] && swap_uuid="$(install_uuid "$swap_dev")"
 		install_gen_fstab "$root_uuid" "$fs" "$boot_uuid" ext4 "$esp_uuid" "$swap_uuid" >"$mp/etc/fstab" \
 			|| { rc=$INSTALL_EX_BOOTCFG; break; }
+		# native mode's firmware partition isn't one of install_gen_fstab's
+		# known slots (it's not read by any bootloader the way the ESP is) -
+		# append its entry directly, same as the swap carry-over just below.
+		[[ -n "$fw_dev" ]] && printf '%s\t/boot/firmware\tvfat\tdefaults,noatime\t0\t2\n' "$(install_uuid "$fw_dev")" >>"$mp/etc/fstab"
 		# No dedicated swap partition -> carry over the host's swap entries (e.g. a
 		# /var/swap swapfile) so the target keeps swap.
 		if [[ -z "$swap_dev" ]] && grep -qE '^[^#].*[[:space:]]swap[[:space:]]' /etc/fstab 2>/dev/null; then
@@ -1174,7 +1243,30 @@ install_run_scenario() {
 					|| { install_log ERR "scenario: failed to point current boot env ($env_file) at new root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
 				install_map_current_boot "$mp/etc/fstab" "$mp" \
 					|| { install_log ERR "scenario: failed to map current /boot into target fstab"; rc=$INSTALL_EX_BOOTCFG; break; }
+				# Raspberry Pi-style boards read root= directly from a static
+				# cmdline.txt on the CURRENT boot media, not from armbianEnv.txt
+				# via a u-boot script - the rewrite above is a no-op for them.
+				# Point that cmdline.txt at the new root too, or the board keeps
+				# booting the old one even though every step above "succeeded".
+				if install_rpi_style_boot; then
+					local rpi_cmdline; rpi_cmdline="$(install_boot_firmware_dir)/cmdline.txt"
+					install_rewrite_rpi_cmdline "$rpi_cmdline" "$root_uuid" \
+						|| { install_log ERR "scenario: sd mode but failed to point current cmdline.txt ($rpi_cmdline) at new root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
+					install_log INFO "scenario: also pointed current cmdline.txt ($rpi_cmdline) at new root $root_uuid (Raspberry Pi-style boot)"
+				fi
 				install_log INFO "scenario: pointed current boot media ($env_file) at new root $root_uuid ($fs) and mapped its /boot into the target" ;;
+			native)
+				# Fully self-contained: the copy of cmdline.txt that
+				# install_populate_boot just placed at $mp/boot/firmware/ must
+				# point at THIS disk's own new root, not the source's.
+				local cmdline="$mp/boot/firmware/cmdline.txt"
+				[[ -f "$cmdline" ]] \
+					|| { install_log ERR "scenario: native mode but $cmdline missing after boot copy"; rc=$INSTALL_EX_BOOTCFG; break; }
+				install_rewrite_rpi_cmdline "$cmdline" "$root_uuid" \
+					|| { install_log ERR "scenario: failed to point target cmdline.txt ($cmdline) at new root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
+				local env_file="$mp/boot/armbianEnv.txt"
+				[[ -f "$env_file" ]] && install_rewrite_bootenv "$env_file" "$root_uuid" "$fs"
+				install_log INFO "scenario: pointed target cmdline.txt ($cmdline) at its own new root $root_uuid ($fs)" ;;
 		esac
 
 		# Rebuild the target initramfs so a module root fs (btrfs/f2fs) boots
@@ -1187,8 +1279,10 @@ install_run_scenario() {
 		# In sd mode the bootloader already lives on the current boot media (left
 		# untouched) and the boot env there was rewired above; writing u-boot to
 		# $disk would target the wrong device - e.g. the Rockchip bootrom cannot
-		# load u-boot from NVMe/USB/SATA, so it would silently fail to boot.
-		if [[ "$boot_mode" != sd ]]; then
+		# load u-boot from NVMe/USB/SATA, so it would silently fail to boot. In
+		# native mode there is no bootloader to write at all - the board's own
+		# firmware already found and read $disk's new FAT32 boot partition.
+		if [[ "$boot_mode" != sd && "$boot_mode" != native ]]; then
 			install_write_bootloader "$boot_mode" "$disk" "$mp" "$uboot_dir" "${INSTALL_MTD_LIST:-}" "${INSTALL_UFS_BOOT_LUN:-}" \
 				|| { rc=$INSTALL_EX_BOOTLOADER; break; }
 		fi

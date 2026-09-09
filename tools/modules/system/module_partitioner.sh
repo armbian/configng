@@ -112,9 +112,12 @@ partitioner_mtd_list() {
 #   * UEFI firmware present            -> GRUB EFI (uefi, +dualboot with Windows)
 #   * u-boot board (ARM)               -> media-specific u-boot modes
 #   * x86 legacy BIOS (no EFI/u-boot)  -> GRUB BIOS (grub-pc)
-#   * none of the above (e.g. Raspberry Pi's own SoC/EEPROM firmware boot,
-#     which isn't u-boot at all)       -> "sd" only: it moves root and never
-#     touches the boot media, so it needs no board capability to be safe.
+#   * none of the above, Raspberry Pi-style firmware confirmed present
+#     (config.txt + cmdline.txt)       -> "sd" (root only) or "native" (full
+#     self-contained install - the board's own firmware can boot straight off
+#     the target, so the SD card becomes removable)
+#   * none of the above, board unrecognised -> "sd" only: it moves root and
+#     never touches the boot media, so it needs no board capability to be safe.
 partitioner_modes_for() {
 	local role="$1" disk="$2"
 	local -a m=()
@@ -152,12 +155,14 @@ partitioner_modes_for() {
 		m+=(bios); have_bios=1
 	fi
 	# No EFI, no u-boot hooks, no GRUB either: the board boots via its own
-	# firmware straight out of the current boot media (Raspberry Pi's
-	# SoC/EEPROM bootrom reading /boot/firmware is the common case) and there
-	# is no board-provided bootloader-write hook to gate on. "sd" mode is still
-	# safe here — it only moves root, leaving that boot media untouched — so
-	# offer it rather than reporting no install method at all.
+	# firmware, and there is no board-provided bootloader-write hook to gate
+	# on. "sd" mode is always safe here — it only moves root, leaving the
+	# current boot media untouched. When that firmware is confirmed to be
+	# Raspberry Pi-style (reads a plain FAT32 boot partition off whatever bus
+	# it's on), "native" is safe too: a full self-contained install straight
+	# to the target, so the SD card becomes removable — offer it first.
 	if [[ ! -d /sys/firmware/efi && "$have_uboot" -eq 0 && "$have_bios" -eq 0 ]]; then
+		install_rpi_style_boot && m+=(native)
 		m+=(sd)
 	fi
 
@@ -172,6 +177,7 @@ partitioner_mode_desc() {
 		uefi) echo "UEFI install with GRUB (ERASES the disk)" ;;
 		bios) echo "Legacy BIOS install with GRUB (ERASES the disk)" ;;
 		emmc) echo "Full install to this device (boot + system)" ;;
+		native) echo "Full install to this disk — SD card no longer needed" ;;
 		sd)   echo "Keep boot on current media, system on this disk" ;;
 		split-emmc) echo "Boot from eMMC, system on this disk (+ /emmc_storage)" ;;
 		mtd)  echo "Boot from SPI/MTD flash, system on this disk" ;;
@@ -451,7 +457,7 @@ partitioner_cli_install() {
 	done
 
 	[[ -b "$target" ]] || { echo "armbian-install: --target must be a block device" >&2; return "$INSTALL_EX_NODEV"; }
-	case "$boot" in uefi|uefi-dualboot|bios|emmc|sd|mtd|ufs|split-emmc) ;; *) echo "armbian-install: --boot must be one of uefi|uefi-dualboot|bios|emmc|sd|mtd|ufs|split-emmc" >&2; return "$INSTALL_EX_USAGE" ;; esac
+	case "$boot" in uefi|uefi-dualboot|bios|emmc|sd|mtd|ufs|native|split-emmc) ;; *) echo "armbian-install: --boot must be one of uefi|uefi-dualboot|bios|emmc|sd|mtd|ufs|native|split-emmc" >&2; return "$INSTALL_EX_USAGE" ;; esac
 	case "$fs"   in ext4|btrfs|f2fs) ;;     *) echo "armbian-install: --fs must be one of ext4|btrfs|f2fs" >&2; return "$INSTALL_EX_USAGE" ;; esac
 	[[ -f "$INSTALL_EXCLUDE" ]] || { echo "armbian-install: exclude list $INSTALL_EXCLUDE missing" >&2; return "$INSTALL_EX_TRANSFER"; }
 
@@ -581,7 +587,10 @@ partitioner_help() {
 
 	Non-interactive:
 	  armbian-install --target /dev/sdX --boot <mode> --fs <fs> --yes
-	    --boot   uefi | uefi-dualboot | bios | emmc | sd | mtd | ufs | split-emmc
+	    --boot   uefi | uefi-dualboot | bios | emmc | sd | mtd | ufs | native | split-emmc
+	             native: full self-contained install on a board with no
+	                     u-boot/EFI/GRUB (e.g. Raspberry Pi) - target boots on
+	                     its own, no other media needed
 	             split-emmc: boot from eMMC, root on --target (NVMe/SATA/USB),
 	                         eMMC remainder mounted at /emmc_storage
 	    --fs     ext4 | btrfs | f2fs

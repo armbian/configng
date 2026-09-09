@@ -184,6 +184,35 @@ setup() {
 	[[ "$output" == *"part=root:100%:f2fs:boot"* ]]
 }
 
+# --- native: full install on a board with no u-boot/EFI/GRUB (Raspberry Pi) --
+
+@test "plan native: FAT32 firmware partition first, plain root second" {
+	run install_plan_layout native ext4 0 $(( 16 * GIB )) 512 0
+	[ "$status" -eq 0 ]
+	[[ "$output" == *"part=firmware:512MiB:vfat:boot"* ]]
+	[[ "$output" == *"part=root:100%:ext4:"* ]]
+	# unlike emmc, root carries no "boot" flag - the firmware partition owns it
+	[[ "$output" != *"part=root:100%:ext4:boot"* ]]
+}
+
+@test "plan native: no 16MiB reserve (nothing is written to raw sectors)" {
+	run install_plan_layout native ext4 0 $(( 16 * GIB )) 512 0
+	[[ "$output" == *"start=1"* ]]
+}
+
+@test "plan native: replicates the source table type, same as emmc/sd/mtd" {
+	run install_plan_layout native ext4 0 $(( 16 * GIB )) 512 0 msdos
+	[[ "$output" == *"table=msdos"* ]]
+	run install_plan_layout native ext4 0 $(( 16 * GIB )) 512 0 gpt
+	[[ "$output" == *"table=gpt"* ]]
+}
+
+@test "plan native: firmware partition is always vfat regardless of root fs" {
+	run install_plan_layout native btrfs 0 $(( 16 * GIB )) 512 0
+	[[ "$output" == *"part=firmware:512MiB:vfat:boot"* ]]
+	[[ "$output" == *"part=root:100%:btrfs:"* ]]
+}
+
 # --- errors ------------------------------------------------------------------
 
 @test "plan: unknown boot mode fails with usage code" {

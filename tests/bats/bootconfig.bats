@@ -116,6 +116,20 @@ setup() {
 	[ "$status" -eq 0 ]
 }
 
+@test "verify boot dir: nested firmware/config.txt+cmdline.txt counts (native mode)" {
+	d="$TMP/boot"; mkdir -p "$d/firmware"
+	: >"$d/vmlinuz-test"; : >"$d/firmware/config.txt"; : >"$d/firmware/cmdline.txt"
+	run install_verify_boot_dir "$d"
+	[ "$status" -eq 0 ]
+}
+
+@test "verify boot dir: firmware/ with only one of the two files does not count" {
+	d="$TMP/boot"; mkdir -p "$d/firmware"
+	: >"$d/vmlinuz-test"; : >"$d/firmware/config.txt"
+	run install_verify_boot_dir "$d"
+	[ "$status" -eq 73 ]
+}
+
 # --- populate /boot (synced separately from the main rootfs rsync) -----------
 
 @test "populate_boot: copies the kernel into the target /boot and verifies" {
@@ -165,6 +179,12 @@ setup() {
 	run install_bootloader_available sd
 	[ "$status" -eq 0 ]
 	unset -f write_uboot_platform
+}
+
+@test "bootloader available: native needs no capability at all (writes no bootloader)" {
+	unset -f write_uboot_platform 2>/dev/null || true
+	run install_bootloader_available native
+	[ "$status" -eq 0 ]
 }
 
 @test "fs tools: ext4 always available; missing fs reports its package" {
@@ -241,4 +261,53 @@ setup() {
 	grep -qE '^UUID=rootpart	/media/boot-media	ext4	defaults,nofail' "$f"
 	grep -qE '^/media/boot-media/boot	/boot	none	bind,nofail' "$f"
 	[ -d "$mp/media/boot-media" ]
+}
+
+# --- Raspberry Pi-style boot (native firmware, static cmdline.txt) -----------
+
+@test "boot firmware dir: separately-mounted /boot/firmware wins" {
+	findmnt() { [ "$3" = /boot/firmware ]; }
+	[ "$(install_boot_firmware_dir)" = /boot/firmware ]
+}
+
+@test "boot firmware dir: falls back to /boot when not separately mounted" {
+	findmnt() { return 1; }
+	[ "$(install_boot_firmware_dir)" = /boot ]
+}
+
+@test "rpi style boot: true when config.txt + cmdline.txt are both present" {
+	d="$TMP/fw"; mkdir -p "$d"; : >"$d/config.txt"; : >"$d/cmdline.txt"
+	install_boot_firmware_dir() { echo "$d"; }
+	run install_rpi_style_boot
+	[ "$status" -eq 0 ]
+}
+
+@test "rpi style boot: false when only one of the two files exists (u-boot board)" {
+	d="$TMP/fw"; mkdir -p "$d"; : >"$d/config.txt"
+	install_boot_firmware_dir() { echo "$d"; }
+	run install_rpi_style_boot
+	[ "$status" -ne 0 ]
+}
+
+@test "rewrite rpi cmdline: replaces root= (LABEL/UUID/PARTUUID), leaves the rest" {
+	f="$TMP/cmdline.txt"
+	printf 'console=serial0,115200 root=LABEL=armbi_root rootfstype=ext4 rootwait\n' >"$f"
+	run install_rewrite_rpi_cmdline "$f" "UUID=1234-5678"
+	[ "$status" -eq 0 ]
+	grep -q 'root=UUID=1234-5678' "$f"
+	grep -q 'console=serial0,115200' "$f"
+	grep -q 'rootfstype=ext4 rootwait' "$f"
+	# no leftover LABEL=
+	! grep -q 'armbi_root' "$f"
+}
+
+@test "rewrite rpi cmdline: missing file returns bootcfg error" {
+	run install_rewrite_rpi_cmdline "$TMP/nope-cmdline.txt" "UUID=x"
+	[ "$status" -eq 71 ]
+}
+
+@test "rewrite rpi cmdline: no root= in file returns bootcfg error" {
+	f="$TMP/cmdline.txt"; printf 'console=serial0,115200 rootwait\n' >"$f"
+	run install_rewrite_rpi_cmdline "$f" "UUID=x"
+	[ "$status" -eq 71 ]
 }
