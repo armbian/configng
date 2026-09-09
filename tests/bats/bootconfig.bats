@@ -164,19 +164,27 @@ setup() {
 
 # --- bootloader capability pre-flight ----------------------------------------
 
-@test "bootloader available: u-boot modes need write_uboot_platform (x86 has none)" {
-	# No write_uboot_platform defined -> u-boot modes must report unavailable, so
-	# the installer refuses before wiping (the code-72-after-wipe scenario).
+@test "bootloader available: emmc needs write_uboot_platform (x86 has none)" {
+	# No write_uboot_platform defined -> emmc must report unavailable, so the
+	# installer refuses before wiping (the code-72-after-wipe scenario).
 	unset -f write_uboot_platform 2>/dev/null || true
-	run install_bootloader_available sd
-	[ "$status" -ne 0 ]
 	run install_bootloader_available emmc
 	[ "$status" -ne 0 ]
 }
 
-@test "bootloader available: u-boot modes ok once the hook exists" {
-	write_uboot_platform() { :; }
+@test "bootloader available: sd needs no capability - it never writes a bootloader" {
+	# sd mode only moves root and leaves the current boot media untouched
+	# (install_run_scenario skips install_write_bootloader for it), so unlike
+	# emmc it must be available even with no write_uboot_platform hook at all -
+	# that is what makes it usable on Raspberry Pi (no u-boot whatsoever).
+	unset -f write_uboot_platform 2>/dev/null || true
 	run install_bootloader_available sd
+	[ "$status" -eq 0 ]
+}
+
+@test "bootloader available: emmc ok once the write_uboot_platform hook exists" {
+	write_uboot_platform() { :; }
+	run install_bootloader_available emmc
 	[ "$status" -eq 0 ]
 	unset -f write_uboot_platform
 }
