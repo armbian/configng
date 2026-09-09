@@ -189,10 +189,45 @@ setup() {
 	unset -f write_uboot_platform
 }
 
-@test "bootloader available: native needs no capability at all (writes no bootloader)" {
+@test "bootloader available: native needs Raspberry Pi-style firmware" {
+	# native writes a plain FAT32 boot partition only the board's own firmware
+	# reads; on anything else the target would never boot, so it must report
+	# unavailable unless install_rpi_style_boot detects raspi firmware.
 	unset -f write_uboot_platform 2>/dev/null || true
+	d="$TMP/fw-none"; mkdir -p "$d"
+	install_boot_firmware_dir() { echo "$d"; }
+	run install_bootloader_available native
+	[ "$status" -ne 0 ]
+	: >"$d/config.txt"; : >"$d/cmdline.txt"
 	run install_bootloader_available native
 	[ "$status" -eq 0 ]
+}
+
+# --- sd capability (current boot config must be rewirable) ---------------------
+
+@test "sd capable: true with a u-boot armbianEnv.txt, no raspi firmware" {
+	d="$TMP/fw-none"; mkdir -p "$d"
+	install_boot_firmware_dir() { echo "$d"; }
+	envf="$TMP/armbianEnv.txt"; : >"$envf"
+	install_sd_env_file() { echo "$envf"; }
+	run install_sd_capable
+	[ "$status" -eq 0 ]
+}
+
+@test "sd capable: true with Raspberry Pi-style firmware, no armbianEnv.txt" {
+	d="$TMP/fw"; mkdir -p "$d"; : >"$d/config.txt"; : >"$d/cmdline.txt"
+	install_boot_firmware_dir() { echo "$d"; }
+	install_sd_env_file() { echo "$TMP/no-such-armbianEnv.txt"; }
+	run install_sd_capable
+	[ "$status" -eq 0 ]
+}
+
+@test "sd capable: false when neither boot config exists (bare firmware)" {
+	d="$TMP/fw-none2"; mkdir -p "$d"
+	install_boot_firmware_dir() { echo "$d"; }
+	install_sd_env_file() { echo "$TMP/no-such-armbianEnv.txt"; }
+	run install_sd_capable
+	[ "$status" -ne 0 ]
 }
 
 @test "fs tools: ext4 always available; missing fs reports its package" {

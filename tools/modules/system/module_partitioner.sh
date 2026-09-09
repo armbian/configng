@@ -156,14 +156,15 @@ partitioner_modes_for() {
 	fi
 	# No EFI, no u-boot hooks, no GRUB either: the board boots via its own
 	# firmware, and there is no board-provided bootloader-write hook to gate
-	# on. "sd" mode is always safe here — it only moves root, leaving the
-	# current boot media untouched. When that firmware is confirmed to be
-	# Raspberry Pi-style (reads a plain FAT32 boot partition off whatever bus
-	# it's on), "native" is safe too: a full self-contained install straight
-	# to the target, so the SD card becomes removable — offer it first.
+	# on. "sd" mode only moves root and leaves the current boot media
+	# untouched - but only when that media's config can be rewired
+	# (install_sd_capable). When that firmware is confirmed to be Raspberry
+	# Pi-style (reads a plain FAT32 boot partition off whatever bus it's on),
+	# "native" is safe too: a full self-contained install straight to the
+	# target, so the SD card becomes removable — offer it first.
 	if [[ ! -d /sys/firmware/efi && "$have_uboot" -eq 0 && "$have_bios" -eq 0 ]]; then
 		install_rpi_style_boot && m+=(native)
-		m+=(sd)
+		install_sd_capable && m+=(sd)
 	fi
 
 	# No writable boot mode for this firmware/disk: emit nothing so the caller

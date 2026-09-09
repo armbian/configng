@@ -609,8 +609,13 @@ install_bootloader_available() {
 		# Neither "sd" nor "native" ever calls install_write_bootloader (see the
 		# boot_mode guard below) - "sd" only moves root and leaves the current
 		# boot media untouched; "native" writes a plain FAT32 boot partition the
-		# board's own firmware reads directly. Both need no board capability.
-		sd|native) return 0 ;;
+		# board's own firmware reads directly. "sd" writes no bootloader and only
+		# needs the current boot config to be rewirable (gated separately in the
+		# scenario pre-flight via install_sd_capable). "native" writes a plain
+		# FAT32 boot partition that only Raspberry Pi-style firmware reads, so it
+		# IS gated on that capability here.
+		sd)     return 0 ;;
+		native) install_rpi_style_boot ;;
 		mtd)     [[ "$(type -t write_uboot_platform_mtd)" == function ]] ;;
 		ufs)     [[ "$(type -t write_uboot_platform_ufs)" == function ]] ;;
 		*)       return 1 ;;
@@ -1082,6 +1087,21 @@ install_rpi_style_boot() {
 	[[ -f "$dir/config.txt" && -f "$dir/cmdline.txt" ]]
 }
 
+install_sd_env_file() {
+	# The CURRENT media's u-boot boot env, rewritten by sd mode. A function so
+	# tests can point it at a fixture instead of the real /boot.
+	echo /boot/armbianEnv.txt
+}
+
+install_sd_capable() {
+	# True when the CURRENT boot media's configuration can be pointed at a new
+	# root filesystem: either a u-boot-readable armbianEnv.txt to rewrite, or a
+	# Raspberry Pi-style static cmdline.txt. Guards both the mode menu and the
+	# scenario pre-flight so a board whose firmware reads neither (no EFI, no
+	# u-boot hook, no raspi firmware) never sees - or gets wiped by - sd mode.
+	[[ -f "$(install_sd_env_file)" ]] || install_rpi_style_boot
+}
+
 install_rewrite_rpi_cmdline() {
 	# install_rewrite_rpi_cmdline <cmdline_file> <root_uuid>
 	# Point a raspi-firmware cmdline.txt's root= at <root_uuid> ("UUID=..."),
@@ -1113,6 +1133,14 @@ install_run_scenario() {
 	# wiping anything - never destroy a disk we cannot finish installing to.
 	install_bootloader_available "$boot_mode" \
 		|| { install_log ERR "scenario: no bootloader method for '$boot_mode' on this system (u-boot hooks or grub-install missing) - refusing to modify $disk"; return "$INSTALL_EX_BOOTLOADER"; }
+	# sd mode rewrites the CURRENT boot media's configuration to point at the
+	# new root; check we have one to rewrite BEFORE wiping the target, or a
+	# firmware-booted board with neither armbianEnv.txt nor a raspi cmdline.txt
+	# would pass the check above, erase the disk, and only then fail.
+	if [[ "$boot_mode" == sd ]] && ! install_sd_capable; then
+		install_log ERR "scenario: sd mode but current boot config is neither armbianEnv.txt nor Raspberry Pi-style (config.txt+cmdline.txt) - refusing to modify $disk"
+		return "$INSTALL_EX_BOOTCFG"
+	fi
 	# mtd mode flashes u-boot to the SPI/MTD device list; refuse before wiping the
 	# target if the frontend handed us an empty list (e.g. the device vanished
 	# between menu and run) rather than failing after partitioning.
@@ -1234,27 +1262,31 @@ install_run_scenario() {
 				#   2. map that media's /boot into the target at /boot, so kernel and
 				#      initramfs upgrades on the target land where u-boot reads them.
 				# Without (1) the board keeps booting its old rootfs.
-				local env_file="/boot/armbianEnv.txt"
-				if [[ ! -f "$env_file" ]]; then
-					install_log ERR "scenario: sd mode but current boot env ($env_file) is missing; cannot make $disk bootable"
-					rc=$INSTALL_EX_BOOTCFG; break
-				fi
-				install_rewrite_bootenv "$env_file" "$root_uuid" "$fs" \
-					|| { install_log ERR "scenario: failed to point current boot env ($env_file) at new root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
-				install_map_current_boot "$mp/etc/fstab" "$mp" \
-					|| { install_log ERR "scenario: failed to map current /boot into target fstab"; rc=$INSTALL_EX_BOOTCFG; break; }
-				# Raspberry Pi-style boards read root= directly from a static
-				# cmdline.txt on the CURRENT boot media, not from armbianEnv.txt
-				# via a u-boot script - the rewrite above is a no-op for them.
-				# Point that cmdline.txt at the new root too, or the board keeps
-				# booting the old one even though every step above "succeeded".
+				# The two boot styles need different rewrites - select FIRST, or
+				# the armbianEnv.txt requirement below would block the Raspberry
+				# Pi path (which has no armbianEnv.txt at all).
 				if install_rpi_style_boot; then
+					# Raspberry Pi-style boards read root= directly from a static
+					# cmdline.txt on the CURRENT boot media, not from
+					# armbianEnv.txt via a u-boot script.
 					local rpi_cmdline; rpi_cmdline="$(install_boot_firmware_dir)/cmdline.txt"
 					install_rewrite_rpi_cmdline "$rpi_cmdline" "$root_uuid" \
 						|| { install_log ERR "scenario: sd mode but failed to point current cmdline.txt ($rpi_cmdline) at new root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
-					install_log INFO "scenario: also pointed current cmdline.txt ($rpi_cmdline) at new root $root_uuid (Raspberry Pi-style boot)"
-				fi
-				install_log INFO "scenario: pointed current boot media ($env_file) at new root $root_uuid ($fs) and mapped its /boot into the target" ;;
+					install_map_current_boot "$mp/etc/fstab" "$mp" \
+						|| { install_log ERR "scenario: failed to map current /boot into target fstab"; rc=$INSTALL_EX_BOOTCFG; break; }
+					install_log INFO "scenario: pointed current cmdline.txt ($rpi_cmdline) at new root $root_uuid (Raspberry Pi-style boot) and mapped its /boot into the target"
+				else
+					local env_file; env_file="$(install_sd_env_file)"
+					if [[ ! -f "$env_file" ]]; then
+						install_log ERR "scenario: sd mode but current boot env ($env_file) is missing; cannot make $disk bootable"
+						rc=$INSTALL_EX_BOOTCFG; break
+					fi
+					install_rewrite_bootenv "$env_file" "$root_uuid" "$fs" \
+						|| { install_log ERR "scenario: failed to point current boot env ($env_file) at new root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
+					install_map_current_boot "$mp/etc/fstab" "$mp" \
+						|| { install_log ERR "scenario: failed to map current /boot into target fstab"; rc=$INSTALL_EX_BOOTCFG; break; }
+					install_log INFO "scenario: pointed current boot media ($env_file) at new root $root_uuid ($fs) and mapped its /boot into the target"
+				fi ;;
 			native)
 				# Fully self-contained: the copy of cmdline.txt that
 				# install_populate_boot just placed at $mp/boot/firmware/ must
@@ -1298,6 +1330,7 @@ install_run_scenario() {
 
 	# Teardown (best effort).
 	sync
+	mountpoint -q "$mp/boot/firmware" && umount "$mp/boot/firmware" 2>/dev/null
 	mountpoint -q "$mp/boot/efi" && umount "$mp/boot/efi" 2>/dev/null
 	mountpoint -q "$mp/boot" && umount "$mp/boot" 2>/dev/null
 	umount "$mp" 2>/dev/null
