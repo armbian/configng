@@ -1132,16 +1132,30 @@ install_sd_capable() {
 }
 
 install_rewrite_rpi_cmdline() {
-	# install_rewrite_rpi_cmdline <cmdline_file> <root_uuid>
+	# install_rewrite_rpi_cmdline <cmdline_file> <root_uuid> [fs]
 	# Point a raspi-firmware cmdline.txt's root= at <root_uuid> ("UUID=..."),
 	# replacing whatever selector (LABEL=, UUID=, PARTUUID=, a device path) is
 	# there now. UUID rather than the image's built-in LABEL=armbi_root: once
 	# two disks both carry that label (the source media is still around), a
 	# label lookup is ambiguous - a UUID is unique by construction.
-	local file="$1" root_uuid="$2"
+	#
+	# [fs], if given, also replaces rootfstype=: initramfs-tools' /scripts/local
+	# mounts root with `mount -t "$ROOTFSTYPE"` whenever that key is set to
+	# anything other than empty/"auto" (see /usr/share/initramfs-tools/scripts/
+	# local) - a stale rootfstype=ext4 on a btrfs/f2fs root fails that mount
+	# with the exact same "Invalid argument" a missing kernel module would,
+	# regardless of root= being correct and the module being present.
+	local file="$1" root_uuid="$2" fs="${3:-}"
 	[[ -f "$file" ]] || return "$INSTALL_EX_BOOTCFG"
 	grep -q 'root=' "$file" || { install_log ERR "rpi-cmdline: no root= in $file"; return "$INSTALL_EX_BOOTCFG"; }
 	sed -i -E "s|root=[^ ]+|root=${root_uuid}|" "$file"
+	if [[ -n "$fs" ]]; then
+		if grep -q 'rootfstype=' "$file"; then
+			sed -i -E "s|rootfstype=[^ ]+|rootfstype=${fs}|" "$file"
+		else
+			sed -i -E "s|\$| rootfstype=${fs}|" "$file"
+		fi
+	fi
 }
 
 install_run_scenario() {
@@ -1299,7 +1313,7 @@ install_run_scenario() {
 					# cmdline.txt on the CURRENT boot media, not from
 					# armbianEnv.txt via a u-boot script.
 					local rpi_cmdline; rpi_cmdline="$(install_boot_firmware_dir)/cmdline.txt"
-					install_rewrite_rpi_cmdline "$rpi_cmdline" "$root_uuid" \
+					install_rewrite_rpi_cmdline "$rpi_cmdline" "$root_uuid" "$fs" \
 						|| { install_log ERR "scenario: sd mode but failed to point current cmdline.txt ($rpi_cmdline) at new root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
 					install_map_current_boot "$mp/etc/fstab" "$mp" \
 						|| { install_log ERR "scenario: failed to map current /boot into target fstab"; rc=$INSTALL_EX_BOOTCFG; break; }
@@ -1323,7 +1337,7 @@ install_run_scenario() {
 				local cmdline="$mp/boot/firmware/cmdline.txt"
 				[[ -f "$cmdline" ]] \
 					|| { install_log ERR "scenario: native mode but $cmdline missing after boot copy"; rc=$INSTALL_EX_BOOTCFG; break; }
-				install_rewrite_rpi_cmdline "$cmdline" "$root_uuid" \
+				install_rewrite_rpi_cmdline "$cmdline" "$root_uuid" "$fs" \
 					|| { install_log ERR "scenario: failed to point target cmdline.txt ($cmdline) at new root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
 				local env_file="$mp/boot/armbianEnv.txt"
 				[[ -f "$env_file" ]] && install_rewrite_bootenv "$env_file" "$root_uuid" "$fs"
