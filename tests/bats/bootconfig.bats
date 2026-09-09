@@ -266,6 +266,20 @@ setup() {
 	grep -qxF f2fs "$rootfs/etc/initramfs-tools/modules"
 }
 
+@test "update_initramfs: a failed run is fatal, not silently swallowed (build report)" {
+	# Previously this always returned 0 even when the chroot update-initramfs
+	# run failed - a btrfs/f2fs install "succeeded" then never actually booted
+	# (dropped to an (initramfs) shell: "mount ... failed: Invalid argument",
+	# the module missing from the initrd that was really booted). Whether it's
+	# this fake script failing or chroot itself refusing unprivileged, either
+	# way the function must report failure.
+	rootfs="$TMP/rootfs-fail"; mkdir -p "$rootfs/etc/initramfs-tools" "$rootfs/usr/sbin"
+	: >"$rootfs/etc/initramfs-tools/modules"
+	printf '#!/bin/sh\nexit 1\n' >"$rootfs/usr/sbin/update-initramfs"; chmod +x "$rootfs/usr/sbin/update-initramfs"
+	run install_update_initramfs "$rootfs" btrfs
+	[ "$status" -ne 0 ]
+}
+
 @test "fs kernel support: ext4 always supported; a bogus fs is not" {
 	run install_fs_kernel_supported ext4
 	[ "$status" -eq 0 ]

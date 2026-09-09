@@ -712,13 +712,18 @@ install_update_initramfs() {
 	# is actually present at boot. Armbian sets MODULES=list, which does NOT
 	# auto-include the root-fs module, and the installer inherits the source's
 	# initramfs (built for the source's root fs) - so an f2fs/btrfs root would be
-	# unbootable without this. Built-in filesystems (ext4/vfat) need nothing.
-	# Best effort: a failure is logged, not fatal.
+	# unbootable without this. Built-in filesystems (ext4/vfat) need nothing and
+	# return immediately. A failure here means the target CANNOT boot (build
+	# report: a btrfs native install "succeeded" then dropped to an (initramfs)
+	# shell with "mount ... failed: Invalid argument" - the btrfs module was
+	# simply missing from the initrd actually booted), so it is fatal - the
+	# caller must treat a non-zero return as an install failure, not a warning.
 	local rootfs="$1" fs="$2"
 	case "$fs" in ext2|ext3|ext4|vfat|msdos) return 0 ;; esac
-	command -v chroot >/dev/null 2>&1 || return 0
-	[[ -x "$rootfs/usr/sbin/update-initramfs" || -x "$rootfs/sbin/update-initramfs" ]] || {
-		install_log WARN "update-initramfs: not present in target; $fs root may not boot"; return 0; }
+	command -v chroot >/dev/null 2>&1 \
+		|| { install_log ERR "update-initramfs: no chroot on this system; $fs root would be unbootable"; return "$INSTALL_EX_BOOTCFG"; }
+	[[ -x "$rootfs/usr/sbin/update-initramfs" || -x "$rootfs/sbin/update-initramfs" ]] \
+		|| { install_log ERR "update-initramfs: not present in target; $fs root would be unbootable"; return "$INSTALL_EX_BOOTCFG"; }
 
 	# Force the fs module into the initramfs module list (list mode ships only
 	# what is listed here).
@@ -727,16 +732,40 @@ install_update_initramfs() {
 		echo "$fs" >>"$modfile"
 	fi
 
-	mkdir -p "$rootfs"/{dev,proc,sys}
+	mkdir -p "$rootfs"/{dev,proc,sys,run}
 	mount --bind /dev "$rootfs/dev"
 	mount --bind /proc "$rootfs/proc"
 	mount --bind /sys "$rootfs/sys"
+	mount --bind /run "$rootfs/run" 2>/dev/null || true
 	local rc=0
 	chroot "$rootfs" /bin/bash -c "update-initramfs -u -k all" >>"$INSTALL_LOG" 2>&1 || rc=1
+	mountpoint -q "$rootfs/run" && umount "$rootfs/run" 2>/dev/null
 	umount "$rootfs/sys" 2>/dev/null
 	umount "$rootfs/proc" 2>/dev/null
 	umount "$rootfs/dev" 2>/dev/null
-	[[ "$rc" == 0 ]] || install_log WARN "update-initramfs failed in target; $fs root may not boot"
+	if [[ "$rc" != 0 ]]; then
+		install_log ERR "update-initramfs failed in target; $fs root would be unbootable"
+		return "$INSTALL_EX_BOOTCFG"
+	fi
+
+	# Armbian's own /etc/initramfs/post-update.d/zzz-update-initramfs hook is
+	# supposed to copy the freshly-built initrd into boot/firmware/initrd.img
+	# automatically on boards that boot straight out of it (Raspberry Pi) - but
+	# a hook firing inside a bare chroot, with no real dpkg transaction or init
+	# system driving it, is not guaranteed to run the way it does on a live
+	# system. If boot/firmware/initrd.img is still the SOURCE's stale copy
+	# (rsynced verbatim earlier, built for the source's own root fs and never
+	# regenerated), the board boots the OLD initrd and fails exactly as if this
+	# whole function were a no-op - belt and braces: replace it directly.
+	if [[ -d "$rootfs/boot/firmware" ]]; then
+		local newest
+		newest="$(find "$rootfs/boot" -maxdepth 1 -name 'initrd.img-*' -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)"
+		if [[ -n "$newest" ]] && ! cmp -s "$newest" "$rootfs/boot/firmware/initrd.img" 2>/dev/null; then
+			install_log WARN "update-initramfs: boot/firmware/initrd.img was not refreshed by the post-update hook; copying $newest directly"
+			cp "$newest" "$rootfs/boot/firmware/initrd.img" \
+				|| { install_log ERR "update-initramfs: failed to copy $newest to boot/firmware/initrd.img"; return "$INSTALL_EX_BOOTCFG"; }
+		fi
+	fi
 	return 0
 }
 
@@ -1302,8 +1331,12 @@ install_run_scenario() {
 		esac
 
 		# Rebuild the target initramfs so a module root fs (btrfs/f2fs) boots
-		# under MODULES=list. Only when the target owns its /boot.
-		[[ "$copy_boot" == 1 ]] && install_update_initramfs "$mp" "$fs"
+		# under MODULES=list. Only when the target owns its /boot. Fatal on
+		# failure - an unrebuilt initramfs means the target cannot boot at all,
+		# not a cosmetic problem to warn about and ship anyway.
+		if [[ "$copy_boot" == 1 ]]; then
+			install_update_initramfs "$mp" "$fs" || { rc=$INSTALL_EX_BOOTCFG; break; }
+		fi
 
 		echo 95
 		# ESP must be mounted before GRUB runs.
