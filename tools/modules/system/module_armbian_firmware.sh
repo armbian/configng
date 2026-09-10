@@ -494,10 +494,16 @@ function module_armbian_firmware() {
 			fi
 
 			# Point the sources at the requested repo (no-op if already there).
-			if [[ "$prev_host" != "$target_host" ]]; then
+			[[ "$prev_host" != "$target_host" ]] && \
 				sed -i "s|[a-zA-Z0-9.-]*\.armbian\.com|${target_host}|g" "$sources_file"
-				pkg_update
-			fi
+
+			# Refresh the index so the madison check below reflects the TARGET repo's
+			# current contents. Needed after an actual switch, but also on a no-op
+			# switch (already on the requested repo) where the ambient index may be
+			# stale or entirely absent — e.g. a freshly provisioned container with no
+			# apt lists yet, which otherwise makes madison find nothing and the switch
+			# wrongly report the repo as publishing no kernel.
+			pkg_update
 
 			# Predict the empty-repo case: verify the TARGET repo actually publishes
 			# a kernel for this board BEFORE committing to it. apt-cache show can't
