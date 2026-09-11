@@ -165,6 +165,19 @@ _extlinux_fixture() {
 	[ ! -e "$f.new" ]
 }
 
+@test "extlinux: a file with no append line is an error, not a silent no-op" {
+	# Nothing to repoint means root= was never set; succeeding here would let
+	# the install continue and report success on an unbootable target.
+	f="$TMP/no-append.conf"
+	printf 'label Armbian\n  kernel /boot/Image\n  initrd /boot/uInitrd\n' >"$f"
+	cp "$f" "$TMP/before"
+	run install_rewrite_extlinux "$f" "UUID=new-uuid" ext4
+	[ "$status" -ne 0 ]
+	# and the original must be left exactly as it was
+	diff -q "$TMP/before" "$f"
+	[ ! -e "$f.new" ]
+}
+
 @test "extlinux: missing file returns bootcfg error" {
 	run install_rewrite_extlinux "$TMP/nope.conf" "UUID=new" ext4
 	[ "$status" -eq 71 ]
