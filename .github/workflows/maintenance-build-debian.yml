@@ -59,10 +59,26 @@ jobs:
           changed_json="[]"
           if [[ "$EVENT" == "push" && ! "$BEFORE" =~ ^0+$ ]]; then
               api_err="$(mktemp)"
-              if changed_json="$(gh api "repos/${REPO}/compare/${BEFORE}...${AFTER}" \
-                  --jq '[.files[].filename | select(startswith("tests/") and endswith(".conf"))]' \
+              if compare_json="$(gh api "repos/${REPO}/compare/${BEFORE}...${AFTER}" \
+                  --jq '{total: (.files | length), changed: [.files[].filename | select(startswith("tests/") and endswith(".conf"))]}' \
                   2>"${api_err}")"; then
-                  mode="changed"
+                  # GitHub's compare endpoint hard-caps .files at 300 entries,
+                  # only on the first page - files beyond that aren't
+                  # retrievable at all, so pagination cannot recover them, and
+                  # the response carries no truncation flag. A merge that
+                  # large means any tests/*.conf past the cutoff is invisible
+                  # here, so a "changed" result built from a possibly-
+                  # truncated list could run less than the merge touched -
+                  # fall back to running everything instead of trusting it.
+                  total_files="$(jq -r '.total' <<< "${compare_json}")"
+                  if [[ "${total_files}" -ge 300 ]]; then
+                      echo "::warning::compare returned ${total_files} files (>= GitHub's 300-file cap, possibly truncated) - falling back to mode=all"
+                      mode="all"
+                      changed_json="[]"
+                  else
+                      mode="changed"
+                      changed_json="$(jq -c '.changed' <<< "${compare_json}")"
+                  fi
               else
                   echo "::warning::gh api compare failed, falling back to mode=all: $(cat "${api_err}")"
                   mode="all"
