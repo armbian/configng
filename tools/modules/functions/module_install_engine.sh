@@ -531,10 +531,18 @@ install_rewrite_extlinux() {
 			if (line ~ re) { sub(re, " " key "=" val, line) } else { line = line " " key "=" val }
 			return line
 		}
+		function drop_token(line, key,   re) {
+			re = "(^|[ \t])" key "=[^ \t]*"
+			sub(re, "", line)
+			return line
+		}
 		tolower($1) == "append" {
 			$0 = set_token($0, "root", root)
 			if (fstype != "") $0 = set_token($0, "rootfstype", fstype)
-			if (flags  != "") $0 = set_token($0, "rootflags", flags)
+			# Drop a subvol=@ left over from a previous btrfs root: a non-btrfs
+			# kernel rejects it and the root mount fails.
+			if (flags != "")       $0 = set_token($0, "rootflags", flags)
+			else if (fstype != "") $0 = drop_token($0, "rootflags")
 		}
 		{ print }
 	' "$file" >"$tmp" || { rm -f "$tmp"; return "$INSTALL_EX_BOOTCFG"; }
@@ -1366,8 +1374,10 @@ install_run_scenario() {
 		case "$boot_mode" in
 			emmc|mtd|ufs)
 				local env_file
-				env_file="$(install_boot_cfg_file "$mp/boot")" \
-					&& install_rewrite_bootcfg "$env_file" "$root_uuid" "$fs" ;;
+				if env_file="$(install_boot_cfg_file "$mp/boot")"; then
+					install_rewrite_bootcfg "$env_file" "$root_uuid" "$fs" \
+						|| { install_log ERR "scenario: failed to point $env_file at new root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
+				fi ;;
 			sd)
 				# Boot stays on the current media (the SD/eMMC the board booted
 				# from); only the rootfs moved to $disk. Two things are needed:

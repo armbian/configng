@@ -127,6 +127,10 @@ _extlinux_fixture() {
 	grep -q 'rootflags=subvol=@' "$f"
 	run install_rewrite_extlinux "$f" "UUID=new-uuid" ext4
 	[ "$status" -eq 0 ]
+	# ...and rewriting back to a non-btrfs root must take subvol=@ away again:
+	# a non-btrfs kernel rejects it and fails to mount the root filesystem.
+	! grep -q 'rootflags' "$f"
+	grep -q 'rootfstype=ext4' "$f"
 }
 
 @test "extlinux: rewriting twice is a no-op (idempotent)" {
