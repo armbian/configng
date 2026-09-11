@@ -531,19 +531,33 @@ install_rewrite_extlinux() {
 			if (line ~ re) { sub(re, " " key "=" val, line) } else { line = line " " key "=" val }
 			return line
 		}
-		function drop_token(line, key,   re) {
-			re = "(^|[ \t])" key "=[^ \t]*"
-			sub(re, "", line)
-			return line
+		function drop_subvol(line,   tok, lead, pre, post, val, n, parts, i, kept) {
+			# Remove only the subvol= component of rootflags, not the whole
+			# token: rootflags=data=writeback is a legitimate ext4/f2fs option
+			# that several boards ship in their stock cmdline.
+			if (!match(line, /(^|[ \t])rootflags=[^ \t]*/)) return line
+			tok  = substr(line, RSTART, RLENGTH)
+			lead = (substr(tok, 1, 1) ~ /[ \t]/) ? substr(tok, 1, 1) : ""
+			pre  = substr(line, 1, RSTART - 1)
+			post = substr(line, RSTART + RLENGTH)
+			val  = substr(line, RSTART + length(lead) + 10, RLENGTH - length(lead) - 10)
+			n = split(val, parts, ",")
+			kept = ""
+			for (i = 1; i <= n; i++)
+				if (parts[i] !~ /^subvol=/)
+					kept = (kept == "") ? parts[i] : kept "," parts[i]
+			if (kept == "") return pre post
+			return pre lead "rootflags=" kept post
 		}
 		tolower($1) == "append" {
 			saw_append = 1
 			$0 = set_token($0, "root", root)
 			if (fstype != "") $0 = set_token($0, "rootfstype", fstype)
 			# Drop a subvol=@ left over from a previous btrfs root: a non-btrfs
-			# kernel rejects it and the root mount fails.
+			# kernel rejects it and the root mount fails. Any other rootflags
+			# the board ships stay.
 			if (flags != "")       $0 = set_token($0, "rootflags", flags)
-			else if (fstype != "") $0 = drop_token($0, "rootflags")
+			else if (fstype != "") $0 = drop_subvol($0)
 		}
 		{ print }
 		# No append line means root= was never set: the caller would otherwise
