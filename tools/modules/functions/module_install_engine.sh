@@ -537,6 +537,7 @@ install_rewrite_extlinux() {
 			return line
 		}
 		tolower($1) == "append" {
+			saw_append = 1
 			$0 = set_token($0, "root", root)
 			if (fstype != "") $0 = set_token($0, "rootfstype", fstype)
 			# Drop a subvol=@ left over from a previous btrfs root: a non-btrfs
@@ -545,6 +546,9 @@ install_rewrite_extlinux() {
 			else if (fstype != "") $0 = drop_token($0, "rootflags")
 		}
 		{ print }
+		# No append line means root= was never set: the caller would otherwise
+		# carry on believing the target had been repointed.
+		END { if (!saw_append) exit 1 }
 	' "$file" >"$tmp" || { rm -f "$tmp"; return "$INSTALL_EX_BOOTCFG"; }
 	# Copy back rather than rename: keeps the original mode/owner/inode.
 	cat "$tmp" >"$file" || { rm -f "$tmp"; return "$INSTALL_EX_BOOTCFG"; }
