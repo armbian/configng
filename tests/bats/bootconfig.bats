@@ -129,8 +129,36 @@ _extlinux_fixture() {
 	[ "$status" -eq 0 ]
 	# ...and rewriting back to a non-btrfs root must take subvol=@ away again:
 	# a non-btrfs kernel rejects it and fails to mount the root filesystem.
-	! grep -q 'rootflags' "$f"
+	! grep -q 'subvol=@' "$f"
 	grep -q 'rootfstype=ext4' "$f"
+}
+
+@test "extlinux: a non-btrfs rewrite keeps rootflags the board ships" {
+	# aml-s9xx-box and the RISC-V boards ship rootflags=data=writeback on an
+	# ext4 root; only the btrfs subvol= component may be removed.
+	f="$TMP/flags.conf"
+	printf 'label Armbian\n  append root=UUID=old rootflags=data=writeback console=tty0 rw\n' >"$f"
+	install_rewrite_extlinux "$f" "UUID=new-uuid" ext4
+	grep -q 'rootflags=data=writeback' "$f"
+	grep -q 'root=UUID=new-uuid' "$f"
+	grep -q 'console=tty0' "$f"
+}
+
+@test "extlinux: subvol= is removed from a compound rootflags, the rest kept" {
+	f="$TMP/mixed.conf"
+	printf 'label Armbian\n  append root=UUID=old rootflags=data=writeback,subvol=@ console=tty0 rw\n' >"$f"
+	install_rewrite_extlinux "$f" "UUID=new-uuid" ext4
+	grep -q 'rootflags=data=writeback' "$f"
+	! grep -q 'subvol=' "$f"
+	grep -q 'console=tty0' "$f"
+}
+
+@test "extlinux: dropping a lone subvol= leaves no stray whitespace or token" {
+	f="$TMP/lone.conf"
+	printf 'label Armbian\n  append root=UUID=old rootflags=subvol=@ console=tty0 rw\n' >"$f"
+	install_rewrite_extlinux "$f" "UUID=new-uuid" ext4
+	! grep -q 'rootflags' "$f"
+	grep -q 'root=UUID=new-uuid console=tty0 rw' "$f"
 }
 
 @test "extlinux: rewriting twice is a no-op (idempotent)" {
