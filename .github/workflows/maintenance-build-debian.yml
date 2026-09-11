@@ -92,6 +92,17 @@ jobs:
           # injects it unquoted rather than hand-interpolating fields into a
           # JSON literal.
           payload="$(jq -nc --arg mode "$mode" --argjson changed "$changed_json" '{mode: $mode, changed_tests: $changed}')"
+          # GitHub caps client_payload at 64KB; a merge with enough tests/*.conf
+          # entries could exceed that, and peter-evans/repository-dispatch would
+          # then reject the dispatch outright - so the post-merge run silently
+          # never fires. Fall back to mode=all (a small, fixed-size payload)
+          # before that happens rather than losing the dispatch entirely.
+          if [[ "$(LC_ALL=C printf '%s' "${payload}" | wc -c)" -ge 60000 ]]; then
+              echo "::warning::dispatch payload is too large (>=60000 bytes); falling back to mode=all"
+              mode="all"
+              changed_json="[]"
+              payload="$(jq -nc --arg mode "$mode" --argjson changed "$changed_json" '{mode: $mode, changed_tests: $changed}')"
+          fi
           echo "payload=${payload}" >> "$GITHUB_OUTPUT"
           echo "mode=${mode} changed_tests=${changed_json}"
 
