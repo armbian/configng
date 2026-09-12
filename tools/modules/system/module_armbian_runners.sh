@@ -386,7 +386,8 @@ function module_armbian_runners () {
 			#   * internally by install/purge with positional args:
 			#       remove <runner_name> <index>
 			#   * directly via --api with named params and an index range:
-			#       remove runner_name=<n> start=<a> stop=<b> [organisation=..]
+			#       remove runner_name=<n> [start=<a> stop=<b>] [organisation=..]
+			#     start/stop default to 01, so a bare runner_name removes <n>-01.
 			# A bare (no '=') $2 is the positional form; otherwise the named
 			# params parsed above drive a start..stop range.
 			if [[ -z "${gh_token}" ]]; then
@@ -401,9 +402,13 @@ function module_armbian_runners () {
 				rm_indices="$3"
 			else
 				rm_name="${runner_name:-armbian}"
-				if [[ -n "${start}" || -n "${stop}" ]]; then
-					rm_indices="$(seq -w "${start:-01}" "${stop:-01}")"
-				fi
+				# Default the range to 01..01, the same way purge does. Leaving
+				# it empty fell through to the bare-name branch below, which
+				# looks for a runner literally called "<runner_name>" -- but
+				# runners are registered as "<runner_name>-NN", so
+				# `remove runner_name=xxx` matched nothing, could not map to a
+				# local user either, and reported success having done nothing.
+				rm_indices="$(seq -w "${start:-01}" "${stop:-01}")"
 			fi
 
 			local rm_failed=0 idx target runner_home
@@ -463,6 +468,14 @@ function module_armbian_runners () {
 			# but the host has nothing for it.
 			local delete_failed=0 x=1 page_body page_code listed
 			local per_page=100
+			# Track what we actually saw. Without this a name that matches
+			# nothing is indistinguishable from a successful delete: the caller
+			# printed "Removing runner X on GitHub", we silently matched zero
+			# runners, returned 0, and the caller went on to tear down the local
+			# side. That is how a stale registration survived a "successful"
+			# remove and then broke config.sh with "a runner exists with the
+			# same name".
+			local matched=0 seen=0
 
 			# Walk pages until one comes back short. The old loop asked for
 			# pages 1..9 unconditionally - nine API calls to delete one
@@ -506,7 +519,9 @@ function module_armbian_runners () {
 					# Quoted: an unquoted right-hand side is a glob, so a
 					# runner name containing * or ? matched - and deleted -
 					# every other runner in the org.
+					seen=$(( seen + 1 ))
 					if [[ "${RUNNER_NAME}" == "${DELETE}" ]]; then
+						matched=$(( matched + 1 ))
 						echo "Delete existing: ${RUNNER_NAME}"
 						local resp_body http_code
 						resp_body=$(mktemp)
@@ -531,6 +546,13 @@ function module_armbian_runners () {
 				[[ "$(printf '%s\n' "${listed}" | wc -l)" -lt "${per_page}" ]] && break
 				x=$(( x + 1 ))
 			done
+
+			# Say so when the name matched nothing. Not an error -- an already
+			# absent runner is the desired end state, and install's pre-remove
+			# step relies on that -- but it must not look like a deletion.
+			if (( matched == 0 )); then
+				echo "No runner named '${DELETE}' is registered in ${prefix}/${registration_url} (${seen} runner(s) listed); nothing to delete." >&2
+			fi
 			return $delete_failed
 		;;
 		"${commands[3]}")
@@ -558,7 +580,7 @@ function module_armbian_runners () {
 			echo -e "Commands:  install remove remove_online purge status help"
 			echo -e "Available commands:\n"
 			echo -e "\tinstall\t\t- Install or reinstall $title."
-			echo -e "\tremove\t\t- Remove a single runner (locally and on GitHub)."
+			echo -e "\tremove\t\t- Remove runners (locally and on GitHub); start/stop default to 01."
 			echo -e "\tremove_online\t- Remove matching runners on GitHub only."
 			echo -e "\tpurge\t\t- Purge $title."
 			echo -e "\tstatus\t\t- Status of $title."
