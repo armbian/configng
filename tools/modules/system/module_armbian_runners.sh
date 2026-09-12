@@ -261,9 +261,19 @@ function module_armbian_runners () {
 					label="${label_primary}"
 				fi
 
-				runuser -l "actions-runner-${i}" -c \
-				"./config.sh --url https://github.com/${registration_url} \
-				--token ${token} --labels '${label}' --name '${runner_name}-${i}' --unattended"
+				# config.sh is what actually registers the runner with GitHub. Its
+				# exit status has to be checked: svc.sh ships inside the tarball, so
+				# the -f test below is true whether or not registration succeeded, and
+				# installing a service for an unregistered runner leaves a unit that
+				# can never start. Unchecked, a failure here also left install_failed
+				# at 0 and the whole install reported success.
+				if ! runuser -l "actions-runner-${i}" -c \
+					"./config.sh --url https://github.com/${registration_url} \
+					--token ${token} --labels '${label}' --name '${runner_name}-${i}' --unattended"; then
+					echo "Failed to register runner ${runner_name}-${i} with ${registration_url}; skipping its service install." >&2
+					install_failed=1
+					continue
+				fi
 				if [[ -f /home/actions-runner-${i}/svc.sh ]]; then
 					sh -c "cd /home/actions-runner-${i} ; \
 					sudo ./svc.sh install actions-runner-${i} 2>/dev/null; \

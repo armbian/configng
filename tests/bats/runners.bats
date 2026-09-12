@@ -100,6 +100,10 @@ _stub_curl() {
 	# The old parser ran eval "$feature=$value" on whatever came off the
 	# command line. No spaces in the payload: the old parser word-split on
 	# those before eval saw them, which would mask the injection.
+	# Stubbed like the rest: without it this reaches the real api.github.com,
+	# making a parser test depend on the network.
+	_stub_curl
+	LIST_FIXTURE='{"total_count":0,"runners":[]}'
 	run module_armbian_runners remove_online armbian-01 "gh_token=\$(id>$TMP/pwned)"
 	[ ! -e "$TMP/pwned" ]
 }
