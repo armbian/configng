@@ -108,6 +108,48 @@ _stub_curl() {
 	[ ! -e "$TMP/pwned" ]
 }
 
+# `remove` does local teardown (userdel, sudoers edits). Neutralise it so these
+# tests never touch the host, while letting the module's own temp-file cleanup
+# work. rm passes through only for paths under the test tmpdir or /tmp.
+_stub_local_teardown() {
+	getent()   { return 1; }
+	userdel()  { echo "userdel $*" >>"$TMP/teardown"; }
+	groupdel() { :; }
+	sed()      { :; }
+	rm() {
+		local a last=""
+		for a in "$@"; do [[ "$a" == -* ]] || last="$a"; done
+		case "$last" in /tmp/*|"$BATS_TEST_TMPDIR"/*) command rm "$@" ;; *) : ;; esac
+	}
+}
+
+@test "remove_online: a name that matches nothing says so instead of looking deleted" {
+	# The caller prints "Removing runner X on GitHub" before this runs, so a
+	# silent zero-match read as a successful delete — which is how a stale
+	# registration survived a "successful" remove.
+	_stub_curl
+	LIST_FIXTURE='{"total_count":2,"runners":[{"id":11,"name":"armbian-01"},{"id":22,"name":"armbian-02"}]}'
+	run module_armbian_runners remove_online xxx gh_token=xxx
+	[ "$status" -eq 0 ]
+	[[ "$output" == *"No runner named 'xxx'"* ]]
+	[[ "$output" == *"2 runner(s) listed"* ]]
+	[ ! -s "$DELETED" ]
+}
+
+@test "remove: start/stop default to 01, so a bare runner_name hits <name>-01" {
+	# Without the default, rm_indices was empty and the bare name "xxx" was
+	# looked up — runners are registered as "<name>-NN", so it matched nothing.
+	_stub_curl
+	_stub_local_teardown
+	: >"$TMP/teardown"
+	LIST_FIXTURE='{"total_count":1,"runners":[{"id":77,"name":"xxx-01"}]}'
+	run module_armbian_runners remove runner_name=xxx gh_token=xxx organisation=armbian
+	[ "$status" -eq 0 ]
+	[[ "$output" == *"Removing runner xxx-01 on GitHub"* ]]
+	[[ "$output" == *"Delete existing: xxx-01"* ]]
+	[ "$(cat "$DELETED")" = "77" ]
+}
+
 @test "help: documents the label fallback" {
 	run module_armbian_runners help
 	[ "$status" -eq 0 ]
