@@ -214,7 +214,13 @@ install_plan_layout() {
 				parts+=("root:100%:${fs}:boot")
 			fi
 			;;
-		emmc)
+		emmc|spi)
+			# Both are fully self-contained targets (local /boot the board's
+			# u-boot reads directly). They differ only in where u-boot itself
+			# lives - on the eMMC's raw sectors for "emmc" (hence the 16MiB
+			# offset below), pre-flashed to on-board SPI/NOR for "spi" (so no
+			# raw reservation on this disk, 1MiB offset) - which is handled at
+			# the start-offset step, not here; the partition shape is identical.
 			if [[ "$fs" == "btrfs" || "$fs" == "f2fs" ]]; then
 				# u-boot cannot read btrfs/f2fs -> a dedicated ext4 /boot.
 				parts+=("boot:512MiB:ext4:boot")
@@ -696,6 +702,13 @@ install_bootloader_available() {
 		# FAT32 boot partition that only Raspberry Pi-style firmware reads, so it
 		# IS gated on that capability here.
 		sd)     return 0 ;;
+		# "spi" installs a self-contained target (local /boot + root here) but
+		# writes NO bootloader: u-boot already lives in the board's on-board
+		# SPI/NOR flash (pre-flashed via fastboot/DFU), and its boot script
+		# scans the attached media for /boot/boot.scr. So, like "sd", there is
+		# nothing to write and nothing to gate on - the target just has to be
+		# self-contained, which the layout guarantees.
+		spi)    return 0 ;;
 		native) install_rpi_style_boot ;;
 		mtd)     [[ "$(type -t write_uboot_platform_mtd)" == function ]] ;;
 		ufs)     [[ "$(type -t write_uboot_platform_ufs)" == function ]] ;;
@@ -1305,7 +1318,7 @@ install_run_scenario() {
 	# source; the planner still upgrades to GPT when capacity/sector size demand.
 	local table_pref=""
 	case "$boot_mode" in
-		emmc|sd|mtd|native) table_pref="$(install_source_table_type)"
+		emmc|sd|mtd|spi|native) table_pref="$(install_source_table_type)"
 			[[ -n "$table_pref" ]] && install_log INFO "scenario: inheriting source partition table '$table_pref' for $boot_mode" ;;
 	esac
 
@@ -1390,7 +1403,7 @@ install_run_scenario() {
 		# Point the board's boot env at the new root (u-boot scenarios only; GRUB
 		# modes are handled by grub-mkconfig).
 		case "$boot_mode" in
-			emmc|mtd|ufs)
+			emmc|mtd|ufs|spi)
 				local env_file
 				if env_file="$(install_boot_cfg_file "$mp/boot")"; then
 					install_rewrite_bootcfg "$env_file" "$root_uuid" "$fs" \
@@ -1461,7 +1474,10 @@ install_run_scenario() {
 		# load u-boot from NVMe/USB/SATA, so it would silently fail to boot. In
 		# native mode there is no bootloader to write at all - the board's own
 		# firmware already found and read $disk's new FAT32 boot partition.
-		if [[ "$boot_mode" != sd && "$boot_mode" != native ]]; then
+		# "spi" also skips the write: u-boot is pre-flashed to on-board SPI/NOR
+		# (via fastboot/DFU), so there is no bootloader to write to $disk - the
+		# board boots from SPI and its boot script finds this disk's /boot.
+		if [[ "$boot_mode" != sd && "$boot_mode" != native && "$boot_mode" != spi ]]; then
 			install_write_bootloader "$boot_mode" "$disk" "$mp" "$uboot_dir" "${INSTALL_MTD_LIST:-}" "${INSTALL_UFS_BOOT_LUN:-}" \
 				|| { rc=$INSTALL_EX_BOOTLOADER; break; }
 		fi

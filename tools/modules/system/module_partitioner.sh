@@ -140,7 +140,19 @@ partitioner_modes_for() {
 				# NVMe root): the board then boots straight from internal flash,
 				# independent of the removable media staying inserted — so offer
 				# it FIRST (top / default).
-				[[ "$(type -t write_uboot_platform_mtd)" == function && -n "$(partitioner_mtd_list)" ]] && m+=(mtd)
+				local have_mtd=""; have_mtd="$(partitioner_mtd_list)"
+				if [[ "$(type -t write_uboot_platform_mtd)" == function && -n "$have_mtd" ]]; then
+					m+=(mtd)
+				elif [[ -n "$have_mtd" ]]; then
+					# SPI/MTD flash is present but the board has no installer
+					# hook to write u-boot into it (e.g. SpacemiT K3: u-boot is
+					# flashed once via fastboot/DFU, not from the OS). The board
+					# still boots from that SPI and its boot script scans this
+					# NVMe/SATA/USB for /boot/boot.scr - so a fully self-contained
+					# install here (local /boot + root, no dependency on the
+					# removable media) is bootable. Offer it FIRST (top / default).
+					m+=(spi)
+				fi
 				m+=(sd)                       # keep boot on current media, root here
 				# ...or from an internal eMMC (if present and not the target).
 				local emmc; emmc="$(partitioner_emmc_device)"
@@ -182,6 +194,7 @@ partitioner_mode_desc() {
 		sd)   echo "Keep boot on current media, system on this disk" ;;
 		split-emmc) echo "Boot from eMMC, system on this disk (+ /emmc_storage)" ;;
 		mtd)  echo "Boot from SPI/MTD flash, system on this disk" ;;
+		spi)  echo "Boot from on-board SPI flash, full system on this disk" ;;
 		ufs)  echo "Boot idblock on UFS boot LUN, system on UFS" ;;
 		*)    echo "$1" ;;
 	esac
@@ -295,6 +308,10 @@ partitioner_tui() {
 		fi
 	elif [[ "$boot" == mtd ]]; then
 		if ! dialog_yesno " WARNING " "\nThis will ERASE /dev/$disk (Armbian root, $fs) AND overwrite the bootloader on SPI/MTD flash:\n  [ $(partitioner_mtd_list) ]\n\nProceed?" "Erase and install" "Cancel" 12 74; then
+			return "$INSTALL_EX_OK"
+		fi
+	elif [[ "$boot" == spi ]]; then
+		if ! dialog_yesno " WARNING " "\nThis will ERASE /dev/$disk and install a self-contained Armbian ($fs): boot + system both on this disk.\n\nu-boot is NOT touched - the board boots from its on-board SPI flash and loads /boot from this disk. The install stays bootable on its own (no dependency on removable media).\n\nProceed?" "Erase and install" "Cancel" 13 74; then
 			return "$INSTALL_EX_OK"
 		fi
 	else
@@ -458,7 +475,7 @@ partitioner_cli_install() {
 	done
 
 	[[ -b "$target" ]] || { echo "armbian-install: --target must be a block device" >&2; return "$INSTALL_EX_NODEV"; }
-	case "$boot" in uefi|uefi-dualboot|bios|emmc|sd|mtd|ufs|native|split-emmc) ;; *) echo "armbian-install: --boot must be one of uefi|uefi-dualboot|bios|emmc|sd|mtd|ufs|native|split-emmc" >&2; return "$INSTALL_EX_USAGE" ;; esac
+	case "$boot" in uefi|uefi-dualboot|bios|emmc|sd|mtd|spi|ufs|native|split-emmc) ;; *) echo "armbian-install: --boot must be one of uefi|uefi-dualboot|bios|emmc|sd|mtd|spi|ufs|native|split-emmc" >&2; return "$INSTALL_EX_USAGE" ;; esac
 	case "$fs"   in ext4|btrfs|f2fs) ;;     *) echo "armbian-install: --fs must be one of ext4|btrfs|f2fs" >&2; return "$INSTALL_EX_USAGE" ;; esac
 	[[ -f "$INSTALL_EXCLUDE" ]] || { echo "armbian-install: exclude list $INSTALL_EXCLUDE missing" >&2; return "$INSTALL_EX_TRANSFER"; }
 

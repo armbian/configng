@@ -359,6 +359,16 @@ _extlinux_fixture() {
 	[ "$status" -eq 0 ]
 }
 
+@test "bootloader available: spi needs no capability - u-boot is pre-flashed in SPI" {
+	# spi mode installs a self-contained target but writes no bootloader: u-boot
+	# already lives in the board's on-board SPI/NOR (flashed via fastboot/DFU),
+	# and install_run_scenario skips install_write_bootloader for it - so, like
+	# sd, it must be available even with no write_uboot_platform hook at all.
+	unset -f write_uboot_platform 2>/dev/null || true
+	run install_bootloader_available spi
+	[ "$status" -eq 0 ]
+}
+
 @test "bootloader available: emmc ok once the write_uboot_platform hook exists" {
 	write_uboot_platform() { :; }
 	run install_bootloader_available emmc
