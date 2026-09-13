@@ -184,6 +184,35 @@ setup() {
 	[[ "$output" == *"part=root:100%:f2fs:boot"* ]]
 }
 
+# --- spi: self-contained target, u-boot pre-flashed in on-board SPI/NOR ------
+# The SoC boots from SPI and its boot script scans this disk for /boot, so the
+# layout is fully self-contained like emmc (local /boot the board reads), but
+# u-boot is NOT on this device, so - unlike emmc - there is no 16MiB reserve.
+
+@test "plan spi ext4: single boot-flagged root, like emmc" {
+	run install_plan_layout spi ext4 0 $(( 250 * GIB )) 512 0
+	[ "$status" -eq 0 ]
+	[[ "$output" == *"part=root:100%:ext4:boot"* ]]
+}
+
+@test "plan spi btrfs: separate ext4 boot + btrfs root (u-boot can't read btrfs)" {
+	run install_plan_layout spi btrfs 0 $(( 250 * GIB )) 512 0
+	[[ "$output" == *"part=boot:512MiB:ext4:boot"* ]]
+	[[ "$output" == *"part=root:100%:btrfs:"* ]]
+}
+
+@test "plan spi: no 16MiB reserve (u-boot lives in SPI, not on this disk)" {
+	run install_plan_layout spi ext4 0 $(( 250 * GIB )) 512 0
+	[[ "$output" == *"start=1"* ]]
+}
+
+@test "plan spi: replicates the source table type, same as emmc/sd/mtd" {
+	run install_plan_layout spi ext4 0 $(( 250 * GIB )) 512 0 msdos
+	[[ "$output" == *"table=msdos"* ]]
+	run install_plan_layout spi ext4 0 $(( 250 * GIB )) 512 0 gpt
+	[[ "$output" == *"table=gpt"* ]]
+}
+
 # --- native: full install on a board with no u-boot/EFI/GRUB (Raspberry Pi) --
 
 @test "plan native: FAT32 firmware partition first, plain root second" {
