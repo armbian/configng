@@ -321,7 +321,46 @@ function module_armbian_firmware() {
 				[[ -n "$ipkg" && "$keep" != *" $ipkg "* ]] && stale+=("$ipkg")
 			done < <(dpkg-query -W -f='${Package}\n' 'linux-image-*' 'linux-dtb-*' 'linux-headers-*' 2>/dev/null)
 			if [[ ${#stale[@]} -gt 0 ]]; then
+				# Purge the old branch's kernel packages. Do NOT hide the result
+				# behind '|| true': this often targets the *running* kernel (a
+				# switch happens before the reboot), whose postrm hooks (initramfs /
+				# bootloader update) can return non-zero -- which used to be
+				# swallowed, silently leaving the old kernel installed next to the
+				# new one. So: purge, then re-check what is still installed, retry
+				# once after fixing any half-configured state, and report clearly
+				# what could not be removed. The new kernel is already installed and
+				# verified above, so a leftover old one is a warning, not fatal.
 				DEBIAN_FRONTEND=noninteractive apt-get purge -y "${stale[@]}" > /dev/null 2>&1 || true
+				# Any state other than 'not-installed' means the purge did not
+				# finish. A postrm that fails leaves half-installed / unpacked /
+				# half-configured, and a purge that degrades to a plain remove
+				# leaves config-files -- matching only 'installed' would skip
+				# precisely the states this code exists to catch. A dpkg-query
+				# failure means dpkg has never heard of the package: nothing left.
+				local leftover=() spkg spkg_state
+				for spkg in "${stale[@]}"; do
+					spkg_state="$(dpkg-query -W -f='${db:Status-Status}\n' "$spkg" 2>/dev/null)" || continue
+					if [[ -n "$spkg_state" && "$spkg_state" != "not-installed" ]]; then
+						leftover+=("$spkg")
+					fi
+				done
+				if [[ ${#leftover[@]} -gt 0 ]]; then
+					# a transient dpkg lock or a half-configured package can clear
+					# on a second pass
+					DEBIAN_FRONTEND=noninteractive dpkg --configure -a > /dev/null 2>&1 || true
+					DEBIAN_FRONTEND=noninteractive apt-get purge -y "${leftover[@]}" > /dev/null 2>&1 || true
+					local still=()
+					for spkg in "${leftover[@]}"; do
+						spkg_state="$(dpkg-query -W -f='${db:Status-Status}\n' "$spkg" 2>/dev/null)" || continue
+						if [[ -n "$spkg_state" && "$spkg_state" != "not-installed" ]]; then
+							still+=("$spkg")
+						fi
+					done
+					if [[ ${#still[@]} -gt 0 ]]; then
+						echo "Warning: could not remove the previous kernel package(s): ${still[*]}." >&2
+						echo "         The new kernel is installed, but the old one is still present; remove it after rebooting onto the new kernel: apt-get purge ${still[*]}" >&2
+					fi
+				fi
 			fi
 
 			# Clean up the temporary APT policy file
