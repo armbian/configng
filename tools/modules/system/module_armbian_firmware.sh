@@ -248,8 +248,8 @@ function module_armbian_firmware() {
 				return 1
 			fi
 
-			# Downloads succeeded and are cached. Install the NEW kernel FIRST, as a
-			# single apt transaction served from that cache. Two reasons this order
+			# Downloads succeeded and are cached. Install the NEW kernel FIRST (before
+			# pruning anything), served from that cache. Two reasons this order
 			# matters — reversing it (the old "purge linux-image* then install")
 			# strands the board with NO kernel:
 			#   * apt replaces the same-named packages in place, so a bootable kernel
@@ -258,7 +258,38 @@ function module_armbian_firmware() {
 			#   * direct apt-get (like the download above) gives a trustworthy exit
 			#     code — pkg_install's dialog-gauge path masks apt failures, so a
 			#     failed install used to look like success right after the purge.
-			if ! DEBIAN_FRONTEND=noninteractive apt-get install --allow-downgrades -y ${packages[@]} > /dev/null 2>&1; then
+			#
+			# Install linux-headers in its OWN transaction, BEFORE linux-image. In a
+			# single combined transaction apt is free to configure linux-image before
+			# linux-headers; the image postinst then runs its DKMS module builds with
+			# no kernel headers present and fails on the first pass (needs an
+			# 'apt-get -f install' retry to self-heal, and on older images aborts
+			# before the boot-symlink relink, which can leave the board unbootable —
+			# see armbian/build#10766). Two transactions guarantee the headers are
+			# fully configured first, so DKMS builds succeed on the first pass. Both
+			# are served from the cache the --download-only step populated above, so
+			# there is no extra network I/O.
+			# ${packages} is a space-delimited scalar, not an array -- it is built with
+			# packages+="${pkg} " above, and every other user in this file expands it
+			# unquoted on purpose. Split it once, here, so the classification below sees
+			# one package per iteration instead of the whole list as a single word.
+			local hdr_pkgs=() rest_pkgs=() split_pkgs=() _p
+			read -r -a split_pkgs <<< "${packages}"
+			for _p in "${split_pkgs[@]}"; do
+				case "$_p" in
+					linux-headers-*) hdr_pkgs+=("$_p") ;;
+					*)               rest_pkgs+=("$_p") ;;
+				esac
+			done
+
+			if [[ ${#hdr_pkgs[@]} -gt 0 ]] \
+				&& ! DEBIAN_FRONTEND=noninteractive apt-get install --allow-downgrades -y "${hdr_pkgs[@]}" > /dev/null 2>&1; then
+				rm -f /etc/apt/preferences.d/armbian-upgrade-policy
+				echo "Error: kernel headers install failed — current kernel left in place. Try again later and report to the Armbian forums."
+				return 1
+			fi
+
+			if ! DEBIAN_FRONTEND=noninteractive apt-get install --allow-downgrades -y "${rest_pkgs[@]}" > /dev/null 2>&1; then
 				rm -f /etc/apt/preferences.d/armbian-upgrade-policy
 				echo "Error: kernel install failed — current kernel left in place. Try again later and report to the Armbian forums."
 				return 1
