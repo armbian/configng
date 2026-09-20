@@ -198,6 +198,23 @@ function module_armbian_firmware() {
 			local hide=$4                                # If "hide", suppress output
 			local linuxfamily=$5                         # Board family (e.g., rockchip64, meson64)
 
+			# Resolve the kernel package family. When the caller does not pass one
+			# ($5 empty -- e.g. an --api call or the autotests harness that wants us
+			# to decide), default to the running kernel's family. Then apply the
+			# per-board exceptions where the family DEPENDS ON THE BRANCH, so a
+			# manual/API branch switch targets the right package. Rockchip RK3588
+			# ships vendor/legacy as the BSP -rk35xx kernels but current/edge as
+			# mainline -rockchip64; without this remap, switching vendor -> current
+			# would look for the nonexistent linux-image-current-rk35xx. This
+			# mirrors the naming logic already used by the interactive selector.
+			[[ -z "${linuxfamily}" ]] && linuxfamily="${KERNELPKG_LINUXFAMILY}"
+			if [[ "${BOARDFAMILY}" == "rockchip-rk3588" ]]; then
+				case "${branch}" in
+					vendor|legacy) linuxfamily="rk35xx" ;;
+					current|edge)  linuxfamily="rockchip64" ;;
+				esac
+			fi
+
 			# Idempotency check: don't reinstall if exact version is already present
 			# This prevents unnecessary reboots and saves time
 			if [[ -n "${version}" ]]; then
