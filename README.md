@@ -3,29 +3,15 @@
   <br><br>
 </h2>
 
-### Purpose of This Repository
+# Armbian Config (configng)
 
-This repository contains the source code for **Armbian Config**, a versatile and extremly **lightweight configuration utility** designed to simplify and automate common system tasks within the Armbian Linux environment.
+## Purpose of This Repository
 
-Armbian Config provides interactive and scriptable routines for:
+This repository contains the source code for **Armbian Config**, a lightweight configuration utility that simplifies and automates common system tasks on Armbian (and other systemd + APT based Linux distributions). It provides interactive and scriptable routines for initial setup, networking, kernel and firmware management, desktop environments and their branding, and installation of sandboxed server / self-hosted software.
 
-- Initial system setup and personalization  
-- Networking configuration, including Wi-Fi, VPN, and static IP  
-- Sandboxed software installation and system updates  
-- Kernel selection, switching, and firmware management  
-- Enabling and managing hardware-specific features  
-- Desktop environment installation, tiered management, and branding (XFCE, GNOME, KDE Plasma, MATE, Cinnamon, and more)  
+## Quick Start
 
-It is especially useful for single board computers (SBCs), helping users quickly prepare a ready-to-use system without manual intervention.
-
-### Quick Start
-
-Armbian Config comes **preinstalled** with Armbian images.
-
-To launch the utility:
-
-1. Open a terminal (locally or via SSH)
-2. Run the following command:
+Armbian Config comes **preinstalled** with Armbian images. To launch:
 
 ```bash
 armbian-config
@@ -33,11 +19,12 @@ armbian-config
 
 <a href=#><img src=.github/images/common.png></a>
 
-### Compatibility
+## Compatibility
 
-This tool is optimized for use with [**Armbian Linux**](https://www.armbian.com), but in theory, it should also work on any systemd-based, APT-compatible Linux distribution — including Linux Mint, Elementary OS, Kali Linux, MX Linux, Parrot OS, Proxmox, Raspberry Pi OS, and others.
-<details><summary>Add Armbian key + repository and install the tool:</summary>
-  
+Armbian Config is optimized for [**Armbian Linux**](https://www.armbian.com), but in theory it also works on any systemd-based, APT-compatible Linux distribution — including Linux Mint, Elementary OS, Kali Linux, MX Linux, Parrot OS, Proxmox, Raspberry Pi OS, and others.
+
+<details><summary>Add the Armbian key + repository and install the tool</summary>
+
 ```bash
 wget -qO - https://apt.armbian.com/armbian.key | gpg --dearmor | \
 sudo tee /usr/share/keyrings/armbian.gpg > /dev/null
@@ -52,42 +39,107 @@ sudo apt update
 sudo apt -y install armbian-config
 armbian-config
 ```
+
 </details>
 
-### Contribute
+## Repository Layout
 
-Want to expand **Armbian Config** with new features or tools? Whether you're adding a new software title, enhancing an existing configuration module, or introducing entirely new functionality, we welcome your ideas and code.
+```
+bin/armbian-config            Entry-point script installed as /usr/bin/armbian-config
+debian.conf                   Debian packaging metadata used by the CI Debian build
+DOCUMENTATION.md              Generated menu / feature reference
+share/                        Desktop entry (.desktop) and hicolor icon set
+tests/                        Per-module .conf unit tests and bats-based tests
+tests/bats/                   Bats test suites and JSON fixtures
+tools/                        Build tooling, JSON menu sources and runtime modules
+tools/config-assemble.sh      Assembles modules and jobs for production or testing
+tools/config-markdown.py      Generates Markdown docs from the assembled JSON
+tools/json/                   Menu source JSON (help, localisation, network, software, system, temp)
+tools/include/markdown/       Per-item header/footer Markdown snippets used by the doc generator
+tools/include/images/         Per-item images embedded into generated documentation
+tools/modules/                Runtime shell modules and desktop-related assets
+tools/modules/desktops/       Desktop postinst scripts, branding, greeters, skel and helpers
+.github/                      Issue / PR templates and CI workflow definitions
+```
 
-<https://docs.armbian.com/Contribute/Armbian-config>
+## Built With
 
-> 📌 Tip: Keep your changes modular and easy to maintain — this helps us review and merge your contribution faster.
+Evidence from the tracked files:
 
-### Support
+- **Bash / shell scripts** (`bin/armbian-config`, `tools/config-assemble.sh`, `tools/modules/**/*.sh`, `tests/bats/*.bats`) — the main runtime language of the utility.
+- **Python 3** (`tools/config-markdown.py`, `tools/modules/desktops/github/audit.py`, `audit_apply.py`, `audit_prompt.py`, `tools/modules/desktops/scripts/parse_desktop_yaml.py`) — documentation generation and desktop matrix tooling; standard-library only for the doc generator, with `pyyaml` used by the desktop audit.
+- **JSON** menu definitions under `tools/json/` (`config.help.json`, `config.localisation.json`, `config.network.json`, `config.software.json`, `config.system.json`, `config.temp.json`).
+- **Bats** for unit and integration tests under `tests/bats/`, with `jq`, `parted`, `dosfstools` and `ntfs-3g` used by the integration suites.
+- **QML** and related assets for the bundled SDDM `plasma-chili` greeter theme under `tools/modules/desktops/greeters/sddm/themes/plasma-chili/`.
+- **YAML** for GitHub Actions workflows, issue templates, labels and Dependabot configuration under `.github/`.
+- **Debian packaging** via `debian.conf` and the CI Debian build, producing an `armbian-config` `.deb` with dependencies including `bash`, `jq`, `whiptail`, `sudo`, `systemd`, `python3-yaml`, `rsync`, `parted`, `dosfstools`, `e2fsprogs`, `btrfs-progs`, `f2fs-tools` and `ntfs-3g`.
 
-Armbian offers multiple support channels, depending on your needs:
+## Building and Testing Locally
 
-- **Community Forums**  
-  Get help from fellow users and contributors on a wide range of topics — from troubleshooting to development.  
-  👉 [forum.armbian.com](https://forum.armbian.com)
+Assemble modules and jobs, then run the tool from the working tree:
 
-- **Discord / IRC / Matrix Chat**  
-  Join real-time discussions with developers and community members for faster feedback and collaboration.  
-  👉 [Community Chat](https://docs.armbian.com/Community_IRC/)
+```bash
+tools/config-assemble.sh -p    # -p production, -t testing
+bin/armbian-config
+```
 
-- **Paid Consultation**  
-  For advanced needs, commercial projects, or guaranteed response times, paid support is available directly from Armbian maintainers.  
-  👉 [Contact us](https://www.armbian.com/contact) to discuss consulting options.
+Generate the documentation (`DOCUMENTATION.md` and per-item Markdown) from the assembled JSON:
 
-### Contributors
+```bash
+bin/armbian-config --doc
+```
 
-Thanks to all who have contributed to Armbian Config!
+Run the bats test suites (matches what CI runs):
+
+```bash
+sudo apt-get install -y bats jq parted dosfstools ntfs-3g
+
+# Unit tests (pure functions, no privileges)
+bats tests/bats/plan.bats tests/bats/detect.bats tests/bats/detect_windows.bats \
+     tests/bats/bootconfig.bats tests/bats/dualboot.bats tests/bats/transfer.bats \
+     tests/bats/package.bats tests/bats/runners.bats
+
+# Integration tests (loopback block device + Windows dual-boot; root required)
+sudo bats tests/bats/integration_loopback.bats tests/bats/integration_dualboot.bats
+```
+
+Per-module functional tests live in `tests/*.conf` — each file defines a `testcase()` function that returns 0 on success. See [tests/README.md](tests/README.md) for the format.
+
+## Documentation
+
+- User-facing menu reference: [DOCUMENTATION.md](DOCUMENTATION.md) (auto-generated by `bin/armbian-config --doc`).
+- Contributing to armbian-config: <https://docs.armbian.com/Contribute/Armbian-config>
+- Tools overview: [tools/README.md](tools/README.md)
+
+## Continuous Integration
+
+CI status for this repository (build, lint, bats, JSON validation, doc build, desktop audit, and maintenance workflows) is aggregated on the Armbian Actions dashboard:
+
+<https://actions.armbian.com/?repo=configng>
+
+## Contributing
+
+Pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow, and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community expectations. Keep changes modular so they are easy to review and merge.
+
+## Support
+
+- **Community forums:** [forum.armbian.com](https://forum.armbian.com)
+- **Chat (Discord / IRC / Matrix, bridged):** [Community Chat](https://docs.armbian.com/Community_IRC/)
+- **Paid consultation:** [Contact Armbian](https://www.armbian.com/contact)
+
+## Contributors
+
+Thanks to everyone who has contributed to Armbian Config!
 
 <a href="https://github.com/armbian/configng/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=armbian/configng" />
 </a>
-<br>
-<br>
+<br><br>
 
-### Armbian Partners
+## Armbian Partners
 
-Armbian's [partnership program](https://forum.armbian.com/subscriptions) helps to support Armbian and the Armbian community! Please take a moment to familiarize yourself with [our Partners](https://armbian.com/partners).
+Armbian's [partnership program](https://forum.armbian.com/subscriptions) helps support the project and its community. Please take a moment to familiarize yourself with [our Partners](https://armbian.com/partners).
+
+## License
+
+Armbian Config is released under the terms of the [GNU General Public License v3.0](LICENSE).
