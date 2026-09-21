@@ -177,8 +177,13 @@ function module_armbian_firmware() {
 				then
 					# Extract branch and linuxfamily from selected package name
 					# Package name format: linux-image-<branch>-<linuxfamily>=<version>
+					# NB: the family can itself contain '-' (e.g. spacemit-k3,
+					# sun55iw3-syterkit), so take fields 4-onward -- 'cut -f4' alone
+					# truncates 'spacemit-k3' to 'spacemit' and would then install the
+					# wrong SoC's kernel (linux-image-legacy-spacemit) and purge the
+					# correct one, leaving the board with no matching DTB (unbootable).
 					local branch=$(echo "${target_version}" | cut -d'-' -f3)
-					local linuxfamily=$(echo "${target_version}" | cut -d'-' -f4 | cut -d'=' -f1)
+					local linuxfamily=$(echo "${target_version}" | cut -d'-' -f4- | cut -d'=' -f1)
 					# Call install command to perform the actual kernel installation
 					${module_options["module_armbian_firmware,feature"]} ${commands[1]} "${branch}" "${target_version/*=/}" "" "${linuxfamily}"
 				fi
