@@ -193,7 +193,12 @@ function update_kernel_env() {
 	local new_branch=$(echo "$list_of_installed_kernels" | awk '{print $2}' | cut -d'-' -f3)
 	# these don't necessarily match the system-wide values from /etc/armbian-release
 	KERNELPKG_VERSION=$(echo "$list_of_installed_kernels" | awk '{print $3}')
-	KERNELPKG_LINUXFAMILY=$(echo "$list_of_installed_kernels" | awk '{print $2}' | cut -d'-' -f4)
+	# Family is everything after linux-image-<branch>-, and can itself contain '-'
+	# (spacemit-k3, sun55iw3-syterkit). 'cut -f4' alone truncates spacemit-k3 to
+	# 'spacemit', so a later kernel install that defaults to KERNELPKG_LINUXFAMILY
+	# targets the wrong SoC (linux-image-<branch>-spacemit, the K1 kernel) and
+	# purges the correct one, leaving the board with no matching DTB (unbootable).
+	KERNELPKG_LINUXFAMILY=$(echo "$list_of_installed_kernels" | awk '{print $2}' | cut -d'-' -f4-)
 
 	[[ "$BRANCH" == "$new_branch" ]] && return
 
