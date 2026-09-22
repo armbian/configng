@@ -97,9 +97,11 @@ function module_armbian_firmware() {
 			local kernel_test_target=$(\
 				for kernel_test_target in ${KERNEL_TEST_TARGET//,/ }
 				do
-					# Rockchip RK3588 exception: vendor kernel uses rk35xx suffix
-					# current/edge kernels use rockchip64 suffix
-					if [[ "${BOARDFAMILY}" == "rockchip-rk3588" ]]; then
+					# Rockchip RK3588/RK35xx exception: vendor kernel uses rk35xx
+					# suffix, current/edge kernels use rockchip64. The vendor BSP
+					# family is BOARDFAMILY=rockchip-rk3588 on some boards (Rock 5B)
+					# and BOARDFAMILY=rk35xx on others (NanoPi M5), so match both.
+					if [[ "${BOARDFAMILY}" == "rockchip-rk3588" || "${BOARDFAMILY}" == "rk35xx" ]]; then
 						if [[ "${kernel_test_target}" == "vendor" ]]; then
 							echo "linux-image-${kernel_test_target}-rk35xx"
 						elif [[ "${kernel_test_target}" =~ ^(current|edge)$ ]]; then
@@ -210,10 +212,12 @@ function module_armbian_firmware() {
 			# manual/API branch switch targets the right package. Rockchip RK3588
 			# ships vendor/legacy as the BSP -rk35xx kernels but current/edge as
 			# mainline -rockchip64; without this remap, switching vendor -> current
-			# would look for the nonexistent linux-image-current-rk35xx. This
-			# mirrors the naming logic already used by the interactive selector.
+			# would look for the nonexistent linux-image-current-rk35xx. The vendor
+			# BSP family is BOARDFAMILY=rockchip-rk3588 on some boards (Rock 5B) and
+			# BOARDFAMILY=rk35xx on others (NanoPi M5), so match both. This mirrors
+			# the naming logic already used by the interactive selector.
 			[[ -z "${linuxfamily}" ]] && linuxfamily="${KERNELPKG_LINUXFAMILY}"
-			if [[ "${BOARDFAMILY}" == "rockchip-rk3588" ]]; then
+			if [[ "${BOARDFAMILY}" == "rockchip-rk3588" || "${BOARDFAMILY}" == "rk35xx" ]]; then
 				case "${branch}" in
 					vendor|legacy) linuxfamily="rk35xx" ;;
 					current|edge)  linuxfamily="rockchip64" ;;
