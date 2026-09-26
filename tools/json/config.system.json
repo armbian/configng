@@ -1294,6 +1294,31 @@
                             "author": "@igorpecovnik",
                             "condition": "module_memory status",
                             "help": "Fine-tune ZRAM compression and swappiness parameters"
+                        },
+                        {
+                            "id": "TUNE01",
+                            "description": "Tuning profiles - match kernel and CPU tuning to this machine's role",
+                            "short": "Tuning profile",
+                            "module": "module_generic",
+                            "command": [
+                                "module_tuning_profile select"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "help": "Armbian defaults assume an SBC on a memory card; pick sbc, balanced, desktop, builder or nas"
+                        },
+                        {
+                            "id": "TUNE02",
+                            "description": "Tuning profiles - show the active profile and live kernel values",
+                            "short": "Show tuning profile",
+                            "module": "module_generic",
+                            "command": [
+                                "module_tuning_profile status"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_tuning_profile status >/dev/null",
+                            "help": "Display which profile is active and the values currently in effect"
                         }
                     ],
                     "help": "Manage storage devices, ZFS filesystems, and NFS mounts"
