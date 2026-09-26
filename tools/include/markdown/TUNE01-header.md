@@ -14,4 +14,4 @@ A tuning profile tells the system which of those machines it actually is.
 
 ---
 
-Switching profile takes effect immediately and survives reboot. Nothing needs restarting, no service is interrupted, and `reset` returns the machine to distribution defaults.
+**No reboot is needed.** Each setting is applied to the running system and written somewhere that survives a restart: the kernel parameters through `sysctl` and a drop-in under `/etc/sysctl.d/`, the filesystem commit interval by remounting and in `/etc/fstab`, the CPU bias directly and through a small systemd unit. Nothing is restarted, no service is interrupted, and `reset` returns the machine to distribution defaults the same way.

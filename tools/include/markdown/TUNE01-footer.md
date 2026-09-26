@@ -136,10 +136,10 @@
     - **`vm.dirty_ratio` reads 0**: expected on `desktop`, `builder` and `nas`.
       Those use the byte-based form, and setting `vm.dirty_bytes` zeroes the ratio.
       The limit is in `vm.dirty_bytes`.
-    - **ext4 commit interval still set after `reset`**: `reset` takes the option out
-      of `/etc/fstab`, but the filesystem stays mounted as it is until the next
-      reboot. Apply the default immediately with `mount -o remount,commit=5 /` if
-      you need it now.
+    - **CPU bias still set after `reset`**: the unit that applied it is gone, but the
+      value it wrote is still in the hardware and there is no file to revert it to.
+      It returns to the platform default at the next boot. Everything else `reset`
+      touches reverts immediately.
     - **`apply` says the commit interval was not changed**: the fstab edit refused
       because something about the root entry was not what it expected — most often
       more than one line mounting `/`. Nothing was modified; `grep ' / ' /etc/fstab`
