@@ -406,7 +406,13 @@ function _tp_apply() {
 	_tp_write_unit "$profile"
 	systemctl daemon-reload > /dev/null 2>&1
 	if [[ -f "$TP_UNIT_FILE" ]]; then
-		systemctl enable --now armbian-tuning-profile.service > /dev/null 2>&1
+		# enable, then RESTART -- not `enable --now`. `--now` means start, and
+		# starting an already-active Type=oneshot with RemainAfterExit=yes is a
+		# no-op, so switching from one profile to another would rewrite the unit
+		# and never re-run it: the CPU bias would stay on the old profile's value
+		# until the next reboot. restart re-runs ExecStart unconditionally.
+		systemctl enable armbian-tuning-profile.service > /dev/null 2>&1
+		systemctl restart armbian-tuning-profile.service > /dev/null 2>&1
 	else
 		# A previous profile on this machine may have installed it; if this one
 		# has nothing for it to do, take it away rather than leaving it enabled
@@ -593,8 +599,28 @@ function module_tuning_profile() {
 			systemctl disable --now armbian-tuning-profile.service > /dev/null 2>&1
 			rm -f "$TP_UNIT_FILE" "$TP_SYSCTL_FILE" "$TP_STATE_FILE"
 			systemctl daemon-reload > /dev/null 2>&1
-			# Reload what remains, so the live values match the files that are
-			# left rather than whatever this profile last set.
+
+			# Deleting the drop-in is not enough. `sysctl --system` only writes
+			# the keys the remaining files declare; a key that no file mentions
+			# keeps whatever value it currently holds. Most systems have no
+			# drop-in for vm.dirty_bytes or vm.dirty_expire_centisecs, so without
+			# this the profile's values would stay live while `status` reported no
+			# profile applied -- the configuration gone but its effects still in
+			# place, which is the worst of both.
+			#
+			# So write the kernel's own defaults explicitly first. The `balanced`
+			# profile is exactly those defaults, which is what makes it usable as
+			# the reset target rather than a third opinion. Setting the ratio form
+			# also zeroes the byte form, so this clears dirty_bytes without naming
+			# it.
+			local key val
+			while read -r key _ val; do
+				[[ "$key" == vm.* ]] || continue
+				sysctl -qw "${key}=${val}" > /dev/null 2>&1
+			done < <(_tp_emit_sysctl balanced | grep -E '^vm\.')
+
+			# Then reload, so any remaining drop-in (the distribution's own
+			# swappiness, for instance) gets the last word over those defaults.
 			sysctl --system > /dev/null 2>&1
 			# Take the commit= option back out of fstab, returning / to the
 			# kernel default. Removing the option is the honest inverse of adding

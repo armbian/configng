@@ -15,9 +15,11 @@
     **Dirty limits scale with the machine.** A percentage on its own does not
     travel: 20% is 200 MB on a 1 GB board and 25 GB on a 128 GB server, and 25 GB
     is far more unwritten data than any single flush should ever have to clear. The
-    percentage keeps small machines sane, the cap keeps a flush bounded in *time* on
-    large ones, and a 32 MiB floor stops a very small board throttling its writers
-    constantly.
+    percentage keeps small machines sane, the cap keeps the backlog small on large
+    ones, and a 32 MiB floor stops a very small board throttling its writers
+    constantly. The cap bounds how much there is to write, not how long the device
+    takes to write it -- on slow storage a flush can still be slow, just not
+    unboundedly so.
 
 === "Choosing a profile"
 
@@ -39,8 +41,10 @@
     - **`vm.swappiness`** (0–100): how readily the kernel swaps anonymous pages.
       High values suit ZRAM, where "swapping" means compressing into RAM. Low
       values suit machines with RAM to spare, where swapping costs more than it
-      saves. `builder` uses 1 rather than 0, so swap remains an emergency backstop
-      — a runaway build gets slow instead of being killed.
+      saves. `builder` uses 1 rather than 0 so that swap stays available as a
+      backstop rather than being effectively disabled. It is not protection from
+      the OOM killer: swappiness sets the relative cost of swapping, and no value
+      of it helps if there is no swap configured or a cgroup limit is reached.
     - **Dirty limits** (`vm.dirty_bytes` / `vm.dirty_ratio`): how much modified data
       may sit in RAM unwritten. The larger this is, the longer a full flush takes.
       Note the byte and ratio forms are mutually exclusive — setting one zeroes the
@@ -92,9 +96,10 @@
     ```
 
     This is why the profiles for machines with real storage cap unwritten data
-    rather than maximising it. A few gigabytes on a device sustaining hundreds of
-    megabytes per second is a flush measured in seconds — short enough that nothing
-    queues behind it, and short enough that a timeout around it means something.
+    rather than maximising it. How long a flush then takes still depends on the
+    device, but it is bounded by a few gigabytes rather than by however much has
+    accumulated — which on storage that sustains hundreds of megabytes per second is
+    usually seconds, and in any case is a number you can reason about.
 
     On a memory card the trade genuinely runs the other way, which is what `sbc` is
     for: fewer, larger writes extend the life of the card, and the occasional long
@@ -129,10 +134,21 @@
 
     - **Swappiness is not what the profile says**: another drop-in is overriding it.
       `systemd-sysctl` applies `/etc/sysctl.d/` in filename order and the last file
-      wins. The profile is deliberately named `99-armbian-tuning-profile.conf` so it
-      sorts after `99-armbian-memory.conf`, which the Memory module writes with its
-      own value. A hand-written file sorting later still beats it — check with
-      `grep -r swappiness /etc/sysctl.d/`.
+      to set a key wins. The profile is named `99-zz-armbian-tuning-profile.conf` so
+      that it sorts after everything else — including `99-sysctl.conf`, which is a
+      symlink to `/etc/sysctl.conf` and where distributions often set
+      `vm.swappiness` a second time. A file sorting later still beats even that, so
+      `apply` checks the result and names the file that won:
+
+      ```
+      WARNING: vm.swappiness is 100, profile asked for 1
+               overridden by /etc/sysctl.d/99-sysctl.conf
+               (which is a link to /etc/sysctl.conf)
+      ```
+
+      Remove the conflicting line from the file it names, or the profile will not
+      hold across reboots — note it *will* appear correct until then, because
+      applying the file directly works and only a full reload re-runs the race.
     - **`vm.dirty_ratio` reads 0**: expected on `desktop`, `builder` and `nas`.
       Those use the byte-based form, and setting `vm.dirty_bytes` zeroes the ratio.
       The limit is in `vm.dirty_bytes`.
@@ -153,7 +169,7 @@
 
 === "Configuration Files"
 
-    - **`/etc/sysctl.d/99-armbian-tuning-profile.conf`**: the kernel parameters.
+    - **`/etc/sysctl.d/99-zz-armbian-tuning-profile.conf`**: the kernel parameters.
       Rewritten on every apply — edit the profile, not this file.
     - **`/etc/systemd/system/armbian-tuning-profile.service`**: applies the CPU bias
       at boot. Only installed on hardware that has the knob — on a board without
