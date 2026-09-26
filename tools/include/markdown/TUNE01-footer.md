@@ -13,7 +13,7 @@
     you already have.
 
     **Dirty limits scale with the machine.** A percentage on its own does not
-    travel: 20% is 200 MB on a 1 GB board and 25 GB on a 125 GB server, and 25 GB
+    travel: 20% is 200 MB on a 1 GB board and 25 GB on a 128 GB server, and 25 GB
     is far more unwritten data than any single flush should ever have to clear. The
     percentage keeps small machines sane, the cap keeps a flush bounded in *time* on
     large ones, and a 32 MiB floor stops a very small board throttling its writers
@@ -27,7 +27,7 @@
       default; `desktop` if it is a workstation you sit in front of.
     - **Compiling, building images, or running CI?** `builder`. This is the profile
       that keeps `sync` cheap, which matters more than it sounds — see *Why this
-      exists*.
+      matters*.
     - **Serving files?** `nas`. Larger buffers absorb streaming writes without
       making a client's `fsync` wait behind a huge backlog.
 
@@ -57,35 +57,48 @@
       `amd-pstate-epp`. Most ARM cpufreq drivers have no such knob, and on those
       boards the profile simply does not set one.
 
-=== "Why this exists"
+=== "Why this matters"
 
-    A worked example, from an Armbian CI build host on 2026-09-26.
+    Deferring writeback looks free, because its cost is not paid when the data is
+    written. It is paid later, all at once, by whatever next asks for the data to be
+    on disk — an `fsync`, a `sync`, unmounting a filesystem, or a package manager
+    committing an install.
 
-    The machine had inherited the SBC defaults: writeback deferred for two minutes,
-    ext4 committing every two minutes. The build framework calls `sync` at many
-    points, wrapped in a 30-second timeout. With two minutes of deferred writeback
-    there was far more than 30 seconds of work to do, so the flush timed out.
+    That bill grows with the deferral. Two minutes of accumulated writes on a
+    machine with a large page cache can be many gigabytes, and a flush must clear
+    all of it before it returns.
 
-    A process blocked in `sync_inodes_sb` is in uninterruptible sleep and **cannot
-    be killed** — `SIGKILL` is not delivered until it leaves that state. So each
-    timed-out flush leaked, and the caller started another. `sync` is also global:
-    it flushes every filesystem, so concurrent builds each waited on the others'
-    unwritten data.
+    Three things make that worse than a slow flush:
 
+    - **A process waiting on writeback cannot be interrupted.** It sits in
+      uninterruptible sleep, where signals are not delivered — `SIGKILL` included.
+      A timeout around the operation does not bound it, because the timeout cannot
+      actually cancel it.
+    - **Load average counts those processes.** So the load figure climbs into the
+      hundreds while the CPU is largely idle, which is a confusing thing to
+      diagnose: the machine looks overloaded and is in fact waiting.
+    - **`sync` is global.** It flushes every filesystem, not just the caller's. On a
+      machine running several unrelated jobs, each one's flush waits on all the
+      others' unwritten data, so the delay is shared out rather than contained.
+
+    The pattern is easy to recognise once seen: a load average far above the core
+    count, a high `%wa` and a high `%id` at the same time, and many processes in
+    state `D`.
+
+    ```sh
+    uptime                                    # load average
+    vmstat 1 5                                # look at the wa and id columns
+    ps -eo state,comm | awk '$1=="D"'         # processes blocked on I/O
     ```
-    load average: 874.71, 408.83, 195.12    ← climbing
-    1152 processes in D state
-    CPU:  us 1-2%,  id 25-51%,  wa 26-74%   ← 32 threads, essentially idle
-    NVMe: 68 MB/s on a drive good for GB/s  ← never the constraint
-    ```
 
-    It reached 1600 stuck flushes and a load average of 1424 on hardware that was
-    doing almost nothing. Not a hardware limit, not a capacity problem — the wrong
-    machine's defaults.
+    This is why the profiles for machines with real storage cap unwritten data
+    rather than maximising it. A few gigabytes on a device sustaining hundreds of
+    megabytes per second is a flush measured in seconds — short enough that nothing
+    queues behind it, and short enough that a timeout around it means something.
 
-    The `builder` profile prevents this by capping unwritten data at a few GB, so a
-    full flush completes in seconds on any SSD and always finishes inside such a
-    timeout.
+    On a memory card the trade genuinely runs the other way, which is what `sbc` is
+    for: fewer, larger writes extend the life of the card, and the occasional long
+    flush is a price worth paying for hardware that wears out.
 
 === "Command line"
 
@@ -123,9 +136,14 @@
     - **`vm.dirty_ratio` reads 0**: expected on `desktop`, `builder` and `nas`.
       Those use the byte-based form, and setting `vm.dirty_bytes` zeroes the ratio.
       The limit is in `vm.dirty_bytes`.
-    - **ext4 commit interval unchanged after `reset`**: `reset` removes the unit but
-      does not remount, so the interval stays until the next reboot. Apply it now
-      with `mount -o remount,commit=5 /` if you need it immediately.
+    - **ext4 commit interval still set after `reset`**: `reset` takes the option out
+      of `/etc/fstab`, but the filesystem stays mounted as it is until the next
+      reboot. Apply the default immediately with `mount -o remount,commit=5 /` if
+      you need it now.
+    - **`apply` says the commit interval was not changed**: the fstab edit refused
+      because something about the root entry was not what it expected — most often
+      more than one line mounting `/`. Nothing was modified; `grep ' / ' /etc/fstab`
+      will usually show why.
     - **CPU bias not applied**: check whether the knob exists —
       `ls /sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference`. Most
       ARM boards do not have it, and the profile does not pretend otherwise.
@@ -138,12 +156,17 @@
     - **`/etc/sysctl.d/99-armbian-tuning-profile.conf`**: the kernel parameters.
       Rewritten on every apply — edit the profile, not this file.
     - **`/etc/systemd/system/armbian-tuning-profile.service`**: applies the CPU bias
-      and the ext4 commit interval at boot. Generated per profile, and only
-      containing the parts this hardware supports.
+      at boot. Only installed on hardware that has the knob — on a board without
+      one there is no unit, rather than a unit that does nothing.
     - **`/etc/default/armbian-tuning-profile`**: records which profile is active and
       when it was applied.
+    - **`/etc/fstab`**: the ext4 commit interval, on the root line. This is where a
+      mount option belongs, so that `findmnt` and `fstab` agree about how the
+      filesystem is mounted.
 
-    **`/etc/fstab` is deliberately not touched.** The ext4 commit interval is set
-    with `mount -o remount` from the unit above rather than written as a mount
-    option, so no tuning profile can leave a machine unbootable, and removing the
-    profile removes the change completely.
+    The fstab edit touches only the `commit=` token on the root entry. Every other
+    option and every other line is left byte-for-byte alone, a timestamped backup is
+    kept as `/etc/fstab.armbian-tuning.<date>`, and the result is checked before it
+    is installed — exactly one root entry, its device, mount point and filesystem
+    type unchanged, and the option in the state that was asked for. If any of that
+    does not hold, the backup is restored and nothing changes.

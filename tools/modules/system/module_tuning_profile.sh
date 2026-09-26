@@ -42,9 +42,15 @@ module_options+=(
 #   - ext4 commit interval on /      how long the journal batches metadata
 #   - CPU energy/performance bias    where on the power/speed curve to sit
 #
-# What it deliberately does not own: /etc/fstab. The ext4 commit interval is
-# applied with `mount -o remount` from a systemd unit instead, so a profile can
-# never leave a machine unbootable, and removing the profile removes the unit.
+# The ext4 commit interval goes in /etc/fstab, where a mount option belongs. It
+# is tempting to avoid that file and apply the option with `mount -o remount`
+# from a boot-time unit instead, on the grounds that a bad fstab does not boot.
+# That trade is worse than it looks: it leaves fstab and the live mount
+# disagreeing, so the next person to read either one is misled, and `findmnt`
+# stops being the answer to "what are we mounted with". The editing is made safe
+# instead -- timestamped backup, only the root line's commit= token touched,
+# `findmnt --verify` before the change is accepted, and the backup restored if it
+# does not pass.
 
 declare -g TP_SYSCTL_FILE="/etc/sysctl.d/99-armbian-tuning-profile.conf"
 declare -g TP_UNIT_FILE="/etc/systemd/system/armbian-tuning-profile.service"
@@ -206,44 +212,129 @@ function _tp_epp() {
 	esac
 }
 
-# The boot-time unit: CPU bias and the ext4 commit interval. Both are runtime
-# settings that do not survive a reboot on their own, and neither belongs in a
-# file that the boot depends on.
+# _tp_set_fstab_commit <seconds|"">
+#
+# Set, replace or remove the ext4 commit= option on the root line of /etc/fstab.
+# An empty argument removes it, returning the filesystem to the kernel default.
+#
+# The root line is found by mount point (field 2 == "/"), not by matching the
+# device: a UUID regex would also have to cope with LABEL=, PARTUUID= and a bare
+# /dev path, and would silently do nothing on whichever form it did not expect.
+#
+# The result is checked structurally rather than with `findmnt --verify`: that
+# command also reports on whether each source is reachable, so it fails on a
+# perfectly well-formed fstab whose devices are not present, and using it as the
+# gate here would refuse the edit on machines that have some unrelated warning.
+# What actually matters is narrower and fully checkable: still exactly one root
+# line, its device, mount point and filesystem type untouched, and the commit
+# option in the state we asked for. Anything else and the backup goes back.
+function _tp_set_fstab_commit() {
+	local commit="$1" fstab="/etc/fstab" backup tmp
+	local before_root after_root
+
+	[[ -f "$fstab" ]] || { echo "  no /etc/fstab -- skipping commit interval"; return 0; }
+
+	# Is there a root line to edit at all? Some systems mount / from the kernel
+	# command line and carry no fstab entry for it.
+	if ! awk '$1 !~ /^#/ && $2 == "/" {found=1} END{exit !found}' "$fstab"; then
+		echo "  no root entry in /etc/fstab -- skipping commit interval"
+		return 0
+	fi
+
+	backup="${fstab}.armbian-tuning.$(date +%Y%m%d-%H%M%S)"
+	cp -a "$fstab" "$backup" || { echo "  could not back up ${fstab}" >&2; return 1; }
+	tmp="$(mktemp)" || return 1
+
+	# device, mount point and fstype of the root line, as they are now
+	before_root="$(awk '$1 !~ /^#/ && $2 == "/" {print $1, $2, $3; exit}' "$fstab")"
+
+	awk -v commit="$commit" '
+		# Comments and every non-root line pass through untouched.
+		$1 ~ /^#/ || $2 != "/" { print; next }
+		{
+			n = split($4, opts, ",")
+			out = ""
+			for (i = 1; i <= n; i++) {
+				if (opts[i] ~ /^commit=/) continue          # drop any existing one
+				out = (out == "" ? opts[i] : out "," opts[i])
+			}
+			if (out == "") out = "defaults"                 # never leave the field empty
+			if (commit != "") out = out ",commit=" commit
+			$4 = out
+			# Rebuild with tabs, matching how fstab is conventionally written.
+			print $1 "\t" $2 "\t" $3 "\t" $4 "\t" ($5 == "" ? "0" : $5) "\t" ($6 == "" ? "1" : $6)
+		}
+	' "$fstab" > "$tmp" || { rm -f "$tmp"; return 1; }
+
+	# Check the candidate before it becomes /etc/fstab, so the real file is never
+	# briefly wrong.
+	after_root="$(awk '$1 !~ /^#/ && $2 == "/" {print $1, $2, $3; exit}' "$tmp")"
+
+	if [[ "$(awk '$1 !~ /^#/ && $2 == "/"' "$tmp" | wc -l)" -ne 1 ]]; then
+		rm -f "$tmp"
+		echo "  refusing to write /etc/fstab: expected exactly one root entry" >&2
+		return 1
+	fi
+	if [[ "$after_root" != "$before_root" ]]; then
+		rm -f "$tmp"
+		echo "  refusing to write /etc/fstab: root entry changed unexpectedly" >&2
+		echo "    before: ${before_root}" >&2
+		echo "    after:  ${after_root}" >&2
+		return 1
+	fi
+	# And the option itself is in the state we asked for.
+	if [[ -n "$commit" ]]; then
+		awk -v c="commit=${commit}" '$1 !~ /^#/ && $2 == "/" && $4 ~ ("(^|,)" c "($|,)")' "$tmp" | grep -q . || {
+			rm -f "$tmp"; echo "  refusing to write /etc/fstab: commit=${commit} not present in result" >&2; return 1; }
+	else
+		awk '$1 !~ /^#/ && $2 == "/" && $4 ~ /(^|,)commit=/' "$tmp" | grep -q . && {
+			rm -f "$tmp"; echo "  refusing to write /etc/fstab: commit= still present after removal" >&2; return 1; }
+	fi
+
+	cat "$tmp" > "$fstab"
+	rm -f "$tmp"
+
+	# Apply now as well, so fstab and the live mount agree without a reboot.
+	if [[ -n "$commit" ]]; then
+		mount -o "remount,commit=${commit}" / > /dev/null 2>&1 \
+			|| echo "  fstab updated; live remount failed (applies at next boot)"
+	fi
+
+	echo "  /etc/fstab updated (backup: ${backup})"
+	return 0
+}
+
+# The boot-time unit carries the CPU bias only. Unlike a mount option it has no
+# declarative home -- there is no file the kernel reads at boot to set it -- so a
+# unit is the right mechanism rather than a workaround.
 function _tp_write_unit() {
-	local profile="$1" commit epp
-	commit="$(_tp_commit_interval "$profile")"
+	local profile="$1" epp
 	epp="$(_tp_epp "$profile")"
+
+	# Nothing to install when this machine has no such knob: the commit interval
+	# lives in fstab now, so the CPU bias is all this unit was for.
+	if [[ -z "$epp" ]] || ! _tp_has_epp; then
+		rm -f "$TP_UNIT_FILE"
+		return 0
+	fi
 
 	{
 		cat <<- EOF
 			[Unit]
-			Description=Armbian tuning profile (${profile}): CPU bias and filesystem commit interval
+			Description=Armbian tuning profile (${profile}): CPU energy/performance bias
 			Documentation=https://docs.armbian.com/User-Guide_Fine-Tuning/
-			After=local-fs.target
+			After=multi-user.target
 
 			[Service]
 			Type=oneshot
 			RemainAfterExit=yes
 		EOF
 
-		# Only emit the CPU line where the knob exists. Most ARM cpufreq drivers
-		# have no energy/performance preference, and a unit that claims to set
-		# one on a board that has none contradicts what `apply` reports and
-		# invites a puzzled reader. The [ -w ] test still guards the write, for
-		# the case where a CPU appears offline at boot.
-		if [[ -n "$epp" ]] && _tp_has_epp; then
-			cat <<- EOF
-				ExecStart=/bin/sh -c 'for f in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do [ -w "\$f" ] && echo ${epp} > "\$f"; done; exit 0'
-			EOF
-		fi
-
-		if _tp_root_is_ext4; then
-			cat <<- EOF
-				# Journal commit interval, applied by remount rather than via fstab:
-				# a profile must never be able to leave the machine unbootable.
-				ExecStart=/bin/sh -c 'mount -o remount,commit=${commit} / || true'
-			EOF
-		fi
+		# The [ -w ] test still guards each write: a CPU may be offline at boot,
+		# and the glob would then name a path that cannot be written.
+		cat <<- EOF
+			ExecStart=/bin/sh -c 'for f in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do [ -w "\$f" ] && echo ${epp} > "\$f"; done; exit 0'
+		EOF
 
 		cat <<- EOF
 
@@ -288,9 +379,22 @@ function _tp_apply() {
 	# the file on disk rather than the union of everything applied this boot.
 	sysctl --system > /dev/null 2>&1
 
+	# ext4 commit interval, in fstab, applied live as well.
+	if _tp_root_is_ext4; then
+		_tp_set_fstab_commit "$commit" || \
+			echo "  commit interval NOT changed (fstab left as it was)" >&2
+	fi
+
 	_tp_write_unit "$profile"
 	systemctl daemon-reload > /dev/null 2>&1
-	systemctl enable --now armbian-tuning-profile.service > /dev/null 2>&1
+	if [[ -f "$TP_UNIT_FILE" ]]; then
+		systemctl enable --now armbian-tuning-profile.service > /dev/null 2>&1
+	else
+		# A previous profile on this machine may have installed it; if this one
+		# has nothing for it to do, take it away rather than leaving it enabled
+		# with the old profile's value.
+		systemctl disable --now armbian-tuning-profile.service > /dev/null 2>&1
+	fi
 
 	{
 		echo "# Active Armbian tuning profile. Managed by armbian-config."
@@ -300,7 +404,7 @@ function _tp_apply() {
 
 	echo "Applied tuning profile: ${profile}"
 	if _tp_root_is_ext4; then
-		echo "  ext4 commit interval on / : ${commit}s"
+		echo "  ext4 commit interval on / : $(findmnt -no OPTIONS / 2>/dev/null | tr ',' '\n' | grep '^commit=' | cut -d= -f2 || echo "${commit} (at next boot)")s"
 	else
 		echo "  ext4 commit interval      : skipped (/ is $(findmnt -no FSTYPE / 2>/dev/null))"
 	fi
@@ -421,8 +525,19 @@ function module_tuning_profile() {
 			# Reload what remains, so the live values match the files that are
 			# left rather than whatever this profile last set.
 			sysctl --system > /dev/null 2>&1
+			# Take the commit= option back out of fstab, returning / to the
+			# kernel default. Removing the option is the honest inverse of adding
+			# it; writing some other number would be a third opinion.
+			if _tp_root_is_ext4; then
+				_tp_set_fstab_commit "" || \
+					echo "  fstab left as it was; remove commit= by hand if you want the default" >&2
+			fi
 			echo "Tuning profile removed; distribution defaults reloaded."
-			echo "Note: the ext4 commit interval stays as it is until the next reboot."
+			# Both of these are live settings with no file to revert them to, so
+			# say so rather than implying the machine is back to a clean state.
+			echo "Still as the profile last set them, until the next reboot:"
+			echo "  - the mounted commit interval (fstab no longer asks for one)"
+			_tp_has_epp && echo "  - the CPU energy/performance preference"
 			;;
 
 		"${commands[5]}") # help
