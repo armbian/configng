@@ -494,7 +494,11 @@ function _tp_verify_sysctl() {
 }
 
 function _tp_active() {
+	# Callers read the output, not the status -- "no profile" is a normal answer,
+	# not a failure, and returning non-zero for it makes `active="$(_tp_active)"`
+	# an error under set -e.
 	[[ -f "$TP_STATE_FILE" ]] && grep -oP '^PROFILE=\K.*' "$TP_STATE_FILE" 2>/dev/null
+	return 0
 }
 
 function module_tuning_profile() {
@@ -545,6 +549,9 @@ function module_tuning_profile() {
 				out="$(_tp_apply "$choice" 2>&1)"
 				dialog_msgbox "Profile Applied" "${out}\n\nNothing needs restarting; the settings are live." 14 74
 			fi
+			# Answering "no" to the confirmation is a choice, not an error; without
+			# this the branch would exit with dialog_yesno's non-zero status.
+			return 0
 			;;
 
 		"${commands[1]}") # apply <profile>
@@ -633,7 +640,15 @@ function module_tuning_profile() {
 			# The CPU bias is the one thing with no file to revert it to: the unit
 			# that set it is gone, but the value it wrote is still in the hardware.
 			# Say so rather than implying the machine is wholly back to stock.
-			_tp_has_epp && echo "Note: the CPU energy/performance preference stays as last set until reboot."
+			#
+			# `if`, not `_tp_has_epp && echo`: as the last command in this branch
+			# that idiom makes the whole verb exit non-zero on every machine
+			# without the knob -- which is most ARM hardware -- so reset would
+			# report failure after doing its job correctly.
+			if _tp_has_epp; then
+				echo "Note: the CPU energy/performance preference stays as last set until reboot."
+			fi
+			return 0
 			;;
 
 		"${commands[5]}") # help
