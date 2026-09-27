@@ -291,8 +291,8 @@ for user in "${idle[@]}"; do
 done
 
 # -------------------------------------------------------------------
-# 2b. Wipe ~/_diag/ on every runner, regardless of busy/idle state
-#     and regardless of KEEP_RUNNERS_WORK.
+# 2b. Wipe the files under ~/_diag/ on IDLE runners, regardless of
+#     KEEP_RUNNERS_WORK.
 #
 # The agent writes Runner_*.log / Worker_*.log under ~/_diag/ and
 # per-job page files under ~/_diag/pages/*.log. They accumulate
@@ -300,20 +300,25 @@ done
 # months - and stale page-UUID files break "Initialize containers"
 # when the agent reuses a UUID that already exists on disk.
 #
-# Safe to wipe even while a job is running. Linux keeps the inode
-# alive as long as Runner.Listener / Runner.Worker hold the file
-# open; the agent keeps writing to its existing fd, and new jobs
-# create fresh files. Recent logs are reachable via the GitHub
-# Actions UI (workflow logs retained 90 days) anyway - the on-disk
-# copies are duplicative.
+# NOT safe while a job is running. A busy Runner.Worker keeps creating
+# new files under _diag/blocks/ and _diag/pages/ (a fresh log block
+# every few seconds) and re-opens them by path to upload them; with
+# those gone the Worker dies on DirectoryNotFoundException and GitHub
+# shows the job as cancelled mid-run. So busy runners are skipped, and
+# on idle ones only FILES are removed - the directory tree stays, so a
+# runner that picks up a job between the busy/idle partition above and
+# this wipe still finds its blocks/ and pages/ dirs. Recent logs are
+# reachable via the GitHub Actions UI (workflow logs retained 90 days)
+# anyway - the on-disk copies are duplicative.
 # -------------------------------------------------------------------
-for user in "${runner_users[@]}"; do
+for user in "${idle[@]}"; do
 	home=$(getent passwd "$user" | cut -d: -f6)
 	diag="${home}/_diag"
 	[[ -d "$diag" ]] || continue
 	note "wipe ${user}/_diag"
-	run find "$diag" -mindepth 1 -delete
+	run find "$diag" -mindepth 1 -type f -delete
 done
+[[ ${#busy[@]} -gt 0 ]] && log "busy (_diag untouched): ${busy[*]}"
 
 # -------------------------------------------------------------------
 # 3. Docker prune.
