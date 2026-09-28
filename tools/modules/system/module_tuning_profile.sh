@@ -407,7 +407,12 @@ function _tp_apply() {
 	#
 	# The 99-zz- filename still matters: at boot systemd-sysctl reads only the
 	# drop-in directories, where ordering decides. This handles the other path.
-	sysctl -qp "$TP_SYSCTL_FILE" > /dev/null 2>&1
+	# A failure here means the profile is not live: stop before recording it as
+	# the active profile.
+	if ! sysctl -qp "$TP_SYSCTL_FILE" > /dev/null 2>&1; then
+		echo "Failed to apply tuning profile sysctl settings from ${TP_SYSCTL_FILE}" >&2
+		return 1
+	fi
 
 	# ext4 commit interval, in fstab, applied live as well.
 	if _tp_root_is_ext4; then
@@ -563,8 +568,12 @@ function module_tuning_profile() {
 
 			if dialog_yesno "Apply ${choice}" "$preview"; then
 				local out
-				out="$(_tp_apply "$choice" 2>&1)"
-				dialog_msgbox "Profile Applied" "${out}\n\nNothing needs restarting; the settings are live." 14 74
+				if out="$(_tp_apply "$choice" 2>&1)"; then
+					dialog_msgbox "Profile Applied" "${out}\n\nNothing needs restarting; the settings are live." 14 74
+				else
+					dialog_msgbox "Profile Apply Failed" "${out}" 14 74
+					return 1
+				fi
 			fi
 			# Answering "no" to the confirmation is a choice, not an error; without
 			# this the branch would exit with dialog_yesno's non-zero status.
