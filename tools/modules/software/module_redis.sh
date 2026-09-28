@@ -41,7 +41,10 @@ function module_redis () {
 			#   REDIS_MAXMEMORY=48gb armbian-config --api module_redis install
 			local -a server_args=()
 			if [[ -n "${REDIS_MAXMEMORY}" ]]; then
-				if [[ ! "${REDIS_MAXMEMORY,,}" =~ ^[0-9]+(b|k|kb|m|mb|g|gb)?$ ]]; then
+				# Zero is rejected too: Redis reads maxmemory 0 as unlimited, which
+				# would enable eviction mode with no cap at all.
+				if [[ ! "${REDIS_MAXMEMORY,,}" =~ ^([0-9]+)(b|k|kb|m|mb|g|gb)?$ ]] ||
+					((10#${BASH_REMATCH[1]} == 0)); then
 					echo "Invalid REDIS_MAXMEMORY '${REDIS_MAXMEMORY}' (e.g. 512mb, 48gb)" >&2
 					return 1
 				fi
