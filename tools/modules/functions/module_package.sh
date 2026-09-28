@@ -32,7 +32,7 @@ apt_operation_progress() {
 	# real rc, so it never fires non-interactively (DIALOG=word). Cheap no-op when
 	# nothing is pending; read-only operations (update/clean) can't hit this.
 	case "$operation" in
-		install|upgrade|full-upgrade|remove|autopurge|fix-broken)
+		install|upgrade|full-upgrade|remove|autopurge|purge|fix-broken)
 			if [[ -n "$(ls -A /var/lib/dpkg/updates/ 2>/dev/null)" ]] \
 				|| dpkg --audit 2>/dev/null | grep -q .; then
 				DEBIAN_FRONTEND=noninteractive dpkg --configure -a >/dev/null 2>&1 || true
@@ -53,7 +53,7 @@ apt_operation_progress() {
 		install)
 			title="Install Package"
 			;;
-		remove|autopurge)
+		remove|autopurge|purge)
 			title="Remove Package"
 			;;
 		fix-broken)
@@ -279,12 +279,20 @@ module_options+=(
 pkg_remove()
 {
 	local exit_code
-	apt_operation_progress autopurge "$@"
+	# `purge`, not `autopurge`: autopurge also cascade-removes every OTHER
+	# package apt currently considers "automatically installed and now
+	# unneeded", not just the package(s) named here. On a system where those
+	# marks are wrong (e.g. an OMV-modified image, see #712) removing a single
+	# named package - such as unattended-upgrades - can take out base-system
+	# packages with it. `purge` only ever touches the exact package(s) passed
+	# in. Same reasoning module_desktops.sh and module_armbian_firmware.sh
+	# already apply by hand-rolling apt-get purge instead of calling this.
+	apt_operation_progress purge "$@"
 	exit_code=$?
 
 	if [[ $exit_code == 100 ]]; then
 		DEBIAN_FRONTEND=noninteractive dpkg --configure -a
-		apt_operation_progress autopurge "$@"
+		apt_operation_progress purge "$@"
 		exit_code=$?
 	fi
 
