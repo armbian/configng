@@ -49,6 +49,12 @@ release_upgrade(){
 		pkg_fix || return 1 # Hacks for Ubuntu
 		pkg_full_upgrade -o Dpkg::Options::="--force-confold"
 		pkg_fix || return 1 # Hacks for Ubuntu
-		pkg_remove # remove all auto-installed packages
+		# Deliberate, whole-system orphan sweep for a just-completed release
+		# upgrade (standard end-of-upgrade cleanup, same as `do-release-upgrade`).
+		# NOT pkg_remove: pkg_remove now does a scoped `purge` of only the
+		# package(s) it's given (see module_package.sh, #712) and would no-op
+		# here since this call passes none - call apt-get directly instead so
+		# this sweep keeps working as intended.
+		DEBIAN_FRONTEND=noninteractive apt-get -y autopurge
 	fi
 }
