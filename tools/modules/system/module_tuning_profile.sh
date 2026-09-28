@@ -397,6 +397,18 @@ function _tp_apply() {
 	# the file on disk rather than the union of everything applied this boot.
 	sysctl --system > /dev/null 2>&1
 
+	# ...and then re-assert our own file, because `sysctl --system` applies
+	# /etc/sysctl.conf LAST, after every drop-in directory, regardless of what
+	# anything in /etc/sysctl.d is called. Distributions ship vm.swappiness in
+	# that file, so without this line the reload above silently undoes the
+	# profile's value the moment it is applied -- measured on two hosts: apply
+	# took vm.swappiness from 1 to 100 and the verification below then reported
+	# the profile's own failure.
+	#
+	# The 99-zz- filename still matters: at boot systemd-sysctl reads only the
+	# drop-in directories, where ordering decides. This handles the other path.
+	sysctl -qp "$TP_SYSCTL_FILE" > /dev/null 2>&1
+
 	# ext4 commit interval, in fstab, applied live as well.
 	if _tp_root_is_ext4; then
 		_tp_set_fstab_commit "$commit" || \
@@ -474,6 +486,11 @@ function _tp_verify_sysctl() {
 			find /etc/sysctl.d /run/sysctl.d /usr/lib/sysctl.d \
 				-maxdepth 1 -name '*.conf' 2> /dev/null \
 				| awk -F/ '{print $NF "\t" $0}' | sort | cut -f2
+			# /etc/sysctl.conf last and outside the sort: `sysctl --system`
+			# applies it after every directory, whatever the drop-ins are named,
+			# so when it sets a key it is the winner by definition. Leaving it out
+			# of this scan is why a conflict here could be detected but not named.
+			[ -f /etc/sysctl.conf ] && echo /etc/sysctl.conf
 		)
 
 		mismatch=1
