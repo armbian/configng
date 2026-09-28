@@ -3,29 +3,17 @@
   <br><br>
 </h2>
 
-### Purpose of This Repository
+# Armbian Config (configng)
 
-This repository contains the source code for **Armbian Config**, a versatile and extremly **lightweight configuration utility** designed to simplify and automate common system tasks within the Armbian Linux environment.
+## Purpose of This Repository
 
-Armbian Config provides interactive and scriptable routines for:
+This repository holds the source for **Armbian Config**, a lightweight configuration utility that automates common system tasks on Armbian (and other systemd/APT-based Linux distributions) — from initial setup and networking, through kernel and hardware options, to sandboxed installation of desktop environments and self-hosted applications.
 
-- Initial system setup and personalization  
-- Networking configuration, including Wi-Fi, VPN, and static IP  
-- Sandboxed software installation and system updates  
-- Kernel selection, switching, and firmware management  
-- Enabling and managing hardware-specific features  
-- Desktop environment installation, tiered management, and branding (XFCE, GNOME, KDE Plasma, MATE, Cinnamon, and more)  
+Armbian Config ships preinstalled on Armbian images. A full inventory of the tool's menus and modules is maintained in [DOCUMENTATION.md](DOCUMENTATION.md).
 
-It is especially useful for single board computers (SBCs), helping users quickly prepare a ready-to-use system without manual intervention.
+## Quick Start
 
-### Quick Start
-
-Armbian Config comes **preinstalled** with Armbian images.
-
-To launch the utility:
-
-1. Open a terminal (locally or via SSH)
-2. Run the following command:
+Open a terminal (locally or over SSH) and run:
 
 ```bash
 armbian-config
@@ -33,11 +21,12 @@ armbian-config
 
 <a href=#><img src=.github/images/common.png></a>
 
-### Compatibility
+## Compatibility
 
-This tool is optimized for use with [**Armbian Linux**](https://www.armbian.com), but in theory, it should also work on any systemd-based, APT-compatible Linux distribution — including Linux Mint, Elementary OS, Kali Linux, MX Linux, Parrot OS, Proxmox, Raspberry Pi OS, and others.
+This tool is optimized for use with [**Armbian Linux**](https://www.armbian.com), but it should also work on any systemd-based, APT-compatible Linux distribution — including Linux Mint, Elementary OS, Kali Linux, MX Linux, Parrot OS, Proxmox, Raspberry Pi OS, and others.
+
 <details><summary>Add Armbian key + repository and install the tool:</summary>
-  
+
 ```bash
 wget -qO - https://apt.armbian.com/armbian.key | gpg --dearmor | \
 sudo tee /usr/share/keyrings/armbian.gpg > /dev/null
@@ -52,35 +41,100 @@ sudo apt update
 sudo apt -y install armbian-config
 armbian-config
 ```
+
 </details>
 
-### Contribute
+## Repository Layout
 
-Want to expand **Armbian Config** with new features or tools? Whether you're adding a new software title, enhancing an existing configuration module, or introducing entirely new functionality, we welcome your ideas and code.
+```
+bin/                 armbian-config entry point (shell)
+share/               Desktop entry and icons (hicolor theme)
+tools/
+  config-assemble.sh Assembles modules and jobs (production or testing)
+  config-markdown.py Generates Markdown docs from JSON config
+  json/              Split JSON sources (help, localisation, network,
+                     software, system, temp)
+  modules/           Feature modules (desktops, system, ...)
+  include/           Per-ID header/footer Markdown snippets and images
+tests/
+  *.conf             Per-feature test cases consumed by the runner
+  bats/              Bats unit and integration tests + JSON fixtures
+.github/             Issue/PR templates, labeler config, workflows
+DOCUMENTATION.md     Generated menu/module reference
+debian.conf          Debian packaging metadata
+```
+
+## Build and Test
+
+The utility is assembled from modular sources under `tools/` before it can run from a checkout.
+
+Assemble modules and jobs, then launch the CLI:
+
+```bash
+tools/config-assemble.sh -p   # -p: production, -t: testing
+bin/armbian-config
+```
+
+Regenerate the Markdown documentation:
+
+```bash
+bin/armbian-config --doc
+```
+
+### Unit tests
+
+Feature-level tests live in `tests/` as `*.conf` files. Each file defines a `testcase()` shell function whose success is signalled by a `0` exit status, plus `ENABLED` and optional `RELEASE` filters. See [tests/README.md](tests/README.md) for the format.
+
+Bats unit and integration tests live under `tests/bats/`:
+
+```bash
+bats tests/bats/plan.bats tests/bats/detect.bats \
+     tests/bats/detect_windows.bats tests/bats/bootconfig.bats \
+     tests/bats/dualboot.bats tests/bats/transfer.bats \
+     tests/bats/package.bats tests/bats/runners.bats
+
+# Integration tests (loopback block device, dual-boot) require root:
+sudo bats tests/bats/integration_loopback.bats \
+          tests/bats/integration_dualboot.bats
+```
+
+## Built With
+
+- **Bash / shell scripts** — the `armbian-config` entry point, module code under `tools/modules/`, and the assembler `tools/config-assemble.sh`.
+- **Python 3** — helper tooling such as `tools/config-markdown.py`, `tools/modules/desktops/scripts/parse_desktop_yaml.py`, and the desktop-audit helpers under `tools/modules/desktops/github/` (standard library plus `pyyaml`).
+- **JSON** under `tools/json/` — split sources for help, localisation, network, software and system menus that are joined into a single runtime `config.jobs.json`.
+- **YAML** — GitHub Actions workflows, labeler configuration, and desktop matrix data.
+- **Bats** — shell test framework used for the tests under `tests/bats/`.
+- **Debian packaging** — configured via `debian.conf`; runtime dependencies include `bash`, `jq`, `whiptail`, `sudo`, `procps`, `systemd`, `lsb-release`, `iproute2`, `debconf`, `libtext-iconv-perl`, `gpg`, `xz-utils`, `pv`, `python3-yaml`, `expect-dev`, `rsync`, `parted`, `dosfstools`, `e2fsprogs`, `btrfs-progs`, `f2fs-tools`, and `ntfs-3g`.
+- **Runtime UI** — `whiptail` dialogs on top of the shell modules.
+
+## Continuous Integration
+
+CI covers JSON validation, coding-style checks, shell linting, Bats unit and integration tests, Debian package builds, documentation regeneration, PR labelling, and periodic maintenance jobs.
+
+For per-workflow status and history, see the Armbian CI overview for this repository:
+
+<https://actions.armbian.com/?repo=configng>
+
+## Contribute
+
+We welcome contributions — new software modules, additional configuration features, tests, and documentation fixes. See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow, and the online guide:
 
 <https://docs.armbian.com/Contribute/Armbian-config>
 
-> 📌 Tip: Keep your changes modular and easy to maintain — this helps us review and merge your contribution faster.
+> 📌 Tip: Keep changes modular and easy to maintain — that speeds up review and merge.
 
-### Support
+Please also read the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-Armbian offers multiple support channels, depending on your needs:
+## Support
 
-- **Community Forums**  
-  Get help from fellow users and contributors on a wide range of topics — from troubleshooting to development.  
-  👉 [forum.armbian.com](https://forum.armbian.com)
+- **Community Forums** — [forum.armbian.com](https://forum.armbian.com)
+- **IRC / Discord / Matrix** — [Community Chat](https://docs.armbian.com/Community_IRC/)
+- **Paid consultation** — [Contact us](https://www.armbian.com/contact)
 
-- **Discord / IRC / Matrix Chat**  
-  Join real-time discussions with developers and community members for faster feedback and collaboration.  
-  👉 [Community Chat](https://docs.armbian.com/Community_IRC/)
+## Contributors
 
-- **Paid Consultation**  
-  For advanced needs, commercial projects, or guaranteed response times, paid support is available directly from Armbian maintainers.  
-  👉 [Contact us](https://www.armbian.com/contact) to discuss consulting options.
-
-### Contributors
-
-Thanks to all who have contributed to Armbian Config!
+Thanks to everyone who has contributed to Armbian Config!
 
 <a href="https://github.com/armbian/configng/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=armbian/configng" />
@@ -88,6 +142,10 @@ Thanks to all who have contributed to Armbian Config!
 <br>
 <br>
 
-### Armbian Partners
+## Armbian Partners
 
 Armbian's [partnership program](https://forum.armbian.com/subscriptions) helps to support Armbian and the Armbian community! Please take a moment to familiarize yourself with [our Partners](https://armbian.com/partners).
+
+## License
+
+Armbian Config is distributed under the terms of the **GNU General Public License v3.0**. See [LICENSE](LICENSE) for details.
