@@ -121,6 +121,8 @@ sudo armbian-config
     - ### Memory management - enable features
     - ### Memory management - disable features
     - ### Memory management - tune parameters
+    - ### Tuning profiles - match kernel and CPU tuning to this machine's role
+    - ### Tuning profiles - show the active profile and live kernel values
 
 
   - ### Manage SSH daemon options, enable 2FA
@@ -596,6 +598,8 @@ Outputs:
 	--cmd MEM001 - Memory management - enable features
 	--cmd MEM002 - Memory management - disable features
 	--cmd MEM003 - Memory management - tune parameters
+	--cmd TUNE01 - Tuning profiles - match kernel and CPU tuning to this machine's role
+	--cmd TUNE02 - Tuning profiles - show the active profile and live kernel values
     Access - Manage SSH daemon options, enable 2FA
 	--cmd ACC001 - Disable root login
 	--cmd ACC002 - Enable root login
@@ -1238,7 +1242,7 @@ These helper functions facilitate various operations related to job management, 
 | Install sonarr container | install remove purge status help | @armbian 
 | Display a yes/no dialog using the configured dialog tool | dialog_yesno "Title" "Question" | @armbian 
 | Generate Document files. | generate_readme | @Tearran 
-|  |  | @igorpecovnik 
+| Storing netplan config to tmp | store_netplan_config | @igorpecovnik 
 | Generic module help dialog for containers and native installs | show_module_help "module_headers" "Kernel Headers" "" "native" | @armbian 
 | Install PostgreSQL container (advanced relational database) | install remove purge status help | @armbian 
 | Install jellyfin container | install remove purge status help | @armbian 
@@ -1298,6 +1302,7 @@ These helper functions facilitate various operations related to job management, 
 | Generate jobs from JSON file. | generate_jobs_from_json | @Tearran 
 | Install Filebrowser container | install remove purge status help | @armbian 
 | Display a warning with a gauge for 10 seconds then continue |  | @igorpecovnik 
+| Kernel and CPU tuning profiles for the machine's actual role | select apply status list reset help | @igorpecovnik 
 | Install armbian router container | install remove purge status help | @armbian 
 | Install hastebin container | install remove purge status help | @armbian 
 | Fix dependency issues | pkg_fix | @igorpecovnik 
