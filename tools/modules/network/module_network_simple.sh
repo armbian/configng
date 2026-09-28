@@ -86,12 +86,28 @@ function module_simple_network() {
 						address=${ips[0]} # use only 1st one
 						[[ -z "${address}" ]] && address="1.2.3.4/5"
 						address=$(dialog_inputbox "Enter IP for $adapter" "\nValid format: $address" "$address" 8 50)
+						if [[ $? -ne 0 || -z "$address" ]]; then
+							dialog_msgbox "Cancelled" "Static IP setup cancelled." 7 40
+							return
+						fi
 						route_to="0.0.0.0/0"
 						route_to=$(dialog_inputbox "Use default route or set static" "\nValid format: $route_to" "$route_to" 8 50)
+						if [[ $? -ne 0 || -z "$route_to" ]]; then
+							dialog_msgbox "Cancelled" "Static IP setup cancelled." 7 40
+							return
+						fi
 						route_via=$(ip route show default | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]" | head -1 | xargs)
 						route_via=$(dialog_inputbox "Enter IP for gateway" "\nValid format: $route_via" "$route_via" 8 50)
+						if [[ $? -ne 0 || -z "$route_via" ]]; then
+							dialog_msgbox "Cancelled" "Static IP setup cancelled." 7 40
+							return
+						fi
 						nameservers="9.9.9.9,1.1.1.1"
 						nameservers=$(dialog_inputbox "Enter DNS server" "\nValid format: $nameservers" "$nameservers" 8 50)
+						if [[ $? -ne 0 ]]; then
+							dialog_msgbox "Cancelled" "Static IP setup cancelled." 7 40
+							return
+						fi
 						# set fixed ip on adapter
 						${module_options["module_simple_network,feature"]} ${commands[8]} "$2" "$3"
 				fi
