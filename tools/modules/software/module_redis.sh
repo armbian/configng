@@ -32,6 +32,22 @@ function module_redis () {
 			# Pull image (handles Docker installation and already-installed check)
 			docker_operation_progress pull "$dockerimage"
 
+			# Opt-in cache mode, for Redis used purely as a cache (e.g. the shared
+			# compiler cache of the Armbian build's ccache-remote extension): cap the
+			# memory, evict least-recently-used keys at the cap, and skip disk
+			# snapshots, which for a multi-GB cache under constant writes would dump
+			# the whole dataset to disk every minute. Off by default: a general-purpose
+			# Redis (sessions, locks, queues) must never evict or lose data.
+			#   REDIS_MAXMEMORY=48gb armbian-config --api module_redis install
+			local -a server_args=()
+			if [[ -n "${REDIS_MAXMEMORY}" ]]; then
+				if [[ ! "${REDIS_MAXMEMORY,,}" =~ ^[0-9]+(b|k|kb|m|mb|g|gb)?$ ]]; then
+					echo "Invalid REDIS_MAXMEMORY '${REDIS_MAXMEMORY}' (e.g. 512mb, 48gb)" >&2
+					return 1
+				fi
+				server_args=(redis-server --maxmemory "${REDIS_MAXMEMORY}" --maxmemory-policy allkeys-lru --save "" --appendonly no)
+			fi
+
 			# Create base directory
 			docker_manage_base_dir create "$base_dir" || return 1
 
@@ -42,7 +58,8 @@ function module_redis () {
 				--restart=always \
 				-p "${port}:6379" \
 				-v "${base_dir}/data:/data" \
-				"$dockerimage"
+				"$dockerimage" \
+				"${server_args[@]}"
 		;;
 		"${commands[1]}") # remove
 			# Remove container and image (functions handle existence checks)
@@ -63,7 +80,7 @@ function module_redis () {
 		;;
 		"${commands[4]}") # help
 			show_module_help "module_redis" "$title" \
-				"Port: ${port}\nDocker Image: $dockerimage"
+				"Port: ${port}\nDocker Image: $dockerimage\nCache mode: set REDIS_MAXMEMORY (e.g. 48gb) at install to cap memory with LRU eviction and no disk snapshots"
 		;;
 		*)
 			${module_options["module_redis,feature"]} ${commands[4]}
