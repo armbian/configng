@@ -479,8 +479,14 @@ docker_publish_local() {
 	local -a addrs=()
 
 	if [[ -n "${BIND_ADDRESS}" ]]; then
-		IFS=', ' read -r -a addrs <<< "${BIND_ADDRESS}"
-	else
+		local -a parts=()
+		IFS=', ' read -r -a parts <<< "${BIND_ADDRESS}"
+		for addr in "${parts[@]}"; do
+			[[ -n "$addr" ]] && addrs+=("$addr")
+		done
+	fi
+	# An empty or separator-only BIND_ADDRESS gives no address: use the default.
+	if [[ ${#addrs[@]} -eq 0 ]]; then
 		addrs=("127.0.0.1")
 		for gw in $(docker network inspect bridge --format '{{range .IPAM.Config}}{{.Gateway}} {{end}}' 2>/dev/null); do
 			[[ "$gw" == *.* ]] && addrs+=("$gw")
