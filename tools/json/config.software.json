@@ -1528,6 +1528,45 @@
                             "help": "git_cdn purge with cache folder"
                         },
                         {
+                            "id": "REG001",
+                            "description": "OCI registry cache (ghcr.io mirror) install",
+                            "short": "registry-cache",
+                            "module": "module_registry_cache",
+                            "about": "This operation will install registry-cache, a pull-through cache of the ghcr.io OCI registry",
+                            "command": [
+                                "module_registry_cache install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_registry_cache status",
+                            "container_type": "docker",
+                            "help": "registry-cache mirrors ghcr.io locally, so OCI artifacts (such as Armbian's cached kernel, u-boot and rootfs packages) pulled by many builds or hosts are downloaded from upstream only once."
+                        },
+                        {
+                            "id": "REG002",
+                            "description": "OCI registry cache remove",
+                            "about": "This operation will remove the registry-cache container",
+                            "command": [
+                                "module_registry_cache remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_registry_cache status",
+                            "help": "OCI registry cache remove"
+                        },
+                        {
+                            "id": "REG003",
+                            "description": "OCI registry cache purge with cache folder",
+                            "about": "This operation will purge registry-cache data and remove the container",
+                            "command": [
+                                "module_registry_cache purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_registry_cache status",
+                            "help": "OCI registry cache purge with cache folder"
+                        },
+                        {
                             "id": "SMB001",
                             "description": "SAMBA Remote File share",
                             "short": "Samba",
