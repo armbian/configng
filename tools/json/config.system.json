@@ -1656,22 +1656,9 @@
                             "help": "Non-LTS releases are intended for developers, testers, and enthusiasts who want the latest."
                         },
                         {
-                            "id": "WTC001",
-                            "description": "Enable automating Docker container base images updating",
-                            "short": "Docker images",
-                            "module": "module_watchtower",
-                            "command": [
-                                "module_watchtower install"
-                            ],
-                            "status": "Stable",
-                            "author": "@armbian",
-                            "container_type": "docker",
-                            "condition": "! module_watchtower status",
-                            "help": "Watchtower is a lightweight tool that automatically monitors and updates running Docker."
-                        },
-                        {
                             "id": "WTC002",
-                            "description": "Disable automating Docker container base images updating",
+                            "description": "Disable automating Docker image updating (Watchtower, unmaintained)",
+                            "short": "Remove Watchtower",
                             "command": [
                                 "module_watchtower remove"
                             ],
