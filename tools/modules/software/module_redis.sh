@@ -38,6 +38,9 @@ function module_redis () {
 			# snapshots, which for a multi-GB cache under constant writes would dump
 			# the whole dataset to disk every minute. Off by default: a general-purpose
 			# Redis (sessions, locks, queues) must never evict or lose data.
+			# At the cap every write evicts, and ccache objects are multi-MB, so
+			# evicted and overwritten values are freed on a background thread
+			# (lazyfree-*) instead of stalling the event loop that serves every client.
 			#   REDIS_MAXMEMORY=48gb armbian-config --api module_redis install
 			local -a server_args=()
 			if [[ -n "${REDIS_MAXMEMORY}" ]]; then
@@ -48,7 +51,8 @@ function module_redis () {
 					echo "Invalid REDIS_MAXMEMORY '${REDIS_MAXMEMORY}' (e.g. 512mb, 48gb)" >&2
 					return 1
 				fi
-				server_args=(redis-server --maxmemory "${REDIS_MAXMEMORY}" --maxmemory-policy allkeys-lru --save "" --appendonly no)
+				server_args=(redis-server --maxmemory "${REDIS_MAXMEMORY}" --maxmemory-policy allkeys-lru --save "" --appendonly no
+					--lazyfree-lazy-eviction yes --lazyfree-lazy-server-del yes)
 			fi
 
 			# Create base directory
