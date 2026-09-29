@@ -34,17 +34,22 @@ function module_aptcacherng () {
 			# Create base directory for the cache bind-mount
 			docker_manage_base_dir create "$base_dir" || return 1
 
+			# No authentication: publish for this host and its containers only.
+			local -a publish
+			docker_publish_local publish "$port" 3142
+			local listen="$(docker_publish_describe publish)"
+
 			docker_operation_progress run "$dockername" \
 				-d \
 				--name="$dockername" \
 				--init \
 				--net=lsio \
 				--restart=always \
-				--publish "${port}:3142" \
+				"${publish[@]}" \
 				--volume "${base_dir}/cache:/var/cache/apt-cacher-ng" \
 				"$dockerimage"
 
-			local install_msg="apt-cacher-ng is listening on port ${port}\n\nPoint clients at this server by adding the following line to\n/etc/apt/apt.conf.d/00aptproxy on each consumer host:\n\n  Acquire::http::Proxy \"http://${LOCALIPADD}:${port}\";\n\nStatus page: http://${LOCALIPADD}:${port}/acng-report.html"
+			local install_msg="apt-cacher-ng is listening on ${listen}\n\nPoint clients at it by adding the following line to\n/etc/apt/apt.conf.d/00aptproxy on each consumer:\n\n  Acquire::http::Proxy \"http://<address>:${port}\";\n\nStatus page: http://<address>:${port}/acng-report.html\n\nBy default only this host and its Docker containers can reach it; reinstall\nwith BIND_ADDRESS=<address> (e.g. the LAN address, or 0.0.0.0) to serve\nother hosts."
 
 			if [[ -t 1 ]]; then
 				dialog_msgbox "apt-cacher-ng installed" "$install_msg" 16 70
@@ -71,7 +76,7 @@ function module_aptcacherng () {
 		;;
 		"${commands[4]}") # help
 			show_module_help "module_aptcacherng" "$title" \
-				"Caching proxy for Debian / Ubuntu apt repositories.\n\nProxy port: ${port}\nDocker Image: ${dockerimage}\nCache directory: ${base_dir}/cache\nStatus page: http://localhost:${port}/acng-report.html\n\nClient configuration — on each apt host:\n  echo 'Acquire::http::Proxy \"http://<server>:${port}\";' \\\\\n    | sudo tee /etc/apt/apt.conf.d/00aptproxy"
+				"Caching proxy for Debian / Ubuntu apt repositories.\n\nProxy port: ${port}\nDocker Image: ${dockerimage}\nCache directory: ${base_dir}/cache\nStatus page: http://localhost:${port}/acng-report.html\nListens on 127.0.0.1 and the Docker bridge gateway (host and local containers) only; set BIND_ADDRESS (e.g. a LAN address, or 0.0.0.0) at install to serve other hosts\n\nClient configuration — on each apt host:\n  echo 'Acquire::http::Proxy \"http://<server>:${port}\";' \\\\\n    | sudo tee /etc/apt/apt.conf.d/00aptproxy"
 		;;
 		*)
 			${module_options["module_aptcacherng,feature"]} ${commands[4]}

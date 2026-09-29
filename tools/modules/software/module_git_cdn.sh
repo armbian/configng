@@ -40,6 +40,11 @@ function module_git_cdn () {
 			# Create base directory for the cache bind-mount
 			docker_manage_base_dir create "$base_dir" || return 1
 
+			# No authentication: publish for this host and its containers only.
+			local -a publish
+			docker_publish_local publish "$port" 8000
+			local listen="$(docker_publish_describe publish)"
+
 			# git_cdn mirrors a single upstream git server (GITSERVER_UPSTREAM)
 			# and caches it under WORKING_DIRECTORY, served over http on :8000.
 			if ! docker_operation_progress run "$dockername" \
@@ -48,7 +53,7 @@ function module_git_cdn () {
 				--init \
 				--net=lsio \
 				--restart=always \
-				--publish "${port}:8000" \
+				"${publish[@]}" \
 				--env GITSERVER_UPSTREAM="$upstream" \
 				--env WORKING_DIRECTORY="/git-data" \
 				--env GUNICORN_WORKER="$workers" \
@@ -61,7 +66,7 @@ function module_git_cdn () {
 				return 1
 			fi
 
-			local install_msg="git_cdn is proxying ${upstream} on port ${port}\n\nPoint git at this server on each consumer host:\n\n  git config --global url.\"http://${LOCALIPADD}:${port}/\".insteadOf ${upstream}\n\nThen clone GitHub repos as usual — fetches are served from the local cache:\n\n  git clone ${upstream}<owner>/<repo>.git"
+			local install_msg="git_cdn is proxying ${upstream} on ${listen}\n\nPoint git at it on each consumer:\n\n  git config --global url.\"http://<address>:${port}/\".insteadOf ${upstream}\n\nThen clone GitHub repos as usual — fetches are served from the local cache:\n\n  git clone ${upstream}<owner>/<repo>.git\n\nBy default only this host and its Docker containers can reach it; reinstall\nwith BIND_ADDRESS=<address> (e.g. the LAN address, or 0.0.0.0) to serve\nother hosts."
 
 			if [[ -t 1 ]]; then
 				dialog_msgbox "git_cdn installed" "$install_msg" 16 70
@@ -88,7 +93,7 @@ function module_git_cdn () {
 		;;
 		"${commands[4]}") # help
 			show_module_help "module_git_cdn" "$title" \
-				"Caching git+http(s) proxy / CDN that mirrors one upstream git server near your CI workers, reducing WAN usage on repeated clones.\n\nUpstream: ${upstream}\nProxy port: ${port}\nDocker Image: ${dockerimage}\nCache directory: ${base_dir}/cache\nPack cache size: ${cache_size_gb} GB\nWorkers: ${workers}\n\nClient configuration — on each git host:\n  git config --global url.\"http://<server>:${port}/\".insteadOf ${upstream}\n\nThen clone normally:\n  git clone ${upstream}<owner>/<repo>.git"
+				"Caching git+http(s) proxy / CDN that mirrors one upstream git server near your CI workers, reducing WAN usage on repeated clones.\n\nUpstream: ${upstream}\nProxy port: ${port}\nDocker Image: ${dockerimage}\nCache directory: ${base_dir}/cache\nPack cache size: ${cache_size_gb} GB\nWorkers: ${workers}\nListens on 127.0.0.1 and the Docker bridge gateway (host and local containers) only; set BIND_ADDRESS (e.g. a LAN address, or 0.0.0.0) at install to serve other hosts\n\nClient configuration — on each git host:\n  git config --global url.\"http://<server>:${port}/\".insteadOf ${upstream}\n\nThen clone normally:\n  git clone ${upstream}<owner>/<repo>.git"
 		;;
 		*)
 			${module_options["module_git_cdn,feature"]} ${commands[4]}
