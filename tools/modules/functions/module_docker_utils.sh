@@ -467,3 +467,43 @@ docker_operation_progress() {
 
 	return 0
 }
+
+#
+# Build --publish options: 127.0.0.1 and the Docker bridge gateway.
+# Usage: docker_publish_local <array_name> <host_port> <container_port>
+# BIND_ADDRESS overrides the addresses (space or comma separated, 0.0.0.0 for all).
+#
+docker_publish_local() {
+	local -n _publish="$1"
+	local host_port="$2" container_port="$3" addr gw
+	local -a addrs=()
+
+	if [[ -n "${BIND_ADDRESS}" ]]; then
+		IFS=', ' read -r -a addrs <<< "${BIND_ADDRESS}"
+	else
+		addrs=("127.0.0.1")
+		for gw in $(docker network inspect bridge --format '{{range .IPAM.Config}}{{.Gateway}} {{end}}' 2>/dev/null); do
+			[[ "$gw" == *.* ]] && addrs+=("$gw")
+		done
+	fi
+
+	_publish=()
+	for addr in "${addrs[@]}"; do
+		[[ -n "$addr" ]] || continue
+		[[ "$addr" == *:* ]] && addr="[${addr}]"
+		_publish+=(--publish "${addr}:${host_port}:${container_port}")
+	done
+}
+
+#
+# Human-readable list of the addresses a --publish array listens on
+# Usage: docker_publish_describe <array_name>
+#
+docker_publish_describe() {
+	local -n _publish="$1"
+	local i out=""
+	for ((i = 1; i < ${#_publish[@]}; i += 2)); do
+		out+="${out:+, }${_publish[i]%:*}"
+	done
+	echo "$out"
+}

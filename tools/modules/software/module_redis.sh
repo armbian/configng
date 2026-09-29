@@ -58,12 +58,16 @@ function module_redis () {
 			# Create base directory
 			docker_manage_base_dir create "$base_dir" || return 1
 
+			# No authentication: publish for this host and its containers only.
+			local -a publish
+			docker_publish_local publish "$port" 6379
+
 			docker_operation_progress run "$dockername" \
 				-d \
 				--name="$dockername" \
 				--net=lsio \
 				--restart=always \
-				-p "${port}:6379" \
+				"${publish[@]}" \
 				-v "${base_dir}/data:/data" \
 				"$dockerimage" \
 				"${server_args[@]}"
@@ -87,7 +91,7 @@ function module_redis () {
 		;;
 		"${commands[4]}") # help
 			show_module_help "module_redis" "$title" \
-				"Port: ${port}\nDocker Image: $dockerimage\nCache mode: set REDIS_MAXMEMORY (e.g. 48gb) at install to cap memory with LRU eviction and no disk snapshots"
+				"Port: ${port}\nDocker Image: $dockerimage\nListens on 127.0.0.1 and the Docker bridge gateway (host and local containers) only; set BIND_ADDRESS (e.g. a LAN address, or 0.0.0.0) at install to serve other hosts\nCache mode: set REDIS_MAXMEMORY (e.g. 48gb) at install to cap memory with LRU eviction and no disk snapshots"
 		;;
 		*)
 			${module_options["module_redis,feature"]} ${commands[4]}
