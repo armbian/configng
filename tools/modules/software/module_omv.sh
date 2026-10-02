@@ -84,6 +84,21 @@ function module_omv() {
 
 			echo "=== Installing ${title} on Debian ${codename} (${arch}) ==="
 
+			# Raspberry Pi OS creates the i2c/gpio/spi groups referenced by
+			# stock udev rules (e.g. 60-i2c-aliases.rules, 99-com.rules);
+			# Armbian doesn't. Without them every udev/systemd reload during
+			# the OMV install logs "Unknown group ..., ignoring" and stalls
+			# for ~90s, which eventually times out salt-minion and breaks
+			# the install. Creating the groups unconditionally is harmless
+			# on boards/archs where those rule files don't exist.
+			for grp in i2c gpio spi; do
+				groupadd --system --force "${grp}"
+			done
+			if [[ -S /run/udev/control ]]; then
+				udevadm control --reload-rules
+				udevadm trigger
+			fi
+
 			# Save current resolv.conf for potential DNS recovery
 			if [ -f "/etc/resolv.conf" ]; then
 				cp -f /etc/resolv.conf "${resolvTmp}"
