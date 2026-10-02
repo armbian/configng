@@ -424,7 +424,8 @@ def render_software_group(sub_items, level=1, with_title=True, menu_path=None):
         ititle = "CLI install" if iarg == 'install' else action_label(install)
         if menu_path:
             md.append(f"\nInstall from **[armbian-config](/config/) → {menu_path}**")
-            md.append("\nThe app has no separate image. [Install Armbian first](/software/#how-to-install-an-app), then the app. For help with the app, read its documentation.")
+            doc_help = f" For help with the app, [read its documentation]({opts['doc_link']})." if opts.get('doc_link') else ""
+            md.append("\nThe app has no separate image. [Install Armbian first](/software/#how-to-install-an-app), then the app." + doc_help)
         md.append(f"\n~~~ custombash title=\"{ititle}\"\narmbian-config --cmd {install['id']}\n~~~\n")
         md.append(_footer_md(install['id']))
 
