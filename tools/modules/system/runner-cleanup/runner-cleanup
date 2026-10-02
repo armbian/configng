@@ -92,6 +92,14 @@ fi
 KEEP_IMAGES=(
 	lscr.io/linuxserver/swag:latest
 	lscr.io/linuxserver/openssh-server:latest
+	# Build caches the runners depend on (apt / OCI / git / ccache). They are
+	# long-lived services, but their images are NOT otherwise in any keep list
+	# and survive only while their container runs. A transient stop lets Pass 1
+	# force-remove the image, after which Docker cannot restart the container and
+	# the service stays down for good — this is how redis:alpine (the ccache
+	# backend) was lost, killing ccache remote hits.
+	redis:alpine
+	registry:3
 )
 # Like KEEP_IMAGES, but matched as a *repository prefix* (any tag), so a whole
 # family of tags is preserved without enumerating each. Protects the Armbian
@@ -103,6 +111,10 @@ KEEP_IMAGES=(
 KEEP_IMAGE_PREFIXES=(
 	ghcr.io/armbian/docker-armbian-build
 	armbian.local.only/armbian-build
+	# Build-cache services (see KEEP_IMAGES note): protect by prefix so any tag
+	# of the Armbian-published cache images is kept even across a container stop.
+	ghcr.io/armbian/apt-cacher-ng
+	ghcr.io/armbian/git_cdn
 )
 KEEP_RUNNERS_WORK=(
 	actions-runner-01
