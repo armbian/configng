@@ -288,11 +288,13 @@ for user in "${idle[@]}"; do
 
 	unit=$(find_runner_unit "$user")
 	if [[ -z "$unit" ]]; then
-		# No svc.sh-installed unit found — fall back to wipe without
-		# stop. Runner might be running in a tmux session, foreground,
-		# or under a different supervisor.
-		log "wipe ${work}/ (no systemd unit for ${user}, no stop/start)"
-		run find "$work" -mindepth 1 -delete
+		# No svc.sh-installed unit found (tmux session, foreground, or a
+		# different supervisor). We have no way to stop this runner, so we
+		# cannot keep it from picking up a job between the pgrep above and the
+		# wipe below -- and a wipe mid-job deletes the live job's _work/_temp
+		# and fails it. Without a safe stop, skip the wipe rather than risk
+		# corrupting a job we can't protect.
+		log "skip ${user} — no systemd unit to stop; not wiping (cannot guard against a mid-wipe job)"
 		continue
 	fi
 
