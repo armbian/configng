@@ -276,6 +276,16 @@ for user in "${idle[@]}"; do
 		continue
 	fi
 
+	# Re-check busy NOW, not just at the start-of-loop partition above. This
+	# loop stops+wipes runners one by one and a multi-GB _work wipe takes 30s+,
+	# so a job can land on a runner that was idle when the scan ran minutes ago.
+	# Wiping its _work then deletes the LIVE job's _work/_temp (e.g.
+	# _runner_file_commands) and fails it ("Missing file ... set_output").
+	if pgrep -u "$user" -f 'Runner.Worker' > /dev/null 2>&1; then
+		log "skip ${user} — a job started since the idle scan (busy now)"
+		continue
+	fi
+
 	unit=$(find_runner_unit "$user")
 	if [[ -z "$unit" ]]; then
 		# No svc.sh-installed unit found — fall back to wipe without
@@ -291,6 +301,20 @@ for user in "${idle[@]}"; do
 		# Record in the trap-tracked set BEFORE the wipe — if we
 		# get killed during wipe, the EXIT trap will restart it.
 		[[ $DRY_RUN -eq 0 ]] && stopped_unit_for["$unit"]=1
+		# These runner units are KillMode=process: `systemctl stop` kills only
+		# the unit's main pid and LEAVES a running Runner.Worker (and its build)
+		# alive — "stop" does NOT quiesce a job that slipped in. Wiping now would
+		# corrupt that live job. Confirm no Worker survived the stop before
+		# deleting; if one did, restart the unit and skip the wipe this pass.
+		if pgrep -u "$user" -f 'Runner.Worker' > /dev/null 2>&1; then
+			note "WARNING: ${user} still has a running job after stop (KillMode=process) — restarting, NOT wiping"
+			if run systemctl start "${unit}.service"; then
+				[[ $DRY_RUN -eq 0 ]] && unset 'stopped_unit_for[$unit]'
+			else
+				note "WARNING: failed to restart ${unit}.service for ${user} — runner is offline until manual start"
+			fi
+			continue
+		fi
 		run find "$work" -mindepth 1 -delete
 		if run systemctl start "${unit}.service"; then
 			[[ $DRY_RUN -eq 0 ]] && unset 'stopped_unit_for[$unit]'
