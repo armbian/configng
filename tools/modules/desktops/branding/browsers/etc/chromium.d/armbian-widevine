@@ -1,0 +1,39 @@
+# Armbian: Widevine / HTML5 DRM support for Chromium
+#
+# Two flags, two independent concerns.
+#
+# 1. --enable-unsafe-swiftshader
+#
+# Chromium 128+ removed the silent software WebGL fallback
+# (crbug.com/242999). Modern EME-based streaming players — the Netflix
+# "Akira" client, Disney+, Amazon Prime Video — rely on a working
+# WebGL context for client-side initialisation even when hardware
+# acceleration is otherwise present. Without an explicit opt-in the
+# context creation fails silently and the player aborts with opaque
+# errors (Netflix surfaces it as error code E100).
+# The flag is a no-op where hardware WebGL works; it only matters as a
+# fallback when the GPU sandbox rejects the context.
+#
+# 2. --user-agent (ChromeOS spoof)
+#
+# Netflix's Akira player is the only mainstream service that rejects
+# the legacy Linux User-Agent server-side — `osname=linux` is not on
+# its supported-platform whitelist regardless of architecture, while
+# `osname=cros` (ChromeOS) is. Spoofing a ChromeOS UA is the same
+# workaround Raspberry Pi OS hardcodes in its Chromium build.
+#
+# Safe to do because Chromium 107+ already freezes navigator.platform
+# to "Linux x86_64" on every Linux host including ARM64 (UA Reduction
+# policy), and Netflix does not query Sec-CH-UA-Arch via Accept-CH.
+# So the fiction is contained to the legacy UA string; Client Hints
+# headers and JS APIs keep reporting the real platform.
+#
+# IMPORTANT: the stock Chromium launcher (/usr/bin/chromium) applies
+# word-splitting to $CHROMIUM_FLAGS and cannot pass a flag that
+# contains spaces — which any valid User-Agent string does. Armbian
+# ships a drop-in replacement wrapper at /usr/bin/chromium that execs
+# via `eval` so quoted flags survive; the upstream wrapper is
+# preserved via dpkg-divert at /usr/bin/chromium.upstream. This drop-in
+# file is only fully effective when that wrapper is in place.
+export CHROMIUM_FLAGS="$CHROMIUM_FLAGS --enable-unsafe-swiftshader"
+export CHROMIUM_FLAGS="$CHROMIUM_FLAGS --user-agent=\"Mozilla/5.0 (X11; CrOS aarch64 15359.58.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36\""
