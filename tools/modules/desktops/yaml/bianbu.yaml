@@ -50,6 +50,31 @@ repo:
       origin_host: archive.spacemit.com
       priority: 1001
 
+    # Bianbu/SpacemiT-exclusive packages: keep them winning from the archive
+    # (priority >1000). They have no Ubuntu counterpart, so this is mostly
+    # belt-and-suspenders, but it also protects any that share a name with an
+    # Ubuntu package (as the Mesa fork above does).
+    - packages:
+        - "bianbu-*"          # bianbu-desktop*, bianbu-standard, bianbu-development
+        - "img-gpu-powervr"   # PowerVR GPU userspace
+        - "k1x-*"             # k1x-vpu-firmware, k1x-cam
+        - "spacemit-*"        # spacemit-uart-bt, spacemit-modules-usrload
+      origin_host: archive.spacemit.com
+      priority: 1001
+
+    # Everything else: the Bianbu archive is a thin OVERLAY, not a mirror.
+    # Its noble/noble-updates components mirror Ubuntu, and that mirror has
+    # shipped broken base .debs (e.g. a 208 kB libnettle8t64 vs Ubuntu's
+    # 218 kB that dpkg cannot unpack). Pin the whole host BELOW Ubuntu
+    # (o=Ubuntu is 50 via the shared desktops pin) so base packages resolve
+    # from ports.ubuntu.com. Bianbu-only packages have no Ubuntu competitor
+    # and still install; the 1001 pins above keep the Mesa fork and the
+    # Bianbu/SpacemiT packages winning.
+    - packages:
+        - "*"
+      origin_host: archive.spacemit.com
+      priority: 1
+
 tiers:
   minimal:
     packages:
