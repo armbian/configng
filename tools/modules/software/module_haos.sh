@@ -40,9 +40,6 @@ function module_haos() {
 			fi
 			[[ -d "$HAOS_BASE" ]] || mkdir -p "$HAOS_BASE" || { echo "Couldn't create storage directory: $HAOS_BASE"; exit 1; }
 
-			# this hack will allow running it on minimal image, but this has to be done properly in the network section, to allow easy switching
-			srv_disable systemd-networkd
-
 			# we host packages at our repository and version for both is determined:
 			# https://github.com/armbian/os/blob/main/external/haos-agent.conf
 			# https://github.com/armbian/os/blob/main/external/haos-supervised-installer.conf
@@ -59,6 +56,19 @@ function module_haos() {
 
 			# this we can't put behind wrapper
 			DATA_SHARE="$HAOS_BASE" MACHINE="${MACHINE}" pkg_install homeassistant-supervised os-agent
+
+			# Supervisor reads host internet state from NetworkManager. With the networkd
+			# renderer, NetworkManager reports no connectivity and Supervisor blocks restores and updates.
+			local yaml renderer_changed="no"
+			for yaml in /etc/netplan/*.yaml; do
+				[[ -f "$yaml" ]] && grep -qE '^[[:space:]]*renderer:[[:space:]]*networkd[[:space:]]*$' "$yaml" || continue
+				sed -i -E 's/^([[:space:]]*renderer:[[:space:]]*)networkd[[:space:]]*$/\1NetworkManager/' "$yaml"
+				renderer_changed="yes"
+			done
+			if [[ "$renderer_changed" == "yes" ]]; then
+				echo "Switching network management to NetworkManager. The connection can drop for a moment."
+				netplan apply
+			fi
 
 			# workarounding supervisor loosing healthy state https://github.com/home-assistant/supervisor/issues/4381
 			cat <<- SUPERVISOR_FIX > "/usr/local/bin/supervisor_fix.sh"
