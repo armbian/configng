@@ -376,6 +376,25 @@ _extlinux_fixture() {
 	unset -f write_uboot_platform
 }
 
+@test "bootloader write: board hooks keep the caller's stdout and stderr" {
+	# rockchip64's write_uboot_platform_mtd checks [[ -t 1 ]] to offer an SPI
+	# image menu on a terminal; the TUI sends stderr to INSTALL_LOG itself.
+	INSTALL_LOG="$TMP/install.log"
+	: >"$INSTALL_LOG"
+	write_uboot_platform_mtd() { echo "mtd out"; echo "mtd err" >&2; }
+	write_uboot_platform_ufs() { echo "ufs out"; echo "ufs err" >&2; }
+	write_uboot_platform() { echo "emmc out"; echo "emmc err" >&2; }
+	local mode
+	for mode in mtd ufs emmc; do
+		install_write_bootloader "$mode" /dev/null "$TMP" "$TMP" mtdblock0 /dev/null \
+			>"$TMP/out.$mode" 2>"$TMP/err.$mode"
+		grep -q "$mode out" "$TMP/out.$mode"
+		grep -q "$mode err" "$TMP/err.$mode"
+	done
+	[ ! -s "$INSTALL_LOG" ]
+	unset -f write_uboot_platform_mtd write_uboot_platform_ufs write_uboot_platform
+}
+
 @test "bootloader available: native needs Raspberry Pi-style firmware" {
 	# native writes a plain FAT32 boot partition only the board's own firmware
 	# reads; on anything else the target would never boot, so it must report

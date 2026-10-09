@@ -222,6 +222,7 @@ partitioner_ensure_fs_tool() {
 partitioner_tui() {
 	local title="Armbian installer"
 	INSTALL_LOG="/var/log/armbian-install.log"
+	{ : >>"$INSTALL_LOG"; } 2>/dev/null || INSTALL_LOG=/dev/stderr
 	local root_disk; root_disk="$(partitioner_root_disk)"
 
 	# 1) target disk
@@ -333,7 +334,7 @@ partitioner_tui() {
 			install_run_scenario "$boot" "/dev/$disk" "$fs" "$INSTALL_EXCLUDE"
 		fi
 		echo "$?" >"$rc_file"
-	} | dialog_gauge " $title " "\nInstalling to /dev/$disk - please wait..." 10 74
+	} 2>>"$INSTALL_LOG" | dialog_gauge " $title " "\nInstalling to /dev/$disk - please wait..." 10 74
 	local rc; rc="$(cat "$rc_file")"; rm -f "$rc_file"
 
 	if [[ "$rc" == "0" ]]; then
@@ -375,6 +376,7 @@ partitioner_uboot_block_targets() {
 partitioner_flash_uboot_tui() {
 	local title="Armbian installer - bootloader"
 	INSTALL_LOG="/var/log/armbian-install.log"
+	{ : >>"$INSTALL_LOG"; } 2>/dev/null || INSTALL_LOG=/dev/stderr
 
 	local mtd_list; mtd_list="$(partitioner_mtd_list)"
 	local -a menu=()
@@ -412,7 +414,7 @@ partitioner_flash_uboot_tui() {
 	{
 		install_write_bootloader "$mode" "$target" "/" "${DIR:-/usr/lib/u-boot}" "$mtd_list"
 		echo "$?" >"$rc_file"
-	} | dialog_gauge " $title " "\nWriting u-boot to $target - please wait..." 9 74
+	} 2>>"$INSTALL_LOG" | dialog_gauge " $title " "\nWriting u-boot to $target - please wait..." 9 74
 	local rc; rc="$(cat "$rc_file")"; rm -f "$rc_file"
 
 	if [[ "$rc" == "0" ]]; then
