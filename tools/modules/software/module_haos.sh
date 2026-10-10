@@ -48,7 +48,7 @@ function module_haos() {
 
 			# determine machine type
 			case "${ARCH}" in
-				armhf) MACHINE="tinker";;
+				arm | armhf) MACHINE="tinker";;
 				x86_64) MACHINE="generic-x86-64";;
 				arm64) MACHINE="odroid-n2";;
 				*) exit 1;;
