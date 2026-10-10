@@ -114,6 +114,18 @@ function set_runtime_variables() {
 	fi
 
 	[[ -f /etc/armbian-release ]] && source /etc/armbian-release && ARMBIAN="Armbian $VERSION $IMAGE_TYPE"
+	# Non-Armbian hosts have no /etc/armbian-release. Derive ARCH from the
+	# kernel, in the same names the Armbian build writes there.
+	if [[ -z "${ARCH}" ]]; then
+		case "$(uname -m)" in
+			x86_64) ARCH=x86_64 ;;
+			aarch64) ARCH=arm64 ;;
+			armv7l | armv8l) ARCH=arm ;;
+			riscv64) ARCH=riscv ;;
+			loongarch64) ARCH=loongarch ;;
+			*) ARCH="$(uname -m)" ;;
+		esac
+	fi
 	[[ -f /etc/armbian-distribution-status ]] && DISTRO_STATUS="/etc/armbian-distribution-status"
 
 	# Reconcile BRANCH (and KERNELPKG_*) against the actually
