@@ -2222,6 +2222,45 @@
                             "help": "Uptime Kuma purge with data folder"
                         },
                         {
+                            "id": "SPG001",
+                            "description": "SolidPing uptime and synthetic monitoring",
+                            "short": "SolidPing",
+                            "module": "module_solidping",
+                            "about": "This operation will install SolidPing",
+                            "command": [
+                                "module_solidping install"
+                            ],
+                            "status": "Stable",
+                            "author": "@fclairamb",
+                            "condition": "! module_solidping status",
+                            "container_type": "docker",
+                            "help": "SolidPing self-hosted uptime and synthetic monitoring."
+                        },
+                        {
+                            "id": "SPG002",
+                            "description": "SolidPing remove",
+                            "about": "This operation will remove SolidPing",
+                            "command": [
+                                "module_solidping remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@fclairamb",
+                            "condition": "module_solidping status",
+                            "help": "SolidPing remove"
+                        },
+                        {
+                            "id": "SPG003",
+                            "description": "SolidPing purge with data folder",
+                            "about": "This operation will remove SolidPing with data folder",
+                            "command": [
+                                "module_solidping purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@fclairamb",
+                            "condition": "module_solidping status",
+                            "help": "SolidPing purge with data folder"
+                        },
+                        {
                             "id": "DOZ001",
                             "description": "Dozzle real-time Docker log viewer",
                             "short": "Dozzle",
