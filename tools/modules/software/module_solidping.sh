@@ -48,8 +48,8 @@ function module_solidping () {
 				"$dockerimage"
 		;;
 		"${commands[1]}") # remove
-			docker_operation_progress rm "$dockername"
-			docker_operation_progress rmi "$dockerimage"
+			docker_operation_progress rm "$dockername" || return 1
+			docker_operation_progress rmi "$dockerimage" || return 1
 		;;
 		"${commands[2]}") # purge
 			# Remove container and image first
