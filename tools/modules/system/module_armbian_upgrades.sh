@@ -87,6 +87,14 @@ function module_armbian_upgrades () {
 					sed -i "s/\($choice \"\)0\(\";\)/\11\2/" /etc/apt/apt.conf.d/20auto-upgrades
 					sed -i "s/\($choice \"\)false\(\";\)/\1true\2/" /etc/apt/apt.conf.d/50unattended-upgrades
 				done
+				# APT::Periodic::Enable is the master switch. apt.systemd.daily exits
+				# when it is 0. Armbian ships 0 in 02-armbian-periodic. apt reads
+				# 20auto-upgrades later, so set it here. The reset above clears it.
+				if grep -Eq '^[[:space:]]*APT::Periodic::Enable[[:space:]]*"' /etc/apt/apt.conf.d/20auto-upgrades; then
+					sed -i '/^[[:space:]]*APT::Periodic::Enable[[:space:]]*"/s/"[^"]*"/"1"/' /etc/apt/apt.conf.d/20auto-upgrades
+				else
+					sed -i '1i APT::Periodic::Enable "1";' /etc/apt/apt.conf.d/20auto-upgrades
+				fi
 			fi
 			srv_restart unattended-upgrades
 		;;
@@ -101,6 +109,7 @@ function module_armbian_upgrades () {
 
 			# global options
 			cat > "/etc/apt/apt.conf.d/20auto-upgrades" <<- EOT
+			APT::Periodic::Enable "1";
 			APT::Periodic::Update-Package-Lists "1";
 			APT::Periodic::Download-Upgradeable-Packages "1";
 			APT::Periodic::AutocleanInterval "7";
