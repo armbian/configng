@@ -294,6 +294,24 @@ _install_parted_fs_hint() {
 
 # ---- partitioning -----------------------------------------------------------
 
+_install_realtek_bootarea() {
+	# _install_realtek_bootarea <device>
+	# True when <device> carries a Realtek RTD129x boot area: a size table at
+	# 0x20000, then the hwsetting part, its SHA-256 padding and the SHA-256 of
+	# its data. The board's SPI loader checks the same digest. The area also
+	# holds U-Boot and the factory data (MAC address etc.) up to 4 MiB.
+	local device="$1" hw len sum
+	hw="$(od -An -tu4 -j $(( 0x20000 )) -N4 "$device" 2>/dev/null | tr -d ' ')"
+	[[ -n "$hw" ]] && (( hw > 0 && hw <= 0x10000 && hw % 64 == 0 )) || return 1
+	# data length in bits, big endian, in the last 8 bytes of the padded part
+	len="$(od -An -tx1 -v -j $(( 0x20060 + hw - 8 )) -N8 "$device" 2>/dev/null | tr -d ' \n')"
+	[[ ${#len} -eq 16 ]] || return 1
+	len=$(( 16#$len / 8 ))
+	(( len > 0 && len < hw )) || return 1
+	sum="$(dd if="$device" bs=1 skip=$(( 0x20060 )) count="$len" 2>/dev/null | sha256sum | cut -c1-64)"
+	[[ "$sum" == "$(od -An -tx1 -v -j $(( 0x20060 + hw )) -N32 "$device" 2>/dev/null | tr -d ' \n')" ]]
+}
+
 install_apply_partitions() {
 	# install_apply_partitions <device> [plan]
 	# Applies a plan (from arg or stdin) to <device> with parted, in MiB units so
@@ -322,12 +340,19 @@ install_apply_partitions() {
 	# tr -d '\0' only strips what bash would discard anyway: on a device without
 	# the magics those 4 bytes are usually NULs, and the bare substitution makes
 	# bash print "ignored null byte in input" over the installer dialog.
-	local keep_window="no"
+	local keep_window="no" keep_realtek="no"
 	[[ "$(dd if="$device" bs=1 skip=$(( 7168 * 512 )) count=4 2>/dev/null | tr -d '\0')" == "DVKR" ]] && keep_window="yes"
 	[[ "$(dd if="$device" bs=1 skip=$(( 8192 * 512 )) count=4 2>/dev/null | tr -d '\0')" == "SSKR" ]] && keep_window="yes"
+	_install_realtek_bootarea "$device" && keep_realtek="yes"
 
 	wipefs -aq "$device" >>"$INSTALL_LOG" 2>&1 || true
-	if [[ "$keep_window" == "yes" ]]; then
+	if [[ "$keep_realtek" == "yes" ]]; then
+		# Realtek RTD129x: keep the boot area in the first 4 MiB; clear only
+		# the partition table sector and the rest of the first 10 MiB.
+		install_log INFO "apply_partitions: keeping Realtek boot area (first 4 MiB) on $device"
+		dd if=/dev/zero of="$device" bs=512 count=1 conv=notrunc >>"$INSTALL_LOG" 2>&1 || true
+		dd if=/dev/zero of="$device" bs=1M seek=4 count=6 conv=notrunc >>"$INSTALL_LOG" 2>&1 || true
+	elif [[ "$keep_window" == "yes" ]]; then
 		install_log INFO "apply_partitions: keeping Rockchip reserved sectors 7168-16383 on $device"
 		dd if=/dev/zero of="$device" bs=512 count=7168 conv=notrunc >>"$INSTALL_LOG" 2>&1 || true
 		dd if=/dev/zero of="$device" bs=512 seek=16384 count=4096 conv=notrunc >>"$INSTALL_LOG" 2>&1 || true
