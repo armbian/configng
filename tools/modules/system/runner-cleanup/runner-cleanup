@@ -447,6 +447,28 @@ else
 	note "skip 'docker volume prune -a' — ${#busy[@]} runner(s) still busy; will retry next pass"
 fi
 
+# apt-cacher-ng serves by-hash index files from cache forever. A wrong
+# file stored under a by-hash name then breaks every `apt update` with
+# "File has unexpected size". Remove entries whose checksum does not
+# match their name; acng fetches them again on the next request.
+acng_cache=$(docker inspect -f '{{range .Mounts}}{{if eq .Destination "/var/cache/apt-cacher-ng"}}{{.Source}}{{end}}{{end}}' \
+	"${ACNG_CONTAINER:-apt-cacher-ng}" 2>/dev/null)
+if [[ -d "$acng_cache" ]]; then
+	acng_bad=0
+	while IFS= read -r -d '' f; do
+		case "${f%/*}" in
+			*/SHA512) sum=$(sha512sum "$f") ;;
+			*/SHA256) sum=$(sha256sum "$f") ;;
+			*) continue ;;
+		esac
+		[[ "${sum%% *}" == "${f##*/}" ]] && continue
+		log "rm corrupt acng by-hash entry ${f#"$acng_cache"/}"
+		run rm -f -- "$f" "${f}.head"
+		acng_bad=$((acng_bad + 1))
+	done < <(find "$acng_cache" -path '*/by-hash/*' -type f ! -name '*.head' -print0)
+	[[ $acng_bad -gt 0 ]] && note "removed ${acng_bad} corrupt apt-cacher-ng by-hash entries"
+fi
+
 fi  # end docker section
 
 # -------------------------------------------------------------------
