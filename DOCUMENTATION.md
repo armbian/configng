@@ -402,6 +402,9 @@ sudo armbian-config
     - ### Uptime Kuma self-hosted monitoring tool
     - ### Uptime Kuma remove
     - ### Uptime Kuma purge with data folder
+    - ### SolidPing uptime and synthetic monitoring
+    - ### SolidPing remove
+    - ### SolidPing purge with data folder
     - ### Dozzle real-time Docker log viewer
     - ### Dozzle remove
     - ### Dozzle purge
@@ -829,6 +832,9 @@ Outputs:
 	--cmd UPK001 - Uptime Kuma self-hosted monitoring tool
 	--cmd UPK002 - Uptime Kuma remove (http://localhost:3001)
 	--cmd UPK003 - Uptime Kuma purge with data folder
+	--cmd SPG001 - SolidPing uptime and synthetic monitoring
+	--cmd SPG002 - SolidPing remove (http://localhost:4000)
+	--cmd SPG003 - SolidPing purge with data folder
 	--cmd DOZ001 - Dozzle real-time Docker log viewer
 	--cmd DOZ002 - Dozzle remove
 	--cmd DOZ003 - Dozzle purge
@@ -1375,6 +1381,7 @@ parse_menu_items 'menu_options_array' --with-help | @viraniac
 | Install Pi-hole container | install remove purge password status help | @armbian 
 | Generate a Help message for cli commands. | see_cmd_list [category] | @Tearran 
 | Install mariadb container | install remove purge status help | @igorpecovnik 
+| Install SolidPing container | install remove purge status help | @fclairamb 
 | Disable service | srv_disable ssh.service | @dimitry-ishenko 
 | Check if the current OS distribution is supported | check_os_status | @Tearran 
 | Install prowlarr container | install remove purge status help | @Prowlarr 
