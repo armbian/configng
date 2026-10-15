@@ -97,6 +97,8 @@ partitioner_emmc_device() {
 # device, and the FULL list is passed as the last argument. Implementations
 # should accept both the "mtdblockN" and "mtdN:label" forms and pick the right
 # partition(s) to flash from the full list.
+# platform_install.sh may also set BOOTLOADER_NAME (default "u-boot") to name
+# the firmware it writes in the bootloader flash messages.
 partitioner_mtd_list() {
 	local list chr
 	list="$(grep 'mtdblock' /proc/partitions 2>/dev/null | awk '{print $NF}' | xargs)"
@@ -378,10 +380,11 @@ partitioner_flash_uboot_tui() {
 	INSTALL_LOG="/var/log/armbian-install.log"
 	{ : >>"$INSTALL_LOG"; } 2>/dev/null || INSTALL_LOG=/dev/stderr
 
+	local bl="${BOOTLOADER_NAME:-u-boot}"
 	local mtd_list; mtd_list="$(partitioner_mtd_list)"
 	local -a menu=()
 	[[ "$(type -t write_uboot_platform_mtd)" == function && -n "$mtd_list" ]] \
-		&& menu+=("mtd" "SPI / on-board flash (u-boot)")
+		&& menu+=("mtd" "SPI / on-board flash ($bl)")
 	if [[ "$(type -t write_uboot_platform)" == function ]]; then
 		local name size note
 		while IFS=$'\t' read -r name size note; do
@@ -396,7 +399,7 @@ partitioner_flash_uboot_tui() {
 	fi
 
 	local sel
-	sel=$(dialog_menu " $title " "\nWrite the running system's u-boot (bootloader) to:" 0 78 10 -- "${menu[@]}")
+	sel=$(dialog_menu " $title " "\nWrite the running system's $bl (bootloader) to:" 0 78 10 -- "${menu[@]}")
 	[[ -z "$sel" ]] && return "$INSTALL_EX_OK"
 
 	local mode target warn
@@ -406,7 +409,7 @@ partitioner_flash_uboot_tui() {
 		mode="sd"; target="/dev/$sel"; warn="$target"
 	fi
 
-	if ! dialog_yesno " WARNING " "\nThis will OVERWRITE the bootloader (u-boot) on:\n\n  $warn\n\nwith u-boot from the running system. Your OS install and data are not touched.\n\nProceed?" "Flash bootloader" "Cancel" 13 74; then
+	if ! dialog_yesno " WARNING " "\nThis will OVERWRITE the bootloader ($bl) on:\n\n  $warn\n\nwith $bl from the running system. Your OS install and data are not touched.\n\nProceed?" "Flash bootloader" "Cancel" 13 74; then
 		return "$INSTALL_EX_OK"
 	fi
 
@@ -414,11 +417,11 @@ partitioner_flash_uboot_tui() {
 	{
 		install_write_bootloader "$mode" "$target" "/" "${DIR:-/usr/lib/u-boot}" "$mtd_list"
 		echo "$?" >"$rc_file"
-	} 2>>"$INSTALL_LOG" | dialog_gauge " $title " "\nWriting u-boot to $target - please wait..." 9 74
+	} 2>>"$INSTALL_LOG" | dialog_gauge " $title " "\nWriting $bl to $warn - please wait..." 9 74
 	local rc; rc="$(cat "$rc_file")"; rm -f "$rc_file"
 
 	if [[ "$rc" == "0" ]]; then
-		dialog_msgbox " $title " "\nBootloader (u-boot) written to $target successfully."
+		dialog_msgbox " $title " "\nBootloader ($bl) written to $warn successfully."
 	else
 		dialog_msgbox " $title " "\nFlashing FAILED (code $rc).\n\nSee ${INSTALL_LOG:-the install log} for details."
 	fi
@@ -440,7 +443,7 @@ partitioner_menu() {
 		menu+=("install" "Install Armbian to a disk (SD / eMMC / NVMe / SATA / USB)"); ((nact++))
 	fi
 	if [[ "$(type -t write_uboot_platform)" == function || "$(type -t write_uboot_platform_mtd)" == function ]]; then
-		menu+=("bootloader" "Flash / update the bootloader (u-boot) only"); ((nact++))
+		menu+=("bootloader" "Flash / update the bootloader (${BOOTLOADER_NAME:-u-boot}) only"); ((nact++))
 	fi
 
 	local act
@@ -538,12 +541,12 @@ partitioner_cli_flash() {
 	done
 	[[ -n "$target" ]] || { echo "armbian-install bootloader: --target <mtd|/dev/mmcblkN> required" >&2; return "$INSTALL_EX_USAGE"; }
 
-	local mtd_list mode dev
+	local bl="${BOOTLOADER_NAME:-u-boot}" mtd_list mode dev shown
 	mtd_list="$(partitioner_mtd_list)"
 	if [[ "$target" == "mtd" ]]; then
 		[[ "$(type -t write_uboot_platform_mtd)" == function && -n "$mtd_list" ]] \
 			|| { echo "armbian-install bootloader: no SPI/MTD u-boot target on this board" >&2; return "$INSTALL_EX_BOOTLOADER"; }
-		mode="mtd"; dev="/dev/${mtd_list%% *}"
+		mode="mtd"; dev="/dev/${mtd_list%% *}"; shown="the on-board SPI / MTD flash"
 	else
 		[[ "$(type -t write_uboot_platform)" == function ]] \
 			|| { echo "armbian-install bootloader: board has no write_uboot_platform hook" >&2; return "$INSTALL_EX_BOOTLOADER"; }
@@ -552,15 +555,15 @@ partitioner_cli_flash() {
 		[[ "$target" =~ ^/dev/mmcblk[0-9]+$ ]] \
 			|| { echo "armbian-install bootloader: '$target' is not an SD/eMMC whole device (expected /dev/mmcblkN or 'mtd')" >&2; return "$INSTALL_EX_USAGE"; }
 		[[ -b "$target" ]] || { echo "armbian-install bootloader: '$target' is not a block device" >&2; return "$INSTALL_EX_USAGE"; }
-		mode="sd"; dev="$target"
+		mode="sd"; dev="$target"; shown="$target"
 	fi
 
 	if [[ "$assume_yes" != 1 ]]; then
-		echo "armbian-install bootloader: refusing to write u-boot to $dev without --yes (overwrites the bootloader)." >&2
+		echo "armbian-install bootloader: refusing to write $bl to $shown without --yes (overwrites the bootloader)." >&2
 		return "$INSTALL_EX_USAGE"
 	fi
 
-	echo "Writing u-boot to $dev..."
+	echo "Writing $bl to $shown..."
 	install_write_bootloader "$mode" "$dev" "/" "${DIR:-/usr/lib/u-boot}" "$mtd_list"
 	local rc=$?
 	[[ "$rc" == 0 ]] && echo "Done." || echo "Failed (code $rc). See ${INSTALL_LOG:-install log}." >&2
