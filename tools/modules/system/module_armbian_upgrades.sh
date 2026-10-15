@@ -71,13 +71,13 @@ function module_armbian_upgrades () {
 			fi
 			# toggle options
 			if target_sync=$(dialog_checklist "Select an Option" \
-				"\nConfigure unattended-upgrade options:" 16 73 8 --notags \
+				"\nConfigure unattended-upgrade options:" 16 78 8 --notags \
 				"Unattended-Upgrade" "Automatic security and package updates system." ${Unattended_Upgrade:-ON} \
 				"Update-Package-Lists" "Automatically updates the list of available packages." ${Update_Package_Lists:-OFF} \
 				"Download-Upgradeable-Packages" "Downloads upgradeable packages without installing them." ${Download_Upgradeable_Packages:-OFF} \
 				"AutoFixInterruptedDpkg" "Fixes interrupted package installations during upgrades." ${AutoFixInterruptedDpkg:-OFF} \
 				"Remove-New-Unused-Dependencies" "Removes dependencies no longer required after upgrades." ${Remove_New_Unused_Dependencies:-OFF} \
-				"Automatic-Reboot" "Reboots the system automatically if required after upgrades.    " ${Automatic_Reboot:-OFF} \
+				"Automatic-Reboot" "Reboots the system automatically if required after upgrades." ${Automatic_Reboot:-OFF} \
 				"Automatic-Reboot-WithUsers" "Reboots even if users are logged in." ${Automatic_Reboot_WithUsers:-OFF} \
 				"Remove-Unused-Dependencies" "Removes packages that are no longer required after upgrades." ${Remove_Unused_Dependencies:-OFF}); then
 				# set all to 0 or false
