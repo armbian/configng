@@ -452,13 +452,13 @@ fi
 # "File has unexpected size". Remove entries whose checksum does not
 # match their name; acng fetches them again on the next request.
 acng_cache=$(docker inspect -f '{{range .Mounts}}{{if eq .Destination "/var/cache/apt-cacher-ng"}}{{.Source}}{{end}}{{end}}' \
-	"${ACNG_CONTAINER:-apt-cacher-ng}" 2>/dev/null)
+	"${ACNG_CONTAINER:-apt-cacher-ng}" 2>/dev/null) || acng_cache=""
 if [[ -d "$acng_cache" ]]; then
 	acng_bad=0
 	while IFS= read -r -d '' f; do
 		case "${f%/*}" in
-			*/SHA512) sum=$(sha512sum "$f") ;;
-			*/SHA256) sum=$(sha256sum "$f") ;;
+			*/SHA512) sum=$(sha512sum "$f") || continue ;;
+			*/SHA256) sum=$(sha256sum "$f") || continue ;;
 			*) continue ;;
 		esac
 		[[ "${sum%% *}" == "${f##*/}" ]] && continue
