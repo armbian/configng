@@ -98,7 +98,9 @@ partitioner_emmc_device() {
 # should accept both the "mtdblockN" and "mtdN:label" forms and pick the right
 # partition(s) to flash from the full list.
 # platform_install.sh may also set BOOTLOADER_NAME (default "u-boot") to name
-# the firmware it writes in the bootloader flash messages.
+# the firmware it writes in the bootloader flash messages, and
+# BOOTLOADER_BOOTS_FROM to list the disk roles (nvme sata usb) its bootloader
+# loads /boot from, which enables the "standalone" mode for those targets.
 partitioner_mtd_list() {
 	local list chr
 	list="$(grep 'mtdblock' /proc/partitions 2>/dev/null | awk '{print $NF}' | xargs)"
@@ -155,6 +157,8 @@ partitioner_modes_for() {
 					# removable media) is bootable. Offer it FIRST (top / default).
 					m+=(spi)
 				fi
+				# u-boot on SD/eMMC loads /boot from this role: full install, media untouched.
+				[[ " ${BOOTLOADER_BOOTS_FROM:-} " == *" $role "* ]] && m+=(standalone)
 				m+=(sd)                       # keep boot on current media, root here
 				# ...or from an internal eMMC (if present and not the target).
 				local emmc; emmc="$(partitioner_emmc_device)"
@@ -197,6 +201,7 @@ partitioner_mode_desc() {
 		split-emmc) echo "Boot from eMMC, system on this disk (+ /emmc_storage)" ;;
 		mtd)  echo "Boot from SPI/MTD flash, system on this disk" ;;
 		spi)  echo "Boot from on-board SPI flash, full system on this disk" ;;
+		standalone) echo "Keep the current ${BOOTLOADER_NAME:-u-boot}, full system on this disk" ;;
 		ufs)  echo "Boot idblock on UFS boot LUN, system on UFS" ;;
 		*)    echo "$1" ;;
 	esac
@@ -315,6 +320,10 @@ partitioner_tui() {
 		fi
 	elif [[ "$boot" == spi ]]; then
 		if ! dialog_yesno " WARNING " "\nThis will ERASE /dev/$disk and install a self-contained Armbian ($fs): boot + system both on this disk.\n\nu-boot is NOT touched - the board boots from its on-board SPI flash and loads /boot from this disk. The install stays bootable on its own (no dependency on removable media).\n\nProceed?" "Erase and install" "Cancel" 13 74; then
+			return "$INSTALL_EX_OK"
+		fi
+	elif [[ "$boot" == standalone ]]; then
+		if ! dialog_yesno " WARNING " "\nThis will ERASE /dev/$disk and install a self-contained Armbian ($fs): boot + system both on this disk.\n\n${BOOTLOADER_NAME:-u-boot} and the current boot media are NOT touched - the bootloader loads /boot from this disk, and the current system stays bootable as a fallback.\n\nProceed?" "Erase and install" "Cancel" 13 74; then
 			return "$INSTALL_EX_OK"
 		fi
 	else
@@ -480,7 +489,7 @@ partitioner_cli_install() {
 	done
 
 	[[ -b "$target" ]] || { echo "armbian-install: --target must be a block device" >&2; return "$INSTALL_EX_NODEV"; }
-	case "$boot" in uefi|uefi-dualboot|bios|emmc|sd|mtd|spi|ufs|native|split-emmc) ;; *) echo "armbian-install: --boot must be one of uefi|uefi-dualboot|bios|emmc|sd|mtd|spi|ufs|native|split-emmc" >&2; return "$INSTALL_EX_USAGE" ;; esac
+	case "$boot" in uefi|uefi-dualboot|bios|emmc|sd|mtd|spi|standalone|ufs|native|split-emmc) ;; *) echo "armbian-install: --boot must be one of uefi|uefi-dualboot|bios|emmc|sd|mtd|spi|standalone|ufs|native|split-emmc" >&2; return "$INSTALL_EX_USAGE" ;; esac
 	case "$fs"   in ext4|btrfs|f2fs) ;;     *) echo "armbian-install: --fs must be one of ext4|btrfs|f2fs" >&2; return "$INSTALL_EX_USAGE" ;; esac
 	[[ -f "$INSTALL_EXCLUDE" ]] || { echo "armbian-install: exclude list $INSTALL_EXCLUDE missing" >&2; return "$INSTALL_EX_TRANSFER"; }
 
@@ -610,12 +619,15 @@ partitioner_help() {
 
 	Non-interactive:
 	  armbian-install --target /dev/sdX --boot <mode> --fs <fs> --yes
-	    --boot   uefi | uefi-dualboot | bios | emmc | sd | mtd | ufs | native | split-emmc
+	    --boot   uefi | uefi-dualboot | bios | emmc | sd | mtd | spi | standalone | ufs | native | split-emmc
 	             native: full self-contained install on a board with no
 	                     u-boot/EFI/GRUB (e.g. Raspberry Pi) - target boots on
 	                     its own, no other media needed
 	             split-emmc: boot from eMMC, root on --target (NVMe/SATA/USB),
 	                         eMMC remainder mounted at /emmc_storage
+	             standalone: full self-contained install on --target, for boards
+	                         whose bootloader loads /boot from that disk
+	                         (BOOTLOADER_BOOTS_FROM) - current media untouched
 	    --fs     ext4 | btrfs | f2fs
 	    --size   GiB for Armbian (uefi-dualboot only; shrinks Windows)
 	    --yes    required to actually modify the target

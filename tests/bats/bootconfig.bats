@@ -369,6 +369,12 @@ _extlinux_fixture() {
 	[ "$status" -eq 0 ]
 }
 
+@test "bootloader available: standalone needs no capability - u-boot stays on SD/eMMC" {
+	unset -f write_uboot_platform 2>/dev/null || true
+	run install_bootloader_available standalone
+	[ "$status" -eq 0 ]
+}
+
 @test "bootloader available: emmc ok once the write_uboot_platform hook exists" {
 	write_uboot_platform() { :; }
 	run install_bootloader_available emmc

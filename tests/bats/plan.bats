@@ -213,6 +213,17 @@ setup() {
 	[[ "$output" == *"table=gpt"* ]]
 }
 
+# --- standalone: self-contained target, u-boot stays on the current SD/eMMC --
+
+@test "plan standalone: same self-contained layout as spi, no 16MiB reserve" {
+	run install_plan_layout standalone ext4 0 $(( 250 * GIB )) 512 0
+	[ "$status" -eq 0 ]
+	[[ "$output" == *"start=1"* ]]
+	[[ "$output" == *"part=root:100%:ext4:boot"* ]]
+	run install_plan_layout standalone btrfs 0 $(( 250 * GIB )) 512 0
+	[[ "$output" == *"part=boot:512MiB:ext4:boot"* ]]
+}
+
 # --- native: full install on a board with no u-boot/EFI/GRUB (Raspberry Pi) --
 
 @test "plan native: FAT32 firmware partition first, plain root second" {
