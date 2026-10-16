@@ -348,7 +348,9 @@ partitioner_tui() {
 	} 2>>"$INSTALL_LOG" | dialog_gauge " $title " "\nInstalling to /dev/$disk - please wait..." 10 74
 	local rc; rc="$(cat "$rc_file")"; rm -f "$rc_file"
 
-	if [[ "$rc" == "0" ]]; then
+	if [[ "$rc" == "0" && "$boot" == standalone ]]; then
+		dialog_msgbox " $title " "\nInstallation to /dev/$disk finished successfully.\n\nKeep the current boot media in place: ${BOOTLOADER_NAME:-u-boot} stays there and loads the system from /dev/$disk. Reboot when ready."
+	elif [[ "$rc" == "0" ]]; then
 		dialog_msgbox " $title " "\nInstallation to /dev/$disk finished successfully.\n\nRemove the boot media (if applicable) and reboot."
 	else
 		dialog_msgbox " $title " "\nInstallation FAILED (code $rc).\n\nSee ${INSTALL_LOG:-the install log} for details."
@@ -496,6 +498,14 @@ partitioner_cli_install() {
 	if [[ "$assume_yes" -ne 1 ]]; then
 		echo "armbian-install: refusing to modify $target without --yes" >&2
 		return "$INSTALL_EX_USAGE"
+	fi
+	if [[ "$boot" == standalone ]]; then
+		# Same gate as the TUI: u-boot must load /boot from the target's role.
+		local role; role="$(install_detect_targets "$(partitioner_root_disk)" | awk -F'\t' -v d="${target#/dev/}" '$1 == d { print $2 }')"
+		if [[ -z "$role" || " ${BOOTLOADER_BOOTS_FROM:-} " != *" $role "* ]]; then
+			echo "armbian-install: --boot standalone needs a disk ${BOOTLOADER_NAME:-u-boot} boots from (BOOTLOADER_BOOTS_FROM='${BOOTLOADER_BOOTS_FROM:-}', $target is '${role:-not a target}')" >&2
+			return "$INSTALL_EX_USAGE"
+		fi
 	fi
 	if ! partitioner_ensure_fs_tool "$fs" 0; then
 		echo "armbian-install: mkfs.$fs unavailable; install its package and retry" >&2
