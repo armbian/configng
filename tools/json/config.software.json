@@ -1187,7 +1187,7 @@
                             ],
                             "status": "Preview",
                             "author": "@HeyMeco",
-                            "condition": "module_steam status",
+                            "condition": "module_steam has_state",
                             "help": "Remove Steam, installed games, userdata, the extracted FEX rootfs if this module created it, and the libvpx compatibility link if this module created it."
                         }
                     ],

@@ -37,6 +37,21 @@ module_steam_require_arm64() {
 }
 
 #
+# Return success when managed state remains: the Steam directory, the FEX
+# rootfs this module extracted, or the libvpx shim this module created.
+# Used to gate Purge so it stays visible after Remove.
+#
+module_steam_has_state() {
+	local user home
+	[[ -f "$module_steam_libvpx_marker" ]] && return 0
+	user=$(module_steam_installed_user 2>/dev/null) || return 1
+	home=$(module_steam_user_home "$user" 2>/dev/null) || true
+	[[ -n "$home" && "$home" != "/" ]] || return 1
+	module_steam_paths "$home"
+	[[ -d "$STEAM_ROOT" ]] || [[ -f "$(module_steam_fex_root "$home")/ArchLinux.hash" ]]
+}
+
+#
 # Print the user Steam was installed for, falling back to the desktop user.
 # Errors are suppressed so menu status checks stay silent.
 #
@@ -714,6 +729,9 @@ function module_steam() {
 			show_module_help "module_steam" "$title" \
 				"Architecture: arm64 public beta\nProton-CachyOS and Proton-GE: latest arm64 release\nFEX Arch rootfs: ~/.local/share/fex-emu/RootFS/ArchLinux" \
 				"native"
+			;;
+		has_state)
+			module_steam_has_state
 			;;
 		*)
 			${module_options["module_steam,feature"]} "${commands[5]}"
