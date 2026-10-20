@@ -339,7 +339,7 @@ module_steam_fex_publish() {
 module_steam_fex_install() {
 	local user="$1"
 	local home="$2"
-	local spec url hash padded have root dest marker staging partial
+	local spec url hash padded have root dest marker staging partial extract_status
 
 	root=$(module_steam_fex_root "$home")
 	dest="${root}/ArchLinux"
@@ -387,13 +387,17 @@ module_steam_fex_install() {
 
 	echo "Extracting FEX Arch rootfs."
 	rm -rf "$staging"
-	if ! unsquashfs -d "$staging" "$partial" || [[ ! -f "${staging}/graphics_provider.json" ]]; then
+	# Exit 2 means unsquashfs kept going after a non-fatal error. Device nodes
+	# and some permissions cannot be created as the desktop user; the tree is
+	# still the one FEX uses. Exit 1 is a fatal extract and must fail.
+	extract_status=0
+	runuser -u "$user" -- unsquashfs -no-xattrs -d "$staging" "$partial" || extract_status=$?
+	if [[ "$extract_status" -ne 0 && "$extract_status" -ne 2 ]] || [[ ! -f "${staging}/graphics_provider.json" ]]; then
 		rm -rf "$staging" "$partial"
 		echo "Failed to extract the FEX Arch rootfs." >&2
 		return 1
 	fi
 	rm -f "$partial"
-	chown -R "${user}:" "$staging"
 	rm -rf "$dest"
 	runuser -u "$user" -- mv "$staging" "$dest" || return 1
 	printf '%s\n' "$padded" | runuser -u "$user" -- tee "$marker" >/dev/null
