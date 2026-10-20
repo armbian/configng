@@ -195,12 +195,23 @@ def _group_key(item):
     return m.group(0) if m else item.get('id', '')
 
 
+def _flatten_menu(sub_items):
+    """Collect actions inside a command-less submenu, such as Gaming → Steam Arm64."""
+    flat = []
+    for it in sub_items or []:
+        if it.get('sub') and not it.get('command'):
+            flat.extend(_flatten_menu(it['sub']))
+        else:
+            flat.append(it)
+    return flat
+
+
 def group_software(sub_items):
     """Split a category's flat `sub` list into per-software groups, one group per
     app (keyed by its command module via _group_key). The name-bearing item
     leads each group; its remove/purge actions follow. Returns a list of groups."""
     order, groups = [], {}
-    for it in sub_items:
+    for it in _flatten_menu(sub_items):
         key = _group_key(it)
         if key not in groups:
             groups[key] = []

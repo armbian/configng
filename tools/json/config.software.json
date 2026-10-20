@@ -1138,60 +1138,119 @@
                     "help": "Manage your finances"
                 },
                 {
-                    "id": "Games",
-                    "description": "Native ARM64 Steam",
+                    "id": "Gaming",
+                    "description": "Game clients and compatibility tools",
                     "sub": [
                         {
-                            "id": "STM001",
-                            "description": "Native ARM64 Steam client with Proton",
-                            "short": "Steam",
-                            "module": "module_steam",
-                            "command": [
-                                "module_steam install"
+                            "id": "SteamArm64",
+                            "description": "Steam Arm64",
+                            "sub": [
+                                {
+                                    "id": "STM001",
+                                    "description": "Native ARM64 Steam client",
+                                    "short": "Steam",
+                                    "module": "module_steam",
+                                    "command": [
+                                        "module_steam install"
+                                    ],
+                                    "status": "Preview",
+                                    "author": "@HeyMeco",
+                                    "condition": "! module_steam status",
+                                    "help": "Install Valve's public-beta ARM64 Steam client and an extracted FEX Arch rootfs for native x86_64 games. Proton-CachyOS and Proton-GE are separate menu entries."
+                                },
+                                {
+                                    "id": "STM002",
+                                    "description": "Update the FEX rootfs and installed Proton tools",
+                                    "short": "Update FEX and Proton",
+                                    "module": "module_steam",
+                                    "command": [
+                                        "module_steam update"
+                                    ],
+                                    "status": "Preview",
+                                    "author": "@HeyMeco",
+                                    "condition": "module_steam status",
+                                    "help": "Refresh the extracted FEX Arch rootfs. Proton-CachyOS and Proton-GE are updated only when that tool is already installed. Restart Steam and select the new tool per game."
+                                },
+                                {
+                                    "id": "STM005",
+                                    "description": "Install or update Proton-CachyOS",
+                                    "short": "Proton-CachyOS",
+                                    "module": "module_steam",
+                                    "command": [
+                                        "module_steam proton-cachyos"
+                                    ],
+                                    "status": "Preview",
+                                    "author": "@HeyMeco",
+                                    "condition": "module_steam status",
+                                    "help": "Download the latest arm64 Proton-CachyOS build into Steam compatibility tools. An older copy is replaced. Restart Steam and select the tool per game."
+                                },
+                                {
+                                    "id": "STM006",
+                                    "description": "Install or update Proton-GE",
+                                    "short": "Proton-GE",
+                                    "module": "module_steam",
+                                    "command": [
+                                        "module_steam proton-ge"
+                                    ],
+                                    "status": "Preview",
+                                    "author": "@HeyMeco",
+                                    "condition": "module_steam status",
+                                    "help": "Download the latest arm64 Proton-GE build into Steam compatibility tools. An older copy is replaced. Restart Steam and select the tool per game."
+                                },
+                                {
+                                    "id": "STM007",
+                                    "description": "Remove Proton-CachyOS",
+                                    "short": "Remove Proton-CachyOS",
+                                    "module": "module_steam",
+                                    "command": [
+                                        "module_steam proton-cachyos-remove"
+                                    ],
+                                    "status": "Preview",
+                                    "author": "@HeyMeco",
+                                    "condition": "module_steam proton-cachyos-status",
+                                    "help": "Remove the Proton-CachyOS compatibility tool. Installed games and the Steam client stay in place."
+                                },
+                                {
+                                    "id": "STM008",
+                                    "description": "Remove Proton-GE",
+                                    "short": "Remove Proton-GE",
+                                    "module": "module_steam",
+                                    "command": [
+                                        "module_steam proton-ge-remove"
+                                    ],
+                                    "status": "Preview",
+                                    "author": "@HeyMeco",
+                                    "condition": "module_steam proton-ge-status",
+                                    "help": "Remove the Proton-GE compatibility tool. Installed games and the Steam client stay in place."
+                                },
+                                {
+                                    "id": "STM003",
+                                    "description": "Remove Steam client",
+                                    "command": [
+                                        "module_steam remove"
+                                    ],
+                                    "status": "Preview",
+                                    "author": "@HeyMeco",
+                                    "condition": "module_steam status",
+                                    "help": "Remove the Steam client and Proton trees. Installed games, userdata, and the FEX rootfs stay in place."
+                                },
+                                {
+                                    "id": "STM004",
+                                    "description": "Purge Steam with games and userdata",
+                                    "prompt": "This operation will delete Steam, all installed games, and userdata.\nContinue?",
+                                    "command": [
+                                        "module_steam purge"
+                                    ],
+                                    "status": "Preview",
+                                    "author": "@HeyMeco",
+                                    "condition": "module_steam has_state",
+                                    "help": "Remove Steam, installed games, userdata, the extracted FEX rootfs if this module created it, and the libvpx compatibility link if this module created it."
+                                }
                             ],
-                            "status": "Preview",
-                            "author": "@HeyMeco",
-                            "condition": "! module_steam status",
-                            "help": "Install Valve's public-beta ARM64 Steam client, the latest arm64 Proton-CachyOS and Proton-GE builds, and an extracted FEX Arch rootfs for native x86_64 games."
-                        },
-                        {
-                            "id": "STM002",
-                            "description": "Update Proton-GE and Proton-CachyOS",
-                            "short": "Update Proton",
-                            "module": "module_steam",
-                            "command": [
-                                "module_steam update"
-                            ],
-                            "status": "Preview",
-                            "author": "@HeyMeco",
-                            "condition": "module_steam status",
-                            "help": "Download the latest arm64 Proton-CachyOS and Proton-GE builds, and refresh the extracted FEX Arch rootfs. Older Proton copies are removed. Restart Steam and select the new tool per game."
-                        },
-                        {
-                            "id": "STM003",
-                            "description": "Remove Steam client",
-                            "command": [
-                                "module_steam remove"
-                            ],
-                            "status": "Preview",
-                            "author": "@HeyMeco",
-                            "condition": "module_steam status",
-                            "help": "Remove the Steam client and Proton trees. Installed games, userdata, and the FEX rootfs stay in place."
-                        },
-                        {
-                            "id": "STM004",
-                            "description": "Purge Steam with games and userdata",
-                            "prompt": "This operation will delete Steam, all installed games, and userdata.\nContinue?",
-                            "command": [
-                                "module_steam purge"
-                            ],
-                            "status": "Preview",
-                            "author": "@HeyMeco",
-                            "condition": "module_steam has_state",
-                            "help": "Remove Steam, installed games, userdata, the extracted FEX rootfs if this module created it, and the libvpx compatibility link if this module created it."
+                            "help": "Native ARM64 Steam client and an extracted FEX Arch rootfs. Proton-CachyOS and Proton-GE are optional."
                         }
                     ],
-                    "help": "Native ARM64 Steam client, Proton-CachyOS, Proton-GE, and an extracted FEX Arch rootfs"
+                    "help": "Game clients and compatibility tools"
                 },
                 {
                     "id": "HomeAutomation",

@@ -2,17 +2,23 @@ module_options+=(
 	["module_steam,author"]="@HeyMeco"
 	["module_steam,maintainer"]="@HeyMeco"
 	["module_steam,feature"]="module_steam"
-	["module_steam,example"]="install update remove purge status help"
-	["module_steam,desc"]="Native ARM64 Steam client with Proton-CachyOS and Proton-GE"
+	["module_steam,example"]="install update remove purge status help proton-cachyos proton-ge proton-cachyos-remove proton-ge-remove proton-cachyos-status proton-ge-status"
+	["module_steam,desc"]="Native ARM64 Steam client with optional Proton-CachyOS and Proton-GE"
 	["module_steam,status"]="Active"
 	["module_steam,doc_link"]="https://github.com/armbian/configng/issues/941"
-	["module_steam,group"]="Games"
+	["module_steam,group"]="Gaming"
 	["module_steam,arch"]="arm64"
 	["module_steam,steam_manifest_url"]="https://client-update.fastly.steamstatic.com/steam_client_publicbeta_linuxarm64"
 	["module_steam,steam_cdn"]="https://client-update.steamstatic.com"
-	["module_steam,help_install"]="Install the public-beta ARM64 Steam client, the latest Proton-CachyOS and Proton-GE, and an extracted FEX Arch rootfs"
-	["module_steam,help_update"]="Update Proton-CachyOS and Proton-GE to the latest release, and refresh the extracted FEX Arch rootfs"
+	["module_steam,help_install"]="Install the public-beta ARM64 Steam client and an extracted FEX Arch rootfs"
+	["module_steam,help_update"]="Refresh the extracted FEX Arch rootfs, and update Proton-CachyOS or Proton-GE when that tool is already installed"
 	["module_steam,help_remove"]="Remove the Steam client and Proton trees; keep games, userdata, and the FEX rootfs"
+	["module_steam,help_proton-cachyos"]="Install or update the latest arm64 Proton-CachyOS under compatibilitytools.d"
+	["module_steam,help_proton-ge"]="Install or update the latest arm64 Proton-GE under compatibilitytools.d"
+	["module_steam,help_proton-cachyos-remove"]="Remove Proton-CachyOS from compatibilitytools.d; keep games and the Steam client"
+	["module_steam,help_proton-ge-remove"]="Remove Proton-GE from compatibilitytools.d; keep games and the Steam client"
+	["module_steam,help_proton-cachyos-status"]="Return success when Proton-CachyOS is installed"
+	["module_steam,help_proton-ge-status"]="Return success when Proton-GE is installed"
 	["module_steam,help_purge"]="Remove Steam, games, userdata, the extracted FEX rootfs, and the libvpx shim if this module created it"
 	["module_steam,help_status"]="Return success when the ARM64 Steam client is installed for its user"
 )
@@ -81,12 +87,61 @@ module_steam_paths() {
 	STEAM_DESKTOP="${home}/.local/share/applications/steam.desktop"
 }
 
+#
+# Turn curl's --progress-bar stream into dialog gauge updates. The bar stays
+# below 100 until curl exits, so the dialog does not say the download finished
+# while bytes are still arriving.
+#
+module_steam_curl_gauge() {
+	local label="$1"
+	local line pct
+
+	while IFS= read -r -d $'\r' line; do
+		[[ "$line" =~ ([0-9]{1,3})(\.[0-9]+)?% ]] || continue
+		pct="${BASH_REMATCH[1]}"
+		if (( pct > 99 )); then
+			pct=99
+		fi
+		printf 'XXX\n%s\nDownloading %s\nXXX\n' "$pct" "$label"
+	done
+}
+
 module_steam_fetch() {
 	local user="$1"
 	local url="$2"
 	local dest="$3"
-	echo "Downloading ${url}"
-	runuser -u "$user" -- curl -fL --retry 5 --retry-delay 2 -o "$dest" "$url"
+	local label rc_file curl_rc errexit=0
+
+	label=$(basename "$url")
+	if [[ "${DIALOG:-read}" == "read" ]]; then
+		echo "Downloading ${url}"
+		runuser -u "$user" -- curl -fL --retry 5 --retry-delay 2 -o "$dest" "$url"
+		return
+	fi
+
+	rc_file=$(mktemp)
+	# Curl's meter must feed the gauge. Left on the terminal, it keeps painting
+	# the download after the package step has already shown "install complete".
+	[[ $- == *e* ]] && errexit=1
+	set +e
+	(
+		printf 'XXX\n0\nDownloading %s\nXXX\n' "$label"
+		set +e
+		runuser -u "$user" -- curl -fL --retry 5 --retry-delay 2 --progress-bar -o "$dest" "$url" 2>&1 \
+			| module_steam_curl_gauge "$label"
+		echo "${PIPESTATUS[0]}" > "$rc_file"
+		curl_rc=$(<"$rc_file")
+		if [[ "$curl_rc" == "0" ]]; then
+			printf 'XXX\n100\nDownloaded %s\nXXX\n' "$label"
+		fi
+	) | dialog_gauge "Download" "Downloading ${label}" 8 80
+	(( errexit )) && set -e
+	curl_rc=$(<"$rc_file")
+	rm -f "$rc_file"
+	if [[ "$curl_rc" != "0" ]]; then
+		echo "Failed to download ${url}." >&2
+		return 1
+	fi
 }
 
 #
@@ -180,19 +235,90 @@ module_steam_install_tool() {
 }
 
 #
-# Install or replace the latest arm64 Proton-CachyOS and Proton-GE under
-# compatibilitytools.d.
+# Fill repo, suffix, glob, and label for one optional Proton command.
+# repo is a GitHub releases repo, suffix matches the arm64 asset name,
+# and glob matches every installed copy of that tool.
 #
-module_steam_install_protons() {
+module_steam_proton_spec() {
+	local name="$1"
+	local -n _repo="$2"
+	local -n _suffix="$3"
+	local -n _glob="$4"
+	local -n _label="$5"
+
+	case "$name" in
+		proton-cachyos)
+			_repo="CachyOS/proton-cachyos"
+			_suffix="-arm64.tar.xz"
+			_glob="proton-cachyos-*-arm64"
+			_label="Proton-CachyOS"
+			;;
+		proton-ge)
+			_repo="GloriousEggroll/proton-ge-custom"
+			_suffix="-aarch64.tar.gz"
+			_glob="GE-Proton*-aarch64"
+			_label="Proton-GE"
+			;;
+		*)
+			echo "Unknown Proton tool: ${name}." >&2
+			return 1
+			;;
+	esac
+}
+
+#
+# Return success when compatibilitytools.d already has a directory for glob.
+#
+module_steam_proton_present() {
+	local glob="$1"
+	local found
+
+	[[ -d "$STEAM_COMPAT" ]] || return 1
+	found=$(find "$STEAM_COMPAT" -mindepth 1 -maxdepth 1 -type d -name "$glob" -print -quit 2>/dev/null)
+	[[ -n "$found" ]]
+}
+
+#
+# Install or replace the latest arm64 release of one Proton tool.
+#
+module_steam_install_named_proton() {
 	local user="$1"
 	local work="$2"
-	local url
+	local name="$3"
+	local repo suffix glob label url
 
-	url=$(module_steam_latest_asset CachyOS/proton-cachyos '-arm64.tar.xz') || return 1
-	module_steam_install_tool "$user" "$url" 'proton-cachyos-*-arm64' "$work" || return 1
+	module_steam_proton_spec "$name" repo suffix glob label || return 1
+	url=$(module_steam_latest_asset "$repo" "$suffix") || return 1
+	module_steam_install_tool "$user" "$url" "$glob" "$work"
+}
 
-	url=$(module_steam_latest_asset GloriousEggroll/proton-ge-custom '-aarch64.tar.gz') || return 1
-	module_steam_install_tool "$user" "$url" 'GE-Proton*-aarch64' "$work"
+#
+# Delete every compatibilitytools.d directory that matches glob.
+#
+module_steam_remove_proton_glob() {
+	local glob="$1"
+	local old
+
+	[[ -d "$STEAM_COMPAT" ]] || return 0
+	while IFS= read -r -d '' old; do
+		rm -rf "$old"
+	done < <(find "$STEAM_COMPAT" -mindepth 1 -maxdepth 1 -type d -name "$glob" -print0 2>/dev/null)
+}
+
+#
+# Remove one Proton tool. Games and the Steam client stay.
+#
+module_steam_remove_named_proton() {
+	local name="$1"
+	local repo suffix glob label
+
+	module_steam_proton_spec "$name" repo suffix glob label || return 1
+	if ! module_steam_proton_present "$glob"; then
+		echo "${label} is not installed." >&2
+		return 1
+	fi
+	module_steam_remove_proton_glob "$glob"
+	echo "${label} removed. Installed games were kept."
 }
 
 #
@@ -585,7 +711,7 @@ EOF
 
 module_steam_remove_client() {
 	local user="$1"
-	local home old link
+	local home link
 	local -a links=()
 
 	[[ -n "$user" ]] || return 0
@@ -597,11 +723,11 @@ module_steam_remove_client() {
 	rm -f "${STEAM_ROOT}/package/beta" "${STEAM_ROOT}/.steam-enable-steamrt64-client"
 	rmdir "${STEAM_ROOT}/package" 2>/dev/null || true
 
-	if [[ -d "$STEAM_COMPAT" ]]; then
-		while IFS= read -r -d '' old; do
-			rm -rf "$old"
-		done < <(find "$STEAM_COMPAT" -mindepth 1 -maxdepth 1 -type d \( -name 'proton-cachyos-*-arm64' -o -name 'GE-Proton*-aarch64' \) -print0 2>/dev/null)
-	fi
+	local name repo suffix glob label
+	for name in proton-cachyos proton-ge; do
+		module_steam_proton_spec "$name" repo suffix glob label || return 1
+		module_steam_remove_proton_glob "$glob"
+	done
 
 	links=(
 		"${STEAM_DOT}/steam"
@@ -616,7 +742,8 @@ module_steam_remove_client() {
 }
 
 #
-# Install Valve's public-beta ARM64 Steam client plus Proton-CachyOS and Proton-GE.
+# Install Valve's public-beta ARM64 Steam client. Proton-CachyOS and Proton-GE
+# are separate commands, installed only when chosen.
 #
 function module_steam() {
 	local title="Steam"
@@ -687,20 +814,21 @@ function module_steam() {
 			mkdir -p "$(dirname "$module_steam_user_marker")"
 			printf '%s\n' "$steam_user" > "$module_steam_user_marker"
 
-			module_steam_install_protons "$steam_user" "$work" || return 1
 			module_steam_fex_install "$steam_user" "$home" || return 1
 
 			module_steam_write_desktop "$steam_user" "$STEAM_CLIENT" "$STEAM_DESKTOP"
 			module_steam_deckard "$steam_user" "$STEAM_CLIENT"
 			echo "Steam installed for ${steam_user}. Launch it from the desktop menu and sign in."
 			echo "The first game launch lets Steam download Steam Linux Runtime 4.0 (arm64)."
+			echo "Windows games need Proton-CachyOS or Proton-GE. Install either from the menu."
 			;;
 		"${commands[1]}")
-			local steam_user home work
+			local steam_user home work name repo suffix glob label
+			local -a proton_labels=()
 
 			module_steam_require_arm64 || return 1
 			if ! ${module_options["module_steam,feature"]} "${commands[4]}"; then
-				echo "Steam is not installed. Install it before updating Proton." >&2
+				echo "Steam is not installed. Install it before updating." >&2
 				return 1
 			fi
 
@@ -712,11 +840,23 @@ function module_steam() {
 			work=$(mktemp -d)
 			chown "$steam_user" "$work"
 			trap 'rm -rf "$work"; trap - RETURN' RETURN
-			module_steam_install_protons "$steam_user" "$work" || return 1
+			for name in "${commands[6]}" "${commands[7]}"; do
+				module_steam_proton_spec "$name" repo suffix glob label || return 1
+				module_steam_proton_present "$glob" || continue
+				proton_labels+=("$label")
+				module_steam_install_named_proton "$steam_user" "$work" "$name" || return 1
+			done
 			module_steam_fex_install "$steam_user" "$home" || return 1
 			module_steam_write_desktop "$steam_user" "$STEAM_CLIENT" "$STEAM_DESKTOP"
-			echo "Proton-CachyOS, Proton-GE, and the FEX rootfs are up to date for ${steam_user}."
-			echo "Restart Steam, then pick the new compatibility tool per game."
+			if ((${#proton_labels[@]} == 0)); then
+				echo "FEX rootfs is up to date for ${steam_user}."
+			elif ((${#proton_labels[@]} == 1)); then
+				echo "${proton_labels[0]} and the FEX rootfs are up to date for ${steam_user}."
+				echo "Restart Steam, then pick the compatibility tool per game."
+			else
+				echo "${proton_labels[0]}, ${proton_labels[1]}, and the FEX rootfs are up to date for ${steam_user}."
+				echo "Restart Steam, then pick the compatibility tool per game."
+			fi
 			;;
 		"${commands[2]}")
 			local steam_user
@@ -750,8 +890,55 @@ function module_steam() {
 			;;
 		"${commands[5]}")
 			show_module_help "module_steam" "$title" \
-				"Architecture: arm64 public beta\nProton-CachyOS and Proton-GE: latest arm64 release\nFEX Arch rootfs: ~/.local/share/fex-emu/RootFS/ArchLinux" \
+				"Architecture: arm64 public beta\nProton-CachyOS and Proton-GE: optional, latest arm64 release\nFEX Arch rootfs: ~/.local/share/fex-emu/RootFS/ArchLinux" \
 				"native"
+			;;
+		"${commands[6]}" | "${commands[7]}")
+			local steam_user home work repo suffix glob label
+
+			module_steam_require_arm64 || return 1
+			module_steam_proton_spec "$1" repo suffix glob label || return 1
+			if ! ${module_options["module_steam,feature"]} "${commands[4]}"; then
+				echo "Steam is not installed. Install it before adding ${label}." >&2
+				return 1
+			fi
+
+			steam_user=$(module_steam_installed_user) || return 1
+			home=$(module_steam_user_home "$steam_user")
+			module_steam_paths "$home"
+			pkg_install ca-certificates curl jq xz-utils || return 1
+
+			work=$(mktemp -d)
+			chown "$steam_user" "$work"
+			trap 'rm -rf "$work"; trap - RETURN' RETURN
+			module_steam_install_named_proton "$steam_user" "$work" "$1" || return 1
+			echo "${label} is installed for ${steam_user}."
+			echo "Restart Steam, then pick it as the compatibility tool per game."
+			;;
+		"${commands[8]}" | "${commands[9]}")
+			local steam_user home repo suffix glob label tool
+
+			tool="${1%-remove}"
+			module_steam_proton_spec "$tool" repo suffix glob label || return 1
+			steam_user=$(module_steam_installed_user) || {
+				echo "Could not find the Steam user. ${label} was not removed." >&2
+				return 1
+			}
+			home=$(module_steam_user_home "$steam_user")
+			[[ -n "$home" && "$home" != "/" ]] || return 1
+			module_steam_paths "$home"
+			module_steam_remove_named_proton "$tool"
+			;;
+		"${commands[10]}" | "${commands[11]}")
+			local steam_user home repo suffix glob label tool
+
+			tool="${1%-status}"
+			steam_user=$(module_steam_installed_user 2>/dev/null) || return 1
+			home=$(module_steam_user_home "$steam_user" 2>/dev/null) || return 1
+			[[ -n "$home" && "$home" != "/" ]] || return 1
+			module_steam_paths "$home"
+			module_steam_proton_spec "$tool" repo suffix glob label >/dev/null || return 1
+			module_steam_proton_present "$glob"
 			;;
 		has_state)
 			module_steam_has_state
