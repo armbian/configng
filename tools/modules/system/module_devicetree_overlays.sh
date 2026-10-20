@@ -219,12 +219,15 @@ function _dt_overlays_read_current() {
 #
 # Output the Pi overlays set above `# Armbian config`, one per line.
 # They are enabled, but _dt_overlays_write_config copies them through
-# untouched, so they cannot be changed here. Nothing on Armbian.
+# untouched, so they cannot be changed here. Lines under a filter
+# such as [cm5] apply to some models only, so they are skipped; [all]
+# ends a filter. Nothing on Armbian.
 #
 function _dt_overlays_read_fixed() {
 	[[ "$is_pi" == "true" ]] || return 0
 	awk '/^# Armbian config$/ {exit}
-		/^dtoverlay=/ {sub(/^dtoverlay=/, ""); print}' "$overlayconf"
+		/^\[/ {filtered = ($0 !~ /^\[all\]/); next}
+		!filtered && /^dtoverlay=/ {sub(/^dtoverlay=/, ""); print}' "$overlayconf"
 }
 
 #
