@@ -488,10 +488,19 @@ module_steam_session_env() {
 # names, so the bootstrap uses Steam's own FEX.
 #
 module_steam_binfmt_disable() {
-	local node
-	for node in x86 box32 box64; do
-		[[ "$(head -n 1 "/proc/sys/fs/binfmt_misc/${node}" 2>/dev/null)" == "enabled" ]] || continue
-		echo 0 > "/proc/sys/fs/binfmt_misc/${node}" && printf '%s\n' "$node"
+	local path node magic
+	for path in /proc/sys/fs/binfmt_misc/*; do
+		node="${path##*/}"
+		[[ "$node" == "register" || "$node" == "status" ]] && continue
+		[[ "$(head -n 1 "$path" 2>/dev/null)" == "enabled" ]] || continue
+		magic=$(awk '$1 == "magic" {print $2}' "$path" 2>/dev/null)
+		# ELF magic ending in e_type + e_machine. e_type is ET_EXEC (0200) or
+		# ET_DYN (0300); e_machine is x86_64 (3e00) or i386 (0300).
+		case "$magic" in
+			7f454c46*02003e00|7f454c46*03003e00|7f454c46*02000300|7f454c46*03000300) ;;
+			*) continue ;;
+		esac
+		echo 0 > "$path" && printf '%s\n' "$node"
 	done
 }
 
