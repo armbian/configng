@@ -58,7 +58,7 @@ function module_devicetree_overlays() {
 		"${commands[4]}")
 			# help
 			show_module_help "module_devicetree_overlays" "Device Tree Overlays" \
-				"Examples:\n  module_devicetree_overlays show\n  module_devicetree_overlays install overlays=uart3,spi-spidev\n  module_devicetree_overlays remove overlays=uart3\n  module_devicetree_overlays edit\n\nNotes:\n- install validates every name against the available .dtbo set;\n  if any name is unknown the whole batch is rejected.\n- remove silently skips names that are not currently enabled.\n- The boot config (/boot/armbianEnv.txt or /boot/firmware/config.txt)\n  is rewritten atomically and the previous version kept as <name>.bak." \
+				"Examples:\n  module_devicetree_overlays show\n  module_devicetree_overlays install overlays=uart3,spi-spidev\n  module_devicetree_overlays remove overlays=uart3\n  module_devicetree_overlays edit\n\nNotes:\n- install validates every name against the available .dtbo set;\n  if any name is unknown the whole batch is rejected.\n- remove silently skips names that are not currently enabled.\n- On Raspberry Pi only the '# Armbian config' block of config.txt\n  is managed; overlays set above it are left alone.\n- The boot config (/boot/armbianEnv.txt or /boot/firmware/config.txt)\n  is rewritten atomically and the previous version kept as <name>.bak." \
 				"native"
 			return 0
 		;;
@@ -71,9 +71,11 @@ function module_devicetree_overlays() {
 }
 
 #
-# Resolve $overlayconf, $overlaydir, $overlay_prefix and $is_pi based on
-# the running board. Sets them in the caller's scope. Returns 1 with a
-# user-facing message if the board is incompatible.
+# Resolve $overlayconf, $overlaydir, $overlay_prefix, $overlay_prefixes
+# and $is_pi based on the running board. Sets them in the caller's scope.
+# overlay_prefix is a space-separated list; overlay_prefixes holds its
+# items in order. Returns 1 with a user-facing message if the board is
+# incompatible.
 #
 function _dt_overlays_resolve_paths() {
 	local pi_config="/boot/firmware/config.txt"
@@ -93,11 +95,9 @@ function _dt_overlays_resolve_paths() {
 	# Anchored regex — the unanchored form would also pick up keys like
 	# `something_overlay_prefix_FOO=`.
 	overlay_prefix=$(awk -F= '/^overlay_prefix=/ {print $2}' "$overlayconf" 2>/dev/null)
-
-	if [[ "$is_pi" != "true" ]] && [[ -z $(find "$overlaydir" -name "*${overlay_prefix}*" 2>/dev/null) ]]; then
-		echo "Error: invalid overlay_prefix '${overlay_prefix}'" >&2
-		return 1
-	fi
+	# A prefix that matches no overlay is not an error: the SoC can have
+	# no overlays yet. Discovery then returns nothing.
+	read -r -a overlay_prefixes <<< "$overlay_prefix"
 
 	if [[ ! -f "$overlayconf" || ! -d "$overlaydir" ]]; then
 		echo "Error: incompatible OS configuration — Armbian device tree files not found" >&2
@@ -108,63 +108,135 @@ function _dt_overlays_resolve_paths() {
 }
 
 #
+# Print the scenario bitmap of a boot script (see _dt_overlays_edit).
+# Old scripts use ${overlay_prefix}; list-aware scripts loop over the
+# prefixes with ${overlay_prefix_item}.
+#
+function _dt_overlays_scenario() {
+	awk 'BEGIN{p=0;s=0}
+		/load.*overlays?\/\${overlay_prefix(_item)?}-\${overlay_file}.dtbo/{p=1}
+		/load.*overlays?\/\${overlay_file}.dtbo/{s=1}
+		END{print p s}
+	' "$1" 2>/dev/null
+}
+
+#
+# Print 0 if token $1 (from overlays= or dtoverlay=) names overlay $2
+# (as listed by _dt_overlays_discover): same name, or one of the
+# prefixes plus name. Pi parameters after the first comma are ignored.
+#
+function _dt_overlays_token_matches() {
+	local token="${1%%,*}" overlay="$2" p
+	[[ "$token" == "$overlay" ]] && return 0
+	for p in "${overlay_prefixes[@]}"; do
+		[[ "$token" == "${p}-${overlay}" ]] && return 0
+	done
+	return 1
+}
+
+#
 # Output every overlay name (without the platform prefix) that the
-# board could load, one per line. Honours the same scenario detection
-# as the TUI so we don't offer overlays the boot script can't load.
+# board could load, one per line. With several prefixes, the first
+# prefix that provides a name wins, as in the boot script, and each
+# file is listed once. Honours the same scenario detection as the TUI
+# so we don't offer overlays the boot script can't load.
 #
 function _dt_overlays_discover() {
+	local f name p
+
+	# The Pi firmware loads dtoverlay=<name> by file name; there is no
+	# boot.scr and no prefix.
+	if [[ "$is_pi" == "true" ]]; then
+		for f in "$overlaydir"/*.dtbo; do
+			[[ -e "$f" ]] || continue
+			name="${f##*/}"
+			echo "${name%.dtbo}"
+		done | sort
+		return 0
+	fi
+
 	local boot_scr="/boot/boot.scr"
 
 	# scenario bitmap (see _dt_overlays_edit for the full table)
 	local scenario
-	scenario=$(
-		awk 'BEGIN{p=0;s=0}
-			/load.*overlays?\/\${overlay_prefix}-\${overlay_file}.dtbo/{p=1}
-			/load.*overlays?\/\${overlay_file}.dtbo/{s=1}
-			END{print p s}
-		' "$boot_scr" 2>/dev/null
-	)
+	scenario=$(_dt_overlays_scenario "$boot_scr")
 
 	if [[ "$scenario" == "10" || "$scenario" == "11" ]]; then
-		(
-			set -o pipefail
-			find "$overlaydir"/ -name "${overlay_prefix}*.dtbo" 2>/dev/null | \
-			awk -F'/' -v p="${overlay_prefix}-" '{
-				gsub(p, "", $NF)
-				gsub(".dtbo", "", $NF)
-				print $NF
-			}' | sort
-		)
+		# Nested prefixes (rockchip-rk3568-hk, rockchip-rk3568) match the
+		# same file twice; keep the name of the first prefix only.
+		local -A seen_name=() seen_file=()
+		for p in "${overlay_prefixes[@]}"; do
+			for f in "$overlaydir"/"${p}"-*.dtbo; do
+				[[ -e "$f" ]] || continue
+				name="${f##*/}"
+				name="${name%.dtbo}"
+				name="${name#"${p}-"}"
+				[[ -n "${seen_name[$name]}" || -n "${seen_file[$f]}" ]] && continue
+				seen_name[$name]=1
+				seen_file[$f]=1
+				echo "$name"
+			done
+		done | sort
 	fi
 
 	if [[ "$scenario" == "01" || "$scenario" == "11" ]]; then
 		update_kernel_env
-		if [[ "$BOARDFAMILY" == "rockchip-rk3588" && "$BRANCH" == "vendor" ]]; then
-			(
-				set -o pipefail
-				find "$overlaydir"/ -name '*.dtbo' ! -name "${overlay_prefix}*.dtbo" 2>/dev/null | \
-				awk -F'/' -v p="${overlay_prefix}" '{
-					if ($0 !~ p) {
-						gsub(".dtbo", "", $NF)
-						print $NF
-					}
-				}' | sort
-			)
+		if [[ "$BOARDFAMILY" == "rockchip-rk3588" && "$BRANCH" == vendor* && "${#overlay_prefixes[@]}" -le 1 ]]; then
+			# Installs with one prefix (images before prefix lists): vendor
+			# RK3588 overlays carry many board names; offer the ones the
+			# prefix does not cover by their full name. Images with a list
+			# get board prefixes instead.
+			for f in "$overlaydir"/*.dtbo; do
+				[[ -e "$f" ]] || continue
+				name="${f##*/}"
+				name="${name%.dtbo}"
+				local covered="false"
+				for p in "${overlay_prefixes[@]}"; do
+					[[ "$name" == "${p}-"* ]] && covered="true" && break
+				done
+				[[ "$covered" == "false" ]] && echo "$name"
+			done | sort
 		fi
 	fi
 }
 
 #
-# Output currently-enabled overlay names from the boot config, one per
-# line. On Armbian (armbianEnv.txt) the prefix is already stripped on
-# disk; on Pi (config.txt) we emit whatever is on the dtoverlay= line.
+# Output the overlays this module manages, one per line. On Armbian
+# (armbianEnv.txt) the prefix is already stripped on disk; on Pi
+# (config.txt) only the block below `# Armbian config` is ours, and we
+# emit whatever is on its dtoverlay= lines, parameters included (they
+# can contain '=').
 #
 function _dt_overlays_read_current() {
 	if [[ "$is_pi" == "true" ]]; then
-		awk -F= '/^dtoverlay=/ {print $2}' "$overlayconf"
+		awk '/^# Armbian config$/ {b=1; next}
+			b && /^dtoverlay=/ {sub(/^dtoverlay=/, ""); print}' "$overlayconf"
 	else
 		awk -F= '/^overlays=/ {print $2}' "$overlayconf" | tr ' ' '\n' | awk 'NF'
 	fi
+}
+
+#
+# Output the Pi overlays set above `# Armbian config`, one per line.
+# They are enabled, but _dt_overlays_write_config copies them through
+# untouched, so they cannot be changed here. Nothing on Armbian.
+#
+function _dt_overlays_read_fixed() {
+	[[ "$is_pi" == "true" ]] || return 0
+	awk '/^# Armbian config$/ {exit}
+		/^dtoverlay=/ {sub(/^dtoverlay=/, ""); print}' "$overlayconf"
+}
+
+#
+# Print 0 if overlay $1 is set above `# Armbian config`; see
+# _dt_overlays_read_fixed. The caller provides the `fixed` array.
+#
+function _dt_overlays_is_fixed() {
+	local t
+	for t in "${fixed[@]}"; do
+		_dt_overlays_token_matches "$t" "$1" && return 0
+	done
+	return 1
 }
 
 #
@@ -184,19 +256,26 @@ function _dt_overlays_parse_arg() {
 
 function _dt_overlays_show() {
 	local overlayconf overlaydir overlay_prefix is_pi
+	local -a overlay_prefixes
 	_dt_overlays_resolve_paths || return 1
 
-	local current
+	local current fixed
 	current=$(_dt_overlays_read_current)
-	if [[ -z "$current" ]]; then
+	fixed=$(_dt_overlays_read_fixed)
+	if [[ -z "$current" && -z "$fixed" ]]; then
 		echo "(no overlays currently enabled)"
-	else
-		echo "$current"
+		return 0
 	fi
+	[[ -n "$current" ]] && echo "$current"
+	local t
+	while IFS= read -r t; do
+		[[ -n "$t" ]] && echo "$t (set above \"# Armbian config\", edit by hand)"
+	done <<< "$fixed"
 }
 
 function _dt_overlays_install() {
 	local overlayconf overlaydir overlay_prefix is_pi
+	local -a overlay_prefixes
 	_dt_overlays_resolve_paths || return 1
 
 	local -a requested
@@ -211,7 +290,11 @@ function _dt_overlays_install() {
 	local -a available
 	mapfile -t available < <(_dt_overlays_discover)
 	if [[ "${#available[@]}" -eq 0 ]]; then
-		echo "Error: no overlays available on this board" >&2
+		if [[ "$is_pi" == "true" ]]; then
+			echo "Error: no overlays found in ${overlaydir}" >&2
+		else
+			echo "Error: no overlays in ${overlaydir} match overlay_prefix='${overlay_prefix}'" >&2
+		fi
 		return 1
 	fi
 
@@ -235,17 +318,24 @@ function _dt_overlays_install() {
 	fi
 
 	# Merge: current ∪ requested, dedup, preserve insertion order so
-	# diffs against the previous file stay readable.
-	local -a current
+	# diffs against the previous file stay readable. Overlays set above
+	# `# Armbian config` are already enabled; do not add them again.
+	local -a current fixed
 	mapfile -t current < <(_dt_overlays_read_current)
+	mapfile -t fixed < <(_dt_overlays_read_fixed)
+
+	local -a wanted=()
+	for name in "${requested[@]}"; do
+		_dt_overlays_is_fixed "$name" || wanted+=("$name")
+	done
 
 	local -a merged=()
-	for name in "${current[@]}" "${requested[@]}"; do
+	for name in "${current[@]}" "${wanted[@]}"; do
 		[[ -z "$name" ]] && continue
 		local already="false"
 		local m
 		for m in "${merged[@]}"; do
-			if [[ "$m" == "$name" ]]; then
+			if [[ "$m" == "$name" ]] || _dt_overlays_token_matches "$m" "$name"; then
 				already="true"
 				break
 			fi
@@ -264,12 +354,28 @@ function _dt_overlays_install() {
 
 function _dt_overlays_remove() {
 	local overlayconf overlaydir overlay_prefix is_pi
+	local -a overlay_prefixes
 	_dt_overlays_resolve_paths || return 1
 
 	local -a requested
 	mapfile -t requested < <(_dt_overlays_parse_arg "$@")
 	if [[ "${#requested[@]}" -eq 0 ]]; then
 		echo "Error: no overlays specified (use overlays=foo,bar)" >&2
+		return 1
+	fi
+
+	# Overlays set above `# Armbian config` would survive the rewrite.
+	# Refuse the whole batch rather than report a removal that did not
+	# happen.
+	local -a fixed
+	mapfile -t fixed < <(_dt_overlays_read_fixed)
+	local name
+	local -a stuck=()
+	for name in "${requested[@]}"; do
+		_dt_overlays_is_fixed "$name" && stuck+=("$name")
+	done
+	if [[ "${#stuck[@]}" -gt 0 ]]; then
+		echo "Error: ${stuck[*]} set above \"# Armbian config\" in ${overlayconf}; edit it there by hand." >&2
 		return 1
 	fi
 
@@ -281,11 +387,11 @@ function _dt_overlays_remove() {
 	fi
 
 	local -a kept=()
-	local c name drop
+	local c drop
 	for c in "${current[@]}"; do
 		drop="false"
 		for name in "${requested[@]}"; do
-			if [[ "$c" == "$name" ]]; then
+			if _dt_overlays_token_matches "$c" "$name"; then
 				drop="true"
 				break
 			fi
@@ -384,6 +490,7 @@ function _dt_overlays_write_config() {
 #
 function _dt_overlays_edit() {
 	local overlayconf overlaydir overlay_prefix is_pi
+	local -a overlay_prefixes
 	_dt_overlays_resolve_paths || return 1
 
 	# scenario bitmap:
@@ -393,15 +500,9 @@ function _dt_overlays_edit() {
 	#   11 — both spellings load
 	local boot_scr="/boot/boot.scr"
 	local scenario
-	scenario=$(
-		awk 'BEGIN{p=0;s=0}
-			/load.*overlays?\/\${overlay_prefix}-\${overlay_file}.dtbo/{p=1}
-			/load.*overlays?\/\${overlay_file}.dtbo/{s=1}
-			END{print p s}
-		' "$boot_scr" 2>/dev/null
-	)
+	scenario=$(_dt_overlays_scenario "$boot_scr")
 
-	if [[ "$scenario" == "00" ]]; then
+	if [[ "$is_pi" != "true" && "$scenario" == "00" ]]; then
 		dialog_yesno "Manage devicetree overlays" "    The overlays provided by Armbian cannot be loaded\n    by /boot/boot.scr script.\n" "Exit" "Cancel" 11 44
 		return 0
 	fi
@@ -411,25 +512,37 @@ function _dt_overlays_edit() {
 		local -a options=()
 		local -a available
 		mapfile -t available < <(_dt_overlays_discover)
+		if [[ "${#available[@]}" -eq 0 ]]; then
+			if [[ "$is_pi" == "true" ]]; then
+				dialog_yesno "Manage devicetree overlays" "    No overlays found in\n    ${overlaydir}\n" "Exit" "Cancel" 11 44
+			else
+				dialog_yesno "Manage devicetree overlays" "    No overlay matches\n    overlay_prefix=${overlay_prefix}\n" "Exit" "Cancel" 11 44
+			fi
+			return 0
+		fi
 
-		local overlay status candidate
+		local -a current fixed
+		mapfile -t current < <(_dt_overlays_read_current)
+		mapfile -t fixed < <(_dt_overlays_read_fixed)
+
+		# Overlays set above `# Armbian config` are not listed: unticking
+		# one could not disable it. Name them in the dialog text instead.
+		local note=""
+		[[ "${#fixed[@]}" -gt 0 ]] && note="\nSet above \"# Armbian config\" (edit by hand):\n    ${fixed[*]}\n"
+
+		local overlay status token
 		for overlay in "${available[@]}"; do
 			[[ -z "$overlay" ]] && continue
+			_dt_overlays_is_fixed "$overlay" && continue
 			status="OFF"
-			grep '^overlays=' "$overlayconf" | grep -qwF -- "$overlay" && status="ON"
-			grep '^dtoverlay=' "$overlayconf" | grep -qwF -- "$overlay" && status="ON"
-			if [[ -n "$overlay_prefix" ]]; then
-				candidate="${overlay#$overlay_prefix}"
-				candidate="${candidate#-}"
-			else
-				candidate="$overlay"
-			fi
-			grep '^overlays=' "$overlayconf" | grep -qwF -- "$candidate" && status="ON"
+			for token in "${current[@]}"; do
+				_dt_overlays_token_matches "$token" "$overlay" && status="ON" && break
+			done
 			options+=( "$overlay" "" "$status" )
 		done
 
 		local selection
-		selection=$(dialog_checklist "Manage devicetree overlays" "\nUse <space> to toggle functions and save them.\nExit when you are done.\n\n    overlay_prefix=$overlay_prefix\n " 0 0 0 --cancel-button "Back" --ok-button "Save" -- "${options[@]}")
+		selection=$(dialog_checklist "Manage devicetree overlays" "\nUse <space> to toggle functions and save them.\nExit when you are done.\n\n    overlay_prefix=$overlay_prefix\n${note} " 0 0 0 --cancel-button "Back" --ok-button "Save" -- "${options[@]}")
 		local exit_status=$?
 
 		case "$exit_status" in
@@ -438,18 +551,28 @@ function _dt_overlays_edit() {
 				local newoverlays
 				newoverlays=$(echo "$selection" | sed 's/"//g')
 
-				# Strip overlay_prefix from each selected name so the stored
-				# value matches what u-boot expects in armbianEnv.txt.
+				# Keep enabled overlays the dialog does not list (set by full
+				# name, or by hand); the selection replaces the listed ones.
 				local -a ovs
 				IFS=' ' read -r -a ovs <<< "$newoverlays"
 				newoverlays=""
-				local ov
+				local ov listed
+				for token in "${current[@]}"; do
+					listed="false"
+					for overlay in "${available[@]}"; do
+						_dt_overlays_token_matches "$token" "$overlay" && listed="true" && break
+					done
+					[[ "$listed" == "false" ]] && newoverlays+="$token "
+				done
+				# A selected overlay that is already enabled keeps its stored
+				# spelling, so Pi parameters (foo,param=1) survive a save.
+				local kept
 				for ov in "${ovs[@]}"; do
-					if [[ -n "$overlay_prefix" && "$ov" == "$overlay_prefix"* ]]; then
-						ov="${ov#$overlay_prefix}"
-					fi
-					ov="${ov#-}"
-					newoverlays+="$ov "
+					kept="$ov"
+					for token in "${current[@]}"; do
+						_dt_overlays_token_matches "$token" "$ov" && kept="$token" && break
+					done
+					newoverlays+="$kept "
 				done
 				newoverlays="${newoverlays% }"
 
