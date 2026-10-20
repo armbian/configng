@@ -210,6 +210,14 @@ module_steam_libvpx_shim() {
 	local candidate="" pkg
 
 	[[ -e "$link" ]] && return 0
+	if [[ -L "$link" ]]; then
+		if [[ -f "$module_steam_libvpx_marker" && "$(<"$module_steam_libvpx_marker")" == "$link" ]]; then
+			rm -f "$link"
+		else
+			echo "Warning: ${link} is a dangling link not created by this module." >&2
+			return 0
+		fi
+	fi
 
 	candidate=$(module_steam_libvpx_candidate "$libdir")
 	if [[ -z "$candidate" ]]; then
@@ -228,7 +236,7 @@ module_steam_libvpx_shim() {
 		return 0
 	fi
 
-	ln -s "$candidate" "$link"
+	ln -s "$candidate" "$link" || return 1
 	mkdir -p "$(dirname "$module_steam_libvpx_marker")"
 	printf '%s\n' "$link" > "$module_steam_libvpx_marker"
 }
