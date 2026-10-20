@@ -509,7 +509,7 @@ module_steam_binfmt_enable() {
 module_steam_deckard() {
 	local user="$1"
 	local client="$2"
-	local session_text line home provider prev_int prev_term
+	local session_text line home provider prev_int prev_term prev_hup
 	local -a env_args=() disabled=()
 
 	if ! session_text=$(module_steam_session_env "$user"); then
@@ -527,8 +527,9 @@ module_steam_deckard() {
 
 	prev_int=$(trap -p INT)
 	prev_term=$(trap -p TERM)
+	prev_hup=$(trap -p HUP)
 	mapfile -t disabled < <(module_steam_binfmt_disable)
-	trap 'module_steam_binfmt_enable "${disabled[@]}"; exit 130' INT TERM
+	trap 'module_steam_binfmt_enable "${disabled[@]}"; exit 130' INT TERM HUP
 
 	echo "Running Steam bootstrap (steam -deckard -exitsteam). This can take several minutes."
 	if ! timeout 600 runuser -u "$user" -- env "${env_args[@]}" "$client" -deckard -exitsteam; then
@@ -536,9 +537,10 @@ module_steam_deckard() {
 	fi
 
 	module_steam_binfmt_enable "${disabled[@]}"
-	trap - INT TERM
+	trap - INT TERM HUP
 	eval "$prev_int"
 	eval "$prev_term"
+	eval "$prev_hup"
 }
 
 module_steam_write_desktop() {
