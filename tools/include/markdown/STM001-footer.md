@@ -14,8 +14,9 @@
     - Valve's `steam-launcher` package from `https://repo.steampowered.com/steam/`
     - `steam-libs-amd64` and `steam-libs-i386`
     - The i386 dpkg architecture, when it is not already enabled
+    - Proton-CachyOS and Proton-GE only when you choose those menu entries. Each installs the latest generic x86_64 release into `compatibilitytools.d` and replaces an older copy of the same tool
 
-    **Update Steam** upgrades those packages. The Steam client still updates itself after you launch it.
+    **Update Steam** upgrades the launcher packages and updates a Proton tool only when that tool is already installed. The Steam client still updates itself after you launch it.
 
 === "First launch"
 
@@ -25,6 +26,6 @@
 
 === "Remove and purge"
 
-    - **Remove Proton-CachyOS** or **Remove Proton-GE** deletes that compatibility tool. These entries are arm64 only. Games and the Steam client stay. Each entry is shown only when that tool is installed.
-    - **Remove** on arm64 deletes the client and any Proton-CachyOS or Proton-GE trees. Games, userdata, and the FEX rootfs stay. On amd64 it removes the `steam-launcher` package and the library metapackages. Games and userdata stay, and Valve's apt repository stays so a later install can use it.
+    - **Remove Proton-CachyOS** or **Remove Proton-GE** deletes that compatibility tool for this machine. Games and the Steam client stay. Each entry is shown only when that tool is installed.
+    - **Remove** on arm64 deletes the client and any Proton-CachyOS or Proton-GE trees. Games, userdata, and the FEX rootfs stay. On amd64 it removes the `steam-launcher` package, the library metapackages, and any Proton-CachyOS or Proton-GE trees. Games and userdata stay, and Valve's apt repository stays so a later install can use it.
     - **Purge** deletes `~/.local/share/Steam`, `~/.steam`, and, when this module created them, the extracted FEX rootfs and a `libvpx.so.6` compatibility link. On amd64 it also removes the launcher packages, Valve's apt source, and the repository key. The i386 architecture is not turned back off.
