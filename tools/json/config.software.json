@@ -1248,6 +1248,51 @@
                                 }
                             ],
                             "help": "Native ARM64 Steam client and an extracted FEX Arch rootfs. Proton-CachyOS and Proton-GE are optional."
+                        },
+                        {
+                            "id": "Heroic",
+                            "description": "Heroic Launcher",
+                            "sub": [
+                                {
+                                    "id": "HERO01",
+                                    "description": "Install Heroic Launcher",
+                                    "short": "Heroic Launcher",
+                                    "module": "module_heroic",
+                                    "command": [
+                                        "module_heroic install"
+                                    ],
+                                    "status": "Preview",
+                                    "author": "@HeyMeco",
+                                    "condition": "module_heroic supported && ! module_heroic status",
+                                    "help": "Install the latest Heroic Games Launcher .deb for this machine. amd64 hosts get the x86_64 build and arm64 hosts get the arm64 build."
+                                },
+                                {
+                                    "id": "HERO02",
+                                    "description": "Update Heroic Launcher",
+                                    "short": "Update Heroic",
+                                    "module": "module_heroic",
+                                    "command": [
+                                        "module_heroic update"
+                                    ],
+                                    "status": "Preview",
+                                    "author": "@HeyMeco",
+                                    "condition": "module_heroic status",
+                                    "help": "Replace Heroic with a newer GitHub release for this architecture when one is available. The same version is left in place."
+                                },
+                                {
+                                    "id": "HERO03",
+                                    "description": "Remove Heroic Launcher",
+                                    "module": "module_heroic",
+                                    "command": [
+                                        "module_heroic remove"
+                                    ],
+                                    "status": "Preview",
+                                    "author": "@HeyMeco",
+                                    "condition": "module_heroic status",
+                                    "help": "Remove the heroic package. Games and login data in the home directory stay in place."
+                                }
+                            ],
+                            "help": "Heroic Games Launcher for amd64 and arm64, from the latest GitHub release."
                         }
                     ],
                     "help": "Game clients and compatibility tools"
