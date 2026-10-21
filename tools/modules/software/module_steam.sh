@@ -3,24 +3,24 @@ module_options+=(
 	["module_steam,maintainer"]="@HeyMeco"
 	["module_steam,feature"]="module_steam"
 	["module_steam,example"]="install update remove purge status help proton-cachyos proton-ge proton-cachyos-remove proton-ge-remove proton-cachyos-status proton-ge-status"
-	["module_steam,desc"]="Native ARM64 Steam client with optional Proton-CachyOS and Proton-GE"
+	["module_steam,desc"]="Steam for arm64 and amd64, with optional arm64 Proton-CachyOS and Proton-GE"
 	["module_steam,status"]="Active"
 	["module_steam,doc_link"]="https://github.com/armbian/configng/issues/941"
 	["module_steam,group"]="Gaming"
-	["module_steam,arch"]="arm64"
+	["module_steam,arch"]="x86-64 arm64"
 	["module_steam,steam_manifest_url"]="https://client-update.fastly.steamstatic.com/steam_client_publicbeta_linuxarm64"
 	["module_steam,steam_cdn"]="https://client-update.steamstatic.com"
-	["module_steam,help_install"]="Install the public-beta ARM64 Steam client and an extracted FEX Arch rootfs"
-	["module_steam,help_update"]="Refresh the extracted FEX Arch rootfs, and update Proton-CachyOS or Proton-GE when that tool is already installed"
-	["module_steam,help_remove"]="Remove the Steam client and Proton trees; keep games, userdata, and the FEX rootfs"
+	["module_steam,help_install"]="On arm64, install the public-beta client and an extracted FEX Arch rootfs. On amd64, install Valve's steam-launcher package"
+	["module_steam,help_update"]="On arm64, refresh the FEX rootfs and installed Proton tools. On amd64, upgrade the steam-launcher package"
+	["module_steam,help_remove"]="Remove the Steam client or steam-launcher package; keep games and userdata"
 	["module_steam,help_proton-cachyos"]="Install or update the latest arm64 Proton-CachyOS under compatibilitytools.d"
 	["module_steam,help_proton-ge"]="Install or update the latest arm64 Proton-GE under compatibilitytools.d"
 	["module_steam,help_proton-cachyos-remove"]="Remove Proton-CachyOS from compatibilitytools.d; keep games and the Steam client"
 	["module_steam,help_proton-ge-remove"]="Remove Proton-GE from compatibilitytools.d; keep games and the Steam client"
 	["module_steam,help_proton-cachyos-status"]="Return success when Proton-CachyOS is installed"
 	["module_steam,help_proton-ge-status"]="Return success when Proton-GE is installed"
-	["module_steam,help_purge"]="Remove Steam, games, userdata, the extracted FEX rootfs, and the libvpx shim if this module created it"
-	["module_steam,help_status"]="Return success when the ARM64 Steam client is installed for its user"
+	["module_steam,help_purge"]="Remove Steam, games, and userdata. On arm64 also the FEX rootfs and libvpx shim; on amd64 also Valve's apt repository"
+	["module_steam,help_status"]="Return success when Steam is installed for this machine"
 )
 
 # Marker written only when this module creates the libvpx.so.6 compatibility link.
@@ -38,22 +38,48 @@ module_steam_fex_guest_path="/usr/share/guestos/fex-mesa"
 # and its 256px entry is the same artwork as the 20MB steam.deb hicolor set.
 module_steam_icon_url="https://store.steampowered.com/favicon.ico"
 
+# Valve's apt repository. steam.gpg holds the 2012 repository key and the
+# 2025 steam-launcher key. Both fingerprints are checked before the file is
+# trusted. apt then verifies the steam-launcher .deb against the signed index.
+module_steam_deb_key="/usr/share/keyrings/steam.gpg"
+module_steam_deb_list="/etc/apt/sources.list.d/steam-stable.list"
+module_steam_deb_key_url="https://repo.steampowered.com/steam/archive/stable/steam.gpg"
+module_steam_deb_fingerprints="BA1816EF8E75005FCF5E27A1F24AEA9FB05498B7 DB23C56BF0F377FD02970A2A84706F31879D59CB"
+
+module_steam_arch() {
+	dpkg --print-architecture
+}
+
+module_steam_require_supported() {
+	local arch
+	arch=$(module_steam_arch)
+	case "$arch" in
+		arm64|amd64) return 0 ;;
+	esac
+	echo "Steam requires arm64 or amd64. Detected architecture: ${arch}." >&2
+	return 1
+}
+
 module_steam_require_arm64() {
 	local arch
-	arch=$(dpkg --print-architecture)
+	arch=$(module_steam_arch)
 	[[ "$arch" == "arm64" ]] && return 0
-	echo "Steam ARM64 requires arm64. Detected architecture: ${arch}." >&2
+	echo "This Steam action requires arm64. Detected architecture: ${arch}." >&2
 	return 1
 }
 
 #
 # Return success when managed state remains: the Steam directory, the FEX
-# rootfs this module extracted, or the libvpx shim this module created.
-# Used to gate Purge so it stays visible after Remove.
+# rootfs this module extracted, the libvpx shim this module created, or an
+# installed steam-launcher package. Used to gate Purge so it stays visible
+# after Remove.
 #
 module_steam_has_state() {
 	local user home
 	[[ -f "$module_steam_libvpx_marker" ]] && return 0
+	if module_steam_deb_present; then
+		return 0
+	fi
 	user=$(module_steam_installed_user 2>/dev/null) || return 1
 	home=$(module_steam_user_home "$user" 2>/dev/null) || true
 	[[ -n "$home" && "$home" != "/" ]] || return 1
@@ -829,8 +855,138 @@ module_steam_remove_client() {
 }
 
 #
-# Install Valve's public-beta ARM64 Steam client. Proton-CachyOS and Proton-GE
-# are separate commands, installed only when chosen.
+# Print the primary-key fingerprints in a keyring. Subkey fingerprints are
+# skipped so the check matches the keys Valve publishes, not their encryption
+# subkeys.
+#
+module_steam_deb_fingerprints_of() {
+	local file="$1"
+	gpg --batch --show-keys --with-colons "$file" 2>/dev/null | awk -F: '
+		$1 == "pub" { primary = 1; next }
+		$1 == "sub" { primary = 0; next }
+		$1 == "fpr" && primary { print $10; primary = 0 }
+	'
+}
+
+#
+# Return success when the keyring contains exactly Valve's published keys.
+#
+module_steam_deb_key_ok() {
+	local file="$1"
+	local -A want=()
+	local fp have
+	local count=0
+
+	for fp in $module_steam_deb_fingerprints; do
+		want["$fp"]=1
+	done
+	while IFS= read -r have; do
+		have="${have^^}"
+		[[ -n "$have" ]] || continue
+		[[ -n "${want[$have]+x}" ]] || return 1
+		unset "want[$have]"
+		count=$((count + 1))
+	done < <(module_steam_deb_fingerprints_of "$file")
+	[[ "$count" -gt 0 && ${#want[@]} -eq 0 ]]
+}
+
+module_steam_deb_install_key() {
+	local tmp
+	pkg_install ca-certificates curl gnupg || return 1
+	install -d -m 0755 /usr/share/keyrings
+	tmp=$(mktemp)
+	if ! curl -fsSL --retry 5 --retry-delay 2 -o "$tmp" "$module_steam_deb_key_url"; then
+		rm -f "$tmp"
+		echo "Failed to download the Steam repository key." >&2
+		return 1
+	fi
+	if ! module_steam_deb_key_ok "$tmp"; then
+		rm -f "$tmp"
+		echo "The Steam repository key did not match Valve's published fingerprints." >&2
+		return 1
+	fi
+	install -m 0644 "$tmp" "$module_steam_deb_key"
+	rm -f "$tmp"
+}
+
+module_steam_deb_write_list() {
+	cat > "$module_steam_deb_list" <<EOF
+deb [arch=amd64,i386 signed-by=${module_steam_deb_key}] https://repo.steampowered.com/steam/ stable steam
+EOF
+}
+
+#
+# 32-bit games and steam-libs-i386 need the i386 architecture. Leave it enabled
+# after remove; other packages may depend on it.
+#
+module_steam_deb_enable_i386() {
+	dpkg --print-foreign-architectures | grep -qx i386 && return 0
+	dpkg --add-architecture i386
+}
+
+module_steam_deb_prepare_repo() {
+	module_steam_deb_install_key || return 1
+	module_steam_deb_write_list || return 1
+	module_steam_deb_enable_i386 || return 1
+	pkg_update
+}
+
+module_steam_deb_present() {
+	local pkg
+	for pkg in steam-launcher steam-libs-amd64 steam-libs-i386; do
+		pkg_installed "$pkg" && return 0
+	done
+	return 1
+}
+
+module_steam_deb_install_packages() {
+	pkg_install steam-launcher steam-libs-amd64 steam-libs-i386
+}
+
+module_steam_deb_remove_packages() {
+	local pkg
+	local -a remove=()
+	for pkg in steam-launcher steam-libs-amd64 steam-libs-i386; do
+		pkg_installed "$pkg" && remove+=("$pkg")
+	done
+	[[ ${#remove[@]} -eq 0 ]] && return 0
+	pkg_remove "${remove[@]}"
+}
+
+module_steam_deb_remember_user() {
+	local steam_user
+	steam_user=$(module_desktop_getuser 2>/dev/null || true)
+	[[ -n "$steam_user" ]] && id "$steam_user" >/dev/null 2>&1 || return 0
+	mkdir -p "$(dirname "$module_steam_user_marker")"
+	printf '%s\n' "$steam_user" > "$module_steam_user_marker"
+}
+
+#
+# Install Valve's official amd64 steam-launcher .deb from repo.steampowered.com.
+# The signed apt index checks the package. The client downloads the rest of
+# itself on first launch.
+#
+module_steam_deb_install() {
+	module_steam_deb_prepare_repo || return 1
+	module_steam_deb_install_packages || return 1
+	module_steam_deb_remember_user
+	echo "Steam launcher installed. Launch Steam from the menu and sign in."
+	echo "The client downloads the rest of Steam on first launch."
+}
+
+module_steam_deb_update() {
+	if ! pkg_installed steam-launcher; then
+		echo "Steam is not installed. Install it before updating." >&2
+		return 1
+	fi
+	module_steam_deb_prepare_repo || return 1
+	module_steam_deb_install_packages || return 1
+	echo "Steam launcher is up to date."
+}
+
+#
+# Install Steam. arm64 uses Valve's public-beta client. amd64 uses the official
+# steam-launcher package. Proton-CachyOS and Proton-GE are separate arm64 commands.
 #
 function module_steam() {
 	local title="Steam"
@@ -844,12 +1000,16 @@ function module_steam() {
 		"${commands[0]}")
 			local steam_user home work manifest entry target_file target_sha zip_path
 
-			if ! module_steam_require_arm64; then
+			if ! module_steam_require_supported; then
 				if [[ -t 1 ]]; then
 					dialog_msgbox "${title} not supported" \
-						"The native Steam client install is arm64 only.\n\nDetected architecture: $(dpkg --print-architecture)." 8 60
+						"Steam installs on arm64 and amd64.\n\nDetected architecture: $(module_steam_arch)." 8 60
 				fi
 				return 1
+			fi
+			if [[ "$(module_steam_arch)" == "amd64" ]]; then
+				module_steam_deb_install
+				return
 			fi
 
 			steam_user=$(module_desktop_getuser) || return 1
@@ -913,6 +1073,10 @@ function module_steam() {
 			local steam_user home work name repo suffix glob label
 			local -a proton_labels=()
 
+			if [[ "$(module_steam_arch)" == "amd64" ]]; then
+				module_steam_deb_update
+				return
+			fi
 			module_steam_require_arm64 || return 1
 			if ! ${module_options["module_steam,feature"]} "${commands[4]}"; then
 				echo "Steam is not installed. Install it before updating." >&2
@@ -947,12 +1111,25 @@ function module_steam() {
 			;;
 		"${commands[2]}")
 			local steam_user
+			if [[ "$(module_steam_arch)" == "amd64" ]]; then
+				if ! module_steam_deb_present; then
+					echo "Steam is not installed." >&2
+					return 1
+				fi
+				module_steam_deb_remove_packages || return 1
+				echo "Steam launcher removed. Games and userdata were kept."
+				return
+			fi
 			steam_user=$(module_steam_installed_user || true)
 			module_steam_remove_client "$steam_user"
 			echo "Steam client removed. Games and userdata were kept."
 			;;
 		"${commands[3]}")
 			local steam_user home
+			if [[ "$(module_steam_arch)" == "amd64" ]]; then
+				module_steam_deb_remove_packages || return 1
+				rm -f "$module_steam_deb_list" "$module_steam_deb_key"
+			fi
 			steam_user=$(module_steam_installed_user || true)
 			if [[ -n "$steam_user" ]]; then
 				module_steam_remove_client "$steam_user"
@@ -969,6 +1146,10 @@ function module_steam() {
 			;;
 		"${commands[4]}")
 			local steam_user home
+			if [[ "$(module_steam_arch)" == "amd64" ]]; then
+				pkg_installed steam-launcher
+				return
+			fi
 			steam_user=$(module_steam_installed_user) || return 1
 			home=$(module_steam_user_home "$steam_user")
 			[[ -n "$home" && "$home" != "/" ]] || return 1
@@ -977,7 +1158,7 @@ function module_steam() {
 			;;
 		"${commands[5]}")
 			show_module_help "module_steam" "$title" \
-				"Architecture: arm64 public beta\nProton-CachyOS and Proton-GE: optional, latest arm64 release\nFEX Arch rootfs: ~/.local/share/fex-emu/RootFS/ArchLinux" \
+				"arm64: public-beta client and an extracted FEX Arch rootfs\namd64: steam-launcher from https://repo.steampowered.com/steam/\nProton-CachyOS and Proton-GE: optional arm64 releases" \
 				"native"
 			;;
 		"${commands[6]}" | "${commands[7]}")

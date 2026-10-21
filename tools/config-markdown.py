@@ -196,7 +196,7 @@ def _group_key(item):
 
 
 def _flatten_menu(sub_items):
-    """Collect actions inside a command-less submenu, such as Gaming → Steam Arm64."""
+    """Collect actions inside a command-less submenu, such as Gaming → Steam."""
     flat = []
     for it in sub_items or []:
         if it.get('sub') and not it.get('command'):
