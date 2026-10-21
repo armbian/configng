@@ -1138,6 +1138,168 @@
                     "help": "Manage your finances"
                 },
                 {
+                    "id": "Gaming",
+                    "description": "Game clients and compatibility tools",
+                    "sub": [
+                        {
+                            "id": "Steam",
+                            "description": "Steam",
+                            "condition": "[[ $(dpkg --print-architecture) == arm64 || $(dpkg --print-architecture) == amd64 ]]",
+                            "sub": [
+                                {
+                                    "id": "STM001",
+                                    "description": "Install Steam",
+                                    "short": "Steam",
+                                    "module": "module_steam",
+                                    "command": [
+                                        "module_steam install"
+                                    ],
+                                    "status": "Preview",
+                                    "author": "@HeyMeco",
+                                    "condition": "[[ $(dpkg --print-architecture) == arm64 || $(dpkg --print-architecture) == amd64 ]] && ! module_steam status",
+                                    "help": "On arm64, install Valve's public-beta client and an extracted FEX Arch rootfs. On amd64, install the steam-launcher package from Valve's official repository. Proton-CachyOS and Proton-GE are separate menu entries."
+                                },
+                                {
+                                    "id": "STM002",
+                                    "description": "Update Steam",
+                                    "short": "Update Steam",
+                                    "module": "module_steam",
+                                    "command": [
+                                        "module_steam update"
+                                    ],
+                                    "status": "Preview",
+                                    "author": "@HeyMeco",
+                                    "condition": "[[ $(dpkg --print-architecture) == arm64 || $(dpkg --print-architecture) == amd64 ]] && module_steam status",
+                                    "help": "On arm64, refresh the extracted FEX Arch rootfs and update Proton-CachyOS or Proton-GE when that tool is already installed. On amd64, upgrade the steam-launcher package and update a Proton tool only when that tool is already installed."
+                                },
+                                {
+                                    "id": "STM005",
+                                    "description": "Install or update Proton-CachyOS",
+                                    "short": "Proton-CachyOS",
+                                    "module": "module_steam",
+                                    "command": [
+                                        "module_steam proton-cachyos"
+                                    ],
+                                    "status": "Preview",
+                                    "author": "@HeyMeco",
+                                    "condition": "[[ $(dpkg --print-architecture) == arm64 || $(dpkg --print-architecture) == amd64 ]] && module_steam status",
+                                    "help": "Download the latest Proton-CachyOS build for this machine into Steam compatibility tools. amd64 uses the generic x86_64 archive. An older copy is replaced. Restart Steam and select the tool per game."
+                                },
+                                {
+                                    "id": "STM006",
+                                    "description": "Install or update Proton-GE",
+                                    "short": "Proton-GE",
+                                    "module": "module_steam",
+                                    "command": [
+                                        "module_steam proton-ge"
+                                    ],
+                                    "status": "Preview",
+                                    "author": "@HeyMeco",
+                                    "condition": "[[ $(dpkg --print-architecture) == arm64 || $(dpkg --print-architecture) == amd64 ]] && module_steam status",
+                                    "help": "Download the latest Proton-GE build for this machine into Steam compatibility tools. An older copy is replaced. Restart Steam and select the tool per game."
+                                },
+                                {
+                                    "id": "STM007",
+                                    "description": "Remove Proton-CachyOS",
+                                    "short": "Remove Proton-CachyOS",
+                                    "module": "module_steam",
+                                    "command": [
+                                        "module_steam proton-cachyos-remove"
+                                    ],
+                                    "status": "Preview",
+                                    "author": "@HeyMeco",
+                                    "condition": "[[ $(dpkg --print-architecture) == arm64 || $(dpkg --print-architecture) == amd64 ]] && module_steam proton-cachyos-status",
+                                    "help": "Remove the Proton-CachyOS compatibility tool. Installed games and the Steam client stay in place."
+                                },
+                                {
+                                    "id": "STM008",
+                                    "description": "Remove Proton-GE",
+                                    "short": "Remove Proton-GE",
+                                    "module": "module_steam",
+                                    "command": [
+                                        "module_steam proton-ge-remove"
+                                    ],
+                                    "status": "Preview",
+                                    "author": "@HeyMeco",
+                                    "condition": "[[ $(dpkg --print-architecture) == arm64 || $(dpkg --print-architecture) == amd64 ]] && module_steam proton-ge-status",
+                                    "help": "Remove the Proton-GE compatibility tool. Installed games and the Steam client stay in place."
+                                },
+                                {
+                                    "id": "STM003",
+                                    "description": "Remove Steam client",
+                                    "command": [
+                                        "module_steam remove"
+                                    ],
+                                    "status": "Preview",
+                                    "author": "@HeyMeco",
+                                    "condition": "[[ $(dpkg --print-architecture) == arm64 || $(dpkg --print-architecture) == amd64 ]] && module_steam status",
+                                    "help": "Remove the Steam client and any Proton-CachyOS or Proton-GE trees. On amd64 this also removes the steam-launcher package. Installed games and userdata stay in place."
+                                },
+                                {
+                                    "id": "STM004",
+                                    "description": "Purge Steam with games and userdata",
+                                    "prompt": "This operation will delete Steam, all installed games, and userdata.\nContinue?",
+                                    "command": [
+                                        "module_steam purge"
+                                    ],
+                                    "status": "Preview",
+                                    "author": "@HeyMeco",
+                                    "condition": "[[ $(dpkg --print-architecture) == arm64 || $(dpkg --print-architecture) == amd64 ]] && module_steam has_state",
+                                    "help": "Remove Steam, installed games, and userdata. On arm64 this also removes the extracted FEX rootfs and the libvpx link when this module created them. On amd64 this also removes the steam-launcher package, its library metapackages, and Valve's apt repository."
+                                }
+                            ],
+                            "help": "On arm64, Valve's public-beta client and an extracted FEX Arch rootfs. On amd64, Valve's official steam-launcher package. Proton-CachyOS and Proton-GE are optional on both."
+                        },
+                        {
+                            "id": "Heroic",
+                            "description": "Heroic Launcher",
+                            "condition": "[[ $(dpkg --print-architecture) == arm64 || $(dpkg --print-architecture) == amd64 ]]",
+                            "sub": [
+                                {
+                                    "id": "HERO01",
+                                    "description": "Install Heroic Launcher",
+                                    "short": "Heroic Launcher",
+                                    "module": "module_heroic",
+                                    "command": [
+                                        "module_heroic install"
+                                    ],
+                                    "status": "Preview",
+                                    "author": "@HeyMeco",
+                                    "condition": "[[ $(dpkg --print-architecture) == arm64 || $(dpkg --print-architecture) == amd64 ]] && ! module_heroic status",
+                                    "help": "Install the latest Heroic Games Launcher .deb for this machine. amd64 hosts get the x86_64 build and arm64 hosts get the arm64 build."
+                                },
+                                {
+                                    "id": "HERO02",
+                                    "description": "Update Heroic Launcher",
+                                    "short": "Update Heroic",
+                                    "module": "module_heroic",
+                                    "command": [
+                                        "module_heroic update"
+                                    ],
+                                    "status": "Preview",
+                                    "author": "@HeyMeco",
+                                    "condition": "[[ $(dpkg --print-architecture) == arm64 || $(dpkg --print-architecture) == amd64 ]] && module_heroic status",
+                                    "help": "Replace Heroic with a newer GitHub release for this architecture when one is available. The same version is left in place."
+                                },
+                                {
+                                    "id": "HERO03",
+                                    "description": "Remove Heroic Launcher",
+                                    "module": "module_heroic",
+                                    "command": [
+                                        "module_heroic remove"
+                                    ],
+                                    "status": "Preview",
+                                    "author": "@HeyMeco",
+                                    "condition": "[[ $(dpkg --print-architecture) == arm64 || $(dpkg --print-architecture) == amd64 ]] && module_heroic status",
+                                    "help": "Remove the heroic package. Games and login data in the home directory stay in place."
+                                }
+                            ],
+                            "help": "Heroic Games Launcher for amd64 and arm64, from the latest GitHub release."
+                        }
+                    ],
+                    "help": "Game clients and compatibility tools"
+                },
+                {
                     "id": "HomeAutomation",
                     "description": "Home Automation for control home appliances",
                     "sub": [
