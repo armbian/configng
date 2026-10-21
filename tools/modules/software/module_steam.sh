@@ -34,6 +34,10 @@ module_steam_user_marker="/var/lib/armbian/module_steam-user"
 module_steam_fex_links="https://rootfs.fex-emu.gg/RootFS_links.json"
 module_steam_fex_guest_path="/usr/share/guestos/fex-mesa"
 
+# The linuxarm64 client zip has no launcher icon. The store favicon is 38KB
+# and its 256px entry is the same artwork as the 20MB steam.deb hicolor set.
+module_steam_icon_url="https://store.steampowered.com/favicon.ico"
+
 module_steam_require_arm64() {
 	local arch
 	arch=$(dpkg --print-architecture)
@@ -678,11 +682,88 @@ module_steam_deckard() {
 	eval "$prev_hup"
 }
 
+#
+# Copy the 256px PNG out of a Windows icon. That entry is stored as PNG;
+# width 0 in the directory means 256.
+#
+module_steam_extract_icon() {
+	local ico="$1"
+	local dest="$2"
+	local count i base width height bytes img_off magic
+
+	count=$(od -An -t u2 -j 4 -N 2 "$ico" | tr -d ' ')
+	[[ "$count" =~ ^[0-9]+$ ]] || return 1
+	for ((i = 0; i < count; i++)); do
+		base=$((6 + i * 16))
+		width=$(od -An -t u1 -j "$base" -N 1 "$ico" | tr -d ' ')
+		height=$(od -An -t u1 -j $((base + 1)) -N 1 "$ico" | tr -d ' ')
+		bytes=$(od -An -t u4 -j $((base + 8)) -N 4 "$ico" | tr -d ' ')
+		img_off=$(od -An -t u4 -j $((base + 12)) -N 4 "$ico" | tr -d ' ')
+		[[ "$width" == "0" ]] && width=256
+		[[ "$height" == "0" ]] && height=256
+		[[ "$width" == "256" && "$height" == "256" ]] || continue
+		dd if="$ico" of="$dest" bs=1 skip="$img_off" count="$bytes" status=none
+		magic=$(od -An -t x1 -N 8 "$dest" | tr -d ' ')
+		[[ "$magic" == "89504e470d0a1a0a" ]] || return 1
+		return 0
+	done
+	return 1
+}
+
+#
+# Install the Steam launcher icon into the user's hicolor theme. Set the
+# nameref to the 256px path. Icon=steam stays generic without this file.
+#
+module_steam_install_icons() {
+	local user="$1"
+	local -n icon_path_ref="$2"
+	local home icons work dest group icon
+
+	home=$(module_steam_user_home "$user")
+	[[ -n "$home" && "$home" != "/" ]] || return 1
+	icons="${home}/.local/share/icons/hicolor"
+	icon="${icons}/256x256/apps/steam.png"
+	if [[ -f "$icon" ]]; then
+		icon_path_ref="$icon"
+		return 0
+	fi
+
+	group=$(id -gn "$user")
+	work=$(mktemp -d)
+	chown "$user:$group" "$work"
+	if ! module_steam_fetch "$user" "$module_steam_icon_url" "${work}/favicon.ico"; then
+		rm -rf "$work"
+		echo "Warning: could not download the Steam launcher icon." >&2
+		return 1
+	fi
+	if ! module_steam_extract_icon "${work}/favicon.ico" "${work}/steam.png"; then
+		rm -rf "$work"
+		echo "Warning: the Steam favicon did not contain a 256px icon." >&2
+		return 1
+	fi
+	dest=$(dirname "$icon")
+	runuser -u "$user" -- mkdir -p "$dest"
+	install -o "$user" -g "$group" -m 644 "${work}/steam.png" "$icon"
+	rm -rf "$work"
+	icon_path_ref="$icon"
+}
+
+module_steam_remove_icons() {
+	local home="$1"
+	local icon
+
+	[[ -n "$home" && "$home" != "/" ]] || return 0
+	[[ -d "${home}/.local/share/icons/hicolor" ]] || return 0
+	while IFS= read -r -d '' icon; do
+		rm -f "$icon"
+	done < <(find "${home}/.local/share/icons/hicolor" -type f -path '*/apps/steam.png' -print0 2>/dev/null)
+}
+
 module_steam_write_desktop() {
 	local user="$1"
 	local client="$2"
 	local desktop="$3"
-	local apps home provider exec_line
+	local apps home provider exec_line icon_value icon_path
 
 	apps=$(dirname "$desktop")
 	home=$(module_steam_user_home "$user")
@@ -690,6 +771,11 @@ module_steam_write_desktop() {
 		exec_line="env STEAM_COMPAT_GRAPHICS_PROVIDER=\"${provider}\" \"${client}\""
 	else
 		exec_line="\"${client}\""
+	fi
+	icon_value="steam"
+	icon_path=""
+	if module_steam_install_icons "$user" icon_path; then
+		icon_value="$icon_path"
 	fi
 	runuser -u "$user" -- mkdir -p "$apps"
 	runuser -u "$user" -- tee "$desktop" >/dev/null <<EOF
@@ -699,7 +785,7 @@ Type=Application
 Name=Steam
 Comment=Native ARM64 Steam client
 Exec=${exec_line} %U
-Icon=steam
+Icon=${icon_value}
 Terminal=false
 Categories=Game;
 MimeType=x-scheme-handler/steam;x-scheme-handler/steamlink;
@@ -739,6 +825,7 @@ module_steam_remove_client() {
 		[[ -L "$link" ]] && rm -f "$link"
 	done
 	rm -f "$STEAM_DESKTOP"
+	module_steam_remove_icons "$home"
 }
 
 #
