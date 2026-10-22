@@ -443,7 +443,7 @@ module_steam_fex_pad_hash() {
 #
 module_steam_fex_xxh3() {
 	local file="$1" sum
-	sum=$(xxhsum -H3 "$file" | awk '{print $1}')
+	sum=$(xxhsum -H3 < "$file" | awk '{print ($1 ~ /^XXH3_/) ? $1 : $NF}')
 	sum="${sum#XXH3_}"
 	[[ -n "$sum" ]] || return 1
 	module_steam_fex_pad_hash "$sum"
@@ -1043,7 +1043,7 @@ function module_steam() {
 			module_steam_paths "$home"
 
 			pkg_update || return 1
-			pkg_install ca-certificates curl jq unzip xz-utils libibus-1.0-5 libva2 || return 1
+			pkg_install ca-certificates curl jq libarchive-tools xz-utils libibus-1.0-5 libva2 libopenal1 steam-devices || return 1
 			module_steam_libvpx_shim || return 1
 
 			work=$(mktemp -d)
@@ -1066,7 +1066,7 @@ function module_steam() {
 			zip_path="${work}/linuxarm64.zip"
 			module_steam_fetch "$steam_user" "${steam_cdn}/${target_file}" "$zip_path" || return 1
 			module_steam_verify "$zip_path" sha256 "$target_sha" || return 1
-			runuser -u "$steam_user" -- unzip -o "$zip_path" -d "$STEAM_ROOT" || return 1
+			runuser -u "$steam_user" -- bsdtar -xf "$zip_path" -C "$STEAM_ROOT" -s ',\\,/,g' || return 1
 			if [[ ! -f "$STEAM_CLIENT" ]]; then
 				echo "Steam client binary missing after extract." >&2
 				return 1
