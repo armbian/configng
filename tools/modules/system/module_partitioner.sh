@@ -94,9 +94,11 @@ partitioner_emmc_device() {
 # platform_install.sh): the engine calls it as
 #   write_uboot_platform_mtd "$DIR" "/dev/<first-entry>" "$LOG" "$INSTALL_MTD_LIST"
 # i.e. the FIRST list entry (with any ":label" stripped) is the primary boot
-# device, and the FULL list is passed as the last argument. Implementations
+# device, and the FULL list is passed as the 4th argument. Implementations
 # should accept both the "mtdblockN" and "mtdN:label" forms and pick the right
-# partition(s) to flash from the full list.
+# partition(s) to flash from the full list. When the board declares
+# BOOTLOADER_MTD_IMAGE (and optionally BOOTLOADER_MTD_IMAGE_SATA), the engine
+# passes the image for the install target as a 5th argument; write only that.
 # platform_install.sh may also set BOOTLOADER_NAME (default "u-boot") to name
 # the firmware it writes in the bootloader flash messages, and
 # BOOTLOADER_BOOTS_FROM to list the disk roles (nvme sata usb) its bootloader
