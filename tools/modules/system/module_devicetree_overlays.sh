@@ -272,7 +272,9 @@ function _dt_overlays_show() {
 	[[ -n "$current" ]] && echo "$current"
 	local t
 	while IFS= read -r t; do
-		[[ -n "$t" ]] && echo "$t (set above \"# Armbian config\", edit by hand)"
+		if [[ -n "$t" ]]; then
+			echo "$t (set above \"# Armbian config\", edit by hand)"
+		fi
 	done <<< "$fixed"
 }
 
@@ -455,6 +457,8 @@ function _dt_overlays_write_config() {
 				cat "$conf"
 			fi
 			echo "# Armbian config"
+			# End a filter such as [cm5] left open above the block.
+			echo "[all]"
 			local ov
 			while IFS= read -r ov; do
 				[[ -z "$ov" ]] && continue
