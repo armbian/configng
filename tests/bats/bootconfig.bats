@@ -401,6 +401,25 @@ _extlinux_fixture() {
 	unset -f write_uboot_platform_mtd write_uboot_platform_ufs write_uboot_platform
 }
 
+@test "bootloader write: mtd passes the image for the install target" {
+	write_uboot_platform_mtd() { echo "args=$#:${5:-}"; }
+	BOOTLOADER_MTD_IMAGE="spi.bin" BOOTLOADER_MTD_IMAGE_SATA="spi-sata.bin"
+	_install_rootfs_tran() { echo nvme; }
+	run install_write_bootloader mtd /dev/mtdblock0 "$TMP" /dir mtdblock0
+	[ "$output" = "args=5:/dir/spi.bin" ]
+	_install_rootfs_tran() { echo sata; }
+	run install_write_bootloader mtd /dev/mtdblock0 "$TMP" /dir mtdblock0
+	[ "$output" = "args=5:/dir/spi-sata.bin" ]
+	_install_rootfs_tran() { echo usb; }
+	run install_write_bootloader mtd /dev/mtdblock0 "$TMP" /dir mtdblock0
+	[ "$output" = "args=5:/dir/spi.bin" ]
+	# A board without a declared image keeps the 4-argument call.
+	unset BOOTLOADER_MTD_IMAGE BOOTLOADER_MTD_IMAGE_SATA
+	run install_write_bootloader mtd /dev/mtdblock0 "$TMP" /dir mtdblock0
+	[ "$output" = "args=4:" ]
+	unset -f write_uboot_platform_mtd _install_rootfs_tran
+}
+
 @test "bootloader available: native needs Raspberry Pi-style firmware" {
 	# native writes a plain FAT32 boot partition only the board's own firmware
 	# reads; on anything else the target would never boot, so it must report

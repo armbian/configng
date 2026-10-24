@@ -719,6 +719,31 @@ install_bootloader_available() {
 	esac
 }
 
+# Transport (sata, nvme, usb, ...) of the disk that holds <rootfs_mount>.
+# Overridable in tests. Impure: reads the live layout.
+_install_rootfs_tran() {
+	local src disk
+	src="$(findmnt -no SOURCE --nofsroot --target "$1" 2>/dev/null)"
+	[[ "$src" == /dev/* ]] || return 0
+	disk="$(lsblk -no PKNAME "$src" 2>/dev/null | head -1)"
+	[[ -n "$disk" ]] || return 0
+	lsblk -ndo TRAN "/dev/$disk" 2>/dev/null | head -1
+}
+
+install_mtd_image() {
+	# install_mtd_image <rootfs_mount> <uboot_dir>
+	# Echo the SPI image that boots the disk holding <rootfs_mount>. The board
+	# declares BOOTLOADER_MTD_IMAGE and BOOTLOADER_MTD_IMAGE_SATA in
+	# platform_install.sh. A SATA image can switch a shared M.2 slot to SATA, so
+	# use it only for a SATA disk. Echo nothing when the board declares no image.
+	[[ -n "${BOOTLOADER_MTD_IMAGE:-}" ]] || return 0
+	if [[ -n "${BOOTLOADER_MTD_IMAGE_SATA:-}" && "$(_install_rootfs_tran "$1")" == sata ]]; then
+		echo "$2/$BOOTLOADER_MTD_IMAGE_SATA"
+	else
+		echo "$2/$BOOTLOADER_MTD_IMAGE"
+	fi
+}
+
 install_write_bootloader() {
 	# install_write_bootloader <boot_mode> <target_disk> <rootfs_mount> [uboot_dir] [mtd_list] [ufs_boot_lun]
 	# Dispatches to the board-provided u-boot hooks (sourced at runtime from
@@ -737,7 +762,8 @@ install_write_bootloader() {
 			install_grub_install "$rootfs" bios "$disk" ;;
 		mtd)
 			[[ "$(type -t write_uboot_platform_mtd)" == function ]] || { install_log ERR "bootloader: write_uboot_platform_mtd missing"; return "$INSTALL_EX_BOOTLOADER"; }
-			write_uboot_platform_mtd "$uboot_dir" "/dev/${mtd_list%% *}" "$INSTALL_LOG" "$mtd_list" \
+			local mtd_image; mtd_image="$(install_mtd_image "$rootfs" "$uboot_dir")"
+			write_uboot_platform_mtd "$uboot_dir" "/dev/${mtd_list%% *}" "$INSTALL_LOG" "$mtd_list" ${mtd_image:+"$mtd_image"} \
 				|| { install_log ERR "bootloader: MTD write failed"; return "$INSTALL_EX_BOOTLOADER"; } ;;
 		ufs)
 			[[ "$(type -t write_uboot_platform_ufs)" == function ]] || { install_log ERR "bootloader: write_uboot_platform_ufs missing"; return "$INSTALL_EX_BOOTLOADER"; }
