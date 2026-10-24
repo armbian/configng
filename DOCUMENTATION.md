@@ -310,6 +310,11 @@ sudo armbian-config
     - ### Purge Wallos subscription tracker
 
 
+  - ### Game clients and compatibility tools
+    - ### Steam
+    - ### Heroic Launcher
+
+
   - ### Home Automation for control home appliances
     - ### Domoticz open source home automation
     - ### Domoticz remove
@@ -746,6 +751,20 @@ Outputs:
 	--cmd WAL001 - Install Wallos subscription tracker
 	--cmd WAL002 - Remove Wallos subscription tracker (http://localhost:8282)
 	--cmd WAL003 - Purge Wallos subscription tracker
+    Gaming - Game clients and compatibility tools
+      Steam - Steam
+	--cmd STM001 - Install Steam
+	--cmd STM002 - Update Steam
+	--cmd STM005 - Install or update Proton-CachyOS
+	--cmd STM006 - Install or update Proton-GE
+	--cmd STM007 - Remove Proton-CachyOS
+	--cmd STM008 - Remove Proton-GE
+	--cmd STM003 - Remove Steam client
+	--cmd STM004 - Purge Steam with games and userdata
+      Heroic - Heroic Launcher
+	--cmd HERO01 - Install Heroic Launcher
+	--cmd HERO02 - Update Heroic Launcher
+	--cmd HERO03 - Remove Heroic Launcher
     HomeAutomation - Home Automation for control home appliances
 	--cmd DOM001 - Domoticz open source home automation
 	--cmd DOM002 - Domoticz remove (http://localhost:8780)
@@ -1131,6 +1150,16 @@ Jobs:
 No commands available
 ~~~
 
+### Gaming
+
+Game clients and compatibility tools
+
+Jobs:
+
+~~~
+No commands available
+~~~
+
 ### HomeAutomation
 
 Home Automation for control home appliances
@@ -1395,6 +1424,8 @@ parse_menu_items 'menu_options_array' --with-help | @viraniac
 | Default module implementation | disable enable help install remove status | @dimitry-ishenko 
 | change_system_hostname | change_system_hostname | @igorpecovnik 
 | Install netalertx container | install remove purge status help | @jokob-sk 
+| Steam for arm64 and amd64, with optional Proton-CachyOS and Proton-GE | install update remove purge status help proton-cachyos proton-ge proton-cachyos-remove proton-ge-remove proton-cachyos-status proton-ge-status | @HeyMeco 
+| Heroic Games Launcher for amd64 and arm64 | install update remove status help | @HeyMeco 
 | Restart service | srv_restart ssh.service | @dimitry-ishenko 
 | Update package repository | pkg_update | @dimitry-ishenko 
 | Display a menu dialog using the configured dialog tool. Supports --item-help for additional help text per item. | dialog_menu "Title" "Prompt" option1 "Description 1" option2 "Description 2"
