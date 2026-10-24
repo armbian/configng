@@ -1,0 +1,73 @@
+#!/bin/sh
+# Armbian Chromium launcher
+# =========================
+# Drop-in replacement for /usr/bin/chromium that exists for one
+# reason: the stock launcher shipped by Debian/Ubuntu applies plain
+# POSIX word-splitting to $CHROMIUM_FLAGS before passing it to the
+# browser binary, which makes it impossible to put any flag with a
+# quoted spaced value into /etc/chromium.d/ drop-ins.
+#
+# That matters because Armbian needs to set things like
+# --user-agent="Mozilla/5.0 (X11; CrOS aarch64 15359.58.0) ..." from
+# /etc/chromium.d/armbian-widevine so Netflix and other DRM players
+# work out of the box on ARM64 desktops. The upstream wrapper throws
+# those quotes away; this one preserves them by exec'ing through eval.
+#
+# Activation: /usr/bin/chromium is dpkg-diverted to
+# /usr/bin/chromium.upstream at branding time, and a symlink
+# /usr/bin/chromium -> /usr/bin/chromium.armbian (this file) takes its
+# place. Apt upgrades of the chromium package land in .upstream and
+# leave the symlink untouched.
+#
+# The behavioural contract with the caller matches the upstream
+# wrapper closely: same env vars, same /etc/chromium.d/ sourcing
+# rules, same CHROME_WRAPPER / CHROME_DESKTOP exports. Features the
+# upstream wrapper adds that we intentionally skip (they're not
+# expected to be used in an Armbian desktop default flow):
+#   * SSE3 / NEON instruction-set preflight — Armbian only ships on
+#     ARM with NEON and on amd64 with SSE3, always.
+#   * -g / --debug gdb harness — available via
+#     /usr/bin/chromium.upstream -g if the user wants it.
+#   * --temp-profile, --enable-remote-extensions flag pre-parsing —
+#     users who need them can still pass them through; they reach
+#     chromium unmodified as part of "$@".
+#
+# If /usr/bin/chromium.upstream is missing (branding never ran, or
+# the divert was removed), we exec the non-diverted path directly so
+# the script degrades to a thin pass-through rather than breaking.
+
+APPNAME=chromium
+LIBDIR=/usr/lib/$APPNAME
+CHROMIUM_FLAGS=""
+
+# Crash report rotation mirrors the upstream wrapper (Debian #1015931).
+if [ -d "$HOME/.config/chromium/Crash Reports/pending/" ]; then
+	find "$HOME/.config/chromium/Crash Reports/pending/" -mtime +30 \
+		\( -name "*.meta" -o -name "*.dmp" \) -exec rm {} \; 2>/dev/null
+fi
+
+# Source /etc/chromium.d/ drop-ins (README and *.dpkg-* backups excluded,
+# same logic as upstream).
+if [ -d /etc/chromium.d ]; then
+	for file in /etc/chromium.d/*; do
+		[ "$file" = /etc/chromium.d/README ] && continue
+		case "$file" in
+			*.dpkg-*) continue ;;
+		esac
+		[ -r "$file" ] && . "$file"
+	done
+fi
+
+# Match the export surface the upstream wrapper sets so chromium's
+# auto-discovery of its own launcher and .desktop file keeps working.
+[ -z "$CHROME_WRAPPER" ] && export CHROME_WRAPPER=/usr/bin/$APPNAME
+export CHROME_DESKTOP=chromium.desktop
+
+# If a caller wants to tag the chromium "about" version label, they can
+# set CHROME_VERSION_EXTRA themselves. We don't override an upstream one.
+
+# The whole reason this wrapper exists: exec through eval so any flag
+# in $CHROMIUM_FLAGS that contains quoted spaces (e.g.
+# --user-agent="Mozilla/5.0 ...") is word-split correctly rather than
+# shattered into garbage tokens.
+eval "exec \"\$LIBDIR/\$APPNAME\" $CHROMIUM_FLAGS \"\$@\""
