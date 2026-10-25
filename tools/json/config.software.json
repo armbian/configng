@@ -2046,28 +2046,28 @@
                         },
                         {
                             "id": "OBS001",
-                            "description": "OBS Studio with Rockchip hardware encoding",
+                            "description": "OBS Studio with hardware acceleration",
                             "short": "OBS Studio",
-                            "module": "module_obs_rockchip",
+                            "module": "module_obs",
                             "command": [
-                                "module_obs_rockchip install"
+                                "module_obs install"
                             ],
                             "status": "Preview",
                             "author": "@HeyMeco",
-                            "condition": "module_obs_rockchip supported && ! module_obs_rockchip status",
-                            "help": "Install OBS Studio built with Rockchip MPP H.264/HEVC encoders, the RK3588 HDMI input source and the MIPI CSI camera source. Offered only on arm64 Rockchip boards running Debian Trixie or Ubuntu Resolute. Hardware encoding needs a vendor kernel that provides /dev/mpp_service. Replaces the distribution's obs-studio."
+                            "condition": "module_obs supported && ! module_obs status",
+                            "help": "Install OBS Studio. Hardware acceleration is auto-selected for the board: the Rockchip MPP build (H.264/HEVC encoders, RK3588 HDMI input and MIPI CSI camera) on arm64 Rockchip RK3588 running Debian Trixie or Ubuntu Resolute, otherwise the distribution's obs-studio which uses NVIDIA NVENC or Intel/AMD VAAPI at runtime, falling back to x264 software encoding."
                         },
                         {
                             "id": "OBS002",
-                            "description": "Remove OBS Studio for Rockchip",
-                            "module": "module_obs_rockchip",
+                            "description": "Remove OBS Studio",
+                            "module": "module_obs",
                             "command": [
-                                "module_obs_rockchip remove"
+                                "module_obs remove"
                             ],
                             "status": "Preview",
                             "author": "@HeyMeco",
-                            "condition": "module_obs_rockchip status",
-                            "help": "Remove the obs-studio-rockchip package. OBS scenes, profiles and settings in the home directory stay in place."
+                            "condition": "module_obs status",
+                            "help": "Remove the OBS Studio package. OBS scenes, profiles and settings in the home directory stay in place."
                         },
                         {
                             "id": "OMV001",
