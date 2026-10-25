@@ -2045,6 +2045,31 @@
                             "help": "Nextcloud purge with data folder"
                         },
                         {
+                            "id": "OBS001",
+                            "description": "OBS Studio with Rockchip hardware encoding",
+                            "short": "OBS Studio",
+                            "module": "module_obs_rockchip",
+                            "command": [
+                                "module_obs_rockchip install"
+                            ],
+                            "status": "Preview",
+                            "author": "@HeyMeco",
+                            "condition": "module_obs_rockchip supported && ! module_obs_rockchip status",
+                            "help": "Install OBS Studio built with Rockchip MPP H.264/HEVC encoders, the RK3588 HDMI input source and the MIPI CSI camera source. Offered only on arm64 Rockchip boards running Debian Trixie or Ubuntu Resolute. Hardware encoding needs a vendor kernel that provides /dev/mpp_service. Replaces the distribution's obs-studio."
+                        },
+                        {
+                            "id": "OBS002",
+                            "description": "Remove OBS Studio for Rockchip",
+                            "module": "module_obs_rockchip",
+                            "command": [
+                                "module_obs_rockchip remove"
+                            ],
+                            "status": "Preview",
+                            "author": "@HeyMeco",
+                            "condition": "module_obs_rockchip status",
+                            "help": "Remove the obs-studio-rockchip package. OBS scenes, profiles and settings in the home directory stay in place."
+                        },
+                        {
                             "id": "OMV001",
                             "description": "Deploy NAS using OpenMediaVault",
                             "short": "OMV",
