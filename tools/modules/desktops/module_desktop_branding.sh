@@ -131,6 +131,50 @@ function module_desktop_branding() {
 				cp -R "$desktop_dir/greeters/sddm/themes/"* /usr/share/sddm/themes/ 2>/dev/null || true
 			fi
 
+			# GDM greeter: drop the distributor logo. Debian's desktop-base
+			# ships greeter.dconf-defaults with
+			#   logo='/usr/share/images/vendor-logos/logo-text-version-64.png'
+			# which renders the "Debian 13" logo on the GNOME login screen.
+			# Blank it for a clean, logo-less dark greeter (GDM's default
+			# background is already a plain dark colour — we deliberately do
+			# not set a wallpaper here). Only touches the file if GDM is present.
+			if [[ -f /etc/gdm3/greeter.dconf-defaults ]]; then
+				if grep -qE '^[[:space:]]*logo=' /etc/gdm3/greeter.dconf-defaults; then
+					sed -i "s|^[[:space:]]*logo=.*|logo=''|" /etc/gdm3/greeter.dconf-defaults
+				elif grep -q '^\[org/gnome/login-screen\]' /etc/gdm3/greeter.dconf-defaults; then
+					sed -i "/^\[org\/gnome\/login-screen\]/a logo=''" /etc/gdm3/greeter.dconf-defaults
+				fi
+			fi
+
+			# Plymouth BOOT splash branding (Debian-based builds).
+			# The stock Debian plymouth initramfs hook
+			# /usr/share/initramfs-tools/hooks/plymouth overwrites EVERY
+			# two-step theme's watermark.png inside the initramfs with
+			# /usr/share/desktop-base/debian-logos/logo-text-version-64.png.
+			# So the *boot* splash shows the Debian logo even when the theme
+			# is Armbian — while the *shutdown* splash (rendered from the
+			# rootfs theme, which the hook never touches) correctly shows
+			# Armbian. Point those vendor logos at the Armbian watermark so
+			# the hook bakes the right image into the initramfs. This is a
+			# Debian-wide quirk; Ubuntu's plymouth hook does not do this.
+			local armbian_wm="/usr/share/plymouth/themes/armbian/watermark.png"
+			if [[ -f "$armbian_wm" ]]; then
+				local baked=0
+				for s in 64 128 256; do
+					local dl="/usr/share/desktop-base/debian-logos/logo-text-version-${s}.png"
+					if [[ -f "$dl" ]]; then
+						cp "$armbian_wm" "$dl" && baked=1
+					fi
+				done
+				# Regenerate the initramfs so the boot watermark takes effect.
+				# The image build rebuilds the initramfs again at the end, so
+				# this is redundant there but required when run on a live
+				# system; non-fatal if there is no kernel/initramfs yet.
+				if [[ "$baked" == 1 ]] && command -v update-initramfs >/dev/null 2>&1; then
+					update-initramfs -u >/dev/null 2>&1 || true
+				fi
+			fi
+
 			# DE-specific postinst script. Runs unconditionally — including
 			# inside the build chroot. The skip-in-container guard that used
 			# to wrap this block silently dropped wallpaper / dconf / theme
