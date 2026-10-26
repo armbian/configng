@@ -22,8 +22,11 @@ function module_openssh-server () {
 		if ! module_docker status >/dev/null 2>&1; then
 			module_docker install
 		fi
-		# Containers can't run when Docker's data-root is on overlay (overlayroot)
-		docker_check_overlay_root || return 1
+		# Containers can't run when Docker's storage is on overlay (overlayroot);
+		# remove and purge still work there
+		if [[ "$1" == "install" ]]; then
+			docker_check_overlay_root || return 1
+		fi
 	fi
 
 	local container=$(docker container ls -a --filter "name=openssh-server" --format '{{.ID}}' 2>/dev/null) || echo ""
