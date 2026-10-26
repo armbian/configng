@@ -145,12 +145,14 @@ function module_armbian_upgrades () {
 			Unattended-Upgrade::Remove-Unused-Dependencies "true";
 
 			// Automatically reboot *WITHOUT CONFIRMATION* if
-			//  the file /var/run/reboot-required is found after the upgrade
-			Unattended-Upgrade::Automatic-Reboot "true";
+			//  the file /var/run/reboot-required is found after the upgrade.
+			// Disabled by default — Armbian does not reboot unattended; the
+			// user reboots when convenient (toggle via armbian-config).
+			Unattended-Upgrade::Automatic-Reboot "false";
 
 			// Automatically reboot even if there are users currently logged in
 			// when Unattended-Upgrade::Automatic-Reboot is set to true
-			Unattended-Upgrade::Automatic-Reboot-WithUsers "true";
+			Unattended-Upgrade::Automatic-Reboot-WithUsers "false";
 			EOT
 
 		;;
