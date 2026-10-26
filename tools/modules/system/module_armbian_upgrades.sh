@@ -32,9 +32,9 @@ function module_armbian_upgrades () {
 			# drop the generated config (current + legacy names) so no
 			# periodic/unattended settings linger after disabling.
 			rm -f /etc/apt/apt.conf.d/20-armbian-auto-upgrades \
-			      /etc/apt/apt.conf.d/50-armbian-unattended-upgrades \
-			      /etc/apt/apt.conf.d/20auto-upgrades \
-			      /etc/apt/apt.conf.d/50unattended-upgrades
+				/etc/apt/apt.conf.d/50-armbian-unattended-upgrades \
+				/etc/apt/apt.conf.d/20auto-upgrades \
+				/etc/apt/apt.conf.d/50unattended-upgrades
 		;;
 		"${commands[2]}")
 			# read values from 20-armbian-auto-upgrades
@@ -169,7 +169,7 @@ function module_armbian_upgrades () {
 			# 50unattended-upgrades sorts AFTER 50-armbian-unattended-upgrades, a
 			# leftover would override these settings (e.g. re-enable auto reboot).
 			rm -f /etc/apt/apt.conf.d/20auto-upgrades \
-			      /etc/apt/apt.conf.d/50unattended-upgrades
+				/etc/apt/apt.conf.d/50unattended-upgrades
 
 		;;
 		"${commands[5]}")
