@@ -29,6 +29,12 @@ function module_armbian_upgrades () {
 		;;
 		"${commands[1]}")
 			pkg_remove unattended-upgrades
+			# drop the generated config (current + legacy names) so no
+			# periodic/unattended settings linger after disabling.
+			rm -f /etc/apt/apt.conf.d/20-armbian-auto-upgrades \
+			      /etc/apt/apt.conf.d/50-armbian-unattended-upgrades \
+			      /etc/apt/apt.conf.d/20auto-upgrades \
+			      /etc/apt/apt.conf.d/50unattended-upgrades
 		;;
 		"${commands[2]}")
 			# read values from 20-armbian-auto-upgrades
@@ -155,6 +161,15 @@ function module_armbian_upgrades () {
 			// when Unattended-Upgrade::Automatic-Reboot is set to true
 			Unattended-Upgrade::Automatic-Reboot-WithUsers "false";
 			EOT
+
+			# Remove any legacy / distro-named files so they cannot shadow the
+			# Armbian-named ones. Older armbian-config and the Debian/Ubuntu
+			# unattended-upgrades package both use 20auto-upgrades /
+			# 50unattended-upgrades; since apt merges all of apt.conf.d and
+			# 50unattended-upgrades sorts AFTER 50-armbian-unattended-upgrades, a
+			# leftover would override these settings (e.g. re-enable auto reboot).
+			rm -f /etc/apt/apt.conf.d/20auto-upgrades \
+			      /etc/apt/apt.conf.d/50unattended-upgrades
 
 		;;
 		"${commands[5]}")
