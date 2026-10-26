@@ -3,6 +3,28 @@
 #
 
 #
+# Warn when Docker's data-root is on an overlay filesystem
+# Usage: docker_check_overlay_root
+# Returns: 0 if ok, 1 if the data-root is on overlay (after warning)
+#
+# With overlayroot enabled the root fs is overlay, so /var/lib/docker lives on
+# overlay too. Docker's overlay storage driver cannot stack overlay-on-overlay,
+# and containers fail to start with a cryptic "overlay ... invalid argument".
+# Catch it early with a clear, actionable message instead.
+#
+docker_check_overlay_root() {
+	local data_root fstype
+	data_root=$(docker info --format '{{.DockerRootDir}}' 2>/dev/null)
+	[[ -n "$data_root" ]] || data_root="/var/lib/docker"
+	fstype=$(findmnt -no FSTYPE -T "$data_root" 2>/dev/null)
+	if [[ "$fstype" == "overlay" ]]; then
+		dialog_msgbox "Docker storage" "Docker data ($data_root) is on an overlay filesystem — overlayroot is enabled.\n\nThe overlay storage driver cannot stack on overlay, so containers fail to start (\"overlay ... invalid argument\").\n\nFix: disable overlayroot, or move Docker's data-root to a non-overlay partition via /etc/docker/daemon.json (\"data-root\")." 14 72
+		return 1
+	fi
+	return 0
+}
+
+#
 # Ensure Docker is available
 # Usage: docker_ensure_docker
 # Returns: 0 if Docker is available, exits if it fails to install
@@ -15,6 +37,7 @@ docker_ensure_docker() {
 		local wait_count=0
 		while [[ $wait_count -lt $max_wait ]]; do
 			if docker info >/dev/null 2>&1; then
+				docker_check_overlay_root || return 1
 				return 0
 			fi
 			sleep 1
@@ -23,6 +46,7 @@ docker_ensure_docker() {
 		dialog_msgbox "Error" "Docker installation failed or timed out.\n\nDocker daemon is not responding.\nPlease install Docker manually and try again." 10 60
 		return 1
 	fi
+	docker_check_overlay_root || return 1
 	return 0
 }
 
