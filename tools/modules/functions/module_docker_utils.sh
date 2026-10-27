@@ -25,8 +25,15 @@ docker_check_overlay_root() {
 		# containerd image store (default on fresh Docker 29): snapshots live
 		# under containerd's root, which Docker's data-root does not move
 		overlayfs)
-			path=$(containerd config dump 2>/dev/null | sed -nE "s/^root = [\"'](.*)[\"']$/\1/p")
-			[[ -n "$path" ]] || path="/var/lib/containerd"
+			# dockerd without --containerd runs its own containerd, socket under
+			# its exec-root, and keeps that containerd's data under data-root
+			if [[ "$(docker info --format '{{.Containerd.Address}}' 2>/dev/null)" == */docker/containerd/* ]]; then
+				path=$(docker info --format '{{.DockerRootDir}}' 2>/dev/null)
+				path="${path:-/var/lib/docker}/containerd/daemon"
+			else
+				path=$(containerd config dump 2>/dev/null | sed -nE "s/^root = [\"'](.*)[\"']$/\1/p")
+				[[ -n "$path" ]] || path="/var/lib/containerd"
+			fi
 			;;
 		# vfs, fuse-overlayfs, btrfs, zfs ... work on any backing filesystem
 		*) return 0 ;;
