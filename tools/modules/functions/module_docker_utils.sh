@@ -13,29 +13,34 @@
 # Catch it early with a clear, actionable message instead.
 #
 docker_check_overlay_root() {
-	local driver data_root path fstype
-	local -a paths=()
+	local driver path fstype msg
 	driver=$(docker info --format '{{.Driver}}' 2>/dev/null)
-	data_root=$(docker info --format '{{.DockerRootDir}}' 2>/dev/null)
-	[[ -n "$data_root" ]] || data_root="/var/lib/docker"
 
 	case "${driver:-overlay2}" in
-		overlay2) paths=("$data_root") ;;
+		# classic graph driver: layers live under Docker's data-root
+		overlay2)
+			path=$(docker info --format '{{.DockerRootDir}}' 2>/dev/null)
+			[[ -n "$path" ]] || path="/var/lib/docker"
+			;;
 		# containerd image store (default on fresh Docker 29): snapshots live
-		# under containerd's root, which data-root does not move
-		overlayfs) paths=("$data_root" /var/lib/containerd) ;;
+		# under containerd's root, which Docker's data-root does not move
+		overlayfs)
+			path=$(containerd config dump 2>/dev/null | sed -nE "s/^root = [\"'](.*)[\"']$/\1/p")
+			[[ -n "$path" ]] || path="/var/lib/containerd"
+			;;
 		# vfs, fuse-overlayfs, btrfs, zfs ... work on any backing filesystem
 		*) return 0 ;;
 	esac
 
-	for path in "${paths[@]}"; do
-		[[ -e "$path" ]] || path=$(dirname "$path")
-		fstype=$(findmnt -no FSTYPE -T "$path" 2>/dev/null) || fstype=$(stat -f -c %T "$path" 2>/dev/null)
-		if [[ "$fstype" == overlay* ]]; then
-			dialog_msgbox "Docker storage" "Docker storage ($path) is on an overlay filesystem, likely because overlayroot is enabled.\n\nThe overlay storage driver cannot stack on overlay, so containers fail to start (\"overlay ... invalid argument\").\n\nFix: disable overlayroot, or move Docker's data-root (/etc/docker/daemon.json \"data-root\") and containerd's root (/etc/containerd/config.toml \"root\") to a non-overlay partition." 15 72
-			return 1
-		fi
-	done
+	[[ -e "$path" ]] || path=$(dirname "$path")
+	fstype=$(findmnt -no FSTYPE -T "$path" 2>/dev/null) || fstype=$(stat -f -c %T "$path" 2>/dev/null)
+	if [[ "$fstype" == overlay* ]]; then
+		msg="Docker storage ($path) is on an overlay filesystem, likely because overlayroot is enabled.\n\nThe overlay storage driver cannot stack on overlay, so containers fail to start (\"overlay ... invalid argument\").\n\nFix: disable overlayroot, or move the storage to a non-overlay partition: Docker's data-root (/etc/docker/daemon.json \"data-root\") for overlay2, containerd's root (/etc/containerd/config.toml \"root\") for the containerd image store."
+		# dialog alone is invisible to --api / non-TTY callers
+		echo -e "$msg" >&2
+		dialog_msgbox "Docker storage" "$msg" 16 72
+		return 1
+	fi
 	return 0
 }
 
@@ -52,7 +57,6 @@ docker_ensure_docker() {
 		local wait_count=0
 		while [[ $wait_count -lt $max_wait ]]; do
 			if docker info >/dev/null 2>&1; then
-				docker_check_overlay_root || return 1
 				return 0
 			fi
 			sleep 1
@@ -61,7 +65,6 @@ docker_ensure_docker() {
 		dialog_msgbox "Error" "Docker installation failed or timed out.\n\nDocker daemon is not responding.\nPlease install Docker manually and try again." 10 60
 		return 1
 	fi
-	docker_check_overlay_root || return 1
 	return 0
 }
 
@@ -196,6 +199,12 @@ docker_operation_progress() {
 			return 1
 			;;
 	esac
+
+	# Containers can't be unpacked or started on overlay storage (overlayroot);
+	# rm and rmi still work there, so cleanup stays possible
+	if [[ "$operation" == "pull" || "$operation" == "run" ]]; then
+		docker_check_overlay_root || return 1
+	fi
 
 	# Check for socket access
 	if [[ ! -r "$socket_path" || ! -w "$socket_path" ]]; then
