@@ -37,6 +37,12 @@ function module_armbian_upgrades () {
 				/etc/apt/apt.conf.d/50unattended-upgrades
 		;;
 		"${commands[2]}")
+			# Systems set up by older armbian-config have only the legacy-named
+			# files, which the edits below would miss. Write the Armbian-named
+			# ones first; defaults also drops the legacy files.
+			if [[ ! -f /etc/apt/apt.conf.d/20-armbian-auto-upgrades || ! -f /etc/apt/apt.conf.d/50-armbian-unattended-upgrades ]]; then
+				${module_options["module_armbian_upgrades,feature"]} ${commands[4]}
+			fi
 			# read values from 20-armbian-auto-upgrades
 			if [[ -f "/etc/apt/apt.conf.d/20-armbian-auto-upgrades" ]]; then
 				Unattended_Upgrade=$(
