@@ -46,12 +46,13 @@ function module_shlink () {
 			if [[ ! -f "$env_file" ]]; then
 				# SHLINK_DOMAIN skips the question in unattended installs
 				local domain="${SHLINK_DOMAIN:-}"
-				if [[ -z "$domain" ]]; then
+				# Ask on a terminal only. Cancel stops the install.
+				if [[ -z "$domain" && -t 0 ]]; then
 					domain=$(dialog_inputbox "$title short domain" \
 						"\nDomain of the short links, e.g. go.example.com.\nKeep the default to use it on the local network." \
-						"${LOCALIPADD}:${port}" 11 70) || domain=""
+						"${LOCALIPADD}:${port}" 11 70) || return 1
 				fi
-				# Accept host[:port] only. Without a terminal the dialog prints an error.
+				# Accept host[:port] only
 				domain="${domain#*://}"
 				domain="${domain%%/*}"
 				[[ "$domain" =~ ^[A-Za-z0-9.-]+(:[0-9]+)?$ ]] || domain="${LOCALIPADD}:${port}"
@@ -68,6 +69,11 @@ function module_shlink () {
 				EOT
 			fi
 
+			# Behind a reverse proxy (HTTPS), publish on localhost only.
+			# SWAG reaches the container over the lsio network.
+			local publish="${port}:8080"
+			grep -q '^IS_HTTPS_ENABLED=true' "$env_file" && publish="127.0.0.1:${port}:8080"
+
 			# Run container
 			docker_operation_progress run "$dockername" \
 				-d \
@@ -76,13 +82,13 @@ function module_shlink () {
 				--restart=unless-stopped \
 				--env-file "$env_file" \
 				-e TZ="${TZ:-Etc/UTC}" \
-				-p "${port}:8080" \
+				-p "$publish" \
 				-v "${data_dir}:/etc/shlink/data" \
 				"$dockerimage"
 		;;
 		"${commands[1]}") # remove
-			docker_operation_progress rm "$dockername"
-			docker_operation_progress rmi "$dockerimage"
+			docker_operation_progress rm "$dockername" || return 1
+			docker_operation_progress rmi "$dockerimage" || return 1
 		;;
 		"${commands[2]}") # purge
 			# Remove container and image first

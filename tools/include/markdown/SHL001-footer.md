@@ -2,7 +2,7 @@
 
     The install asks for the domain of the short links, for example `go.example.com`.
 
-    - A domain without a port uses HTTPS. Put a reverse proxy with a certificate in front of port **8085**, for example [SWAG](https://docs.armbian.com/software/swag/).
+    - A domain without a port uses HTTPS. Shlink then listens on `127.0.0.1:8085` only. Put a reverse proxy with a certificate in front, for example [SWAG](https://docs.armbian.com/software/swag/).
     - Keep the default `<your.IP>:8085` to use Shlink on the local network only.
     - For an unattended install, set the domain in the environment:
 
@@ -18,10 +18,10 @@
     sudo grep INITIAL_API_KEY /armbian/shlink/shlink.env
     ```
 
-    Create a short link:
+    Create a short link. Use your short domain over HTTPS. The `http://<your.IP>:8085` form is for local network installs only.
 
     ```sh
-    curl -X POST http://<your.IP>:8085/rest/v3/short-urls \
+    curl -X POST https://go.example.com/rest/v3/short-urls \
       -H "X-Api-Key: <key>" -H "Content-Type: application/json" \
       -d '{"longUrl": "https://docs.armbian.com/", "customSlug": "docs"}'
     ```
