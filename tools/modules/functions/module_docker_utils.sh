@@ -14,6 +14,9 @@
 #
 docker_check_overlay_root() {
 	local driver path fstype msg
+	# The paths below are on the daemon's host. With a mounted docker.sock
+	# (CI, containers) the daemon runs elsewhere, so the local fs says nothing.
+	pgrep -x dockerd >/dev/null 2>&1 || return 0
 	driver=$(docker info --format '{{.Driver}}' 2>/dev/null)
 
 	case "${driver:-overlay2}" in
