@@ -2825,6 +2825,45 @@
                             "status": "Stable",
                             "author": "@efectn",
                             "condition": "module_hedgedoc status"
+                        },
+                        {
+                            "id": "SHL001",
+                            "description": "Shlink URL shortener",
+                            "short": "Shlink",
+                            "module": "module_shlink",
+                            "about": "This operation will install Shlink",
+                            "command": [
+                                "module_shlink install"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_shlink status",
+                            "container_type": "docker",
+                            "help": "Shlink self-hosted URL shortener with a REST API."
+                        },
+                        {
+                            "id": "SHL002",
+                            "description": "Shlink remove",
+                            "about": "This operation will remove Shlink",
+                            "command": [
+                                "module_shlink remove"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_shlink status",
+                            "help": "Shlink remove"
+                        },
+                        {
+                            "id": "SHL003",
+                            "description": "Shlink purge with data folder",
+                            "about": "This operation will remove Shlink with data folder",
+                            "command": [
+                                "module_shlink purge"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_shlink status",
+                            "help": "Shlink purge with data folder"
                         }
                     ],
                     "help": "Web server, LEMP, reverse proxy, Let's Encrypt SSL"
