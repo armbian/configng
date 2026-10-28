@@ -52,10 +52,15 @@ function module_shlink () {
 						"\nDomain of the short links, e.g. go.example.com.\nKeep the default to use it on the local network." \
 						"${LOCALIPADD}:${port}" 11 70) || return 1
 				fi
-				# Accept host[:port] only
+				# Accept host[:port] only. Empty means the local default.
 				domain="${domain#*://}"
 				domain="${domain%%/*}"
-				[[ "$domain" =~ ^[A-Za-z0-9.-]+(:[0-9]+)?$ ]] || domain="${LOCALIPADD}:${port}"
+				domain="${domain:-${LOCALIPADD}:${port}}"
+				if [[ ! "$domain" =~ ^[A-Za-z0-9.-]+(:[0-9]+)?$ ]]; then
+					echo "Invalid Shlink domain: ${domain}" >&2
+					dialog_msgbox "$title" "\nInvalid domain: ${domain}\n\nUse host or host:port, e.g. go.example.com." 9 60
+					return 1
+				fi
 				# A domain without a port is served over HTTPS by a reverse proxy
 				local https="true"
 				[[ "$domain" == *:* ]] && https="false"
