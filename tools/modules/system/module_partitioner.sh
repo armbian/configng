@@ -100,7 +100,9 @@ partitioner_emmc_device() {
 # platform_install.sh may also set BOOTLOADER_NAME (default "u-boot") to name
 # the firmware it writes in the bootloader flash messages, and
 # BOOTLOADER_BOOTS_FROM to list the disk roles (nvme sata usb) its bootloader
-# loads /boot from, which enables the "standalone" mode for those targets.
+# loads /boot from, which enables the "standalone" mode for those targets
+# and, when set, limits "spi" to them. A board can also list only mmc, as
+# the Turris Omnia does, to offer neither.
 partitioner_mtd_list() {
 	local list chr
 	list="$(grep 'mtdblock' /proc/partitions 2>/dev/null | awk '{print $NF}' | xargs)"
@@ -147,7 +149,7 @@ partitioner_modes_for() {
 				local have_mtd=""; have_mtd="$(partitioner_mtd_list)"
 				if [[ "$(type -t write_uboot_platform_mtd)" == function && -n "$have_mtd" ]]; then
 					m+=(mtd)
-				elif [[ -n "$have_mtd" ]]; then
+				elif [[ -n "$have_mtd" && ( -z "${BOOTLOADER_BOOTS_FROM:-}" || " ${BOOTLOADER_BOOTS_FROM:-} " == *" $role "* ) ]]; then
 					# SPI/MTD flash is present but the board has no installer
 					# hook to write u-boot into it (e.g. SpacemiT K3: u-boot is
 					# flashed once via fastboot/DFU, not from the OS). The board
@@ -155,6 +157,7 @@ partitioner_modes_for() {
 					# NVMe/SATA/USB for /boot/boot.scr - so a fully self-contained
 					# install here (local /boot + root, no dependency on the
 					# removable media) is bootable. Offer it FIRST (top / default).
+					# A set BOOTLOADER_BOOTS_FROM must list this role (Turris Omnia: eMMC first).
 					m+=(spi)
 				fi
 				# u-boot on SD/eMMC loads /boot from this role: full install, media untouched.
@@ -499,11 +502,11 @@ partitioner_cli_install() {
 		echo "armbian-install: refusing to modify $target without --yes" >&2
 		return "$INSTALL_EX_USAGE"
 	fi
-	if [[ "$boot" == standalone ]]; then
+	if [[ "$boot" == standalone || ( "$boot" == spi && -n "${BOOTLOADER_BOOTS_FROM:-}" ) ]]; then
 		# Same gate as the TUI: u-boot must load /boot from the target's role.
 		local role; role="$(install_detect_targets "$(partitioner_root_disk)" | awk -F'\t' -v d="${target#/dev/}" '$1 == d { print $2 }')"
 		if [[ -z "$role" || " ${BOOTLOADER_BOOTS_FROM:-} " != *" $role "* ]]; then
-			echo "armbian-install: --boot standalone needs a disk ${BOOTLOADER_NAME:-u-boot} boots from (BOOTLOADER_BOOTS_FROM='${BOOTLOADER_BOOTS_FROM:-}', $target is '${role:-not a target}')" >&2
+			echo "armbian-install: --boot $boot needs a disk ${BOOTLOADER_NAME:-u-boot} boots from (BOOTLOADER_BOOTS_FROM='${BOOTLOADER_BOOTS_FROM:-}', $target is '${role:-not a target}')" >&2
 			return "$INSTALL_EX_USAGE"
 		fi
 	fi
