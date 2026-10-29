@@ -41,7 +41,7 @@ partitioner_root_disk() {
 	local root_uuid root_part disk medium
 	root_uuid=$(sed -e 's/^.*root=//' -e 's/ .*$//' </proc/cmdline)
 	root_part=$(blkid | tr -d '":' | grep -w "${root_uuid#UUID=}" | awk '{print $1}' | head -1)
-	[[ -z "$root_part" ]] && root_part=$(findmnt -no SOURCE / 2>/dev/null)
+	[[ -z "$root_part" ]] && root_part=$(findmnt -no SOURCE --nofsroot / 2>/dev/null)
 	disk=$(lsblk -ndo pkname "$root_part" 2>/dev/null | head -1)
 	# Live ISO: / is an overlay over a squashfs, with no backing disk, so the above
 	# is empty. Exclude the boot MEDIUM instead - the USB/disk the ISO is running
@@ -100,7 +100,9 @@ partitioner_emmc_device() {
 # platform_install.sh may also set BOOTLOADER_NAME (default "u-boot") to name
 # the firmware it writes in the bootloader flash messages, and
 # BOOTLOADER_BOOTS_FROM to list the disk roles (nvme sata usb) its bootloader
-# loads /boot from, which enables the "standalone" mode for those targets.
+# loads /boot from, which enables the "standalone" mode for those targets
+# and, when set, limits "spi" to them. A board can also list only mmc, as
+# the Turris Omnia does, to offer neither.
 partitioner_mtd_list() {
 	local list chr
 	list="$(grep 'mtdblock' /proc/partitions 2>/dev/null | awk '{print $NF}' | xargs)"
@@ -147,7 +149,7 @@ partitioner_modes_for() {
 				local have_mtd=""; have_mtd="$(partitioner_mtd_list)"
 				if [[ "$(type -t write_uboot_platform_mtd)" == function && -n "$have_mtd" ]]; then
 					m+=(mtd)
-				elif [[ -n "$have_mtd" ]]; then
+				elif [[ -n "$have_mtd" && ( -z "${BOOTLOADER_BOOTS_FROM:-}" || " ${BOOTLOADER_BOOTS_FROM:-} " == *" $role "* ) ]]; then
 					# SPI/MTD flash is present but the board has no installer
 					# hook to write u-boot into it (e.g. SpacemiT K3: u-boot is
 					# flashed once via fastboot/DFU, not from the OS). The board
@@ -155,14 +157,15 @@ partitioner_modes_for() {
 					# NVMe/SATA/USB for /boot/boot.scr - so a fully self-contained
 					# install here (local /boot + root, no dependency on the
 					# removable media) is bootable. Offer it FIRST (top / default).
+					# A set BOOTLOADER_BOOTS_FROM must list this role (Turris Omnia: eMMC first).
 					m+=(spi)
 				fi
 				# u-boot on SD/eMMC loads /boot from this role: full install, media untouched.
 				[[ " ${BOOTLOADER_BOOTS_FROM:-} " == *" $role "* ]] && m+=(standalone)
 				m+=(sd)                       # keep boot on current media, root here
-				# ...or from an internal eMMC (if present and not the target).
+				# ...or from an internal eMMC (if present, not the target, nothing on it mounted).
 				local emmc; emmc="$(partitioner_emmc_device)"
-				[[ -n "$emmc" && "/dev/$disk" != "$emmc" ]] && m+=(split-emmc)
+				[[ -n "$emmc" && "/dev/$disk" != "$emmc" ]] && ! install_disk_in_use "$emmc" && m+=(split-emmc)
 				;;
 			ufs)           m+=(ufs) ;;
 		esac
@@ -251,6 +254,10 @@ partitioner_tui() {
 	[[ -z "$disk" ]] && return "$INSTALL_EX_OK"
 	local disk_role="mmc" i
 	for i in "${!names[@]}"; do [[ "${names[$i]}" == "$disk" ]] && disk_role="${roles[$i]}"; done
+	if install_disk_in_use "/dev/$disk"; then
+		dialog_msgbox " $title " "\n/dev/$disk has mounted filesystems.\n\nUnmount them and try again."
+		return "$INSTALL_EX_USAGE"
+	fi
 
 	# 2) boot mode (dual-boot is offered when Windows is detected on the disk)
 	local -a modes; read -r -a modes <<<"$(partitioner_modes_for "$disk_role" "$disk")"
@@ -499,11 +506,12 @@ partitioner_cli_install() {
 		echo "armbian-install: refusing to modify $target without --yes" >&2
 		return "$INSTALL_EX_USAGE"
 	fi
-	if [[ "$boot" == standalone ]]; then
+	! install_disk_in_use "$target" || { echo "armbian-install: $target has mounted filesystems - refusing to modify it" >&2; return "$INSTALL_EX_USAGE"; }
+	if [[ "$boot" == standalone || ( "$boot" == spi && -n "${BOOTLOADER_BOOTS_FROM:-}" ) ]]; then
 		# Same gate as the TUI: u-boot must load /boot from the target's role.
 		local role; role="$(install_detect_targets "$(partitioner_root_disk)" | awk -F'\t' -v d="${target#/dev/}" '$1 == d { print $2 }')"
 		if [[ -z "$role" || " ${BOOTLOADER_BOOTS_FROM:-} " != *" $role "* ]]; then
-			echo "armbian-install: --boot standalone needs a disk ${BOOTLOADER_NAME:-u-boot} boots from (BOOTLOADER_BOOTS_FROM='${BOOTLOADER_BOOTS_FROM:-}', $target is '${role:-not a target}')" >&2
+			echo "armbian-install: --boot $boot needs a disk ${BOOTLOADER_NAME:-u-boot} boots from (BOOTLOADER_BOOTS_FROM='${BOOTLOADER_BOOTS_FROM:-}', $target is '${role:-not a target}')" >&2
 			return "$INSTALL_EX_USAGE"
 		fi
 	fi
@@ -526,6 +534,7 @@ partitioner_cli_install() {
 		local emmc; emmc="$(partitioner_emmc_device)"
 		[[ -n "$emmc" ]] || { echo "armbian-install: --boot split-emmc needs an eMMC, none detected" >&2; return "$INSTALL_EX_NODEV"; }
 		[[ "$emmc" != "$target" ]] || { echo "armbian-install: --boot split-emmc target must differ from the eMMC ($emmc)" >&2; return "$INSTALL_EX_USAGE"; }
+		! install_disk_in_use "$emmc" || { echo "armbian-install: --boot split-emmc would erase the eMMC ($emmc), which has mounted filesystems" >&2; return "$INSTALL_EX_USAGE"; }
 		echo "Installing Armbian: boot on $emmc (eMMC), root on $target ($fs), data at /emmc_storage..."
 		install_run_split "$emmc" "$target" "$fs" "$INSTALL_EXCLUDE"
 	else

@@ -47,3 +47,17 @@ setup() {
 	run install_dualboot_plan $((200*GIB)) $((100*GIB)) 0 $((93*GIB))
 	[ "$status" -eq 66 ]
 }
+
+@test "dualboot: refuses a disk with mounted filesystems before looking for Windows" {
+	local dev
+	for dev in /dev/loop0 /dev/sda /dev/vda /dev/nvme0n1 /dev/mmcblk0 ""; do [[ -b "$dev" ]] && break; done
+	[[ -n "$dev" ]] || skip "no block device to point the install at"
+	install_disk_in_use() { [[ "$1" == "$dev" ]]; }
+	install_detect_windows() { : >"$BATS_TEST_TMPDIR/detected"; return 1; }
+	INSTALL_LOG="$BATS_TEST_TMPDIR/log"
+	: >"$BATS_TEST_TMPDIR/exclude"
+	run install_run_dualboot "$dev" ext4 "$BATS_TEST_TMPDIR/exclude" "$GIB"
+	[ "$status" -eq "$INSTALL_EX_USAGE" ]
+	[ ! -e "$BATS_TEST_TMPDIR/detected" ]
+	grep -q "'$dev' has mounted filesystems" "$INSTALL_LOG"
+}

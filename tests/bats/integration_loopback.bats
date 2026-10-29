@@ -24,6 +24,11 @@ setup() {
 }
 
 teardown() {
+	local d
+	# Unmount first, or losetup -d leaves a busy loop.
+	for d in nr/boot nr/media/boot-media cur/boot old cur top; do
+		mountpoint -q "$BATS_TEST_TMPDIR/$d" 2>/dev/null && umount "$BATS_TEST_TMPDIR/$d"
+	done
 	[[ -n "${LOOP:-}" ]] && losetup -d "$LOOP" 2>/dev/null || true
 }
 
@@ -190,4 +195,149 @@ root ${LOOP}p2 ext4"
 	run install_apply_partitions "$LOOP" "$plan"
 	[ "$status" -eq 0 ]
 	_ptable | grep -q '^label: gpt'
+}
+
+# sd scenario with a failing /boot mapping. Only the [ -b ] checks need the loop
+# device: every disk-touching step is stubbed.
+_sd_scenario_map_fails() {
+	install_sd_capable() { return 0; }
+	install_check_fs_tools() { return 0; }
+	install_fs_kernel_supported() { return 0; }
+	install_source_table_type() { echo msdos; }
+	install_apply_partitions() { echo "root $LOOP"; }
+	install_make_filesystems() { return 0; }
+	mktemp() { mkdir -p "$BATS_TEST_TMPDIR/mp"; echo "$BATS_TEST_TMPDIR/mp"; }
+	mount() { return 0; }
+	umount() { return 0; }
+	install_transfer_rootfs() { mkdir -p "$1/etc"; }
+	install_uuid() { echo UUID=new; }
+	install_map_current_boot() { return 1; }
+	: >"$BATS_TEST_TMPDIR/exclude.txt"
+	run install_run_scenario sd "$LOOP" ext4 "$BATS_TEST_TMPDIR/exclude.txt"
+}
+
+@test "loopback: sd scenario leaves the current boot env alone when mapping /boot fails" {
+	local env="$BATS_TEST_TMPDIR/armbianEnv.txt"
+	printf 'rootdev=UUID=old\n' >"$env"
+	install_rpi_style_boot() { return 1; }
+	install_sd_env_file() { echo "$env"; }
+	_sd_scenario_map_fails
+	[ "$status" -eq "$INSTALL_EX_BOOTCFG" ]
+	[ "$(cat "$env")" = "rootdev=UUID=old" ]
+}
+
+@test "loopback: sd scenario leaves the current cmdline.txt alone when mapping /boot fails" {
+	local fw="$BATS_TEST_TMPDIR/fw"
+	mkdir -p "$fw"; printf 'console=tty1 root=UUID=old rootwait\n' >"$fw/cmdline.txt"
+	install_rpi_style_boot() { return 0; }
+	install_boot_firmware_dir() { echo "$fw"; }
+	_sd_scenario_map_fails
+	[ "$status" -eq "$INSTALL_EX_BOOTCFG" ]
+	[ "$(cat "$fw/cmdline.txt")" = "console=tty1 root=UUID=old rootwait" ]
+}
+
+# btrfs on $LOOP with subvolumes @, @boot and the default @decoy. Each tree,
+# the top level too, has zImage and boot/zImage holding its name.
+_btrfs_layout() {
+	command -v mkfs.btrfs >/dev/null || skip "btrfs-progs not available"
+	install_fs_kernel_supported btrfs || skip "kernel has no btrfs"
+	local top="$BATS_TEST_TMPDIR/top" sv
+	mkfs.btrfs -q -f "$LOOP"
+	mkdir -p "$top"; mount "$LOOP" "$top"
+	mkdir -p "$top/boot"; echo top >"$top/boot/zImage"
+	for sv in @ @boot @decoy; do
+		btrfs subvolume create "$top/$sv"
+		mkdir -p "$top/$sv/boot"; echo "$sv" >"$top/$sv/zImage"; echo "$sv" >"$top/$sv/boot/zImage"
+	done
+	# A mount without subvol= now gives @decoy.
+	btrfs subvolume set-default "$top/@decoy"
+	umount "$top"
+}
+
+# Map /boot with real findmnt, btrfs and blkid, / and /boot redirected to $cur.
+# Then mount the generated lines under $nr, as the new root would at boot.
+_map_and_mount() {
+	cur="$BATS_TEST_TMPDIR/cur" nr="$BATS_TEST_TMPDIR/nr" fstab="$BATS_TEST_TMPDIR/fstab"
+	findmnt() { local t="${*: -1}"; case "$t" in /) t="$cur" ;; /boot) t="$cur/boot" ;; esac; command findmnt "${@:1:$#-1}" "$t"; }
+	btrfs() { local t="${*: -1}"; case "$t" in /) t="$cur" ;; /boot) t="$cur/boot" ;; esac; command btrfs "${@:1:$#-1}" "$t"; }
+	mkdir -p "$nr/boot"; : >"$fstab"
+	run install_map_current_boot "$fstab" "$nr"
+	[ "$status" -eq 0 ]
+	install_verify_fstab "$fstab"
+	# By device path, as loop devices may lack by-uuid links. Bind source under $nr.
+	sed -i -e "s|^UUID=[^[:space:]]*|$LOOP|" -e "s|^/media/boot-media/boot|$nr&|" "$fstab"
+	_mount_fstab
+}
+
+_mount_fstab() {
+	local tgt
+	while read -r _ tgt _; do
+		mount --fstab "$fstab" --target-prefix "$nr" "$tgt"
+	done <"$fstab"
+}
+
+# Options column of the generated line for <mount point>.
+_opts() { awk -v t="$1" '$2 == t {print $4}' "$fstab"; }
+
+@test "loopback: sd map of a btrfs root in @ mounts @, not the default subvolume" {
+	_btrfs_layout
+	mkdir -p "$BATS_TEST_TMPDIR/cur"; mount -o subvol=@ "$LOOP" "$BATS_TEST_TMPDIR/cur"
+	_map_and_mount
+	[ "$(_opts /media/boot-media)" = "defaults,nofail,subvol=/@" ]
+	[ "$(cat "$nr/boot/zImage")" = "@" ]
+}
+
+@test "loopback: sd map of a btrfs root in the default subvolume follows a later set-default" {
+	_btrfs_layout
+	local top="$BATS_TEST_TMPDIR/top"
+	mkdir -p "$BATS_TEST_TMPDIR/cur" "$top"; mount -o subvol=@ "$LOOP" "$BATS_TEST_TMPDIR/cur"
+	mount -o subvolid=5 "$LOOP" "$top"
+	btrfs subvolume set-default "$top/@"
+	_map_and_mount
+	[ "$(_opts /media/boot-media)" = "defaults,nofail" ]
+	[ "$(cat "$nr/boot/zImage")" = "@" ]
+	# Like U-Boot, the new root then reads /boot from the new default.
+	umount "$nr/boot" "$nr/media/boot-media"
+	btrfs subvolume set-default "$top/@decoy"
+	_mount_fstab
+	[ "$(cat "$nr/boot/zImage")" = "@decoy" ]
+}
+
+@test "loopback: sd map of a top-level btrfs root mounts subvol=/" {
+	_btrfs_layout
+	mkdir -p "$BATS_TEST_TMPDIR/cur"; mount -o subvolid=5 "$LOOP" "$BATS_TEST_TMPDIR/cur"
+	_map_and_mount
+	[ "$(_opts /media/boot-media)" = "defaults,nofail,subvol=/" ]
+	[ "$(cat "$nr/boot/zImage")" = "top" ]
+}
+
+@test "loopback: sd map of a btrfs /boot subvolume mounts it at /boot" {
+	_btrfs_layout
+	mkdir -p "$BATS_TEST_TMPDIR/cur"; mount -o subvol=@ "$LOOP" "$BATS_TEST_TMPDIR/cur"
+	mount -o subvol=@boot "$LOOP" "$BATS_TEST_TMPDIR/cur/boot"
+	_map_and_mount
+	[ "$(_opts /boot)" = "defaults,nofail,subvol=/@boot" ]
+	[ "$(wc -l <"$fstab")" -eq 1 ]
+	[ "$(cat "$nr/boot/zImage")" = "@boot" ]
+}
+
+@test "loopback: sd map refuses a /boot bound from the old root, as a second sd install sees it" {
+	_btrfs_layout
+	cur="$BATS_TEST_TMPDIR/cur" fstab="$BATS_TEST_TMPDIR/fstab"
+	mkdir -p "$BATS_TEST_TMPDIR/old" "$cur/boot"; mount -o subvol=@ "$LOOP" "$BATS_TEST_TMPDIR/old"
+	mount --bind "$BATS_TEST_TMPDIR/old/boot" "$cur/boot"
+	findmnt() { local t="${*: -1}"; case "$t" in /) t="$cur" ;; /boot) t="$cur/boot" ;; esac; command findmnt "${@:1:$#-1}" "$t"; }
+	: >"$fstab"
+	run install_map_current_boot "$fstab" "$BATS_TEST_TMPDIR/nr"
+	[ "$status" -eq "$INSTALL_EX_BOOTCFG" ]
+	[ ! -s "$fstab" ]
+}
+
+@test "loopback: sd map of an ext4 root binds its /boot without subvol=" {
+	mkfs.ext4 -qF "$LOOP"
+	mkdir -p "$BATS_TEST_TMPDIR/cur"; mount "$LOOP" "$BATS_TEST_TMPDIR/cur"
+	mkdir -p "$BATS_TEST_TMPDIR/cur/boot"; echo ext4 >"$BATS_TEST_TMPDIR/cur/boot/zImage"
+	_map_and_mount
+	[ "$(_opts /media/boot-media)" = "defaults,nofail" ]
+	[ "$(cat "$nr/boot/zImage")" = "ext4" ]
 }

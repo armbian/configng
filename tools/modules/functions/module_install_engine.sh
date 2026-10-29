@@ -111,6 +111,14 @@ install_source_table_type() {
 	esac
 }
 
+# True when lsblk lists a mount point or [SWAP] for <disk> or a device under it, or fails.
+install_disk_in_use() {
+	local mp
+	mp="$(lsblk -nro MOUNTPOINT "$1" 2>/dev/null)" \
+		|| { install_log ERR "disk-in-use: lsblk failed for $1, treating it as in use"; return 0; }
+	grep -q . <<<"$mp"
+}
+
 # ---- detection --------------------------------------------------------------
 
 # Thin, overridable wrapper around lsblk so tests can inject fixtures.
@@ -1165,6 +1173,31 @@ install_uuid() {
 	[[ -n "$u" ]] && echo "UUID=$u"
 }
 
+# True when a findmnt FSROOT fits a subvol= option in fstab.
+install_fstab_subvol_ok() { [[ "$1" == /* && "$1" != *[[:space:],\\\"]* ]]; }
+
+# install_btrfs_default_id <mount point> -> ID of the default btrfs subvolume
+# (5 for the top level). Fails without btrfs-progs. Impure: runs btrfs.
+install_btrfs_default_id() {
+	local out
+	out="$(btrfs subvolume get-default "$1" 2>/dev/null)" || return 1
+	[[ "$out" =~ ^ID\ ([0-9]+) ]] || return 1
+	echo "${BASH_REMATCH[1]}"
+}
+
+# install_btrfs_subvol_opt <mount point> <FSROOT> <OPTIONS> -> ",subvol=<FSROOT>",
+# or nothing for the default subvolume. A mount without subvol= then follows a
+# later set-default, as U-Boot does. Fails when fstab cannot hold the name.
+install_btrfs_subvol_opt() {
+	local id def
+	[[ ",$3," =~ ,subvolid=([0-9]+), ]] && id="${BASH_REMATCH[1]}"
+	if [[ -n "$id" ]] && def="$(install_btrfs_default_id "$1")" && [[ "$def" == "$id" ]]; then
+		return 0
+	fi
+	install_fstab_subvol_ok "$2" || return 1
+	echo ",subvol=$2"
+}
+
 install_map_current_boot() {
 	# install_map_current_boot <target_fstab> <target_root_mount>
 	# For "sd" mode (boot stays on the current media, rootfs on the target):
@@ -1176,26 +1209,44 @@ install_map_current_boot() {
 	#                                   and bind /media/boot-media/boot -> /boot
 	# All entries use nofail so a later-removed boot medium never blocks boot.
 	local fstab="$1" mp="$2"
-	local boot_src boot_uuid boot_fstype
-	boot_src="$(findmnt -no SOURCE /boot 2>/dev/null || true)"
+	local boot_src boot_uuid boot_fstype boot_fsroot boot_mopts boot_opts="defaults,nofail"
+	# --nofsroot and subvol=: as for / below.
+	boot_src="$(findmnt -no SOURCE --nofsroot /boot 2>/dev/null || true)"
 	if [[ -n "$boot_src" ]]; then
 		boot_uuid="$(install_uuid "$boot_src")"
 		boot_fstype="$(findmnt -no FSTYPE /boot 2>/dev/null || true)"
 		[[ -n "$boot_uuid" && -n "$boot_fstype" ]] \
 			|| { install_log ERR "boot-map: cannot resolve current /boot partition ($boot_src)"; return "$INSTALL_EX_BOOTCFG"; }
-		printf '%s\t/boot\t%s\tdefaults,nofail\t0\t2\n' "$boot_uuid" "$boot_fstype" >>"$fstab"
+		boot_fsroot="$(findmnt -no FSROOT /boot 2>/dev/null || true)"
+		boot_mopts="$(findmnt -no OPTIONS /boot 2>/dev/null || true)"
+		# A bind, as sd mode writes, has a directory as FSROOT. A subvolume lists it in subvol= too.
+		[[ "$boot_fsroot" == / || ( "$boot_fstype" == btrfs && ",$boot_mopts," == *",subvol=$boot_fsroot,"* ) ]] \
+			|| { install_log ERR "boot-map: /boot is a bind mount (${boot_src}[${boot_fsroot}]), cannot map it"; return "$INSTALL_EX_BOOTCFG"; }
+		if [[ "$boot_fstype" == btrfs ]]; then
+			boot_opts+="$(install_btrfs_subvol_opt /boot "$boot_fsroot" "$boot_mopts")" \
+				|| { install_log ERR "boot-map: btrfs subvolume name not usable in fstab ($boot_fsroot)"; return "$INSTALL_EX_BOOTCFG"; }
+		fi
+		printf '%s\t/boot\t%s\t%s\t0\t2\n' "$boot_uuid" "$boot_fstype" "$boot_opts" >>"$fstab"
 		install_log INFO "boot-map: target /boot -> current boot partition $boot_src ($boot_fstype)"
 		return 0
 	fi
 	# /boot is a directory on the current media's root partition.
-	local root_src root_media_uuid root_media_fstype
-	root_src="$(findmnt -no SOURCE / 2>/dev/null || true)"
+	local root_src root_media_uuid root_media_fstype root_fsroot root_mopts root_opts="defaults,nofail"
+	# --nofsroot: blkid needs the bare device, not "/dev/mmcblk0p1[/@]".
+	root_src="$(findmnt -no SOURCE --nofsroot / 2>/dev/null || true)"
 	root_media_uuid="$(install_uuid "$root_src")"
 	root_media_fstype="$(findmnt -no FSTYPE / 2>/dev/null || true)"
 	[[ -n "$root_media_uuid" && -n "$root_media_fstype" ]] \
 		|| { install_log ERR "boot-map: cannot resolve current root partition ($root_src)"; return "$INSTALL_EX_BOOTCFG"; }
+	# btrfs: mount the root's own subvolume (/@ or /). subvol= only when it is not the default.
+	root_fsroot="$(findmnt -no FSROOT / 2>/dev/null || true)"
+	if [[ "$root_media_fstype" == btrfs ]]; then
+		root_mopts="$(findmnt -no OPTIONS / 2>/dev/null || true)"
+		root_opts+="$(install_btrfs_subvol_opt / "$root_fsroot" "$root_mopts")" \
+			|| { install_log ERR "boot-map: btrfs subvolume name not usable in fstab ($root_fsroot)"; return "$INSTALL_EX_BOOTCFG"; }
+	fi
 	mkdir -p "$mp/media/boot-media" || { install_log ERR "boot-map: mkdir /media/boot-media failed"; return "$INSTALL_EX_BOOTCFG"; }
-	printf '%s\t/media/boot-media\t%s\tdefaults,nofail\t0\t2\n' "$root_media_uuid" "$root_media_fstype" >>"$fstab"
+	printf '%s\t/media/boot-media\t%s\t%s\t0\t2\n' "$root_media_uuid" "$root_media_fstype" "$root_opts" >>"$fstab"
 	printf '/media/boot-media/boot\t/boot\tnone\tbind,nofail\t0\t0\n' >>"$fstab"
 	install_log INFO "boot-map: target /boot -> bind of current root $root_src (/media/boot-media/boot)"
 	return 0
@@ -1284,6 +1335,7 @@ install_run_scenario() {
 	# filters it from the menu, but refuse it here too so an explicit
 	# --target /dev/mtdblockN (or a TUI selection) can't repartition the SPI.
 	[[ "$disk" != /dev/mtdblock* ]] || { install_log ERR "scenario: '$disk' is SPI/MTD flash, not a valid install target"; return "$INSTALL_EX_NODEV"; }
+	! install_disk_in_use "$disk" || { install_log ERR "scenario: '$disk' has mounted filesystems - refusing to modify it"; return "$INSTALL_EX_USAGE"; }
 	[[ -f "$exclude" ]] || { install_log ERR "scenario: exclude file '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
 	# Pre-flight: confirm we can make the target bootable AND format it BEFORE
 	# wiping anything - never destroy a disk we cannot finish installing to.
@@ -1421,6 +1473,7 @@ install_run_scenario() {
 				#   2. map that media's /boot into the target at /boot, so kernel and
 				#      initramfs upgrades on the target land where u-boot reads them.
 				# Without (1) the board keeps booting its old rootfs.
+				# (2) runs first: if it fails, the current media stays untouched.
 				# The two boot styles need different rewrites - select FIRST, or
 				# the armbianEnv.txt requirement below would block the Raspberry
 				# Pi path (which has no armbianEnv.txt at all).
@@ -1429,10 +1482,10 @@ install_run_scenario() {
 					# cmdline.txt on the CURRENT boot media, not from
 					# armbianEnv.txt via a u-boot script.
 					local rpi_cmdline; rpi_cmdline="$(install_boot_firmware_dir)/cmdline.txt"
-					install_rewrite_rpi_cmdline "$rpi_cmdline" "$root_uuid" "$fs" \
-						|| { install_log ERR "scenario: sd mode but failed to point current cmdline.txt ($rpi_cmdline) at new root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
 					install_map_current_boot "$mp/etc/fstab" "$mp" \
 						|| { install_log ERR "scenario: failed to map current /boot into target fstab"; rc=$INSTALL_EX_BOOTCFG; break; }
+					install_rewrite_rpi_cmdline "$rpi_cmdline" "$root_uuid" "$fs" \
+						|| { install_log ERR "scenario: sd mode but failed to point current cmdline.txt ($rpi_cmdline) at new root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
 					install_log INFO "scenario: pointed current cmdline.txt ($rpi_cmdline) at new root $root_uuid (Raspberry Pi-style boot) and mapped its /boot into the target"
 				else
 					local env_file; env_file="$(install_sd_env_file)"
@@ -1440,10 +1493,10 @@ install_run_scenario() {
 						install_log ERR "scenario: sd mode but the current media has no boot config (armbianEnv.txt or extlinux/extlinux.conf); cannot make $disk bootable"
 						rc=$INSTALL_EX_BOOTCFG; break
 					fi
-					install_rewrite_bootcfg "$env_file" "$root_uuid" "$fs" \
-						|| { install_log ERR "scenario: failed to point current boot env ($env_file) at new root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
 					install_map_current_boot "$mp/etc/fstab" "$mp" \
 						|| { install_log ERR "scenario: failed to map current /boot into target fstab"; rc=$INSTALL_EX_BOOTCFG; break; }
+					install_rewrite_bootcfg "$env_file" "$root_uuid" "$fs" \
+						|| { install_log ERR "scenario: failed to point current boot env ($env_file) at new root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
 					install_log INFO "scenario: pointed current boot media ($env_file) at new root $root_uuid ($fs) and mapped its /boot into the target"
 				fi ;;
 			native)
@@ -1522,6 +1575,8 @@ install_run_split() {
 	[[ -b "$root_disk" ]] || { install_log ERR "split: root device '$root_disk' is not a block device"; return "$INSTALL_EX_NODEV"; }
 	[[ "$root_disk" != /dev/mtdblock* ]] || { install_log ERR "split: root device '$root_disk' is SPI/MTD flash, not a valid install target"; return "$INSTALL_EX_NODEV"; }
 	[[ "$boot_disk" != "$root_disk" ]] || { install_log ERR "split: boot and root device must differ ('$boot_disk')"; return "$INSTALL_EX_USAGE"; }
+	! install_disk_in_use "$boot_disk" || { install_log ERR "split: boot device '$boot_disk' has mounted filesystems - refusing to modify it"; return "$INSTALL_EX_USAGE"; }
+	! install_disk_in_use "$root_disk" || { install_log ERR "split: root device '$root_disk' has mounted filesystems - refusing to modify it"; return "$INSTALL_EX_USAGE"; }
 	[[ -f "$exclude" ]] || { install_log ERR "split: exclude file '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
 	# Pre-flight: u-boot hook + filesystem tooling must exist BEFORE we wipe.
 	[[ "$(type -t write_uboot_platform)" == function ]] \
@@ -1639,6 +1694,7 @@ install_run_dualboot() {
 	[[ -b "$disk" ]] || { install_log ERR "dualboot: '$disk' not a block device"; return "$INSTALL_EX_NODEV"; }
 	[[ -f "$exclude" ]] || { install_log ERR "dualboot: exclude '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
 	[[ "$want" =~ ^[0-9]+$ && "$want" -gt 0 ]] || { install_log ERR "dualboot: bad size '$want'"; return "$INSTALL_EX_USAGE"; }
+	! install_disk_in_use "$disk" || { install_log ERR "dualboot: '$disk' has mounted filesystems - refusing to modify it"; return "$INSTALL_EX_USAGE"; }
 	command -v ntfsresize >/dev/null 2>&1 || { install_log ERR "dualboot: ntfsresize missing - install the ntfs-3g package"; return "$INSTALL_EX_TOOL"; }
 	install_check_fs_tools "$fs" >/dev/null || { install_log ERR "dualboot: mkfs.$fs not installed (need $(_install_fs_pkg "$fs")) - refusing to modify $disk"; return "$INSTALL_EX_TOOL"; }
 	install_fs_kernel_supported "$fs" || { install_log ERR "dualboot: running kernel cannot mount $fs (no driver) - refusing to modify $disk"; return "$INSTALL_EX_TOOL"; }
