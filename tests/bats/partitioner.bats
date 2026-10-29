@@ -222,3 +222,11 @@ setup() {
 	[[ "$output" == *"no longer points at $dev"* ]]
 	[[ "$output" != *"scenario ran"* ]]
 }
+
+@test "root disk: the findmnt fallback strips a btrfs subvolume suffix" {
+	blkid() { :; }
+	findmnt() { case "$*" in *live*) ;; *--nofsroot*) echo /dev/mmcblk0p1 ;; *) echo "/dev/mmcblk0p1[/@]" ;; esac; }
+	lsblk() { [[ "${*: -1}" == /dev/mmcblk0p1 ]] && echo mmcblk0; }
+	run partitioner_root_disk
+	[ "$output" = "mmcblk0" ]
+}

@@ -41,7 +41,7 @@ partitioner_root_disk() {
 	local root_uuid root_part disk medium
 	root_uuid=$(sed -e 's/^.*root=//' -e 's/ .*$//' </proc/cmdline)
 	root_part=$(blkid | tr -d '":' | grep -w "${root_uuid#UUID=}" | awk '{print $1}' | head -1)
-	[[ -z "$root_part" ]] && root_part=$(findmnt -no SOURCE / 2>/dev/null)
+	[[ -z "$root_part" ]] && root_part=$(findmnt -no SOURCE --nofsroot / 2>/dev/null)
 	disk=$(lsblk -ndo pkname "$root_part" 2>/dev/null | head -1)
 	# Live ISO: / is an overlay over a squashfs, with no backing disk, so the above
 	# is empty. Exclude the boot MEDIUM instead - the USB/disk the ISO is running
