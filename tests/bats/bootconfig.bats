@@ -535,25 +535,188 @@ _extlinux_fixture() {
 # --- sd mode: map current /boot into the target (mount + bind) ---------------
 
 @test "map current boot: dedicated /boot partition mounts straight at /boot" {
-	findmnt() { case "$3" in /boot) case "$2" in SOURCE) echo /dev/mmcblk1p1 ;; FSTYPE) echo vfat ;; esac ;; esac; }
+	findmnt() { case "${@: -1}" in /boot) case "$*" in *SOURCE*) echo /dev/mmcblk1p1 ;; *FSTYPE*) echo vfat ;; *FSROOT*) echo / ;; esac ;; esac; }
 	install_uuid() { echo "UUID=bootpart"; }
 	f="$TMP/fstab"; : >"$f"; mp="$TMP/target"; mkdir -p "$mp"
 	run install_map_current_boot "$f" "$mp"
 	[ "$status" -eq 0 ]
 	grep -qE '^UUID=bootpart	/boot	vfat	defaults,nofail' "$f"
 	# straight mount, no bind indirection
-	! grep -q 'boot-media' "$f"
+	! grep -qE 'boot-media|subvol=' "$f"
 }
 
-@test "map current boot: /boot dir on root partition uses mount + bind" {
-	findmnt() { case "$3" in /boot) return 1 ;; /) case "$2" in SOURCE) echo /dev/mmcblk1p1 ;; FSTYPE) echo ext4 ;; esac ;; esac; }
-	install_uuid() { echo "UUID=rootpart"; }
+@test "map current boot: dedicated btrfs /boot subvolume mounts that subvolume at /boot" {
+	# Like findmnt: a subvolume gets a [/@boot] suffix unless --nofsroot is given.
+	findmnt() {
+		case "${@: -1}" in
+			/boot) case "$*" in
+				*--nofsroot*) echo /dev/mmcblk0p1 ;;
+				*SOURCE*) echo '/dev/mmcblk0p1[/@boot]' ;;
+				*FSTYPE*) echo btrfs ;;
+				*FSROOT*) echo /@boot ;;
+				*OPTIONS*) echo rw,relatime,subvolid=257,subvol=/@boot ;;
+			esac ;;
+		esac
+	}
+	# Like blkid: only the bare device resolves.
+	install_uuid() { [ "$1" = /dev/mmcblk0p1 ] && echo "UUID=bootpart"; }
+	install_btrfs_default_id() { [ "$1" = /boot ] && echo 5; }
 	f="$TMP/fstab"; : >"$f"; mp="$TMP/target"; mkdir -p "$mp"
 	run install_map_current_boot "$f" "$mp"
 	[ "$status" -eq 0 ]
-	grep -qE '^UUID=rootpart	/media/boot-media	ext4	defaults,nofail' "$f"
+	grep -qE '^UUID=bootpart	/boot	btrfs	defaults,nofail,subvol=/@boot	0	2$' "$f"
+	! grep -q 'boot-media' "$f"
+}
+
+@test "map current boot: dedicated btrfs /boot in the default subvolume mounts without subvol=" {
+	findmnt() { case "${@: -1}" in /boot) case "$*" in *SOURCE*) echo /dev/mmcblk0p1 ;; *FSTYPE*) echo btrfs ;; *FSROOT*) echo /@boot ;; *OPTIONS*) echo rw,relatime,subvolid=257,subvol=/@boot ;; esac ;; esac; }
+	install_uuid() { echo "UUID=bootpart"; }
+	install_btrfs_default_id() { [ "$1" = /boot ] && echo 257; }
+	f="$TMP/fstab"; : >"$f"; mp="$TMP/target"; mkdir -p "$mp"
+	run install_map_current_boot "$f" "$mp"
+	[ "$status" -eq 0 ]
+	grep -qE '^UUID=bootpart	/boot	btrfs	defaults,nofail	0	2$' "$f"
+}
+
+@test "map current boot: /boot dir on root partition uses mount + bind" {
+	findmnt() { case "${@: -1}" in /boot) return 1 ;; /) case "$*" in *SOURCE*) echo /dev/mmcblk1p1 ;; *FSTYPE*) echo ext4 ;; *FSROOT*) echo / ;; esac ;; esac; }
+	install_uuid() { [ "$1" = /dev/mmcblk1p1 ] && echo "UUID=rootpart"; }
+	f="$TMP/fstab"; : >"$f"; mp="$TMP/target"; mkdir -p "$mp"
+	run install_map_current_boot "$f" "$mp"
+	[ "$status" -eq 0 ]
+	grep -qE '^UUID=rootpart	/media/boot-media	ext4	defaults,nofail	0	2$' "$f"
 	grep -qE '^/media/boot-media/boot	/boot	none	bind,nofail' "$f"
 	[ -d "$mp/media/boot-media" ]
+	! grep -q 'subvol=' "$f"
+}
+
+@test "map current boot: btrfs root in subvolume @ (Turris medkit) mounts @ and binds its /boot" {
+	# Like findmnt: a subvolume gets a [/@] suffix unless --nofsroot is given.
+	findmnt() {
+		case "${@: -1}" in
+			/boot) return 1 ;;
+			/) case "$*" in
+				*--nofsroot*) echo /dev/mmcblk0p1 ;;
+				*SOURCE*) echo '/dev/mmcblk0p1[/@]' ;;
+				*FSTYPE*) echo btrfs ;;
+				*FSROOT*) echo /@ ;;
+				*OPTIONS*) echo rw,relatime,subvolid=256,subvol=/@ ;;
+			esac ;;
+		esac
+	}
+	# Like blkid: only the bare device resolves.
+	install_uuid() { [ "$1" = /dev/mmcblk0p1 ] && echo "UUID=medkit"; }
+	# The rescue system leaves the top level as the default.
+	install_btrfs_default_id() { [ "$1" = / ] && echo 5; }
+	f="$TMP/fstab"; : >"$f"; mp="$TMP/target"; mkdir -p "$mp"
+	run install_map_current_boot "$f" "$mp"
+	[ "$status" -eq 0 ]
+	grep -qE '^UUID=medkit	/media/boot-media	btrfs	defaults,nofail,subvol=/@	0	2$' "$f"
+	grep -qE '^/media/boot-media/boot	/boot	none	bind,nofail' "$f"
+	[ -d "$mp/media/boot-media" ]
+}
+
+@test "map current boot: btrfs root in the default subvolume mounts without subvol=" {
+	findmnt() { case "${@: -1}" in /boot) return 1 ;; /) case "$*" in *SOURCE*) echo /dev/mmcblk0p1 ;; *FSTYPE*) echo btrfs ;; *FSROOT*) echo /@ ;; *OPTIONS*) echo rw,relatime,subvolid=256,subvol=/@ ;; esac ;; esac; }
+	install_uuid() { echo "UUID=rootpart"; }
+	install_btrfs_default_id() { [ "$1" = / ] && echo 256; }
+	f="$TMP/fstab"; : >"$f"; mp="$TMP/target"; mkdir -p "$mp"
+	run install_map_current_boot "$f" "$mp"
+	[ "$status" -eq 0 ]
+	grep -qE '^UUID=rootpart	/media/boot-media	btrfs	defaults,nofail	0	2$' "$f"
+}
+
+@test "map current boot: btrfs root without btrfs-progs keeps subvol=" {
+	findmnt() { case "${@: -1}" in /boot) return 1 ;; /) case "$*" in *SOURCE*) echo /dev/mmcblk0p1 ;; *FSTYPE*) echo btrfs ;; *FSROOT*) echo /@ ;; *OPTIONS*) echo rw,relatime,subvolid=256,subvol=/@ ;; esac ;; esac; }
+	install_uuid() { echo "UUID=rootpart"; }
+	install_btrfs_default_id() { return 1; }
+	f="$TMP/fstab"; : >"$f"; mp="$TMP/target"; mkdir -p "$mp"
+	run install_map_current_boot "$f" "$mp"
+	[ "$status" -eq 0 ]
+	grep -qE '^UUID=rootpart	/media/boot-media	btrfs	defaults,nofail,subvol=/@	0	2$' "$f"
+}
+
+@test "map current boot: btrfs root at the top level mounts subvol=/, not the default subvolume" {
+	findmnt() { case "${@: -1}" in /boot) return 1 ;; /) case "$*" in *SOURCE*) echo /dev/sda2 ;; *FSTYPE*) echo btrfs ;; *FSROOT*) echo / ;; *OPTIONS*) echo rw,relatime,subvolid=5,subvol=/ ;; esac ;; esac; }
+	install_uuid() { [ "$1" = /dev/sda2 ] && echo "UUID=rootpart"; }
+	install_btrfs_default_id() { echo 256; }
+	f="$TMP/fstab"; : >"$f"; mp="$TMP/target"; mkdir -p "$mp"
+	run install_map_current_boot "$f" "$mp"
+	[ "$status" -eq 0 ]
+	grep -qE '^UUID=rootpart	/media/boot-media	btrfs	defaults,nofail,subvol=/	0	2$' "$f"
+}
+
+@test "map current boot: btrfs root at the top level, the default, mounts without subvol=" {
+	findmnt() { case "${@: -1}" in /boot) return 1 ;; /) case "$*" in *SOURCE*) echo /dev/sda2 ;; *FSTYPE*) echo btrfs ;; *FSROOT*) echo / ;; *OPTIONS*) echo rw,relatime,subvolid=5,subvol=/ ;; esac ;; esac; }
+	install_uuid() { [ "$1" = /dev/sda2 ] && echo "UUID=rootpart"; }
+	install_btrfs_default_id() { echo 5; }
+	f="$TMP/fstab"; : >"$f"; mp="$TMP/target"; mkdir -p "$mp"
+	run install_map_current_boot "$f" "$mp"
+	[ "$status" -eq 0 ]
+	grep -qE '^UUID=rootpart	/media/boot-media	btrfs	defaults,nofail	0	2$' "$f"
+}
+
+@test "btrfs default id: reads the ID that btrfs subvolume get-default prints" {
+	btrfs() { [ "$*" = "subvolume get-default /" ] && echo "$printed"; }
+	local printed
+	printed='ID 5 (FS_TREE)'; run install_btrfs_default_id /; [ "$status" -eq 0 ]; [ "$output" = 5 ]
+	printed='ID 256 gen 9 top level 5 path @'; run install_btrfs_default_id /; [ "$status" -eq 0 ]; [ "$output" = 256 ]
+	printed='ERROR: not a btrfs filesystem'; run install_btrfs_default_id /; [ "$status" -ne 0 ]
+	btrfs() { return 1; }
+	run install_btrfs_default_id /; [ "$status" -ne 0 ]
+}
+
+@test "map current boot: refuses a btrfs root without FSROOT rather than mount the default subvolume" {
+	findmnt() { case "${@: -1}" in /boot) return 1 ;; /) case "$*" in *SOURCE*) echo /dev/sda2 ;; *FSTYPE*) echo btrfs ;; esac ;; esac; }
+	install_uuid() { [ "$1" = /dev/sda2 ] && echo "UUID=rootpart"; }
+	f="$TMP/fstab"; : >"$f"; mp="$TMP/target"; mkdir -p "$mp"
+	run install_map_current_boot "$f" "$mp"
+	[ "$status" -eq "$INSTALL_EX_BOOTCFG" ]
+	[ ! -s "$f" ]
+	[ ! -d "$mp/media/boot-media" ]
+}
+
+@test "map current boot: refuses a btrfs subvolume name that fstab cannot hold" {
+	# findmnt keeps spaces and commas, and prints control chars as \xNN.
+	findmnt() { case "${@: -1}" in /boot) return 1 ;; /) case "$*" in *SOURCE*) echo /dev/mmcblk0p1 ;; *FSTYPE*) echo btrfs ;; *FSROOT*) echo "$sv" ;; esac ;; esac; }
+	install_uuid() { echo "UUID=medkit"; }
+	local sv
+	for sv in '/my sub' '/a,b' '/t\x09ab' '/q"x' '/b\040z'; do
+		f="$TMP/fstab"; : >"$f"; mp="$TMP/target"; mkdir -p "$mp"
+		run install_map_current_boot "$f" "$mp"
+		[ "$status" -eq "$INSTALL_EX_BOOTCFG" ]
+		[ ! -s "$f" ]
+		[ ! -d "$mp/media/boot-media" ]
+	done
+}
+
+@test "map current boot: refuses a dedicated btrfs /boot subvolume name that fstab cannot hold" {
+	findmnt() { case "${@: -1}" in /boot) case "$*" in *SOURCE*) echo /dev/mmcblk0p1 ;; *FSTYPE*) echo btrfs ;; *FSROOT*) echo '/@boot x' ;; *OPTIONS*) echo 'rw,subvol=/@boot x' ;; esac ;; esac; }
+	install_uuid() { echo "UUID=bootpart"; }
+	f="$TMP/fstab"; : >"$f"; mp="$TMP/target"; mkdir -p "$mp"
+	run install_map_current_boot "$f" "$mp"
+	[ "$status" -eq "$INSTALL_EX_BOOTCFG" ]
+	[ ! -s "$f" ]
+}
+
+@test "map current boot: refuses a /boot that an earlier sd install bound from the old root" {
+	# ext4: findmnt shows the bound directory as FSROOT.
+	findmnt() { case "${@: -1}" in /boot) case "$*" in *SOURCE*) echo /dev/mmcblk0p1 ;; *FSTYPE*) echo ext4 ;; *FSROOT*) echo /boot ;; *OPTIONS*) echo rw,relatime ;; esac ;; esac; }
+	install_uuid() { echo "UUID=oldroot"; }
+	f="$TMP/fstab"; : >"$f"; mp="$TMP/target"; mkdir -p "$mp"
+	run install_map_current_boot "$f" "$mp"
+	[ "$status" -eq "$INSTALL_EX_BOOTCFG" ]
+	[ ! -s "$f" ]
+}
+
+@test "map current boot: refuses a /boot bound from a directory in a btrfs subvolume" {
+	# subvol= names the subvolume @, FSROOT the directory /@/boot in it.
+	findmnt() { case "${@: -1}" in /boot) case "$*" in *SOURCE*) echo /dev/mmcblk0p1 ;; *FSTYPE*) echo btrfs ;; *FSROOT*) echo /@/boot ;; *OPTIONS*) echo rw,relatime,subvolid=256,subvol=/@ ;; esac ;; esac; }
+	install_uuid() { echo "UUID=oldroot"; }
+	f="$TMP/fstab"; : >"$f"; mp="$TMP/target"; mkdir -p "$mp"
+	run install_map_current_boot "$f" "$mp"
+	[ "$status" -eq "$INSTALL_EX_BOOTCFG" ]
+	[ ! -s "$f" ]
 }
 
 # --- Raspberry Pi-style boot (native firmware, static cmdline.txt) -----------
