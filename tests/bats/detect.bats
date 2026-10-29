@@ -95,6 +95,25 @@ setup() {
 	[ "$output" = "msdos" ]
 }
 
+@test "disk in use: a mounted partition counts (Turris Omnia medkit root)" {
+	# lsblk -r prints an empty line for each unmounted device in the tree.
+	lsblk() { [[ "$*" == "-nro MOUNTPOINT /dev/mmcblk0" ]] && printf '\n/\n'; return 0; }
+	run install_disk_in_use /dev/mmcblk0
+	[ "$status" -eq 0 ]
+}
+
+@test "disk in use: an lsblk failure counts as in use" {
+	lsblk() { return 32; }
+	run install_disk_in_use /dev/mmcblk0
+	[ "$status" -eq 0 ]
+}
+
+@test "disk in use: a disk with nothing mounted is free" {
+	lsblk() { printf '\n\n\n'; }
+	run install_disk_in_use /dev/mmcblk0
+	[ "$status" -ne 0 ]
+}
+
 @test "detect: excludes SPI/MTD flash (mtdblockN) - a boot device, not a target" {
 	# Odroid M1: 5 tiny mtdblock SPI partitions + one NVMe. Only the NVMe is a
 	# valid root destination; the SPI is offered later via the mtd boot mode.

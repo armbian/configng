@@ -163,9 +163,9 @@ partitioner_modes_for() {
 				# u-boot on SD/eMMC loads /boot from this role: full install, media untouched.
 				[[ " ${BOOTLOADER_BOOTS_FROM:-} " == *" $role "* ]] && m+=(standalone)
 				m+=(sd)                       # keep boot on current media, root here
-				# ...or from an internal eMMC (if present and not the target).
+				# ...or from an internal eMMC (if present, not the target, nothing on it mounted).
 				local emmc; emmc="$(partitioner_emmc_device)"
-				[[ -n "$emmc" && "/dev/$disk" != "$emmc" ]] && m+=(split-emmc)
+				[[ -n "$emmc" && "/dev/$disk" != "$emmc" ]] && ! install_disk_in_use "$emmc" && m+=(split-emmc)
 				;;
 			ufs)           m+=(ufs) ;;
 		esac
@@ -254,6 +254,10 @@ partitioner_tui() {
 	[[ -z "$disk" ]] && return "$INSTALL_EX_OK"
 	local disk_role="mmc" i
 	for i in "${!names[@]}"; do [[ "${names[$i]}" == "$disk" ]] && disk_role="${roles[$i]}"; done
+	if install_disk_in_use "/dev/$disk"; then
+		dialog_msgbox " $title " "\n/dev/$disk has mounted filesystems.\n\nUnmount them and try again."
+		return "$INSTALL_EX_USAGE"
+	fi
 
 	# 2) boot mode (dual-boot is offered when Windows is detected on the disk)
 	local -a modes; read -r -a modes <<<"$(partitioner_modes_for "$disk_role" "$disk")"
@@ -502,6 +506,7 @@ partitioner_cli_install() {
 		echo "armbian-install: refusing to modify $target without --yes" >&2
 		return "$INSTALL_EX_USAGE"
 	fi
+	! install_disk_in_use "$target" || { echo "armbian-install: $target has mounted filesystems - refusing to modify it" >&2; return "$INSTALL_EX_USAGE"; }
 	if [[ "$boot" == standalone || ( "$boot" == spi && -n "${BOOTLOADER_BOOTS_FROM:-}" ) ]]; then
 		# Same gate as the TUI: u-boot must load /boot from the target's role.
 		local role; role="$(install_detect_targets "$(partitioner_root_disk)" | awk -F'\t' -v d="${target#/dev/}" '$1 == d { print $2 }')"
@@ -529,6 +534,7 @@ partitioner_cli_install() {
 		local emmc; emmc="$(partitioner_emmc_device)"
 		[[ -n "$emmc" ]] || { echo "armbian-install: --boot split-emmc needs an eMMC, none detected" >&2; return "$INSTALL_EX_NODEV"; }
 		[[ "$emmc" != "$target" ]] || { echo "armbian-install: --boot split-emmc target must differ from the eMMC ($emmc)" >&2; return "$INSTALL_EX_USAGE"; }
+		! install_disk_in_use "$emmc" || { echo "armbian-install: --boot split-emmc would erase the eMMC ($emmc), which has mounted filesystems" >&2; return "$INSTALL_EX_USAGE"; }
 		echo "Installing Armbian: boot on $emmc (eMMC), root on $target ($fs), data at /emmc_storage..."
 		install_run_split "$emmc" "$target" "$fs" "$INSTALL_EXCLUDE"
 	else

@@ -111,6 +111,14 @@ install_source_table_type() {
 	esac
 }
 
+# True when lsblk lists a mount point or [SWAP] for <disk> or a device under it, or fails.
+install_disk_in_use() {
+	local mp
+	mp="$(lsblk -nro MOUNTPOINT "$1" 2>/dev/null)" \
+		|| { install_log ERR "disk-in-use: lsblk failed for $1, treating it as in use"; return 0; }
+	grep -q . <<<"$mp"
+}
+
 # ---- detection --------------------------------------------------------------
 
 # Thin, overridable wrapper around lsblk so tests can inject fixtures.
@@ -1327,6 +1335,7 @@ install_run_scenario() {
 	# filters it from the menu, but refuse it here too so an explicit
 	# --target /dev/mtdblockN (or a TUI selection) can't repartition the SPI.
 	[[ "$disk" != /dev/mtdblock* ]] || { install_log ERR "scenario: '$disk' is SPI/MTD flash, not a valid install target"; return "$INSTALL_EX_NODEV"; }
+	! install_disk_in_use "$disk" || { install_log ERR "scenario: '$disk' has mounted filesystems - refusing to modify it"; return "$INSTALL_EX_USAGE"; }
 	[[ -f "$exclude" ]] || { install_log ERR "scenario: exclude file '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
 	# Pre-flight: confirm we can make the target bootable AND format it BEFORE
 	# wiping anything - never destroy a disk we cannot finish installing to.
@@ -1566,6 +1575,8 @@ install_run_split() {
 	[[ -b "$root_disk" ]] || { install_log ERR "split: root device '$root_disk' is not a block device"; return "$INSTALL_EX_NODEV"; }
 	[[ "$root_disk" != /dev/mtdblock* ]] || { install_log ERR "split: root device '$root_disk' is SPI/MTD flash, not a valid install target"; return "$INSTALL_EX_NODEV"; }
 	[[ "$boot_disk" != "$root_disk" ]] || { install_log ERR "split: boot and root device must differ ('$boot_disk')"; return "$INSTALL_EX_USAGE"; }
+	! install_disk_in_use "$boot_disk" || { install_log ERR "split: boot device '$boot_disk' has mounted filesystems - refusing to modify it"; return "$INSTALL_EX_USAGE"; }
+	! install_disk_in_use "$root_disk" || { install_log ERR "split: root device '$root_disk' has mounted filesystems - refusing to modify it"; return "$INSTALL_EX_USAGE"; }
 	[[ -f "$exclude" ]] || { install_log ERR "split: exclude file '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
 	# Pre-flight: u-boot hook + filesystem tooling must exist BEFORE we wipe.
 	[[ "$(type -t write_uboot_platform)" == function ]] \
@@ -1683,6 +1694,7 @@ install_run_dualboot() {
 	[[ -b "$disk" ]] || { install_log ERR "dualboot: '$disk' not a block device"; return "$INSTALL_EX_NODEV"; }
 	[[ -f "$exclude" ]] || { install_log ERR "dualboot: exclude '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
 	[[ "$want" =~ ^[0-9]+$ && "$want" -gt 0 ]] || { install_log ERR "dualboot: bad size '$want'"; return "$INSTALL_EX_USAGE"; }
+	! install_disk_in_use "$disk" || { install_log ERR "dualboot: '$disk' has mounted filesystems - refusing to modify it"; return "$INSTALL_EX_USAGE"; }
 	command -v ntfsresize >/dev/null 2>&1 || { install_log ERR "dualboot: ntfsresize missing - install the ntfs-3g package"; return "$INSTALL_EX_TOOL"; }
 	install_check_fs_tools "$fs" >/dev/null || { install_log ERR "dualboot: mkfs.$fs not installed (need $(_install_fs_pkg "$fs")) - refusing to modify $disk"; return "$INSTALL_EX_TOOL"; }
 	install_fs_kernel_supported "$fs" || { install_log ERR "dualboot: running kernel cannot mount $fs (no driver) - refusing to modify $disk"; return "$INSTALL_EX_TOOL"; }
