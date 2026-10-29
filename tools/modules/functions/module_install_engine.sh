@@ -427,10 +427,29 @@ install_fs_kernel_supported() {
 	grep -qw "$fs" /proc/filesystems
 }
 
+install_btrfs_make_root() {
+	# install_btrfs_make_root <device_partition>
+	# Create the subvolume @ and make it the default, as Armbian images do. A
+	# plain mount then gives @, which fstab (subvol=@) and extlinux
+	# (rootflags=subvol=@) name. Impure: mounts the new fs on a temp dir.
+	local dev="$1" top rc=0
+	top="$(mktemp -d)" || return 1
+	if mount "$dev" "$top"; then
+		{ btrfs subvolume create "$top/@" && btrfs subvolume set-default "$top/@"; } >>"$INSTALL_LOG" 2>&1 || rc=1
+		umount "$top" || rc=1
+	else
+		rc=1
+	fi
+	rmdir "$top" 2>/dev/null
+	[[ "$rc" -eq 0 ]] || install_log ERR "make_filesystems: btrfs subvolume @ on $dev failed"
+	return "$rc"
+}
+
 install_make_filesystems() {
 	# install_make_filesystems <mapfile>
 	# mapfile lines: "<role> <device_partition> <fstype>". Creates each fs after a
-	# tool pre-flight; ext4 for mvebu drops the 64bit feature (ARMv7 u-boot).
+	# tool pre-flight; ext4 for mvebu drops the 64bit feature (ARMv7 u-boot). A
+	# btrfs root gets the default subvolume @.
 	local map="$1"
 	[[ -n "$map" ]] || { install_log ERR "make_filesystems: empty map"; return "$INSTALL_EX_FORMAT"; }
 	local role dev fs
@@ -448,7 +467,9 @@ install_make_filesystems() {
 				[[ "${LINUXFAMILY:-}" == "mvebu" ]] && ext4_opts=(-O '^64bit' -qF)
 				mkfs.ext4 "${ext4_opts[@]}" "$dev" >>"$INSTALL_LOG" 2>&1 ;;
 			vfat)  mkfs.vfat -F 32 "$dev" >>"$INSTALL_LOG" 2>&1 ;;
-			btrfs) mkfs.btrfs -f "$dev" >>"$INSTALL_LOG" 2>&1 ;;
+			btrfs)
+				mkfs.btrfs -f "$dev" >>"$INSTALL_LOG" 2>&1 \
+					&& { [[ "$role" != root ]] || install_btrfs_make_root "$dev"; } ;;
 			f2fs)  mkfs.f2fs -f "$dev" >>"$INSTALL_LOG" 2>&1 ;;
 			swap)  mkswap "$dev" >>"$INSTALL_LOG" 2>&1 ;;
 			*)     install_log ERR "make_filesystems: unsupported fs '$fs'"; return "$INSTALL_EX_FORMAT" ;;
@@ -524,8 +545,9 @@ install_rewrite_extlinux() {
 	# lives on the "append" line(s), so root= is substituted there (added when
 	# absent), and rootfstype= the same way when a fs is given.
 	#
-	# btrfs additionally needs rootflags=subvol=@: armbianEnv.txt boards get that
-	# from boot.cmd, which extlinux boards never run, so it is set here.
+	# btrfs additionally gets rootflags=subvol=@, the root subvolume that
+	# install_make_filesystems creates. armbianEnv.txt boards mount it as the
+	# default subvolume.
 	# Idempotent: re-running with the same values is a no-op. Pure text op.
 	local file="$1" rootdev="$2" fstype="${3:-}"
 	[[ -f "$file" ]] || return "$INSTALL_EX_BOOTCFG"
