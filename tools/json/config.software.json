@@ -2045,6 +2045,31 @@
                             "help": "Nextcloud purge with data folder"
                         },
                         {
+                            "id": "OBS001",
+                            "description": "OBS Studio with hardware acceleration",
+                            "short": "OBS Studio",
+                            "module": "module_obs",
+                            "command": [
+                                "module_obs install"
+                            ],
+                            "status": "Preview",
+                            "author": "@HeyMeco",
+                            "condition": "module_obs supported && ! module_obs status",
+                            "help": "Install OBS Studio. Hardware acceleration is auto-selected for the board: the Rockchip MPP build (H.264/HEVC encoders, RK3588 HDMI input and MIPI CSI camera) on arm64 Rockchip RK3588 running Debian Trixie or Ubuntu Resolute, otherwise the distribution's obs-studio which uses NVIDIA NVENC or Intel/AMD VAAPI at runtime, falling back to x264 software encoding."
+                        },
+                        {
+                            "id": "OBS002",
+                            "description": "Remove OBS Studio",
+                            "module": "module_obs",
+                            "command": [
+                                "module_obs remove"
+                            ],
+                            "status": "Preview",
+                            "author": "@HeyMeco",
+                            "condition": "module_obs status",
+                            "help": "Remove the OBS Studio package. OBS scenes, profiles and settings in the home directory stay in place."
+                        },
+                        {
                             "id": "OMV001",
                             "description": "Deploy NAS using OpenMediaVault",
                             "short": "OMV",
