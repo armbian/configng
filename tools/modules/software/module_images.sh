@@ -627,9 +627,9 @@ function module_images () {
 		local rootdev bootdev bootefidev
 		local rootdisk="" bootdisk="" bootefidisk=""
 
-		rootdev=$(findmnt -n -o SOURCE / 2>/dev/null || echo "")
-		bootdev=$(findmnt -n -o SOURCE /boot 2>/dev/null || echo "")
-		bootefidev=$(findmnt -n -o SOURCE /boot/efi 2>/dev/null || echo "")
+		rootdev=$(findmnt -n -o SOURCE --nofsroot / 2>/dev/null || echo "")
+		bootdev=$(findmnt -n -o SOURCE --nofsroot /boot 2>/dev/null || echo "")
+		bootefidev=$(findmnt -n -o SOURCE --nofsroot /boot/efi 2>/dev/null || echo "")
 
 		# Resolve to parent disks (PKNAME) where possible
 		if [[ -n "$rootdev" ]]; then
@@ -1128,9 +1128,9 @@ function module_images () {
 				local rootdisk="" bootdisk="" bootefidisk=""
 
 				# Find devices backing /, /boot, /boot/efi
-				rootdev=$(findmnt -n -o SOURCE / 2>/dev/null || echo "")
-				bootdev=$(findmnt -n -o SOURCE /boot 2>/dev/null || echo "")
-				bootefidev=$(findmnt -n -o SOURCE /boot/efi 2>/dev/null || echo "")
+				rootdev=$(findmnt -n -o SOURCE --nofsroot / 2>/dev/null || echo "")
+				bootdev=$(findmnt -n -o SOURCE --nofsroot /boot 2>/dev/null || echo "")
+				bootefidev=$(findmnt -n -o SOURCE --nofsroot /boot/efi 2>/dev/null || echo "")
 
 				# Resolve to parent disks
 				if [[ -n "$rootdev" ]]; then

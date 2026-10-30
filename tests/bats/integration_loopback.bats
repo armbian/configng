@@ -24,6 +24,11 @@ setup() {
 }
 
 teardown() {
+	local d
+	# Unmount first, or losetup -d leaves a busy loop.
+	for d in nr/boot nr/media/boot-media cur/boot old cur top; do
+		mountpoint -q "$BATS_TEST_TMPDIR/$d" 2>/dev/null && umount "$BATS_TEST_TMPDIR/$d"
+	done
 	[[ -n "${LOOP:-}" ]] && losetup -d "$LOOP" 2>/dev/null || true
 }
 
@@ -159,6 +164,23 @@ root ${LOOP}p2 ext4"
 	install_gen_fstab "$ru" ext4 >"$fstab"
 	run install_verify_fstab "$fstab"
 	[ "$status" -eq 0 ]
+}
+
+@test "loopback: make_filesystems gives a btrfs root the default subvolume @ that fstab names" {
+	command -v mkfs.btrfs >/dev/null || skip "btrfs-progs not available"
+	install_fs_kernel_supported btrfs || skip "kernel has no btrfs"
+	run install_make_filesystems "root $LOOP btrfs"
+	[ "$status" -eq 0 ]
+	local top="$BATS_TEST_TMPDIR/top" opts
+	mkdir -p "$top"
+	# A plain mount, as the installer does before the rsync, gives @.
+	mount "$LOOP" "$top"
+	[ "$(findmnt -no FSROOT "$top")" = /@ ]
+	umount "$top"
+	# So does the root line of the generated fstab.
+	opts="$(install_gen_fstab UUID=x btrfs | awk '$2 == "/" {print $4}')"
+	mount -o "$opts" "$LOOP" "$top"
+	[ "$(findmnt -no FSROOT "$top")" = /@ ]
 }
 
 @test "loopback: bios msdos plan yields a single boot-flagged partition" {

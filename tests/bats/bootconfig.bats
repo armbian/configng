@@ -120,8 +120,8 @@ _extlinux_fixture() {
 }
 
 @test "extlinux: btrfs root also gets rootflags=subvol=@" {
-	# armbianEnv boards get this from boot.cmd; extlinux boards never run it, so
-	# without it a btrfs install mounts the wrong subvolume.
+	# It names the root subvolume @ that install_make_filesystems creates.
+	# armbianEnv boards mount @ as the default subvolume.
 	f="$TMP/extlinux.conf"; _extlinux_fixture "$f"
 	install_rewrite_extlinux "$f" "UUID=new-uuid" btrfs
 	grep -q 'rootflags=subvol=@' "$f"
