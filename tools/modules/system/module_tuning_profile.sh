@@ -818,14 +818,28 @@ function _tp_cpu_apply() {
 	done < <(_tp_cpu_policies)
 }
 
-# Install the boot unit only when armbian-hardware-optimization cannot apply the
-# file alone: not an Armbian image, an older BSP without per-policy keys, or
-# BOOST=off without the global boost file (intel_pstate, per-policy boost).
-function _tp_cpu_sync_unit() {
+# True when armbian-hardware-optimization applies the file alone at boot: the
+# service is enabled, per-policy keys need its policy support and policy*
+# directories, and an explicit BOOST needs the global boost file.
+function _tp_cpu_ho_covers() {
 	local ho="${TP_CPU_HO:-/usr/lib/armbian/armbian-hardware-optimization}"
-	if [[ ! -x "$ho" ]] \
-		|| { ! grep -qF 'POLICY${n}_GOVERNOR' "$ho" && grep -qE '^(POLICY[0-9]+_[A-Z_]+|BOOST=off)' "$TP_CPU_CONF" 2> /dev/null; } \
-		|| { grep -q '^BOOST=off' "$TP_CPU_CONF" 2> /dev/null && [[ ! -e "$TP_CPU_SYS/cpufreq/boost" ]]; }; then
+	[[ -x "$ho" ]] || return 1
+	systemctl is-enabled --quiet armbian-hardware-optimize.service 2> /dev/null || return 1
+	if grep -qE '^POLICY[0-9]+_[A-Z_]+' "$TP_CPU_CONF" 2> /dev/null; then
+		grep -qF 'POLICY${n}_GOVERNOR' "$ho" || return 1
+		compgen -G "$TP_CPU_SYS/cpufreq/policy*" > /dev/null || return 1
+	fi
+	if grep -qE '^BOOST=(true|off)' "$TP_CPU_CONF" 2> /dev/null; then
+		[[ -e "$TP_CPU_SYS/cpufreq/boost" ]] || return 1
+		grep -q '^BOOST=off' "$TP_CPU_CONF" && ! grep -qF 'POLICY${n}_GOVERNOR' "$ho" && return 1
+	fi
+	return 0
+}
+
+# Install the boot unit only when armbian-hardware-optimization cannot apply the
+# file alone.
+function _tp_cpu_sync_unit() {
+	if ! _tp_cpu_ho_covers; then
 		cat > "$TP_CPU_UNIT_FILE" <<- EOF
 			[Unit]
 			Description=Armbian CPU frequency settings
