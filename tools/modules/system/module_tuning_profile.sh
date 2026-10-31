@@ -3,7 +3,7 @@ module_options+=(
 	["module_tuning_profile,maintainer"]="@igorpecovnik"
 	["module_tuning_profile,feature"]="module_tuning_profile"
 	["module_tuning_profile,desc"]="Kernel and CPU tuning profiles for the machine's actual role"
-	["module_tuning_profile,example"]="select apply status list reset help"
+	["module_tuning_profile,example"]="select apply status list reset cpu help"
 	["module_tuning_profile,port"]=""
 	["module_tuning_profile,status"]="Active"
 	["module_tuning_profile,arch"]="x86-64 arm64 armhf riscv64"
@@ -16,6 +16,7 @@ module_options+=(
 	["module_tuning_profile,help_status"]="Show the active profile and the live kernel values"
 	["module_tuning_profile,help_list"]="List available profiles and what each one is for"
 	["module_tuning_profile,help_reset"]="Remove the profile and return to distribution defaults"
+	["module_tuning_profile,help_cpu"]="CPU frequency per cluster: cpu [select|status|apply|reset|set <all|policy<n>> <governor|min|max|boost|clear> [value]]"
 )
 #
 # Tuning profiles
@@ -41,6 +42,9 @@ module_options+=(
 #   - vm writeback/expire intervals  how often the flusher threads run
 #   - ext4 commit interval on /      how long the journal batches metadata
 #   - CPU energy/performance bias    where on the power/speed curve to sit
+#
+# The "cpu" command manages governor and frequency limits per CPU cluster. A
+# profile does not change those; see "CPU frequency" below.
 #
 # The ext4 commit interval goes in /etc/fstab, where a mount option belongs. It
 # is tempting to avoid that file and apply the option with `mount -o remount`
@@ -523,6 +527,579 @@ function _tp_active() {
 	return 0
 }
 
+#
+# CPU frequency
+#
+# The cpufrequtils package is EOL and Armbian no longer ships it. Its config
+# file stays: the build framework writes the board's CPUMIN, CPUMAX and GOVERNOR
+# to /etc/default/cpufrequtils, and armbian-hardware-optimization applies
+# MIN_SPEED, MAX_SPEED, GOVERNOR and BOOST=true to every policy at boot. That
+# file is the single source of truth here too, in the same KEY=value form.
+#
+# One value for all CPUs does not fit big.LITTLE and DynamIQ parts (RK3399,
+# RK3588, S922X, Exynos 5422): each cluster has its own frequency table and
+# often its own best governor. A cluster can override the global keys with
+# POLICY<n>_GOVERNOR, POLICY<n>_MIN_SPEED and POLICY<n>_MAX_SPEED, where <n> is
+# the first CPU of policy<n>. armbian-hardware-optimization ignores those keys,
+# so armbian-cpufreq.service applies the whole file again after it, but only
+# when the file needs more than armbian-hardware-optimization does.
+#
+# BOOST keeps its old meaning. "true" enables boost. "false", which the build
+# writes for every board, keeps the kernel default. "off" disables boost.
+# Reading "false" as "off" would disable turbo on every x86 image.
+declare -g TP_CPU_CONF="/etc/default/cpufrequtils"
+declare -g TP_CPU_DEFAULTS="/etc/default/cpufrequtils.armbian-default"
+declare -g TP_CPU_UNIT_FILE="/etc/systemd/system/armbian-cpufreq.service"
+declare -g TP_CPU_SYS="/sys/devices/system/cpu"
+
+# _tp_cpu_policies -> one cpufreq directory per policy, in CPU order
+function _tp_cpu_policies() {
+	local -a dirs=()
+	local d
+	for d in "$TP_CPU_SYS"/cpufreq/policy[0-9]*; do
+		[[ -d "$d" ]] && dirs+=("$d")
+	done
+	# Old vendor kernels have no policy<n> directories. There the first CPU of
+	# a policy has a real cpufreq directory and the other CPUs a symlink to it.
+	if [[ ${#dirs[@]} -eq 0 ]]; then
+		for d in "$TP_CPU_SYS"/cpu[0-9]*/cpufreq; do
+			[[ -d "$d" && ! -L "$d" ]] && dirs+=("$d")
+		done
+	fi
+	[[ ${#dirs[@]} -gt 0 ]] && printf '%s\n' "${dirs[@]}" | sort -V
+	return 0
+}
+
+# _tp_cpu_id <policy dir> -> <n> of policy<n>
+function _tp_cpu_id() {
+	local n="${1##*/policy}"
+	if [[ "$n" == "$1" ]]; then
+		n="${1%/cpufreq}"
+		n="${n##*/cpu}"
+	fi
+	echo "$n"
+}
+
+# _tp_cpu_dir <n> -> policy dir for policy<n>, or nothing
+function _tp_cpu_dir() {
+	local d
+	while read -r d; do
+		[[ "$(_tp_cpu_id "$d")" == "$1" ]] && { echo "$d"; return 0; }
+	done < <(_tp_cpu_policies)
+	return 1
+}
+
+function _tp_cpu_read() {
+	cat "$1/$2" 2> /dev/null
+}
+
+# _tp_cpu_write <file> <value>; a failed write is not an error at boot
+function _tp_cpu_write() {
+	[[ -w "$1" ]] && echo "$2" 2> /dev/null > "$1"
+	return 0
+}
+
+# A policy whose CPUs are all offline keeps its directory but refuses access.
+function _tp_cpu_online() {
+	[[ -n "$(_tp_cpu_read "$1" affected_cpus | tr -d ' \n')" ]]
+}
+
+# _tp_cpu_range "0 1 2 3 6" -> "0-3,6"
+function _tp_cpu_range() {
+	awk '{
+		out = ""; s = $1; p = $1
+		for (i = 2; i <= NF + 1; i++) {
+			if (i <= NF && $i == p + 1) { p = $i; continue }
+			out = out (out == "" ? "" : ",") (s == p ? s : s "-" p)
+			s = $i; p = $i
+		}
+		print out
+	}' <<< "$1"
+}
+
+# _tp_cpu_in_list <cpu> "0-3,8" -> status
+function _tp_cpu_in_list() {
+	local cpu="$1" r IFS=,
+	for r in $2; do
+		if [[ "$r" == *-* ]]; then
+			((cpu >= ${r%-*} && cpu <= ${r#*-})) && return 0
+		else
+			[[ "$cpu" == "$r" ]] && return 0
+		fi
+	done
+	return 1
+}
+
+# _tp_cpu_core <cpu> -> core name, or nothing when it is not known
+function _tp_cpu_core() {
+	local cpu="$1" impl part uarch
+	# Intel hybrid parts list P-cores and E-cores as two PMUs.
+	if [[ -r /sys/devices/cpu_core/cpus ]] && _tp_cpu_in_list "$cpu" "$(< /sys/devices/cpu_core/cpus)"; then
+		echo "P-core"
+		return 0
+	fi
+	if [[ -r /sys/devices/cpu_atom/cpus ]] && _tp_cpu_in_list "$cpu" "$(< /sys/devices/cpu_atom/cpus)"; then
+		echo "E-core"
+		return 0
+	fi
+	read -r impl part uarch < <(awk -v cpu="$cpu" '
+		BEGIN { FS = "[ \t]*:[ \t]*" }
+		$1 == "processor" { p = $2 }
+		p == cpu && $1 == "CPU implementer" { impl = $2 }
+		p == cpu && $1 == "CPU part" { part = $2 }
+		p == cpu && $1 == "uarch" { uarch = $2 }
+		END { print (impl == "" ? "-" : impl), (part == "" ? "-" : part), uarch }
+	' /proc/cpuinfo 2> /dev/null)
+	# RISC-V names the core itself, e.g. "spacemit,x60".
+	[[ -n "$uarch" ]] && { echo "${uarch#*,}"; return 0; }
+	[[ "$impl" == "0x41" ]] || { [[ "$part" != "-" ]] && echo "${impl}/${part}"; return 0; }
+	case "$part" in
+		0xc05) echo "Cortex-A5" ;;   0xc07) echo "Cortex-A7" ;;   0xc08) echo "Cortex-A8" ;;
+		0xc09) echo "Cortex-A9" ;;   0xc0d) echo "Cortex-A12" ;;  0xc0e) echo "Cortex-A17" ;;
+		0xc0f) echo "Cortex-A15" ;;  0xd01) echo "Cortex-A32" ;;  0xd03) echo "Cortex-A53" ;;
+		0xd04) echo "Cortex-A35" ;;  0xd05) echo "Cortex-A55" ;;  0xd07) echo "Cortex-A57" ;;
+		0xd08) echo "Cortex-A72" ;;  0xd09) echo "Cortex-A73" ;;  0xd0a) echo "Cortex-A75" ;;
+		0xd0b) echo "Cortex-A76" ;;  0xd0c) echo "Neoverse-N1" ;; 0xd0d) echo "Cortex-A77" ;;
+		0xd40) echo "Neoverse-V1" ;; 0xd41) echo "Cortex-A78" ;;  0xd44) echo "Cortex-X1" ;;
+		0xd46) echo "Cortex-A510" ;; 0xd47) echo "Cortex-A710" ;; 0xd48) echo "Cortex-X2" ;;
+		0xd49) echo "Neoverse-N2" ;; 0xd4d) echo "Cortex-A715" ;; 0xd4e) echo "Cortex-X3" ;;
+		0xd80) echo "Cortex-A520" ;; 0xd81) echo "Cortex-A720" ;; 0xd82) echo "Cortex-X4" ;;
+		0xd85) echo "Cortex-X925" ;; 0xd87) echo "Cortex-A725" ;;
+		*) echo "Arm ${part}" ;;
+	esac
+}
+
+function _tp_cpu_mhz() {
+	[[ "$1" =~ ^[0-9]+$ ]] && echo "$(($1 / 1000))" || echo "?"
+}
+
+# _tp_cpu_label <policy dir> -> "CPU4-5 Cortex-A72, 408-1800 MHz"
+function _tp_cpu_label() {
+	local d="$1" cpus core
+	cpus="$(_tp_cpu_read "$d" related_cpus)"
+	[[ -z "$cpus" ]] && cpus="$(_tp_cpu_read "$d" affected_cpus)"
+	core="$(_tp_cpu_core "${cpus%% *}")"
+	echo "CPU$(_tp_cpu_range "$cpus")${core:+ ${core}}, $(_tp_cpu_mhz "$(_tp_cpu_read "$d" cpuinfo_min_freq)")-$(_tp_cpu_mhz "$(_tp_cpu_read "$d" cpuinfo_max_freq)") MHz"
+}
+
+# _tp_cpu_freqs <policy dir>... -> table frequencies in kHz, boost ones included
+function _tp_cpu_freqs() {
+	local d
+	for d in "$@"; do
+		_tp_cpu_read "$d" scaling_available_frequencies
+		_tp_cpu_read "$d" scaling_boost_frequencies
+	done | tr ' ' '\n' | grep -E '^[0-9]+$' | sort -un
+}
+
+# _tp_cpu_governors <policy dir>... -> governors that all the policies offer
+function _tp_cpu_governors() {
+	local d
+	for d in "$@"; do
+		_tp_cpu_read "$d" scaling_available_governors | tr ' ' '\n' | grep . | sort -u
+	done | sort | uniq -c | awk -v n="$#" '$1 == n { print $2 }'
+}
+
+function _tp_cpu_get() {
+	[[ -r "$TP_CPU_CONF" ]] && sed -n "s/^${1}=//p" "$TP_CPU_CONF" | tail -n 1 | tr -d "\"'"
+	return 0
+}
+
+# _tp_cpu_put <key> <value>; an empty value removes the key
+function _tp_cpu_put() {
+	local tmp
+	tmp="$(mktemp)" || return 1
+	[[ -f "$TP_CPU_CONF" ]] && grep -v "^${1}=" "$TP_CPU_CONF" > "$tmp"
+	[[ -n "$2" ]] && echo "${1}=${2}" >> "$tmp"
+	cat "$tmp" > "$TP_CPU_CONF"
+	rm -f "$tmp"
+}
+
+# _tp_cpu_want <policy dir> <GOVERNOR|MIN_SPEED|MAX_SPEED> -> per-policy or global value
+function _tp_cpu_want() {
+	local v
+	v="$(_tp_cpu_get "POLICY$(_tp_cpu_id "$1")_$2")"
+	[[ -n "$v" ]] && echo "$v" || _tp_cpu_get "$2"
+}
+
+function _tp_cpu_has_boost() {
+	[[ -e "$TP_CPU_SYS/cpufreq/boost" || -e "$TP_CPU_SYS/intel_pstate/no_turbo" ]] \
+		|| compgen -G "$TP_CPU_SYS/cpufreq/policy*/boost" > /dev/null
+}
+
+# _tp_cpu_boost_live -> on|off|""
+function _tp_cpu_boost_live() {
+	local v
+	if [[ -r "$TP_CPU_SYS/cpufreq/boost" ]]; then
+		v="$(< "$TP_CPU_SYS/cpufreq/boost")"
+	elif [[ -r "$TP_CPU_SYS/intel_pstate/no_turbo" ]]; then
+		v=$((1 - $(< "$TP_CPU_SYS/intel_pstate/no_turbo")))
+	else
+		v="$(cat "$TP_CPU_SYS"/cpufreq/policy*/boost 2> /dev/null | sort -u | tail -n 1)"
+	fi
+	case "$v" in 1) echo on ;; 0) echo off ;; esac
+}
+
+function _tp_cpu_apply_boost() {
+	local val d
+	case "$(_tp_cpu_get BOOST)" in
+		true) val=1 ;;
+		off) val=0 ;;
+		*) return 0 ;;
+	esac
+	if [[ -e "$TP_CPU_SYS/cpufreq/boost" ]]; then
+		_tp_cpu_write "$TP_CPU_SYS/cpufreq/boost" "$val"
+	elif [[ -e "$TP_CPU_SYS/intel_pstate/no_turbo" ]]; then
+		_tp_cpu_write "$TP_CPU_SYS/intel_pstate/no_turbo" "$((1 - val))"
+	else
+		for d in "$TP_CPU_SYS"/cpufreq/policy*/boost; do
+			_tp_cpu_write "$d" "$val"
+		done
+	fi
+}
+
+function _tp_cpu_apply_policy() {
+	local d="$1" gov min max hwmin hwmax
+	_tp_cpu_online "$d" || return 0
+	gov="$(_tp_cpu_want "$d" GOVERNOR)"
+	min="$(_tp_cpu_want "$d" MIN_SPEED)"
+	max="$(_tp_cpu_want "$d" MAX_SPEED)"
+	hwmin="$(_tp_cpu_read "$d" cpuinfo_min_freq)"
+	hwmax="$(_tp_cpu_read "$d" cpuinfo_max_freq)"
+
+	if [[ -n "$gov" ]] && _tp_cpu_read "$d" scaling_available_governors | grep -qw -- "$gov"; then
+		_tp_cpu_write "$d/scaling_governor" "$gov"
+	fi
+
+	# A global value can lie outside one cluster's range. Clamp it rather than
+	# let an old kernel refuse it.
+	if [[ "$hwmin" =~ ^[0-9]+$ && "$hwmax" =~ ^[0-9]+$ ]]; then
+		[[ -n "$min" ]] && { ((min < hwmin)) && min="$hwmin"; ((min > hwmax)) && min="$hwmax"; }
+		[[ -n "$max" ]] && { ((max < hwmin)) && max="$hwmin"; ((max > hwmax)) && max="$hwmax"; }
+	fi
+
+	# Max, min, max: old kernels refuse a min above the current max and a max
+	# below the current min.
+	[[ -n "$max" ]] && _tp_cpu_write "$d/scaling_max_freq" "$max"
+	[[ -n "$min" ]] && _tp_cpu_write "$d/scaling_min_freq" "$min"
+	[[ -n "$max" ]] && _tp_cpu_write "$d/scaling_max_freq" "$max"
+	return 0
+}
+
+function _tp_cpu_apply() {
+	local d
+	# Boost first: the kernel hides boost frequencies until boost is on, so a
+	# max frequency in the boost range would be clamped.
+	_tp_cpu_apply_boost
+	while read -r d; do
+		_tp_cpu_apply_policy "$d"
+	done < <(_tp_cpu_policies)
+}
+
+# Install the boot unit only when armbian-hardware-optimization cannot apply the
+# file alone: per-policy keys, BOOST=off, or not an Armbian image.
+function _tp_cpu_sync_unit() {
+	if grep -qE '^(POLICY[0-9]+_[A-Z_]+|BOOST=off)' "$TP_CPU_CONF" 2> /dev/null \
+		|| [[ ! -x /usr/lib/armbian/armbian-hardware-optimization ]]; then
+		cat > "$TP_CPU_UNIT_FILE" <<- EOF
+			[Unit]
+			Description=Armbian CPU frequency settings
+			Documentation=https://docs.armbian.com/User-Guide_Fine-Tuning/
+			After=armbian-hardware-optimize.service
+
+			[Service]
+			Type=oneshot
+			RemainAfterExit=yes
+			ExecStart=/usr/bin/armbian-config --api module_tuning_profile cpu apply
+
+			[Install]
+			WantedBy=multi-user.target
+		EOF
+		systemctl daemon-reload > /dev/null 2>&1
+		systemctl enable armbian-cpufreq.service > /dev/null 2>&1
+	elif [[ -f "$TP_CPU_UNIT_FILE" ]]; then
+		systemctl disable armbian-cpufreq.service > /dev/null 2>&1
+		rm -f "$TP_CPU_UNIT_FILE"
+		systemctl daemon-reload > /dev/null 2>&1
+	fi
+	return 0
+}
+
+# _tp_cpu_set <all|policy<n>> <governor|min|max|boost|clear> [value]
+#
+# Frequencies are in kHz, as in sysfs and in the config file. "all" writes the
+# global key and drops the per-policy overrides of that key.
+function _tp_cpu_set() {
+	local target="$1" key="$2" value="$3" prefix="" d n lo="" hi="" other
+	local -a dirs=() online=()
+
+	if [[ "$target" == "all" ]]; then
+		mapfile -t dirs < <(_tp_cpu_policies)
+	elif [[ "$target" =~ ^policy([0-9]+)$ ]]; then
+		n="${BASH_REMATCH[1]}"
+		prefix="POLICY${n}_"
+		d="$(_tp_cpu_dir "$n")" && dirs=("$d")
+	fi
+	if [[ ${#dirs[@]} -eq 0 ]]; then
+		echo "No CPU frequency policy '${target}'. Use 'all' or one of: $(_tp_cpu_policies | while read -r d; do printf 'policy%s ' "$(_tp_cpu_id "$d")"; done)" >&2
+		return 1
+	fi
+	for d in "${dirs[@]}"; do
+		_tp_cpu_online "$d" && online+=("$d")
+	done
+	[[ ${#online[@]} -gt 0 ]] || { echo "All CPUs of ${target} are offline." >&2; return 1; }
+
+	# Keep a copy of the board defaults that the build wrote, for reset.
+	[[ -f "$TP_CPU_CONF" && ! -f "$TP_CPU_DEFAULTS" ]] && cp -a "$TP_CPU_CONF" "$TP_CPU_DEFAULTS"
+
+	case "$key" in
+		governor)
+			if [[ -n "$value" ]] && ! _tp_cpu_governors "${online[@]}" | grep -qx -- "$value"; then
+				echo "Governor '${value}' is not available for ${target/#all/all CPUs}. Available: $(_tp_cpu_governors "${online[@]}" | tr '\n' ' ')" >&2
+				return 1
+			fi
+			[[ -n "$prefix" ]] || sed -i '/^POLICY[0-9]*_GOVERNOR=/d' "$TP_CPU_CONF" 2> /dev/null
+			_tp_cpu_put "${prefix}GOVERNOR" "$value"
+			;;
+		min | max)
+			if [[ -n "$value" ]]; then
+				[[ "$value" =~ ^[0-9]+$ ]] || { echo "Frequency must be a number in kHz: '${value}'" >&2; return 1; }
+				for d in "${online[@]}"; do
+					n="$(_tp_cpu_read "$d" cpuinfo_min_freq)"
+					[[ -z "$lo" || "$n" -lt "$lo" ]] && lo="$n"
+					n="$(_tp_cpu_read "$d" cpuinfo_max_freq)"
+					[[ -z "$hi" || "$n" -gt "$hi" ]] && hi="$n"
+				done
+				if ((value < lo || value > hi)); then
+					echo "Frequency ${value} kHz is outside ${lo}-${hi} kHz for ${target}." >&2
+					return 1
+				fi
+				if [[ "$key" == "min" ]]; then
+					other="$(_tp_cpu_get "${prefix}MAX_SPEED")"
+					[[ -n "$other" ]] && ((value > other)) && { echo "Minimum ${value} kHz is above maximum ${other} kHz." >&2; return 1; }
+				else
+					other="$(_tp_cpu_get "${prefix}MIN_SPEED")"
+					[[ -n "$other" ]] && ((value < other)) && { echo "Maximum ${value} kHz is below minimum ${other} kHz." >&2; return 1; }
+				fi
+			fi
+			key="${key^^}_SPEED"
+			[[ -n "$prefix" ]] || sed -i "/^POLICY[0-9]*_${key}=/d" "$TP_CPU_CONF" 2> /dev/null
+			# The widened limit must reach sysfs too: apply only writes what is set.
+			if [[ -z "$value" ]]; then
+				for d in "${online[@]}"; do
+					if [[ "$key" == "MIN_SPEED" ]]; then
+						_tp_cpu_write "$d/scaling_min_freq" "$(_tp_cpu_read "$d" cpuinfo_min_freq)"
+					else
+						_tp_cpu_write "$d/scaling_max_freq" "$(_tp_cpu_read "$d" cpuinfo_max_freq)"
+					fi
+				done
+			fi
+			_tp_cpu_put "${prefix}${key}" "$value"
+			;;
+		boost)
+			[[ -z "$prefix" ]] || { echo "Boost is set for all CPUs only." >&2; return 1; }
+			_tp_cpu_has_boost || { echo "This CPU has no boost control." >&2; return 1; }
+			case "$value" in
+				true | on) value=true ;;
+				off) ;;
+				false | default | "") value=false ;;
+				*) echo "Boost must be on, off or default." >&2; return 1 ;;
+			esac
+			_tp_cpu_put BOOST "$value"
+			;;
+		clear)
+			[[ -n "$prefix" ]] || { echo "Clear needs a policy, for example: cpu set policy4 clear" >&2; return 1; }
+			sed -i "/^${prefix}/d" "$TP_CPU_CONF" 2> /dev/null
+			for d in "${online[@]}"; do
+				_tp_cpu_write "$d/scaling_min_freq" "$(_tp_cpu_read "$d" cpuinfo_min_freq)"
+				_tp_cpu_write "$d/scaling_max_freq" "$(_tp_cpu_read "$d" cpuinfo_max_freq)"
+			done
+			;;
+		*)
+			echo "Unknown setting '${key}'. Use governor, min, max, boost or clear." >&2
+			return 1
+			;;
+	esac
+
+	_tp_cpu_apply
+	_tp_cpu_sync_unit
+}
+
+# Return to the board defaults that the build wrote.
+function _tp_cpu_reset() {
+	local d
+	if [[ -f "$TP_CPU_DEFAULTS" ]]; then
+		cat "$TP_CPU_DEFAULTS" > "$TP_CPU_CONF"
+		rm -f "$TP_CPU_DEFAULTS"
+	else
+		sed -i -E '/^POLICY[0-9]+_/d; /^BOOST=off/d' "$TP_CPU_CONF" 2> /dev/null
+	fi
+	# Open the hardware range first, so limits that are not set any more go away.
+	while read -r d; do
+		_tp_cpu_online "$d" || continue
+		_tp_cpu_write "$d/scaling_max_freq" "$(_tp_cpu_read "$d" cpuinfo_max_freq)"
+		_tp_cpu_write "$d/scaling_min_freq" "$(_tp_cpu_read "$d" cpuinfo_min_freq)"
+	done < <(_tp_cpu_policies)
+	_tp_cpu_apply
+	_tp_cpu_sync_unit
+	echo "CPU frequency settings returned to board defaults."
+}
+
+# Exit status 1 when the system has no CPU frequency scaling.
+function _tp_cpu_status() {
+	local d n line
+	if [[ -z "$(_tp_cpu_policies)" ]]; then
+		echo "No CPU frequency scaling on this system."
+		return 1
+	fi
+	echo "Driver: $(_tp_cpu_read "$(_tp_cpu_policies | head -n 1)" scaling_driver)"
+	_tp_cpu_has_boost && echo "Boost:  $(_tp_cpu_boost_live) (BOOST=$(_tp_cpu_get BOOST))"
+	echo ""
+	while read -r d; do
+		n="$(_tp_cpu_id "$d")"
+		if ! _tp_cpu_online "$d"; then
+			printf '  policy%-3s %s: offline\n' "$n" "$(_tp_cpu_label "$d")"
+			continue
+		fi
+		printf '  policy%-3s %s\n' "$n" "$(_tp_cpu_label "$d")"
+		printf '             %s, %s-%s MHz, now %s MHz\n' \
+			"$(_tp_cpu_read "$d" scaling_governor)" \
+			"$(_tp_cpu_mhz "$(_tp_cpu_read "$d" scaling_min_freq)")" \
+			"$(_tp_cpu_mhz "$(_tp_cpu_read "$d" scaling_max_freq)")" \
+			"$(_tp_cpu_mhz "$(_tp_cpu_read "$d" scaling_cur_freq)")"
+	done < <(_tp_cpu_policies)
+	echo ""
+	echo "Settings in ${TP_CPU_CONF}:"
+	line="$(grep -E '^(POLICY[0-9]+_)?(GOVERNOR|MIN_SPEED|MAX_SPEED)=|^BOOST=' "$TP_CPU_CONF" 2> /dev/null)"
+	echo "${line:-  (none)}" | sed 's/^\([^ ]\)/  \1/'
+	return 0
+}
+
+# _tp_cpu_pick_freq <title> <current kHz> <policy dir>... -> kHz, or nothing
+function _tp_cpu_pick_freq() {
+	local title="$1" cur="$2" f mhz v state
+	shift 2
+	local -a freqs opts=()
+	mapfile -t freqs < <(_tp_cpu_freqs "$@")
+	if [[ ${#freqs[@]} -gt 0 ]]; then
+		for f in "${freqs[@]}"; do
+			state=off
+			[[ "$f" == "$cur" ]] && state=on
+			opts+=("$f" "$(_tp_cpu_mhz "$f") MHz" "$state")
+		done
+		dialog_radiolist "$title" "Select a frequency:" 0 50 12 "${opts[@]}"
+		return 0
+	fi
+	# CPPC, intel_pstate and some SCMI drivers have no frequency table.
+	mhz="$(_tp_cpu_mhz "$cur")"
+	[[ "$mhz" == "?" ]] && mhz=""
+	v="$(dialog_inputbox "$title" "Enter the frequency in MHz:" "$mhz" 9 50)"
+	[[ "$v" =~ ^[0-9]+$ ]] && echo "$((v * 1000))"
+	return 0
+}
+
+# _tp_cpu_tui_target <all|policy<n>>
+function _tp_cpu_tui_target() {
+	local target="$1" title gov min max min_label max_label choice value out g state
+	local -a dirs=() opts
+	if [[ "$target" == "all" ]]; then
+		title="All CPUs"
+		# Offline clusters cannot take a value now, so do not offer their lists.
+		while read -r g; do
+			_tp_cpu_online "$g" && dirs+=("$g")
+		done < <(_tp_cpu_policies)
+	else
+		dirs=("$(_tp_cpu_dir "${target#policy}")")
+		title="${target}: $(_tp_cpu_label "${dirs[0]}")"
+	fi
+
+	while true; do
+		if [[ "$target" == "all" ]]; then
+			gov="$(_tp_cpu_get GOVERNOR)"
+			min="$(_tp_cpu_get MIN_SPEED)"
+			max="$(_tp_cpu_get MAX_SPEED)"
+		else
+			gov="$(_tp_cpu_want "${dirs[0]}" GOVERNOR)"
+			min="$(_tp_cpu_want "${dirs[0]}" MIN_SPEED)"
+			max="$(_tp_cpu_want "${dirs[0]}" MAX_SPEED)"
+		fi
+		[[ -n "$min" ]] && min_label="$(_tp_cpu_mhz "$min") MHz" || min_label="hardware limit"
+		[[ -n "$max" ]] && max_label="$(_tp_cpu_mhz "$max") MHz" || max_label="hardware limit"
+		opts=(
+			"governor" "Governor: ${gov:-kernel default}"
+			"min" "Minimum: ${min_label}"
+			"max" "Maximum: ${max_label}"
+		)
+		[[ "$target" != "all" ]] && opts+=("clear" "Use the values for all CPUs")
+		choice="$(dialog_menu "$title" "Changes apply now and at every boot." 0 70 6 "${opts[@]}")"
+		[[ -z "$choice" ]] && return 0
+
+		value=""
+		case "$choice" in
+			governor)
+				opts=()
+				while read -r g; do
+					state=off
+					[[ "$g" == "$gov" ]] && state=on
+					opts+=("$g" "" "$state")
+				done < <(_tp_cpu_governors "${dirs[@]}")
+				value="$(dialog_radiolist "Governor" "Select a governor for ${title}:" 0 60 10 "${opts[@]}")"
+				;;
+			min) value="$(_tp_cpu_pick_freq "Minimum frequency" "${min:-$(_tp_cpu_read "${dirs[0]}" scaling_min_freq)}" "${dirs[@]}")" ;;
+			max) value="$(_tp_cpu_pick_freq "Maximum frequency" "${max:-$(_tp_cpu_read "${dirs[0]}" scaling_max_freq)}" "${dirs[@]}")" ;;
+		esac
+		[[ "$choice" != "clear" && -z "$value" ]] && continue
+		out="$(_tp_cpu_set "$target" "$choice" "$value" 2>&1)" || dialog_msgbox "Not applied" "$out" 10 70
+	done
+}
+
+function _tp_cpu_tui() {
+	local choice d n sum boost out
+	local -a opts policies
+	mapfile -t policies < <(_tp_cpu_policies)
+	if [[ ${#policies[@]} -eq 0 ]]; then
+		dialog_msgbox "CPU frequency" "This system has no CPU frequency scaling." 8 60
+		return 0
+	fi
+
+	while true; do
+		opts=("all" "All CPUs: $(_tp_cpu_get GOVERNOR | grep . || echo "kernel default")")
+		# One entry per cluster. Skip the list when there is only one.
+		if [[ ${#policies[@]} -gt 1 ]]; then
+			for d in "${policies[@]}"; do
+				n="$(_tp_cpu_id "$d")"
+				if _tp_cpu_online "$d"; then
+					sum="$(_tp_cpu_read "$d" scaling_governor), $(_tp_cpu_mhz "$(_tp_cpu_read "$d" scaling_min_freq)")-$(_tp_cpu_mhz "$(_tp_cpu_read "$d" scaling_max_freq)") MHz"
+				else
+					sum="offline"
+				fi
+				opts+=("policy${n}" "$(_tp_cpu_label "$d") [${sum}]")
+			done
+		fi
+		if _tp_cpu_has_boost; then
+			boost="$(_tp_cpu_get BOOST)"
+			case "$boost" in true) boost=on ;; off) ;; *) boost="kernel default" ;; esac
+			opts+=("boost" "Boost: ${boost} (now $(_tp_cpu_boost_live))")
+		fi
+		opts+=("reset" "Return to board defaults")
+
+		choice="$(dialog_menu "CPU frequency" "Driver: $(_tp_cpu_read "${policies[0]}" scaling_driver)\n\nSelect CPUs to configure:" 0 78 12 "${opts[@]}")"
+		case "$choice" in
+			"") return 0 ;;
+			boost)
+				choice="$(dialog_radiolist "Boost" "Boost runs the CPU above its base frequency when thermal limits allow." 0 70 3 \
+					"on" "Enable boost" "$([[ "$boost" == on ]] && echo on || echo off)" \
+					"off" "Disable boost" "$([[ "$boost" == off ]] && echo on || echo off)" \
+					"default" "Keep the kernel default" "$([[ "$boost" == "kernel default" ]] && echo on || echo off)")"
+				[[ -n "$choice" ]] && { out="$(_tp_cpu_set all boost "$choice" 2>&1)" || dialog_msgbox "Not applied" "$out" 10 70; }
+				;;
+			reset)
+				dialog_yesno "Reset" "Return the CPU frequency settings to the board defaults?" && _tp_cpu_reset > /dev/null
+				;;
+			*) _tp_cpu_tui_target "$choice" ;;
+		esac
+	done
+}
+
 function module_tuning_profile() {
 	local title="Tuning Profiles"
 
@@ -677,7 +1254,21 @@ function module_tuning_profile() {
 			return 0
 			;;
 
-		"${commands[5]}") # help
+		"${commands[5]}") # cpu [select|status|apply|reset|set ...]
+			case "$2" in
+				"" | select) _tp_cpu_tui ;;
+				status) _tp_cpu_status ;;
+				apply) _tp_cpu_apply ;;
+				reset) _tp_cpu_reset ;;
+				set) _tp_cpu_set "$3" "$4" "$5" ;;
+				*)
+					echo "Usage: module_tuning_profile cpu [select|status|apply|reset|set <all|policy<n>> <governor|min|max|boost|clear> [value]]" >&2
+					return 1
+					;;
+			esac
+			;;
+
+		"${commands[6]}") # help
 			show_module_help "module_tuning_profile" "$title"
 			;;
 
