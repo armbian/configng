@@ -310,6 +310,11 @@ sudo armbian-config
     - ### Purge Wallos subscription tracker
 
 
+  - ### Game clients and compatibility tools
+    - ### Steam
+    - ### Heroic Launcher
+
+
   - ### Home Automation for control home appliances
     - ### Domoticz open source home automation
     - ### Domoticz remove
@@ -447,6 +452,9 @@ sudo armbian-config
     - ### HedgeDoc collaborative markdown editor install
     - ### HedgeDoc remove
     - ### HedgeDoc purge with data folder
+    - ### Shlink URL shortener
+    - ### Shlink remove
+    - ### Shlink purge with data folder
 
 
 
@@ -468,8 +476,8 @@ sudo apt install armbian-config
 	echo << EOF | sudo tee /etc/apt/sources.list.d/armbian.sources
 	Types: deb
 	URIs: https://apt.armbian.com
-	Suites: noble
-	Components: main noble-utils noble-desktop
+	Suites: resolute
+	Components: main resolute-utils resolute-desktop
 	Architectures: amd64
 	Signed-By: /usr/share/keyrings/armbian.gpg
 	EOF
@@ -596,7 +604,7 @@ Outputs:
       NETF08 - Manage NFS Client
 	--cmd NETF09 - Find NFS servers in subnet and mount shares
 	--cmd NETF10 - Show and manage NFS mounts
-	--cmd ZFS001 - ZFS filesystem - enable support (v2.2.2)
+	--cmd ZFS001 - ZFS filesystem - enable support (v2.4.1)
 	--cmd ZFS002 - ZFS filesystem - remove support (ZFS is not installed)
 	--cmd ZFS003 - ZFS filesystem - performance tuning
 	--cmd ZFS004 - ZFS filesystem - import existing pools
@@ -746,6 +754,20 @@ Outputs:
 	--cmd WAL001 - Install Wallos subscription tracker
 	--cmd WAL002 - Remove Wallos subscription tracker (http://localhost:8282)
 	--cmd WAL003 - Purge Wallos subscription tracker
+    Gaming - Game clients and compatibility tools
+      Steam - Steam
+	--cmd STM001 - Install Steam
+	--cmd STM002 - Update Steam
+	--cmd STM005 - Install or update Proton-CachyOS
+	--cmd STM006 - Install or update Proton-GE
+	--cmd STM007 - Remove Proton-CachyOS
+	--cmd STM008 - Remove Proton-GE
+	--cmd STM003 - Remove Steam client
+	--cmd STM004 - Purge Steam with games and userdata
+      Heroic - Heroic Launcher
+	--cmd HERO01 - Install Heroic Launcher
+	--cmd HERO02 - Update Heroic Launcher
+	--cmd HERO03 - Remove Heroic Launcher
     HomeAutomation - Home Automation for control home appliances
 	--cmd DOM001 - Domoticz open source home automation
 	--cmd DOM002 - Domoticz remove (http://localhost:8780)
@@ -869,6 +891,9 @@ Outputs:
 	--cmd HDOC01 - HedgeDoc collaborative markdown editor install
 	--cmd HDOC02 - HedgeDoc remove (http://localhost:3100)
 	--cmd HDOC03 - HedgeDoc purge with data folder
+	--cmd SHL001 - Shlink URL shortener
+	--cmd SHL002 - Shlink remove
+	--cmd SHL003 - Shlink purge with data folder
   --cmd Help - About this tool
 ~~~
 
@@ -1131,6 +1156,16 @@ Jobs:
 No commands available
 ~~~
 
+### Gaming
+
+Game clients and compatibility tools
+
+Jobs:
+
+~~~
+No commands available
+~~~
+
 ### HomeAutomation
 
 Home Automation for control home appliances
@@ -1348,6 +1383,7 @@ These helper functions facilitate various operations related to job management, 
 | Change the background color of the terminal or dialog box | set_colors 0-7 | @Tearran 
 | Install Wallos finance tracker container | install remove purge status help | @igorpecovnik 
 | Show general information about this tool | about_armbian_configng | @igorpecovnik 
+| Install Shlink URL shortener container | install remove purge status help | @igorpecovnik 
 | Install unbound container | install remove purge status help | @igorpecovnik 
 | Serve the edit and debug server. | serve_doc | @Tearran 
 | Set up custom APT repository for desktop environments | module_desktop_repo kde-neon | @igorpecovnik 
@@ -1395,6 +1431,8 @@ parse_menu_items 'menu_options_array' --with-help | @viraniac
 | Default module implementation | disable enable help install remove status | @dimitry-ishenko 
 | change_system_hostname | change_system_hostname | @igorpecovnik 
 | Install netalertx container | install remove purge status help | @jokob-sk 
+| Steam for arm64 and amd64, with optional Proton-CachyOS and Proton-GE | install update remove purge status help proton-cachyos proton-ge proton-cachyos-remove proton-ge-remove proton-cachyos-status proton-ge-status | @HeyMeco 
+| Heroic Games Launcher for amd64 and arm64 | install update remove status help | @HeyMeco 
 | Restart service | srv_restart ssh.service | @dimitry-ishenko 
 | Update package repository | pkg_update | @dimitry-ishenko 
 | Display a menu dialog using the configured dialog tool. Supports --item-help for additional help text per item. | dialog_menu "Title" "Prompt" option1 "Description 1" option2 "Description 2"
