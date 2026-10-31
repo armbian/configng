@@ -935,6 +935,8 @@ function _tp_cpu_set() {
 			: > "$TP_CPU_DEFAULTS"
 		fi
 	fi
+	# ENABLE was for the cpufrequtils package. Nothing reads it now.
+	sed -i '/^ENABLE=/d' "$TP_CPU_CONF" 2> /dev/null
 
 	case "$key" in
 		governor)
@@ -1034,10 +1036,10 @@ function _tp_cpu_reset() {
 	[[ -f "$TP_CPU_DEFAULTS" ]] && boost="$(sed -n 's/^BOOST=//p' "$TP_CPU_DEFAULTS" | tail -n 1)"
 	_tp_cpu_boost_default "${boost:-false}"
 	if [[ -f "$TP_CPU_DEFAULTS" ]]; then
-		cat "$TP_CPU_DEFAULTS" > "$TP_CPU_CONF"
+		grep -v '^ENABLE=' "$TP_CPU_DEFAULTS" > "$TP_CPU_CONF"
 		rm -f "$TP_CPU_DEFAULTS"
 	else
-		sed -i -E '/^POLICY[0-9]+_/d; /^BOOST=off/d' "$TP_CPU_CONF" 2> /dev/null
+		sed -i -E '/^POLICY[0-9]+_/d; /^BOOST=off/d; /^ENABLE=/d' "$TP_CPU_CONF" 2> /dev/null
 	fi
 	# Open the hardware range first, so limits that are not set any more go away.
 	while read -r d; do
