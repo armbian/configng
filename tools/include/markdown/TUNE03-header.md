@@ -2,7 +2,7 @@ Set the CPU frequency governor, the minimum and maximum frequency, and boost. Se
 
 On big.LITTLE and DynamIQ systems (for example RK3399, RK3588, S922X), each cluster has its own frequency table. Give each cluster its own limits and governor, for example `performance` on the big cores only.
 
-On x86, each CPU has its own policy. The menu shows one entry per CPU type, for example P-cores and E-cores. When all CPUs are of one type, the menu shows only **All CPUs**.
+The menu always shows **All CPUs**. It also shows one entry per group of policies with the same core type and frequency range, for example P-cores and E-cores. With only one group, the menu shows only **All CPUs**.
 
 Changes apply immediately and at every boot. The settings are in `/etc/default/cpufrequtils`. The build framework writes the board defaults to this file, and **Return to board defaults** restores them.
 

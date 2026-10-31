@@ -926,8 +926,15 @@ function _tp_cpu_set() {
 	done
 	[[ ${#online[@]} -gt 0 ]] || { echo "All CPUs of ${target} are offline." >&2; return 1; }
 
-	# Keep a copy of the board defaults that the build wrote, for reset.
-	[[ -f "$TP_CPU_CONF" && ! -f "$TP_CPU_DEFAULTS" ]] && cp -a "$TP_CPU_CONF" "$TP_CPU_DEFAULTS"
+	# Keep a copy of the board defaults that the build wrote, for reset. No file
+	# means no defaults.
+	if [[ ! -f "$TP_CPU_DEFAULTS" ]]; then
+		if [[ -f "$TP_CPU_CONF" ]]; then
+			cp -a "$TP_CPU_CONF" "$TP_CPU_DEFAULTS"
+		else
+			: > "$TP_CPU_DEFAULTS"
+		fi
+	fi
 
 	case "$key" in
 		governor)
