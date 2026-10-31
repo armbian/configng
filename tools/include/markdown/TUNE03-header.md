@@ -2,6 +2,8 @@ Set the CPU frequency governor, the minimum and maximum frequency, and boost. Se
 
 On big.LITTLE and DynamIQ systems (for example RK3399, RK3588, S922X), each cluster has its own frequency table. Give each cluster its own limits and governor, for example `performance` on the big cores only.
 
+On x86, each CPU has its own policy. The menu shows one entry per CPU type, for example P-cores and E-cores. When all CPUs are of one type, the menu shows only **All CPUs**.
+
 Changes apply immediately and at every boot. The settings are in `/etc/default/cpufrequtils`. The build framework writes the board defaults to this file, and **Return to board defaults** restores them.
 
 | Key | Scope |
@@ -16,5 +18,6 @@ Command line:
 armbian-config --api module_tuning_profile cpu status
 armbian-config --api module_tuning_profile cpu set policy4 governor performance
 armbian-config --api module_tuning_profile cpu set all max 1800000
+armbian-config --api module_tuning_profile cpu set policy0-15 governor performance
 armbian-config --api module_tuning_profile cpu reset
 ```

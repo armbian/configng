@@ -16,7 +16,7 @@ module_options+=(
 	["module_tuning_profile,help_status"]="Show the active profile and the live kernel values"
 	["module_tuning_profile,help_list"]="List available profiles and what each one is for"
 	["module_tuning_profile,help_reset"]="Remove the profile and return to distribution defaults"
-	["module_tuning_profile,help_cpu"]="CPU frequency per cluster: cpu [select|status|apply|reset|set <all|policy<n>> <governor|min|max|boost|clear> [value]]"
+	["module_tuning_profile,help_cpu"]="CPU frequency per cluster: cpu [select|status|apply|reset|set <all|policy<list>> <governor|min|max|boost|clear> [value]]"
 )
 #
 # Tuning profiles
@@ -580,13 +580,13 @@ function _tp_cpu_id() {
 	echo "$n"
 }
 
-# _tp_cpu_dir <n> -> policy dir for policy<n>, or nothing
-function _tp_cpu_dir() {
+# _tp_cpu_dirs "0-3,8" -> policy dirs of policy0-3 and policy8
+function _tp_cpu_dirs() {
 	local d
 	while read -r d; do
-		[[ "$(_tp_cpu_id "$d")" == "$1" ]] && { echo "$d"; return 0; }
+		_tp_cpu_in_list "$(_tp_cpu_id "$d")" "$1" && echo "$d"
 	done < <(_tp_cpu_policies)
-	return 1
+	return 0
 }
 
 function _tp_cpu_read() {
@@ -673,13 +673,48 @@ function _tp_cpu_mhz() {
 	[[ "$1" =~ ^[0-9]+$ ]] && echo "$(($1 / 1000))" || echo "?"
 }
 
-# _tp_cpu_label <policy dir> -> "CPU4-5 Cortex-A72, 408-1800 MHz"
-function _tp_cpu_label() {
+# _tp_cpu_cpus <policy dir> -> "4 5"
+function _tp_cpu_cpus() {
+	local cpus
+	cpus="$(_tp_cpu_read "$1" related_cpus)"
+	[[ -z "$cpus" ]] && cpus="$(_tp_cpu_read "$1" affected_cpus)"
+	echo "$cpus"
+}
+
+# _tp_cpu_kind <policy dir> -> "Cortex-A72, 408-1800 MHz"
+function _tp_cpu_kind() {
 	local d="$1" cpus core
-	cpus="$(_tp_cpu_read "$d" related_cpus)"
-	[[ -z "$cpus" ]] && cpus="$(_tp_cpu_read "$d" affected_cpus)"
+	cpus="$(_tp_cpu_cpus "$d")"
 	core="$(_tp_cpu_core "${cpus%% *}")"
-	echo "CPU$(_tp_cpu_range "$cpus")${core:+ ${core}}, $(_tp_cpu_mhz "$(_tp_cpu_read "$d" cpuinfo_min_freq)")-$(_tp_cpu_mhz "$(_tp_cpu_read "$d" cpuinfo_max_freq)") MHz"
+	echo "${core:+${core}, }$(_tp_cpu_mhz "$(_tp_cpu_read "$d" cpuinfo_min_freq)")-$(_tp_cpu_mhz "$(_tp_cpu_read "$d" cpuinfo_max_freq)") MHz"
+}
+
+# _tp_cpu_label <policy dir>... -> "CPU4-5 Cortex-A72, 408-1800 MHz"
+function _tp_cpu_label() {
+	local d kind cpus=""
+	for d in "$@"; do
+		cpus+=" $(_tp_cpu_cpus "$d")"
+	done
+	cpus="$(tr ' ' '\n' <<< "$cpus" | grep . | sort -un | tr '\n' ' ')"
+	kind="$(_tp_cpu_kind "$1")"
+	[[ "$kind" == *,* ]] && echo "CPU$(_tp_cpu_range "$cpus") ${kind}" || echo "CPU$(_tp_cpu_range "$cpus"), ${kind}"
+}
+
+# _tp_cpu_groups -> "<policy list> <policy dir>..." per group of policies with
+# the same core and hardware range. x86 drivers make one policy per CPU.
+function _tp_cpu_groups() {
+	local d key
+	local -A ids=() dirs=()
+	local -a order=()
+	while read -r d; do
+		key="$(_tp_cpu_kind "$d")"
+		[[ -n "${ids[$key]:-}" ]] || order+=("$key")
+		ids[$key]+="$(_tp_cpu_id "$d") "
+		dirs[$key]+="$d "
+	done < <(_tp_cpu_policies)
+	for key in "${order[@]}"; do
+		echo "$(_tp_cpu_range "${ids[$key]}") ${dirs[$key]}"
+	done
 }
 
 # _tp_cpu_freqs <policy dir>... -> table frequencies in kHz, boost ones included
@@ -864,20 +899,23 @@ function _tp_cpu_sync_unit() {
 	return 0
 }
 
-# _tp_cpu_set <all|policy<n>> <governor|min|max|boost|clear> [value]
+# _tp_cpu_set <all|policy<list>> <governor|min|max|boost|clear> [value]
 #
 # Frequencies are in kHz, as in sysfs and in the config file. "all" writes the
-# global key and drops the per-policy overrides of that key.
+# global key and drops the per-policy overrides of that key. A list such as
+# policy0-3,8 writes the key of each policy in it.
 function _tp_cpu_set() {
-	local target="$1" key="$2" value="$3" prefix="" d n lo="" hi="" other
-	local -a dirs=() online=()
+	local target="$1" key="$2" value="$3" p d n lo="" hi="" other
+	local -a dirs=() online=() prefixes=()
 
 	if [[ "$target" == "all" ]]; then
 		mapfile -t dirs < <(_tp_cpu_policies)
-	elif [[ "$target" =~ ^policy([0-9]+)$ ]]; then
-		n="${BASH_REMATCH[1]}"
-		prefix="POLICY${n}_"
-		d="$(_tp_cpu_dir "$n")" && dirs=("$d")
+		prefixes=("")
+	elif [[ "$target" =~ ^policy([0-9]+(-[0-9]+)?(,[0-9]+(-[0-9]+)?)*)$ ]]; then
+		mapfile -t dirs < <(_tp_cpu_dirs "${BASH_REMATCH[1]}")
+		for d in "${dirs[@]}"; do
+			prefixes+=("POLICY$(_tp_cpu_id "$d")_")
+		done
 	fi
 	if [[ ${#dirs[@]} -eq 0 ]]; then
 		echo "No CPU frequency policy '${target}'. Use 'all' or one of: $(_tp_cpu_policies | while read -r d; do printf 'policy%s ' "$(_tp_cpu_id "$d")"; done)" >&2
@@ -897,8 +935,10 @@ function _tp_cpu_set() {
 				echo "Governor '${value}' is not available for ${target/#all/all CPUs}. Available: $(_tp_cpu_governors "${online[@]}" | tr '\n' ' ')" >&2
 				return 1
 			fi
-			[[ -n "$prefix" ]] || sed -i '/^POLICY[0-9]*_GOVERNOR=/d' "$TP_CPU_CONF" 2> /dev/null
-			_tp_cpu_put "${prefix}GOVERNOR" "$value"
+			[[ "$target" != "all" ]] || sed -i '/^POLICY[0-9]*_GOVERNOR=/d' "$TP_CPU_CONF" 2> /dev/null
+			for p in "${prefixes[@]}"; do
+				_tp_cpu_put "${p}GOVERNOR" "$value"
+			done
 			;;
 		min | max)
 			if [[ -n "$value" ]]; then
@@ -934,7 +974,7 @@ function _tp_cpu_set() {
 				done
 			fi
 			key="${key^^}_SPEED"
-			[[ -n "$prefix" ]] || sed -i "/^POLICY[0-9]*_${key}=/d" "$TP_CPU_CONF" 2> /dev/null
+			[[ "$target" != "all" ]] || sed -i "/^POLICY[0-9]*_${key}=/d" "$TP_CPU_CONF" 2> /dev/null
 			# The widened limit must reach sysfs too: apply only writes what is set.
 			if [[ -z "$value" ]]; then
 				for d in "${online[@]}"; do
@@ -945,10 +985,12 @@ function _tp_cpu_set() {
 					fi
 				done
 			fi
-			_tp_cpu_put "${prefix}${key}" "$value"
+			for p in "${prefixes[@]}"; do
+				_tp_cpu_put "${p}${key}" "$value"
+			done
 			;;
 		boost)
-			[[ -z "$prefix" ]] || { echo "Boost is set for all CPUs only." >&2; return 1; }
+			[[ "$target" == "all" ]] || { echo "Boost is set for all CPUs only." >&2; return 1; }
 			_tp_cpu_has_boost || { echo "This CPU has no boost control." >&2; return 1; }
 			case "$value" in
 				true | on) value=true ;;
@@ -960,8 +1002,10 @@ function _tp_cpu_set() {
 			_tp_cpu_put BOOST "$value"
 			;;
 		clear)
-			[[ -n "$prefix" ]] || { echo "Clear needs a policy, for example: cpu set policy4 clear" >&2; return 1; }
-			sed -i "/^${prefix}/d" "$TP_CPU_CONF" 2> /dev/null
+			[[ "$target" != "all" ]] || { echo "Clear needs a policy, for example: cpu set policy4 clear" >&2; return 1; }
+			for p in "${prefixes[@]}"; do
+				sed -i "/^${p}/d" "$TP_CPU_CONF" 2> /dev/null
+			done
 			for d in "${online[@]}"; do
 				_tp_cpu_write "$d/scaling_min_freq" "$(_tp_cpu_read "$d" cpuinfo_min_freq)"
 				_tp_cpu_write "$d/scaling_max_freq" "$(_tp_cpu_read "$d" cpuinfo_max_freq)"
@@ -1052,7 +1096,7 @@ function _tp_cpu_pick_freq() {
 	return 0
 }
 
-# _tp_cpu_tui_target <all|policy<n>>
+# _tp_cpu_tui_target <all|policy<list>>
 function _tp_cpu_tui_target() {
 	local target="$1" title gov min max min_label max_label choice value out g state
 	local -a dirs=() opts
@@ -1063,8 +1107,8 @@ function _tp_cpu_tui_target() {
 			_tp_cpu_online "$g" && dirs+=("$g")
 		done < <(_tp_cpu_policies)
 	else
-		dirs=("$(_tp_cpu_dir "${target#policy}")")
-		title="${target}: $(_tp_cpu_label "${dirs[0]}")"
+		mapfile -t dirs < <(_tp_cpu_dirs "${target#policy}")
+		title="${target}: $(_tp_cpu_label "${dirs[@]}")"
 	fi
 
 	while true; do
@@ -1108,9 +1152,10 @@ function _tp_cpu_tui_target() {
 }
 
 function _tp_cpu_tui() {
-	local choice d n sum boost out
-	local -a opts policies
+	local choice d ids sum s boost out
+	local -a opts policies groups members
 	mapfile -t policies < <(_tp_cpu_policies)
+	mapfile -t groups < <(_tp_cpu_groups)
 	if [[ ${#policies[@]} -eq 0 ]]; then
 		dialog_msgbox "CPU frequency" "This system has no CPU frequency scaling." 8 60
 		return 0
@@ -1118,16 +1163,21 @@ function _tp_cpu_tui() {
 
 	while true; do
 		opts=("all" "All CPUs: $(_tp_cpu_get GOVERNOR | grep . || echo "kernel default")")
-		# One entry per cluster. Skip the list when there is only one.
-		if [[ ${#policies[@]} -gt 1 ]]; then
-			for d in "${policies[@]}"; do
-				n="$(_tp_cpu_id "$d")"
-				if _tp_cpu_online "$d"; then
-					sum="$(_tp_cpu_read "$d" scaling_governor), $(_tp_cpu_mhz "$(_tp_cpu_read "$d" scaling_min_freq)")-$(_tp_cpu_mhz "$(_tp_cpu_read "$d" scaling_max_freq)") MHz"
-				else
-					sum="offline"
-				fi
-				opts+=("policy${n}" "$(_tp_cpu_label "$d") [${sum}]")
+		# One entry per CPU type. Skip the list when there is only one.
+		if [[ ${#groups[@]} -gt 1 ]]; then
+			for d in "${groups[@]}"; do
+				read -r ids d <<< "$d"
+				read -r -a members <<< "$d"
+				sum=""
+				for d in "${members[@]}"; do
+					if _tp_cpu_online "$d"; then
+						s="$(_tp_cpu_read "$d" scaling_governor), $(_tp_cpu_mhz "$(_tp_cpu_read "$d" scaling_min_freq)")-$(_tp_cpu_mhz "$(_tp_cpu_read "$d" scaling_max_freq)") MHz"
+					else
+						s="offline"
+					fi
+					[[ -z "$sum" || "$sum" == "$s" ]] && sum="$s" || { sum="mixed"; break; }
+				done
+				opts+=("policy${ids}" "$(_tp_cpu_label "${members[@]}") [${sum}]")
 			done
 		fi
 		if _tp_cpu_has_boost; then
@@ -1317,7 +1367,7 @@ function module_tuning_profile() {
 				reset) _tp_cpu_reset ;;
 				set) _tp_cpu_set "$3" "$4" "$5" ;;
 				*)
-					echo "Usage: module_tuning_profile cpu [select|status|apply|reset|set <all|policy<n>> <governor|min|max|boost|clear> [value]]" >&2
+					echo "Usage: module_tuning_profile cpu [select|status|apply|reset|set <all|policy<list>> <governor|min|max|boost|clear> [value]]" >&2
 					return 1
 					;;
 			esac
