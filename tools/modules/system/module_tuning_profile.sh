@@ -540,9 +540,9 @@ function _tp_active() {
 # RK3588, S922X, Exynos 5422): each cluster has its own frequency table and
 # often its own best governor. A cluster can override the global keys with
 # POLICY<n>_GOVERNOR, POLICY<n>_MIN_SPEED and POLICY<n>_MAX_SPEED, where <n> is
-# the first CPU of policy<n>. armbian-hardware-optimization ignores those keys,
-# so armbian-cpufreq.service applies the whole file again after it, but only
-# when the file needs more than armbian-hardware-optimization does.
+# the first CPU of policy<n>. Board configs set them at build time (build
+# CPUMIN_POLICY<n> etc.). Older armbian-hardware-optimization ignores them, so
+# armbian-cpufreq.service applies the file after it when that is necessary.
 #
 # BOOST keeps its old meaning. "true" enables boost. "false", which the build
 # writes for every board, keeps the kernel default. "off" disables boost.
@@ -796,10 +796,13 @@ function _tp_cpu_apply() {
 }
 
 # Install the boot unit only when armbian-hardware-optimization cannot apply the
-# file alone: per-policy keys, BOOST=off, or not an Armbian image.
+# file alone: not an Armbian image, an older BSP without per-policy keys, or
+# BOOST=off without the global boost file (intel_pstate, per-policy boost).
 function _tp_cpu_sync_unit() {
-	if grep -qE '^(POLICY[0-9]+_[A-Z_]+|BOOST=off)' "$TP_CPU_CONF" 2> /dev/null \
-		|| [[ ! -x /usr/lib/armbian/armbian-hardware-optimization ]]; then
+	local ho="${TP_CPU_HO:-/usr/lib/armbian/armbian-hardware-optimization}"
+	if [[ ! -x "$ho" ]] \
+		|| { ! grep -qF 'POLICY${n}_GOVERNOR' "$ho" && grep -qE '^(POLICY[0-9]+_[A-Z_]+|BOOST=off)' "$TP_CPU_CONF" 2> /dev/null; } \
+		|| { grep -q '^BOOST=off' "$TP_CPU_CONF" 2> /dev/null && [[ ! -e "$TP_CPU_SYS/cpufreq/boost" ]]; }; then
 		cat > "$TP_CPU_UNIT_FILE" <<- EOF
 			[Unit]
 			Description=Armbian CPU frequency settings
