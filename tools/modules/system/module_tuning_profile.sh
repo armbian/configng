@@ -739,13 +739,9 @@ function _tp_cpu_boost_live() {
 	case "$v" in 1) echo on ;; 0) echo off ;; esac
 }
 
-function _tp_cpu_apply_boost() {
-	local val d
-	case "$(_tp_cpu_get BOOST)" in
-		true) val=1 ;;
-		off) val=0 ;;
-		*) return 0 ;;
-	esac
+# _tp_cpu_write_boost <1|0>
+function _tp_cpu_write_boost() {
+	local val="$1" d
 	if [[ -e "$TP_CPU_SYS/cpufreq/boost" ]]; then
 		_tp_cpu_write "$TP_CPU_SYS/cpufreq/boost" "$val"
 	elif [[ -e "$TP_CPU_SYS/intel_pstate/no_turbo" ]]; then
@@ -755,6 +751,33 @@ function _tp_cpu_apply_boost() {
 			_tp_cpu_write "$d" "$val"
 		done
 	fi
+}
+
+function _tp_cpu_apply_boost() {
+	case "$(_tp_cpu_get BOOST)" in
+		true) _tp_cpu_write_boost 1 ;;
+		off) _tp_cpu_write_boost 0 ;;
+	esac
+	return 0
+}
+
+# The kernel has no interface for its default boost state. Record the live state
+# before the first override (BOOST_KERNEL_DEFAULT) and write it back when the
+# override goes away. <mode> is the new BOOST value.
+function _tp_cpu_boost_default() {
+	local mode="$1" prev saved live
+	prev="$(_tp_cpu_get BOOST)"
+	saved="$(_tp_cpu_get BOOST_KERNEL_DEFAULT)"
+	if [[ "$mode" == "true" || "$mode" == "off" ]]; then
+		if [[ "$prev" != "true" && "$prev" != "off" && -z "$saved" ]]; then
+			live="$(_tp_cpu_boost_live)"
+			[[ -n "$live" ]] && _tp_cpu_put BOOST_KERNEL_DEFAULT "$([[ "$live" == on ]] && echo 1 || echo 0)"
+		fi
+	elif [[ -n "$saved" ]]; then
+		_tp_cpu_write_boost "$saved"
+		_tp_cpu_put BOOST_KERNEL_DEFAULT ""
+	fi
+	return 0
 }
 
 function _tp_cpu_apply_policy() {
@@ -876,13 +899,25 @@ function _tp_cpu_set() {
 					echo "Frequency ${value} kHz is outside ${lo}-${hi} kHz for ${target}." >&2
 					return 1
 				fi
-				if [[ "$key" == "min" ]]; then
-					other="$(_tp_cpu_get "${prefix}MAX_SPEED")"
-					[[ -n "$other" ]] && ((value > other)) && { echo "Minimum ${value} kHz is above maximum ${other} kHz." >&2; return 1; }
-				else
-					other="$(_tp_cpu_get "${prefix}MIN_SPEED")"
-					[[ -n "$other" ]] && ((value < other)) && { echo "Maximum ${value} kHz is below minimum ${other} kHz." >&2; return 1; }
-				fi
+				# Compare with the effective opposite bound of each policy, both
+				# clamped to that policy's hardware range, as apply does.
+				for d in "${online[@]}"; do
+					[[ "$key" == "min" ]] && other="$(_tp_cpu_want "$d" MAX_SPEED)" || other="$(_tp_cpu_want "$d" MIN_SPEED)"
+					[[ -n "$other" ]] || continue
+					lo="$(_tp_cpu_read "$d" cpuinfo_min_freq)"
+					hi="$(_tp_cpu_read "$d" cpuinfo_max_freq)"
+					n="$value"
+					((n < lo)) && n="$lo"; ((n > hi)) && n="$hi"
+					((other < lo)) && other="$lo"; ((other > hi)) && other="$hi"
+					if [[ "$key" == "min" ]] && ((n > other)); then
+						echo "Minimum ${value} kHz is above maximum ${other} kHz of policy$(_tp_cpu_id "$d")." >&2
+						return 1
+					fi
+					if [[ "$key" == "max" ]] && ((n < other)); then
+						echo "Maximum ${value} kHz is below minimum ${other} kHz of policy$(_tp_cpu_id "$d")." >&2
+						return 1
+					fi
+				done
 			fi
 			key="${key^^}_SPEED"
 			[[ -n "$prefix" ]] || sed -i "/^POLICY[0-9]*_${key}=/d" "$TP_CPU_CONF" 2> /dev/null
@@ -907,6 +942,7 @@ function _tp_cpu_set() {
 				false | default | "") value=false ;;
 				*) echo "Boost must be on, off or default." >&2; return 1 ;;
 			esac
+			_tp_cpu_boost_default "$value"
 			_tp_cpu_put BOOST "$value"
 			;;
 		clear)
@@ -929,7 +965,9 @@ function _tp_cpu_set() {
 
 # Return to the board defaults that the build wrote.
 function _tp_cpu_reset() {
-	local d
+	local d boost=false
+	[[ -f "$TP_CPU_DEFAULTS" ]] && boost="$(sed -n 's/^BOOST=//p' "$TP_CPU_DEFAULTS" | tail -n 1)"
+	_tp_cpu_boost_default "${boost:-false}"
 	if [[ -f "$TP_CPU_DEFAULTS" ]]; then
 		cat "$TP_CPU_DEFAULTS" > "$TP_CPU_CONF"
 		rm -f "$TP_CPU_DEFAULTS"
