@@ -1319,6 +1319,19 @@
                             "author": "@igorpecovnik",
                             "condition": "module_tuning_profile status >/dev/null",
                             "help": "Display which profile is active and the values currently in effect"
+                        },
+                        {
+                            "id": "TUNE03",
+                            "description": "CPU frequency - governor and limits per CPU cluster",
+                            "short": "CPU frequency",
+                            "module": "module_generic",
+                            "command": [
+                                "module_tuning_profile cpu select"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_tuning_profile cpu status >/dev/null",
+                            "help": "Set governor, minimum and maximum frequency and boost, for all CPUs or one cluster"
                         }
                     ],
                     "help": "Manage storage devices, ZFS filesystems, and NFS mounts"
