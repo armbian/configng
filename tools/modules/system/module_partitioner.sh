@@ -100,7 +100,9 @@ partitioner_emmc_device() {
 # platform_install.sh may also set BOOTLOADER_NAME (default "u-boot") to name
 # the firmware it writes in the bootloader flash messages, and
 # BOOTLOADER_BOOTS_FROM to list the disk roles (nvme sata usb) its bootloader
-# loads /boot from, which enables the "standalone" mode for those targets.
+# loads /boot from, which enables the "standalone" mode for those targets
+# and, when set, limits "spi" to them. A board can also list only mmc, as
+# the Turris Omnia does, to offer neither.
 partitioner_mtd_list() {
 	local list chr
 	list="$(grep 'mtdblock' /proc/partitions 2>/dev/null | awk '{print $NF}' | xargs)"
@@ -147,7 +149,7 @@ partitioner_modes_for() {
 				local have_mtd=""; have_mtd="$(partitioner_mtd_list)"
 				if [[ "$(type -t write_uboot_platform_mtd)" == function && -n "$have_mtd" ]]; then
 					m+=(mtd)
-				elif [[ -n "$have_mtd" ]]; then
+				elif [[ -n "$have_mtd" && ( -z "${BOOTLOADER_BOOTS_FROM:-}" || " ${BOOTLOADER_BOOTS_FROM:-} " == *" $role "* ) ]]; then
 					# SPI/MTD flash is present but the board has no installer
 					# hook to write u-boot into it (e.g. SpacemiT K3: u-boot is
 					# flashed once via fastboot/DFU, not from the OS). The board
@@ -155,6 +157,7 @@ partitioner_modes_for() {
 					# NVMe/SATA/USB for /boot/boot.scr - so a fully self-contained
 					# install here (local /boot + root, no dependency on the
 					# removable media) is bootable. Offer it FIRST (top / default).
+					# A set BOOTLOADER_BOOTS_FROM must list this role (Turris Omnia: eMMC first).
 					m+=(spi)
 				fi
 				# u-boot on SD/eMMC loads /boot from this role: full install, media untouched.
@@ -491,6 +494,10 @@ partitioner_cli_install() {
 	done
 
 	[[ -b "$target" ]] || { echo "armbian-install: --target must be a block device" >&2; return "$INSTALL_EX_NODEV"; }
+	# The checks and the engine use kernel names, so resolve /dev/disk/by-id
+	# or by-path links.
+	local given="$target"
+	target="$(readlink -f "$target")"
 	case "$boot" in uefi|uefi-dualboot|bios|emmc|sd|mtd|spi|standalone|ufs|native|split-emmc) ;; *) echo "armbian-install: --boot must be one of uefi|uefi-dualboot|bios|emmc|sd|mtd|spi|standalone|ufs|native|split-emmc" >&2; return "$INSTALL_EX_USAGE" ;; esac
 	case "$fs"   in ext4|btrfs|f2fs) ;;     *) echo "armbian-install: --fs must be one of ext4|btrfs|f2fs" >&2; return "$INSTALL_EX_USAGE" ;; esac
 	[[ -f "$INSTALL_EXCLUDE" ]] || { echo "armbian-install: exclude list $INSTALL_EXCLUDE missing" >&2; return "$INSTALL_EX_TRANSFER"; }
@@ -499,11 +506,14 @@ partitioner_cli_install() {
 		echo "armbian-install: refusing to modify $target without --yes" >&2
 		return "$INSTALL_EX_USAGE"
 	fi
-	if [[ "$boot" == standalone ]]; then
+	if [[ "$boot" == standalone || ( "$boot" == spi && -n "${BOOTLOADER_BOOTS_FROM:-}" ) ]]; then
 		# Same gate as the TUI: u-boot must load /boot from the target's role.
-		local role; role="$(install_detect_targets "$(partitioner_root_disk)" | awk -F'\t' -v d="${target#/dev/}" '$1 == d { print $2 }')"
+		local records role
+		records="$(install_detect_targets "$(partitioner_root_disk)")" \
+			|| { echo "armbian-install: could not list the install targets" >&2; return "$INSTALL_EX_NODEV"; }
+		role="$(awk -F'\t' -v d="${target#/dev/}" '$1 == d { print $2 }' <<<"$records")"
 		if [[ -z "$role" || " ${BOOTLOADER_BOOTS_FROM:-} " != *" $role "* ]]; then
-			echo "armbian-install: --boot standalone needs a disk ${BOOTLOADER_NAME:-u-boot} boots from (BOOTLOADER_BOOTS_FROM='${BOOTLOADER_BOOTS_FROM:-}', $target is '${role:-not a target}')" >&2
+			echo "armbian-install: --boot $boot needs a disk ${BOOTLOADER_NAME:-u-boot} boots from (BOOTLOADER_BOOTS_FROM='${BOOTLOADER_BOOTS_FROM:-}', $target is '${role:-not a target}')" >&2
 			return "$INSTALL_EX_USAGE"
 		fi
 	fi
@@ -511,6 +521,9 @@ partitioner_cli_install() {
 		echo "armbian-install: mkfs.$fs unavailable; install its package and retry" >&2
 		return "$INSTALL_EX_TOOL"
 	fi
+	# A package install takes a while. Stop if the given link points elsewhere now.
+	[[ "$(readlink -f "$given")" == "$target" && -b "$target" ]] \
+		|| { echo "armbian-install: $given no longer points at $target - refusing to continue" >&2; return "$INSTALL_EX_NODEV"; }
 
 	if [[ "$boot" == uefi-dualboot ]]; then
 		[[ "$size_gib" =~ ^[0-9]+$ && "$size_gib" -gt 0 ]] || { echo "armbian-install: --size <GiB> is required for uefi-dualboot" >&2; return "$INSTALL_EX_USAGE"; }
