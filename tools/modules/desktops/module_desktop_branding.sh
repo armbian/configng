@@ -135,15 +135,31 @@ function module_desktop_branding() {
 			# ships greeter.dconf-defaults with
 			#   logo='/usr/share/images/vendor-logos/logo-text-version-64.png'
 			# which renders the "Debian 13" logo on the GNOME login screen.
-			# Blank it for a clean, logo-less dark greeter (GDM's default
-			# background is already a plain dark colour — we deliberately do
-			# not set a wallpaper here). Only touches the file if GDM is present.
+			# Blank it for a clean, logo-less greeter. The login background
+			# comes from the extension below. Only touches the file if GDM is present.
 			if [[ -f /etc/gdm3/greeter.dconf-defaults ]]; then
 				if grep -qE '^[[:space:]]*logo=' /etc/gdm3/greeter.dconf-defaults; then
 					sed -i "s|^[[:space:]]*logo=.*|logo=''|" /etc/gdm3/greeter.dconf-defaults
 				elif grep -q '^\[org/gnome/login-screen\]' /etc/gdm3/greeter.dconf-defaults; then
 					sed -i "/^\[org\/gnome\/login-screen\]/a logo=''" /etc/gdm3/greeter.dconf-defaults
 				fi
+			fi
+
+			# GDM login background: the blurred Armbian wallpaper. The theme sets
+			# a plain colour in #lockDialogGroup; a small GNOME Shell extension that
+			# runs only on the login screen overrides it with its stylesheet.
+			# GDM compiles /usr/share/gdm/dconf/* on each start (generate-config),
+			# so 95-armbian-login enables the extension for the gdm user only.
+			# Same on Debian and Ubuntu. Needs GNOME Shell 45 or newer (ES module
+			# extensions); older shells keep the plain background.
+			local shell_ver shell_major=0
+			shell_ver=$(dpkg-query -W -f='${Version}' gnome-shell 2>/dev/null)
+			# Leading digits after the epoch: 1:43.9-1 -> 43, 48~beta-4 -> 48.
+			[[ "${shell_ver#*:}" =~ ^([0-9]+) ]] && shell_major=${BASH_REMATCH[1]}
+			if [[ -d /usr/share/gdm/dconf && -d "$desktop_dir/branding/gdm" ]] && (( shell_major >= 45 )); then
+				mkdir -p /usr/share/gnome-shell/extensions
+				cp -R "$desktop_dir/branding/gdm/extensions/." /usr/share/gnome-shell/extensions/
+				install -m 644 "$desktop_dir/branding/gdm/95-armbian-login" /usr/share/gdm/dconf/95-armbian-login
 			fi
 
 			# Plymouth BOOT splash branding (Debian-based builds).

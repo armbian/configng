@@ -1,0 +1,3 @@
+[org/gnome/shell]
+enabled-extensions=['armbian-login@armbian.com']
+disable-extension-version-validation=true
