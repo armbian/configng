@@ -11,15 +11,20 @@ install -Dm755 "$src/bin/power-menu" /usr/lib/armbian/hyprland/power-menu
 install -Dm755 "$src/bin/key-help" /usr/lib/armbian/hyprland/key-help
 
 # Create a user file only if it does not exist: never overwrite edits.
+# Root reads the source; the owner writes the file, so a symlink in the
+# home cannot redirect a root write.
 user_file() {
-	local home="$1" path="$2" from="$3"
-	[ -e "$home/$path" ] && return 0
-	mkdir -p "$(dirname "$home/$path")"
+	local home="$1" owner="$2" path="$3" from="$4"
 	if [ -f "$from" ]; then
-		cp "$from" "$home/$path"
+		cat "$from"
 	else
-		printf '%s\n' "$from" > "$home/$path"
-	fi
+		printf '%s\n' "$from"
+	fi | runuser -u "$owner" -- sh -c '
+		if [ -e "$1" ] || [ -L "$1" ]; then
+			cat > /dev/null
+			exit 0
+		fi
+		mkdir -p "$(dirname "$1")" && cat > "$1"' _ "$home/$path"
 }
 
 # Helper entries that only clutter the application launcher.
@@ -27,27 +32,26 @@ hidden_apps="footclient foot-server uuctl thunar-settings"
 
 for home in /etc/skel /home/*; do
 	[ -d "$home" ] || continue
-	user_file "$home" .config/hypr/hyprland.conf "# Your Hyprland settings. Values here override the Armbian defaults.
+	if [ "$home" = "/etc/skel" ]; then
+		owner=root
+	else
+		owner=$(stat -c '%U' "$home")
+		# Only homes of regular users.
+		[ "$owner" = "root" ] || [ "$owner" = "UNKNOWN" ] && continue
+	fi
+	user_file "$home" "$owner" .config/hypr/hyprland.conf "# Your Hyprland settings. Values here override the Armbian defaults.
 source = /etc/xdg/hypr/armbian.conf"
-	user_file "$home" .config/hypr/hyprlock.conf "$src/hypr/hyprlock.conf"
-	user_file "$home" .config/hypr/hypridle.conf "$src/hypr/hypridle.conf"
-	user_file "$home" .config/waybar/config.jsonc "$src/waybar/config.jsonc"
-	user_file "$home" .config/waybar/style.css "$src/waybar/style.css"
-	user_file "$home" .config/mako/config "$src/mako/config"
-	user_file "$home" .config/fuzzel/fuzzel.ini "$src/fuzzel/fuzzel.ini"
-	user_file "$home" .config/foot/foot.ini "$src/foot/foot.ini"
+	user_file "$home" "$owner" .config/hypr/hyprlock.conf "$src/hypr/hyprlock.conf"
+	user_file "$home" "$owner" .config/hypr/hypridle.conf "$src/hypr/hypridle.conf"
+	user_file "$home" "$owner" .config/waybar/config.jsonc "$src/waybar/config.jsonc"
+	user_file "$home" "$owner" .config/waybar/style.css "$src/waybar/style.css"
+	user_file "$home" "$owner" .config/mako/config "$src/mako/config"
+	user_file "$home" "$owner" .config/fuzzel/fuzzel.ini "$src/fuzzel/fuzzel.ini"
+	user_file "$home" "$owner" .config/foot/foot.ini "$src/foot/foot.ini"
 	for app in $hidden_apps; do
-		user_file "$home" ".local/share/applications/${app}.desktop" "[Desktop Entry]
+		user_file "$home" "$owner" ".local/share/applications/${app}.desktop" "[Desktop Entry]
 Type=Application
 Name=${app}
 Hidden=true"
 	done
-	# Real users own their files.
-	if [ "$home" != "/etc/skel" ]; then
-		owner=$(stat -c '%U:%G' "$home")
-		chown -R "$owner" "$home/.config/hypr" "$home/.config/waybar" \
-			"$home/.config/mako" "$home/.config/fuzzel" "$home/.config/foot" \
-			"$home/.local/share/applications"
-		chown "$owner" "$home/.local" "$home/.local/share"
-	fi
 done
