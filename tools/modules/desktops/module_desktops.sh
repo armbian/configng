@@ -1020,6 +1020,10 @@ function module_desktops() {
 					[Autologin]
 					User=${user}
 					EOF
+					# Without Session= SDDM can start another installed session.
+					if [[ -n "$DESKTOP_SESSION" ]]; then
+						echo "Session=${DESKTOP_SESSION}.desktop" >> /etc/sddm.conf.d/autologin.conf
+					fi
 				;;
 				lightdm)
 					# map DE name to actual xsession file in /usr/share/xsessions/
