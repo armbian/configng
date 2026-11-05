@@ -18,22 +18,28 @@ if [ -d /usr/share/sddm/themes/breeze ]; then
 fi
 
 # Wallpaper and launcher logo. Plasma runs each update script once per
-# user at login, so this also reaches existing users and keeps the
-# rest of their layout.
+# user at login, so this also reaches existing users. It changes only
+# values that are still at the Plasma default, so a user's own choice
+# and the rest of the layout stay.
 updates=/usr/share/plasma/shells/org.kde.plasma.desktop/contents/updates
 mkdir -p "$updates"
 cat > "$updates/armbian-branding.js" <<- EOF
-desktops().forEach(function (d) {
-    d.wallpaperPlugin = "org.kde.image";
-    d.currentConfigGroup = ["Wallpaper", "org.kde.image", "General"];
-    d.writeConfig("Image", "file://${wallpaper}");
-});
-panels().forEach(function (p) {
-    p.widgets("org.kde.plasma.kickoff").forEach(function (w) {
-        w.currentConfigGroup = ["General"];
-        w.writeConfig("icon", "${logo}");
-    });
-});
+	desktops().forEach(function (d) {
+		d.currentConfigGroup = ["Wallpaper", "org.kde.image", "General"];
+		var image = d.readConfig("Image");
+		if (d.wallpaperPlugin == "org.kde.image" && (!image || image.indexOf("/wallpapers/Next") >= 0)) {
+			d.writeConfig("Image", "file://${wallpaper}");
+		}
+	});
+	panels().forEach(function (p) {
+		p.widgets("org.kde.plasma.kickoff").forEach(function (w) {
+			w.currentConfigGroup = ["General"];
+			var icon = w.readConfig("icon");
+			if (!icon || icon.indexOf("start-here") === 0) {
+				w.writeConfig("icon", "${logo}");
+			}
+		});
+	});
 EOF
 
 # Pin Armbian Imager to the panel. The package ships
@@ -41,25 +47,25 @@ EOF
 for imager in armbian-imager.desktop "Armbian Imager.desktop"; do
 	[ -f "/usr/share/applications/${imager}" ] || continue
 	cat >> "$updates/armbian-branding.js" <<- EOF
-var imager = "applications:${imager}";
-panels().forEach(function (p) {
-    p.widgets("org.kde.plasma.icontasks").forEach(function (w) {
-        w.currentConfigGroup = ["General"];
-        var l = w.readConfig("launchers");
-        // Empty means the task manager default.
-        if (!l || l.length === 0) {
-            l = ["applications:systemsettings.desktop", "applications:org.kde.discover.desktop",
-                 "preferred://filemanager", "preferred://browser"];
-        } else if (typeof l === "string") {
-            l = l.split(",");
-        }
-        if (l.indexOf(imager) < 0) {
-            l.push(imager);
-            w.writeConfig("launchers", l);
-        }
-    });
-});
-EOF
+	var imager = "applications:${imager}";
+	panels().forEach(function (p) {
+		p.widgets("org.kde.plasma.icontasks").forEach(function (w) {
+			w.currentConfigGroup = ["General"];
+			var l = w.readConfig("launchers");
+			// Empty means the task manager default.
+			if (!l || l.length === 0) {
+				l = ["applications:systemsettings.desktop", "applications:org.kde.discover.desktop",
+					"preferred://filemanager", "preferred://browser"];
+			} else if (typeof l === "string") {
+				l = l.split(",");
+			}
+			if (l.indexOf(imager) < 0) {
+				l.push(imager);
+				w.writeConfig("launchers", l);
+			}
+		});
+	});
+	EOF
 	break
 done
 
