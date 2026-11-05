@@ -27,6 +27,9 @@ tiers:
       # GTK/GL apps and extensions dlopen at runtime.
       - gnome-tweaks
       - libopengl0
+      # Numix icons: square app icons, in all archives. Set as the
+      # default icon theme in postinst/gnome.sh.
+      - numix-icon-theme
       # Printing: cups is in common.yaml as the spooler, but without
       # drivers the GNOME Settings → Printers panel can't add anything.
       # printer-driver-all pulls in HPLIP/Gutenprint/Foomatic/Splix.
