@@ -1,0 +1,7 @@
+{
+  "uuid": "armbian-login@armbian.com",
+  "name": "Armbian login background",
+  "description": "Armbian wallpaper on the GDM login screen.",
+  "shell-version": ["45", "46", "47", "48", "49", "50"],
+  "session-modes": ["gdm"]
+}
