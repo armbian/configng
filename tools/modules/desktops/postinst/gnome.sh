@@ -23,11 +23,18 @@ install -Dv /dev/null $profile
 # the .desktop is there; if it was stripped via tier_overrides,
 # it isn't, and the favorites bar stays clean instead of showing
 # a broken shortcut.
-favorites="'terminator.desktop', 'org.gnome.Nautilus.desktop'"
-# Ptyxis first where the release ships it; Terminator stays for splits.
+# Dock: the terminal, then the browsers that are installed. Ptyxis where
+# the release ships it, else Terminator (still installed for splits).
 if [ -f /usr/share/applications/org.gnome.Ptyxis.desktop ]; then
-	favorites="'org.gnome.Ptyxis.desktop', ${favorites}"
+	favorites="'org.gnome.Ptyxis.desktop'"
+else
+	favorites="'terminator.desktop'"
 fi
+for app in chromium.desktop chromium-browser.desktop google-chrome.desktop; do
+	if [ -f "/usr/share/applications/${app}" ]; then
+		favorites="${favorites}, '${app}'"
+	fi
+done
 if [ -f /usr/share/applications/armbian-imager.desktop ]; then
 	favorites="${favorites}, 'armbian-imager.desktop'"
 fi
