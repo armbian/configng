@@ -271,15 +271,24 @@ install_plan_layout() {
 			;;
 	esac
 
-	# First-partition start offset, in MiB. emmc is the only mode that writes
-	# u-boot to raw sectors of this same device (idbloader at 32KiB, u-boot.itb
-	# at 8MiB on Rockchip et al.), so its first partition must clear that region
-	# or the filesystem and the bootloader overwrite each other and the board
-	# won't boot. 16MiB matches the classic installer's FIRSTSECTOR=32768 and
-	# covers every SoC's bootloader area. All other modes keep u-boot off this
-	# device (SPI/UFS) or on removable media, so 1MiB alignment is fine.
+	# First-partition start offset, in MiB. emmc, emmc-boot and ufs write u-boot
+	# to raw sectors of this same device (on Rockchip idbloader at 32KiB of the
+	# eMMC, u-boot.itb at 8MiB of the eMMC or of the UFS general LUN), so the
+	# first partition must clear that region or the filesystem and the
+	# bootloader overwrite each other and the board won't boot. The floor is
+	# 16MiB, the classic installer's FIRSTSECTOR=32768. A board whose image
+	# reserves more (BOOTLOADER_RESERVED_MIB from platform_install.sh, the
+	# build's OFFSET) gets that instead. All other modes keep u-boot off this
+	# device or on removable media, so 1MiB alignment is fine.
 	local start_mib=1
-	[[ "$boot_mode" == emmc || "$boot_mode" == emmc-boot ]] && start_mib=16
+	case "$boot_mode" in
+		emmc | emmc-boot | ufs)
+			start_mib=16
+			[[ "${BOOTLOADER_RESERVED_MIB:-}" =~ ^[0-9]+$ ]] \
+				&& ((10#$BOOTLOADER_RESERVED_MIB > start_mib)) \
+				&& start_mib=$((10#$BOOTLOADER_RESERVED_MIB))
+			;;
+	esac
 
 	echo "start=$start_mib"
 	echo "table=$table"
