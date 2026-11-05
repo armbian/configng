@@ -43,15 +43,38 @@ module_obs_is_rockchip() {
 	[[ " ${module_obs_rk_releases} " == *" ${DISTROID} "* ]]
 }
 
+# True when apt has an install candidate for the package.
+module_obs_has_candidate() {
+	local candidate
+	candidate=$(apt-cache policy "$1" 2>/dev/null | sed -n 's/^ *Candidate: //p')
+	[[ -n "$candidate" && "$candidate" != "(none)" ]]
+}
+
+# True when the Rockchip hardware build applies: Rockchip board and the
+# package is in the configured repositories.
+module_obs_use_rockchip() {
+	module_obs_is_rockchip && module_obs_has_candidate "$module_obs_rk_package"
+}
+
 # The OBS package best suited to this hardware.
 module_obs_package() {
-	if module_obs_is_rockchip; then echo "$module_obs_rk_package"; else echo "$module_obs_std_package"; fi
+	if module_obs_use_rockchip; then echo "$module_obs_rk_package"; else echo "$module_obs_std_package"; fi
+}
+
+# True when the package best suited to this hardware is installed.
+module_obs_selected_installed() {
+	pkg_installed "$(module_obs_package)"
 }
 
 # Human description of the acceleration OBS will use here (for help/summary).
 module_obs_accel() {
-	if module_obs_is_rockchip; then
-		echo "Rockchip MPP H.264/HEVC (hardware)"
+	if module_obs_use_rockchip; then
+		# MPP needs the vendor kernel drivers.
+		if [[ -e /dev/mpp_service && -e /dev/rga ]]; then
+			echo "Rockchip MPP H.264/HEVC (hardware)"
+		else
+			echo "x264 (software): Rockchip build, but no /dev/mpp_service or /dev/rga on this kernel"
+		fi
 	elif lspci 2>/dev/null | grep -qiE 'vga.*nvidia|3d.*nvidia|display.*nvidia'; then
 		echo "NVIDIA NVENC (needs the proprietary driver)"
 	elif [[ -e /dev/dri/renderD128 ]]; then
@@ -95,8 +118,10 @@ function module_obs() {
 		;;
 
 		"${commands[1]}") # remove
-			if pkg_installed "$module_obs_rk_package"; then pkg_remove "$module_obs_rk_package"; fi
-			if pkg_installed "$module_obs_std_package"; then pkg_remove "$module_obs_std_package"; fi
+			local rc=0
+			if pkg_installed "$module_obs_rk_package"; then pkg_remove "$module_obs_rk_package" || rc=1; fi
+			if pkg_installed "$module_obs_std_package"; then pkg_remove "$module_obs_std_package" || rc=1; fi
+			return $rc
 		;;
 
 		"${commands[2]}") # status
