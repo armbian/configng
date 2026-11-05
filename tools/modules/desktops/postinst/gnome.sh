@@ -93,6 +93,16 @@ dconf update
 # launch at all. Strip the stub if it exists.
 rm -f /usr/local/share/applications/gnome-ubuntu-panel.desktop
 
+# Ptyxis defaults: the neutral GNOME palette instead of Ubuntu's, and
+# the same transparency as Terminator. Users can still change both.
+if [ -f /usr/share/applications/org.gnome.Ptyxis.desktop ]; then
+	cat > /usr/share/glib-2.0/schemas/90_armbian-ptyxis.gschema.override <<- EOF
+		[org.gnome.Ptyxis.Profile]
+		palette='gnome'
+		opacity=0.85
+	EOF
+fi
+
 #compile schemas
 if [ -d /usr/share/glib-2.0/schemas ]; then
 	glib-compile-schemas /usr/share/glib-2.0/schemas
