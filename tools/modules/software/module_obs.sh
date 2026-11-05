@@ -61,9 +61,15 @@ module_obs_package() {
 	if module_obs_use_rockchip; then echo "$module_obs_rk_package"; else echo "$module_obs_std_package"; fi
 }
 
-# True when the package best suited to this hardware is installed.
-module_obs_selected_installed() {
-	pkg_installed "$(module_obs_package)"
+# True when the install entry applies. On Rockchip it stays until the
+# hardware build is installed: apt metadata may predate its publication.
+module_obs_install_offered() {
+	module_obs_supported || return 1
+	if module_obs_is_rockchip; then
+		! pkg_installed "$module_obs_rk_package"
+	else
+		! module_obs_status
+	fi
 }
 
 # Human description of the acceleration OBS will use here (for help/summary).
@@ -71,14 +77,14 @@ module_obs_accel() {
 	if module_obs_use_rockchip; then
 		# MPP needs the vendor kernel drivers.
 		if [[ -e /dev/mpp_service && -e /dev/rga ]]; then
-			echo "Rockchip MPP H.264/HEVC (hardware)"
+			echo "Rockchip MPP H.264/HEVC available; select it in Settings → Output"
 		else
 			echo "x264 (software): Rockchip build, but no /dev/mpp_service or /dev/rga on this kernel"
 		fi
 	elif lspci 2>/dev/null | grep -qiE 'vga.*nvidia|3d.*nvidia|display.*nvidia'; then
-		echo "NVIDIA NVENC (needs the proprietary driver)"
+		echo "NVIDIA NVENC available (needs the proprietary driver); select it in Settings → Output"
 	elif [[ -e /dev/dri/renderD128 ]]; then
-		echo "VAAPI (Intel/AMD, hardware)"
+		echo "VAAPI (Intel/AMD) available; select it in Settings → Output"
 	else
 		echo "x264 (software)"
 	fi
@@ -110,10 +116,10 @@ function module_obs() {
 				echo "$title is available on amd64 and arm64 only." >&2
 				return 1
 			fi
+			pkg_update
 			local pkg
 			pkg="$(module_obs_package)"
 			echo "$title: installing $pkg — acceleration: $(module_obs_accel)"
-			pkg_update
 			pkg_install "$pkg"
 		;;
 
