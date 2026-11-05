@@ -162,35 +162,6 @@ function module_desktop_branding() {
 				install -m 644 "$desktop_dir/branding/gdm/95-armbian-login" /usr/share/gdm/dconf/95-armbian-login
 			fi
 
-			# Plymouth BOOT splash branding (Debian-based builds).
-			# The stock Debian plymouth initramfs hook
-			# /usr/share/initramfs-tools/hooks/plymouth overwrites EVERY
-			# two-step theme's watermark.png inside the initramfs with
-			# /usr/share/desktop-base/debian-logos/logo-text-version-64.png.
-			# So the *boot* splash shows the Debian logo even when the theme
-			# is Armbian — while the *shutdown* splash (rendered from the
-			# rootfs theme, which the hook never touches) correctly shows
-			# Armbian. Point those vendor logos at the Armbian watermark so
-			# the hook bakes the right image into the initramfs. This is a
-			# Debian-wide quirk; Ubuntu's plymouth hook does not do this.
-			local armbian_wm="/usr/share/plymouth/themes/armbian/watermark.png"
-			if [[ -f "$armbian_wm" ]]; then
-				local baked=0
-				for s in 64 128 256; do
-					local dl="/usr/share/desktop-base/debian-logos/logo-text-version-${s}.png"
-					if [[ -f "$dl" ]]; then
-						cp "$armbian_wm" "$dl" && baked=1
-					fi
-				done
-				# Regenerate the initramfs so the boot watermark takes effect.
-				# The image build rebuilds the initramfs again at the end, so
-				# this is redundant there but required when run on a live
-				# system; non-fatal if there is no kernel/initramfs yet.
-				if [[ "$baked" == 1 ]] && command -v update-initramfs >/dev/null 2>&1; then
-					update-initramfs -u >/dev/null 2>&1 || true
-				fi
-			fi
-
 			# DE-specific postinst script. Runs unconditionally — including
 			# inside the build chroot. The skip-in-container guard that used
 			# to wrap this block silently dropped wallpaper / dconf / theme
