@@ -116,6 +116,43 @@ setup() {
 	[[ "$output" == *"start=16"* ]]
 }
 
+@test "plan ufs: reserves 16MiB, u-boot.itb lives at 8MiB of the UFS general LUN" {
+	run install_plan_layout ufs ext4 0 $(( 250 * GIB )) 4096 0
+	grep -qx 'start=16' <<< "$output"
+}
+
+@test "plan: BOOTLOADER_RESERVED_MIB raises the reserve for on-device u-boot modes" {
+	BOOTLOADER_RESERVED_MIB=32
+	run install_plan_layout emmc ext4 0 $(( 16 * GIB )) 512 0
+	grep -qx 'start=32' <<< "$output"
+	run install_plan_layout emmc-boot ext4 0 $(( 58 * GIB )) 512 0 gpt
+	grep -qx 'start=32' <<< "$output"
+	run install_plan_layout ufs ext4 0 $(( 250 * GIB )) 4096 0
+	grep -qx 'start=32' <<< "$output"
+	# modes without u-boot on the target are not affected
+	run install_plan_layout sd ext4 0 $(( 500 * GIB )) 512 0
+	grep -qx 'start=1' <<< "$output"
+}
+
+@test "plan: BOOTLOADER_RESERVED_MIB never lowers the 16MiB floor, junk is ignored" {
+	BOOTLOADER_RESERVED_MIB=4
+	run install_plan_layout emmc ext4 0 $(( 16 * GIB )) 512 0
+	grep -qx 'start=16' <<< "$output"
+	BOOTLOADER_RESERVED_MIB=abc
+	run install_plan_layout ufs ext4 0 $(( 250 * GIB )) 4096 0
+	grep -qx 'start=16' <<< "$output"
+}
+
+@test "plan: BOOTLOADER_RESERVED_MIB with leading zeros is read as decimal" {
+	BOOTLOADER_RESERVED_MIB=020
+	run install_plan_layout emmc ext4 0 $(( 16 * GIB )) 512 0
+	grep -qx 'start=20' <<< "$output"
+	BOOTLOADER_RESERVED_MIB=018
+	run install_plan_layout ufs ext4 0 $(( 250 * GIB )) 4096 0
+	[ "$status" -eq 0 ]
+	grep -qx 'start=18' <<< "$output"
+}
+
 @test "plan: non-emmc modes keep the 1MiB start (u-boot lives off this device)" {
 	run install_plan_layout uefi ext4 1 $(( 16 * GIB )) 512 0
 	[[ "$output" == *"start=1"* ]]

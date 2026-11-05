@@ -141,6 +141,24 @@ _ptable() { sfdisk -d "$LOOP" 2>/dev/null; }
 	_ptable | grep -qE "^${LOOP}p1 : start= *32768, size= *1048576,"
 }
 
+@test "loopback: ufs plan on 4KiB sectors keeps u-boot.itb at 8MiB out of the rootfs" {
+	# UFS LUNs use 4KiB logical blocks and write_uboot_platform_ufs puts u-boot.itb
+	# at 8MiB of the same general LUN. A 1MiB start put it in the ext4 inode tables.
+	losetup -d "$LOOP"
+	LOOP="$(losetup -f --show -P -b 4096 "$IMG")"
+	local plan; plan="$(install_plan_layout ufs ext4 0 $((8*1024*1024*1024)) 4096 0)"
+	run install_apply_partitions "$LOOP" "$plan"
+	[ "$status" -eq 0 ]
+	[ -b "${LOOP}p1" ]
+	# 16MiB in 4KiB sectors
+	_ptable | grep -qE "^${LOOP}p1 : start= *4096,"
+	# mkfs with eager inode table init zeroes every metadata block of p1; the
+	# bootloader marker must survive it
+	printf 'UBOOT' | dd of="$LOOP" bs=4096 seek=2048 conv=notrunc status=none
+	mkfs.ext4 -qF -E lazy_itable_init=0 "${LOOP}p1"
+	[ "$(dd if="$LOOP" bs=4096 skip=2048 count=1 status=none | head -c 5)" = "UBOOT" ]
+}
+
 @test "loopback: apply_partitions echoes role->device for each partition" {
 	local plan; plan="$(install_plan_layout uefi ext4 1 $((8*1024*1024*1024)) 512 0)"
 	run install_apply_partitions "$LOOP" "$plan"
