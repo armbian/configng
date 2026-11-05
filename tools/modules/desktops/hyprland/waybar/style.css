@@ -1,36 +1,50 @@
-/* Armbian Waybar style: dark bar, Armbian orange accent. */
+/* Armbian Waybar style: slim dark bar, Armbian orange accent. */
 * {
-	font-family: "Noto Sans", "Font Awesome 7 Free", "Font Awesome 6 Free", "FontAwesome", sans-serif;
-	font-size: 13px;
+	font-family: "JetBrains Mono", "Font Awesome 7 Free", "Font Awesome 7 Brands",
+		"Font Awesome 6 Free", "Font Awesome 6 Brands", "FontAwesome", monospace;
+	font-size: 12px;
 	min-height: 0;
+	border: none;
+	border-radius: 0;
 }
 
 window#waybar {
-	background-color: rgba(20, 20, 20, 0.90);
-	color: #eeeeee;
+	background-color: #161616;
+	color: #e6e6e6;
 }
 
 #workspaces button {
-	padding: 0 8px;
-	color: #bbbbbb;
-	border-bottom: 2px solid transparent;
+	padding: 0 6px;
+	margin: 0 1px;
+	color: #6c6c6c;
+	background: transparent;
 }
 
 #workspaces button.active {
-	color: #ffffff;
-	border-bottom: 2px solid #f71000;
+	color: #f71000;
 }
 
-#window,
-#clock,
+#workspaces button:hover {
+	color: #e6e6e6;
+	background: transparent;
+	box-shadow: none;
+}
+
+#clock {
+	font-weight: bold;
+}
+
 #tray,
-#pulseaudio,
+#bluetooth,
 #network,
+#pulseaudio,
+#cpu,
 #battery {
-	padding: 0 10px;
+	padding: 0 9px;
 }
 
 #battery.critical:not(.charging),
-#pulseaudio.muted {
+#pulseaudio.muted,
+#network.disconnected {
 	color: #f71000;
 }

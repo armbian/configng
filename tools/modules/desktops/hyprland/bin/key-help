@@ -1,0 +1,21 @@
+#!/bin/sh
+# Keyboard shortcuts of the Armbian Hyprland desktop (Super+K).
+printf '%s\n' \
+	"Super + Return        Terminal" \
+	"Super + Space         Applications" \
+	"Super + B             Browser" \
+	"Super + F             Files" \
+	"Super + W             Close window" \
+	"Super + V             Float or tile window" \
+	"Super + Shift + F     Fullscreen" \
+	"Super + Arrows        Move focus" \
+	"Super + Shift+Arrows  Move window" \
+	"Super + 1 ... 9       Workspace" \
+	"Super + Shift + 1..9  Move window to workspace" \
+	"Super + Tab           Next workspace" \
+	"Super + L             Lock" \
+	"Super + Escape        Power menu" \
+	"Print                 Screenshot of an area" \
+	"Shift + Print         Screenshot of the screen" |
+	fuzzel --dmenu --prompt "Keys > " --lines 16 --width 50 >/dev/null
+exit 0
