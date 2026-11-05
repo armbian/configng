@@ -4,7 +4,8 @@
   suppress_multiple_term_dialog = True
 [profiles]
   [[default]]
-    background_darkness = 0.95
+    show_titlebar = False
+    background_darkness = 0.85
     background_type = transparent
     cursor_color = "#ffffff"
     font = Monospace 11
