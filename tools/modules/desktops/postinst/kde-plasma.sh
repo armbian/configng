@@ -52,10 +52,13 @@ for imager in armbian-imager.desktop "Armbian Imager.desktop"; do
 		p.widgets("org.kde.plasma.icontasks").forEach(function (w) {
 			w.currentConfigGroup = ["General"];
 			var l = w.readConfig("launchers");
-			// Empty means the task manager default.
-			if (!l || l.length === 0) {
+			if (w.configKeys.indexOf("launchers") < 0) {
+				// No key: the task manager default (Plasma main.xml).
 				l = ["applications:systemsettings.desktop", "applications:org.kde.discover.desktop",
 					"preferred://filemanager", "preferred://browser"];
+			} else if (!l) {
+				// The user removed all launchers.
+				l = [];
 			} else if (typeof l === "string") {
 				l = l.split(",");
 			}
