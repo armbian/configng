@@ -24,6 +24,10 @@ install -Dv /dev/null $profile
 # it isn't, and the favorites bar stays clean instead of showing
 # a broken shortcut.
 favorites="'terminator.desktop', 'org.gnome.Nautilus.desktop'"
+# Ptyxis first where the release ships it; Terminator stays for splits.
+if [ -f /usr/share/applications/org.gnome.Ptyxis.desktop ]; then
+	favorites="'org.gnome.Ptyxis.desktop', ${favorites}"
+fi
 if [ -f /usr/share/applications/armbian-imager.desktop ]; then
 	favorites="${favorites}, 'armbian-imager.desktop'"
 fi

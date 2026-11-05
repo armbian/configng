@@ -82,6 +82,9 @@ releases:
       - pipewire-audio
       - pipewire-pulse
       - wireplumber
+      # Ptyxis: GNOME's libadwaita terminal, the dock default.
+      # Terminator (common.yaml) stays for splits and broadcast input.
+      - ptyxis
     packages_remove:
       - pulseaudio
       - pulseaudio-module-bluetooth
@@ -113,6 +116,7 @@ releases:
       - pipewire-audio
       - pipewire-pulse
       - wireplumber
+      - ptyxis
     packages_remove:
       - pulseaudio
       - pulseaudio-module-bluetooth
@@ -132,6 +136,7 @@ releases:
       - pipewire-audio
       - pipewire-pulse
       - wireplumber
+      - ptyxis
     packages_remove:
       - pulseaudio
       - pulseaudio-module-bluetooth
@@ -174,6 +179,7 @@ releases:
       - gnome-software-plugin-flatpak
       - gnome-software-plugin-fwupd
       - appstream
+      - ptyxis
     packages_remove:
       # pavumeter remains absent from the Ubuntu archive (dropped in plucky).
       - pavumeter
