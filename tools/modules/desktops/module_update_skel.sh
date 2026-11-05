@@ -49,6 +49,14 @@ function module_update_skel() {
 					fi
 					find /etc/skel -mindepth 1 | while read -r src; do
 						local dst="$home/${src#/etc/skel/}"
+						# Do not follow a link that the user made: a linked file or
+						# parent directory can point outside the home.
+						local part="$dst" linked=0
+						while [ "$part" != "$home" ]; do
+							[ -L "$part" ] && { linked=1; break; }
+							part=$(dirname "$part")
+						done
+						[ "$linked" = 1 ] && continue
 						if [ -d "$src" ]; then
 							[ -d "$dst" ] || mkdir "$dst"
 						elif [ ! -e "$dst" ]; then

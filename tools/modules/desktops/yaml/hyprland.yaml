@@ -24,6 +24,8 @@ tiers:
       - swaybg
       - foot
       - thunar
+      # Super+B: Google Chrome on amd64, Chromium elsewhere (common.yaml).
+      - browser
       - wl-clipboard
       - grim
       - slurp
