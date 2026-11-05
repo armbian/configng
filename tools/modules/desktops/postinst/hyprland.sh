@@ -27,6 +27,14 @@ user_file() {
 		mkdir -p "$(dirname "$1")" && cat > "$1"' _ "$home/$path"
 }
 
+# Newer foot renamed the [colors] section to [colors-dark] and rejects
+# the old name; older foot knows only [colors]. Use what this foot takes.
+foot_ini=$(mktemp)
+cp "$src/foot/foot.ini" "$foot_ini"
+if ! foot --check-config -c "$foot_ini" > /dev/null 2>&1; then
+	sed -i 's/^\[colors\]$/[colors-dark]/' "$foot_ini"
+fi
+
 # Helper entries that only clutter the application launcher.
 hidden_apps="footclient foot-server uuctl thunar-settings"
 
@@ -47,7 +55,7 @@ source = /etc/xdg/hypr/armbian.conf"
 	user_file "$home" "$owner" .config/waybar/style.css "$src/waybar/style.css"
 	user_file "$home" "$owner" .config/mako/config "$src/mako/config"
 	user_file "$home" "$owner" .config/fuzzel/fuzzel.ini "$src/fuzzel/fuzzel.ini"
-	user_file "$home" "$owner" .config/foot/foot.ini "$src/foot/foot.ini"
+	user_file "$home" "$owner" .config/foot/foot.ini "$foot_ini"
 	for app in $hidden_apps; do
 		user_file "$home" "$owner" ".local/share/applications/${app}.desktop" "[Desktop Entry]
 Type=Application
@@ -55,3 +63,5 @@ Name=${app}
 Hidden=true"
 	done
 done
+
+rm -f "$foot_ini"
