@@ -331,6 +331,8 @@ def parse_desktop(yaml_dir, de_name, release, arch, tier):
     print(f'DESKTOP_PACKAGES_UNINSTALL="{shell_escape(" ".join(uninstall))}"')
     print(f'DESKTOP_PRIMARY_PKG="{shell_escape(primary_pkg)}"')
     print(f'DESKTOP_DM="{shell_escape(de_data.get("display_manager", "lightdm"))}"')
+    # Session file (without .desktop) for autologin; empty = DM default.
+    print(f'DESKTOP_SESSION="{shell_escape(de_data.get("session", ""))}"')
     print(f'DESKTOP_STATUS="{shell_escape(de_data.get("status", "unsupported"))}"')
     print(f'DESKTOP_AVAILABLE="{"yes" if is_available else "no"}"')
     print(f'DESKTOP_DESC="{shell_escape(de_data.get("description", de_name))}"')

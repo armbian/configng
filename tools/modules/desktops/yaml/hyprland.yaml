@@ -1,0 +1,67 @@
+name: hyprland
+description: "Hyprland - dynamic tiling Wayland compositor"
+display_manager: sddm
+# Wayland session for autologin: Hyprland run as a systemd user session by uwsm.
+session: hyprland-uwsm
+status: community
+
+# Armbian defaults live in /etc/xdg/hypr; user files only source them.
+# See postinst/hyprland.sh and tools/modules/desktops/hyprland/.
+tiers:
+  minimal:
+    packages:
+      - hyprland
+      - uwsm
+      - xdg-desktop-portal-hyprland
+      - xdg-desktop-portal-gtk
+      - hyprlock
+      - hypridle
+      - hyprpolkitagent
+      - hyprland-qtutils
+      - waybar
+      - fuzzel
+      - mako-notifier
+      - swaybg
+      - foot
+      - thunar
+      - wl-clipboard
+      - grim
+      - slurp
+      - brightnessctl
+      - playerctl
+      - pavucontrol
+      - blueman
+      - qt6-wayland
+      - qtwayland5
+      - fonts-font-awesome
+      - fonts-noto-core
+      - sddm
+      # SDDM shows its greeter on X11; X11-only apps need Xwayland.
+      - xserver-xorg
+      - xwayland
+      - xdg-user-dirs
+      - pipewire-audio
+      - pipewire-pulse
+      - wireplumber
+
+# Hyprland is in the archive only from Ubuntu 26.04 and Debian 14.
+releases:
+  resolute:
+    architectures: [arm64, amd64]
+    packages:
+      - polkitd
+      - pkexec
+      - network-manager-gnome
+
+  forky:
+    architectures: [arm64, amd64]
+    packages:
+      - accountsservice
+      # Debian renamed network-manager-gnome.
+      - network-manager-applet
+
+  sid:
+    architectures: [arm64, amd64]
+    packages:
+      - accountsservice
+      - network-manager-applet

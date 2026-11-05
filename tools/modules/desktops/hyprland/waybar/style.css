@@ -1,0 +1,36 @@
+/* Armbian Waybar style: dark bar, Armbian orange accent. */
+* {
+	font-family: "Noto Sans", "Font Awesome 7 Free", "Font Awesome 6 Free", "FontAwesome", sans-serif;
+	font-size: 13px;
+	min-height: 0;
+}
+
+window#waybar {
+	background-color: rgba(20, 20, 20, 0.90);
+	color: #eeeeee;
+}
+
+#workspaces button {
+	padding: 0 8px;
+	color: #bbbbbb;
+	border-bottom: 2px solid transparent;
+}
+
+#workspaces button.active {
+	color: #ffffff;
+	border-bottom: 2px solid #f71000;
+}
+
+#window,
+#clock,
+#tray,
+#pulseaudio,
+#network,
+#battery {
+	padding: 0 10px;
+}
+
+#battery.critical:not(.charging),
+#pulseaudio.muted {
+	color: #f71000;
+}

@@ -55,6 +55,7 @@ function module_desktop_yamlparse() {
 			DESKTOP_PACKAGES_UNINSTALL=""
 			DESKTOP_PRIMARY_PKG=""
 			DESKTOP_DM=""
+			DESKTOP_SESSION=""
 			DESKTOP_STATUS=""
 			DESKTOP_AVAILABLE=""
 			DESKTOP_DESC=""

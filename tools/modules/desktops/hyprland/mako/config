@@ -1,0 +1,8 @@
+# Armbian notification style.
+font=Noto Sans 11
+background-color=#202020ee
+text-color=#eeeeee
+border-color=#f71000
+border-size=2
+border-radius=8
+default-timeout=5000

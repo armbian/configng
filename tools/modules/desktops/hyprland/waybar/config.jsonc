@@ -1,0 +1,37 @@
+// Armbian Waybar for Hyprland.
+{
+	"layer": "top",
+	"position": "top",
+	"height": 30,
+	"modules-left": ["hyprland/workspaces", "hyprland/window"],
+	"modules-center": ["clock"],
+	"modules-right": ["tray", "pulseaudio", "network", "battery"],
+
+	"hyprland/window": {
+		"max-length": 60
+	},
+	"clock": {
+		"format": "{:%a %d %b  %H:%M}",
+		"tooltip-format": "<tt>{calendar}</tt>"
+	},
+	"tray": {
+		"spacing": 8
+	},
+	// Glyphs in Font Awesome 4.7 and later.
+	"pulseaudio": {
+		"format": "{icon} {volume}%",
+		"format-muted": " muted",
+		"format-icons": ["", "", ""],
+		"on-click": "pavucontrol"
+	},
+	"network": {
+		"format-wifi": " {essid}",
+		"format-ethernet": " {ipaddr}",
+		"format-disconnected": "offline",
+		"tooltip-format": "{ifname} {ipaddr}/{cidr}"
+	},
+	"battery": {
+		"format": "{icon} {capacity}%",
+		"format-icons": ["", "", "", "", ""]
+	}
+}
