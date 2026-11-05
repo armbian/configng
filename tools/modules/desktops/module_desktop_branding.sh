@@ -152,10 +152,11 @@ function module_desktop_branding() {
 			# so 95-armbian-login enables the extension for the gdm user only.
 			# Same on Debian and Ubuntu. Needs GNOME Shell 45 or newer (ES module
 			# extensions); older shells keep the plain background.
-			local shell_ver
+			local shell_ver shell_major=0
 			shell_ver=$(dpkg-query -W -f='${Version}' gnome-shell 2>/dev/null)
-			shell_ver=${shell_ver#*:}
-			if [[ -d /usr/share/gdm/dconf && -d "$desktop_dir/branding/gdm" && "${shell_ver%%.*}" -ge 45 ]] 2>/dev/null; then
+			# Leading digits after the epoch: 1:43.9-1 -> 43, 48~beta-4 -> 48.
+			[[ "${shell_ver#*:}" =~ ^([0-9]+) ]] && shell_major=${BASH_REMATCH[1]}
+			if [[ -d /usr/share/gdm/dconf && -d "$desktop_dir/branding/gdm" ]] && (( shell_major >= 45 )); then
 				mkdir -p /usr/share/gnome-shell/extensions
 				cp -R "$desktop_dir/branding/gdm/extensions/." /usr/share/gnome-shell/extensions/
 				install -m 644 "$desktop_dir/branding/gdm/95-armbian-login" /usr/share/gdm/dconf/95-armbian-login
