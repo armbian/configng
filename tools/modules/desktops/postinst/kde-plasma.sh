@@ -36,6 +36,33 @@ panels().forEach(function (p) {
 });
 EOF
 
+# Pin Armbian Imager to the panel. The package ships
+# "Armbian Imager.desktop"; armbian-imager is only built for some arches.
+for imager in armbian-imager.desktop "Armbian Imager.desktop"; do
+	[ -f "/usr/share/applications/${imager}" ] || continue
+	cat >> "$updates/armbian-branding.js" <<- EOF
+var imager = "applications:${imager}";
+panels().forEach(function (p) {
+    p.widgets("org.kde.plasma.icontasks").forEach(function (w) {
+        w.currentConfigGroup = ["General"];
+        var l = w.readConfig("launchers");
+        // Empty means the task manager default.
+        if (!l || l.length === 0) {
+            l = ["applications:systemsettings.desktop", "applications:org.kde.discover.desktop",
+                 "preferred://filemanager", "preferred://browser"];
+        } else if (typeof l === "string") {
+            l = l.split(",");
+        }
+        if (l.indexOf(imager) < 0) {
+            l.push(imager);
+            w.writeConfig("launchers", l);
+        }
+    });
+});
+EOF
+	break
+done
+
 # Lock screen wallpaper.
 cat > /etc/xdg/kscreenlockerrc <<- EOF
 [Greeter][Wallpaper][org.kde.image][General]
