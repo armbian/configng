@@ -35,9 +35,12 @@ for app in chromium.desktop chromium-browser.desktop google-chrome.desktop; do
 		favorites="${favorites}, '${app}'"
 	fi
 done
-if [ -f /usr/share/applications/armbian-imager.desktop ]; then
-	favorites="${favorites}, 'armbian-imager.desktop'"
-fi
+# The armbian-imager package ships "Armbian Imager.desktop".
+for app in armbian-imager.desktop "Armbian Imager.desktop"; do
+	if [ -f "/usr/share/applications/${app}" ]; then
+		favorites="${favorites}, '${app}'"
+	fi
+done
 
 cat >> "$keys" <<- EOF
 
