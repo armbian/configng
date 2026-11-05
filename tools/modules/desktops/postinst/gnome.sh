@@ -103,7 +103,7 @@ if [ -f /usr/share/applications/org.gnome.Ptyxis.desktop ]; then
 	cat > /usr/share/glib-2.0/schemas/90_armbian-ptyxis.gschema.override <<- EOF
 		[org.gnome.Ptyxis.Profile]
 		palette='gnome'
-		opacity=0.85
+		opacity=0.90
 	EOF
 fi
 
