@@ -35,6 +35,11 @@ tiers:
       - qtwayland5
       - fonts-font-awesome
       - fonts-noto-core
+      - fonts-jetbrains-mono
+      # Dark style and icons; gsettings sets them at login.
+      - gnome-themes-extra
+      - papirus-icon-theme
+      - libglib2.0-bin
       - sddm
       # SDDM shows its greeter on X11; X11-only apps need Xwayland.
       - xserver-xorg
@@ -52,6 +57,8 @@ releases:
       - polkitd
       - pkexec
       - network-manager-gnome
+      # On-screen display for volume and brightness. Not in forky.
+      - swayosd
 
   forky:
     architectures: [arm64, amd64]
@@ -65,3 +72,4 @@ releases:
     packages:
       - accountsservice
       - network-manager-applet
+      - swayosd

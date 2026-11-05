@@ -2,36 +2,59 @@
 {
 	"layer": "top",
 	"position": "top",
-	"height": 30,
-	"modules-left": ["hyprland/workspaces", "hyprland/window"],
+	"height": 26,
+	"spacing": 0,
+	"modules-left": ["hyprland/workspaces"],
 	"modules-center": ["clock"],
-	"modules-right": ["tray", "pulseaudio", "network", "battery"],
+	"modules-right": ["tray", "bluetooth", "network", "pulseaudio", "cpu", "battery"],
 
-	"hyprland/window": {
-		"max-length": 60
+	"hyprland/workspaces": {
+		"format": "{name}",
+		"on-click": "activate",
+		"persistent-workspaces": {
+			"*": 5
+		}
 	},
 	"clock": {
-		"format": "{:%a %d %b  %H:%M}",
+		"format": "{:%A %H:%M}",
+		"format-alt": "{:%d %B %Y}",
 		"tooltip-format": "<tt>{calendar}</tt>"
 	},
 	"tray": {
-		"spacing": 8
+		"icon-size": 14,
+		"spacing": 10
 	},
 	// Glyphs in Font Awesome 4.7 and later.
-	"pulseaudio": {
-		"format": "{icon} {volume}%",
-		"format-muted": " muted",
-		"format-icons": ["", "", ""],
-		"on-click": "pavucontrol"
+	"bluetooth": {
+		"format": "",
+		"format-disabled": "",
+		"format-off": "",
+		"tooltip-format": "{controller_alias} {status}",
+		"on-click": "blueman-manager"
 	},
 	"network": {
-		"format-wifi": " {essid}",
-		"format-ethernet": " {ipaddr}",
-		"format-disconnected": "offline",
-		"tooltip-format": "{ifname} {ipaddr}/{cidr}"
+		"format-wifi": "",
+		"format-ethernet": "",
+		"format-disconnected": "",
+		"tooltip-format-wifi": "{essid} {signalStrength}%  {ipaddr}",
+		"tooltip-format-ethernet": "{ifname} {ipaddr}/{cidr}",
+		"on-click": "nm-connection-editor"
+	},
+	"pulseaudio": {
+		"format": "{icon}",
+		"format-muted": "",
+		"format-icons": ["", "", ""],
+		"tooltip-format": "Volume {volume}%",
+		"on-click": "pavucontrol"
+	},
+	"cpu": {
+		"format": "",
+		"tooltip-format": "CPU {usage}%",
+		"interval": 5
 	},
 	"battery": {
-		"format": "{icon} {capacity}%",
-		"format-icons": ["", "", "", "", ""]
+		"format": "{icon}",
+		"format-icons": ["", "", "", "", ""],
+		"tooltip-format": "Battery {capacity}%  {timeTo}"
 	}
 }
