@@ -1,6 +1,12 @@
 #!/bin/bash
 set +e
 
+# Debian forky and sid install the Omarchy port (armbian-hyprland-shell). It
+# brings its own complete configuration: do not add the Waybar setup to it.
+if dpkg-query -W -f='${db:Status-Abbrev}' armbian-hyprland-shell 2>/dev/null | grep -q '^ii'; then
+	exit 0
+fi
+
 # Armbian defaults for Hyprland.
 src="$(dirname "$(readlink -f "$0")")/../hyprland"
 
