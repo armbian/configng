@@ -45,13 +45,33 @@ tiers:
       - chromium
       # SD-card image flasher.
       - armbian-imager
+    # Not in Omarchy: it has imv, mpv and its own tools.
     packages_remove:
       - browser
+      - gnome-text-editor
+      - gnome-calculator
+      - loupe
+      - vlc
+      - file-roller
+      - transmission-gtk
+      - mesa-utils
+      - vulkan-tools
+      - glmark2-wayland
+      - glmark2-es2-wayland
+      - glmark2-x11
+      - glmark2-es2-x11
   full:
     # The Omarchy base set (upstream install/omarchy-base.packages, Debian
     # names from the armbian-hyprland-shell deps.map) and the tools that the
     # shell scripts call. No Recommends: they add 5 GB. Optional Omarchy
     # apps install from the Omarchy menu.
+    # Not in Omarchy. Code installs from the Omarchy menu.
+    packages_remove:
+      - gimp
+      - inkscape
+      - thunderbird
+      - audacity
+      - code
     packages:
       - aether
       - alsa-topology-conf
