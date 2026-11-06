@@ -207,6 +207,9 @@ tiers:
       - rtkit
       - ruby
       - signed
+      # Snapshots before updates. Upstream installs it on btrfs only;
+      # omarchy-snapshot skips quietly without btrfs.
+      - snapper
       - socat
       - starship
       - system-config-printer
