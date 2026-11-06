@@ -42,6 +42,9 @@ sudo armbian-config
     - ### Install Budgie [CSC]
     - ### Install Deepin [CSC]
     - ### Install Enlightenment [CSC]
+    - ### Install Hyprland [CSC]
+    - ### Install Hyprland (mid) [CSC]
+    - ### Install Hyprland (full) [CSC]
     - ### Install Bianbu (minimal) [CSC]
     - ### Install Bianbu (mid) [CSC]
     - ### Install Bianbu (full) [CSC]
@@ -58,6 +61,7 @@ sudo armbian-config
     - ### Uninstall Budgie [CSC]
     - ### Uninstall Deepin [CSC]
     - ### Uninstall Enlightenment [CSC]
+    - ### Uninstall Hyprland [CSC]
     - ### Uninstall XFCE
     - ### Enable autologin (Cinnamon)
     - ### Enable autologin (GNOME)
@@ -69,6 +73,7 @@ sudo armbian-config
     - ### Enable autologin (Budgie) [CSC]
     - ### Enable autologin (Deepin) [CSC]
     - ### Enable autologin (Enlightenment) [CSC]
+    - ### Enable autologin (Hyprland) [CSC]
     - ### Enable autologin (XFCE)
     - ### Disable autologin (Cinnamon)
     - ### Disable autologin (GNOME)
@@ -80,6 +85,10 @@ sudo armbian-config
     - ### Disable autologin (Budgie) [CSC]
     - ### Disable autologin (Deepin) [CSC]
     - ### Disable autologin (Enlightenment) [CSC]
+    - ### Disable autologin (Hyprland) [CSC]
+    - ### Change Hyprland to minimal
+    - ### Change Hyprland to mid
+    - ### Change Hyprland to full
     - ### Disable autologin (XFCE)
     - ### Change Cinnamon to minimal
     - ### Change Cinnamon to mid
@@ -123,6 +132,7 @@ sudo armbian-config
     - ### Memory management - tune parameters
     - ### Tuning profiles - match kernel and CPU tuning to this machine's role
     - ### Tuning profiles - show the active profile and live kernel values
+    - ### CPU frequency - governor and limits per CPU cluster
 
 
   - ### Manage SSH daemon options, enable 2FA
@@ -310,6 +320,11 @@ sudo armbian-config
     - ### Purge Wallos subscription tracker
 
 
+  - ### Game clients and compatibility tools
+    - ### Steam
+    - ### Heroic Launcher
+
+
   - ### Home Automation for control home appliances
     - ### Domoticz open source home automation
     - ### Domoticz remove
@@ -447,6 +462,9 @@ sudo armbian-config
     - ### HedgeDoc collaborative markdown editor install
     - ### HedgeDoc remove
     - ### HedgeDoc purge with data folder
+    - ### Shlink URL shortener
+    - ### Shlink remove
+    - ### Shlink purge with data folder
 
 
 
@@ -468,8 +486,8 @@ sudo apt install armbian-config
 	echo << EOF | sudo tee /etc/apt/sources.list.d/armbian.sources
 	Types: deb
 	URIs: https://apt.armbian.com
-	Suites: noble
-	Components: main noble-utils noble-desktop
+	Suites: resolute
+	Components: main resolute-utils resolute-desktop
 	Architectures: amd64
 	Signed-By: /usr/share/keyrings/armbian.gpg
 	EOF
@@ -520,6 +538,9 @@ Outputs:
 	--cmd BDGE01 - Install Budgie [CSC]
 	--cmd DEEP01 - Install Deepin [CSC]
 	--cmd ENLT01 - Install Enlightenment [CSC]
+	--cmd HYPR01 - Install Hyprland [CSC]
+	--cmd HYPR05 - Install Hyprland (mid) [CSC]
+	--cmd HYPR06 - Install Hyprland (full) [CSC]
 	--cmd BIAN01 - Install Bianbu (minimal) [CSC]
 	--cmd BIAN05 - Install Bianbu (mid) [CSC]
 	--cmd BIAN06 - Install Bianbu (full) [CSC]
@@ -536,6 +557,7 @@ Outputs:
 	--cmd BDGE02 - Uninstall Budgie [CSC]
 	--cmd DEEP02 - Uninstall Deepin [CSC]
 	--cmd ENLT02 - Uninstall Enlightenment [CSC]
+	--cmd HYPR02 - Uninstall Hyprland [CSC]
 	--cmd XFCE02 - Uninstall XFCE
 	--cmd CINM03 - Enable autologin (Cinnamon)
 	--cmd GNME03 - Enable autologin (GNOME)
@@ -547,6 +569,7 @@ Outputs:
 	--cmd BDGE03 - Enable autologin (Budgie) [CSC]
 	--cmd DEEP03 - Enable autologin (Deepin) [CSC]
 	--cmd ENLT03 - Enable autologin (Enlightenment) [CSC]
+	--cmd HYPR03 - Enable autologin (Hyprland) [CSC]
 	--cmd XFCE03 - Enable autologin (XFCE)
 	--cmd CINM04 - Disable autologin (Cinnamon)
 	--cmd GNME04 - Disable autologin (GNOME)
@@ -558,6 +581,10 @@ Outputs:
 	--cmd BDGE04 - Disable autologin (Budgie) [CSC]
 	--cmd DEEP04 - Disable autologin (Deepin) [CSC]
 	--cmd ENLT04 - Disable autologin (Enlightenment) [CSC]
+	--cmd HYPR04 - Disable autologin (Hyprland) [CSC]
+	--cmd HYPR07 - Change Hyprland to minimal
+	--cmd HYPR08 - Change Hyprland to mid
+	--cmd HYPR09 - Change Hyprland to full
 	--cmd XFCE04 - Disable autologin (XFCE)
 	--cmd CINM07 - Change Cinnamon to minimal
 	--cmd CINM08 - Change Cinnamon to mid
@@ -596,7 +623,7 @@ Outputs:
       NETF08 - Manage NFS Client
 	--cmd NETF09 - Find NFS servers in subnet and mount shares
 	--cmd NETF10 - Show and manage NFS mounts
-	--cmd ZFS001 - ZFS filesystem - enable support (v2.2.2)
+	--cmd ZFS001 - ZFS filesystem - enable support (v2.4.1)
 	--cmd ZFS002 - ZFS filesystem - remove support (ZFS is not installed)
 	--cmd ZFS003 - ZFS filesystem - performance tuning
 	--cmd ZFS004 - ZFS filesystem - import existing pools
@@ -605,6 +632,7 @@ Outputs:
 	--cmd MEM003 - Memory management - tune parameters
 	--cmd TUNE01 - Tuning profiles - match kernel and CPU tuning to this machine's role
 	--cmd TUNE02 - Tuning profiles - show the active profile and live kernel values
+	--cmd TUNE03 - CPU frequency - governor and limits per CPU cluster
     Access - Manage SSH daemon options, enable 2FA
 	--cmd ACC001 - Disable root login
 	--cmd ACC002 - Enable root login
@@ -746,6 +774,20 @@ Outputs:
 	--cmd WAL001 - Install Wallos subscription tracker
 	--cmd WAL002 - Remove Wallos subscription tracker (http://localhost:8282)
 	--cmd WAL003 - Purge Wallos subscription tracker
+    Gaming - Game clients and compatibility tools
+      Steam - Steam
+	--cmd STM001 - Install Steam
+	--cmd STM002 - Update Steam
+	--cmd STM005 - Install or update Proton-CachyOS
+	--cmd STM006 - Install or update Proton-GE
+	--cmd STM007 - Remove Proton-CachyOS
+	--cmd STM008 - Remove Proton-GE
+	--cmd STM003 - Remove Steam client
+	--cmd STM004 - Purge Steam with games and userdata
+      Heroic - Heroic Launcher
+	--cmd HERO01 - Install Heroic Launcher
+	--cmd HERO02 - Update Heroic Launcher
+	--cmd HERO03 - Remove Heroic Launcher
     HomeAutomation - Home Automation for control home appliances
 	--cmd DOM001 - Domoticz open source home automation
 	--cmd DOM002 - Domoticz remove (http://localhost:8780)
@@ -869,6 +911,9 @@ Outputs:
 	--cmd HDOC01 - HedgeDoc collaborative markdown editor install
 	--cmd HDOC02 - HedgeDoc remove (http://localhost:3100)
 	--cmd HDOC03 - HedgeDoc purge with data folder
+	--cmd SHL001 - Shlink URL shortener
+	--cmd SHL002 - Shlink remove
+	--cmd SHL003 - Shlink purge with data folder
   --cmd Help - About this tool
 ~~~
 
@@ -1131,6 +1176,16 @@ Jobs:
 No commands available
 ~~~
 
+### Gaming
+
+Game clients and compatibility tools
+
+Jobs:
+
+~~~
+No commands available
+~~~
+
 ### HomeAutomation
 
 Home Automation for control home appliances
@@ -1312,7 +1367,7 @@ These helper functions facilitate various operations related to job management, 
 | Generate jobs from JSON file. | generate_jobs_from_json | @Tearran 
 | Install Filebrowser container | install remove purge status help | @armbian 
 | Display a warning with a gauge for 10 seconds then continue |  | @igorpecovnik 
-| Kernel and CPU tuning profiles for the machine's actual role | select apply status list reset help | @igorpecovnik 
+| Kernel and CPU tuning profiles for the machine's actual role | select apply status list reset cpu help | @igorpecovnik 
 | Install armbian router container | install remove purge status help | @armbian 
 | Install hastebin container | install remove purge status help | @armbian 
 | Fix dependency issues | pkg_fix | @igorpecovnik 
@@ -1348,6 +1403,7 @@ These helper functions facilitate various operations related to job management, 
 | Change the background color of the terminal or dialog box | set_colors 0-7 | @Tearran 
 | Install Wallos finance tracker container | install remove purge status help | @igorpecovnik 
 | Show general information about this tool | about_armbian_configng | @igorpecovnik 
+| Install Shlink URL shortener container | install remove purge status help | @igorpecovnik 
 | Install unbound container | install remove purge status help | @igorpecovnik 
 | Serve the edit and debug server. | serve_doc | @Tearran 
 | Set up custom APT repository for desktop environments | module_desktop_repo kde-neon | @igorpecovnik 
@@ -1395,6 +1451,8 @@ parse_menu_items 'menu_options_array' --with-help | @viraniac
 | Default module implementation | disable enable help install remove status | @dimitry-ishenko 
 | change_system_hostname | change_system_hostname | @igorpecovnik 
 | Install netalertx container | install remove purge status help | @jokob-sk 
+| Steam for arm64 and amd64, with optional Proton-CachyOS and Proton-GE | install update remove purge status help proton-cachyos proton-ge proton-cachyos-remove proton-ge-remove proton-cachyos-status proton-ge-status | @HeyMeco 
+| Heroic Games Launcher for amd64 and arm64 | install update remove status help | @HeyMeco 
 | Restart service | srv_restart ssh.service | @dimitry-ishenko 
 | Update package repository | pkg_update | @dimitry-ishenko 
 | Display a menu dialog using the configured dialog tool. Supports --item-help for additional help text per item. | dialog_menu "Title" "Prompt" option1 "Description 1" option2 "Description 2"
