@@ -62,16 +62,59 @@ releases:
       # On-screen display for volume and brightness. Not in forky.
       - swayosd
 
+  # Debian forky and sid: the Omarchy port.
   forky:
     architectures: [arm64, amd64]
+    # The Omarchy port replaces the Waybar setup: armbian-hyprland-shell
+    # (armbian/external). Its Recommends are the Omarchy package set, so apt
+    # installs Recommends here. nautilus recommends xdg-desktop-portal-gnome,
+    # which pulls in GNOME Shell and gdm3: keep it out. Chromium on every
+    # architecture, as upstream. postinst/hyprland.sh leaves this stack alone.
+    session: omarchy
+    install_recommends: true
+    packages_exclude:
+      - xdg-desktop-portal-gnome
+    packages_remove:
+      - waybar
+      - fuzzel
+      - mako-notifier
+      - swaybg
+      - thunar
+      - hyprpolkitagent
+      - blueman
+      - pavucontrol
+      - xserver-xorg
+      - terminator
+      - google-chrome-stable
     packages:
       - accountsservice
-      # Debian renamed network-manager-gnome.
-      - network-manager-applet
+      - armbian-hyprland-shell
+      - chromium
 
   sid:
     architectures: [arm64, amd64]
+    # The Omarchy port replaces the Waybar setup: armbian-hyprland-shell
+    # (armbian/external). Its Recommends are the Omarchy package set, so apt
+    # installs Recommends here. nautilus recommends xdg-desktop-portal-gnome,
+    # which pulls in GNOME Shell and gdm3: keep it out. Chromium on every
+    # architecture, as upstream. postinst/hyprland.sh leaves this stack alone.
+    session: omarchy
+    install_recommends: true
+    packages_exclude:
+      - xdg-desktop-portal-gnome
+    packages_remove:
+      - waybar
+      - fuzzel
+      - mako-notifier
+      - swaybg
+      - thunar
+      - hyprpolkitagent
+      - blueman
+      - pavucontrol
+      - xserver-xorg
+      - terminator
+      - google-chrome-stable
     packages:
       - accountsservice
-      - network-manager-applet
-      - swayosd
+      - armbian-hyprland-shell
+      - chromium
