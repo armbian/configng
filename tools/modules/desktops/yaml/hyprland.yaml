@@ -39,6 +39,8 @@ tiers:
       - wireplumber
       - accountsservice
       - armbian-hyprland-shell
+      # SD-card image flasher, in every tier.
+      - armbian-imager
     packages_remove:
       - terminator
   mid:
