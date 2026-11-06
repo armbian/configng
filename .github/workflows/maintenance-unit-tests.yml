@@ -15,7 +15,8 @@ on:
 env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   PR_NUMBER: ${{ github.event.number }}
-  REPOSITORY: "apt.armbian.com"
+  # Armbian apt repository for the tests. Beta gets new packages first.
+  REPOSITORY: "beta.armbian.com"
 
 concurrency:
   # One active run per PR (keyed by PR number) or per ref for
@@ -397,6 +398,11 @@ jobs:
           export SYSTEMD_IGNORE_CHROOT=1
           export container=docker
 
+      - name: "Use ${{ env.REPOSITORY }} as Armbian apt repository"
+        run: |
+          sed -i "s#http://apt.armbian.com#http://${REPOSITORY}#" /etc/apt/sources.list.d/armbian.list
+          cat /etc/apt/sources.list.d/armbian.list
+
       - name: "Checkout Armbian configuration tool"
         uses: actions/checkout@v7
         with:
@@ -679,9 +685,11 @@ jobs:
             -e TERM=linux \
             -e DBUS_SESSION_BUS_ADDRESS="unix:path=/run/bus/bus.sock" \
             -e TEST_NAME -e TEST_RELEASE -e TEST_ARCH -e TEST_ID -e TEST_PKG \
+            -e REPOSITORY \
             "${TEST_IMAGE}" \
             bash -c '
               set +e
+              sed -i "s#http://apt.armbian.com#http://${REPOSITORY}#" /etc/apt/sources.list.d/armbian.list
               source "${TEST_PKG}"
               start_ts=$(date +%s)
               figlet "RUN TEST CASE (emulated)"
