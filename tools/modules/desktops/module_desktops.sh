@@ -418,6 +418,11 @@ function _module_desktops_configure_networking() {
 	# seconds of login anyway.
 	srv_disable NetworkManager-wait-online.service 2>/dev/null || true
 
+	# systemd-networkd stays enabled (netplan needs it), but it manages
+	# no link after the renderer flip. Its wait-online then holds boot
+	# until the timeout of the minimal image's drop-in, and fails.
+	srv_disable systemd-networkd-wait-online.service 2>/dev/null || true
+
 	# systemd-resolved is typically already enabled on minimal images;
 	# ensure it stays that way. NetworkManager uses it as the DNS
 	# resolver/cache when /etc/resolv.conf points at the stub.
