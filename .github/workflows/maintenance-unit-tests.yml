@@ -63,7 +63,8 @@ jobs:
           CHANGED_TESTS: "${{ steps.changed-files.outputs.all_changed_files }}"
           # repository_dispatch payload from maintenance-build-debian.
           CP_MODE: ${{ github.event.client_payload.mode }}
-          CP_CHANGED: ${{ github.event.client_payload.changed_tests }}
+          # changed_tests is a JSON array. An env value must be a string.
+          CP_CHANGED: ${{ toJSON(github.event.client_payload.changed_tests) }}
         run: |
 
           # Run each enabled test case against every arch its TESTARCH
