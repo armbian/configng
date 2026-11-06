@@ -28,6 +28,10 @@ release as a whole, extra packages per release) keep their existing
 top-level `releases:` block — the release filter is orthogonal to the
 tier filter and applies after all tier merging is done.
 
+A release block can also set `session` (overrides the DE session),
+`install_recommends: true` (apt installs Recommends, which Armbian turns
+off) and `packages_exclude` (packages that apt must not install).
+
 Usage
 -----
   parse_desktop_yaml.py <yaml_dir> <de_name> <release> <arch> --tier <tier>
@@ -38,6 +42,8 @@ Usage
 Output (bash eval-friendly):
   DESKTOP_PACKAGES="pkg1 pkg2 ..."
   DESKTOP_PACKAGES_UNINSTALL="pkg1 pkg2 ..."
+  DESKTOP_INSTALL_RECOMMENDS="yes|no"
+  DESKTOP_PACKAGES_EXCLUDE="pkg1 pkg2 ..."
   DESKTOP_PRIMARY_PKG="xfce4"
   DESKTOP_DM="lightdm"
   DESKTOP_STATUS="supported"
@@ -332,7 +338,13 @@ def parse_desktop(yaml_dir, de_name, release, arch, tier):
     print(f'DESKTOP_PRIMARY_PKG="{shell_escape(primary_pkg)}"')
     print(f'DESKTOP_DM="{shell_escape(de_data.get("display_manager", "lightdm"))}"')
     # Session file (without .desktop) for autologin; empty = DM default.
-    print(f'DESKTOP_SESSION="{shell_escape(de_data.get("session") or "")}"')
+    # A release block can set its own session (another stack on that release).
+    session = release_data.get("session") or de_data.get("session") or ""
+    print(f'DESKTOP_SESSION="{shell_escape(session)}"')
+    # A release block can ask apt to install Recommends (Armbian turns them
+    # off) and to keep packages out that Recommends would pull in.
+    print(f'DESKTOP_INSTALL_RECOMMENDS="{"yes" if release_data.get("install_recommends") else "no"}"')
+    print(f'DESKTOP_PACKAGES_EXCLUDE="{shell_escape(" ".join(_as_list(release_data.get("packages_exclude"))))}"')
     print(f'DESKTOP_STATUS="{shell_escape(de_data.get("status", "unsupported"))}"')
     print(f'DESKTOP_AVAILABLE="{"yes" if is_available else "no"}"')
     print(f'DESKTOP_DESC="{shell_escape(de_data.get("description", de_name))}"')

@@ -626,7 +626,16 @@ function module_desktops() {
 			# archive.spacemit.com. Flag is a no-op for DEs without a
 			# pin, since apt only picks a downgrade when explicitly
 			# directed to.
-			if ! pkg_install --allow-downgrades -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" ${DESKTOP_PACKAGES}; then
+			# A release block can ask for Recommends and keep out packages
+			# that they pull in (DESKTOP_INSTALL_RECOMMENDS,
+			# DESKTOP_PACKAGES_EXCLUDE). apt reads "pkg-" as "do not install".
+			local apt_extra=()
+			[[ "$DESKTOP_INSTALL_RECOMMENDS" == "yes" ]] && apt_extra+=(--install-recommends)
+			local exclude
+			for exclude in $DESKTOP_PACKAGES_EXCLUDE; do
+				apt_extra+=("${exclude}-")
+			done
+			if ! pkg_install --allow-downgrades -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" "${apt_extra[@]}" ${DESKTOP_PACKAGES}; then
 				echo "Error: ${de} package install failed; aborting before any system state is changed" >&2
 				return 1
 			fi
@@ -1405,7 +1414,14 @@ _module_desktops_change_tier() {
 			# install path: the per-DE pin (still in effect during a
 			# tier upgrade) can resolve some packages to an older
 			# vendor-archive version, and apt -y refuses without it.
-			if ! pkg_install --allow-downgrades -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" "${to_install[@]}"; then
+			# Same Recommends and exclusions as the first install.
+			local apt_extra=()
+			[[ "$DESKTOP_INSTALL_RECOMMENDS" == "yes" ]] && apt_extra+=(--install-recommends)
+			local exclude
+			for exclude in $DESKTOP_PACKAGES_EXCLUDE; do
+				apt_extra+=("${exclude}-")
+			done
+			if ! pkg_install --allow-downgrades -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" "${apt_extra[@]}" "${to_install[@]}"; then
 				echo "Error: pkg_install failed during upgrade" >&2
 				return 1
 			fi
