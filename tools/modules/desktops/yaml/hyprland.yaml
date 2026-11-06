@@ -14,8 +14,6 @@ tiers:
       - uwsm
       - xdg-desktop-portal-hyprland
       - xdg-desktop-portal-gtk
-      - hyprlock
-      - hypridle
       - hyprland-qtutils
       - foot
       - wl-clipboard
