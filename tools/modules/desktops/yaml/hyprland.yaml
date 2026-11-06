@@ -6,7 +6,7 @@ session: omarchy
 status: community
 
 # The Omarchy port: armbian-hyprland-shell (armbian/external) brings the
-# complete configuration. Its Recommends are the Omarchy package set.
+# complete configuration. The full tier lists the Omarchy package set.
 tiers:
   minimal:
     packages:
@@ -45,12 +45,211 @@ tiers:
       - chromium
       # SD-card image flasher.
       - armbian-imager
+    # Not in Omarchy: it has imv, mpv and its own tools.
     packages_remove:
       - browser
+      - gnome-text-editor
+      - gnome-calculator
+      - loupe
+      - vlc
+      - file-roller
+      - transmission-gtk
+      - mesa-utils
+      - vulkan-tools
+      - glmark2-wayland
+      - glmark2-es2-wayland
+      - glmark2-x11
+      - glmark2-es2-x11
   full:
-    # apt installs Recommends (Armbian turns them off): the Omarchy
-    # package set of armbian-hyprland-shell.
-    install_recommends: true
+    # The Omarchy base set (upstream install/omarchy-base.packages, Debian
+    # names from the armbian-hyprland-shell deps.map) and the tools that the
+    # shell scripts call. No Recommends: they add 5 GB. Optional Omarchy
+    # apps install from the Omarchy menu.
+    # Not in Omarchy. Code installs from the Omarchy menu.
+    packages_remove:
+      - gimp
+      - inkscape
+      - thunderbird
+      - audacity
+      - code
+    packages:
+      - aether
+      - alsa-topology-conf
+      - alsa-ucm-conf
+      - alsa-utils
+      - at-spi2-core
+      - avahi-daemon
+      - bash-completion
+      - bat
+      - bluez
+      - bluez-tools
+      - bolt
+      - btop
+      - build-essential
+      - cliamp
+      - cryptsetup-bin
+      - cups
+      - cups-filters
+      - cups-pk-helper
+      - ddcutil
+      - disktree
+      - docker-buildx
+      - docker-compose
+      - docker.io
+      - dosfstools
+      - exfatprogs
+      - eza
+      - fakeroot
+      - fastfetch
+      - fcitx5
+      - fcitx5-chewing
+      - fcitx5-chinese-addons
+      - fcitx5-frontend-gtk4
+      - fcitx5-frontend-qt6
+      - fcitx5-hangul
+      - fcitx5-mozc
+      - fcitx5-table-extra
+      - fd-find
+      - ffmpeg
+      - ffmpegthumbnailer
+      - fido2-tools
+      - fontconfig
+      - fonts-ia-writer
+      - fonts-jetbrains-mono-nerd
+      - fonts-noto-cjk
+      - fonts-noto-color-emoji
+      - fzf
+      - gir1.2-atspi-2.0
+      - gir1.2-gtk-4.0
+      - gir1.2-gtk4layershell-1.0
+      - git
+      - gliff
+      - gnome-disk-utility
+      - gnome-keyring
+      - gnome-sushi
+      - gpu-screen-recorder
+      - gstreamer1.0-pipewire
+      - gum
+      - gvfs-backends
+      - herdr
+      - hype
+      - hyprland-guiutils
+      - hyprland-preview-share-picker
+      - hyprpicker
+      - hyprsunset
+      - imagemagick
+      - imv
+      - inetutils-tools
+      - inotify-tools
+      - inxi
+      - jq
+      - lazygit
+      - less
+      - libayatana-appindicator3-1
+      - libgtk4-layer-shell0
+      - libmariadb3
+      - libnotify-bin
+      - libnss-mdns
+      - libpam-u2f
+      - libpq5
+      - libreoffice
+      - librsvg2-common
+      - libsecret-1-0
+      - libvips-tools
+      - libyaml-0-2
+      - localsend
+      - lua5.1
+      - lua5.5
+      - luarocks
+      - man-db
+      - mesa-vulkan-drivers
+      - minisign
+      - mise
+      - monologue
+      - moonlight-qt
+      - mpv
+      - mpv-mpris
+      - nautilus
+      - neovim
+      - netcat-openbsd
+      - network-manager
+      - omacalc
+      - omacut
+      - omarchy-hyprland-titlebars
+      - omarchy-nvim
+      - omasnap
+      - omawrite
+      - owe
+      - pamixer
+      - papers
+      - pinta
+      - pipewire-jack
+      - pipewire-libcamera
+      - plocate
+      - plymouth
+      - power-profiles-daemon
+      - pulseaudio-utils
+      - python3-gi
+      - python3-gi-cairo
+      - python3-gpg
+      - python3-nautilus
+      - python3-poetry-core
+      - qemu-user-binfmt
+      - qml6-module-qtmultimedia
+      - qml6-module-qtquick
+      - qrencode
+      - qt6-image-formats-plugins
+      - qt6-qpa-plugins
+      - qt6-svg-plugins
+      - quickshell
+      - rfkill
+      - ripgrep
+      - rtkit
+      - ruby
+      - signed
+      - socat
+      - starship
+      - system-config-printer
+      - tealdeer
+      - tesseract-ocr
+      - tesseract-ocr-eng
+      - tmux
+      - tobi-try
+      - tree-sitter-cli
+      - ttfx
+      - tzupdate
+      - udiskie
+      - ufw
+      - ufw-docker
+      - unzip
+      - usage
+      - v4l2loopback-utils
+      - vim-tiny
+      - wamerican
+      - webp-pixbuf-loader
+      - whois
+      - wireless-regdb
+      - wtype
+      - x11-xserver-utils
+      - xdg-terminal-exec
+      - yaru-theme-icon
+      - yt-dlp
+      - zbar-tools
+      - zoxide
+      - zstd
+
+tier_overrides:
+  full:
+    architectures:
+      amd64:
+        # Obsidian is mirrored for amd64 only. Intel video and power.
+        packages:
+          - obsidian
+          - intel-media-va-driver
+          - i965-va-driver
+          - libmfx-gen1.2
+          - thermald
+          - intel-lpmd
 
 # Only Debian forky: armbian-hyprland-shell is built for forky.
 releases:
