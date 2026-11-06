@@ -32,38 +32,34 @@ function module_update_skel() {
 			# Use a per-file find loop instead: walk /etc/skel and
 			# copy each entry only if it doesn't already exist at
 			# the destination. find walks parents before children, so
-			# directories are created and chowned before any of their
+			# directories are created before any of their
 			# contents arrive.
 			#
-			# After the per-file copy, chown -R the entire home
-			# anyway. This is a safety net for root-owned files that
-			# other package postinst scripts leak into the user's
-			# home (caja, nemo, gnome-keyring and others all do this
-			# on first install) — without the recursive chown, caja
-			# and nemo refuse to start on first login complaining
-			# that ~/.config/{caja,nemo} are not writable.
+			# Give the home to its owner first. Other package postinst
+			# scripts leak root-owned files into it (caja, nemo,
+			# gnome-keyring and others do this on first install):
+			# without this, caja and nemo refuse to start on first login,
+			# and the copy below cannot write into those folders.
+			#
+			# Then copy as the owner, not as root. A link that the user
+			# made can only lead where the user may write anyway, so it
+			# cannot redirect a root write outside the home.
 			getent passwd |
 				while IFS=: read -r username x uid gid gecos home shell; do
 					if [ ! -d "$home" ] || [ "$username" == 'root' ] || [ "$uid" -lt 1000 ] || [ "$uid" -ge 65534 ]; then
 						continue
 					fi
-					find /etc/skel -mindepth 1 | while read -r src; do
-						local dst="$home/${src#/etc/skel/}"
-						# Do not follow a link that the user made: a linked file or
-						# parent directory can point outside the home.
-						local part="$dst" linked=0
-						while [ "$part" != "$home" ]; do
-							[ -L "$part" ] && { linked=1; break; }
-							part=$(dirname "$part")
-						done
-						[ "$linked" = 1 ] && continue
-						if [ -d "$src" ]; then
-							[ -d "$dst" ] || mkdir "$dst"
-						elif [ ! -e "$dst" ]; then
-							cp "$src" "$dst"
-						fi
-					done
 					chown -R "$uid:$gid" "$home/"
+					runuser -u "$username" -- sh -c '
+						cd /etc/skel || exit 0
+						find . -mindepth 1 | while read -r src; do
+							dst="$1/${src#./}"
+							if [ -d "$src" ] && [ ! -L "$src" ]; then
+								[ -d "$dst" ] || mkdir "$dst" 2>/dev/null || :
+							elif [ ! -e "$dst" ] && [ ! -L "$dst" ]; then
+								cp -P "$src" "$dst" 2>/dev/null || :
+							fi
+						done' sh "$home"
 				done
 		;;
 		"${commands[1]}")
