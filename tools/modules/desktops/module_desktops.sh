@@ -635,7 +635,13 @@ function module_desktops() {
 			# that they pull in (DESKTOP_INSTALL_RECOMMENDS,
 			# DESKTOP_PACKAGES_EXCLUDE). apt reads "pkg-" as "do not install".
 			local apt_extra=()
-			[[ "$DESKTOP_INSTALL_RECOMMENDS" == "yes" ]] && apt_extra+=(--install-recommends)
+			# Say it explicitly: image builds install the desktop before the
+			# BSP package turns Recommends off in the apt config.
+			if [[ "$DESKTOP_INSTALL_RECOMMENDS" == "yes" ]]; then
+				apt_extra+=(--install-recommends)
+			else
+				apt_extra+=(--no-install-recommends)
+			fi
 			local exclude
 			for exclude in $DESKTOP_PACKAGES_EXCLUDE; do
 				apt_extra+=("${exclude}-")
@@ -1421,7 +1427,13 @@ _module_desktops_change_tier() {
 			# vendor-archive version, and apt -y refuses without it.
 			# Same Recommends and exclusions as the first install.
 			local apt_extra=()
-			[[ "$DESKTOP_INSTALL_RECOMMENDS" == "yes" ]] && apt_extra+=(--install-recommends)
+			# Say it explicitly: image builds install the desktop before the
+			# BSP package turns Recommends off in the apt config.
+			if [[ "$DESKTOP_INSTALL_RECOMMENDS" == "yes" ]]; then
+				apt_extra+=(--install-recommends)
+			else
+				apt_extra+=(--no-install-recommends)
+			fi
 			local exclude
 			for exclude in $DESKTOP_PACKAGES_EXCLUDE; do
 				apt_extra+=("${exclude}-")
