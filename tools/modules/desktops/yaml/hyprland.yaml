@@ -1,12 +1,12 @@
 name: hyprland
 description: "Hyprland - dynamic tiling Wayland compositor"
 display_manager: sddm
-# Wayland session for autologin: Hyprland run as a systemd user session by uwsm.
-session: hyprland-uwsm
+# Wayland session for autologin: the Omarchy session from armbian-hyprland-shell.
+session: omarchy
 status: community
 
-# Armbian defaults live in /etc/xdg/hypr; user files only source them.
-# See postinst/hyprland.sh and tools/modules/desktops/hyprland/.
+# The Omarchy port: armbian-hyprland-shell (armbian/external) brings the
+# complete configuration. Its Recommends are the Omarchy package set.
 tiers:
   minimal:
     packages:
@@ -16,105 +16,42 @@ tiers:
       - xdg-desktop-portal-gtk
       - hyprlock
       - hypridle
-      - hyprpolkitagent
       - hyprland-qtutils
-      - waybar
-      - fuzzel
-      - mako-notifier
-      - swaybg
       - foot
-      - thunar
-      # Super+B: Google Chrome on amd64, Chromium elsewhere (common.yaml).
-      - browser
+      - chromium
       - wl-clipboard
       - grim
       - slurp
       - brightnessctl
       - playerctl
-      - pavucontrol
-      - blueman
       - qt6-wayland
       - qtwayland5
       - fonts-font-awesome
       - fonts-noto-core
       - fonts-jetbrains-mono
-      # Dark style and icons; gsettings sets them at login.
       - gnome-themes-extra
       - papirus-icon-theme
       - libglib2.0-bin
       - sddm
-      # SDDM shows its greeter on X11; X11-only apps need Xwayland.
-      - xserver-xorg
       - xwayland
       - xdg-user-dirs
       - pipewire-audio
       - pipewire-pulse
       - wireplumber
+      - accountsservice
+      - armbian-hyprland-shell
+      # SD-card image flasher. Other desktops get it from the mid tier.
+      - armbian-imager
+    packages_remove:
+      - terminator
 
-# Hyprland is in the archive only from Ubuntu 26.04 and Debian 14.
+# Only Debian forky: armbian-hyprland-shell is built for forky.
 releases:
-  resolute:
-    architectures: [arm64, amd64]
-    packages:
-      - polkitd
-      - pkexec
-      - network-manager-gnome
-      # On-screen display for volume and brightness. Not in forky.
-      - swayosd
-
-  # Debian forky and sid: the Omarchy port.
   forky:
     architectures: [arm64, amd64]
-    # The Omarchy port replaces the Waybar setup: armbian-hyprland-shell
-    # (armbian/external). Its Recommends are the Omarchy package set, so apt
-    # installs Recommends here. nautilus recommends xdg-desktop-portal-gnome,
-    # which pulls in GNOME Shell and gdm3: keep it out. Chromium on every
-    # architecture, as upstream. postinst/hyprland.sh leaves this stack alone.
-    session: omarchy
+    # apt installs Recommends here (Armbian turns them off). nautilus
+    # recommends xdg-desktop-portal-gnome, which pulls in GNOME Shell and
+    # gdm3: keep it out.
     install_recommends: true
     packages_exclude:
       - xdg-desktop-portal-gnome
-    packages_remove:
-      - waybar
-      - fuzzel
-      - mako-notifier
-      - swaybg
-      - thunar
-      - hyprpolkitagent
-      - blueman
-      - pavucontrol
-      - xserver-xorg
-      - terminator
-      - google-chrome-stable
-    packages:
-      - accountsservice
-      - armbian-hyprland-shell
-      - chromium
-
-  sid:
-    architectures: [arm64, amd64]
-    # The Omarchy port replaces the Waybar setup: armbian-hyprland-shell
-    # (armbian/external). Its Recommends are the Omarchy package set, so apt
-    # installs Recommends here. nautilus recommends xdg-desktop-portal-gnome,
-    # which pulls in GNOME Shell and gdm3: keep it out. Chromium on every
-    # architecture, as upstream. postinst/hyprland.sh leaves this stack alone.
-    session: omarchy
-    install_recommends: true
-    packages_exclude:
-      - xdg-desktop-portal-gnome
-    packages_remove:
-      - waybar
-      - fuzzel
-      - mako-notifier
-      - swaybg
-      - thunar
-      - hyprpolkitagent
-      - blueman
-      - pavucontrol
-      - xserver-xorg
-      - terminator
-      - google-chrome-stable
-    packages:
-      - accountsservice
-      - armbian-hyprland-shell
-      - chromium

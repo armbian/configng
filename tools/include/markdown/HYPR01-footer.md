@@ -4,12 +4,12 @@
 
 === "Session files"
 
-    - `/usr/share/wayland-sessions/hyprland-uwsm.desktop`
+    - `/usr/share/wayland-sessions/omarchy.desktop`
 
 === "Configuration"
 
-    - `/etc/xdg/hypr/armbian.conf`: Armbian defaults, replaced on update
-    - `~/.config/hypr/hyprland.conf`: your settings, sourced after the defaults
+    - `/usr/share/omarchy/default/hypr/`: Omarchy defaults, replaced on update
+    - `~/.config/hypr/`: your settings
 
 === "Autologin"
 

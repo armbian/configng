@@ -1,5 +1,5 @@
-Hyprland is a dynamic tiling Wayland compositor with smooth animations. Armbian sets it up with a dark theme, orange accents, Waybar, the fuzzel launcher and the foot terminal.
+Hyprland is a dynamic tiling Wayland compositor with smooth animations. Armbian installs it with the Omarchy desktop in Armbian style (`armbian-hyprland-shell`). Debian forky only.
 
 !!! info "Keyboard shortcuts"
 
-    The modifier key is **Super** (Windows key). Press **Super+Enter** for a terminal, **Super+Space** for the launcher, **Super+Escape** for the power menu and **Super+K** for all shortcuts.
+    The modifier key is **Super** (Windows key). Press **Super+Enter** for a terminal, **Super+Alt+Space** for apps, **Super+Space** for the Armbian menu, **Super+Escape** for the system menu and **Super+K** for all shortcuts.
