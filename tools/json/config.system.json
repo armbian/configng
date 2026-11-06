@@ -339,6 +339,18 @@
                             "help": "Install Enlightenment (EFL-based) [community-supported, best-effort]."
                         },
                         {
+                            "id": "HYPR01",
+                            "description": "Install Hyprland [CSC]",
+                            "short": "Hyprland [CSC]",
+                            "command": [
+                                "module_desktops install de=hyprland tier=minimal"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported hyprland",
+                            "help": "Install Hyprland, a dynamic tiling Wayland compositor [community-supported, best-effort]."
+                        },
+                        {
                             "id": "BIAN01",
                             "description": "Install Bianbu (minimal) [CSC]",
                             "short": "Bianbu [CSC]",
@@ -521,6 +533,17 @@
                             "help": "Uninstall the Enlightenment desktop environment"
                         },
                         {
+                            "id": "HYPR02",
+                            "description": "Uninstall Hyprland [CSC]",
+                            "command": [
+                                "module_desktops remove de=hyprland"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=hyprland",
+                            "help": "Uninstall the Hyprland desktop environment"
+                        },
+                        {
                             "id": "XFCE02",
                             "description": "Uninstall XFCE",
                             "command": [
@@ -642,6 +665,17 @@
                             "help": "Enable automatic desktop login for Enlightenment"
                         },
                         {
+                            "id": "HYPR03",
+                            "description": "Enable autologin (Hyprland) [CSC]",
+                            "command": [
+                                "module_desktops auto de=hyprland"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=hyprland && ! module_desktops login de=hyprland",
+                            "help": "Enable automatic desktop login for Hyprland"
+                        },
+                        {
                             "id": "XFCE03",
                             "description": "Enable autologin (XFCE)",
                             "command": [
@@ -761,6 +795,17 @@
                             "author": "@igorpecovnik",
                             "condition": "module_desktops status de=enlightenment && module_desktops login de=enlightenment",
                             "help": "Disable automatic desktop login for Enlightenment"
+                        },
+                        {
+                            "id": "HYPR04",
+                            "description": "Disable autologin (Hyprland) [CSC]",
+                            "command": [
+                                "module_desktops manual de=hyprland"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=hyprland && module_desktops login de=hyprland",
+                            "help": "Disable automatic desktop login for Hyprland"
                         },
                         {
                             "id": "XFCE04",
