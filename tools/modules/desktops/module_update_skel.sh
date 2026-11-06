@@ -44,23 +44,43 @@ function module_update_skel() {
 			# Then copy as the owner, not as root. A link that the user
 			# made can only lead where the user may write anyway, so it
 			# cannot redirect a root write outside the home.
-			getent passwd |
-				while IFS=: read -r username x uid gid gecos home shell; do
-					if [ ! -d "$home" ] || [ "$username" == 'root' ] || [ "$uid" -lt 1000 ] || [ "$uid" -ge 65534 ]; then
-						continue
-					fi
-					chown -R "$uid:$gid" "$home/"
+			#
+			# The owner cannot read some files, such as the 0400
+			# .google_authenticator from module_qr_code. The owner's copy
+			# lists them. Root reads them and the owner writes them.
+			local username x uid gid gecos home shell unreadable src rc=0
+			while IFS=: read -r username x uid gid gecos home shell; do
+				if [ ! -d "$home" ] || [ "$username" == 'root' ] || [ "$uid" -lt 1000 ] || [ "$uid" -ge 65534 ]; then
+					continue
+				fi
+				chown -R "$uid:$gid" "$home/"
+				unreadable=$(runuser -u "$username" -- bash -c '
+					cd /etc/skel || exit 0
+					rc=0
+					while IFS= read -r src; do
+						dst="$1/${src#./}"
+						if [ -d "$src" ] && [ ! -L "$src" ]; then
+							[ -d "$dst" ] || mkdir "$dst" || rc=1
+						elif [ -e "$dst" ] || [ -L "$dst" ]; then
+							:
+						elif [ -f "$src" ] && [ ! -L "$src" ] && [ ! -r "$src" ]; then
+							printf "%s\n" "$src"
+						else
+							cp -P "$src" "$dst" || rc=1
+						fi
+					done < <(find . -mindepth 1)
+					exit "$rc"' bash "$home") || rc=1
+				while IFS= read -r src; do
+					[ -n "$src" ] || continue
 					runuser -u "$username" -- sh -c '
-						cd /etc/skel || exit 0
-						find . -mindepth 1 | while read -r src; do
-							dst="$1/${src#./}"
-							if [ -d "$src" ] && [ ! -L "$src" ]; then
-								[ -d "$dst" ] || mkdir "$dst" 2>/dev/null || :
-							elif [ ! -e "$dst" ] && [ ! -L "$dst" ]; then
-								cp -P "$src" "$dst" 2>/dev/null || :
-							fi
-						done' sh "$home"
-				done
+						umask 077
+						[ -e "$1" ] || [ -L "$1" ] || { cat > "$1" && chmod "$2" "$1"; }' \
+						sh "$home/${src#./}" "$(stat -c %a "/etc/skel/${src#./}")" \
+						< "/etc/skel/${src#./}" || rc=1
+				done <<< "$unreadable"
+			done < <(getent passwd)
+			[ "$rc" -eq 0 ] || echo "Warning: some /etc/skel files were not copied" >&2
+			return "$rc"
 		;;
 		"${commands[1]}")
 			show_module_help "module_update_skel" "Update Skel" "" "native"
