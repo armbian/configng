@@ -39,14 +39,14 @@ tiers:
       - wireplumber
       - accountsservice
       - armbian-hyprland-shell
-      # SD-card image flasher, in every tier.
-      - armbian-imager
     packages_remove:
       - terminator
   mid:
     # Chromium on every architecture, as upstream Omarchy.
     packages:
       - chromium
+      # SD-card image flasher.
+      - armbian-imager
     packages_remove:
       - browser
   full:
