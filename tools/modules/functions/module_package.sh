@@ -181,13 +181,16 @@ module_options+=(
 
 pkg_install()
 {
-	# Extract only package names from args (skip apt options)
+	# Extract only package names from args (skip apt options). Keep the
+	# Recommends switches: they change what apt installs.
 	local pkg_names=()
+	local dry_opts=()
 	local skip_next=false
 	for arg in "$@"; do
 		if $skip_next; then skip_next=false; continue; fi
 		case "$arg" in
 			-o) skip_next=true; continue ;;
+			--install-recommends|--no-install-recommends) dry_opts+=("$arg"); continue ;;
 			-*) continue ;;
 		esac
 		pkg_names+=("$arg")
@@ -195,7 +198,7 @@ pkg_install()
 
 	# Dry-run to capture the list of new packages apt will install
 	local dry_run_output
-	dry_run_output=$(apt-get -s -y install "${pkg_names[@]}" 2>&1)
+	dry_run_output=$(apt-get -s -y install "${dry_opts[@]}" "${pkg_names[@]}" 2>&1)
 	debug_log "pkg_install: dry-run for ${#pkg_names[@]} packages"
 	local new_packages=()
 	local capture=false
