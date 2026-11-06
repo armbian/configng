@@ -339,6 +339,42 @@
                             "help": "Install Enlightenment (EFL-based) [community-supported, best-effort]."
                         },
                         {
+                            "id": "HYPR01",
+                            "description": "Install Hyprland [CSC]",
+                            "short": "Hyprland [CSC]",
+                            "command": [
+                                "module_desktops install de=hyprland tier=minimal"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported hyprland",
+                            "help": "Install Hyprland, a dynamic tiling Wayland compositor [community-supported, best-effort]."
+                        },
+                        {
+                            "id": "HYPR05",
+                            "description": "Install Hyprland (mid) [CSC]",
+                            "short": "Hyprland mid [CSC]",
+                            "command": [
+                                "module_desktops install de=hyprland tier=mid"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported hyprland",
+                            "help": "Install Hyprland: minimal + browser + everyday tools (text editor, calculator, image/PDF viewer, media player, archive, torrent). ~1 GB."
+                        },
+                        {
+                            "id": "HYPR06",
+                            "description": "Install Hyprland (full) [CSC]",
+                            "short": "Hyprland full [CSC]",
+                            "command": [
+                                "module_desktops install de=hyprland tier=full"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "! module_desktops installed && module_desktop_supported hyprland",
+                            "help": "Install Hyprland: mid + LibreOffice, GIMP, Inkscape, Thunderbird, Audacity. ~2.5 GB."
+                        },
+                        {
                             "id": "BIAN01",
                             "description": "Install Bianbu (minimal) [CSC]",
                             "short": "Bianbu [CSC]",
@@ -521,6 +557,17 @@
                             "help": "Uninstall the Enlightenment desktop environment"
                         },
                         {
+                            "id": "HYPR02",
+                            "description": "Uninstall Hyprland [CSC]",
+                            "command": [
+                                "module_desktops remove de=hyprland"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=hyprland",
+                            "help": "Uninstall the Hyprland desktop environment"
+                        },
+                        {
                             "id": "XFCE02",
                             "description": "Uninstall XFCE",
                             "command": [
@@ -642,6 +689,17 @@
                             "help": "Enable automatic desktop login for Enlightenment"
                         },
                         {
+                            "id": "HYPR03",
+                            "description": "Enable autologin (Hyprland) [CSC]",
+                            "command": [
+                                "module_desktops auto de=hyprland"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=hyprland && ! module_desktops login de=hyprland",
+                            "help": "Enable automatic desktop login for Hyprland"
+                        },
+                        {
                             "id": "XFCE03",
                             "description": "Enable autologin (XFCE)",
                             "command": [
@@ -761,6 +819,50 @@
                             "author": "@igorpecovnik",
                             "condition": "module_desktops status de=enlightenment && module_desktops login de=enlightenment",
                             "help": "Disable automatic desktop login for Enlightenment"
+                        },
+                        {
+                            "id": "HYPR04",
+                            "description": "Disable autologin (Hyprland) [CSC]",
+                            "command": [
+                                "module_desktops manual de=hyprland"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=hyprland && module_desktops login de=hyprland",
+                            "help": "Disable automatic desktop login for Hyprland"
+                        },
+                        {
+                            "id": "HYPR07",
+                            "description": "Change Hyprland to minimal",
+                            "command": [
+                                "module_desktops set-tier de=hyprland tier=minimal"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=hyprland && ! module_desktops at-tier de=hyprland tier=minimal",
+                            "help": "Downgrade Hyprland to the minimal tier"
+                        },
+                        {
+                            "id": "HYPR08",
+                            "description": "Change Hyprland to mid",
+                            "command": [
+                                "module_desktops set-tier de=hyprland tier=mid"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=hyprland && ! module_desktops at-tier de=hyprland tier=mid",
+                            "help": "Move Hyprland to the mid tier"
+                        },
+                        {
+                            "id": "HYPR09",
+                            "description": "Change Hyprland to full",
+                            "command": [
+                                "module_desktops set-tier de=hyprland tier=full"
+                            ],
+                            "status": "Stable",
+                            "author": "@igorpecovnik",
+                            "condition": "module_desktops status de=hyprland && ! module_desktops at-tier de=hyprland tier=full",
+                            "help": "Upgrade Hyprland to the full tier"
                         },
                         {
                             "id": "XFCE04",

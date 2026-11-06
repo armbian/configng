@@ -32,31 +32,55 @@ function module_update_skel() {
 			# Use a per-file find loop instead: walk /etc/skel and
 			# copy each entry only if it doesn't already exist at
 			# the destination. find walks parents before children, so
-			# directories are created and chowned before any of their
+			# directories are created before any of their
 			# contents arrive.
 			#
-			# After the per-file copy, chown -R the entire home
-			# anyway. This is a safety net for root-owned files that
-			# other package postinst scripts leak into the user's
-			# home (caja, nemo, gnome-keyring and others all do this
-			# on first install) — without the recursive chown, caja
-			# and nemo refuse to start on first login complaining
-			# that ~/.config/{caja,nemo} are not writable.
-			getent passwd |
-				while IFS=: read -r username x uid gid gecos home shell; do
-					if [ ! -d "$home" ] || [ "$username" == 'root' ] || [ "$uid" -lt 1000 ] || [ "$uid" -ge 65534 ]; then
-						continue
-					fi
-					find /etc/skel -mindepth 1 | while read -r src; do
-						local dst="$home/${src#/etc/skel/}"
-						if [ -d "$src" ]; then
-							[ -d "$dst" ] || mkdir "$dst"
-						elif [ ! -e "$dst" ]; then
-							cp "$src" "$dst"
+			# Give the home to its owner first. Other package postinst
+			# scripts leak root-owned files into it (caja, nemo,
+			# gnome-keyring and others do this on first install):
+			# without this, caja and nemo refuse to start on first login,
+			# and the copy below cannot write into those folders.
+			#
+			# Then copy as the owner, not as root. A link that the user
+			# made can only lead where the user may write anyway, so it
+			# cannot redirect a root write outside the home.
+			#
+			# The owner cannot read some files, such as the 0400
+			# .google_authenticator from module_qr_code. The owner's copy
+			# lists them. Root reads them and the owner writes them.
+			local username x uid gid gecos home shell unreadable src rc=0
+			while IFS=: read -r username x uid gid gecos home shell; do
+				if [ ! -d "$home" ] || [ "$username" == 'root' ] || [ "$uid" -lt 1000 ] || [ "$uid" -ge 65534 ]; then
+					continue
+				fi
+				chown -R "$uid:$gid" "$home/"
+				unreadable=$(runuser -u "$username" -- bash -c '
+					cd /etc/skel || exit 0
+					rc=0
+					while IFS= read -r src; do
+						dst="$1/${src#./}"
+						if [ -d "$src" ] && [ ! -L "$src" ]; then
+							[ -d "$dst" ] || mkdir "$dst" || rc=1
+						elif [ -e "$dst" ] || [ -L "$dst" ]; then
+							:
+						elif [ -f "$src" ] && [ ! -L "$src" ] && [ ! -r "$src" ]; then
+							printf "%s\n" "$src"
+						else
+							cp -P "$src" "$dst" || rc=1
 						fi
-					done
-					chown -R "$uid:$gid" "$home/"
-				done
+					done < <(find . -mindepth 1)
+					exit "$rc"' bash "$home") || rc=1
+				while IFS= read -r src; do
+					[ -n "$src" ] || continue
+					runuser -u "$username" -- sh -c '
+						umask 077
+						[ -e "$1" ] || [ -L "$1" ] || { cat > "$1" && chmod "$2" "$1"; }' \
+						sh "$home/${src#./}" "$(stat -c %a "/etc/skel/${src#./}")" \
+						< "/etc/skel/${src#./}" || rc=1
+				done <<< "$unreadable"
+			done < <(getent passwd)
+			[ "$rc" -eq 0 ] || echo "Warning: some /etc/skel files were not copied" >&2
+			return "$rc"
 		;;
 		"${commands[1]}")
 			show_module_help "module_update_skel" "Update Skel" "" "native"

@@ -44,6 +44,7 @@ Some desktops (notably GNOME) require NetworkManager. When installed, NetworkMan
 | i3-wm | Developers, keyboard-driven workflows | ~150 MB |
 | Xmonad | Haskell tiling window manager | ~120 MB |
 | Enlightenment | EFL-based, lightweight and stylish | ~250 MB |
+| Hyprland | Keyboard-driven Wayland tiling, modern look | ~200 MB |
 
 Mid and full tiers add roughly 500 MB and 2 GB on top of these minimum figures, depending on which tier extras your release/architecture combination ships.
 

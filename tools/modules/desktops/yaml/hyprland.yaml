@@ -1,0 +1,62 @@
+name: hyprland
+description: "Hyprland - dynamic tiling Wayland compositor"
+display_manager: sddm
+# Wayland session for autologin: the Omarchy session from armbian-hyprland-shell.
+session: omarchy
+status: community
+
+# The Omarchy port: armbian-hyprland-shell (armbian/external) brings the
+# complete configuration. Its Recommends are the Omarchy package set.
+tiers:
+  minimal:
+    packages:
+      - hyprland
+      - uwsm
+      - xdg-desktop-portal-hyprland
+      - xdg-desktop-portal-gtk
+      - hyprland-qtutils
+      - foot
+      - wl-clipboard
+      - grim
+      - slurp
+      - brightnessctl
+      - playerctl
+      - qt6-wayland
+      - qtwayland5
+      - fonts-font-awesome
+      - fonts-noto-core
+      - fonts-jetbrains-mono
+      - gnome-themes-extra
+      - papirus-icon-theme
+      - libglib2.0-bin
+      - sddm
+      - xwayland
+      - xdg-user-dirs
+      - pipewire-audio
+      - pipewire-pulse
+      - wireplumber
+      - accountsservice
+      - armbian-hyprland-shell
+    packages_remove:
+      - terminator
+  mid:
+    # Chromium on every architecture, as upstream Omarchy.
+    packages:
+      - chromium
+      # SD-card image flasher.
+      - armbian-imager
+    packages_remove:
+      - browser
+  full:
+    # apt installs Recommends (Armbian turns them off): the Omarchy
+    # package set of armbian-hyprland-shell.
+    install_recommends: true
+
+# Only Debian forky: armbian-hyprland-shell is built for forky.
+releases:
+  forky:
+    architectures: [arm64, amd64]
+    # nautilus recommends xdg-desktop-portal-gnome, which pulls in GNOME
+    # Shell and gdm3: keep it out.
+    packages_exclude:
+      - xdg-desktop-portal-gnome
