@@ -112,12 +112,15 @@ releases:
     # Debian 14 — pipewire replaces pulseaudio (same as trixie).
     architectures: [arm64, amd64]
     packages:
+      # Debian renamed network-manager-gnome.
+      - network-manager-applet
       - accountsservice
       - pipewire-audio
       - pipewire-pulse
       - wireplumber
       - ptyxis
     packages_remove:
+      - network-manager-gnome
       - pulseaudio
       - pulseaudio-module-bluetooth
 
@@ -131,6 +134,7 @@ releases:
     # loong64 story until the port stabilises.
     architectures: [arm64, amd64]
     packages:
+      - network-manager-applet
       - accountsservice
       - libu2f-udev
       - pipewire-audio
@@ -138,6 +142,7 @@ releases:
       - wireplumber
       - ptyxis
     packages_remove:
+      - network-manager-gnome
       - pulseaudio
       - pulseaudio-module-bluetooth
 

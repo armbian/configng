@@ -92,11 +92,14 @@ releases:
     # Debian 14 — pipewire replaces pulseaudio (same as trixie).
     architectures: [arm64, amd64]
     packages:
+      # Debian renamed network-manager-gnome.
+      - network-manager-applet
       - accountsservice
       - pipewire-audio
       - pipewire-pulse
       - wireplumber
     packages_remove:
+      - network-manager-gnome
       - pulseaudio
       - pulseaudio-module-bluetooth
 
@@ -105,12 +108,14 @@ releases:
     # loong64 is a 64-bit arch capable of running KDE Plasma.
     architectures: [arm64, amd64, loong64]
     packages:
+      - network-manager-applet
       - accountsservice
       - libu2f-udev
       - pipewire-audio
       - pipewire-pulse
       - wireplumber
     packages_remove:
+      - network-manager-gnome
       - pulseaudio
       - pulseaudio-module-bluetooth
 

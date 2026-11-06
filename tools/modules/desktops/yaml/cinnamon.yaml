@@ -71,11 +71,14 @@ releases:
     # armhf excluded: cinnamon-desktop-environment has no armhf build.
     architectures: [arm64, amd64, riscv64]
     packages:
+      # Debian renamed network-manager-gnome.
+      - network-manager-applet
       - accountsservice
       - pipewire-audio
       - pipewire-pulse
       - wireplumber
     packages_remove:
+      - network-manager-gnome
       - pulseaudio
       - pulseaudio-module-bluetooth
 
@@ -84,12 +87,14 @@ releases:
     # armhf excluded (same as forky). loong64 is a sid-only Armbian arch.
     architectures: [arm64, amd64, riscv64, loong64]
     packages:
+      - network-manager-applet
       - accountsservice
       - libu2f-udev
       - pipewire-audio
       - pipewire-pulse
       - wireplumber
     packages_remove:
+      - network-manager-gnome
       - pulseaudio
       - pulseaudio-module-bluetooth
 
