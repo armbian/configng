@@ -68,9 +68,13 @@ tiers:
       - libnss-mdns
       # Emoji in the picker and on web pages.
       - fonts-noto-color-emoji
-      # First-boot setup enables the firewall when both are present.
+      # Firewall with Docker protection, as upstream. The first-boot setup
+      # enables it. Docker starts on first use (socket).
       - ufw
       - ufw-docker
+      - docker.io
+      - docker-buildx
+      - docker-compose
       # Snapshots before updates. omarchy-snapshot skips quietly without btrfs.
       - snapper
     packages_remove:
