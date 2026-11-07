@@ -37,6 +37,32 @@ tiers:
       - wireplumber
       - accountsservice
       - armbian-hyprland-shell
+      # The shell calls these: app and terminal launch, menus,
+      # notifications, Bluetooth, power, volume, night light, color picker.
+      - libgtk-3-bin
+      - xdg-terminal-exec
+      - gum
+      - libnotify-bin
+      - wtype
+      - bluez
+      - power-profiles-daemon
+      - pamixer
+      - hyprsunset
+      - hyprpicker
+      # Default file manager, image and video viewer, keyring, automount.
+      - nautilus
+      - gvfs-backends
+      - imv
+      - mpv
+      - gnome-keyring
+      - udiskie
+      # man pages use bat as pager. fzf: menu and shell search.
+      - bat
+      - fzf
+      # Screensaver text effects.
+      - ttfx
+      # Snapshots before updates. omarchy-snapshot skips quietly without btrfs.
+      - snapper
     packages_remove:
       - terminator
   mid:
@@ -45,6 +71,15 @@ tiers:
       - chromium
       # SD-card image flasher.
       - armbian-imager
+      # Terminal tools the Omarchy shell config uses when present.
+      - btop
+      - fastfetch
+      - starship
+      - zoxide
+      - eza
+      - fd-find
+      - ripgrep
+      - plocate
     # Not in Omarchy: it has imv, mpv and its own tools.
     packages_remove:
       - browser
