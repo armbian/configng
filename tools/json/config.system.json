@@ -304,8 +304,8 @@
                         },
                         {
                             "id": "BDGE01",
-                            "description": "Install Budgie [CSC]",
-                            "short": "Budgie [CSC]",
+                            "description": "Install Budgie",
+                            "short": "Budgie",
                             "command": [
                                 "module_desktops install de=budgie tier=minimal"
                             ],
@@ -316,8 +316,8 @@
                         },
                         {
                             "id": "DEEP01",
-                            "description": "Install Deepin [CSC]",
-                            "short": "Deepin [CSC]",
+                            "description": "Install Deepin",
+                            "short": "Deepin",
                             "command": [
                                 "module_desktops install de=deepin tier=minimal"
                             ],
@@ -328,8 +328,8 @@
                         },
                         {
                             "id": "ENLT01",
-                            "description": "Install Enlightenment [CSC]",
-                            "short": "Enlightenment [CSC]",
+                            "description": "Install Enlightenment",
+                            "short": "Enlightenment",
                             "command": [
                                 "module_desktops install de=enlightenment tier=minimal"
                             ],
@@ -340,8 +340,8 @@
                         },
                         {
                             "id": "HYPR01",
-                            "description": "Install Hyprland [CSC]",
-                            "short": "Hyprland [CSC]",
+                            "description": "Install Hyprland",
+                            "short": "Hyprland",
                             "command": [
                                 "module_desktops install de=hyprland tier=minimal"
                             ],
@@ -352,8 +352,8 @@
                         },
                         {
                             "id": "HYPR05",
-                            "description": "Install Hyprland (mid) [CSC]",
-                            "short": "Hyprland mid [CSC]",
+                            "description": "Install Hyprland (mid)",
+                            "short": "Hyprland mid",
                             "command": [
                                 "module_desktops install de=hyprland tier=mid"
                             ],
@@ -364,8 +364,8 @@
                         },
                         {
                             "id": "HYPR06",
-                            "description": "Install Hyprland (full) [CSC]",
-                            "short": "Hyprland full [CSC]",
+                            "description": "Install Hyprland (full)",
+                            "short": "Hyprland full",
                             "command": [
                                 "module_desktops install de=hyprland tier=full"
                             ],
@@ -376,8 +376,8 @@
                         },
                         {
                             "id": "BIAN01",
-                            "description": "Install Bianbu (minimal) [CSC]",
-                            "short": "Bianbu [CSC]",
+                            "description": "Install Bianbu (minimal)",
+                            "short": "Bianbu",
                             "command": [
                                 "module_desktops install de=bianbu tier=minimal"
                             ],
@@ -388,8 +388,8 @@
                         },
                         {
                             "id": "BIAN05",
-                            "description": "Install Bianbu (mid) [CSC]",
-                            "short": "Bianbu mid [CSC]",
+                            "description": "Install Bianbu (mid)",
+                            "short": "Bianbu mid",
                             "command": [
                                 "module_desktops install de=bianbu tier=mid"
                             ],
@@ -400,8 +400,8 @@
                         },
                         {
                             "id": "BIAN06",
-                            "description": "Install Bianbu (full) [CSC]",
-                            "short": "Bianbu full [CSC]",
+                            "description": "Install Bianbu (full)",
+                            "short": "Bianbu full",
                             "command": [
                                 "module_desktops install de=bianbu tier=full"
                             ],
@@ -525,7 +525,7 @@
                         },
                         {
                             "id": "BDGE02",
-                            "description": "Uninstall Budgie [CSC]",
+                            "description": "Uninstall Budgie",
                             "command": [
                                 "module_desktops remove de=budgie"
                             ],
@@ -536,7 +536,7 @@
                         },
                         {
                             "id": "DEEP02",
-                            "description": "Uninstall Deepin [CSC]",
+                            "description": "Uninstall Deepin",
                             "command": [
                                 "module_desktops remove de=deepin"
                             ],
@@ -547,7 +547,7 @@
                         },
                         {
                             "id": "ENLT02",
-                            "description": "Uninstall Enlightenment [CSC]",
+                            "description": "Uninstall Enlightenment",
                             "command": [
                                 "module_desktops remove de=enlightenment"
                             ],
@@ -558,7 +558,7 @@
                         },
                         {
                             "id": "HYPR02",
-                            "description": "Uninstall Hyprland [CSC]",
+                            "description": "Uninstall Hyprland",
                             "command": [
                                 "module_desktops remove de=hyprland"
                             ],
@@ -657,7 +657,7 @@
                         },
                         {
                             "id": "BDGE03",
-                            "description": "Enable autologin (Budgie) [CSC]",
+                            "description": "Enable autologin (Budgie)",
                             "command": [
                                 "module_desktops auto de=budgie"
                             ],
@@ -668,7 +668,7 @@
                         },
                         {
                             "id": "DEEP03",
-                            "description": "Enable autologin (Deepin) [CSC]",
+                            "description": "Enable autologin (Deepin)",
                             "command": [
                                 "module_desktops auto de=deepin"
                             ],
@@ -679,7 +679,7 @@
                         },
                         {
                             "id": "ENLT03",
-                            "description": "Enable autologin (Enlightenment) [CSC]",
+                            "description": "Enable autologin (Enlightenment)",
                             "command": [
                                 "module_desktops auto de=enlightenment"
                             ],
@@ -690,7 +690,7 @@
                         },
                         {
                             "id": "HYPR03",
-                            "description": "Enable autologin (Hyprland) [CSC]",
+                            "description": "Enable autologin (Hyprland)",
                             "command": [
                                 "module_desktops auto de=hyprland"
                             ],
@@ -789,7 +789,7 @@
                         },
                         {
                             "id": "BDGE04",
-                            "description": "Disable autologin (Budgie) [CSC]",
+                            "description": "Disable autologin (Budgie)",
                             "command": [
                                 "module_desktops manual de=budgie"
                             ],
@@ -800,7 +800,7 @@
                         },
                         {
                             "id": "DEEP04",
-                            "description": "Disable autologin (Deepin) [CSC]",
+                            "description": "Disable autologin (Deepin)",
                             "command": [
                                 "module_desktops manual de=deepin"
                             ],
@@ -811,7 +811,7 @@
                         },
                         {
                             "id": "ENLT04",
-                            "description": "Disable autologin (Enlightenment) [CSC]",
+                            "description": "Disable autologin (Enlightenment)",
                             "command": [
                                 "module_desktops manual de=enlightenment"
                             ],
@@ -822,7 +822,7 @@
                         },
                         {
                             "id": "HYPR04",
-                            "description": "Disable autologin (Hyprland) [CSC]",
+                            "description": "Disable autologin (Hyprland)",
                             "command": [
                                 "module_desktops manual de=hyprland"
                             ],

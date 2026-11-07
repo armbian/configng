@@ -3,7 +3,7 @@ description: "Hyprland - dynamic tiling Wayland compositor"
 display_manager: sddm
 # Wayland session for autologin: the Omarchy session from armbian-hyprland-shell.
 session: omarchy
-status: community
+status: supported
 
 # The Omarchy port: armbian-hyprland-shell (armbian/external) brings the
 # complete configuration. The full tier lists the Omarchy package set.

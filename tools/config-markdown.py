@@ -128,41 +128,80 @@ def create_markdown_user(item, level=1, show_meta=True, force_title=False, skip_
             md.append(footer_file.read_text())
             md.append(f"<!--- footer STOP from {rel_path} --->\n")
 
-    if 'sub' in item:
+    if 'sub' in item and item['id'] == DESKTOPS_ID:
+        # Desktops: one section per desktop, split by the status in its YAML.
+        grouped_subs = {}
+        for sub_item in item['sub']:
+            grouped_subs.setdefault(_desktop_key(sub_item), []).append(sub_item)
+        for title, supported in (("Supported", True), ("Community", False)):
+            groups = [g for de, g in grouped_subs.items()
+                      if de is not None and _desktop_supported(de) == supported]
+            if groups:
+                md.append(f"{'#' * (level + 1)} {title}\n")
+                md.append(DESKTOPS_INTRO[title])
+                md.extend(_render_sub_groups(groups, level + 1))
+    elif 'sub' in item:
         grouped_subs = {}
         for sub_item in item['sub']:
             prefix = sub_item['id'][:3].upper()
             grouped_subs.setdefault(prefix, []).append(sub_item)
-
-        for prefix, sub_items in grouped_subs.items():
-            first_sub = True
-            first_command = True
-            for sub_item in sub_items:
-                if first_sub:
-                    header_prefix = "#" * (level + 1)
-                    md.append(f"{header_prefix} {sub_item.get('short', sub_item.get('description', ''))}\n")
-                    if sub_item.get('short') and sub_item.get('description') and sub_item.get('short') != sub_item.get('description'):
-                        md.append(f"\n{sub_item.get('description')}\n")
-                    md.extend(insert_images_and_header(sub_item))
-                    first_sub = False
-
-                if sub_item.get('command'):
-                    cmd = sub_item['command'][0] if isinstance(sub_item['command'], list) else sub_item['command']
-                    title = f" title=\"{sub_item.get('short', sub_item.get('description', ''))}\""
-                    md.append(f"\n~~~ bash{title}\narmbian-config --cmd {sub_item['id']}\n~~~\n")
-                    first_command = False
-
-                    footer_file = Path(__file__).parent / 'include' / 'markdown' / f"{sub_item['id']}-footer.md"
-                    if footer_file.is_file():
-                        rel_path = f"tools/include/markdown/{sub_item['id']}-footer.md"
-                        md.append(f"\n<!--- footer START from {rel_path} --->")
-                        md.append(footer_file.read_text())
-                        md.append(f"<!--- footer STOP from {rel_path} --->\n")
-
-            for sub_item in sub_items:
-                md.append(create_markdown_user(sub_item, level + 2, show_meta=False, force_title=False, skip_commands=True))
+        md.extend(_render_sub_groups(grouped_subs.values(), level))
 
     return '\n'.join(md)
+
+
+def _render_sub_groups(groups, level):
+    """One section per group: the first item gives the title, image and header,
+    then a code block per command."""
+    md = []
+    for sub_items in groups:
+        first_sub = True
+        for sub_item in sub_items:
+            if first_sub:
+                header_prefix = "#" * (level + 1)
+                md.append(f"{header_prefix} {sub_item.get('short', sub_item.get('description', ''))}\n")
+                if sub_item.get('short') and sub_item.get('description') and sub_item.get('short') != sub_item.get('description'):
+                    md.append(f"\n{sub_item.get('description')}\n")
+                md.extend(insert_images_and_header(sub_item))
+                first_sub = False
+
+            if sub_item.get('command'):
+                title = f" title=\"{sub_item.get('short', sub_item.get('description', ''))}\""
+                md.append(f"\n~~~ bash{title}\narmbian-config --cmd {sub_item['id']}\n~~~\n")
+
+                footer_file = Path(__file__).parent / 'include' / 'markdown' / f"{sub_item['id']}-footer.md"
+                if footer_file.is_file():
+                    rel_path = f"tools/include/markdown/{sub_item['id']}-footer.md"
+                    md.append(f"\n<!--- footer START from {rel_path} --->")
+                    md.append(footer_file.read_text())
+                    md.append(f"<!--- footer STOP from {rel_path} --->\n")
+
+        for sub_item in sub_items:
+            md.append(create_markdown_user(sub_item, level + 2, show_meta=False, force_title=False, skip_commands=True))
+    return md
+
+
+DESKTOPS_ID = 'Desktops'
+DESKTOP_YAML_DIR = SCRIPT_DIR / 'modules' / 'desktops' / 'yaml'
+DESKTOPS_INTRO = {
+    "Supported": "\nArmbian maintains and tests these desktops.\n",
+    "Community": "\nCommunity members maintain these desktops. Armbian does not test them. They can break after an update.\n",
+}
+
+
+def _desktop_key(item):
+    """The de=<name> of a desktop action. KDE Plasma and KDE Neon share an id prefix."""
+    cmd = item.get('command')
+    cmd = (cmd[0] if isinstance(cmd, list) else cmd) or ''
+    m = re.search(r'\bde=([A-Za-z0-9_-]+)', cmd)
+    return m.group(1) if m else None
+
+
+def _desktop_supported(de):
+    """True when tools/modules/desktops/yaml/<de>.yaml has status: supported."""
+    f = DESKTOP_YAML_DIR / f"{de}.yaml"
+    m = re.search(r'^status:\s*(\S+)', f.read_text(), re.M) if f.is_file() else None
+    return bool(m) and m.group(1) == 'supported'
 
 def slugify(text):
     """netdata -> netdata, 'Uptime Kuma' -> uptime-kuma, NetAlertX -> netalertx."""
