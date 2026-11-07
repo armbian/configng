@@ -1,7 +1,7 @@
 name: lxqt
 description: "LXQt - lightweight Qt desktop"
 display_manager: sddm
-status: supported
+status: community
 
 # LXQt is a lightweight Qt desktop. `lxqt-core` pulls the session
 # (lxqt-session, lxqt-panel, lxqt-config, pcmanfm-qt, openbox, ...); the
