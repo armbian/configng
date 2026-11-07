@@ -32,19 +32,20 @@ You don't need to reinstall to add or remove tier extras. The desktop menu offer
 
 Some desktops (notably GNOME) require NetworkManager. When installed, NetworkManager is configured to coexist with Armbian's existing `systemd-networkd`: wired Ethernet stays managed by `systemd-networkd`, while NetworkManager handles WiFi and VPN connections. This avoids disrupting your existing network configuration.
 
-**Supported desktops**
+**Choosing a desktop**
 
-| Desktop | Best for | Approximate RAM (minimal tier) |
-|---|---|---|
-| XFCE | Single board computers, low-end hardware | ~300 MB |
-| GNOME | Modern desktops, touchscreen devices | ~800 MB |
-| Cinnamon | Users familiar with Windows layout | ~500 MB |
-| MATE | Classic GNOME 2 fans, low-resource systems | ~350 MB |
-| KDE Plasma | Power users, heavy customization | ~600 MB |
-| i3-wm | Developers, keyboard-driven workflows | ~150 MB |
-| Xmonad | Haskell tiling window manager | ~120 MB |
-| Enlightenment | EFL-based, lightweight and stylish | ~250 MB |
-| Hyprland | Keyboard-driven Wayland tiling, modern look | ~200 MB |
+Armbian maintains and tests the **Supported** desktops. Community members maintain the **Community** desktops.
+
+| Desktop | Status | Best for | Approximate RAM (minimal tier) |
+|---|---|---|---|
+| XFCE | Supported | Single board computers, low-end hardware | ~300 MB |
+| GNOME | Supported | Modern desktops, touchscreen devices | ~800 MB |
+| Cinnamon | Supported | Users familiar with Windows layout | ~500 MB |
+| KDE Plasma | Supported | Power users, heavy customization | ~600 MB |
+| Hyprland | Supported | Keyboard-driven Wayland tiling, modern look | ~200 MB |
+| MATE | Community | Classic GNOME 2 fans, low-resource systems | ~350 MB |
+| i3-wm | Community | Developers, keyboard-driven workflows | ~150 MB |
+| Enlightenment | Community | EFL-based, lightweight and stylish | ~250 MB |
 
 Mid and full tiers add roughly 500 MB and 2 GB on top of these minimum figures, depending on which tier extras your release/architecture combination ships.
 
