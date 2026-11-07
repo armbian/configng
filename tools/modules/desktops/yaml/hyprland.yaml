@@ -55,6 +55,8 @@ tiers:
       - imv
       - mpv
       - gnome-keyring
+      # Unlocks the keyring at SDDM login (pam.d/sddm calls it).
+      - libpam-gnome-keyring
       - udiskie
       # man pages use bat as pager. fzf: menu and shell search.
       - bat
@@ -169,6 +171,8 @@ tiers:
       - gliff
       - gnome-disk-utility
       - gnome-keyring
+      # Unlocks the keyring at SDDM login (pam.d/sddm calls it).
+      - libpam-gnome-keyring
       - gnome-sushi
       - gpu-screen-recorder
       - gstreamer1.0-pipewire
