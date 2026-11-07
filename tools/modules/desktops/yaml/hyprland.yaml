@@ -61,6 +61,14 @@ tiers:
       - fzf
       # Screensaver text effects.
       - ttfx
+      # .local names and network printers.
+      - avahi-daemon
+      - libnss-mdns
+      # Emoji in the picker and on web pages.
+      - fonts-noto-color-emoji
+      # First-boot setup enables the firewall when both are present.
+      - ufw
+      - ufw-docker
       # Snapshots before updates. omarchy-snapshot skips quietly without btrfs.
       - snapper
     packages_remove:
