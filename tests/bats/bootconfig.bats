@@ -423,11 +423,15 @@ _extlinux_fixture() {
 	run install_write_bootloader mtd /dev/mtdblock0 "$TMP" "$dir" mtdblock0
 	[ "$output" = "args=5:$dir/spi-sata.bin" ]
 	rmdir "$TMP/boot"
-	# A declared image missing from the package keeps the 4-argument call.
+	# An unknown transport writes the default image.
+	_install_rootfs_tran() { :; }
+	run install_write_bootloader mtd /dev/mtdblock0 "$TMP" "$dir" mtdblock0
+	[ "$output" = "args=5:$dir/spi.bin" ]
+	# A declared image missing from the package fails before the writer runs.
 	rm "$dir/spi-sata.bin"
 	_install_rootfs_tran() { echo sata; }
 	run install_write_bootloader mtd /dev/mtdblock0 "$TMP" "$dir" mtdblock0
-	[ "$output" = "args=4:" ]
+	[ "$status" -eq "$INSTALL_EX_BOOTLOADER" ] && [ -z "$output" ]
 	# A board without a declared image keeps the 4-argument call.
 	unset BOOTLOADER_MTD_IMAGE BOOTLOADER_MTD_IMAGE_SATA
 	run install_write_bootloader mtd /dev/mtdblock0 "$TMP" "$dir" mtdblock0
