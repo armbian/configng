@@ -403,10 +403,11 @@ function _module_desktops_configure_psd() {
 
 	[[ -n "$user" && -x /usr/bin/psd-overlay-helper ]] || return 0
 	local sudoers=/etc/sudoers.d/armbian-psd tmp
-	grep -qs "^${user} .*psd-overlay-helper" "$sudoers" && return 0
+	local rule="${user} ALL=(ALL) NOPASSWD: /usr/bin/psd-overlay-helper"
+	grep -qsxF "$rule" "$sudoers" && return 0
 	# sudo skips names with a dot, so the temporary file is never read.
 	tmp="$(mktemp /etc/sudoers.d/.armbian-psd.XXXXXX)" || return 0
-	{ cat "$sudoers" 2> /dev/null; echo "${user} ALL=(ALL) NOPASSWD: /usr/bin/psd-overlay-helper"; } > "$tmp"
+	{ cat "$sudoers" 2> /dev/null; echo "$rule"; } > "$tmp"
 	chmod 440 "$tmp"
 	if visudo -cqf "$tmp" > /dev/null 2>&1; then
 		mv "$tmp" "$sudoers"
