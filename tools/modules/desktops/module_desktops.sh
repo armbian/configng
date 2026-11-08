@@ -402,12 +402,19 @@ function _module_desktops_configure_psd() {
 	fi
 
 	[[ -n "$user" && -x /usr/bin/psd-overlay-helper ]] || return 0
-	local sudoers=/etc/sudoers.d/armbian-psd tmp
-	local rule="${user} ALL=(ALL) NOPASSWD: /usr/bin/psd-overlay-helper"
-	grep -qsxF "$rule" "$sudoers" && return 0
+	local sudoers=/etc/sudoers.d/armbian-psd tmp uid
+	# Use the UID: sudo reads a user named ALL as all users.
+	uid="$(id -u "$user" 2> /dev/null)" || return 0
+	local rule="#${uid} ALL=(ALL) NOPASSWD: /usr/bin/psd-overlay-helper"
+	grep -qsxF -- "$rule" "$sudoers" && return 0
 	# sudo skips names with a dot, so the temporary file is never read.
 	tmp="$(mktemp /etc/sudoers.d/.armbian-psd.XXXXXX)" || return 0
-	{ cat "$sudoers" 2> /dev/null; echo "$rule"; } > "$tmp"
+	# Keep the grants of other users. Stop if the file exists but cannot be read.
+	if [[ -e "$sudoers" ]] && ! cat "$sudoers" > "$tmp"; then
+		rm -f "$tmp"
+		return 0
+	fi
+	echo "$rule" >> "$tmp"
 	chmod 440 "$tmp"
 	if visudo -cqf "$tmp" > /dev/null 2>&1; then
 		mv "$tmp" "$sudoers"
