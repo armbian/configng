@@ -1009,7 +1009,7 @@ function module_desktops() {
 			if grep -qs 'NOPASSWD: /usr/bin/psd-overlay-helper$' /etc/sudoers; then
 				local sudoers_tmp
 				sudoers_tmp="$(mktemp /etc/.sudoers.XXXXXX)" &&
-					sed '\|^[^[:space:]#:]\+ ALL=(ALL) NOPASSWD: /usr/bin/psd-overlay-helper$|d' /etc/sudoers > "$sudoers_tmp" &&
+					sed '\|^[[:alnum:]_][[:alnum:]._-]* ALL=(ALL) NOPASSWD: /usr/bin/psd-overlay-helper$|d' /etc/sudoers > "$sudoers_tmp" &&
 					chmod 440 "$sudoers_tmp" && visudo -cqf "$sudoers_tmp" > /dev/null 2>&1 &&
 					mv "$sudoers_tmp" /etc/sudoers
 				rm -f "$sudoers_tmp"
