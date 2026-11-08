@@ -411,9 +411,18 @@ _extlinux_fixture() {
 	_install_rootfs_tran() { echo sata; }
 	run install_write_bootloader mtd /dev/mtdblock0 "$TMP" "$dir" mtdblock0
 	[ "$output" = "args=5:$dir/spi-sata.bin" ]
+	_install_rootfs_tran() { echo ata; }
+	run install_write_bootloader mtd /dev/mtdblock0 "$TMP" "$dir" mtdblock0
+	[ "$output" = "args=5:$dir/spi-sata.bin" ]
 	_install_rootfs_tran() { echo usb; }
 	run install_write_bootloader mtd /dev/mtdblock0 "$TMP" "$dir" mtdblock0
 	[ "$output" = "args=5:$dir/spi.bin" ]
+	# The image follows the disk that holds /boot, not /.
+	mkdir -p "$TMP/boot"
+	_install_rootfs_tran() { [[ "$1" == "$TMP/boot" ]] && echo sata || echo nvme; }
+	run install_write_bootloader mtd /dev/mtdblock0 "$TMP" "$dir" mtdblock0
+	[ "$output" = "args=5:$dir/spi-sata.bin" ]
+	rmdir "$TMP/boot"
 	# A declared image missing from the package keeps the 4-argument call.
 	rm "$dir/spi-sata.bin"
 	_install_rootfs_tran() { echo sata; }

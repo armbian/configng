@@ -761,15 +761,20 @@ _install_rootfs_tran() {
 
 install_mtd_image() {
 	# install_mtd_image <rootfs_mount> <uboot_dir>
-	# Echo the SPI image that boots the disk holding <rootfs_mount>. The board
-	# declares BOOTLOADER_MTD_IMAGE and BOOTLOADER_MTD_IMAGE_SATA in
-	# platform_install.sh. A SATA image can switch a shared M.2 slot to SATA, so
-	# use it only for a SATA disk. Echo nothing when the board declares no image.
+	# Echo the SPI image that boots the disk holding <rootfs_mount>/boot: u-boot
+	# loads from /boot, which can be a separate mount. The board declares
+	# BOOTLOADER_MTD_IMAGE and BOOTLOADER_MTD_IMAGE_SATA in platform_install.sh.
+	# A SATA image can switch a shared M.2 slot to SATA, so use it only for a
+	# SATA disk. Echo nothing when the board declares no image.
 	# A declared image missing from the package falls back to the writer's own choice.
 	[[ -n "${BOOTLOADER_MTD_IMAGE:-}" ]] || return 0
 	local image="$2/$BOOTLOADER_MTD_IMAGE"
-	if [[ -n "${BOOTLOADER_MTD_IMAGE_SATA:-}" && "$(_install_rootfs_tran "$1")" == sata ]]; then
-		image="$2/$BOOTLOADER_MTD_IMAGE_SATA"
+	if [[ -n "${BOOTLOADER_MTD_IMAGE_SATA:-}" ]]; then
+		local boot="$1/boot"; [[ -d "$boot" ]] || boot="$1"
+		# install_detect_targets also counts ata as SATA.
+		case "$(_install_rootfs_tran "$boot")" in
+			sata | ata) image="$2/$BOOTLOADER_MTD_IMAGE_SATA" ;;
+		esac
 	fi
 	if [[ ! -f "$image" ]]; then
 		install_log WARN "bootloader: SPI image $image not found, the board writer selects one"
