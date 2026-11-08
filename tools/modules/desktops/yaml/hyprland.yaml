@@ -73,6 +73,8 @@ tiers:
       - ufw
       - ufw-docker
       - docker.io
+      # The docker command: docker.io only recommends it. ufw-docker needs it.
+      - docker-cli
       - docker-buildx
       - docker-compose
       # Snapshots before updates. omarchy-snapshot skips quietly without btrfs.
@@ -143,6 +145,7 @@ tiers:
       - ddcutil
       - disktree
       - docker-buildx
+      - docker-cli
       - docker-compose
       - docker.io
       - dosfstools
