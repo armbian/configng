@@ -766,19 +766,22 @@ install_mtd_image() {
 	# BOOTLOADER_MTD_IMAGE and BOOTLOADER_MTD_IMAGE_SATA in platform_install.sh.
 	# A SATA image can switch a shared M.2 slot to SATA, so use it only for a
 	# SATA disk. Echo nothing when the board declares no image.
-	# A declared image missing from the package falls back to the writer's own choice.
+	# Fail when the declared image is missing: the writer's own choice can be the wrong image.
 	[[ -n "${BOOTLOADER_MTD_IMAGE:-}" ]] || return 0
 	local image="$2/$BOOTLOADER_MTD_IMAGE"
 	if [[ -n "${BOOTLOADER_MTD_IMAGE_SATA:-}" ]]; then
-		local boot="$1/boot"; [[ -d "$boot" ]] || boot="$1"
-		# install_detect_targets also counts ata as SATA.
-		case "$(_install_rootfs_tran "$boot")" in
+		local boot="$1/boot" tran; [[ -d "$boot" ]] || boot="$1"
+		tran="$(_install_rootfs_tran "$boot")"
+		# install_detect_targets also counts ata as SATA. An unknown transport (NFS,
+		# overlay) is not a SATA disk: keep the default image.
+		case "$tran" in
 			sata | ata) image="$2/$BOOTLOADER_MTD_IMAGE_SATA" ;;
+			"") install_log WARN "bootloader: no disk transport for $boot, writing the default SPI image" ;;
 		esac
 	fi
 	if [[ ! -f "$image" ]]; then
-		install_log WARN "bootloader: SPI image $image not found, the board writer selects one"
-		return 0
+		install_log ERR "bootloader: SPI image $image not found"
+		return 1
 	fi
 	echo "$image"
 }
@@ -801,7 +804,7 @@ install_write_bootloader() {
 			install_grub_install "$rootfs" bios "$disk" ;;
 		mtd)
 			[[ "$(type -t write_uboot_platform_mtd)" == function ]] || { install_log ERR "bootloader: write_uboot_platform_mtd missing"; return "$INSTALL_EX_BOOTLOADER"; }
-			local mtd_image; mtd_image="$(install_mtd_image "$rootfs" "$uboot_dir")"
+			local mtd_image; mtd_image="$(install_mtd_image "$rootfs" "$uboot_dir")" || return "$INSTALL_EX_BOOTLOADER"
 			write_uboot_platform_mtd "$uboot_dir" "/dev/${mtd_list%% *}" "$INSTALL_LOG" "$mtd_list" ${mtd_image:+"$mtd_image"} \
 				|| { install_log ERR "bootloader: MTD write failed"; return "$INSTALL_EX_BOOTLOADER"; } ;;
 		ufs)
