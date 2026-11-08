@@ -374,6 +374,47 @@ function _module_desktops_configure_fprintd() {
 	DEBIAN_FRONTEND=noninteractive pam-auth-update --enable fprintd 2> /dev/null || true
 }
 
+#
+# profile-sync-daemon (psd) copies the browser profiles back to disk when
+# the user session stops. Ubuntu's systemd caps that stop at 5 s
+# (user@.service.d/timeout.conf) and kills a longer copy-back, so the
+# profiles go through crash recovery at the next login. Raise the cap to
+# 60 s where that Ubuntu file exists; Debian keeps its 120 s default.
+# The "zz-" name sorts after Ubuntu's timeout.conf. See configng#1072.
+#
+# _module_desktops_configure_psd <mode> [user]
+#   With a user: psd 6.x mounts its overlays through psd-overlay-helper as
+#   root, so grant it in a sudoers drop-in. psd 7 and later have no helper
+#   and need no sudo.
+#
+function _module_desktops_configure_psd() {
+	local mode="${1:-}" user="${2:-}"
+	command -v psd > /dev/null 2>&1 || return 0
+
+	if [[ -f /usr/lib/systemd/system/user@.service.d/timeout.conf ]]; then
+		mkdir -p /etc/systemd/system/user@.service.d
+		cat > /etc/systemd/system/user@.service.d/zz-armbian-psd-timeout.conf <<- EOF
+			# Written by armbian-config: psd copies browser profiles back at logout.
+			[Service]
+			TimeoutStopSec=60
+		EOF
+		[[ "$mode" != "build" ]] && ! _desktop_in_container && systemctl daemon-reload 2> /dev/null
+	fi
+
+	[[ -n "$user" && -x /usr/bin/psd-overlay-helper ]] || return 0
+	local sudoers=/etc/sudoers.d/armbian-psd tmp
+	grep -qs "^${user} .*psd-overlay-helper" "$sudoers" && return 0
+	# sudo skips names with a dot, so the temporary file is never read.
+	tmp="$(mktemp /etc/sudoers.d/.armbian-psd.XXXXXX)" || return 0
+	{ cat "$sudoers" 2> /dev/null; echo "${user} ALL=(ALL) NOPASSWD: /usr/bin/psd-overlay-helper"; } > "$tmp"
+	chmod 440 "$tmp"
+	if visudo -cqf "$tmp" > /dev/null 2>&1; then
+		mv "$tmp" "$sudoers"
+	else
+		rm -f "$tmp"
+	fi
+}
+
 function _module_desktops_configure_networking() {
 	local src_dir="${desktops_dir}/networking"
 	if [[ ! -d "$src_dir" ]]; then
@@ -728,6 +769,9 @@ function module_desktops() {
 			# password) and on tiers/arches that stripped fprintd.
 			_module_desktops_configure_fprintd "$mode"
 
+			# Give psd time to copy the browser profiles back at logout.
+			_module_desktops_configure_psd "$mode"
+
 			# Wire up the Rockchip 3D + multimedia stack on
 			# rk3588-family / vendor-kernel boards: panthor-gpu DT
 			# overlay (Mesa GBM path), and — on noble — the
@@ -753,8 +797,7 @@ function module_desktops() {
 				local user_home
 				user_home=$(getent passwd "$user" | cut -d: -f6)
 				if command -v psd > /dev/null 2>&1; then
-					grep -q overlay-helper /etc/sudoers 2>/dev/null || \
-						echo "${user} ALL=(ALL) NOPASSWD: /usr/bin/psd-overlay-helper" >> /etc/sudoers
+					_module_desktops_configure_psd "$mode" "$user"
 					touch "${user_home}/.activate_psd"
 				fi
 
@@ -949,6 +992,10 @@ function module_desktops() {
 			# removed, the user is almost certainly done with that
 			# customisation too. Safe to rm unconditionally.
 			rm -f /etc/chromium.d/armbian-rk3588-multimedia
+
+			# Drop the psd stop timeout and sudoers drop-ins written by
+			# _module_desktops_configure_psd.
+			rm -f /etc/systemd/system/user@.service.d/zz-armbian-psd-timeout.conf /etc/sudoers.d/armbian-psd
 
 			# Reclaim disk space: clear apt's downloaded .deb cache. A full
 			# DE removal frees hundreds of MB of installed files; the
