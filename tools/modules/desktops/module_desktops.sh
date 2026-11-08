@@ -1003,7 +1003,17 @@ function module_desktops() {
 
 			# Drop the psd stop timeout and sudoers drop-ins written by
 			# _module_desktops_configure_psd.
-			rm -f /etc/systemd/system/user@.service.d/zz-armbian-psd-timeout.conf /etc/sudoers.d/armbian-psd
+			rm -f /etc/systemd/system/user@.service.d/zz-armbian-psd-timeout.conf /etc/sudoers.d/armbian-psd \
+				/etc/sudoers.d/armbian-firstlogin-psd
+			# Older installs appended the psd grant to /etc/sudoers.
+			if grep -qs 'NOPASSWD: /usr/bin/psd-overlay-helper$' /etc/sudoers; then
+				local sudoers_tmp
+				sudoers_tmp="$(mktemp /etc/.sudoers.XXXXXX)" &&
+					sed '\|^[^#].* ALL=(ALL) NOPASSWD: /usr/bin/psd-overlay-helper$|d' /etc/sudoers > "$sudoers_tmp" &&
+					chmod 440 "$sudoers_tmp" && visudo -cqf "$sudoers_tmp" > /dev/null 2>&1 &&
+					mv "$sudoers_tmp" /etc/sudoers
+				rm -f "$sudoers_tmp"
+			fi
 
 			# Reclaim disk space: clear apt's downloaded .deb cache. A full
 			# DE removal frees hundreds of MB of installed files; the
