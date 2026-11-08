@@ -761,12 +761,11 @@ install_bootloader_available() {
 # Transport (sata, nvme, usb, ...) of the disk that holds <rootfs_mount>.
 # Overridable in tests. Impure: reads the live layout.
 _install_rootfs_tran() {
-	local src disk
+	local src
 	src="$(findmnt -no SOURCE --nofsroot --target "$1" 2>/dev/null)"
 	[[ "$src" == /dev/* ]] || return 0
-	disk="$(lsblk -no PKNAME "$src" 2>/dev/null | head -1)"
-	[[ -n "$disk" ]] || return 0
-	lsblk -ndo TRAN "/dev/$disk" 2>/dev/null | head -1
+	# Walk up from the root device: a LUKS, LVM or RAID layer has no transport, its disk has.
+	lsblk -rnso TRAN "$src" 2>/dev/null | grep -m1 . || true
 }
 
 install_mtd_image() {
@@ -775,12 +774,17 @@ install_mtd_image() {
 	# declares BOOTLOADER_MTD_IMAGE and BOOTLOADER_MTD_IMAGE_SATA in
 	# platform_install.sh. A SATA image can switch a shared M.2 slot to SATA, so
 	# use it only for a SATA disk. Echo nothing when the board declares no image.
+	# A declared image missing from the package falls back to the writer's own choice.
 	[[ -n "${BOOTLOADER_MTD_IMAGE:-}" ]] || return 0
+	local image="$2/$BOOTLOADER_MTD_IMAGE"
 	if [[ -n "${BOOTLOADER_MTD_IMAGE_SATA:-}" && "$(_install_rootfs_tran "$1")" == sata ]]; then
-		echo "$2/$BOOTLOADER_MTD_IMAGE_SATA"
-	else
-		echo "$2/$BOOTLOADER_MTD_IMAGE"
+		image="$2/$BOOTLOADER_MTD_IMAGE_SATA"
 	fi
+	if [[ ! -f "$image" ]]; then
+		install_log WARN "bootloader: SPI image $image not found, the board writer selects one"
+		return 0
+	fi
+	echo "$image"
 }
 
 install_write_bootloader() {
