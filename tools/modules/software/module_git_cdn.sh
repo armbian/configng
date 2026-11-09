@@ -12,7 +12,7 @@ module_options+=(
 	["module_git_cdn,dockerimage"]="ghcr.io/armbian/git_cdn:latest"
 	["module_git_cdn,dockername"]="git_cdn"
 	["module_git_cdn,upstream"]="https://github.com/"
-	["module_git_cdn,cache_size_gb"]="500"
+	["module_git_cdn,cache_size_gb"]="20"
 	["module_git_cdn,workers"]="12"
 )
 #
