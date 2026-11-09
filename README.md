@@ -87,10 +87,10 @@ Unit tests live in `tests/`. Each `<ID>.conf` file defines a `testcase()` shell 
 ## Built With
 
 - **Bash** — the `armbian-config` entry point, assembly tooling (`tools/config-assemble.sh`), and the modules under `tools/modules/`
-- **Python 3** — documentation generator (`tools/config-markdown.py`) and the desktop matrix audit tooling under `tools/modules/desktops/github/`
+- **Python 3** — documentation generator (`tools/config-markdown.py`) and desktop matrix audit tooling under `tools/modules/desktops/github/`
 - **JSON** — configuration data under `tools/json/`
 - **YAML** — GitHub Actions workflows, labeler/labels config, and desktop matrix definitions
-- **Bats** + `jq` — installer-engine unit and integration tests
+- **Bats** + `jq` — installer-engine unit and integration tests under `tests/bats/`
 - **whiptail** — interactive text UI (dialogs), per the Debian packaging dependencies
 - **QML / Qt** — SDDM "plasma-chili" greeter theme bundled under `tools/modules/desktops/greeters/sddm/`
 
