@@ -695,7 +695,18 @@ function module_desktops() {
 			for exclude in $DESKTOP_PACKAGES_EXCLUDE; do
 				apt_extra+=("${exclude}-")
 			done
-			if ! pkg_install --allow-downgrades -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" "${apt_extra[@]}" ${DESKTOP_PACKAGES}; then
+			# Packages from the Armbian repository only. Skip them when apt has no
+			# candidate: no Armbian source, or the repository does not have them yet.
+			local -a desktop_packages=()
+			local pkg
+			for pkg in ${DESKTOP_PACKAGES}; do
+				if [[ "$pkg" == update-manager ]] && ! apt-cache show "$pkg" > /dev/null 2>&1; then
+					echo "Warning: ${pkg} is not in the configured repositories; skipping it" >&2
+					continue
+				fi
+				desktop_packages+=("$pkg")
+			done
+			if ! pkg_install --allow-downgrades -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" "${apt_extra[@]}" "${desktop_packages[@]}"; then
 				echo "Error: ${de} package install failed; aborting before any system state is changed" >&2
 				return 1
 			fi
