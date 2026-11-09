@@ -63,7 +63,7 @@ Options:
 	- tools/include/images/ID.png
 	```
 
-- Includes an optional album under the section image:
+- Includes an optional album. It replaces the section image:
 
 	```
 	- tools/include/images/ID/*.png|webp|jpg

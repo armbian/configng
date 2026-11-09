@@ -124,8 +124,9 @@ def insert_album(item):
     return parts
 
 def insert_images_and_header(item):
-    parts = []
-    for ext in ('png', 'webp'):
+    # An album replaces the section image.
+    parts = insert_album(item)
+    for ext in (() if parts else ('png', 'webp')):
         image_file = Path(__file__).parent / 'include' / 'images' / f"{item['id']}.{ext}"
         if image_file.is_file():
             rel_path = f"tools/include/images/{item['id']}.{ext}"
@@ -133,7 +134,6 @@ def insert_images_and_header(item):
             parts.append(f"![{item.get('short', item.get('description', ''))}](/images/{item['id']}.{ext})")
             parts.append(f"<!--- section image STOP from {rel_path} --->\n")
             break
-    parts.extend(insert_album(item))
 
     header_file = Path(__file__).parent / 'include' / 'markdown' / f"{item['id']}-header.md"
     if header_file.is_file():
