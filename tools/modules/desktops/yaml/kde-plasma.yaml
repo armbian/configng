@@ -145,3 +145,10 @@ releases:
       - polkitd
       - pkexec
       - libfido2-1
+
+tier_overrides:
+  minimal:
+    # Discover and its notifier show and install updates. No update-manager from common.
+    architectures:
+      amd64: { packages_remove: [update-manager] }
+      arm64: { packages_remove: [update-manager] }
