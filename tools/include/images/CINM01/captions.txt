@@ -1,20 +1,8 @@
 00-greeter.webp: LightDM login screen
 01-desktop.webp: Desktop with the panel
 02-menu.webp: Main menu
-03-menu-search.webp: Menu search
-04-desktop-context.webp: Desktop right-click menu
 05-calendar.webp: Calendar popup
-06-sound.webp: Sound applet
-07-network.webp: Network applet
 08-expo.webp: Workspace overview (Expo)
-09-notification.webp: Notification
 10-file-manager.webp: Nemo file manager
-11-window-tiled.webp: Window tiled to the left half
-12-scale.webp: Window overview (Scale)
 13-settings.webp: System Settings
-14-themes.webp: Themes
-15-backgrounds.webp: Backgrounds
-16-applets.webp: Applets
-17-panel-menu.webp: Panel menu
 18-armbian-config.webp: armbian-config in a terminal
-19-lock-screen.webp: Lock screen

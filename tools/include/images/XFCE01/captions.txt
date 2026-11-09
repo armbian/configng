@@ -1,20 +1,8 @@
 00-greeter.webp: LightDM login screen
 01-desktop.webp: Desktop with the top panel
 02-applications-menu.webp: Applications menu
-03-settings-submenu.webp: Settings submenu
-04-desktop-menu.webp: Desktop right-click menu
 05-appfinder.webp: Application Finder
 06-calendar.webp: Calendar popup
-07-network.webp: Network menu
-08-user-actions.webp: User actions menu
-09-run-dialog.webp: Run dialog
 10-settings-manager.webp: Settings Manager
-11-appearance.webp: Appearance
-12-window-manager.webp: Window Manager settings
-13-desktop-settings.webp: Desktop background settings
-14-panel-preferences.webp: Panel preferences
 15-thunar.webp: Thunar file manager
 16-armbian-config.webp: armbian-config in a terminal
-17-window-menu.webp: Window menu
-18-task-manager.webp: Task Manager
-19-display-settings.webp: Display settings
