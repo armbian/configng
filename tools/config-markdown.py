@@ -87,6 +87,42 @@ def generate_anchor_links(item, level=0, parent_path=""):
             links.extend(generate_anchor_links(sub_item, level + 1))
     return links
 
+ALBUM_EXTS = ('.png', '.webp', '.jpg', '.jpeg')
+
+def _album_caption(name):
+    """Caption from a file name: '02-app-menu.png' -> 'App menu'."""
+    text = re.sub(r'^\d+[-_]', '', Path(name).stem).replace('-', ' ').replace('_', ' ')
+    return text[:1].upper() + text[1:]
+
+def insert_album(item):
+    """Gallery row from the images in tools/include/images/<ID>/.
+
+    Files show in name order. An optional captions.txt in the same folder
+    holds "file: caption" lines; other files take the caption from the name.
+    """
+    album_dir = IMAGES_DIR / item['id']
+    if not album_dir.is_dir():
+        return []
+    files = sorted(f.name for f in album_dir.iterdir() if f.suffix.lower() in ALBUM_EXTS)
+    if not files:
+        return []
+    captions = {}
+    captions_file = album_dir / 'captions.txt'
+    if captions_file.is_file():
+        for line in captions_file.read_text().splitlines():
+            name, sep, text = line.partition(':')
+            if sep and text.strip():
+                captions[name.strip()] = text.strip()
+    rel_path = f"tools/include/images/{item['id']}/"
+    parts = [f"\n<!--- album START from {rel_path} --->",
+             '<div class="gallery-row" markdown>']
+    for name in files:
+        alt = captions.get(name, _album_caption(name)).replace('[', '(').replace(']', ')')
+        parts.append(f'![{alt}](/images/{item["id"]}/{name}){{ data-gallery="{item["id"]}" loading=lazy }}')
+    parts.append('</div>')
+    parts.append(f"<!--- album STOP from {rel_path} --->\n")
+    return parts
+
 def insert_images_and_header(item):
     parts = []
     for ext in ('png', 'webp'):
@@ -97,6 +133,7 @@ def insert_images_and_header(item):
             parts.append(f"![{item.get('short', item.get('description', ''))}](/images/{item['id']}.{ext})")
             parts.append(f"<!--- section image STOP from {rel_path} --->\n")
             break
+    parts.extend(insert_album(item))
 
     header_file = Path(__file__).parent / 'include' / 'markdown' / f"{item['id']}-header.md"
     if header_file.is_file():

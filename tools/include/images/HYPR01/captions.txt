@@ -1,0 +1,20 @@
+00-greeter.webp: SDDM login screen
+01-desktop.webp: Desktop with the top bar
+02-armbian-menu.webp: Armbian menu
+03-app-launcher.webp: App launcher
+04-keybindings.webp: Keybindings
+05-system-menu.webp: System menu
+06-theme-menu.webp: Theme menu
+07-menu-appearance.webp: Appearance menu
+08-menu-setup.webp: Setup menu
+09-calendar.webp: Calendar popup
+10-audio.webp: Audio popup
+11-network.webp: Network popup
+12-notification.webp: Notification
+13-fastfetch.webp: Terminal with fastfetch
+14-btop.webp: btop
+15-armbian-config.webp: armbian-config in a terminal
+16-tiling.webp: Two tiled windows
+17-floating.webp: Floating terminal
+18-theme-tokyo-night.webp: Tokyo Night theme
+19-screensaver.webp: Screensaver

@@ -1,0 +1,20 @@
+00-greeter.webp: GDM login screen
+01-lock-screen.webp: Lock screen
+02-desktop.webp: Desktop with the top bar
+03-activities-overview.webp: Activities overview with workspaces and dash
+04-app-grid.webp: App grid
+05-search.webp: Overview search
+06-quick-settings.webp: Quick settings menu
+07-calendar.webp: Calendar and notification list
+08-notification.webp: Notification banner
+09-files.webp: Files
+10-window-snap.webp: Window snapped to the left half
+11-settings.webp: Settings
+12-appearance.webp: Settings: Appearance
+13-displays.webp: Settings: Displays
+14-multitasking.webp: Settings: Multitasking
+15-about.webp: Settings: About
+16-tweaks.webp: GNOME Tweaks
+17-armbian-config.webp: armbian-config in a terminal
+18-armbian-imager.webp: Armbian Imager
+19-power-off.webp: Install updates and power off dialog
