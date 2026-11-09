@@ -25,8 +25,10 @@ tiers:
       - okular
       - plasma-nm
       - plasma-pa
-      # plasma-desktop only recommends these. The panel has launchers for both.
+      # plasma-desktop and plasma-discover only recommend these. The panel
+      # has launchers for System Settings and Discover. The notifier shows updates.
       - plasma-discover
+      - plasma-discover-notifier
       - systemsettings
       - xserver-xorg
       - dbus-x11
