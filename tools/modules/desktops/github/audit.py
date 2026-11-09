@@ -62,6 +62,8 @@ UBUNTU_RELEASES = {"jammy", "noble", "oracular", "plucky", "questing", "resolute
 SKIP_RELEASES = {"buster", "bullseye", "focal"}  # EOS, never going to gain a desktop
 
 # Packages from the Armbian repository. The upstream archives do not have them.
+# The audit checks the stable Armbian repository for them. module_desktops.sh
+# skips them when apt has no candidate.
 ARMBIAN_REPO_PACKAGES = {"update-manager"}
 
 # Architecture name normalization. armbian/build uses 'amd64' / 'arm64'
@@ -203,6 +205,31 @@ def package_url(release: str, arch: str, package: str) -> str | None:
     return None
 
 
+ARMBIAN_REPO_URL = "https://apt.armbian.com"
+
+
+def armbian_repo_has(release: str, arch: str, package: str) -> bool | None:
+    """
+    True if the stable Armbian repository publishes the package for
+    (release, arch) in its desktop component. None on a network error.
+    """
+    import gzip
+    url = f"{ARMBIAN_REPO_URL}/dists/{release}/{release}-desktop/binary-{arch}/Packages.gz"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+        with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT_SECONDS) as resp:
+            text = gzip.decompress(resp.read()).decode("utf-8", errors="replace")
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            return False
+        warn(f"network error checking {package} in the Armbian repository for {release}/{arch}: {e}")
+        return None
+    except (urllib.error.URLError, TimeoutError, OSError) as e:
+        warn(f"network error checking {package} in the Armbian repository for {release}/{arch}: {e}")
+        return None
+    return re.search(rf"^Package: {re.escape(package)}$", text, re.M) is not None
+
+
 def package_exists(release: str, arch: str, package: str,
                    cache: dict, skip_network: bool) -> bool | None:
     """
@@ -211,11 +238,15 @@ def package_exists(release: str, arch: str, package: str,
 
     Results are memoised in `cache` to avoid hammering the archive.
     """
-    if package in ARMBIAN_REPO_PACKAGES:
-        return True
-
     key = (release, arch, package)
     if key in cache:
+        return cache[key]
+
+    if package in ARMBIAN_REPO_PACKAGES:
+        if skip_network:
+            cache[key] = None
+            return None
+        cache[key] = armbian_repo_has(release, arch, package)
         return cache[key]
 
     url = package_url(release, arch, package)
