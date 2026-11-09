@@ -430,7 +430,10 @@ declare -A prefix_drop prefix_count
 	done
 done < <(docker image ls --format '{{.ID}}\t{{.Repository}}:{{.Tag}}' | grep -v $'\t<none>:<none>$' |
 	while IFS=$'\t' read -r id repo_tag; do
-		printf '%s\t%s\n' "$(date -d "$(docker image inspect -f '{{.Created}}' "$id")" +%s)" "$repo_tag"
+		# No creation time: leave the tag out, so it keeps its protection.
+		created=$(docker image inspect -f '{{.Created}}' "$id" 2>/dev/null) && [[ -n "$created" ]] || continue
+		created=$(date -d "$created" +%s 2>/dev/null) || continue
+		printf '%s\t%s\n' "$created" "$repo_tag"
 	done | sort -rn)
 
 # Pass 1: explicit per-image rm for everything not in keep-set.
@@ -517,9 +520,10 @@ if [[ -d "$gcdn_cache" ]]; then
 	fi
 fi
 # Keep the pack cache directories: git_cdn creates a directory, then the file in it.
-if [[ -d "$gcdn_cache/pack_cache" ]]; then
+# find -atime +N means N+1 days or more: use N-1.
+if [[ -n "$gcdn_cache" && -d "$gcdn_cache/pack_cache" ]]; then
 	log "git_cdn: rm pack cache files not read for ${GIT_CDN_PACK_KEEP_DAYS} days"
-	run find "$gcdn_cache/pack_cache" -type f -atime +"${GIT_CDN_PACK_KEEP_DAYS}" -delete
+	run find "$gcdn_cache/pack_cache" -type f -atime +"$((GIT_CDN_PACK_KEEP_DAYS - 1))" -delete
 	pack_max=$((GIT_CDN_PACK_MAX_GB * 1024 * 1024 * 1024))
 	pack_total=0
 	while IFS=$'\t' read -r -d '' _ size file; do
@@ -531,7 +535,7 @@ if [[ -d "$gcdn_cache/pack_cache" ]]; then
 fi
 # A clone reads the mirror packs, so the newest pack atime is the last use.
 # A running job can clone from a mirror: remove mirrors only when all runners are idle.
-if [[ -d "$gcdn_cache/git" && ${#busy[@]} -eq 0 ]]; then
+if [[ -n "$gcdn_cache" && -d "$gcdn_cache/git" && ${#busy[@]} -eq 0 ]]; then
 	while IFS= read -r -d '' mirror; do
 		[[ -n $(find "$mirror/objects/pack" -name '*.pack' -atime -"${GIT_CDN_MIRROR_KEEP_DAYS}" -print -quit 2>/dev/null) ]] && continue
 		# A job can start after the idle check above.
