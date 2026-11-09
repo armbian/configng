@@ -123,6 +123,13 @@ KEEP_RUNNERS_WORK=(
 # disk is genuinely filling. Wiping it every pass makes every following build
 # cold. Percentage of the busiest filesystem at/above which to prune it.
 DISK_PRUNE_PERCENT=90
+# Newest tags kept per KEEP_IMAGE_PREFIXES entry. Each build commit makes
+# a new armbian.local.only/armbian-build tag of about 6 GB.
+KEEP_IMAGE_PREFIX_MAX=10
+# git_cdn cache: remove pack cache files and git mirrors not read for
+# this many days. git_cdn makes them again on the next request.
+GIT_CDN_PACK_KEEP_DAYS=7
+GIT_CDN_MIRROR_KEEP_DAYS=30
 RUNNER_USER_RE='^actions-runner-.+$'
 # Wall-clock ceiling for Runner.Worker processes. A Worker alive
 # longer than this is almost certainly hung (deadlocked artifact
@@ -399,6 +406,18 @@ keep_by_prefix() {
 	return 1
 }
 
+# Tags past the newest KEEP_IMAGE_PREFIX_MAX of each prefix lose the
+# prefix protection. Images that a container uses stay in keep-set.
+declare -A prefix_drop prefix_count
+while IFS=$'\t' read -r _ repo_tag; do
+	for p in "${KEEP_IMAGE_PREFIXES[@]}"; do
+		[[ "$repo_tag" == "$p"* ]] || continue
+		prefix_count[$p]=$(( ${prefix_count[$p]:-0} + 1 ))
+		(( ${prefix_count[$p]} > KEEP_IMAGE_PREFIX_MAX )) && prefix_drop["$repo_tag"]=1
+		break
+	done
+done < <(docker image ls --format '{{.CreatedAt}}\t{{.Repository}}:{{.Tag}}' | sort -r)
+
 # Pass 1: explicit per-image rm for everything not in keep-set.
 # Untagged <none>:<none> entries are caught by `docker image prune`
 # below, so skip them here.
@@ -408,7 +427,7 @@ while IFS=$'\t' read -r repo_tag image_id; do
 		log "keep image ${repo_tag}"
 		continue
 	fi
-	if keep_by_prefix "$repo_tag"; then
+	if keep_by_prefix "$repo_tag" && [[ -z "${prefix_drop[$repo_tag]:-}" ]]; then
 		log "keep image ${repo_tag} (prefix)"
 		continue
 	fi
@@ -467,6 +486,30 @@ if [[ -d "$acng_cache" ]]; then
 		acng_bad=$((acng_bad + 1))
 	done < <(find "$acng_cache" -path '*/by-hash/*' -type f ! -name '*.head' -print0)
 	[[ $acng_bad -gt 0 ]] && note "removed ${acng_bad} corrupt apt-cacher-ng by-hash entries"
+fi
+
+# git_cdn keeps every mirror it ever served and a pack cache of up to
+# PACK_CACHE_SIZE_GB. Remove what nobody read for a while.
+gcdn_cache=$(docker inspect -f '{{range .Mounts}}{{if eq .Destination "/git-data"}}{{.Source}}{{end}}{{end}}' \
+	"${GIT_CDN_CONTAINER:-git_cdn}" 2>/dev/null) || gcdn_cache=""
+# The age check reads atime. With noatime it is the creation time: skip.
+if [[ -d "$gcdn_cache" ]] && findmnt -no OPTIONS --target "$gcdn_cache" | grep -qw noatime; then
+	note "git_cdn: ${gcdn_cache} is mounted noatime, cache age unknown, skipped"
+	gcdn_cache=""
+fi
+if [[ -d "$gcdn_cache/pack_cache" ]]; then
+	log "git_cdn: rm pack cache files not read for ${GIT_CDN_PACK_KEEP_DAYS} days"
+	run find "$gcdn_cache/pack_cache" -type f -atime +"${GIT_CDN_PACK_KEEP_DAYS}" -delete
+	run find "$gcdn_cache/pack_cache" -mindepth 1 -type d -empty -delete
+fi
+# A clone reads the mirror packs, so the newest pack atime is the last use.
+# A running job can clone from a mirror: remove mirrors only when all runners are idle.
+if [[ -d "$gcdn_cache/git" && ${#busy[@]} -eq 0 ]]; then
+	while IFS= read -r -d '' mirror; do
+		[[ -n $(find "$mirror/objects/pack" -name '*.pack' -atime -"${GIT_CDN_MIRROR_KEEP_DAYS}" -print -quit 2>/dev/null) ]] && continue
+		note "git_cdn: rm mirror ${mirror#"$gcdn_cache"/git/} (not read for ${GIT_CDN_MIRROR_KEEP_DAYS} days)"
+		run rm -rf -- "$mirror"
+	done < <(find "$gcdn_cache/git" -mindepth 2 -maxdepth 2 -type d -name '*.git' -print0)
 fi
 
 fi  # end docker section
