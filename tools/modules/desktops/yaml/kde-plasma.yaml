@@ -25,6 +25,9 @@ tiers:
       - okular
       - plasma-nm
       - plasma-pa
+      # plasma-desktop only recommends these. The panel has launchers for both.
+      - plasma-discover
+      - systemsettings
       - xserver-xorg
       - dbus-x11
       - dmz-cursor-theme
