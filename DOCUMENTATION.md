@@ -39,15 +39,15 @@ sudo armbian-config
     - ### Install KDE Plasma (mid)
     - ### Install KDE Plasma (full)
     - ### Install KDE Neon
-    - ### Install Budgie [CSC]
-    - ### Install Deepin [CSC]
-    - ### Install Enlightenment [CSC]
-    - ### Install Hyprland [CSC]
-    - ### Install Hyprland (mid) [CSC]
-    - ### Install Hyprland (full) [CSC]
-    - ### Install Bianbu (minimal) [CSC]
-    - ### Install Bianbu (mid) [CSC]
-    - ### Install Bianbu (full) [CSC]
+    - ### Install Budgie
+    - ### Install Deepin
+    - ### Install Enlightenment
+    - ### Install Hyprland
+    - ### Install Hyprland (mid)
+    - ### Install Hyprland (full)
+    - ### Install Bianbu (minimal)
+    - ### Install Bianbu (mid)
+    - ### Install Bianbu (full)
     - ### Install XFCE (minimal)
     - ### Install XFCE (mid)
     - ### Install XFCE (full)
@@ -58,10 +58,10 @@ sudo armbian-config
     - ### Uninstall i3
     - ### Uninstall KDE Plasma
     - ### Uninstall KDE Neon
-    - ### Uninstall Budgie [CSC]
-    - ### Uninstall Deepin [CSC]
-    - ### Uninstall Enlightenment [CSC]
-    - ### Uninstall Hyprland [CSC]
+    - ### Uninstall Budgie
+    - ### Uninstall Deepin
+    - ### Uninstall Enlightenment
+    - ### Uninstall Hyprland
     - ### Uninstall XFCE
     - ### Enable autologin (Cinnamon)
     - ### Enable autologin (GNOME)
@@ -70,10 +70,10 @@ sudo armbian-config
     - ### Enable autologin (i3)
     - ### Enable autologin (KDE Plasma)
     - ### Enable autologin (KDE Neon)
-    - ### Enable autologin (Budgie) [CSC]
-    - ### Enable autologin (Deepin) [CSC]
-    - ### Enable autologin (Enlightenment) [CSC]
-    - ### Enable autologin (Hyprland) [CSC]
+    - ### Enable autologin (Budgie)
+    - ### Enable autologin (Deepin)
+    - ### Enable autologin (Enlightenment)
+    - ### Enable autologin (Hyprland)
     - ### Enable autologin (XFCE)
     - ### Disable autologin (Cinnamon)
     - ### Disable autologin (GNOME)
@@ -82,10 +82,10 @@ sudo armbian-config
     - ### Disable autologin (i3)
     - ### Disable autologin (KDE Plasma)
     - ### Disable autologin (KDE Neon)
-    - ### Disable autologin (Budgie) [CSC]
-    - ### Disable autologin (Deepin) [CSC]
-    - ### Disable autologin (Enlightenment) [CSC]
-    - ### Disable autologin (Hyprland) [CSC]
+    - ### Disable autologin (Budgie)
+    - ### Disable autologin (Deepin)
+    - ### Disable autologin (Enlightenment)
+    - ### Disable autologin (Hyprland)
     - ### Change Hyprland to minimal
     - ### Change Hyprland to mid
     - ### Change Hyprland to full
@@ -535,15 +535,15 @@ Outputs:
 	--cmd KDEP05 - Install KDE Plasma (mid)
 	--cmd KDEP06 - Install KDE Plasma (full)
 	--cmd KDEN01 - Install KDE Neon
-	--cmd BDGE01 - Install Budgie [CSC]
-	--cmd DEEP01 - Install Deepin [CSC]
-	--cmd ENLT01 - Install Enlightenment [CSC]
-	--cmd HYPR01 - Install Hyprland [CSC]
-	--cmd HYPR05 - Install Hyprland (mid) [CSC]
-	--cmd HYPR06 - Install Hyprland (full) [CSC]
-	--cmd BIAN01 - Install Bianbu (minimal) [CSC]
-	--cmd BIAN05 - Install Bianbu (mid) [CSC]
-	--cmd BIAN06 - Install Bianbu (full) [CSC]
+	--cmd BDGE01 - Install Budgie
+	--cmd DEEP01 - Install Deepin
+	--cmd ENLT01 - Install Enlightenment
+	--cmd HYPR01 - Install Hyprland
+	--cmd HYPR05 - Install Hyprland (mid)
+	--cmd HYPR06 - Install Hyprland (full)
+	--cmd BIAN01 - Install Bianbu (minimal)
+	--cmd BIAN05 - Install Bianbu (mid)
+	--cmd BIAN06 - Install Bianbu (full)
 	--cmd XFCE01 - Install XFCE (minimal)
 	--cmd XFCE05 - Install XFCE (mid)
 	--cmd XFCE06 - Install XFCE (full)
@@ -554,10 +554,10 @@ Outputs:
 	--cmd I3WM02 - Uninstall i3
 	--cmd KDEP02 - Uninstall KDE Plasma
 	--cmd KDEN02 - Uninstall KDE Neon
-	--cmd BDGE02 - Uninstall Budgie [CSC]
-	--cmd DEEP02 - Uninstall Deepin [CSC]
-	--cmd ENLT02 - Uninstall Enlightenment [CSC]
-	--cmd HYPR02 - Uninstall Hyprland [CSC]
+	--cmd BDGE02 - Uninstall Budgie
+	--cmd DEEP02 - Uninstall Deepin
+	--cmd ENLT02 - Uninstall Enlightenment
+	--cmd HYPR02 - Uninstall Hyprland
 	--cmd XFCE02 - Uninstall XFCE
 	--cmd CINM03 - Enable autologin (Cinnamon)
 	--cmd GNME03 - Enable autologin (GNOME)
@@ -566,10 +566,10 @@ Outputs:
 	--cmd I3WM03 - Enable autologin (i3)
 	--cmd KDEP03 - Enable autologin (KDE Plasma)
 	--cmd KDEN03 - Enable autologin (KDE Neon)
-	--cmd BDGE03 - Enable autologin (Budgie) [CSC]
-	--cmd DEEP03 - Enable autologin (Deepin) [CSC]
-	--cmd ENLT03 - Enable autologin (Enlightenment) [CSC]
-	--cmd HYPR03 - Enable autologin (Hyprland) [CSC]
+	--cmd BDGE03 - Enable autologin (Budgie)
+	--cmd DEEP03 - Enable autologin (Deepin)
+	--cmd ENLT03 - Enable autologin (Enlightenment)
+	--cmd HYPR03 - Enable autologin (Hyprland)
 	--cmd XFCE03 - Enable autologin (XFCE)
 	--cmd CINM04 - Disable autologin (Cinnamon)
 	--cmd GNME04 - Disable autologin (GNOME)
@@ -578,10 +578,10 @@ Outputs:
 	--cmd I3WM04 - Disable autologin (i3)
 	--cmd KDEP04 - Disable autologin (KDE Plasma)
 	--cmd KDEN04 - Disable autologin (KDE Neon)
-	--cmd BDGE04 - Disable autologin (Budgie) [CSC]
-	--cmd DEEP04 - Disable autologin (Deepin) [CSC]
-	--cmd ENLT04 - Disable autologin (Enlightenment) [CSC]
-	--cmd HYPR04 - Disable autologin (Hyprland) [CSC]
+	--cmd BDGE04 - Disable autologin (Budgie)
+	--cmd DEEP04 - Disable autologin (Deepin)
+	--cmd ENLT04 - Disable autologin (Enlightenment)
+	--cmd HYPR04 - Disable autologin (Hyprland)
 	--cmd HYPR07 - Change Hyprland to minimal
 	--cmd HYPR08 - Change Hyprland to mid
 	--cmd HYPR09 - Change Hyprland to full
