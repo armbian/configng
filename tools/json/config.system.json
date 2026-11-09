@@ -348,7 +348,7 @@
                             "status": "Stable",
                             "author": "@igorpecovnik",
                             "condition": "! module_desktops installed && module_desktop_supported hyprland",
-                            "help": "Install Hyprland, a dynamic tiling Wayland compositor [community-supported, best-effort]."
+                            "help": "Install Hyprland, a dynamic tiling Wayland compositor."
                         },
                         {
                             "id": "HYPR05",

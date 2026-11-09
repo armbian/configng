@@ -133,12 +133,14 @@ def create_markdown_user(item, level=1, show_meta=True, force_title=False, skip_
         grouped_subs = {}
         for sub_item in item['sub']:
             grouped_subs.setdefault(_desktop_key(sub_item), []).append(sub_item)
-        for title, supported in (("Supported", True), ("Community", False)):
+        for title, status in (("Supported", "supported"), ("Community", "community"),
+                              ("Unsupported", "unsupported"), ("Other", None)):
             groups = [g for de, g in grouped_subs.items()
-                      if de is not None and _desktop_supported(de) == supported]
+                      if (de is None and status is None)
+                      or (de is not None and status is not None and _desktop_section(de) == status)]
             if groups:
                 md.append(f"{'#' * (level + 1)} {title}\n")
-                md.append(DESKTOPS_INTRO[title])
+                md.append(DESKTOPS_INTRO.get(title, ""))
                 md.extend(_render_sub_groups(groups, level + 1))
     elif 'sub' in item:
         grouped_subs = {}
@@ -186,6 +188,7 @@ DESKTOP_YAML_DIR = SCRIPT_DIR / 'modules' / 'desktops' / 'yaml'
 DESKTOPS_INTRO = {
     "Supported": "\nArmbian maintains and tests these desktops.\n",
     "Community": "\nCommunity members maintain these desktops. Armbian does not test them. They can break after an update.\n",
+    "Unsupported": "\nNobody maintains these desktops. They can fail to install or to start.\n",
 }
 
 
@@ -197,11 +200,13 @@ def _desktop_key(item):
     return m.group(1) if m else None
 
 
-def _desktop_supported(de):
-    """True when tools/modules/desktops/yaml/<de>.yaml has status: supported."""
+def _desktop_section(de):
+    """The status in tools/modules/desktops/yaml/<de>.yaml: supported or unsupported.
+    Every other status, and a missing one, is community."""
     f = DESKTOP_YAML_DIR / f"{de}.yaml"
     m = re.search(r'^status:\s*(\S+)', f.read_text(), re.M) if f.is_file() else None
-    return bool(m) and m.group(1) == 'supported'
+    status = m.group(1).strip('"\'') if m else ''
+    return status if status in ('supported', 'unsupported') else 'community'
 
 def slugify(text):
     """netdata -> netdata, 'Uptime Kuma' -> uptime-kuma, NetAlertX -> netalertx."""
