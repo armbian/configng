@@ -699,6 +699,9 @@ function module_desktops() {
 				echo "Error: ${de} package install failed; aborting before any system state is changed" >&2
 				return 1
 			fi
+			# apt gets AppStream metadata only when the appstream package is installed.
+			# Refresh now, so Discover and GNOME Software list the applications at the first start.
+			pkg_update || true
 
 			# install and register display manager
 			if [[ -n "$DESKTOP_DM" && "$DESKTOP_DM" != "none" ]]; then

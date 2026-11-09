@@ -25,6 +25,10 @@ tiers:
       - okular
       - plasma-nm
       - plasma-pa
+      # plasma-desktop only recommends these. The panel has launchers for both.
+      # Discover brings PackageKit, its apt backend, and shows updates.
+      - plasma-discover
+      - systemsettings
       - xserver-xorg
       - dbus-x11
       - dmz-cursor-theme
@@ -84,6 +88,8 @@ releases:
   noble:
     architectures: [arm64, amd64]
     packages:
+      # The update notifier is a separate package on Ubuntu noble and later.
+      - plasma-discover-notifier
       - polkitd
       - pkexec
       - libu2f-udev
@@ -134,6 +140,8 @@ releases:
     # Ubuntu 26.04 LTS — same as questing.
     architectures: [arm64, amd64]
     packages:
+      # The update notifier is a separate package on Ubuntu noble and later.
+      - plasma-discover-notifier
       - polkitd
       - pkexec
       - libfido2-1
