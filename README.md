@@ -56,11 +56,15 @@ armbian-config
 bin/armbian-config          Entry point script
 tools/config-assemble.sh    Assembles modules and jobs (production / testing)
 tools/config-markdown.py    Generates Markdown docs from the merged JSON
-tools/json/                 Per-section JSON (help, localisation, network, software, system, temp)
-tools/modules/              Shell modules (desktops, system, etc.) and desktop assets
-tools/include/              Per-ID header/footer Markdown snippets and images
+tools/json/                 Per-section JSON (help, localisation, network,
+                            software, system, temp)
+tools/modules/              Shell modules (desktops, system, ...) and
+                            associated assets
+tools/include/              Per-ID header/footer Markdown snippets and
+                            images used by the doc generator
 share/                      .desktop entry and application icons
-tests/                      Per-feature unit test .conf files and bats test suites
+tests/                      Per-feature .conf test cases and bats test
+                            suites under tests/bats/
 debian.conf                 Debian packaging metadata
 ```
 
@@ -68,7 +72,7 @@ Not every subdirectory is listed above — browse the tree for the full picture.
 
 ## Building and Testing Locally
 
-Prepare a working checkout, assemble the runtime, and run the tool:
+Assemble the runtime and launch the tool from a working checkout:
 
 ```bash
 tools/config-assemble.sh -p   # -p production, -t testing
@@ -78,27 +82,34 @@ bin/armbian-config
 Generate the Markdown documentation (requires an assembled JSON):
 
 ```bash
-python3 tools/config-markdown.py -u   # user docs
-python3 tools/config-markdown.py -t   # technical docs
+python3 tools/config-markdown.py -u   # user documentation
+python3 tools/config-markdown.py -t   # technical documentation
 ```
 
-Unit tests live in `tests/`. Each `<ID>.conf` file defines a `testcase()` shell function that returns 0 on success; see [`tests/README.md`](tests/README.md) for the format. Bats-based tests for the installer engine live under `tests/bats/`.
+Unit tests live in `tests/`. Each `<ID>.conf` file defines a `testcase()` shell function that returns `0` on success; see [`tests/README.md`](tests/README.md) for the format and conventions. Bats-based tests for the installer engine live under `tests/bats/` and can be run with:
+
+```bash
+bats tests/bats/plan.bats tests/bats/detect.bats \
+     tests/bats/bootconfig.bats tests/bats/dualboot.bats \
+     tests/bats/transfer.bats tests/bats/package.bats \
+     tests/bats/runners.bats tests/bats/partitioner.bats
+```
 
 ## Built With
 
-- **Bash** — the `armbian-config` entry point, assembly tooling (`tools/config-assemble.sh`), and the modules under `tools/modules/`
-- **Python 3** — documentation generator (`tools/config-markdown.py`) and desktop matrix audit tooling under `tools/modules/desktops/github/`
-- **JSON** — configuration data under `tools/json/`
-- **YAML** — GitHub Actions workflows, labeler/labels config, and desktop matrix definitions
-- **Bats** + `jq` — installer-engine unit and integration tests under `tests/bats/`
-- **whiptail** — interactive text UI (dialogs), per the Debian packaging dependencies
-- **QML / Qt** — SDDM "plasma-chili" greeter theme bundled under `tools/modules/desktops/greeters/sddm/`
+- **Bash** — the `armbian-config` entry point, the assembly tooling (`tools/config-assemble.sh`), and the shell modules under `tools/modules/`
+- **Python 3** — documentation generator (`tools/config-markdown.py`) and desktop-matrix audit tooling under `tools/modules/desktops/github/`
+- **JSON** — configuration data under `tools/json/` (help, localisation, network, software, system, temp)
+- **YAML** — GitHub Actions workflows, labeler/labels configuration, and the desktop matrix definitions under `tools/modules/desktops/yaml/`
+- **Bats** + **jq** — installer-engine unit and integration tests under `tests/bats/`
+- **whiptail** — interactive text UI (per the Debian packaging dependencies)
+- **QML / Qt (SDDM)** — "plasma-chili" greeter theme bundled under `tools/modules/desktops/greeters/sddm/`
 
-Debian packaging (see `debian.conf`) declares runtime dependencies including `bash`, `jq`, `whiptail`, `sudo`, `systemd`, `iproute2`, `gpg`, `python3-yaml`, `rsync`, `parted`, `dosfstools`, `e2fsprogs`, `btrfs-progs`, `f2fs-tools`, and `ntfs-3g`.
+Debian packaging (see `debian.conf`) declares runtime dependencies including `bash`, `jq`, `whiptail`, `sudo`, `procps`, `systemd`, `lsb-release`, `iproute2`, `debconf`, `libtext-iconv-perl`, `gpg`, `xz-utils`, `pv`, `python3-yaml`, `expect-dev`, `rsync`, `parted`, `dosfstools`, `e2fsprogs`, `btrfs-progs`, `f2fs-tools`, and `ntfs-3g`.
 
 ## Continuous Integration
 
-CI is driven by GitHub Actions workflows under `.github/workflows/` covering JSON validation, shell linting, coding style, bats tests, Debian packaging, documentation builds, label sync, PR triage, and a periodic desktop matrix audit.
+CI is driven by GitHub Actions workflows under `.github/workflows/` and covers JSON validation, shell linting, coding-style checks, bats tests, Debian packaging, documentation builds, label sync, PR triage, and a periodic desktop-matrix audit.
 
 For an overview of workflow status for this repository, see the Armbian CI dashboard:
 
