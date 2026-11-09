@@ -61,6 +61,9 @@ DEBIAN_RELEASES = {"bookworm", "trixie", "forky", "sid"}
 UBUNTU_RELEASES = {"jammy", "noble", "oracular", "plucky", "questing", "resolute"}
 SKIP_RELEASES = {"buster", "bullseye", "focal"}  # EOS, never going to gain a desktop
 
+# Packages from the Armbian repository. The upstream archives do not have them.
+ARMBIAN_REPO_PACKAGES = {"update-manager"}
+
 # Architecture name normalization. armbian/build uses 'amd64' / 'arm64'
 # / 'armhf' / 'riscv64'. packages.debian.org uses the same names.
 SUPPORTED_ARCHES = {"amd64", "arm64", "armhf", "riscv64"}
@@ -208,6 +211,9 @@ def package_exists(release: str, arch: str, package: str,
 
     Results are memoised in `cache` to avoid hammering the archive.
     """
+    if package in ARMBIAN_REPO_PACKAGES:
+        return True
+
     key = (release, arch, package)
     if key in cache:
         return cache[key]

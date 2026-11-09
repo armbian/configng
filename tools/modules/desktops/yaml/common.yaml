@@ -267,6 +267,11 @@ releases:
 
 tier_overrides:
   minimal:
+    # Software Updater from the Armbian repository, patched for Armbian.
+    # Debian has no update-manager. Built for amd64 and arm64 only.
+    architectures:
+      amd64: { packages: [update-manager] }
+      arm64: { packages: [update-manager] }
     releases:
       bookworm:
         # fonts-ubuntu is an Ubuntu-only package; Debian doesn't

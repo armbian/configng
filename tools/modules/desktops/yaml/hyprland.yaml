@@ -296,6 +296,11 @@ tiers:
       - zstd
 
 tier_overrides:
+  minimal:
+    # Hyprland does not use update-manager from common.
+    architectures:
+      amd64: { packages_remove: [update-manager] }
+      arm64: { packages_remove: [update-manager] }
   full:
     architectures:
       amd64:
