@@ -1,4 +1,4 @@
-KDE Neon provides the latest KDE Plasma desktop built on top of Ubuntu. It uses the KDE Neon repository to deliver cutting-edge Plasma releases, offering the newest features and improvements ahead of distribution packages. Ubuntu Noble/Plucky only.
+KDE Neon provides the latest KDE Plasma desktop built on top of Ubuntu. It uses the KDE Neon repository to deliver cutting-edge Plasma releases, offering the newest features and improvements ahead of distribution packages. Not available now: the KDE Neon repository has no base for Ubuntu Resolute.
 
 !!! note "KDE Neon vs KDE Plasma"
 

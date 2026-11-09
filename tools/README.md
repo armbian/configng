@@ -63,6 +63,17 @@ Options:
 	- tools/include/images/ID.png
 	```
 
+- Includes an optional album. It replaces the section image:
+
+	```
+	- tools/include/images/ID/*.png|webp|jpg
+	- tools/include/images/ID/captions.txt
+	```
+
+	Images show in file name order, for example `00-greeter.png`.
+	A `captions.txt` line is `00-greeter.png: Login screen`.
+	Files without a caption line take the caption from the file name.
+
 #### Dependencies
 
 - [Python 3](https://www.python.org/) with the standard libraries `json`, `sys`, `argparse`, and `os`.
