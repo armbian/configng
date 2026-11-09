@@ -130,6 +130,9 @@ KEEP_IMAGE_PREFIX_MAX=10
 # this many days. git_cdn makes them again on the next request.
 GIT_CDN_PACK_KEEP_DAYS=7
 GIT_CDN_MIRROR_KEEP_DAYS=30
+# Size cap for the git_cdn pack cache, also for containers made with the
+# old 500 GB PACK_CACHE_SIZE_GB. The least recently read files go first.
+GIT_CDN_PACK_MAX_GB=20
 RUNNER_USER_RE='^actions-runner-.+$'
 # Wall-clock ceiling for Runner.Worker processes. A Worker alive
 # longer than this is almost certainly hung (deadlocked artifact
@@ -143,6 +146,14 @@ if [[ -f "$CONFIG" ]]; then
 	# shellcheck source=/dev/null
 	source "$CONFIG"
 fi
+
+# A bad value must not stop the run or make a limit of zero.
+for var in KEEP_IMAGE_PREFIX_MAX GIT_CDN_PACK_KEEP_DAYS GIT_CDN_MIRROR_KEEP_DAYS GIT_CDN_PACK_MAX_GB; do
+	if [[ ! "${!var:-}" =~ ^[1-9][0-9]*$ ]]; then
+		echo "runner-cleanup: ${var}='${!var:-}' is not a positive integer, git_cdn and image limits skipped"
+		LIMITS_INVALID=1
+	fi
+done
 
 # Membership lookup for the runner-whitelist. Built once after the
 # config has been sourced so a user-supplied --config still wins.
@@ -408,15 +419,19 @@ keep_by_prefix() {
 
 # Tags past the newest KEEP_IMAGE_PREFIX_MAX of each prefix lose the
 # prefix protection. Images that a container uses stay in keep-set.
+# Rank by creation time in seconds: the CreatedAt text is local time.
 declare -A prefix_drop prefix_count
-while IFS=$'\t' read -r _ repo_tag; do
+[[ -z "${LIMITS_INVALID:-}" ]] && while IFS=$'\t' read -r _ repo_tag; do
 	for p in "${KEEP_IMAGE_PREFIXES[@]}"; do
 		[[ "$repo_tag" == "$p"* ]] || continue
 		prefix_count[$p]=$(( ${prefix_count[$p]:-0} + 1 ))
 		(( ${prefix_count[$p]} > KEEP_IMAGE_PREFIX_MAX )) && prefix_drop["$repo_tag"]=1
 		break
 	done
-done < <(docker image ls --format '{{.CreatedAt}}\t{{.Repository}}:{{.Tag}}' | sort -r)
+done < <(docker image ls --format '{{.ID}}\t{{.Repository}}:{{.Tag}}' | grep -v $'\t<none>:<none>$' |
+	while IFS=$'\t' read -r id repo_tag; do
+		printf '%s\t%s\n' "$(date -d "$(docker image inspect -f '{{.Created}}' "$id")" +%s)" "$repo_tag"
+	done | sort -rn)
 
 # Pass 1: explicit per-image rm for everything not in keep-set.
 # Untagged <none>:<none> entries are caught by `docker image prune`
@@ -492,21 +507,38 @@ fi
 # PACK_CACHE_SIZE_GB. Remove what nobody read for a while.
 gcdn_cache=$(docker inspect -f '{{range .Mounts}}{{if eq .Destination "/git-data"}}{{.Source}}{{end}}{{end}}' \
 	"${GIT_CDN_CONTAINER:-git_cdn}" 2>/dev/null) || gcdn_cache=""
-# The age check reads atime. With noatime it is the creation time: skip.
-if [[ -d "$gcdn_cache" ]] && findmnt -no OPTIONS --target "$gcdn_cache" | grep -qw noatime; then
-	note "git_cdn: ${gcdn_cache} is mounted noatime, cache age unknown, skipped"
-	gcdn_cache=""
+[[ -n "${LIMITS_INVALID:-}" ]] && gcdn_cache=""
+# The age checks read atime. With noatime, or unknown mount options, skip.
+if [[ -d "$gcdn_cache" ]]; then
+	gcdn_opts=$(findmnt -no OPTIONS --target "$gcdn_cache" 2>/dev/null) || gcdn_opts=""
+	if [[ -z "$gcdn_opts" || ",${gcdn_opts}," == *,noatime,* ]]; then
+		note "git_cdn: mount options of ${gcdn_cache} unknown or noatime, cache cleanup skipped"
+		gcdn_cache=""
+	fi
 fi
+# Keep the pack cache directories: git_cdn creates a directory, then the file in it.
 if [[ -d "$gcdn_cache/pack_cache" ]]; then
 	log "git_cdn: rm pack cache files not read for ${GIT_CDN_PACK_KEEP_DAYS} days"
 	run find "$gcdn_cache/pack_cache" -type f -atime +"${GIT_CDN_PACK_KEEP_DAYS}" -delete
-	run find "$gcdn_cache/pack_cache" -mindepth 1 -type d -empty -delete
+	pack_max=$((GIT_CDN_PACK_MAX_GB * 1024 * 1024 * 1024))
+	pack_total=0
+	while IFS=$'\t' read -r -d '' _ size file; do
+		pack_total=$((pack_total + size))
+		(( pack_total > pack_max )) || continue
+		log "git_cdn: rm ${file#"$gcdn_cache"/} (pack cache above ${GIT_CDN_PACK_MAX_GB} GB)"
+		run rm -f -- "$file"
+	done < <(find "$gcdn_cache/pack_cache" -type f -printf '%A@\t%s\t%p\0' | sort -z -rn)
 fi
 # A clone reads the mirror packs, so the newest pack atime is the last use.
 # A running job can clone from a mirror: remove mirrors only when all runners are idle.
 if [[ -d "$gcdn_cache/git" && ${#busy[@]} -eq 0 ]]; then
 	while IFS= read -r -d '' mirror; do
 		[[ -n $(find "$mirror/objects/pack" -name '*.pack' -atime -"${GIT_CDN_MIRROR_KEEP_DAYS}" -print -quit 2>/dev/null) ]] && continue
+		# A job can start after the idle check above.
+		if pgrep -f 'Runner.Worker' > /dev/null 2>&1; then
+			note "git_cdn: a runner became busy, mirror cleanup stopped"
+			break
+		fi
 		note "git_cdn: rm mirror ${mirror#"$gcdn_cache"/git/} (not read for ${GIT_CDN_MIRROR_KEEP_DAYS} days)"
 		run rm -rf -- "$mirror"
 	done < <(find "$gcdn_cache/git" -mindepth 2 -maxdepth 2 -type d -name '*.git' -print0)
