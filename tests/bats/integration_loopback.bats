@@ -25,6 +25,9 @@ setup() {
 
 teardown() {
 	local d
+	# A failed crypt test can leave its mapping open, which keeps the loop busy.
+	mountpoint -q "$BATS_TEST_TMPDIR/top" 2>/dev/null && umount "$BATS_TEST_TMPDIR/top"
+	[[ -n "${CRYPTROOT_MAPPER:-}" && -e "/dev/mapper/$CRYPTROOT_MAPPER" ]] && cryptsetup close "$CRYPTROOT_MAPPER"
 	# Unmount first, or losetup -d leaves a busy loop.
 	for d in nr/boot nr/media/boot-media cur/boot old cur top; do
 		mountpoint -q "$BATS_TEST_TMPDIR/$d" 2>/dev/null && umount "$BATS_TEST_TMPDIR/$d"
