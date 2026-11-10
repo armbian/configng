@@ -700,7 +700,7 @@ function module_desktops() {
 			local -a desktop_packages=()
 			local pkg
 			for pkg in ${DESKTOP_PACKAGES}; do
-				if [[ "$pkg" == update-manager ]] && ! apt-cache show "$pkg" > /dev/null 2>&1; then
+				if [[ "$pkg" == update-manager || "$pkg" == software-properties-gtk ]] && ! apt-cache show "$pkg" > /dev/null 2>&1; then
 					echo "Warning: ${pkg} is not in the configured repositories; skipping it" >&2
 					continue
 				fi
