@@ -92,6 +92,14 @@ Engine=none
 Theme=None
 EOF
 
+# Debian kwallet-pam 6.7.4-3 adds pam_kwallet5 to common-auth. Then
+# sudo and polkit ask for a password after a fingerprint match
+# (Debian #1146345). SDDM loads pam_kwallet5 itself, so login still
+# unlocks the wallet.
+if [ -f /usr/share/pam-configs/kde-kwallet ]; then
+	DEBIAN_FRONTEND=noninteractive pam-auth-update --disable kde-kwallet
+fi
+
 # An earlier version wrote a partial Plasma layout to /etc/skel. New
 # users then got a desktop without a panel. Remove it.
 skel_layout=/etc/skel/.config/plasma-org.kde.plasma.desktop-appletsrc
