@@ -80,6 +80,9 @@ tiers:
       # so headphones pair yet play nothing. Small plugin, inert when no
       # BT adapter is present, so safe out-of-the-box at minimal tier.
       - libspa-0.2-bluetooth
+      # Accelerometer and light sensor: auto-rotate and auto-brightness
+      # on convertibles and tablets. GNOME and KDE read it.
+      - iio-sensor-proxy
 
   mid:
     packages:
@@ -133,9 +136,19 @@ tiers:
       - fprintd
       - libfprint-2-2
       - libpam-fprintd
+      # VA-API video decode (AMD, Intel drivers in tier_overrides).
+      # Decode in hardware saves battery. resolute has no mesa-va-drivers.
+      - mesa-va-drivers
+      - vainfo
+      # WWAN modems in laptops and LTE modules on boards.
+      - modemmanager
+      - usb-modeswitch
 
   full:
     packages:
+      # Power and NVMe diagnostics.
+      - powertop
+      - nvme-cli
       - libreoffice
       - libreoffice-gtk3
       - gimp
@@ -271,6 +284,9 @@ releases:
   resolute:
     packages:
       - libfprint-2-tod1
+    # VA-API drivers are in the Mesa driver package on resolute.
+    packages_remove:
+      - mesa-va-drivers
   forky:
     # network-manager-vpnc is removed from forky (testing).
     packages_remove:
@@ -281,10 +297,20 @@ tier_overrides:
     # Software Updater from the Armbian repository, patched for Armbian.
     # Debian has no update-manager. Built for amd64 and arm64 only.
     # software-properties-gtk: update-manager opens it for the settings.
+    #
+    # amd64 laptops: dual-GPU launch (switcheroo-control), Thunderbolt
+    # devices (bolt), Intel thermal control (thermald). intel-lpmd: Intel
+    # low power mode, only in the releases listed below.
     architectures:
-      amd64: { packages: [update-manager, software-properties-gtk] }
+      amd64: { packages: [update-manager, software-properties-gtk, switcheroo-control, bolt, thermald] }
       arm64: { packages: [update-manager, software-properties-gtk] }
     releases:
+      noble:
+        architectures:
+          amd64:    { packages: [intel-lpmd] }
+      resolute:
+        architectures:
+          amd64:    { packages: [intel-lpmd] }
       bookworm:
         # fonts-ubuntu is an Ubuntu-only package; Debian doesn't
         # ship it. Strip it on every Debian release. The Ubuntu
@@ -309,7 +335,7 @@ tier_overrides:
         # gtk2-engines-murrine: GTK2 is being phased out in Debian 14;
         #   the murrine engine was removed from the archive.
         architectures:
-          amd64:    { packages_remove: [fonts-ubuntu, printer-driver-all, gtk2-engines-murrine] }
+          amd64:    { packages: [intel-lpmd], packages_remove: [fonts-ubuntu, printer-driver-all, gtk2-engines-murrine] }
           arm64:    { packages_remove: [fonts-ubuntu, printer-driver-all, gtk2-engines-murrine] }
           armhf:    { packages_remove: [fonts-ubuntu, printer-driver-all, gtk2-engines-murrine] }
           riscv64:  { packages_remove: [fonts-ubuntu, printer-driver-all, gtk2-engines-murrine] }
@@ -317,7 +343,7 @@ tier_overrides:
         # fonts-ubuntu is Ubuntu-only; Debian sid doesn't ship it.
         # Includes loong64, which is a sid-only Armbian arch.
         architectures:
-          amd64:    { packages_remove: [fonts-ubuntu] }
+          amd64:    { packages: [intel-lpmd], packages_remove: [fonts-ubuntu] }
           arm64:    { packages_remove: [fonts-ubuntu] }
           armhf:    { packages_remove: [fonts-ubuntu] }
           riscv64:  { packages_remove: [fonts-ubuntu] }
@@ -326,7 +352,10 @@ tier_overrides:
     # armbian-imager (apt.armbian.com) is only published for amd64
     # and arm64 — strip it on every other arch. Arch-wide so the
     # exclusion applies across all releases.
+    # Intel VA-API video decode: amd64 only.
     architectures:
+      amd64:
+        packages: [intel-media-va-driver, i965-va-driver, libmfx-gen1.2]
       armhf:
         packages_remove: [armbian-imager]
       riscv64:
