@@ -73,6 +73,7 @@ releases:
     packages:
       # Debian renamed network-manager-gnome.
       - network-manager-applet
+      - nm-connection-editor
       - accountsservice
       - pipewire-audio
       - pipewire-pulse
@@ -88,6 +89,7 @@ releases:
     architectures: [arm64, amd64, riscv64, loong64]
     packages:
       - network-manager-applet
+      - nm-connection-editor
       - accountsservice
       - libu2f-udev
       - pipewire-audio

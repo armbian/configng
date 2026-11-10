@@ -46,6 +46,8 @@ releases:
   trixie:
     architectures: [arm64, amd64]
     packages:
+      # The applet needs a polkit agent. Name one, else apt picks cinnamon.
+      - mate-polkit
       - pipewire-audio
       - pipewire-pulse
       - wireplumber

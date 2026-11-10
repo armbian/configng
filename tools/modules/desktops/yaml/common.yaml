@@ -33,6 +33,8 @@ tiers:
       - adwaita-icon-theme
       - cups
       - dconf-cli
+      # mtp-probe for the libmtp udev rules (phones, players).
+      - libmtp-runtime
       - profile-sync-daemon
       - terminator
       - upower
