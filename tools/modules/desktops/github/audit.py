@@ -61,10 +61,10 @@ DEBIAN_RELEASES = {"bookworm", "trixie", "forky", "sid"}
 UBUNTU_RELEASES = {"jammy", "noble", "oracular", "plucky", "questing", "resolute"}
 SKIP_RELEASES = {"buster", "bullseye", "focal"}  # EOS, never going to gain a desktop
 
-# Packages from the Armbian repository. The upstream archives do not have them.
-# The audit checks the stable Armbian repository for them. module_desktops.sh
-# skips them when apt has no candidate.
-ARMBIAN_REPO_PACKAGES = {"update-manager"}
+# Packages from the Armbian repository. Some upstream archives also have them.
+# The audit checks the stable Armbian repository first, then upstream.
+# module_desktops.sh skips them when apt has no candidate.
+ARMBIAN_REPO_PACKAGES = {"update-manager", "software-properties-gtk"}
 
 # Architecture name normalization. armbian/build uses 'amd64' / 'arm64'
 # / 'armhf' / 'riscv64'. packages.debian.org uses the same names.
@@ -246,8 +246,11 @@ def package_exists(release: str, arch: str, package: str,
         if skip_network:
             cache[key] = None
             return None
-        cache[key] = armbian_repo_has(release, arch, package)
-        return cache[key]
+        result = armbian_repo_has(release, arch, package)
+        # Not in the Armbian repository: check the upstream archive.
+        if result is not False:
+            cache[key] = result
+            return result
 
     url = package_url(release, arch, package)
     if url is None:

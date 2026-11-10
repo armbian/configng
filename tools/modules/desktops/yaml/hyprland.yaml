@@ -302,10 +302,10 @@ tiers:
 
 tier_overrides:
   minimal:
-    # Hyprland does not use update-manager from common.
+    # Hyprland does not use update-manager or software-properties-gtk from common.
     architectures:
-      amd64: { packages_remove: [update-manager] }
-      arm64: { packages_remove: [update-manager] }
+      amd64: { packages_remove: [update-manager, software-properties-gtk] }
+      arm64: { packages_remove: [update-manager, software-properties-gtk] }
   full:
     architectures:
       amd64:
