@@ -48,6 +48,9 @@ tiers:
       # in the GTK applet for nothing.
       - network-manager
       - netplan.io
+      # NetworkManager VPN plugins.
+      - network-manager-ssh
+      - network-manager-vpnc
       # Camera userspace: PipeWire + GStreamer libcamera shims so apps
       # (GNOME Snapshot / Cheese / Firefox / Chrome) can see V4L2 /
       # libcamera devices end-to-end. v4l-utils ships `v4l2-ctl` for
@@ -266,6 +269,10 @@ releases:
   resolute:
     packages:
       - libfprint-2-tod1
+  forky:
+    # network-manager-vpnc is removed from forky (testing).
+    packages_remove:
+      - network-manager-vpnc
 
 tier_overrides:
   minimal:
