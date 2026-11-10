@@ -376,3 +376,83 @@ _opts() { awk -v t="$1" '$2 == t {print $4}' "$fstab"; }
 	[ "$(_opts /media/boot-media)" = "defaults,nofail" ]
 	[ "$(cat "$nr/boot/zImage")" = "ext4" ]
 }
+
+# --- encrypted root (LUKS) ---------------------------------------------------
+
+_crypt_setup() {
+	command -v cryptsetup >/dev/null || skip "cryptsetup not available"
+	CRYPTROOT_ENABLE=yes
+	CRYPTROOT_MAPPER="bats-crypt-$$"
+	# Fast key derivation: the test checks the layout, not the KDF.
+	CRYPTROOT_PARAMETERS="--type luks2 --pbkdf pbkdf2 --pbkdf-force-iterations 1000"
+	install_crypt_defaults
+	install_source_crypt_names() { :; }
+	ROOTFS="$BATS_TEST_TMPDIR/rootfs"
+	mkdir -p "$ROOTFS/etc/cryptsetup-initramfs" "$ROOTFS/etc/systemd/system/multi-user.target.wants"
+	: >"$ROOTFS/etc/crypttab"
+}
+
+_crypt_teardown() {
+	mountpoint -q "$BATS_TEST_TMPDIR/top" && umount "$BATS_TEST_TMPDIR/top"
+	[[ -e "/dev/mapper/${CRYPTROOT_MAPPER:-none}" ]] && cryptsetup close "$CRYPTROOT_MAPPER"
+	return 0
+}
+
+@test "loopback crypt: passphrase root - LUKS2, mkfs in the mapping, crypttab without a keyfile" {
+	_crypt_setup
+	CRYPTROOT_PASSPHRASE='bats pass'
+	local plan part; plan="$(install_plan_layout emmc ext4 0 $((8*1024*1024*1024)) 512 0 "" 1)"
+	install_apply_partitions "$LOOP" "$plan" >/dev/null
+	part="${LOOP}p2"
+	run install_crypt_format "$part" "$BATS_TEST_TMPDIR/key"
+	[ "$status" -eq 0 ] || { _crypt_teardown; false; }
+	[ "$(cryptsetup luksDump "$part" | awk '/^Version:/ { print $2 }')" = 2 ]
+	install_make_filesystems "root /dev/mapper/$CRYPTROOT_MAPPER ext4"
+	[ "$(blkid -s TYPE -o value "/dev/mapper/$CRYPTROOT_MAPPER")" = ext4 ]
+	# The passphrase opens it; no keyfile was written.
+	printf '%s' "$CRYPTROOT_PASSPHRASE" | cryptsetup open --test-passphrase --key-file - "$part"
+	[ ! -e "$BATS_TEST_TMPDIR/key" ]
+	run install_crypt_configure_target "$ROOTFS" "$part" ""
+	_crypt_teardown
+	[ "$status" -eq 0 ]
+	grep -qx "$CRYPTROOT_MAPPER UUID=$(blkid -s UUID -o value "$part") none luks" "$ROOTFS/etc/crypttab"
+	[ ! -e "$ROOTFS/etc/rootfs.key" ]
+	grep -qx 'CRYPTSETUP=y' "$ROOTFS/etc/cryptsetup-initramfs/conf-hook"
+}
+
+@test "loopback crypt: autounlock - a new keyfile opens the root and lands in the target" {
+	_crypt_setup
+	CRYPTROOT_AUTOUNLOCK=yes
+	local plan part; plan="$(install_plan_layout uefi ext4 1 $((8*1024*1024*1024)) 512 0 "" 1)"
+	install_apply_partitions "$LOOP" "$plan" >/dev/null
+	part="${LOOP}p3"
+	run install_crypt_format "$part" "$BATS_TEST_TMPDIR/key"
+	[ "$status" -eq 0 ] || { _crypt_teardown; false; }
+	[ "$(stat -c %a "$BATS_TEST_TMPDIR/key")" = 600 ]
+	cryptsetup open --test-passphrase --key-file "$BATS_TEST_TMPDIR/key" "$part"
+	run install_crypt_configure_target "$ROOTFS" "$part" "$BATS_TEST_TMPDIR/key"
+	_crypt_teardown
+	[ "$status" -eq 0 ]
+	cmp -s "$BATS_TEST_TMPDIR/key" "$ROOTFS/etc/rootfs.key"
+	[ "$(stat -c %a "$ROOTFS/etc/rootfs.key")" = 600 ]
+	grep -qx "$CRYPTROOT_MAPPER UUID=$(blkid -s UUID -o value "$part") /etc/rootfs.key luks" "$ROOTFS/etc/crypttab"
+	grep -qx 'KEYFILE_PATTERN=/etc/rootfs.key' "$ROOTFS/etc/cryptsetup-initramfs/conf-hook"
+	grep -qx 'UMASK=0077' "$ROOTFS/etc/initramfs-tools/conf.d/key-umask.conf"
+}
+
+@test "crypt target: a copy of an encrypted system loses its crypt entries and image key" {
+	ROOTFS="$BATS_TEST_TMPDIR/rootfs"
+	mkdir -p "$ROOTFS/etc/cryptsetup-initramfs" "$ROOTFS/etc/systemd/system/multi-user.target.wants"
+	printf 'armbian-root UUID=1111 /etc/rootfs.key luks\ndata UUID=2222 none luks\n' >"$ROOTFS/etc/crypttab"
+	echo key >"$ROOTFS/etc/rootfs.key"
+	printf 'CRYPTSETUP=y\nKEYFILE_PATTERN=/etc/rootfs.key\n' >"$ROOTFS/etc/cryptsetup-initramfs/conf-hook"
+	ln -s /lib/systemd/system/armbian-luks-rekey.service "$ROOTFS/etc/systemd/system/multi-user.target.wants/armbian-luks-rekey.service"
+	install_source_crypt_names() { echo armbian-root; }
+	CRYPTROOT_ENABLE=no
+	run install_crypt_configure_target "$ROOTFS" "" ""
+	[ "$status" -eq 0 ]
+	[ "$(cat "$ROOTFS/etc/crypttab")" = "data UUID=2222 none luks" ]
+	[ ! -e "$ROOTFS/etc/rootfs.key" ]
+	[ ! -L "$ROOTFS/etc/systemd/system/multi-user.target.wants/armbian-luks-rekey.service" ]
+	! grep -q KEYFILE_PATTERN "$ROOTFS/etc/cryptsetup-initramfs/conf-hook"
+}
