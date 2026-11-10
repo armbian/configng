@@ -21,7 +21,6 @@ tiers:
       - bluedevil
       - gwenview
       - kscreen
-      - network-manager-gnome
       - okular
       - plasma-nm
       - plasma-pa
@@ -32,6 +31,26 @@ tiers:
       - fwupd
       - plasma-discover-backend-fwupd
       - systemsettings
+      # More plasma-desktop / plasma-workspace recommends. Without
+      # them: no power management, no portal, no Dolphin thumbnails,
+      # no wallet unlock at login, empty system monitor widgets.
+      - breeze-gtk-theme
+      - ffmpegthumbs
+      - kde-config-gtk-style
+      - kde-config-screenlocker
+      - kde-config-sddm
+      - kde-spectacle
+      - kdegraphics-thumbnailers
+      - kinfocenter
+      - kio-extras
+      - kmenuedit
+      - ksshaskpass
+      - ksystemstats
+      - kwalletmanager
+      - libpam-kwallet5
+      - plasma-systemmonitor
+      - powerdevil
+      - xdg-desktop-portal-kde
       - xserver-xorg
       - dbus-x11
       - dmz-cursor-theme
@@ -53,8 +72,13 @@ tiers:
       - gnome-text-editor
       - file-roller
       - loupe
+      - gnome-calculator
     packages:
       - kate
+      - kcalc
+      - partitionmanager
+      - plasma-browser-integration
+      - gstreamer1.0-libav
 
   full:
     # KDE Plasma drops the libreoffice-gtk3 integration package
@@ -96,6 +120,12 @@ releases:
       - polkitd
       - pkexec
       - libu2f-udev
+      - pipewire-audio
+      - pipewire-pulse
+      - wireplumber
+    packages_remove:
+      - pulseaudio
+      - pulseaudio-module-bluetooth
 
   forky:
     # Debian 14 — pipewire replaces pulseaudio (same as trixie).
@@ -148,6 +178,12 @@ releases:
       - polkitd
       - pkexec
       - libfido2-1
+      - pipewire-audio
+      - pipewire-pulse
+      - wireplumber
+    packages_remove:
+      - pulseaudio
+      - pulseaudio-module-bluetooth
 
 tier_overrides:
   minimal:
