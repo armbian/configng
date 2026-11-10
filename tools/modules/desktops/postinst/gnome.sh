@@ -46,6 +46,8 @@ cat >> "$keys" <<- EOF
 
 	[org/gnome/shell]
 	favorite-apps = [${favorites}]
+	# Tray icons. Debian and Ubuntu use different UUIDs. GNOME skips a missing one.
+	enabled-extensions = ['appindicatorsupport@rgcjonas.gmail.com', 'ubuntu-appindicators@ubuntu.com']
 
 	[org/gnome/settings-daemon/plugins/power]
 	sleep-inactive-ac-timeout='0'
