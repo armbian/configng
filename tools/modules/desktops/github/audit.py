@@ -64,7 +64,7 @@ SKIP_RELEASES = {"buster", "bullseye", "focal"}  # EOS, never going to gain a de
 # Packages from the Armbian repository. The upstream archives do not have them.
 # The audit checks the stable Armbian repository for them. module_desktops.sh
 # skips them when apt has no candidate.
-ARMBIAN_REPO_PACKAGES = {"update-manager"}
+ARMBIAN_REPO_PACKAGES = {"update-manager", "software-properties-gtk"}
 
 # Architecture name normalization. armbian/build uses 'amd64' / 'arm64'
 # / 'armhf' / 'riscv64'. packages.debian.org uses the same names.

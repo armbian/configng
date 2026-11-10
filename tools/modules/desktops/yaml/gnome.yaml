@@ -62,17 +62,57 @@ tiers:
       - xserver-xorg
       - xwayland
       - zenity
+      # Secret Service: GDM PAM unlocks the login keyring. Browsers,
+      # VS Code, Wi-Fi and online accounts store secrets there.
+      - gnome-keyring
+      - libpam-gnome-keyring
+      # PDF viewer. Without it, PDFs open in the browser.
+      # Releases without papers use evince (release blocks).
+      - papers
 
   mid:
     # GNOME has its own download/torrent integration; transmission-gtk
     # is redundant on GNOME.
     packages_remove:
       - transmission-gtk
+    packages:
+      # Settings > Sharing > Remote Desktop needs it.
+      - gnome-remote-desktop
+      - baobab
+      - simple-scan
+      - gnome-characters
+      - gnome-font-viewer
+      - gnome-logs
+      # Video thumbnails in Files.
+      - ffmpegthumbnailer
+      # Codecs for GNOME apps. VLC brings its own.
+      - gstreamer1.0-libav
+      - gstreamer1.0-plugins-bad
+      - network-manager-openvpn-gnome
+      # Input methods for Settings > Keyboard (CJK and others).
+      - ibus
+
+  full:
+    packages:
+      - gnome-calendar
+      - gnome-clocks
+      - gnome-weather
+      - gnome-contacts
+      - gnome-shell-extension-manager
+      - gnome-snapshot
+      - fonts-noto-cjk
+      - yelp
+      - gnome-user-docs
 
 releases:
   bookworm:
     architectures: [arm64, amd64]
+    # papers and gnome-snapshot are not in bookworm.
+    packages_remove:
+      - papers
+      - gnome-snapshot
     packages:
+      - evince
       - accountsservice
       - libu2f-udev
 
@@ -107,6 +147,16 @@ releases:
       - packagekit
       - gnome-software-plugin-flatpak
       - appstream
+      # papers is not in noble.
+      - evince
+      # PipeWire replaces pulseaudio, as on Ubuntu.
+      - pipewire-audio
+      - pipewire-pulse
+      - wireplumber
+    packages_remove:
+      - papers
+      - pulseaudio
+      - pulseaudio-module-bluetooth
     packages_uninstall:
       - ubuntu-session
 
@@ -169,8 +219,13 @@ releases:
       - pkexec
       - libu2f-udev
       - gnome-bluetooth
+      # papers is not in jammy.
+      - evince
     packages_remove:
       - gnome-bluetooth-sendto
+      # papers and gnome-snapshot are not in jammy.
+      - papers
+      - gnome-snapshot
     packages_uninstall:
       - ubuntu-session
 
@@ -187,8 +242,14 @@ releases:
       - gnome-software-plugin-fwupd
       - appstream
       - ptyxis
+      # PipeWire replaces pulseaudio, as on Ubuntu.
+      - pipewire-audio
+      - pipewire-pulse
+      - wireplumber
     packages_remove:
       # pavumeter remains absent from the Ubuntu archive (dropped in plucky).
       - pavumeter
+      - pulseaudio
+      - pulseaudio-module-bluetooth
     packages_uninstall:
       - ubuntu-session
