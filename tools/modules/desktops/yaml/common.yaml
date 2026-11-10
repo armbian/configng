@@ -305,12 +305,17 @@ tier_overrides:
       amd64: { packages: [update-manager, software-properties-gtk, switcheroo-control, bolt, thermald] }
       arm64: { packages: [update-manager, software-properties-gtk] }
     releases:
+      # software-properties-gtk imports UbuntuDrivers on Ubuntu. Without
+      # ubuntu-drivers-common, Software & Updates and Additional Drivers
+      # do not start.
       noble:
         architectures:
-          amd64:    { packages: [intel-lpmd] }
+          amd64:    { packages: [intel-lpmd, ubuntu-drivers-common] }
+          arm64:    { packages: [ubuntu-drivers-common] }
       resolute:
         architectures:
-          amd64:    { packages: [intel-lpmd] }
+          amd64:    { packages: [intel-lpmd, ubuntu-drivers-common] }
+          arm64:    { packages: [ubuntu-drivers-common] }
       bookworm:
         # fonts-ubuntu is an Ubuntu-only package; Debian doesn't
         # ship it. Strip it on every Debian release. The Ubuntu
