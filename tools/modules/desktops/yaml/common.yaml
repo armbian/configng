@@ -51,6 +51,8 @@ tiers:
       # NetworkManager VPN plugins.
       - network-manager-ssh
       - network-manager-vpnc
+      # Connectivity check: finds captive portals. From the Armbian repo.
+      - network-manager-config-connectivity-armbian
       # Camera userspace: PipeWire + GStreamer libcamera shims so apps
       # (GNOME Snapshot / Cheese / Firefox / Chrome) can see V4L2 /
       # libcamera devices end-to-end. v4l-utils ships `v4l2-ctl` for
