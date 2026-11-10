@@ -28,6 +28,9 @@ tiers:
       # plasma-desktop only recommends these. The panel has launchers for both.
       # Discover brings PackageKit, its apt backend, and shows updates.
       - plasma-discover
+      # Firmware updates in Discover.
+      - fwupd
+      - plasma-discover-backend-fwupd
       - systemsettings
       - xserver-xorg
       - dbus-x11

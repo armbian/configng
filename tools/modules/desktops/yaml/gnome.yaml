@@ -13,6 +13,8 @@ status: supported
 tiers:
   minimal:
     packages:
+      # Firmware updates; GNOME Settings Device Security reads it.
+      - fwupd
       - gnome-session
       - gnome-shell
       - gnome-control-center
