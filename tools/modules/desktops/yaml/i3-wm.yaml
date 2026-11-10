@@ -111,3 +111,11 @@ releases:
     packages_remove:
       # pavumeter remains absent from the Ubuntu archive (dropped in plucky).
       - pavumeter
+  stonking:
+    architectures: [arm64, amd64, armhf, riscv64]
+    packages:
+      - polkitd
+      - pkexec
+      - libfido2-1
+    packages_remove:
+      - pavumeter

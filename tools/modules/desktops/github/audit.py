@@ -58,7 +58,7 @@ from pathlib import Path
 # packages.* host. Releases not in this map are skipped with a warning
 # (the audit only knows how to check Debian and Ubuntu archives).
 DEBIAN_RELEASES = {"bookworm", "trixie", "forky", "sid"}
-UBUNTU_RELEASES = {"jammy", "noble", "oracular", "plucky", "questing", "resolute"}
+UBUNTU_RELEASES = {"jammy", "noble", "oracular", "plucky", "questing", "resolute", "stonking"}
 SKIP_RELEASES = {"buster", "bullseye", "focal"}  # EOS, never going to gain a desktop
 
 # Packages from the Armbian repository. The upstream archives do not have them.

@@ -145,6 +145,13 @@ releases:
       - polkitd
       - pkexec
       - libfido2-1
+  stonking:
+    architectures: [arm64, amd64]
+    packages:
+      - plasma-discover-notifier
+      - polkitd
+      - pkexec
+      - libfido2-1
 
 tier_overrides:
   minimal:

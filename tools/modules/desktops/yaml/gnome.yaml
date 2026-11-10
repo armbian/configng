@@ -190,3 +190,18 @@ releases:
       - pavumeter
     packages_uninstall:
       - ubuntu-session
+  stonking:
+    architectures: [arm64, amd64]
+    packages:
+      - polkitd
+      - pkexec
+      - libfido2-1
+      - packagekit
+      - gnome-software-plugin-flatpak
+      - gnome-software-plugin-fwupd
+      - appstream
+      - ptyxis
+    packages_remove:
+      - pavumeter
+    packages_uninstall:
+      - ubuntu-session

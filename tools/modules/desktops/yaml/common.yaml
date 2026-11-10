@@ -197,6 +197,11 @@ browser:
     arm64:   chromium
     armhf:   chromium
     riscv64: epiphany-browser   # same rationale as noble
+  stonking:
+    amd64:   google-chrome-stable
+    arm64:   chromium
+    armhf:   chromium
+    riscv64: epiphany-browser   # same rationale as noble
   forky:
     # Debian 14 — same rules as trixie.
     amd64:   google-chrome-stable
@@ -262,6 +267,9 @@ releases:
     packages:
       - libfprint-2-tod1
   resolute:
+    packages:
+      - libfprint-2-tod1
+  stonking:
     packages:
       - libfprint-2-tod1
 
@@ -341,6 +349,9 @@ tier_overrides:
         # loupe/armhf still missing — no GNOME armhf build.
         architectures:
           armhf:  { packages_remove: [loupe] }
+      stonking:
+        architectures:
+          armhf:  { packages_remove: [loupe] }
   full:
     # `code` (Microsoft VSCode) is published on apt.armbian.com for
     # amd64/arm64/armhf only (no riscv64 upstream build).
@@ -396,6 +407,10 @@ tier_overrides:
           armhf:    { packages_remove: [thunderbird] }
           riscv64:  { packages_remove: [thunderbird, libreoffice, libreoffice-gtk3] }
       resolute:
+        architectures:
+          armhf:    { packages_remove: [thunderbird] }
+          riscv64:  { packages_remove: [thunderbird] }
+      stonking:
         architectures:
           armhf:    { packages_remove: [thunderbird] }
           riscv64:  { packages_remove: [thunderbird] }

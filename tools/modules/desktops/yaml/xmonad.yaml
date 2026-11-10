@@ -111,3 +111,9 @@ releases:
       - polkitd
       - pkexec
       - libfido2-1
+  stonking:
+    architectures: [arm64, amd64, armhf, riscv64]
+    packages:
+      - polkitd
+      - pkexec
+      - libfido2-1

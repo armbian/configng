@@ -128,3 +128,12 @@ releases:
       - "resolute-porting/snapshots/v3.0"
       - "resolute-customization/snapshots/v3.0"
       - "bianbu-v3.0-updates"
+  stonking:
+    architectures: [riscv64]
+    repo_suite:
+      - "resolute/snapshots/v3.0"
+      - "resolute-security/snapshots/v3.0"
+      - "resolute-updates/snapshots/v3.0"
+      - "resolute-porting/snapshots/v3.0"
+      - "resolute-customization/snapshots/v3.0"
+      - "bianbu-v3.0-updates"
