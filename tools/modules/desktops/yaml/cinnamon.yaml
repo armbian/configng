@@ -37,6 +37,25 @@ tiers:
       - viewnior
       - xdg-user-dirs
       - xdg-user-dirs-gtk
+      # APT skips Recommends. Add the ones the session needs:
+      # secret store, portals, tray icons, notify-send.
+      - gnome-keyring
+      - xdg-desktop-portal
+      - xdg-desktop-portal-gtk
+      - xdg-desktop-portal-xapp
+      - xapp-sn-watcher
+      - libnotify-bin
+      - exfatprogs
+      - power-profiles-daemon
+  mid:
+    packages:
+      # Extract and compress in Nemo, more archive formats, codecs.
+      - nemo-fileroller
+      - p7zip-full
+      - zstd
+      - gstreamer1.0-libav
+      - gstreamer1.0-plugins-bad
+      - gstreamer1.0-plugins-ugly
 
 releases:
   bookworm:
@@ -44,6 +63,8 @@ releases:
     packages:
       - accountsservice
       - libu2f-udev
+    packages_remove:
+      - xdg-desktop-portal-xapp
 
   trixie:
     architectures: [arm64, amd64, riscv64]
@@ -113,6 +134,9 @@ releases:
       - polkitd
       - pkexec
       - libu2f-udev
+    packages_remove:
+      - xdg-desktop-portal-xapp
+      - xapp-sn-watcher
     packages_uninstall:
       - ubuntu-session
 
