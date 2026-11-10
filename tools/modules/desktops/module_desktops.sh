@@ -352,16 +352,11 @@ function _module_desktops_rockchip_multimedia() {
 # fragment falls back to password auth when no finger is enrolled,
 # so machines without a reader still log in normally.
 #
-# Skipped in build mode (no real users yet) and on hosts where the
-# fprintd userspace didn't actually install (older releases / arches
-# stripped via tier_overrides).
+# Also runs in build mode: the PAM stack is system-wide, so images
+# need it too. Skipped on hosts where the fprintd userspace did not
+# install (older releases / arches stripped via tier_overrides).
 #
 function _module_desktops_configure_fprintd() {
-	local mode="${1:-}"
-	if [[ "$mode" == "build" ]]; then
-		debug_log "_module_desktops_configure_fprintd: mode=build, skipping pam-auth-update"
-		return 0
-	fi
 	if ! command -v fprintd-enroll > /dev/null 2>&1; then
 		debug_log "_module_desktops_configure_fprintd: fprintd not installed, skipping"
 		return 0
@@ -789,7 +784,7 @@ function module_desktops() {
 			# the user enrols a finger via `fprintd-enroll`. Inert on
 			# hosts without a reader (libpam-fprintd falls back to
 			# password) and on tiers/arches that stripped fprintd.
-			_module_desktops_configure_fprintd "$mode"
+			_module_desktops_configure_fprintd
 
 			# Give psd time to copy the browser profiles back at logout.
 			_module_desktops_configure_psd "$mode"
