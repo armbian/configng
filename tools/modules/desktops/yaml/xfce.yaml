@@ -11,6 +11,11 @@ tiers:
     packages:
       - xfce4
       - xfce4-goodies
+      # APT::Install-Recommends is off. These are xfce4 recommends:
+      # notifications, screen lock, thumbnails.
+      - xfce4-notifyd
+      - light-locker
+      - tumbler
       - xfce4-power-manager
       - lightdm
       - slick-greeter
@@ -48,6 +53,8 @@ releases:
   bookworm:
     architectures: [arm64, amd64, armhf]
     packages:
+      # Without a polkit agent, admin actions fail with no password prompt.
+      - mate-polkit
       - accountsservice
       - libu2f-udev
 
@@ -68,6 +75,8 @@ releases:
   noble:
     architectures: [arm64, amd64, armhf, riscv64]
     packages:
+      # Without a polkit agent, admin actions fail with no password prompt.
+      - mate-polkit
       - polkitd
       - pkexec
       - libu2f-udev
@@ -124,6 +133,8 @@ releases:
     # pulseaudio remains the default audio stack on jammy.
     architectures: [arm64, amd64, armhf, riscv64]
     packages:
+      # Without a polkit agent, admin actions fail with no password prompt.
+      - mate-polkit
       - polkitd
       - pkexec
       - libu2f-udev
@@ -134,6 +145,8 @@ releases:
     # Ubuntu 26.04 LTS — same as questing; pavumeter still absent.
     architectures: [arm64, amd64, armhf, riscv64]
     packages:
+      # Without a polkit agent, admin actions fail with no password prompt.
+      - xfce-polkit
       - polkitd
       - pkexec
       - libfido2-1
