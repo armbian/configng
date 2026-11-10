@@ -357,32 +357,77 @@ setup() {
 	[ "$output" = "/dev/mapper/armbian-root" ]
 }
 
-@test "crypt check: refuses without a passphrase or autounlock" {
-	INSTALL_LOG=/dev/null
-	install_crypt_packages() { :; }
+# Each check test starts clean and asserts the logged reason, so a failure
+# for another reason cannot pass.
+_crypt_check_env() {
+	unset CRYPTROOT_PASSPHRASE CRYPTROOT_AUTOUNLOCK CRYPTROOT_SSH_UNLOCK CRYPTROOT_SSH_UNLOCK_KEYS CRYPTROOT_SSH_UNLOCK_PORT CRYPTROOT_PARAMETERS
 	CRYPTROOT_ENABLE=yes CRYPTROOT_MAPPER=bats-crypt-unused
+	INSTALL_LOG="$BATS_TEST_TMPDIR/install.log"; : >"$INSTALL_LOG"
+	install_crypt_packages() { :; }
+	cryptsetup() { :; }   # the check only asks that the tool exists
+}
+
+@test "crypt check: refuses without a passphrase or autounlock" {
+	_crypt_check_env
 	run install_crypt_check uefi
 	[ "$status" -eq "$INSTALL_EX_USAGE" ]
+	grep -q 'set a passphrase or the autounlock' "$INSTALL_LOG"
+}
+
+@test "crypt check: autounlock needs no passphrase" {
+	_crypt_check_env
+	CRYPTROOT_AUTOUNLOCK=yes
+	run install_crypt_check uefi
+	[ "$status" -eq 0 ]
+}
+
+@test "crypt check: refuses the sd boot mode" {
+	_crypt_check_env
 	CRYPTROOT_AUTOUNLOCK=yes
 	run install_crypt_check sd
 	[ "$status" -eq "$INSTALL_EX_USAGE" ]
+	grep -q "boot mode 'sd' cannot boot an encrypted root" "$INSTALL_LOG"
 }
 
-@test "crypt check: refuses a bad mapper name and missing SSH keys" {
-	INSTALL_LOG=/dev/null
-	install_crypt_packages() { :; }
+@test "crypt check: refuses a bad mapper name" {
+	_crypt_check_env
 	CRYPTROOT_PASSPHRASE=x CRYPTROOT_MAPPER='a b'
 	run install_crypt_check uefi
 	[ "$status" -eq "$INSTALL_EX_USAGE" ]
-	CRYPTROOT_MAPPER=bats-crypt-unused CRYPTROOT_SSH_UNLOCK=yes CRYPTROOT_SSH_UNLOCK_KEYS=/nonexistent
+	grep -q "bad mapper name 'a b'" "$INSTALL_LOG"
+}
+
+@test "crypt check: refuses SSH unlock without public keys" {
+	_crypt_check_env
+	CRYPTROOT_PASSPHRASE=x CRYPTROOT_SSH_UNLOCK=yes CRYPTROOT_SSH_UNLOCK_KEYS=/nonexistent
 	run install_crypt_check uefi
 	[ "$status" -eq "$INSTALL_EX_USAGE" ]
+	grep -q 'SSH unlock needs public keys in /nonexistent' "$INSTALL_LOG"
 }
 
 @test "crypt check: names the missing packages" {
-	INSTALL_LOG=/dev/null
+	_crypt_check_env
 	install_crypt_packages() { echo cryptsetup-initramfs; }
-	CRYPTROOT_PASSPHRASE=x CRYPTROOT_MAPPER=bats-crypt-unused
+	CRYPTROOT_PASSPHRASE=x
 	run install_crypt_check emmc
 	[ "$status" -eq "$INSTALL_EX_TOOL" ]
+	grep -q 'install cryptsetup-initramfs first' "$INSTALL_LOG"
+}
+
+@test "crypt defaults: a held armbian-root gives the next free name" {
+	unset CRYPTROOT_MAPPER
+	local held="$BATS_TEST_TMPDIR/mapper"
+	mkdir -p "$held"
+	# Point the /dev/mapper test at a fixture with -e wrapped in a function.
+	_crypt_defaults_in() { sed "s|/dev/mapper/|$held/|g" <<<"$(declare -f install_crypt_defaults)"; }
+	eval "$(_crypt_defaults_in)"
+	install_crypt_defaults
+	[ "$CRYPTROOT_MAPPER" = armbian-root ]
+	touch "$held/armbian-root" "$held/armbian-root-2"
+	unset CRYPTROOT_MAPPER
+	install_crypt_defaults
+	[ "$CRYPTROOT_MAPPER" = armbian-root-3 ]
+	CRYPTROOT_MAPPER=mine
+	install_crypt_defaults
+	[ "$CRYPTROOT_MAPPER" = mine ]
 }

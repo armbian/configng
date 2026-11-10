@@ -1436,7 +1436,16 @@ install_crypt_mode_ok() {
 
 install_crypt_defaults() {
 	# Fill the build defaults. The engine and the frontend call it.
-	: "${CRYPTROOT_MAPPER:=armbian-root}"
+	# An encrypted running system holds armbian-root already: then take the
+	# first free armbian-root-N. A given CRYPTROOT_MAPPER stays as it is.
+	if [[ -z "${CRYPTROOT_MAPPER:-}" ]]; then
+		local n=1
+		CRYPTROOT_MAPPER=armbian-root
+		while [[ -e "/dev/mapper/$CRYPTROOT_MAPPER" ]]; do
+			n=$((n + 1))
+			CRYPTROOT_MAPPER="armbian-root-$n"
+		done
+	fi
 	: "${CRYPTROOT_PARAMETERS:=--pbkdf pbkdf2}"
 	: "${CRYPTROOT_SSH_UNLOCK:=no}"
 	: "${CRYPTROOT_SSH_UNLOCK_PORT:=2022}"

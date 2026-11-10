@@ -890,8 +890,10 @@ dialog_passwordbox() {
 			;;
 		"read")
 			# For read mode, use read -s to hide input
-			read -s -p "$prompt: " result
-			echo ""
+			# EOF or Ctrl-D cancels, as in the dialog tools. The newline after the
+			# hidden input goes to the terminal, not into the result.
+			read -r -s -p "$prompt: " result || { echo "" >&2; return 1; }
+			echo "" >&2
 			echo "$result"
 			;;
 	esac
