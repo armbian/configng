@@ -309,14 +309,9 @@ tier_overrides:
   full:
     architectures:
       amd64:
-        # Obsidian is mirrored for amd64 only. Intel video and power.
+        # Obsidian is mirrored for amd64 only. Intel video and power come from common.
         packages:
           - obsidian
-          - intel-media-va-driver
-          - i965-va-driver
-          - libmfx-gen1.2
-          - thermald
-          - intel-lpmd
 
 # Only Debian forky: armbian-hyprland-shell is built for forky.
 releases:
