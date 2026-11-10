@@ -4,6 +4,20 @@ set +e
 if [ -d /etc/armbian/lightdm ]; then cp -R /etc/armbian/lightdm /etc/; fi
 #if [ -f /etc/lightdm/slick-greeter.conf ]; then sed -i 's/armbian03-Dre0x-Minum-dark-blurred-3840x2160.jpg/armbian-4k-neon-gray-penguin-gauss.jpg/g' /etc/lightdm/slick-greeter.conf; fi
 
+# Cinnamon defaults name gedit and eog, which are not installed.
+# Without them, text opens in LibreOffice and images in GIMP.
+install -d /etc/xdg
+cat > /etc/xdg/x-cinnamon-mimeapps.list <<EOF
+[Default Applications]
+text/plain=org.gnome.TextEditor.desktop;
+image/bmp=org.gnome.Loupe.desktop;viewnior.desktop;
+image/gif=org.gnome.Loupe.desktop;viewnior.desktop;
+image/jpeg=org.gnome.Loupe.desktop;viewnior.desktop;
+image/png=org.gnome.Loupe.desktop;viewnior.desktop;
+image/tiff=org.gnome.Loupe.desktop;viewnior.desktop;
+image/webp=org.gnome.Loupe.desktop;viewnior.desktop;
+EOF
+
 # disable Pulseaudio timer scheduling which does not work with sndhdmi driver
 if [ -f /etc/pulse/default.pa ]; then sed "s/load-module module-udev-detect$/& tsched=0/g" -i /etc/pulse/default.pa; fi
 
