@@ -229,6 +229,68 @@ partitioner_ensure_fs_tool() {
 	command -v "mkfs.$fs" >/dev/null 2>&1
 }
 
+# Ensure the packages for an encrypted root are on the running system: the
+# rootfs copy carries them to the target. Same contract as
+# partitioner_ensure_fs_tool.
+partitioner_ensure_crypt_tools() {
+	local interactive="${1:-1}" missing
+	missing="$(install_crypt_packages | xargs)"
+	[[ -z "$missing" ]] && return 0
+	if [[ "$interactive" == 1 ]]; then
+		dialog_yesno " Install packages " "\nAn encrypted root needs: $missing\n\nInstall now?" "Install" "Cancel" 10 64 || return 1
+		dialog_infobox " Armbian installer " "\nInstalling $missing ..." 5 60 2>/dev/null
+	else
+		echo "Installing $missing ..."
+	fi
+	# shellcheck disable=SC2086 # one word per package
+	pkg_install $missing >>"${INSTALL_LOG:-/dev/null}" 2>&1
+	[[ -z "$(install_crypt_packages)" ]]
+}
+
+# Ask for root encryption. Sets the CRYPTROOT_* switches. Returns 1 on cancel.
+partitioner_crypt_tui() {
+	local title="$1" disk="$2" unlock pw pw2 port
+	CRYPTROOT_ENABLE=no
+	dialog_yesno " $title " "\nEncrypt the root filesystem of /dev/$disk (LUKS)?\n\n/boot stays unencrypted on its own partition." "Encrypt" "No" 10 64 || return 0
+	unlock=$(dialog_menu " $title " "\nHow does the root unlock at boot?" 0 76 4 -- \
+		passphrase "Type the passphrase at the console" \
+		ssh "Type the passphrase at the console or over SSH" \
+		auto "Keyfile in /boot: no protection if the disk is stolen")
+	[[ -n "$unlock" ]] || return 1
+	CRYPTROOT_ENABLE=yes
+	CRYPTROOT_AUTOUNLOCK=no
+	CRYPTROOT_SSH_UNLOCK=no
+	if [[ "$unlock" == auto ]]; then
+		CRYPTROOT_AUTOUNLOCK=yes
+	else
+		while :; do
+			pw=$(dialog_passwordbox " $title " "Passphrase for /dev/$disk" 8 60) || return 1
+			pw2=$(dialog_passwordbox " $title " "Type the passphrase again" 8 60) || return 1
+			pw="${pw#$'\n'}"; pw2="${pw2#$'\n'}"
+			[[ -n "$pw" && "$pw" == "$pw2" ]] && break
+			dialog_msgbox " $title " "\nThe passphrases are empty or differ. Try again."
+		done
+		CRYPTROOT_PASSPHRASE="$pw"
+	fi
+	if [[ "$unlock" == ssh ]]; then
+		CRYPTROOT_SSH_UNLOCK=yes
+		port=$(dialog_inputbox " $title " "\nSSH port for the unlock (not the port of the system's sshd):" "2022") || return 1
+		CRYPTROOT_SSH_UNLOCK_PORT="$port"
+		install_crypt_defaults
+		if ! grep -qE '^(ssh|ecdsa|sk-)' "$CRYPTROOT_SSH_UNLOCK_KEYS" 2>/dev/null; then
+			dialog_msgbox " $title " "\nSSH unlock needs public keys in $CRYPTROOT_SSH_UNLOCK_KEYS.\n\nAdd your key there and try again."
+			return 1
+		fi
+	fi
+	install_crypt_defaults
+	if ! partitioner_ensure_crypt_tools 1; then
+		dialog_msgbox " $title " "\nThe packages for an encrypted root are not installed."
+		return 1
+	fi
+	export CRYPTROOT_ENABLE CRYPTROOT_PASSPHRASE CRYPTROOT_AUTOUNLOCK CRYPTROOT_SSH_UNLOCK CRYPTROOT_SSH_UNLOCK_PORT CRYPTROOT_SSH_UNLOCK_KEYS CRYPTROOT_MAPPER CRYPTROOT_PARAMETERS
+	return 0
+}
+
 # ---- interactive TUI --------------------------------------------------------
 
 partitioner_tui() {
@@ -299,6 +361,14 @@ partitioner_tui() {
 		return "$INSTALL_EX_TOOL"
 	fi
 
+	# 3b) root encryption, for the modes that keep /boot apart.
+	CRYPTROOT_ENABLE=no
+	if install_crypt_mode_ok "$boot"; then
+		partitioner_crypt_tui "$title" "$disk" || return "$INSTALL_EX_OK"
+	fi
+	local fs_desc="$fs"
+	[[ "$CRYPTROOT_ENABLE" == yes ]] && fs_desc="$fs, encrypted"
+
 	# 4) dual-boot needs a size; other modes erase the whole disk.
 	local want_bytes=0
 	if [[ "$boot" == uefi-dualboot ]]; then
@@ -320,23 +390,23 @@ partitioner_tui() {
 		fi
 	elif [[ "$boot" == split-emmc ]]; then
 		local emmc; emmc="$(partitioner_emmc_device)"
-		if ! dialog_yesno " WARNING " "\nThis will ERASE BOTH devices:\n  $emmc (eMMC) -> u-boot + /boot + /emmc_storage\n  /dev/$disk -> Armbian root ($fs)\n\nProceed?" "Erase and install" "Cancel" 12 74; then
+		if ! dialog_yesno " WARNING " "\nThis will ERASE BOTH devices:\n  $emmc (eMMC) -> u-boot + /boot + /emmc_storage\n  /dev/$disk -> Armbian root ($fs_desc)\n\nProceed?" "Erase and install" "Cancel" 12 74; then
 			return "$INSTALL_EX_OK"
 		fi
 	elif [[ "$boot" == mtd ]]; then
-		if ! dialog_yesno " WARNING " "\nThis will ERASE /dev/$disk (Armbian root, $fs) AND overwrite the bootloader on SPI/MTD flash:\n  [ $(partitioner_mtd_list) ]\n\nProceed?" "Erase and install" "Cancel" 12 74; then
+		if ! dialog_yesno " WARNING " "\nThis will ERASE /dev/$disk (Armbian root, $fs_desc) AND overwrite the bootloader on SPI/MTD flash:\n  [ $(partitioner_mtd_list) ]\n\nProceed?" "Erase and install" "Cancel" 12 74; then
 			return "$INSTALL_EX_OK"
 		fi
 	elif [[ "$boot" == spi ]]; then
-		if ! dialog_yesno " WARNING " "\nThis will ERASE /dev/$disk and install a self-contained Armbian ($fs): boot + system both on this disk.\n\nu-boot is NOT touched - the board boots from its on-board SPI flash and loads /boot from this disk. The install stays bootable on its own (no dependency on removable media).\n\nProceed?" "Erase and install" "Cancel" 13 74; then
+		if ! dialog_yesno " WARNING " "\nThis will ERASE /dev/$disk and install a self-contained Armbian ($fs_desc): boot + system both on this disk.\n\nu-boot is NOT touched - the board boots from its on-board SPI flash and loads /boot from this disk. The install stays bootable on its own (no dependency on removable media).\n\nProceed?" "Erase and install" "Cancel" 13 74; then
 			return "$INSTALL_EX_OK"
 		fi
 	elif [[ "$boot" == standalone ]]; then
-		if ! dialog_yesno " WARNING " "\nThis will ERASE /dev/$disk and install a self-contained Armbian ($fs): boot + system both on this disk.\n\n${BOOTLOADER_NAME:-u-boot} and the current boot media are NOT touched - the bootloader loads /boot from this disk, and the current system stays bootable as a fallback.\n\nProceed?" "Erase and install" "Cancel" 13 74; then
+		if ! dialog_yesno " WARNING " "\nThis will ERASE /dev/$disk and install a self-contained Armbian ($fs_desc): boot + system both on this disk.\n\n${BOOTLOADER_NAME:-u-boot} and the current boot media are NOT touched - the bootloader loads /boot from this disk, and the current system stays bootable as a fallback.\n\nProceed?" "Erase and install" "Cancel" 13 74; then
 			return "$INSTALL_EX_OK"
 		fi
 	else
-		if ! dialog_yesno " WARNING " "\nThis will ERASE /dev/$disk and install Armbian ($boot, $fs).\n\nProceed?" "Erase and install" "Cancel" 10 70; then
+		if ! dialog_yesno " WARNING " "\nThis will ERASE /dev/$disk and install Armbian ($boot, $fs_desc).\n\nProceed?" "Erase and install" "Cancel" 10 70; then
 			return "$INSTALL_EX_OK"
 		fi
 	fi
@@ -485,8 +555,10 @@ partitioner_menu() {
 # ---- non-interactive CLI ----------------------------------------------------
 
 partitioner_cli_install() {
-	# partitioner_cli_install --target /dev/X --boot MODE --fs FS [--size GiB] [--yes]
-	local target="" boot="" fs="ext4" assume_yes=0 size_gib=0
+	# partitioner_cli_install --target /dev/X --boot MODE --fs FS [--size GiB] [crypt flags] [--yes]
+	# The crypt flags set the build framework's CRYPTROOT_* switches; those
+	# can also come from the environment.
+	local target="" boot="" fs="ext4" assume_yes=0 size_gib=0 pwfile=""
 	INSTALL_LOG="/var/log/armbian-install.log"
 	while [[ $# -gt 0 ]]; do
 		case "$1" in
@@ -494,12 +566,48 @@ partitioner_cli_install() {
 			--boot)   [[ $# -ge 2 ]] || { echo "armbian-install: --boot requires a value" >&2; return "$INSTALL_EX_USAGE"; }; boot="$2"; shift 2 ;;
 			--fs)     [[ $# -ge 2 ]] || { echo "armbian-install: --fs requires a value" >&2; return "$INSTALL_EX_USAGE"; }; fs="$2"; shift 2 ;;
 			--size)   [[ $# -ge 2 ]] || { echo "armbian-install: --size requires a value" >&2; return "$INSTALL_EX_USAGE"; }; size_gib="$2"; shift 2 ;;
+			--encrypt) CRYPTROOT_ENABLE=yes; shift ;;
+			--autounlock) CRYPTROOT_AUTOUNLOCK=yes; shift ;;
+			--ssh-unlock) CRYPTROOT_SSH_UNLOCK=yes; shift ;;
+			--passphrase-file|--ssh-unlock-port|--ssh-unlock-keys|--mapper|--luks-params)
+				[[ $# -ge 2 ]] || { echo "armbian-install: $1 requires a value" >&2; return "$INSTALL_EX_USAGE"; }
+				case "$1" in
+					--passphrase-file) pwfile="$2" ;;
+					--ssh-unlock-port) CRYPTROOT_SSH_UNLOCK_PORT="$2" ;;
+					--ssh-unlock-keys) CRYPTROOT_SSH_UNLOCK_KEYS="$2" ;;
+					--mapper)          CRYPTROOT_MAPPER="$2" ;;
+					--luks-params)     CRYPTROOT_PARAMETERS="$2" ;;
+				esac
+				shift 2 ;;
 			--yes|-y) assume_yes=1; shift ;;
 			*) echo "armbian-install: unknown argument '$1'" >&2; return "$INSTALL_EX_USAGE" ;;
 		esac
 	done
 
 	[[ -b "$target" ]] || { echo "armbian-install: --target must be a block device" >&2; return "$INSTALL_EX_NODEV"; }
+	if [[ "${CRYPTROOT_ENABLE:-no}" == yes ]]; then
+		install_crypt_mode_ok "$boot" \
+			|| { echo "armbian-install: --encrypt does not work with --boot $boot: it needs /boot apart from the root" >&2; return "$INSTALL_EX_USAGE"; }
+		if [[ -n "$pwfile" ]]; then
+			# The whole file is the passphrase, less one trailing newline.
+			[[ -r "$pwfile" ]] || { echo "armbian-install: cannot read $pwfile" >&2; return "$INSTALL_EX_USAGE"; }
+			CRYPTROOT_PASSPHRASE="$(cat "$pwfile")"
+		fi
+		install_crypt_defaults
+		if [[ "$CRYPTROOT_AUTOUNLOCK" != yes && -z "${CRYPTROOT_PASSPHRASE:-}" ]]; then
+			if [[ -t 0 ]]; then
+				local pw2
+				read -r -s -p "LUKS passphrase: " CRYPTROOT_PASSPHRASE; echo >&2
+				read -r -s -p "Again: " pw2; echo >&2
+				[[ -n "$CRYPTROOT_PASSPHRASE" && "$CRYPTROOT_PASSPHRASE" == "$pw2" ]] \
+					|| { echo "armbian-install: the passphrases are empty or differ" >&2; return "$INSTALL_EX_USAGE"; }
+			else
+				echo "armbian-install: --encrypt needs --passphrase-file, CRYPTROOT_PASSPHRASE or --autounlock" >&2
+				return "$INSTALL_EX_USAGE"
+			fi
+		fi
+		export CRYPTROOT_ENABLE CRYPTROOT_PASSPHRASE CRYPTROOT_AUTOUNLOCK CRYPTROOT_SSH_UNLOCK CRYPTROOT_SSH_UNLOCK_PORT CRYPTROOT_SSH_UNLOCK_KEYS CRYPTROOT_MAPPER CRYPTROOT_PARAMETERS
+	fi
 	# The checks and the engine use kernel names, so resolve /dev/disk/by-id
 	# or by-path links.
 	local given="$target"
@@ -534,6 +642,10 @@ partitioner_cli_install() {
 	fi
 	if ! partitioner_ensure_fs_tool "$fs" 0; then
 		echo "armbian-install: mkfs.$fs unavailable; install its package and retry" >&2
+		return "$INSTALL_EX_TOOL"
+	fi
+	if [[ "${CRYPTROOT_ENABLE:-no}" == yes ]] && ! partitioner_ensure_crypt_tools 0; then
+		echo "armbian-install: the packages for an encrypted root are unavailable: $(install_crypt_packages | xargs)" >&2
 		return "$INSTALL_EX_TOOL"
 	fi
 	# A package install takes a while. Stop if the given link points elsewhere now.
@@ -623,12 +735,13 @@ partitioner_api() {
 		detect)
 			install_detect_targets "$(partitioner_root_disk)" ;;
 		plan)
-			local target="" boot="" fs="ext4"
+			local target="" boot="" fs="ext4" crypt=0
 			while [[ $# -gt 0 ]]; do
 				case "$1" in
 					--target) target="$2"; shift 2 ;;
 					--boot)   boot="$2";   shift 2 ;;
 					--fs)     fs="$2";     shift 2 ;;
+					--encrypt) crypt=1;    shift ;;
 					*) shift ;;
 				esac
 			done
@@ -638,7 +751,7 @@ partitioner_api() {
 				sec="$(cat "/sys/block/$(basename "$target")/queue/physical_block_size" 2>/dev/null || echo 512)"
 			fi
 			[[ "$boot" == uefi ]] && uefi=1
-			install_plan_layout "$boot" "$fs" "$uefi" "$cap" "$sec" 0 ;;
+			install_plan_layout "$boot" "$fs" "$uefi" "$cap" "$sec" 0 "" "$crypt" ;;
 		*)
 			echo "usage: armbian-install --api {detect|plan}" >&2; return "$INSTALL_EX_USAGE" ;;
 	esac
@@ -666,6 +779,21 @@ partitioner_help() {
 	    --fs     ext4 | btrfs | f2fs
 	    --size   GiB for Armbian (uefi-dualboot only; shrinks Windows)
 	    --yes    required to actually modify the target
+
+	Encrypted root (LUKS), as the build framework's CRYPTROOT_* switches.
+	/boot stays on its own unencrypted partition. Not with sd or uefi-dualboot.
+	    --encrypt                 CRYPTROOT_ENABLE=yes
+	    --passphrase-file <file>  CRYPTROOT_PASSPHRASE; asked when not given
+	    --autounlock              CRYPTROOT_AUTOUNLOCK=yes: a new keyfile in the
+	                              initramfs unlocks the root; no passphrase
+	    --ssh-unlock              CRYPTROOT_SSH_UNLOCK=yes: dropbear in the initramfs
+	    --ssh-unlock-port <port>  CRYPTROOT_SSH_UNLOCK_PORT (default 2022)
+	    --ssh-unlock-keys <file>  CRYPTROOT_SSH_UNLOCK_KEYS (default /root/.ssh/authorized_keys)
+	    --mapper <name>           CRYPTROOT_MAPPER (default armbian-root)
+	    --luks-params "<opts>"    CRYPTROOT_PARAMETERS (default --pbkdf pbkdf2)
+
+	Encrypted NVMe install, passphrase asked:
+	  armbian-install --target /dev/nvme0n1 --boot spi --fs ext4 --encrypt --yes
 
 	Dual-boot with Windows 10/11 (UEFI):
 	  armbian-install --target /dev/sdX --boot uefi-dualboot --fs ext4 --size 32 --yes

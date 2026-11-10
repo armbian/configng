@@ -296,3 +296,93 @@ setup() {
 	run install_plan_layout bogus ext4 0 $(( 16 * GIB )) 512 0
 	[ "$status" -eq 64 ]
 }
+
+# --- encrypted root (LUKS) ---------------------------------------------------
+
+@test "crypt plan: uefi gets an ext4 /boot between the ESP and the root" {
+	run install_plan_layout uefi ext4 1 $(( 32 * GIB )) 512 0 "" 1
+	[ "$status" -eq 0 ]
+	[ "$(grep '^part=' <<<"$output" | tr '\n' ' ')" = "part=esp:512MiB:vfat:esp,boot part=boot:1024MiB:ext4: part=root:100%:ext4: " ]
+}
+
+@test "crypt plan: emmc ext4 gets a /boot partition, as btrfs does" {
+	run install_plan_layout emmc ext4 0 $(( 32 * GIB )) 512 0 "" 1
+	[ "$(grep '^part=' <<<"$output" | tr '\n' ' ')" = "part=boot:512MiB:ext4:boot part=root:100%:ext4: " ]
+}
+
+@test "crypt plan: bios msdos puts the boot flag on /boot" {
+	run install_plan_layout bios ext4 0 $(( 32 * GIB )) 512 0 "" 1
+	grep -qx 'table=msdos' <<<"$output"
+	[ "$(grep '^part=' <<<"$output" | tr '\n' ' ')" = "part=boot:1024MiB:ext4:boot part=root:100%:ext4: " ]
+}
+
+@test "crypt plan: bios gpt keeps bios_grub first, then /boot" {
+	run install_plan_layout bios ext4 0 $(( 32 * GIB )) 512 0 gpt 1
+	[ "$(grep '^part=' <<<"$output" | tr '\n' ' ')" = "part=biosboot:1MiB::bios_grub part=boot:1024MiB:ext4: part=root:100%:ext4: " ]
+}
+
+@test "crypt plan: mtd and ufs get /boot on the target, sd does not" {
+	run install_plan_layout mtd ext4 0 $(( 32 * GIB )) 512 0 "" 1
+	[ "$(grep -c '^part=' <<<"$output")" -eq 2 ]
+	run install_plan_layout ufs ext4 0 $(( 32 * GIB )) 4096 0 "" 1
+	[ "$(grep -c '^part=' <<<"$output")" -eq 2 ]
+	run install_plan_layout sd ext4 0 $(( 32 * GIB )) 512 0 "" 1
+	[ "$(grep -c '^part=' <<<"$output")" -eq 1 ]
+}
+
+@test "crypt plan: no crypt argument keeps the old layouts" {
+	run install_plan_layout uefi ext4 1 $(( 32 * GIB )) 512 0
+	[ "$(grep -c '^part=' <<<"$output")" -eq 2 ]
+	run install_plan_layout emmc ext4 0 $(( 32 * GIB )) 512 0
+	[ "$(grep '^part=' <<<"$output")" = "part=root:100%:ext4:boot" ]
+}
+
+@test "crypt: sd and uefi-dualboot cannot boot an encrypted root" {
+	run install_crypt_mode_ok sd
+	[ "$status" -ne 0 ]
+	run install_crypt_mode_ok uefi-dualboot
+	[ "$status" -ne 0 ]
+	for m in uefi bios emmc spi standalone mtd ufs native split-emmc; do
+		install_crypt_mode_ok "$m"
+	done
+}
+
+@test "crypt: armbianEnv.txt gets cryptdevice=, other configs only the mapper" {
+	CRYPTROOT_MAPPER=armbian-root
+	run install_crypt_bootarg /x/boot/armbianEnv.txt 1234-abcd
+	[ "$output" = "/dev/mapper/armbian-root cryptdevice=UUID=1234-abcd:armbian-root" ]
+	run install_crypt_bootarg /x/boot/extlinux/extlinux.conf 1234-abcd
+	[ "$output" = "/dev/mapper/armbian-root" ]
+	run install_crypt_bootarg /x/boot/firmware/cmdline.txt ""
+	[ "$output" = "/dev/mapper/armbian-root" ]
+}
+
+@test "crypt check: refuses without a passphrase or autounlock" {
+	INSTALL_LOG=/dev/null
+	install_crypt_packages() { :; }
+	CRYPTROOT_ENABLE=yes CRYPTROOT_MAPPER=bats-crypt-unused
+	run install_crypt_check uefi
+	[ "$status" -eq "$INSTALL_EX_USAGE" ]
+	CRYPTROOT_AUTOUNLOCK=yes
+	run install_crypt_check sd
+	[ "$status" -eq "$INSTALL_EX_USAGE" ]
+}
+
+@test "crypt check: refuses a bad mapper name and missing SSH keys" {
+	INSTALL_LOG=/dev/null
+	install_crypt_packages() { :; }
+	CRYPTROOT_PASSPHRASE=x CRYPTROOT_MAPPER='a b'
+	run install_crypt_check uefi
+	[ "$status" -eq "$INSTALL_EX_USAGE" ]
+	CRYPTROOT_MAPPER=bats-crypt-unused CRYPTROOT_SSH_UNLOCK=yes CRYPTROOT_SSH_UNLOCK_KEYS=/nonexistent
+	run install_crypt_check uefi
+	[ "$status" -eq "$INSTALL_EX_USAGE" ]
+}
+
+@test "crypt check: names the missing packages" {
+	INSTALL_LOG=/dev/null
+	install_crypt_packages() { echo cryptsetup-initramfs; }
+	CRYPTROOT_PASSPHRASE=x CRYPTROOT_MAPPER=bats-crypt-unused
+	run install_crypt_check emmc
+	[ "$status" -eq "$INSTALL_EX_TOOL" ]
+}

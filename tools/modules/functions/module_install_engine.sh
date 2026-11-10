@@ -177,7 +177,10 @@ install_detect_targets() {
 # ---- partition planning (pure) ---------------------------------------------
 
 install_plan_layout() {
-	# install_plan_layout <boot_mode> <fs> <is_uefi> <capacity_bytes> <sector_size> [has_swap] [table_pref]
+	# install_plan_layout <boot_mode> <fs> <is_uefi> <capacity_bytes> <sector_size> [has_swap] [table_pref] [crypt]
+	#
+	# crypt (0|1): the root is LUKS-encrypted. The bootloader cannot read it, so
+	# every mode that keeps /boot on the root gets an ext4 /boot partition.
 	#
 	# table_pref (gpt|msdos): preferred partition table when capacity/sector/uefi
 	# don't force GPT - used to replicate the running image's table type on an
@@ -199,7 +202,7 @@ install_plan_layout() {
 	#   part=<role>:<size>:<fstype>:<flags>       (one line per partition, in order)
 	# where size is an absolute "<N>MiB" or "100%" (fill), and flags is a
 	# comma-separated subset of {esp,boot,bios_grub} ("" for none). Pure: no device I/O.
-	local boot_mode="$1" fs="$2" is_uefi="$3" cap="${4:-0}" sec="${5:-512}" has_swap="${6:-0}" table_pref="${7:-}"
+	local boot_mode="$1" fs="$2" is_uefi="$3" cap="${4:-0}" sec="${5:-512}" has_swap="${6:-0}" table_pref="${7:-}" crypt="${8:-0}"
 	local table
 	table="$(install_table_type "$is_uefi" "$cap" "$sec" "$table_pref")"
 
@@ -209,6 +212,7 @@ install_plan_layout() {
 			# ESP is mandatory and the table is always GPT for UEFI.
 			table="gpt"
 			parts+=("esp:512MiB:vfat:esp,boot")
+			[[ "$crypt" == 1 ]] && parts+=("boot:1024MiB:ext4:")
 			parts+=("root:100%:${fs}:")
 			;;
 		bios)
@@ -217,6 +221,10 @@ install_plan_layout() {
 			# the post-MBR gap, so the root partition just carries the boot flag.
 			if [[ "$table" == "gpt" ]]; then
 				parts+=("biosboot:1MiB::bios_grub")
+				[[ "$crypt" == 1 ]] && parts+=("boot:1024MiB:ext4:")
+				parts+=("root:100%:${fs}:")
+			elif [[ "$crypt" == 1 ]]; then
+				parts+=("boot:1024MiB:ext4:boot")
 				parts+=("root:100%:${fs}:")
 			else
 				parts+=("root:100%:${fs}:boot")
@@ -230,8 +238,8 @@ install_plan_layout() {
 			# on the current SD/eMMC for "standalone" (so no raw reservation on
 			# this disk, 1MiB offset) - which is handled at the start-offset
 			# step, not here; the partition shape is identical.
-			if [[ "$fs" == "btrfs" || "$fs" == "f2fs" ]]; then
-				# u-boot cannot read btrfs/f2fs -> a dedicated ext4 /boot.
+			if [[ "$fs" == "btrfs" || "$fs" == "f2fs" || "$crypt" == 1 ]]; then
+				# u-boot cannot read btrfs/f2fs or LUKS -> a dedicated ext4 /boot.
 				parts+=("boot:512MiB:ext4:boot")
 				[[ "$has_swap" == "1" ]] && parts+=("swap:256MiB:swap:")
 				parts+=("root:100%:${fs}:")
@@ -251,8 +259,14 @@ install_plan_layout() {
 			parts+=("storage:100%:ext4:")
 			;;
 		sd|mtd|ufs)
-			# Only the rootfs lands here; boot lives elsewhere.
-			parts+=("root:100%:${fs}:boot")
+			# Only the rootfs lands here; boot lives elsewhere. mtd and ufs
+			# u-boot read /boot from this disk: a LUKS root needs it apart.
+			if [[ "$crypt" == 1 && "$boot_mode" != sd ]]; then
+				parts+=("boot:512MiB:ext4:boot")
+				parts+=("root:100%:${fs}:")
+			else
+				parts+=("root:100%:${fs}:boot")
+			fi
 			;;
 		native)
 			# No u-boot involved, so no raw-sector reservation and no ext4-boot-
@@ -881,7 +895,9 @@ install_grub_install() {
 }
 
 install_update_initramfs() {
-	# install_update_initramfs <rootfs_mount> <fs>
+	# install_update_initramfs <rootfs_mount> <fs> [force]
+	# force=1 rebuilds also for ext4: an encrypted target needs cryptsetup in
+	# the initramfs, and a copy of an encrypted system must lose it.
 	# Rebuild the target's initramfs so a module root filesystem (btrfs, f2fs)
 	# is actually present at boot. Armbian sets MODULES=list, which does NOT
 	# auto-include the root-fs module, and the installer inherits the source's
@@ -892,17 +908,17 @@ install_update_initramfs() {
 	# shell with "mount ... failed: Invalid argument" - the btrfs module was
 	# simply missing from the initrd actually booted), so it is fatal - the
 	# caller must treat a non-zero return as an install failure, not a warning.
-	local rootfs="$1" fs="$2"
-	case "$fs" in ext2|ext3|ext4|vfat|msdos) return 0 ;; esac
+	local rootfs="$1" fs="$2" force="${3:-0}"
+	[[ "$force" == 1 ]] || case "$fs" in ext2|ext3|ext4|vfat|msdos) return 0 ;; esac
 	command -v chroot >/dev/null 2>&1 \
 		|| { install_log ERR "update-initramfs: no chroot on this system; $fs root would be unbootable"; return "$INSTALL_EX_BOOTCFG"; }
 	[[ -x "$rootfs/usr/sbin/update-initramfs" || -x "$rootfs/sbin/update-initramfs" ]] \
 		|| { install_log ERR "update-initramfs: not present in target; $fs root would be unbootable"; return "$INSTALL_EX_BOOTCFG"; }
 
 	# Force the fs module into the initramfs module list (list mode ships only
-	# what is listed here).
+	# what is listed here). ext4 and vfat are built in.
 	local modfile="$rootfs/etc/initramfs-tools/modules"
-	if [[ -f "$modfile" ]] && ! grep -qxF "$fs" "$modfile"; then
+	if [[ "$fs" != ext[234] && "$fs" != vfat && -f "$modfile" ]] && ! grep -qxF "$fs" "$modfile"; then
 		echo "$fs" >>"$modfile"
 	fi
 
@@ -1391,6 +1407,186 @@ install_rewrite_rpi_cmdline() {
 	fi
 }
 
+# ---- root encryption (LUKS) -------------------------------------------------
+#
+# The same switches as the build framework (CRYPTROOT_*). The frontend sets
+# them. The engine reads them only in install_crypt_* and in the run_* steps.
+#   CRYPTROOT_ENABLE=yes          encrypt the root partition
+#   CRYPTROOT_PASSPHRASE          passphrase (unless CRYPTROOT_AUTOUNLOCK=yes)
+#   CRYPTROOT_AUTOUNLOCK=yes      unlock with a keyfile in the initramfs
+#   CRYPTROOT_SSH_UNLOCK=yes      dropbear in the initramfs, for a remote unlock
+#   CRYPTROOT_SSH_UNLOCK_PORT     dropbear port (default 2022)
+#   CRYPTROOT_SSH_UNLOCK_KEYS     authorized_keys for dropbear (default /root/.ssh/authorized_keys)
+#   CRYPTROOT_MAPPER              device-mapper name (default armbian-root)
+#   CRYPTROOT_PARAMETERS          cryptsetup luksFormat options (default --pbkdf pbkdf2)
+# The installer makes a new key for each installation, so the first-boot
+# re-key (armbian-luks-rekey) of an image is not needed.
+
+install_crypt_enabled() { [[ "${CRYPTROOT_ENABLE:-no}" == yes ]]; }
+
+install_crypt_mode_ok() {
+	# install_crypt_mode_ok <boot_mode> - true when the mode can boot an
+	# encrypted root: the bootloader reads an unencrypted /boot. "sd" keeps the
+	# initramfs of the current media; "uefi-dualboot" has no room for a /boot.
+	case "$1" in
+		uefi|bios|emmc|spi|standalone|mtd|ufs|native|split-emmc) return 0 ;;
+		*) return 1 ;;
+	esac
+}
+
+install_crypt_defaults() {
+	# Fill the build defaults. The engine and the frontend call it.
+	: "${CRYPTROOT_MAPPER:=armbian-root}"
+	: "${CRYPTROOT_PARAMETERS:=--pbkdf pbkdf2}"
+	: "${CRYPTROOT_SSH_UNLOCK:=no}"
+	: "${CRYPTROOT_SSH_UNLOCK_PORT:=2022}"
+	: "${CRYPTROOT_SSH_UNLOCK_KEYS:=/root/.ssh/authorized_keys}"
+	: "${CRYPTROOT_AUTOUNLOCK:=no}"
+}
+
+install_crypt_packages() {
+	# Echo the packages that the running system needs for the encrypted root.
+	# The rootfs copy carries them to the target.
+	local p
+	for p in cryptsetup cryptsetup-initramfs; do
+		dpkg -s "$p" 2>/dev/null | grep -q '^Status: install ok installed' || echo "$p"
+	done
+	if [[ "${CRYPTROOT_SSH_UNLOCK:-no}" == yes ]]; then
+		dpkg -s dropbear-initramfs 2>/dev/null | grep -q '^Status: install ok installed' || echo dropbear-initramfs
+	fi
+	return 0
+}
+
+install_crypt_check() {
+	# install_crypt_check <boot_mode> - the pre-flight. Logs the reason and
+	# returns non-zero when the encrypted install cannot work. No changes.
+	local mode="$1" missing
+	install_crypt_defaults
+	install_crypt_mode_ok "$mode" \
+		|| { install_log ERR "crypt: boot mode '$mode' cannot boot an encrypted root"; return "$INSTALL_EX_USAGE"; }
+	[[ "$CRYPTROOT_MAPPER" =~ ^[A-Za-z0-9_-]+$ ]] \
+		|| { install_log ERR "crypt: bad mapper name '$CRYPTROOT_MAPPER'"; return "$INSTALL_EX_USAGE"; }
+	[[ ! -e "/dev/mapper/$CRYPTROOT_MAPPER" ]] \
+		|| { install_log ERR "crypt: /dev/mapper/$CRYPTROOT_MAPPER exists; choose another mapper name"; return "$INSTALL_EX_USAGE"; }
+	if [[ "$CRYPTROOT_AUTOUNLOCK" != yes && -z "${CRYPTROOT_PASSPHRASE:-}" ]]; then
+		install_log ERR "crypt: set a passphrase or the autounlock"
+		return "$INSTALL_EX_USAGE"
+	fi
+	if [[ "$CRYPTROOT_SSH_UNLOCK" == yes ]]; then
+		[[ "$CRYPTROOT_SSH_UNLOCK_PORT" =~ ^[0-9]+$ ]] \
+			|| { install_log ERR "crypt: bad SSH unlock port '$CRYPTROOT_SSH_UNLOCK_PORT'"; return "$INSTALL_EX_USAGE"; }
+		grep -qE '^(ssh|ecdsa|sk-)' "$CRYPTROOT_SSH_UNLOCK_KEYS" 2>/dev/null \
+			|| { install_log ERR "crypt: SSH unlock needs public keys in $CRYPTROOT_SSH_UNLOCK_KEYS"; return "$INSTALL_EX_USAGE"; }
+	fi
+	missing="$(install_crypt_packages | xargs)"
+	[[ -z "$missing" ]] \
+		|| { install_log ERR "crypt: install $missing first"; return "$INSTALL_EX_TOOL"; }
+	command -v cryptsetup >/dev/null 2>&1 \
+		|| { install_log ERR "crypt: cryptsetup missing"; return "$INSTALL_EX_TOOL"; }
+	return 0
+}
+
+install_crypt_format() {
+	# install_crypt_format <partition> <keyfile_out>
+	# LUKS-format <partition> and open it as /dev/mapper/$CRYPTROOT_MAPPER.
+	# With autounlock, write a new random keyfile to <keyfile_out>; the
+	# passphrase is not used then, as in the build.
+	local part="$1" keyfile="$2"
+	local -a params
+	read -r -a params <<<"$CRYPTROOT_PARAMETERS"
+	if [[ "$CRYPTROOT_AUTOUNLOCK" == yes ]]; then
+		( umask 077; head -c 64 /dev/urandom >"$keyfile" ) \
+			|| { install_log ERR "crypt: cannot write the keyfile"; return "$INSTALL_EX_FORMAT"; }
+		cryptsetup luksFormat -q "${params[@]}" "$part" "$keyfile" >>"$INSTALL_LOG" 2>&1 \
+			&& cryptsetup open --key-file "$keyfile" "$part" "$CRYPTROOT_MAPPER" >>"$INSTALL_LOG" 2>&1
+	else
+		printf '%s' "$CRYPTROOT_PASSPHRASE" | cryptsetup luksFormat -q "${params[@]}" --key-file - "$part" >>"$INSTALL_LOG" 2>&1 \
+			&& printf '%s' "$CRYPTROOT_PASSPHRASE" | cryptsetup open --key-file - "$part" "$CRYPTROOT_MAPPER" >>"$INSTALL_LOG" 2>&1
+	fi || { install_log ERR "crypt: LUKS format or open of $part failed"; return "$INSTALL_EX_FORMAT"; }
+	udevadm settle >>"$INSTALL_LOG" 2>&1 || true
+	[[ -b "/dev/mapper/$CRYPTROOT_MAPPER" ]] \
+		|| { install_log ERR "crypt: /dev/mapper/$CRYPTROOT_MAPPER missing after open"; return "$INSTALL_EX_FORMAT"; }
+	install_log INFO "crypt: $part is LUKS, open at /dev/mapper/$CRYPTROOT_MAPPER"
+}
+
+install_crypt_close() {
+	# Best effort: close the mapping that install_crypt_format opened.
+	install_crypt_enabled || return 0
+	[[ -e "/dev/mapper/${CRYPTROOT_MAPPER:-}" ]] && cryptsetup close "$CRYPTROOT_MAPPER" >>"$INSTALL_LOG" 2>&1
+	return 0
+}
+
+install_crypt_bootarg() {
+	# install_crypt_bootarg <boot_cfg_file> <luks_uuid> - the root= value for a
+	# boot config. armbianEnv.txt also gets cryptdevice=, as the build writes it.
+	case "$1" in
+		*/armbianEnv.txt) echo "/dev/mapper/$CRYPTROOT_MAPPER cryptdevice=UUID=$2:$CRYPTROOT_MAPPER" ;;
+		*)                echo "/dev/mapper/$CRYPTROOT_MAPPER" ;;
+	esac
+}
+
+install_source_crypt_names() {
+	# Echo the crypttab names of the running system's encrypted mounts (/ and
+	# /boot). The target must not inherit these entries. Impure: reads mounts.
+	local src name
+	for src in $(findmnt -no SOURCE --nofsroot / 2>/dev/null) $(findmnt -no SOURCE --nofsroot /boot 2>/dev/null); do
+		[[ "$src" == /dev/mapper/* ]] || continue
+		name="${src#/dev/mapper/}"
+		[[ "$(dmsetup info -c --noheadings -o uuid "$name" 2>/dev/null)" == CRYPT-* ]] && echo "$name"
+	done
+	return 0
+}
+
+install_crypt_configure_target() {
+	# install_crypt_configure_target <rootfs> <luks_partition> <keyfile>
+	# Write the target's crypttab, keyfile, initramfs and dropbear settings.
+	# Also drop what the copy took over from an encrypted running system.
+	# Without CRYPTROOT_ENABLE it only does the clean-up.
+	local rootfs="$1" part="$2" keyfile="${3:-}"
+	local crypttab="$rootfs/etc/crypttab" hook="$rootfs/etc/cryptsetup-initramfs/conf-hook" name
+
+	# The running system's entries name devices that the target does not boot.
+	if [[ -f "$crypttab" ]]; then
+		for name in $(install_source_crypt_names) ${CRYPTROOT_MAPPER:+"$CRYPTROOT_MAPPER"}; do
+			sed -i -E "/^[[:space:]]*${name}[[:space:]]/d" "$crypttab"
+		done
+	fi
+	# An image keyfile and its first-boot re-key do not belong to the target.
+	rm -f "$rootfs/etc/rootfs.key" "$rootfs/etc/rootfs.key.new" "$rootfs/etc/rootfs.key.old" \
+		"$rootfs/etc/systemd/system/multi-user.target.wants/armbian-luks-rekey.service"
+	[[ -f "$hook" ]] && sed -i '/^KEYFILE_PATTERN=\/etc\/rootfs\.key$/d' "$hook"
+
+	install_crypt_enabled || return 0
+	local uuid keyspec=none
+	uuid="$(blkid -s UUID -o value "$part" 2>/dev/null)"
+	[[ -n "$uuid" ]] || { install_log ERR "crypt: no UUID on $part"; return "$INSTALL_EX_BOOTCFG"; }
+	if [[ "$CRYPTROOT_AUTOUNLOCK" == yes ]]; then
+		keyspec=/etc/rootfs.key
+		install -m 600 "$keyfile" "$rootfs/etc/rootfs.key" \
+			|| { install_log ERR "crypt: cannot copy the keyfile"; return "$INSTALL_EX_BOOTCFG"; }
+		mkdir -p "$rootfs/etc/initramfs-tools/conf.d" "$(dirname "$hook")"
+		echo "UMASK=0077" >"$rootfs/etc/initramfs-tools/conf.d/key-umask.conf"
+		echo "KEYFILE_PATTERN=/etc/rootfs.key" >>"$hook"
+	fi
+	echo "$CRYPTROOT_MAPPER UUID=$uuid $keyspec luks" >>"$crypttab"
+	# Put cryptsetup into the initramfs, also when the hook cannot see the
+	# mapping from the install chroot.
+	mkdir -p "$(dirname "$hook")"
+	grep -q '^CRYPTSETUP=y' "$hook" 2>/dev/null || echo "CRYPTSETUP=y" >>"$hook"
+
+	if [[ "$CRYPTROOT_SSH_UNLOCK" == yes ]]; then
+		local dir="$rootfs/etc/dropbear/initramfs" conf=dropbear.conf
+		[[ -d "$dir" ]] || { dir="$rootfs/etc/dropbear-initramfs"; conf=config; }
+		[[ -d "$dir" ]] || { install_log ERR "crypt: dropbear-initramfs is not in the target"; return "$INSTALL_EX_BOOTCFG"; }
+		install -m 600 "$CRYPTROOT_SSH_UNLOCK_KEYS" "$dir/authorized_keys" \
+			|| { install_log ERR "crypt: cannot copy $CRYPTROOT_SSH_UNLOCK_KEYS"; return "$INSTALL_EX_BOOTCFG"; }
+		# Another port than the system's sshd avoids the "host key changed" warning.
+		sed -i '/^DROPBEAR_OPTIONS=/d' "$dir/$conf" 2>/dev/null
+		echo "DROPBEAR_OPTIONS=\"-I 100 -j -k -p ${CRYPTROOT_SSH_UNLOCK_PORT} -s -c cryptroot-unlock\"" >>"$dir/$conf"
+	fi
+	install_log INFO "crypt: target crypttab: $CRYPTROOT_MAPPER UUID=$uuid $keyspec luks"
+}
+
 install_run_scenario() {
 	# install_run_scenario <boot_mode> <target_disk> <fs> <exclude_file> [uboot_dir]
 	#
@@ -1427,6 +1623,11 @@ install_run_scenario() {
 		|| { install_log ERR "scenario: mkfs.$fs not installed (need $(_install_fs_pkg "$fs")) - refusing to modify $disk"; return "$INSTALL_EX_TOOL"; }
 	install_fs_kernel_supported "$fs" \
 		|| { install_log ERR "scenario: running kernel cannot mount $fs (no driver) - refusing to modify $disk"; return "$INSTALL_EX_TOOL"; }
+	local crypt=0
+	if install_crypt_enabled; then
+		install_crypt_check "$boot_mode" || return
+		crypt=1
+	fi
 
 	# Geometry + firmware context feed the pure planner.
 	local cap sec is_uefi=0 has_swap=0
@@ -1446,9 +1647,9 @@ install_run_scenario() {
 			[[ -n "$table_pref" ]] && install_log INFO "scenario: inheriting source partition table '$table_pref' for $boot_mode" ;;
 	esac
 
-	local plan; plan="$(install_plan_layout "$boot_mode" "$fs" "$is_uefi" "$cap" "$sec" "$has_swap" "$table_pref")" \
+	local plan; plan="$(install_plan_layout "$boot_mode" "$fs" "$is_uefi" "$cap" "$sec" "$has_swap" "$table_pref" "$crypt")" \
 		|| { install_log ERR "scenario: planning failed"; return "$INSTALL_EX_PARTITION"; }
-	install_log INFO "scenario: $boot_mode on $disk (${cap}B, ${sec}B sectors) fs=$fs"$'\n'"$plan"
+	install_log INFO "scenario: $boot_mode on $disk (${cap}B, ${sec}B sectors) fs=$fs crypt=$crypt"$'\n'"$plan"
 
 	# Partition, then build the mkfs map + remember the role->device mapping.
 	local partmap; partmap="$(install_apply_partitions "$disk" "$plan")" || return "$INSTALL_EX_PARTITION"
@@ -1465,7 +1666,16 @@ install_run_scenario() {
 		esac
 	done <<<"$partmap"
 	[[ -b "$root_dev" ]] || { install_log ERR "scenario: no root partition created"; return "$INSTALL_EX_PARTITION"; }
-	install_make_filesystems "$mkfs_map" || return "$INSTALL_EX_FORMAT"
+	# LUKS: the filesystem goes into the opened mapping, not the partition.
+	local luks_dev="" keyfile=""
+	if [[ "$crypt" == 1 ]]; then
+		luks_dev="$root_dev"
+		keyfile="$(mktemp)" || return "$INSTALL_EX_FORMAT"
+		install_crypt_format "$luks_dev" "$keyfile" || { rm -f "$keyfile"; return "$INSTALL_EX_FORMAT"; }
+		root_dev="/dev/mapper/$CRYPTROOT_MAPPER"
+		mkfs_map="${mkfs_map/"root $luks_dev "/"root $root_dev "}"
+	fi
+	install_make_filesystems "$mkfs_map" || { install_crypt_close; rm -f "$keyfile"; return "$INSTALL_EX_FORMAT"; }
 
 	# The shipped exclude list drops /boot from the main rootfs rsync (it belongs
 	# on its own partition/tree, synced separately below). /boot is populated into
@@ -1474,8 +1684,8 @@ install_run_scenario() {
 	[[ "$boot_mode" == sd ]] && copy_boot=0
 
 	# Mount the freshly-formatted target.
-	local mp; mp="$(mktemp -d /mnt/armbian-install.XXXXXX)" || return "$INSTALL_EX_TRANSFER"
-	mount "$root_dev" "$mp" || { install_log ERR "scenario: mount root failed"; rmdir "$mp"; return "$INSTALL_EX_TRANSFER"; }
+	local mp; mp="$(mktemp -d /mnt/armbian-install.XXXXXX)" || { install_crypt_close; rm -f "$keyfile"; return "$INSTALL_EX_TRANSFER"; }
+	mount "$root_dev" "$mp" || { install_log ERR "scenario: mount root failed"; rmdir "$mp"; install_crypt_close; rm -f "$keyfile"; return "$INSTALL_EX_TRANSFER"; }
 	if [[ -n "$esp_dev" ]]; then mkdir -p "$mp/boot/efi"; fi
 
 	# One-shot loop so a failing step can `break` straight to teardown. The bar is
@@ -1530,7 +1740,9 @@ install_run_scenario() {
 			emmc|mtd|ufs|spi|standalone)
 				local env_file
 				if env_file="$(install_boot_cfg_file "$mp/boot")"; then
-					install_rewrite_bootcfg "$env_file" "$root_uuid" "$fs" \
+					local rootarg="$root_uuid"
+					[[ "$crypt" == 1 ]] && rootarg="$(install_crypt_bootarg "$env_file" "$(blkid -s UUID -o value "$luks_dev")")"
+					install_rewrite_bootcfg "$env_file" "$rootarg" "$fs" \
 						|| { install_log ERR "scenario: failed to point $env_file at new root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
 				fi ;;
 			sd)
@@ -1575,10 +1787,13 @@ install_run_scenario() {
 				local cmdline="$mp/boot/firmware/cmdline.txt"
 				[[ -f "$cmdline" ]] \
 					|| { install_log ERR "scenario: native mode but $cmdline missing after boot copy"; rc=$INSTALL_EX_BOOTCFG; break; }
-				install_rewrite_rpi_cmdline "$cmdline" "$root_uuid" "$fs" \
-					|| { install_log ERR "scenario: failed to point target cmdline.txt ($cmdline) at new root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
+				local rootarg="$root_uuid"
+				[[ "$crypt" == 1 ]] && rootarg="$(install_crypt_bootarg "$cmdline" "")"
+				install_rewrite_rpi_cmdline "$cmdline" "$rootarg" "$fs" \
+					|| { install_log ERR "scenario: failed to point target cmdline.txt ($cmdline) at new root $rootarg"; rc=$INSTALL_EX_BOOTCFG; break; }
 				local env_file="$mp/boot/armbianEnv.txt"
-				[[ -f "$env_file" ]] && install_rewrite_bootenv "$env_file" "$root_uuid" "$fs"
+				[[ "$crypt" == 1 ]] && rootarg="$(install_crypt_bootarg "$env_file" "$(blkid -s UUID -o value "$luks_dev")")"
+				[[ -f "$env_file" ]] && install_rewrite_bootenv "$env_file" "$rootarg" "$fs"
 				install_log INFO "scenario: pointed target cmdline.txt ($cmdline) at its own new root $root_uuid ($fs)" ;;
 		esac
 
@@ -1586,13 +1801,19 @@ install_run_scenario() {
 		# under MODULES=list. Only when the target owns its /boot. Fatal on
 		# failure - an unrebuilt initramfs means the target cannot boot at all,
 		# not a cosmetic problem to warn about and ship anyway.
+		# crypttab, keyfile and dropbear for a LUKS root. Also drops the entries
+		# of an encrypted running system, which the target cannot unlock.
+		install_crypt_configure_target "$mp" "$luks_dev" "$keyfile" || { rc=$INSTALL_EX_BOOTCFG; break; }
+		local initrd_force=0
+		{ [[ "$crypt" == 1 ]] || [[ -n "$(install_source_crypt_names)" ]]; } && initrd_force=1
 		if [[ "$copy_boot" == 1 ]]; then
-			install_update_initramfs "$mp" "$fs" || { rc=$INSTALL_EX_BOOTCFG; break; }
+			install_update_initramfs "$mp" "$fs" "$initrd_force" || { rc=$INSTALL_EX_BOOTCFG; break; }
 		fi
 
 		echo 95
-		# ESP must be mounted before GRUB runs.
-		[[ -n "$esp_dev" ]] && { mount "$esp_dev" "$mp/boot/efi" || { rc=$INSTALL_EX_BOOTLOADER; break; }; }
+		# ESP must be mounted before GRUB runs. A /boot partition hides the
+		# efi directory on the root, so create it again.
+		[[ -n "$esp_dev" ]] && { mkdir -p "$mp/boot/efi"; mount "$esp_dev" "$mp/boot/efi" || { rc=$INSTALL_EX_BOOTLOADER; break; }; }
 		# In sd mode the bootloader already lives on the current boot media (left
 		# untouched) and the boot env there was rewired above; writing u-boot to
 		# $disk would target the wrong device - e.g. the Rockchip bootrom cannot
@@ -1624,6 +1845,8 @@ install_run_scenario() {
 	mountpoint -q "$mp/boot" && umount "$mp/boot" 2>/dev/null
 	umount "$mp" 2>/dev/null
 	rmdir "$mp" 2>/dev/null
+	install_crypt_close
+	[[ -n "$keyfile" ]] && { shred -u "$keyfile" 2>/dev/null || rm -f "$keyfile"; }
 
 	[[ "$rc" == 0 ]] && install_log INFO "scenario: $boot_mode install to $disk completed"
 	return "$rc"
@@ -1654,6 +1877,11 @@ install_run_split() {
 		|| { install_log ERR "split: mkfs.$fs not installed (need $(_install_fs_pkg "$fs")) - refusing to modify $root_disk"; return "$INSTALL_EX_TOOL"; }
 	install_fs_kernel_supported "$fs" \
 		|| { install_log ERR "split: running kernel cannot mount $fs - refusing to modify $root_disk"; return "$INSTALL_EX_TOOL"; }
+	local crypt=0
+	if install_crypt_enabled; then
+		install_crypt_check split-emmc || return
+		crypt=1
+	fi
 
 	# Geometry for each device feeds the pure planner.
 	local bcap bsec rcap rsec
@@ -1690,10 +1918,19 @@ install_run_split() {
 		[[ "$role" == root ]] && { root_part="$dev"; mkfs_map+="root $dev $fs"$'\n'; }
 	done <<<"$rpartmap"
 	[[ -b "$boot_part" && -b "$root_part" ]] || { install_log ERR "split: expected boot+root partitions not created"; return "$INSTALL_EX_PARTITION"; }
-	install_make_filesystems "$mkfs_map" || return "$INSTALL_EX_FORMAT"
+	# LUKS: the filesystem goes into the opened mapping, not the partition.
+	local luks_dev="" keyfile=""
+	if [[ "$crypt" == 1 ]]; then
+		luks_dev="$root_part"
+		keyfile="$(mktemp)" || return "$INSTALL_EX_FORMAT"
+		install_crypt_format "$luks_dev" "$keyfile" || { rm -f "$keyfile"; return "$INSTALL_EX_FORMAT"; }
+		root_part="/dev/mapper/$CRYPTROOT_MAPPER"
+		mkfs_map="${mkfs_map/"root $luks_dev "/"root $root_part "}"
+	fi
+	install_make_filesystems "$mkfs_map" || { install_crypt_close; rm -f "$keyfile"; return "$INSTALL_EX_FORMAT"; }
 
-	local mp; mp="$(mktemp -d /mnt/armbian-install.XXXXXX)" || return "$INSTALL_EX_TRANSFER"
-	mount "$root_part" "$mp" || { install_log ERR "split: mount root $root_part failed"; rmdir "$mp"; return "$INSTALL_EX_TRANSFER"; }
+	local mp; mp="$(mktemp -d /mnt/armbian-install.XXXXXX)" || { install_crypt_close; rm -f "$keyfile"; return "$INSTALL_EX_TRANSFER"; }
+	mount "$root_part" "$mp" || { install_log ERR "split: mount root $root_part failed"; rmdir "$mp"; install_crypt_close; rm -f "$keyfile"; return "$INSTALL_EX_TRANSFER"; }
 
 	local rc=0
 	while :; do
@@ -1722,13 +1959,18 @@ install_run_split() {
 		# Point the eMMC boot config at the root that now lives on the target device.
 		local env_file
 		if env_file="$(install_boot_cfg_file "$mp/boot")"; then
-			install_rewrite_bootcfg "$env_file" "$root_uuid" "$fs" \
-				|| { install_log ERR "split: failed to point $env_file at root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
+			local rootarg="$root_uuid"
+			[[ "$crypt" == 1 ]] && rootarg="$(install_crypt_bootarg "$env_file" "$(blkid -s UUID -o value "$luks_dev")")"
+			install_rewrite_bootcfg "$env_file" "$rootarg" "$fs" \
+				|| { install_log ERR "split: failed to point $env_file at root $rootarg"; rc=$INSTALL_EX_BOOTCFG; break; }
 		fi
 
+		install_crypt_configure_target "$mp" "$luks_dev" "$keyfile" || { rc=$INSTALL_EX_BOOTCFG; break; }
+		local initrd_force=0
+		{ [[ "$crypt" == 1 ]] || [[ -n "$(install_source_crypt_names)" ]]; } && initrd_force=1
 		# Module root fs (btrfs/f2fs) needs its driver in the eMMC /boot initramfs.
 		# Fatal on failure - see install_run_scenario's identical guard.
-		install_update_initramfs "$mp" "$fs" || { rc=$INSTALL_EX_BOOTCFG; break; }
+		install_update_initramfs "$mp" "$fs" "$initrd_force" || { rc=$INSTALL_EX_BOOTCFG; break; }
 
 		echo 95
 		# u-boot goes to the eMMC whole device (raw sectors), never the target.
@@ -1747,6 +1989,8 @@ install_run_split() {
 	mountpoint -q "$mp/boot" && umount "$mp/boot" 2>/dev/null
 	umount "$mp" 2>/dev/null
 	rmdir "$mp" 2>/dev/null
+	install_crypt_close
+	[[ -n "$keyfile" ]] && { shred -u "$keyfile" 2>/dev/null || rm -f "$keyfile"; }
 
 	[[ "$rc" == 0 ]] && install_log INFO "split: boot on $boot_disk, root on $root_disk completed"
 	return "$rc"
@@ -1768,6 +2012,7 @@ install_run_dualboot() {
 	install_check_fs_tools "$fs" >/dev/null || { install_log ERR "dualboot: mkfs.$fs not installed (need $(_install_fs_pkg "$fs")) - refusing to modify $disk"; return "$INSTALL_EX_TOOL"; }
 	install_fs_kernel_supported "$fs" || { install_log ERR "dualboot: running kernel cannot mount $fs (no driver) - refusing to modify $disk"; return "$INSTALL_EX_TOOL"; }
 	command -v grub-install >/dev/null 2>&1 || { install_log ERR "dualboot: grub-install missing - refusing to modify $disk"; return "$INSTALL_EX_BOOTLOADER"; }
+	! install_crypt_enabled || { install_log ERR "dualboot: an encrypted root needs a /boot partition, which dual-boot does not create"; return "$INSTALL_EX_USAGE"; }
 
 	# 1) locate the existing Windows ESP + NTFS volume (nothing is touched yet).
 	local wi esp win
@@ -1812,8 +2057,11 @@ install_run_dualboot() {
 		root_uuid="$(install_uuid "$root_dev")"
 		esp_uuid="$(install_uuid "$esp")"
 		install_gen_fstab "$root_uuid" "$fs" "" ext4 "$esp_uuid" >"$mp/etc/fstab" || { rc=$INSTALL_EX_BOOTCFG; break; }
+		install_crypt_configure_target "$mp" "" "" || { rc=$INSTALL_EX_BOOTCFG; break; }
+		local initrd_force=0
+		[[ -n "$(install_source_crypt_names)" ]] && initrd_force=1
 		# Fatal on failure - see install_run_scenario's identical guard.
-		install_update_initramfs "$mp" "$fs" || { rc=$INSTALL_EX_BOOTCFG; break; }
+		install_update_initramfs "$mp" "$fs" "$initrd_force" || { rc=$INSTALL_EX_BOOTCFG; break; }
 		echo 95
 		mount "$esp" "$mp/boot/efi" || { install_log ERR "dualboot: mount ESP failed"; rc=$INSTALL_EX_BOOTLOADER; break; }
 		install_grub_install "$mp" dualboot || { rc=$INSTALL_EX_BOOTLOADER; break; }
