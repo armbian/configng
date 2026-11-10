@@ -43,6 +43,8 @@ releases:
   trixie:
     architectures: [arm64, amd64, armhf, riscv64]
     packages:
+      # The applet needs a polkit agent. Name one, else apt picks cinnamon.
+      - mate-polkit
       - accountsservice
       - libu2f-udev
       - pipewire-audio
@@ -63,8 +65,11 @@ releases:
     # Debian 14 — pipewire replaces pulseaudio (same as trixie).
     architectures: [arm64, amd64, armhf, riscv64]
     packages:
+      # The applet needs a polkit agent. Name one, else apt picks cinnamon.
+      - mate-polkit
       # Debian renamed network-manager-gnome.
       - network-manager-applet
+      - nm-connection-editor
       - accountsservice
       - pipewire-audio
       - pipewire-pulse
@@ -79,7 +84,10 @@ releases:
     # Includes loong64, which is a sid-only Armbian arch.
     architectures: [arm64, amd64, armhf, riscv64, loong64]
     packages:
+      # The applet needs a polkit agent. Name one, else apt picks cinnamon.
+      - mate-polkit
       - network-manager-applet
+      - nm-connection-editor
       - accountsservice
       - libu2f-udev
       - pipewire-audio

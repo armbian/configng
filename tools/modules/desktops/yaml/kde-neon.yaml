@@ -18,6 +18,9 @@ tiers:
       - bluedevil
       - kscreen
       - plasma-discover
+      # Firmware updates in Discover.
+      - fwupd
+      - plasma-discover-backend-fwupd
       - plasma-nm
       - plasma-pa
       - plasma-vault

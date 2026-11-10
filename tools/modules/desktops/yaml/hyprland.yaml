@@ -170,6 +170,7 @@ tiers:
       - fonts-jetbrains-mono-nerd
       - fonts-noto-cjk
       - fonts-noto-color-emoji
+      - fwupd
       - fzf
       - gir1.2-atspi-2.0
       - gir1.2-gtk-4.0

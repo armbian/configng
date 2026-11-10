@@ -19,6 +19,7 @@ tiers:
       - pulseaudio
       - pulseaudio-module-bluetooth
       - thunar
+      - network-manager-gnome
       - xdg-user-dirs
 
 releases:
@@ -31,6 +32,8 @@ releases:
   trixie:
     architectures: [arm64, amd64, armhf, riscv64]
     packages:
+      # The applet needs a polkit agent. Name one, else apt picks cinnamon.
+      - mate-polkit
       - accountsservice
       - libu2f-udev
       - pipewire-audio
@@ -51,11 +54,16 @@ releases:
     # Debian 14 — pipewire replaces pulseaudio (same as trixie).
     architectures: [arm64, amd64, armhf, riscv64]
     packages:
+      - network-manager-applet
+      - nm-connection-editor
+      # The applet needs a polkit agent. Name one, else apt picks cinnamon.
+      - xfce-polkit
       - accountsservice
       - pipewire-audio
       - pipewire-pulse
       - wireplumber
     packages_remove:
+      - network-manager-gnome
       - pulseaudio
       - pulseaudio-module-bluetooth
 
@@ -64,12 +72,17 @@ releases:
     # Includes loong64, which is a sid-only Armbian arch.
     architectures: [arm64, amd64, armhf, riscv64, loong64]
     packages:
+      - network-manager-applet
+      - nm-connection-editor
+      # The applet needs a polkit agent. Name one, else apt picks cinnamon.
+      - xfce-polkit
       - accountsservice
       - libu2f-udev
       - pipewire-audio
       - pipewire-pulse
       - wireplumber
     packages_remove:
+      - network-manager-gnome
       - pulseaudio
       - pulseaudio-module-bluetooth
 
