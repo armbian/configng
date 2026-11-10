@@ -71,6 +71,8 @@ releases:
     # armhf excluded: cinnamon-desktop-environment has no armhf build.
     architectures: [arm64, amd64, riscv64]
     packages:
+      # evince is not in forky. papers replaces it.
+      - papers
       # Debian renamed network-manager-gnome.
       - network-manager-applet
       - nm-connection-editor
@@ -79,6 +81,7 @@ releases:
       - pipewire-pulse
       - wireplumber
     packages_remove:
+      - evince
       - network-manager-gnome
       - pulseaudio
       - pulseaudio-module-bluetooth

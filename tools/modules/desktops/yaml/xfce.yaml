@@ -82,6 +82,8 @@ releases:
     # Debian 14 — pipewire replaces pulseaudio (same as trixie).
     architectures: [arm64, amd64, armhf, riscv64]
     packages:
+      # evince is not in forky. papers replaces it.
+      - papers
       - network-manager-applet
       - nm-connection-editor
       # The applet needs a polkit agent. Name one, else apt picks cinnamon.
@@ -91,6 +93,7 @@ releases:
       - pipewire-pulse
       - wireplumber
     packages_remove:
+      - evince
       - network-manager-gnome
       - pulseaudio
       - pulseaudio-module-bluetooth
