@@ -1166,6 +1166,31 @@
                             "help": "Remove cached images"
                         },
                         {
+                            "id": "LUKS01",
+                            "description": "Make new keys for the encrypted root",
+                            "short": "LUKS re-key",
+                            "module": "module_luks_rekey",
+                            "command": [
+                                "module_luks_rekey run"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "module_luks_rekey status",
+                            "help": "All copies of an autounlock image share one LUKS key. Make a new keyfile and re-encrypt the root."
+                        },
+                        {
+                            "id": "LUKS02",
+                            "description": "Show the LUKS re-key progress",
+                            "module": "module_luks_rekey",
+                            "command": [
+                                "module_luks_rekey progress"
+                            ],
+                            "status": "Preview",
+                            "author": "@igorpecovnik",
+                            "condition": "systemctl -q is-active armbian-luks-rekey",
+                            "help": "Show how far the re-encryption of the root is."
+                        },
+                        {
                             "id": "ROO001",
                             "description": "Enable read only filesystem",
                             "short": "Read Only FS",
