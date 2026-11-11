@@ -51,6 +51,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+import zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
@@ -215,9 +216,11 @@ def armbian_repo_has(release: str, arch: str, package: str) -> bool | None:
     """
     key = (release, arch)
     if key not in _armbian_index:
-        _armbian_index[key] = _load_armbian_index(release, arch)
-    names = _armbian_index[key]
-    return None if names is None else package in names
+        names = _load_armbian_index(release, arch)
+        if names is None:
+            return None  # Not cached: the next lookup tries again.
+        _armbian_index[key] = names
+    return package in _armbian_index[key]
 
 
 def _load_armbian_index(release: str, arch: str) -> set | None:
@@ -247,7 +250,7 @@ def _load_armbian_index(release: str, arch: str) -> set | None:
                 if data:
                     text = gzip.decompress(data).decode("utf-8", errors="replace")
                     names.update(re.findall(r"^Package: (\S+)$", text, re.M))
-    except (urllib.error.URLError, TimeoutError, OSError) as e:
+    except (urllib.error.URLError, TimeoutError, OSError, EOFError, zlib.error) as e:
         warn(f"network error reading the Armbian repository for {release}/{arch}: {e}")
         return None
     return names
@@ -266,9 +269,12 @@ def package_exists(release: str, arch: str, package: str,
         return cache[key]
 
     # The Armbian repository first: images install from it too.
-    if not skip_network and armbian_repo_has(release, arch, package):
+    in_armbian = None if skip_network else armbian_repo_has(release, arch, package)
+    if in_armbian:
         cache[key] = True
         return True
+    # Upstream says no, but the Armbian index was not read: unknown.
+    absent = False if in_armbian is False else None
 
     url = package_url(release, arch, package)
     if url is None:
@@ -289,14 +295,14 @@ def package_exists(release: str, arch: str, package: str,
                 # "is not available" (udiskie does).
                 body = resp.read(8192).decode("utf-8", errors="replace")
                 exists = ("No such package." not in body
-                          and "Package not available in this suite." not in body)
+                          and "Package not available in this suite." not in body) or absent
                 cache[key] = exists
                 time.sleep(HTTP_DELAY_SECONDS)
                 return exists
         except urllib.error.HTTPError as e:
             if e.code == 404:
-                cache[key] = False
-                return False
+                cache[key] = absent
+                return absent
             last_err = e
         except (urllib.error.URLError, TimeoutError) as e:
             last_err = e
