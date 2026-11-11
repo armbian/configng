@@ -117,6 +117,8 @@ sudo armbian-config
     - ### Install the running system to internal media
     - ### Download a fresh, official Armbian OS image and write it to a device
     - ### Remove all downloaded Armbian images
+    - ### Make new keys for the encrypted root
+    - ### Show the LUKS re-key progress
     - ### Enable read only filesystem
     - ### Disable read only filesystem
     - ### Enable Network filesystem (NFS) support
@@ -611,6 +613,8 @@ Outputs:
 	--cmd STO001 - Install the running system to internal media (Windows dual-boot)
 	--cmd FLASH1 - Download a fresh, official Armbian OS image and write it to a device
 	--cmd FLASH2 - Remove all downloaded Armbian images
+	--cmd LUKS01 - Make new keys for the encrypted root
+	--cmd LUKS02 - Show the LUKS re-key progress
 	--cmd ROO001 - Enable read only filesystem
 	--cmd ROO002 - Disable read only filesystem
 	--cmd NETF01 - Enable Network filesystem (NFS) support
@@ -1397,6 +1401,7 @@ These helper functions facilitate various operations related to job management, 
 | Install Zerotier | help install remove start stop enable disable status check | @jnovos 
 | Install grafana container | install remove purge status help | @armbian 
 | Select optimised Odroid board configuration | select | @GeoffClements 
+| Give the encrypted root its own LUKS keys | run status progress help | @igorpecovnik 
 | Armbian installer (transfer rootfs to eMMC/NVMe/SATA/USB/UFS) | run install detect plan help bootloader | @igorpecovnik 
 | Install owncloud container | install remove purge status help | @armbian 
 | Install netdata container | install remove purge status help | @armbian 
