@@ -5,9 +5,12 @@ if [ -d /etc/armbian/lightdm ]; then cp -R /etc/armbian/lightdm /etc/; fi
 #if [ -f /etc/lightdm/slick-greeter.conf ]; then sed -i 's/armbian03-Dre0x-Minum-dark-blurred-3840x2160.jpg/armbian-4k-neon-gray-penguin-gauss.jpg/g' /etc/lightdm/slick-greeter.conf; fi
 
 # Cinnamon defaults name gedit and eog, which are not installed.
-# Without them, text opens in LibreOffice and images in GIMP.
-install -d /etc/xdg
-cat > /etc/xdg/x-cinnamon-mimeapps.list <<EOF
+# Without them, text opens in LibreOffice and images in GIMP. The Cinnamon
+# session puts /usr/share/cinnamon first in XDG_DATA_DIRS, so this file
+# overrides the packaged one. /etc/xdg/mimeapps.list stays in control.
+rm -f /etc/xdg/x-cinnamon-mimeapps.list
+install -d /usr/share/cinnamon/applications
+cat > /usr/share/cinnamon/applications/x-cinnamon-mimeapps.list <<EOF
 [Default Applications]
 text/plain=org.gnome.TextEditor.desktop;
 image/bmp=org.gnome.Loupe.desktop;viewnior.desktop;
