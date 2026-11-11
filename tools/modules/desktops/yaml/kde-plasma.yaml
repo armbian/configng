@@ -161,7 +161,6 @@ releases:
     packages:
       - network-manager-applet
       - accountsservice
-      - libu2f-udev
       - pipewire-audio
       - pipewire-pulse
       - wireplumber

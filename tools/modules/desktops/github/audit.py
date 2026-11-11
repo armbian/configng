@@ -4,7 +4,7 @@ Desktop coverage audit.
 
 Walks the desktop YAML matrix in tools/modules/desktops/yaml/ against
 the list of supported releases from armbian/build's config/distributions/
-and against the actual published binary packages on
+and against the actual published binary packages on apt.armbian.com and
 packages.debian.org / packages.ubuntu.com.
 
 Outputs a JSON report describing two things:
@@ -51,6 +51,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+import zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
@@ -60,11 +61,6 @@ from pathlib import Path
 DEBIAN_RELEASES = {"bookworm", "trixie", "forky", "sid"}
 UBUNTU_RELEASES = {"jammy", "noble", "oracular", "plucky", "questing", "resolute"}
 SKIP_RELEASES = {"buster", "bullseye", "focal"}  # EOS, never going to gain a desktop
-
-# Packages from the Armbian repository. Some upstream archives also have them.
-# The audit checks the stable Armbian repository first, then upstream.
-# module_desktops.sh skips them when apt has no candidate.
-ARMBIAN_REPO_PACKAGES = {"update-manager", "software-properties-gtk"}
 
 # Architecture name normalization. armbian/build uses 'amd64' / 'arm64'
 # / 'armhf' / 'riscv64'. packages.debian.org uses the same names.
@@ -208,26 +204,56 @@ def package_url(release: str, arch: str, package: str) -> str | None:
 ARMBIAN_REPO_URL = "https://apt.armbian.com"
 
 
+_armbian_index: dict = {}
+
+
 def armbian_repo_has(release: str, arch: str, package: str) -> bool | None:
     """
     True if the stable Armbian repository publishes the package for
-    (release, arch) in its desktop component. None on a network error.
+    (release, arch) in any component. None on a network error.
+    Images install from this repository too: armbian-imager, code,
+    google-chrome-stable and the Hyprland extras come only from it.
     """
+    key = (release, arch)
+    if key not in _armbian_index:
+        names = _load_armbian_index(release, arch)
+        if names is None:
+            return None  # Not cached: the next lookup tries again.
+        _armbian_index[key] = names
+    return package in _armbian_index[key]
+
+
+def _load_armbian_index(release: str, arch: str) -> set | None:
+    """Package names of all components, for arch and arch 'all'."""
     import gzip
-    url = f"{ARMBIAN_REPO_URL}/dists/{release}/{release}-desktop/binary-{arch}/Packages.gz"
-    try:
+
+    def fetch(url: str) -> bytes | None:
         req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-        with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT_SECONDS) as resp:
-            text = gzip.decompress(resp.read()).decode("utf-8", errors="replace")
-    except urllib.error.HTTPError as e:
-        if e.code == 404:
-            return False
-        warn(f"network error checking {package} in the Armbian repository for {release}/{arch}: {e}")
+        try:
+            with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT_SECONDS) as resp:
+                return resp.read()
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                return b""
+            raise
+
+    base = f"{ARMBIAN_REPO_URL}/dists/{release}"
+    names = set()
+    try:
+        release_file = (fetch(f"{base}/Release") or b"").decode("utf-8", errors="replace")
+        m = re.search(r"^Components:(.*)$", release_file, re.M)
+        if not m:
+            return names
+        for comp in m.group(1).split():
+            for a in (arch, "all"):
+                data = fetch(f"{base}/{comp}/binary-{a}/Packages.gz")
+                if data:
+                    text = gzip.decompress(data).decode("utf-8", errors="replace")
+                    names.update(re.findall(r"^Package: (\S+)$", text, re.M))
+    except (urllib.error.URLError, TimeoutError, OSError, EOFError, zlib.error) as e:
+        warn(f"network error reading the Armbian repository for {release}/{arch}: {e}")
         return None
-    except (urllib.error.URLError, TimeoutError, OSError) as e:
-        warn(f"network error checking {package} in the Armbian repository for {release}/{arch}: {e}")
-        return None
-    return re.search(rf"^Package: {re.escape(package)}$", text, re.M) is not None
+    return names
 
 
 def package_exists(release: str, arch: str, package: str,
@@ -242,15 +268,13 @@ def package_exists(release: str, arch: str, package: str,
     if key in cache:
         return cache[key]
 
-    if package in ARMBIAN_REPO_PACKAGES:
-        if skip_network:
-            cache[key] = None
-            return None
-        result = armbian_repo_has(release, arch, package)
-        # Not in the Armbian repository: check the upstream archive.
-        if result is not False:
-            cache[key] = result
-            return result
+    # The Armbian repository first: images install from it too.
+    in_armbian = None if skip_network else armbian_repo_has(release, arch, package)
+    if in_armbian:
+        cache[key] = True
+        return True
+    # Upstream says no, but the Armbian index was not read: unknown.
+    absent = False if in_armbian is False else None
 
     url = package_url(release, arch, package)
     if url is None:
@@ -266,18 +290,19 @@ def package_exists(release: str, arch: str, package: str,
         try:
             req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
             with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT_SECONDS) as resp:
-                # 200 = page exists. packages.debian.org returns 200
-                # with a "no such package" body for missing packages,
-                # so we have to peek at the body.
+                # Both sites return 200 with an error page. Match the
+                # exact messages: a package description can contain
+                # "is not available" (udiskie does).
                 body = resp.read(8192).decode("utf-8", errors="replace")
-                exists = "No such package" not in body and "is not available" not in body
+                exists = ("No such package." not in body
+                          and "Package not available in this suite." not in body) or absent
                 cache[key] = exists
                 time.sleep(HTTP_DELAY_SECONDS)
                 return exists
         except urllib.error.HTTPError as e:
             if e.code == 404:
-                cache[key] = False
-                return False
+                cache[key] = absent
+                return absent
             last_err = e
         except (urllib.error.URLError, TimeoutError) as e:
             last_err = e

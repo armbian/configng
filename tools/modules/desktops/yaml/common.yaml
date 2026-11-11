@@ -223,13 +223,13 @@ browser:
     # Debian 14 — same rules as trixie.
     amd64:   google-chrome-stable
     arm64:   chromium
-    armhf:   chromium
+    armhf:   firefox-esr     # chromium has no armhf build
     riscv64: firefox-esr     # 'firefox' does not exist in Debian
   sid:
     # Debian unstable — same rules as trixie/forky.
     amd64:   google-chrome-stable
     arm64:   chromium
-    armhf:   chromium
+    armhf:   firefox-esr     # chromium has no armhf build
     riscv64: firefox-esr     # 'firefox' does not exist in Debian
     loong64: firefox-esr     # chromium not yet built for loong64
 
@@ -237,21 +237,9 @@ browser:
 # stripped before they reach apt. Common.yaml carries the holes that
 # apply to every desktop; per-DE YAMLs can add their own.
 #
-# Known audit false positive — do NOT "fix" by adding removals here:
-# armbian-imager, code, and google-chrome-stable will always be
-# reported as holes against packages.debian.org / packages.ubuntu.com
-# checks (e.g. tools/modules/desktops/github/audit.py) on every
-# release/arch, because none of the three is ever published in the
-# plain Debian/Ubuntu archive — they ship from apt.armbian.com (or,
-# for google-chrome-stable on amd64, Google's own repo), which that
-# kind of audit has no visibility into. module_desktops.sh's
-# force_pkgs/strip_pkgs pin (see module_desktops.sh) explicitly makes
-# apt.armbian.com's .debs win for `code` and `google-chrome-stable`,
-# so installs succeed in practice. Only strip these three for arches
-# where the third-party repo genuinely has no build at all (already
-# done below: armhf/riscv64/loong64 for armbian-imager, riscv64/armhf
-# for code) — never for amd64/arm64, where removing them would delete
-# working functionality to satisfy an audit blind spot.
+# armbian-imager, code and google-chrome-stable come from apt.armbian.com,
+# not from Debian or Ubuntu. audit.py checks apt.armbian.com too.
+# Strip them only for arches without a build (see below).
 #
 # Layered:
 #   tier_overrides.<tier>.architectures.<arch>.packages_remove
@@ -348,13 +336,21 @@ tier_overrides:
           riscv64:  { packages_remove: [fonts-ubuntu, printer-driver-all, gtk2-engines-murrine] }
       sid:
         # fonts-ubuntu is Ubuntu-only; Debian sid doesn't ship it.
+        # gtk2-engines-murrine: removed from Debian, as in forky.
         # Includes loong64, which is a sid-only Armbian arch.
         architectures:
-          amd64:    { packages: [intel-lpmd], packages_remove: [fonts-ubuntu] }
-          arm64:    { packages_remove: [fonts-ubuntu] }
-          armhf:    { packages_remove: [fonts-ubuntu] }
-          riscv64:  { packages_remove: [fonts-ubuntu] }
-          loong64:  { packages_remove: [fonts-ubuntu] }
+          amd64:    { packages: [intel-lpmd], packages_remove: [fonts-ubuntu, gtk2-engines-murrine] }
+          arm64:    { packages_remove: [fonts-ubuntu, gtk2-engines-murrine] }
+          armhf:    { packages_remove: [fonts-ubuntu, gtk2-engines-murrine] }
+          riscv64:  { packages_remove: [fonts-ubuntu, gtk2-engines-murrine] }
+          loong64:  { packages_remove: [fonts-ubuntu, gtk2-engines-murrine] }
+      jammy:
+        # Jammy has no libcamera plugins for PipeWire and GStreamer.
+        architectures:
+          amd64:    { packages_remove: [pipewire-libcamera, gstreamer1.0-libcamera] }
+          arm64:    { packages_remove: [pipewire-libcamera, gstreamer1.0-libcamera] }
+          armhf:    { packages_remove: [pipewire-libcamera, gstreamer1.0-libcamera] }
+          riscv64:  { packages_remove: [pipewire-libcamera, gstreamer1.0-libcamera] }
   mid:
     # armbian-imager (apt.armbian.com) is only published for amd64
     # and arm64 — strip it on every other arch. Arch-wide so the
@@ -380,11 +376,12 @@ tier_overrides:
       jammy:
         # loupe was introduced with GNOME 44/45; Ubuntu 22.04 (jammy)
         # shipped GNOME 42 and has no loupe package on any arch.
+        # Jammy has one glmark2 package per API, with no X11 split.
         architectures:
-          amd64:    { packages_remove: [loupe] }
-          arm64:    { packages_remove: [loupe] }
-          armhf:    { packages_remove: [loupe] }
-          riscv64:  { packages_remove: [loupe] }
+          amd64:    { packages: &jammy_glmark2 [glmark2, glmark2-es2], packages_remove: &jammy_mid_rm [loupe, glmark2-x11, glmark2-es2-x11] }
+          arm64:    { packages: *jammy_glmark2, packages_remove: *jammy_mid_rm }
+          armhf:    { packages: *jammy_glmark2, packages_remove: *jammy_mid_rm }
+          riscv64:  { packages: *jammy_glmark2, packages_remove: *jammy_mid_rm }
       resolute:
         # loupe/armhf still missing — no GNOME armhf build.
         architectures:

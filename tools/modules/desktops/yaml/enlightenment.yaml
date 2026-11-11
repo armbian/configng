@@ -77,7 +77,6 @@ releases:
       # The applet needs a polkit agent. Name one, else apt picks cinnamon.
       - xfce-polkit
       - accountsservice
-      - libu2f-udev
       - pipewire-audio
       - pipewire-pulse
       - wireplumber

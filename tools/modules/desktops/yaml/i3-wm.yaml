@@ -89,7 +89,6 @@ releases:
       - network-manager-applet
       - nm-connection-editor
       - accountsservice
-      - libu2f-udev
       - pipewire-audio
       - pipewire-pulse
       - wireplumber
