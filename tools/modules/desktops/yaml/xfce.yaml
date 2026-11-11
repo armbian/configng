@@ -150,7 +150,12 @@ releases:
       - polkitd
       - pkexec
       - libfido2-1
+      - pipewire-audio
+      - pipewire-pulse
+      - wireplumber
     packages_remove:
+      - pulseaudio
+      - pulseaudio-module-bluetooth
       # pavumeter remains absent from the Ubuntu archive (dropped in plucky).
       - pavumeter
     packages_uninstall:

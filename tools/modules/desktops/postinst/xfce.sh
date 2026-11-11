@@ -14,6 +14,22 @@ sed -i -n '/<Menuname>Settings<\/Menuname>/{p;:a;N;/<Filename>xfce4-session-logo
 \n        <Filename>armbian-support.desktop<\/Filename>\n/};p' /etc/xdg/menus/xfce-applications.menu
 fi
 
+# XFCE has no default applications list. Without it, PDF and images
+# open in Chrome and text in LibreOffice Writer. The data directory keeps
+# /etc/xdg/mimeapps.list in control.
+install -d /usr/share/applications
+cat > /usr/share/applications/xfce-mimeapps.list <<EOF
+[Default Applications]
+application/pdf=org.gnome.Papers.desktop;org.gnome.Evince.desktop;
+text/plain=org.xfce.mousepad.desktop;
+image/bmp=org.xfce.ristretto.desktop;viewnior.desktop;
+image/gif=org.xfce.ristretto.desktop;viewnior.desktop;
+image/jpeg=org.xfce.ristretto.desktop;viewnior.desktop;
+image/png=org.xfce.ristretto.desktop;viewnior.desktop;
+image/tiff=org.xfce.ristretto.desktop;viewnior.desktop;
+image/webp=org.xfce.ristretto.desktop;viewnior.desktop;
+EOF
+
 # Hide few items
 if [ -f /usr/share/applications/display-im6.q16.desktop ]; then mv /usr/share/applications/display-im6.q16.desktop /usr/share/applications/display-im6.q16.desktop.hidden; fi
 if [ -f /usr/share/applications/display-im6.desktop ]; then  mv /usr/share/applications/display-im6.desktop /usr/share/applications/display-im6.desktop.hidden; fi

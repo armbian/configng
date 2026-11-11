@@ -40,8 +40,17 @@ tiers:
       - kde-config-screenlocker
       - kde-config-sddm
       - kde-spectacle
+      # Spectacle text recognition (OCR).
+      - tesseract-ocr
+      - tesseract-ocr-eng
       - kdegraphics-thumbnailers
       - kinfocenter
+      # Info Center pages run these tools. Without them, the pages are empty.
+      - aha
+      - clinfo
+      - libdisplay-info-bin
+      - pulseaudio-utils
+      - wayland-utils
       - kio-extras
       - kmenuedit
       - ksshaskpass
@@ -99,6 +108,9 @@ releases:
     packages:
       - accountsservice
       - libu2f-udev
+    packages_remove:
+      # Not in bookworm.
+      - libdisplay-info-bin
 
   trixie:
     architectures: [arm64, amd64]
@@ -168,6 +180,10 @@ releases:
       - polkitd
       - pkexec
       - libu2f-udev
+    packages_remove:
+      # Not in jammy.
+      - libdisplay-info-bin
+      - wayland-utils
 
   resolute:
     # Ubuntu 26.04 LTS — same as questing.
