@@ -1,0 +1,2334 @@
+module_options+=(
+	["module_desktop_branding,author"]="@igorpecovnik"
+	["module_desktop_branding,feature"]="module_desktop_branding"
+	["module_desktop_branding,desc"]="Install Armbian desktop branding assets"
+	["module_desktop_branding,example"]="module_desktop_branding xfce"
+	["module_desktop_branding,status"]="Active"
+	["module_desktop_branding,arch"]="arm64 amd64 armhf riscv64"
+)
+
+#
+# Install Armbian desktop branding (wallpapers, icons, greeter config, skel, postinst)
+# Usage: module_desktop_branding <de_name>
+#
+function module_desktop_branding() {
+	local de="$1"
+	local desktop_dir="${desktops_dir}"
+
+	case "$de" in
+		help|"")
+			echo "Usage: module_desktop_branding <de_name>"
+			echo ""
+			echo "Install Armbian branding assets for a desktop environment:"
+			echo "  - Greeter configuration (LightDM, SDDM)"
+			echo "  - Default user skeleton configs"
+			echo "  - Wallpapers and login wallpapers"
+			echo "  - Desktop icons and login logo"
+			echo "  - GNOME wallpaper properties XML"
+			echo "  - DE-specific post-install configuration"
+			return 0
+		;;
+		*)
+			if [[ ! -d "$desktop_dir" ]]; then
+				echo "Warning: desktops directory not found at $desktop_dir" >&2
+				return 0
+			fi
+
+			dialog_infobox "Desktop" "Installing Armbian branding for ${de}..."
+
+			# greeter configuration (lightdm)
+			if [[ -d "$desktop_dir/greeters/lightdm" ]]; then
+				mkdir -p /etc/armbian/lightdm
+				cp -R "$desktop_dir/greeters/lightdm/." /etc/armbian/lightdm/
+				cp -R /etc/armbian/lightdm/. /etc/lightdm/ 2>/dev/null || true
+			fi
+
+			# default user skeleton
+			if [[ -d "$desktop_dir/skel" ]]; then
+				cp -R "$desktop_dir/skel/." /etc/skel/
+			fi
+
+			# wallpapers
+			if [[ -d "$desktop_dir/branding/wallpapers" ]]; then
+				mkdir -p /usr/share/backgrounds/armbian
+				cp "$desktop_dir/branding/wallpapers/"*.jpg /usr/share/backgrounds/armbian/ 2>/dev/null || true
+			fi
+
+			# lightdm wallpapers
+			if [[ -d "$desktop_dir/branding/wallpapers-lightdm" ]]; then
+				mkdir -p /usr/share/backgrounds/armbian-lightdm
+				cp "$desktop_dir/branding/wallpapers-lightdm/"*.jpg /usr/share/backgrounds/armbian-lightdm/ 2>/dev/null || true
+			fi
+
+			# desktop icons
+			if [[ -d "$desktop_dir/branding/icons" ]]; then
+				mkdir -p /usr/share/icons/armbian
+				cp "$desktop_dir/branding/icons/"* /usr/share/icons/armbian/ 2>/dev/null || true
+			fi
+
+			# login logo
+			if [[ -d "$desktop_dir/branding/pixmaps" ]]; then
+				mkdir -p /usr/share/pixmaps/armbian
+				cp "$desktop_dir/branding/pixmaps/"* /usr/share/pixmaps/armbian/ 2>/dev/null || true
+			fi
+
+			# Distributor logo for GNOME Settings -> About / KDE Info
+			# Center / etc. is shipped by armbian-base-files (the same
+			# package that sets LOGO="armbian-logo" in /etc/os-release).
+			# Do NOT try to install it from here — keeping the icon
+			# coupled to the os-release line in one .deb is the only
+			# way to keep them in sync, and previous attempts to ship
+			# it from here all silently failed for one icon-cache
+			# reason or another.
+
+			# Clean up any stray armbian-logo files left behind by
+			# earlier (broken) versions of this branding step. Safe
+			# even if armbian-base-files later ships its own.
+			rm -f /usr/share/icons/hicolor/scalable/apps/armbian-logo.png
+			rm -f /usr/share/icons/hicolor/128x128/apps/armbian-logo.png
+			rm -f /usr/share/icons/hicolor/256x256/apps/armbian-logo.png
+
+			# Browser / mail branding — system-wide policy files that
+			# set the Armbian welcome page, homepage, and bookmarks for
+			# browsers, and disable telemetry / studies for Mozilla apps.
+			# Files for apps that aren't installed sit harmlessly in
+			# /etc/<app>/policies/ (each app only reads its own dir at
+			# startup). `recommended/` (Chromium-family) means the user
+			# can change defaults after first run; Mozilla's policies.json
+			# is a single combined file per app.
+			# Single overlay tree under branding/browsers/etc/ rsync'd
+			# into /etc/ — each app's canonical drop-in path:
+			#   chromium:    /etc/chromium/policies/recommended/armbian.json   (homepage, first-run, etc.)
+			#                /etc/chromium/policies/managed/armbian.json       (ManagedBookmarks — mandatory-only policy)
+			#                /etc/chromium/master_preferences                  (suppress bundled defaults)
+			#                /etc/chromium.d/armbian-flags                     (enable VPU hardware video decoder)
+			#   chrome:      /etc/opt/chrome/policies/recommended/armbian.json
+			#                /etc/opt/chrome/policies/managed/armbian.json
+			#                /etc/opt/chrome/master_preferences
+			#   firefox:     /etc/firefox/policies/policies.json
+			#   firefox-esr: /etc/firefox-esr/policies/policies.json
+			#   thunderbird: /etc/thunderbird/policies/policies.json
+			#
+			# master_preferences suppresses the bundled default bookmark
+			# import on new profiles (xtradeb chromium ships Debian /
+			# Ubuntu / XtraDeb shortcuts; Google Chrome ships its own
+			# defaults). Existing profiles keep what they already have.
+			# The Armbian "Managed bookmarks" folder still appears via
+			# the policy file regardless — it lives in a separate read-
+			# only space.
+			if [[ -d "$desktop_dir/branding/browsers/etc" ]]; then
+				# --no-preserve=ownership: keep mode + timestamps from the
+				# source tree but always land as root:root in /etc/. Defends
+				# against dev/test runs where the source files might be
+				# owned by the developer's UID rather than root (in
+				# production the deb deploys them as root anyway).
+				cp -a --no-preserve=ownership "$desktop_dir/branding/browsers/etc/." /etc/
+			fi
+
+			# SDDM theme (for desktops using sddm)
+			if [[ -d "$desktop_dir/greeters/sddm/themes" && "$DESKTOP_DM" == "sddm" ]]; then
+				mkdir -p /usr/share/sddm/themes
+				cp -R "$desktop_dir/greeters/sddm/themes/"* /usr/share/sddm/themes/ 2>/dev/null || true
+			fi
+
+			# GDM greeter: drop the distributor logo. Debian's desktop-base
+			# ships greeter.dconf-defaults with
+			#   logo='/usr/share/images/vendor-logos/logo-text-version-64.png'
+			# which renders the "Debian 13" logo on the GNOME login screen.
+			# Blank it for a clean, logo-less greeter. The login background
+			# comes from the extension below. Only touches the file if GDM is present.
+			if [[ -f /etc/gdm3/greeter.dconf-defaults ]]; then
+				if grep -qE '^[[:space:]]*logo=' /etc/gdm3/greeter.dconf-defaults; then
+					sed -i "s|^[[:space:]]*logo=.*|logo=''|" /etc/gdm3/greeter.dconf-defaults
+				elif grep -q '^\[org/gnome/login-screen\]' /etc/gdm3/greeter.dconf-defaults; then
+					sed -i "/^\[org\/gnome\/login-screen\]/a logo=''" /etc/gdm3/greeter.dconf-defaults
+				fi
+			fi
+
+			# GDM login background: the blurred Armbian wallpaper. The theme sets
+			# a plain colour in #lockDialogGroup; a small GNOME Shell extension that
+			# runs only on the login screen overrides it with its stylesheet.
+			# GDM compiles /usr/share/gdm/dconf/* on each start (generate-config),
+			# so 95-armbian-login enables the extension for the gdm user only.
+			# Same on Debian and Ubuntu. Needs GNOME Shell 45 or newer (ES module
+			# extensions); older shells keep the plain background.
+			local shell_ver shell_major=0
+			shell_ver=$(dpkg-query -W -f='${Version}' gnome-shell 2>/dev/null)
+			# Leading digits after the epoch: 1:43.9-1 -> 43, 48~beta-4 -> 48.
+			[[ "${shell_ver#*:}" =~ ^([0-9]+) ]] && shell_major=${BASH_REMATCH[1]}
+			if [[ -d /usr/share/gdm/dconf && -d "$desktop_dir/branding/gdm" ]] && (( shell_major >= 45 )); then
+				mkdir -p /usr/share/gnome-shell/extensions
+				cp -R "$desktop_dir/branding/gdm/extensions/." /usr/share/gnome-shell/extensions/
+				install -m 644 "$desktop_dir/branding/gdm/95-armbian-login" /usr/share/gdm/dconf/95-armbian-login
+			fi
+
+			# DE-specific postinst script. Runs unconditionally — including
+			# inside the build chroot. The skip-in-container guard that used
+			# to wrap this block silently dropped wallpaper / dconf / theme
+			# setup on GHA rootfs builds: the postinst scripts here are
+			# almost entirely file writes (dconf overrides, sed-edits of
+			# /etc/*.conf, schema recompiles) — chroot-safe by design and
+			# precisely what we want baked into the rootfs cache.
+			#
+			# Anything that genuinely needs a live system (systemctl,
+			# gsettings against a running dbus, netplan apply) is handled
+			# in module_desktops.sh under explicit _desktop_in_container
+			# guards; this code path never touched runtime services to
+			# begin with. The dialog_infobox call is the one user-facing
+			# bit, so keep it gated on "not inside container" so CI
+			# doesn't try to render an ncurses dialog.
+			if [[ -f "$desktop_dir/postinst/${de}.sh" ]]; then
+				_desktop_in_container 2>/dev/null || \
+					dialog_infobox "Desktop" "Running ${de} post-install configuration..."
+				bash "$desktop_dir/postinst/${de}.sh" || true
+			fi
+		;;
+	esac
+}
+
+module_options+=(
+	["module_desktops,author"]="@igorpecovnik"
+	["module_desktops,feature"]="module_desktops"
+	["module_desktops,desc"]="Install and manage desktop environments (YAML-driven)"
+	["module_desktops,example"]="install remove disable enable status auto manual login supported installed help upgrade downgrade tier at-tier set-tier"
+	["module_desktops,status"]="Active"
+	["module_desktops,arch"]=""
+	["module_desktops,help_install"]="Install desktop (de=name tier=minimal|mid|full [mode=build])"
+	["module_desktops,help_remove"]="Remove desktop (de=name)"
+	["module_desktops,help_disable"]="Disable display manager"
+	["module_desktops,help_enable"]="Enable display manager"
+	["module_desktops,help_status"]="Check if installed and at which tier (de=name)"
+	["module_desktops,help_auto"]="Enable auto-login (de=name)"
+	["module_desktops,help_manual"]="Disable auto-login (de=name)"
+	["module_desktops,help_login"]="Check auto-login status (de=name)"
+	["module_desktops,help_supported"]="JSON list or check one (de=name arch=X release=Y filter=available|unavailable|all status=csv-of-supported,community,unsupported)"
+	["module_desktops,help_installed"]="Returns 0 if any desktop is installed (no de=)"
+	["module_desktops,help_upgrade"]="Upgrade installed desktop to a higher tier (de=name tier=mid|full)"
+	["module_desktops,help_downgrade"]="Downgrade installed desktop to a lower tier (de=name tier=minimal|mid)"
+	["module_desktops,help_tier"]="Print the installed tier of a desktop, or 'not installed' (de=name)"
+	["module_desktops,help_at-tier"]="Silent gate: exit 0 if a desktop is installed AND at the given tier (de=name tier=X)"
+	["module_desktops,help_set-tier"]="Move installed desktop to a target tier; auto-detects upgrade vs downgrade (de=name tier=X)"
+)
+
+#
+# Check if running inside a container
+#
+_desktop_in_container() {
+	[[ -f /.dockerenv || -f /run/.containerenv || -n "${CI:-}" || -n "${GITHUB_ACTIONS:-}" ]]
+}
+
+#
+# Write the apt pin that forces apt.armbian.com .debs to win over
+# Ubuntu's snap-transitional packages for desktop apps. Idempotent —
+# writes via temp + atomic mv so a partial write never leaves apt with
+# an unparseable preferences file.
+#
+# Lives at /etc/apt/preferences.d/armbian-desktops (note: NOT the
+# legacy `armbian` filename, which is a dpkg conffile shipped by the
+# BSP — that one gets preserved on upgrade once a user has it,
+# leaving stale content on the system. By using a distinct filename
+# managed entirely by armbian-config we can update the pin via
+# configng upgrades alone, no BSP rebuild required).
+#
+# Priority 1001 (not 990) is mandatory: Ubuntu's snap-transitional
+# packages have a higher epoch than Armbian's real .debs. 990 only
+# permits upgrades; 1001 also permits the downgrade required to swap
+# the snap-shim out for the real package. The Ubuntu-side priority
+# of 50 keeps the snap-shim from ever being auto-selected when the
+# real .deb is available.
+#
+# Non-fatal: a write failure warns and returns 1 but does not abort
+# the install — apt without the pin will pick whatever wins by
+# default, which is wrong but not catastrophic.
+#
+function _module_desktops_write_apt_pin() {
+	local pin_file="/etc/apt/preferences.d/armbian-desktops"
+	local pin_tmp="${pin_file}.tmp"
+
+	# Packages where apt.armbian.com hosts a real .deb that should
+	# always win over Ubuntu's snap-transitional / older Debian
+	# version. Wildcards cover the codec / l10n meta-packages.
+	local force_pkgs="chromium chromium-* firefox firefox-esr firefox-l10n-* thunderbird thunderbird-l10n-* google-chrome-stable code microsoft-edge-stable"
+
+	# Subset to deprioritize from the Ubuntu archive — only those
+	# that have a Ubuntu equivalent. `code` and `microsoft-edge-stable`
+	# are Microsoft-only, no Ubuntu version to push down.
+	local strip_pkgs="chromium chromium-* firefox firefox-esr firefox-l10n-* thunderbird thunderbird-l10n-* google-chrome-stable"
+
+	if ! cat > "$pin_tmp" <<- EOF
+	# Managed by armbian-config (module_desktops). Do not edit by hand.
+	#
+	# Force apt.armbian.com versions of these desktop packages over
+	# Ubuntu's snap-transitional ones. Priority 1001 is required
+	# (not 990) because the snap-shim packages have a higher epoch —
+	# 990 only allows upgrades; 1001 also permits the downgrade
+	# required to replace the snap-shim with the real .deb.
+	Package: ${force_pkgs}
+	Pin: release o=Armbian
+	Pin-Priority: 1001
+
+	# Push Ubuntu's snap-shim versions below the default 500 so they
+	# are never auto-selected when the real apt.armbian.com .deb is
+	# available.
+	Package: ${strip_pkgs}
+	Pin: release o=Ubuntu
+	Pin-Priority: 50
+	EOF
+	then
+		echo "Warning: failed to write ${pin_tmp}, desktop apt pin not installed" >&2
+		rm -f "$pin_tmp"
+		return 1
+	fi
+
+	if ! mv "$pin_tmp" "$pin_file"; then
+		echo "Warning: failed to install ${pin_file}" >&2
+		rm -f "$pin_tmp"
+		return 1
+	fi
+
+	return 0
+}
+
+#
+# Wire up the Rockchip 3D + multimedia stack on rk3588-family boards
+# running the vendor kernel, when a Wayland-capable desktop is being
+# installed. Two stages:
+#
+#   1. On noble specifically: add amazingfated's rockchip-multimedia
+#      PPA (ppa:liujianfeng1994/rockchip-multimedia), pin it at 1001,
+#      and pull the hardware-accelerated userspace —
+#      rockchip-multimedia-config, libv4l-rkmpp (V4L2 -> MPP codec
+#      plugin), libwidevinecdm0 (so Netflix/Spotify/DRM video
+#      actually plays), and chromium-browser (the PPA's rk3588-VPU +
+#      Widevine patched build, distinct from the stock `chromium`
+#      package). Pin priority 1001 is required to override
+#      apt.armbian.com and the Ubuntu archive.
+#
+#   2. On any non-legacy release: enable the panthor-gpu DT overlay.
+#      panthor-gpu is the Mesa panthor-kbase GPU driver overlay —
+#      required for hardware-accelerated GL / Vulkan / GBM on rk3588
+#      under Mesa + vendor kernel, unused (and ignored) elsewhere.
+#
+# Mirrors armbian/build's extensions/mesa-vpu.sh so a desktop
+# installed on top of a minimal image converges on the same state
+# an image-built desktop would have.
+#
+# Gating (both stages):
+#   - BOARDFAMILY rockchip-rk3588 / rk35xx, BRANCH=vendor.
+#   - Skip tier=minimal — neither the Mesa stack nor the GStreamer
+#     plugin has a consumer in minimal.
+#   - Skip xfce / i3-wm — X11-only, no GBM/Wayland path.
+#
+# Extra gating:
+#   - PPA stage: noble only. The PPA publishes against noble; on
+#     other releases the .debs would hit ABI mismatches.
+#   - Overlay stage: skip bookworm / bullseye / buster / focal /
+#     jammy — panthor kernel bits didn't land in a usable shape.
+#
+# BOARDFAMILY + BRANCH are globals set at configng init time by
+# module_env_init.sh (which sources /etc/armbian-release); present
+# in the chroot under mode=build because armbian-base-files is
+# installed before module_desktops. Overlay write is delegated to
+# module_devicetree_overlays (atomic temp+mv, .bak preserved,
+# validates name against the discovered .dtbo set, idempotent).
+#
+function _module_desktops_rockchip_multimedia() {
+	# Board/branch gate — shared by both stages.
+	if [[ ! "${BOARDFAMILY:-}" =~ ^(rockchip-rk3588|rk35xx)$ ]]; then
+		debug_log "_module_desktops_rockchip_multimedia: BOARDFAMILY='${BOARDFAMILY:-}' — not rk3588-family, skipping"
+		return 0
+	fi
+	if [[ "${BRANCH:-}" != "vendor" ]]; then
+		debug_log "_module_desktops_rockchip_multimedia: BRANCH='${BRANCH:-}' — not vendor, skipping"
+		return 0
+	fi
+
+	# Tier gate — minimal doesn't install the Mesa / GStreamer stack
+	# that would use any of this.
+	if [[ "${tier:-}" == "minimal" ]]; then
+		debug_log "_module_desktops_rockchip_multimedia: tier=minimal, skipping"
+		return 0
+	fi
+
+	# X11-only DEs — no Wayland compositor, no GBM path, and no
+	# chromium-in-Wayland benefit from the PPA build either.
+	case "${de:-}" in
+		xfce|i3-wm)
+			debug_log "_module_desktops_rockchip_multimedia: de=${de} is X11-only, skipping"
+			return 0
+		;;
+	esac
+
+	# ---------------------------------------------------------------
+	# Stage 1: amazingfated rockchip-multimedia PPA (noble only).
+	# ---------------------------------------------------------------
+	if [[ "${DISTROID:-}" == "noble" ]]; then
+		display_alert "Adding amazingfated's multimedia PPA" "liujianfeng1994/rockchip-multimedia" "info" 2>/dev/null \
+			|| echo "Adding amazingfated's multimedia PPA (liujianfeng1994/rockchip-multimedia)"
+
+		# add-apt-repository lives in software-properties-common —
+		# minimal images do not ship it. Pull it on demand; track
+		# via pkg_install so uninstall removes it.
+		if ! command -v add-apt-repository > /dev/null 2>&1; then
+			if ! pkg_install software-properties-common; then
+				echo "Warning: could not install software-properties-common; skipping rockchip-multimedia PPA" >&2
+				return 0
+			fi
+		fi
+
+		# --yes: non-interactive. --no-update: skip the implicit
+		# apt-get update — we run pkg_update ourselves once the pin
+		# is in place so the first resolution already sees priority
+		# 1001 for the PPA.
+		if ! DEBIAN_FRONTEND=noninteractive add-apt-repository --yes --no-update ppa:liujianfeng1994/rockchip-multimedia; then
+			echo "Warning: add-apt-repository ppa:liujianfeng1994/rockchip-multimedia failed; skipping multimedia packages" >&2
+			return 0
+		fi
+
+		# Pin the PPA above both apt.armbian.com and the Ubuntu
+		# archive. Priority 1001 is required (not 990) so the PPA's
+		# patched chromium can *replace* an already-installed
+		# apt.armbian.com chromium — a downgrade-across-origins that
+		# 990 would refuse.
+		display_alert "Pinning amazingfated's multimedia PPA" "priority 1001" "info" 2>/dev/null \
+			|| echo "Pinning amazingfated's multimedia PPA (priority 1001)"
+		local pin_file="/etc/apt/preferences.d/amazingfated-rk3588-rockchip-multimedia-pin"
+		local pin_tmp="${pin_file}.tmp"
+		if ! cat > "$pin_tmp" <<- EOF
+		Package: *
+		Pin: release o=LP-PPA-liujianfeng1994-rockchip-multimedia
+		Pin-Priority: 1001
+		EOF
+		then
+			echo "Warning: failed to write ${pin_tmp}; multimedia PPA left unpinned" >&2
+			rm -f "$pin_tmp"
+		elif ! mv "$pin_tmp" "$pin_file"; then
+			echo "Warning: failed to install ${pin_file}; multimedia PPA left unpinned" >&2
+			rm -f "$pin_tmp"
+		fi
+
+		# Refresh apt with the PPA now in sources + the pin in place.
+		pkg_update
+
+		# libv4l-0 must be installed BEFORE rockchip-multimedia-config
+		# — the latter's postinst expects the V4L2 userspace library to
+		# already be on the system. Mirrors the ordering in
+		# armbian/build's extensions/mesa-vpu.sh (separate apt-get
+		# install call before the rockchip-multimedia-* batch).
+		pkg_install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" libv4l-0 || \
+			echo "Warning: libv4l-0 install failed; rockchip-multimedia postinst may fail" >&2
+
+		# Install the Rockchip multimedia + Widevine stack. These
+		# packages all come from the PPA (except libwidevinecdm0 on
+		# arm64, which the PPA specifically republishes with a
+		# working arm64 binary). pkg_install tracks them in
+		# ACTUALLY_INSTALLED so uninstall removes them.
+		display_alert "Installing Rockchip multimedia + Widevine" "de=${de} tier=${tier}" "info" 2>/dev/null \
+			|| echo "Installing Rockchip multimedia + Widevine (de=${de} tier=${tier})"
+		pkg_install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" \
+			rockchip-multimedia-config libv4l-rkmpp libwidevinecdm0 chromium-browser || \
+			echo "Warning: rockchip multimedia package install failed (see above)" >&2
+
+		# /etc/chromium.d drop-in for EME-based streaming services.
+		# Debian's chromium launcher sources every file in this
+		# directory and accumulates $CHROMIUM_FLAGS before exec.
+		#
+		# 1. --enable-unsafe-swiftshader
+		#    Chromium 128+ removed the silent software WebGL fallback
+		#    (crbug.com/242999). Modern EME players — Netflix's
+		#    "Akira" client, Disney+, Amazon Prime Video — rely on a
+		#    working WebGL context for client-side init even when
+		#    hardware acceleration is otherwise present. Without an
+		#    explicit opt-in the context creation fails silently and
+		#    the player aborts with opaque errors (Netflix surfaces
+		#    it as error code E100). No-op when hardware WebGL works;
+		#    only matters as a fallback when the GPU sandbox rejects
+		#    the context.
+		#
+		# 2. --user-agent (ChromeOS spoof)
+		#    Netflix's Akira player is the only mainstream service
+		#    that rejects the legacy Linux UA server-side —
+		#    `osname=linux` is not on its supported-platform
+		#    whitelist regardless of arch, while `osname=cros`
+		#    (ChromeOS) is. Same workaround Raspberry Pi OS
+		#    hardcodes. Safe because Chromium 107+ already freezes
+		#    navigator.platform to "Linux x86_64" on every Linux
+		#    host (UA Reduction), and Netflix doesn't query
+		#    Sec-CH-UA-Arch via Accept-CH — so the fiction is
+		#    contained to the legacy UA string; Client Hints headers
+		#    and JS APIs keep reporting the real platform.
+		#
+		# IMPORTANT: the stock Chromium launcher (/usr/bin/chromium)
+		# applies word-splitting to $CHROMIUM_FLAGS and cannot pass a
+		# flag that contains spaces — which any valid User-Agent
+		# string does. Armbian ships a drop-in replacement wrapper at
+		# /usr/bin/chromium that execs via `eval` so quoted flags
+		# survive; the upstream wrapper is preserved via dpkg-divert
+		# at /usr/bin/chromium.upstream. This drop-in is only fully
+		# effective when that wrapper is in place.
+		local chromium_d="/etc/chromium.d"
+		local chromium_flags_file="${chromium_d}/armbian-rk3588-multimedia"
+		mkdir -p "$chromium_d"
+		if ! cat > "$chromium_flags_file" <<- 'EOF'
+		# Managed by armbian-config (module_desktops). Do not edit by hand.
+		# Enables WebGL software fallback and spoofs a ChromeOS UA so
+		# Netflix / Disney+ / Prime Video work on the PPA's rk3588
+		# chromium-browser build.
+		export CHROMIUM_FLAGS="$CHROMIUM_FLAGS --enable-unsafe-swiftshader"
+		export CHROMIUM_FLAGS="$CHROMIUM_FLAGS --user-agent=\"Mozilla/5.0 (X11; CrOS aarch64 15359.58.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36\""
+		EOF
+		then
+			echo "Warning: failed to write ${chromium_flags_file}; streaming services may not work in chromium-browser" >&2
+		fi
+	fi
+
+	# ---------------------------------------------------------------
+	# Stage 2: panthor-gpu DT overlay (any non-legacy release).
+	# ---------------------------------------------------------------
+	case "${DISTROID:-}" in
+		bookworm|bullseye|buster|focal|jammy)
+			debug_log "_module_desktops_rockchip_multimedia: release '${DISTROID}' predates usable panthor, skipping overlay"
+			return 0
+		;;
+	esac
+
+	# Delegate to the existing DT overlays module. It reads/writes
+	# /boot/armbianEnv.txt atomically, keeps a .bak, and silently
+	# no-ops if 'panthor-gpu' is already enabled. 'install' also
+	# validates the name against the .dtbo set discovered on the
+	# running / in-chroot system, so if the overlay isn't shipped
+	# (e.g. kernel without panthor), we get a loud error instead of
+	# a silently broken image.
+	display_alert "Enabling panthor-gpu DT overlay" "BOARDFAMILY=${BOARDFAMILY} BRANCH=vendor" "info" 2>/dev/null \
+		|| echo "Enabling panthor-gpu DT overlay (BOARDFAMILY=${BOARDFAMILY} BRANCH=vendor)"
+	module_devicetree_overlays install overlays=panthor-gpu || \
+		echo "Warning: failed to enable panthor-gpu overlay (see above)" >&2
+
+	return 0
+}
+
+#
+# Switch the host from systemd-networkd (the Armbian minimal image
+# baseline) to NetworkManager so the freshly-installed desktop's
+# NM-applet / Quick Settings tile actually control the network link.
+#
+# Armbian's build-time desktop images use armbian/build's
+# extensions/network/net-network-manager.sh to do this at image
+# assembly; a desktop installed after the fact on top of a minimal
+# image needs the same transition, but at runtime. This mirrors
+# those files exactly — same netplan renderer flip, same
+# NetworkManager conf.d drop-ins, same NetworkManager-wait-online
+# disable — so the two paths converge on the same end state.
+#
+# Idempotent. Safe to run on a system that is already on
+# NetworkManager (files overwrite to identical content, netplan
+# generate is a no-op). Safe to run in mode=build (skips the
+# netplan apply; the image's first boot will drive it).
+# Safe inside a container (skips apply + service start).
+#
+# Arguments: none. Uses SRC path via $desktops_dir for asset
+# resolution, same as module_desktop_branding.
+#
+#
+# Wire fprintd into PAM so fingerprint login / sudo / screen-unlock
+# works as soon as the user enrols a finger. libpam-fprintd installs
+# the PAM module but does NOT enable it by default - pam-auth-update
+# is the standard Debian/Ubuntu way to flip it on idempotently.
+#
+# Safe to call unconditionally: pam-auth-update is a no-op when the
+# fprintd module is already enabled, and libpam-fprintd's PAM
+# fragment falls back to password auth when no finger is enrolled,
+# so machines without a reader still log in normally.
+#
+# Also runs in build mode: the PAM stack is system-wide, so images
+# need it too. Skipped on hosts where the fprintd userspace did not
+# install (older releases / arches stripped via tier_overrides).
+#
+function _module_desktops_configure_fprintd() {
+	if ! command -v fprintd-enroll > /dev/null 2>&1; then
+		debug_log "_module_desktops_configure_fprintd: fprintd not installed, skipping"
+		return 0
+	fi
+	if ! command -v pam-auth-update > /dev/null 2>&1; then
+		debug_log "_module_desktops_configure_fprintd: pam-auth-update missing, skipping"
+		return 0
+	fi
+	debug_log "_module_desktops_configure_fprintd: enabling fprintd PAM module"
+	DEBIAN_FRONTEND=noninteractive pam-auth-update --enable fprintd 2> /dev/null || true
+}
+
+#
+# profile-sync-daemon (psd) copies the browser profiles back to disk when
+# the user session stops. Ubuntu's systemd caps that stop at 5 s
+# (user@.service.d/timeout.conf) and kills a longer copy-back, so the
+# profiles go through crash recovery at the next login. Raise the cap to
+# 60 s where that Ubuntu file exists; Debian keeps its 120 s default.
+# The "zz-" name sorts after Ubuntu's timeout.conf. See configng#1072.
+#
+# _module_desktops_configure_psd <mode> [user]
+#   With a user: psd 6.x mounts its overlays through psd-overlay-helper as
+#   root, so grant it in a sudoers drop-in. psd 7 and later have no helper
+#   and need no sudo.
+#
+function _module_desktops_configure_psd() {
+	local mode="${1:-}" user="${2:-}"
+	command -v psd > /dev/null 2>&1 || return 0
+
+	if [[ -f /usr/lib/systemd/system/user@.service.d/timeout.conf ]]; then
+		mkdir -p /etc/systemd/system/user@.service.d
+		cat > /etc/systemd/system/user@.service.d/zz-armbian-psd-timeout.conf <<- EOF
+			# Written by armbian-config: psd copies browser profiles back at logout.
+			[Service]
+			TimeoutStopSec=60
+		EOF
+		[[ "$mode" != "build" ]] && ! _desktop_in_container && systemctl daemon-reload 2> /dev/null
+	fi
+
+	[[ -n "$user" && -x /usr/bin/psd-overlay-helper ]] || return 0
+	local sudoers=/etc/sudoers.d/armbian-psd tmp uid
+	# Use the UID: sudo reads a user named ALL as all users.
+	uid="$(id -u "$user" 2> /dev/null)" || return 0
+	local rule="#${uid} ALL=(ALL) NOPASSWD: /usr/bin/psd-overlay-helper"
+	grep -qsxF -- "$rule" "$sudoers" && return 0
+	# sudo skips names with a dot, so the temporary file is never read.
+	tmp="$(mktemp /etc/sudoers.d/.armbian-psd.XXXXXX)" || return 0
+	# Keep the grants of other users. Stop if the file exists but cannot be read.
+	if [[ -e "$sudoers" ]] && ! cat "$sudoers" > "$tmp"; then
+		rm -f "$tmp"
+		return 0
+	fi
+	echo "$rule" >> "$tmp"
+	chmod 440 "$tmp"
+	if visudo -cqf "$tmp" > /dev/null 2>&1; then
+		mv "$tmp" "$sudoers"
+	else
+		rm -f "$tmp"
+	fi
+}
+
+function _module_desktops_configure_networking() {
+	local src_dir="${desktops_dir}/networking"
+	if [[ ! -d "$src_dir" ]]; then
+		debug_log "_module_desktops_configure_networking: no ${src_dir}, skipping"
+		return 0
+	fi
+
+	# NetworkManager binary must exist, otherwise the renderer flip
+	# would orphan the network. The minimal tier now declares
+	# network-manager in common.yaml so the pkg_install step already
+	# brought it in; this is a belt-and-suspenders check in case a
+	# YAML override ever drops it.
+	if ! command -v NetworkManager > /dev/null 2>&1; then
+		echo "Warning: NetworkManager binary not found; skipping netplan renderer flip" >&2
+		return 0
+	fi
+
+	# Drop the networkd-renderer netplan file shipped by minimal
+	# images. Leaving it in place next to our NetworkManager-renderer
+	# one makes `netplan generate` emit for both backends and the two
+	# race to claim each interface at boot.
+	if [[ -f /etc/netplan/10-dhcp-all-interfaces.yaml ]]; then
+		debug_log "_module_desktops_configure_networking: removing /etc/netplan/10-dhcp-all-interfaces.yaml (was networkd renderer)"
+		rm -f /etc/netplan/10-dhcp-all-interfaces.yaml
+	fi
+
+	# Install the NetworkManager-renderer netplan + NM conf.d drop-ins.
+	mkdir -p /etc/netplan /etc/NetworkManager/conf.d
+	cp "${src_dir}/netplan/00-default-use-network-manager.yaml" \
+		/etc/netplan/00-default-use-network-manager.yaml
+	chmod 600 /etc/netplan/00-default-use-network-manager.yaml
+
+	for conf in "${src_dir}"/NetworkManager/*.conf; do
+		[[ -f "$conf" ]] || continue
+		cp "$conf" "/etc/NetworkManager/conf.d/$(basename "$conf")"
+	done
+
+	# NetworkManager-wait-online holds boot for up to 90s waiting
+	# for carrier on every managed device — on a desktop with an
+	# unplugged Ethernet port that's 90s of visible "why is this so
+	# slow" at every boot. The NM tile in the DE catches up within
+	# seconds of login anyway.
+	srv_disable NetworkManager-wait-online.service 2>/dev/null || true
+
+	# systemd-networkd stays enabled (netplan needs it), but it manages
+	# no link after the renderer flip. Its wait-online then holds boot
+	# until the timeout of the minimal image's drop-in, and fails.
+	srv_disable systemd-networkd-wait-online.service 2>/dev/null || true
+
+	# systemd-resolved is typically already enabled on minimal images;
+	# ensure it stays that way. NetworkManager uses it as the DNS
+	# resolver/cache when /etc/resolv.conf points at the stub.
+	srv_enable systemd-resolved.service 2>/dev/null || true
+
+	# Build mode: don't apply. The image is offline; netplan will
+	# generate + apply on first boot via armbian-firstrun. We only
+	# laid the config files.
+	if [[ "$mode" == "build" ]]; then
+		debug_log "_module_desktops_configure_networking: mode=build, skipping netplan apply"
+		return 0
+	fi
+
+	# Container mode: no real network to flip, no systemd to drive
+	# NM. Just lay the files (done above) and exit.
+	if _desktop_in_container; then
+		debug_log "_module_desktops_configure_networking: in container, skipping netplan apply + NM start"
+		return 0
+	fi
+
+	# Live install. Regenerate netplan output and apply it. netplan
+	# apply stops systemd-networkd.service on interfaces it hands
+	# over to NetworkManager, so the user's current SSH session over
+	# those interfaces can stall briefly — that's expected.
+	if command -v netplan > /dev/null 2>&1; then
+		netplan generate 2>&1 || echo "Warning: netplan generate failed" >&2
+		netplan apply    2>&1 || echo "Warning: netplan apply failed" >&2
+	fi
+
+	# Make sure NM is enabled + started. On a minimal image the
+	# service was installed a moment ago and masked/not enabled by
+	# default on some distros; enabling + starting here is
+	# idempotent.
+	srv_enable NetworkManager.service 2>/dev/null || true
+	srv_start  NetworkManager.service 2>/dev/null || true
+
+	return 0
+}
+
+#
+# Detect whether desktop $de is installed. Returns 0 if so, 1 otherwise.
+# Layered to avoid the dpkg-only check misfiring when DEs share
+# packages (e.g. Bianbu's bianbu-desktop-minimal-en depends on
+# gnome-session, so a naive dpkg check would mark gnome as installed
+# on a Bianbu-only system and surface a "Uninstall GNOME" entry that
+# would actually nuke Bianbu's display stack).
+#
+#   1. /etc/armbian/desktop/<de>.tier exists → installed. The marker
+#      is written by `install` and removed by `remove`, so it tracks
+#      exactly what configng put on the system. Authoritative.
+#
+#   2. A different DE has its marker present → not installed. The
+#      other DE's marker is the tiebreaker against the dpkg fallback.
+#
+#   3. No markers anywhere AND dpkg shows DESKTOP_PRIMARY_PKG
+#      installed → legacy installs that pre-date the marker
+#      convention or were done with apt directly. Caller must have
+#      populated DESKTOP_PRIMARY_PKG via module_desktop_yamlparse.
+#
+function _module_desktops_is_installed() {
+	local de="$1"
+	[[ -n "$de" ]] || return 1
+	# Layer 1
+	if [[ -f "/etc/armbian/desktop/${de}.tier" ]]; then
+		return 0
+	fi
+	# Layer 2 — any other DE's marker means dpkg is unsafe
+	local m
+	for m in /etc/armbian/desktop/*.tier; do
+		[[ -f "$m" ]] || continue
+		return 1
+	done
+	# Layer 3 — legacy dpkg fallback
+	[[ -n "${DESKTOP_PRIMARY_PKG:-}" ]] || return 1
+	dpkg -l "$DESKTOP_PRIMARY_PKG" 2>/dev/null | grep -q "^ii"
+}
+
+#
+# Module to install and manage desktop environments (YAML-driven)
+#
+function module_desktops() {
+
+	local de=""
+	local query_arch=""
+	local query_release=""
+	local tier=""
+	local mode=""
+	local filter=""
+	local status=""
+	local selected
+	for selected in "${@:2}"; do
+		IFS='=' read -r -a split <<< "${selected}"
+		[[ "${split[0]}" == "de" ]] && de="${split[1]}"
+		[[ "${split[0]}" == "arch" ]] && query_arch="${split[1]}"
+		[[ "${split[0]}" == "release" ]] && query_release="${split[1]}"
+		[[ "${split[0]}" == "tier" ]] && tier="${split[1]}"
+		[[ "${split[0]}" == "mode" ]] && mode="${split[1]}"
+		[[ "${split[0]}" == "filter" ]] && filter="${split[1]}"
+		[[ "${split[0]}" == "status" ]] && status="${split[1]}"
+	done
+
+	local commands
+	IFS=' ' read -r -a commands <<< "${module_options["module_desktops,example"]}"
+
+	case "$1" in
+		"${commands[0]}")
+			# install
+			if [[ -z "$de" ]]; then
+				local available=$(module_desktop_yamlparse_list | cut -f1 | tr '\n' ', ' | sed 's/,$//')
+				echo "Error: specify de=name. Available: ${available}" >&2
+				return 1
+			fi
+
+			# tier= is required. The YAML schema has no flat default
+			# packages list anymore — every install picks one of
+			# minimal/mid/full and the parser refuses to run without
+			# --tier. Reject early with a clear message instead of
+			# letting the parser bail with a generic usage error.
+			if [[ -z "$tier" ]]; then
+				echo "Error: specify tier=minimal|mid|full" >&2
+				return 1
+			fi
+			case "$tier" in
+				minimal|mid|full) ;;
+				*)
+					echo "Error: invalid tier '${tier}', must be one of minimal|mid|full" >&2
+					return 1
+				;;
+			esac
+
+			# mode=build: image-build time — no real user exists yet
+			# (armbian-firstrun creates the first user on first boot).
+			# Skip user detection, group membership, skel propagation,
+			# and DM start/autologin. Package install, branding, repos,
+			# apt pin, and manifest recording run in both modes.
+			local user=""
+			if [[ "$mode" != "build" ]]; then
+				user=$(module_desktop_getuser) || return 1
+			fi
+
+			module_desktop_yamlparse "$de" "$(dpkg --print-architecture)" "$DISTROID" "$tier" || return 1
+
+			if [[ -z "$DESKTOP_PACKAGES" || -z "$DESKTOP_PRIMARY_PKG" ]]; then
+				echo "Error: YAML definition for '${de}' tier '${tier}' has no packages" >&2
+				return 1
+			fi
+
+			if [[ "$DESKTOP_AVAILABLE" != "yes" ]]; then
+				echo "Warning: '${de}' is not supported on ${DISTROID}/$(dpkg --print-architecture)" >&2
+			fi
+
+			# Suppress interactive prompts during automated installation:
+			#   - pkg_install / apt_operation_progress handle DEBIAN_FRONTEND=noninteractive
+			#     internally to prevent apt/dpkg prompts (works in chroot and build envs)
+			#   - `--force-confdef --force-confold` on pkg_install (below): when a
+			#     conffile differs from both the shipped version AND any local edit,
+			#     dpkg normally prompts "keep / replace / diff / shell". These flags
+			#     say "always pick the default (=keep local)" silently. Without
+			#     `--force-confdef`, `--force-confold` alone still prompts when both
+			#     sides have diverged.
+			#   - debconf-set-selections pre-seeds known interactive package questions:
+			#     the `code` (Microsoft VSCode) postinst asks about adding Microsoft's
+			#     apt repo — say no, apt.armbian.com already hosts code and a parallel
+			#     source would race against our pin.
+			debconf-set-selections 2>/dev/null <<- 'EOF' || true
+			encfs encfs/security-information boolean true
+			code code/add-microsoft-repo boolean false
+			EOF
+
+			# set up custom repo if needed
+			if ! module_desktop_repo "$de"; then
+				echo "Error: failed to set up repository for '${de}', aborting install" >&2
+				return 1
+			fi
+
+			# Install the apt pin BEFORE pkg_update / pkg_install so apt
+			# resolves the desktop package list with apt.armbian.com .debs
+			# winning over Ubuntu's snap-transitional packages. Non-fatal:
+			# the install continues even if the pin write fails.
+			_module_desktops_write_apt_pin || true
+
+			# update package list
+			pkg_update
+
+			# Reset the install tracker before invoking pkg_install. pkg_install
+			# does an `apt-get -s install` dry-run and appends the resulting
+			# list of packages-to-be-newly-installed to ACTUALLY_INSTALLED.
+			# We persist this list below so that uninstall can remove the
+			# exact set we added without touching pre-existing packages
+			# (#799 design — restored after #815 dropped the persistence).
+			ACTUALLY_INSTALLED=()
+
+			# install packages. Bail out on failure: half-installing
+			# a desktop and then flipping default.target to graphical
+			# leaves the next boot pinned to a graphical target with
+			# no working DM, which is a black-screen regression.
+			#
+			# --allow-downgrades is required for DEs whose per-DE pin
+			# (written by module_desktop_repo above) outranks the distro
+			# at priority >1000 — the whole point of those pins is to
+			# pull packages from a vendor archive even when the distro
+			# ships a *newer* version. Without --allow-downgrades, apt
+			# refuses with "Packages were downgraded and -y was used
+			# without --allow-downgrades" and the install aborts.
+			# Bianbu / SpacemiT K1 hits this with libdrm pulled from
+			# archive.spacemit.com. Flag is a no-op for DEs without a
+			# pin, since apt only picks a downgrade when explicitly
+			# directed to.
+			# A release block can ask for Recommends and keep out packages
+			# that they pull in (DESKTOP_INSTALL_RECOMMENDS,
+			# DESKTOP_PACKAGES_EXCLUDE). apt reads "pkg-" as "do not install".
+			local apt_extra=()
+			# Say it explicitly: image builds install the desktop before the
+			# BSP package turns Recommends off in the apt config.
+			if [[ "$DESKTOP_INSTALL_RECOMMENDS" == "yes" ]]; then
+				apt_extra+=(--install-recommends)
+			else
+				apt_extra+=(--no-install-recommends)
+			fi
+			local exclude
+			for exclude in $DESKTOP_PACKAGES_EXCLUDE; do
+				apt_extra+=("${exclude}-")
+			done
+			# Packages from the Armbian repository only. Skip them when apt has no
+			# candidate: no Armbian source, or the repository does not have them yet.
+			local -a desktop_packages=()
+			local pkg
+			for pkg in ${DESKTOP_PACKAGES}; do
+				if [[ "$pkg" == update-manager || "$pkg" == software-properties-gtk ]] && ! apt-cache show "$pkg" > /dev/null 2>&1; then
+					echo "Warning: ${pkg} is not in the configured repositories; skipping it" >&2
+					continue
+				fi
+				desktop_packages+=("$pkg")
+			done
+			if ! pkg_install --allow-downgrades -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" "${apt_extra[@]}" "${desktop_packages[@]}"; then
+				echo "Error: ${de} package install failed; aborting before any system state is changed" >&2
+				return 1
+			fi
+			# apt gets AppStream metadata only when the appstream package is installed.
+			# Refresh now, so Discover and GNOME Software list the applications at the first start.
+			pkg_update || true
+
+			# install and register display manager
+			if [[ -n "$DESKTOP_DM" && "$DESKTOP_DM" != "none" ]]; then
+				if ! pkg_install --allow-downgrades -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" "$DESKTOP_DM"; then
+					echo "Error: ${DESKTOP_DM} install failed; aborting before flipping systemd target" >&2
+					return 1
+				fi
+				command -v "$DESKTOP_DM" > /etc/X11/default-display-manager 2>/dev/null || true
+
+				# In build mode, disable services that package postinst
+				# auto-enabled. The firstrun script re-enables the DM
+				# after initial user setup completes; psd is activated
+				# per-user via ~/.activate_psd at runtime.
+				if [[ "$mode" == "build" ]]; then
+					srv_disable "$DESKTOP_DM" 2>/dev/null || true
+					srv_disable display-manager 2>/dev/null || true
+					srv_disable psd.service 2>/dev/null || true
+				fi
+			fi
+
+			# Armbian-only branding extras: install only when the Armbian
+			# apt source is configured AND we're running on a live system
+			# (mode != build). armbian-plymouth-theme lives in Armbian's
+			# own repo; on a non-Armbian system the apt install would
+			# hard-fail with "Unable to locate package" and abort the
+			# entire desktop install. At image-build time (mode=build)
+			# the armbian/build framework installs this package directly
+			# from the locally-built .deb artifact — no apt fetch needed
+			# — so skip it here to avoid racing the build framework.
+			# Match either the legacy single-line .list file or the modern
+			# deb822 .sources file.
+			if [[ "$mode" != "build" ]] && { [[ -f /etc/apt/sources.list.d/armbian.list ]] \
+				|| [[ -f /etc/apt/sources.list.d/armbian.sources ]]; }; then
+				pkg_install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" armbian-plymouth-theme || \
+					echo "Warning: armbian-plymouth-theme not installed (package not found in armbian repo)" >&2
+			fi
+
+			# Save the install manifest for uninstall to consume.
+			# Don't truncate an existing manifest if this run added nothing
+			# new (e.g. a re-install of an already-installed DE at the
+			# same tier) — keeping the previous manifest is more useful
+			# than overwriting it with an empty file that would make
+			# uninstall a no-op.
+			mkdir -p /etc/armbian/desktop
+			if [[ ${#ACTUALLY_INSTALLED[@]} -gt 0 ]]; then
+				printf '%s\n' "${ACTUALLY_INSTALLED[@]}" > "/etc/armbian/desktop/${de}.packages"
+				debug_log "module_desktops install: wrote ${#ACTUALLY_INSTALLED[@]} packages to /etc/armbian/desktop/${de}.packages"
+			fi
+			# Always write the tier marker file. This is the source of
+			# truth for `module_desktops status` and for the upgrade /
+			# downgrade commands' "what's currently installed" check.
+			# Written even when ACTUALLY_INSTALLED is empty (re-install
+			# at the same tier) so the marker stays accurate.
+			printf '%s\n' "$tier" > "/etc/armbian/desktop/${de}.tier"
+			debug_log "module_desktops install: wrote tier=${tier} to /etc/armbian/desktop/${de}.tier"
+
+			# remove unwanted packages
+			if [[ -n "$DESKTOP_PACKAGES_UNINSTALL" ]]; then
+				pkg_remove ${DESKTOP_PACKAGES_UNINSTALL} 2>/dev/null || true
+			fi
+
+			# install branding
+			module_desktop_branding "$de"
+
+			# Flip netplan renderer from systemd-networkd to
+			# NetworkManager. On a minimal-image base the baseline
+			# is systemd-networkd; the desktop's NM-applet / Quick
+			# Settings tile needs NM to be driving the link,
+			# otherwise the UI shows an always-disconnected state
+			# even though the machine is online.
+			_module_desktops_configure_networking
+
+			# Enable fprintd in PAM so fingerprint login works once
+			# the user enrols a finger via `fprintd-enroll`. Inert on
+			# hosts without a reader (libpam-fprintd falls back to
+			# password) and on tiers/arches that stripped fprintd.
+			_module_desktops_configure_fprintd
+
+			# Give psd time to copy the browser profiles back at logout.
+			_module_desktops_configure_psd "$mode"
+
+			# Wire up the Rockchip 3D + multimedia stack on
+			# rk3588-family / vendor-kernel boards: panthor-gpu DT
+			# overlay (Mesa GBM path), and — on noble — the
+			# amazingfated multimedia PPA with its hardware-
+			# accelerated chromium, gstreamer plugins, libv4l-rkmpp,
+			# and libwidevinecdm0. No-op on every other board /
+			# branch / release / tier / DE combination. Mirrors
+			# armbian/build's extensions/mesa-vpu.sh.
+			_module_desktops_rockchip_multimedia
+
+			# add user to desktop groups
+			# User-specific setup: group membership, skel propagation,
+			# display manager start + autologin. Skipped in build mode
+			# because no real user exists at image-build time — the
+			# first user inherits /etc/skel at creation via useradd,
+			# and the build framework manages DM state separately.
+			if [[ "$mode" != "build" ]]; then
+				for group in sudo netdev audio video dialout plugdev input bluetooth systemd-journal ssh; do
+					usermod -aG "$group" "$user" 2>/dev/null || true
+				done
+
+				# set up profile sync daemon
+				local user_home
+				user_home=$(getent passwd "$user" | cut -d: -f6)
+				if command -v psd > /dev/null 2>&1; then
+					_module_desktops_configure_psd "$mode" "$user"
+					touch "${user_home}/.activate_psd"
+				fi
+
+				# update skel to existing users
+				module_update_skel install
+
+				# display manager and auto-login (skip in containers).
+				# Only flip default.target to graphical AFTER the DM has
+				# actually started — if the start fails, the next boot
+				# would otherwise pin to graphical.target with a broken
+				# DM and the user gets a black screen.
+				if ! _desktop_in_container; then
+					for dm in gdm3 lightdm sddm; do
+						systemctl is-active --quiet "$dm" 2>/dev/null && systemctl stop "$dm" 2>/dev/null
+					done
+					if systemctl start display-manager 2>/dev/null \
+						|| systemctl start "$DESKTOP_DM" 2>/dev/null; then
+						systemctl set-default graphical.target 2>/dev/null || true
+						module_desktops auto de="$de"
+					else
+						echo "Warning: ${DESKTOP_DM} did not start; leaving default.target unchanged" >&2
+					fi
+				fi
+			fi
+
+			unset _DESKTOPS_INSTALLED_CACHE
+			echo "${de} installed."
+		;;
+
+		"${commands[1]}")
+			# remove
+			if [[ -z "$de" ]]; then
+				echo "Error: specify de=name" >&2
+				return 1
+			fi
+
+			# Read the installed tier from the marker file so the
+			# YAML fallback (when the manifest is missing) walks the
+			# right tier's package list. Default to 'minimal' if no
+			# marker exists, which is the safest fallback for the
+			# pre-tier era.
+			local installed_tier="minimal"
+			if [[ -f "/etc/armbian/desktop/${de}.tier" ]]; then
+				installed_tier=$(< "/etc/armbian/desktop/${de}.tier")
+			fi
+			module_desktop_yamlparse "$de" "$(dpkg --print-architecture)" "$DISTROID" "$installed_tier" || return 1
+
+			# disable auto-login
+			module_desktops manual de="$de" 2>/dev/null
+
+			# Stop display manager and switch the default systemd
+			# target back to multi-user. Without this step, the next
+			# boot still tries to reach graphical.target — but the
+			# display manager is about to be purged below, so the
+			# system arrives at graphical.target with no DM, no
+			# getty@tty1 (it Conflicts= with display-manager), and
+			# the user gets a black tty1 with no login prompt.
+			# Switching to multi-user.target now means the next boot
+			# brings up the regular console login regardless.
+			#
+			# Isolate to multi-user.target on the running session so
+			# the user gets a console prompt on tty1 immediately
+			# after the uninstall, without needing to reboot first.
+			# Starting getty@tty1.service on its own does not work
+			# while graphical.target is still active, hence isolate.
+			# isolate is destructive (kills any open GUI sessions),
+			# but we are tearing down the GUI anyway.
+			if ! _desktop_in_container; then
+				systemctl stop display-manager 2>/dev/null || true
+				systemctl set-default multi-user.target 2>/dev/null || true
+				systemctl isolate multi-user.target 2>/dev/null || true
+			fi
+
+			# Remove the exact set of packages that were newly installed by
+			# the install path. This list was captured at install time from
+			# `apt-get -s install` and saved to /etc/armbian/desktop/<de>.packages
+			# by the install branch below — see #799 for the original design.
+			# It correctly excludes packages that were already on the system
+			# before the desktop install (so we don't yank shared deps).
+			local desktop_pkg_file="/etc/armbian/desktop/${de}.packages"
+			local to_remove=() pkg
+			if [[ -f "$desktop_pkg_file" ]]; then
+				while IFS= read -r pkg; do
+					[[ -z "$pkg" ]] && continue
+					to_remove+=("$pkg")
+				done < "$desktop_pkg_file"
+			else
+				# Fallback for desktops installed before the tracking file
+				# existed: walk the YAML package list, keeping only what's
+				# currently installed. This is less precise (it can keep
+				# packages the system had pre-install) but it's the best we
+				# can do without the manifest.
+				echo "Warning: no install manifest at ${desktop_pkg_file}, falling back to YAML package list" >&2
+				for pkg in $DESKTOP_PACKAGES $DESKTOP_DM; do
+					[[ "$pkg" == "none" ]] && continue
+					if dpkg-query -W -f='${Status}\n' "$pkg" 2>/dev/null | grep -q "install ok installed"; then
+						to_remove+=("$pkg")
+					fi
+				done
+			fi
+
+			if [[ ${#to_remove[@]} -gt 0 ]]; then
+				# Straight purge — do NOT use pkg_remove (which does
+				# `apt-get autopurge`). autopurge adds an orphan-cleanup
+				# cascade on top of the removal: on fresh noble/trixie
+				# images several t64-renamed libs (libext2fs2t64, libss2,
+				# logsave) are marked auto-installed, and once the DE is
+				# gone nothing manual depends on them — so apt proposes
+				# to orphan-remove the whole chain, which transitively
+				# reaches e2fsprogs (Essential). apt 2.9+/solver 3.0
+				# vetoes the transaction:
+				#   E: Essential packages were removed and -y was used
+				#      without --allow-remove-essential.
+				# Nothing actually gets removed and the DE is left fully
+				# installed. The manifest already lists every package
+				# the matching install added, so a plain purge (no
+				# cascade) is both sufficient and safe.
+				#
+				# Essential filter: some base images (notably
+				# armbian/repository-update:*-armhf/*-arm64 built from
+				# debian-slim) ship *without* e2fsprogs pre-installed.
+				# A desktop that pulls in dracut-install or
+				# gnome-disk-utility transitively installs e2fsprogs
+				# during `install`, which then lands in the manifest.
+				# Purging it is what triggers the 'Essential packages
+				# will be removed' refusal. Simulate the purge, pull
+				# any packages apt flags as essential-breaking out of
+				# the list, and run the real purge without them. These
+				# packages weren't added by the user's choice of DE —
+				# they were holes in the base image — so leaving them
+				# in place is the correct outcome.
+				local essentials=()
+				mapfile -t essentials < <(
+					DEBIAN_FRONTEND=noninteractive apt-get -s -y purge "${to_remove[@]}" 2>&1 | \
+					awk '
+						/^WARNING: The following essential packages/ { capture=1; next }
+						/^This should NOT be done/ { next }
+						capture && /^[^[:space:]]/ { capture=0 }
+						capture {
+							gsub(/\(due to [^)]*\)/, "")
+							for (i=1;i<=NF;i++) print $i
+						}
+					'
+				)
+				if [[ ${#essentials[@]} -gt 0 ]]; then
+					echo "Warning: skipping packages apt flagged as essential-breaking: ${essentials[*]}" >&2
+					local filtered=() essential
+					for pkg in "${to_remove[@]}"; do
+						local skip=0
+						for essential in "${essentials[@]}"; do
+							if [[ "$pkg" == "$essential" ]]; then skip=1; break; fi
+						done
+						(( skip == 0 )) && filtered+=("$pkg")
+					done
+					to_remove=("${filtered[@]}")
+				fi
+
+				# On failure, keep the manifest so the next `remove`
+				# call retries against the same list instead of falling
+				# into the less-precise YAML-walk path.
+				if [[ ${#to_remove[@]} -gt 0 ]]; then
+					if ! DEBIAN_FRONTEND=noninteractive apt-get -y purge "${to_remove[@]}"; then
+						echo "Error: package purge failed for ${de}; manifest preserved at ${desktop_pkg_file} for retry" >&2
+						return 1
+					fi
+				fi
+			fi
+			rm -f "$desktop_pkg_file" "/etc/armbian/desktop/${de}.tier"
+
+			# APT pin preferences written by module_desktop_repo apply
+			# to all packages on the system, not just the DE's — leaving
+			# the file behind would keep a third-party archive outranking
+			# the distro even after the DE is gone. Drop it on uninstall.
+			if [[ "$de" =~ ^[a-zA-Z0-9._-]+$ ]]; then
+				rm -f "/etc/apt/preferences.d/${de}"
+			fi
+
+			# Drop the amazingfated rockchip-multimedia PPA pin written
+			# by _module_desktops_rockchip_multimedia. Pin priority 1001
+			# overrides the distro for *every* package on the system,
+			# not just the DE's — leaving it behind after the multimedia
+			# packages are gone would keep the PPA outranking the
+			# archive on the next unrelated apt upgrade. Safe to rm
+			# unconditionally: the file is absent when the DE had no
+			# PPA stage (non-noble, non-rk3588, tier=minimal, etc.).
+			rm -f /etc/apt/preferences.d/amazingfated-rk3588-rockchip-multimedia-pin
+
+			# Drop the /etc/chromium.d streaming drop-in written by
+			# _module_desktops_rockchip_multimedia. The spoofed
+			# ChromeOS User-Agent applies to ANY chromium launch, not
+			# just the PPA-patched build — if the desktop is being
+			# removed, the user is almost certainly done with that
+			# customisation too. Safe to rm unconditionally.
+			rm -f /etc/chromium.d/armbian-rk3588-multimedia
+
+			# Drop the psd stop timeout and sudoers drop-ins written by
+			# _module_desktops_configure_psd.
+			rm -f /etc/systemd/system/user@.service.d/zz-armbian-psd-timeout.conf /etc/sudoers.d/armbian-psd \
+				/etc/sudoers.d/armbian-firstlogin-psd
+			# Older installs appended the psd grant to /etc/sudoers.
+			if grep -qs 'NOPASSWD: /usr/bin/psd-overlay-helper$' /etc/sudoers; then
+				local sudoers_tmp
+				sudoers_tmp="$(mktemp /etc/.sudoers.XXXXXX)" &&
+					sed '\|^[[:alnum:]_][[:alnum:]._-]* ALL=(ALL) NOPASSWD: /usr/bin/psd-overlay-helper$|d' /etc/sudoers > "$sudoers_tmp" &&
+					chmod 440 "$sudoers_tmp" && visudo -cqf "$sudoers_tmp" > /dev/null 2>&1 &&
+					mv "$sudoers_tmp" /etc/sudoers
+				rm -f "$sudoers_tmp"
+			fi
+
+			# Reclaim disk space: clear apt's downloaded .deb cache. A full
+			# DE removal frees hundreds of MB of installed files; the
+			# matching .deb archives in /var/cache/apt/archives are no
+			# longer needed and would otherwise just sit there.
+			pkg_clean
+
+			unset _DESKTOPS_INSTALLED_CACHE
+			echo "${de} removed."
+		;;
+
+		"${commands[2]}")
+			# disable
+			systemctl stop display-manager 2>/dev/null || true
+			systemctl disable display-manager 2>/dev/null || true
+		;;
+
+		"${commands[3]}")
+			# enable
+			systemctl enable display-manager 2>/dev/null || true
+			systemctl start display-manager 2>/dev/null || true
+		;;
+
+		"${commands[4]}")
+			# status — pure exit-code query. Returns 0 if the desktop
+			# is installed, 1 if not. SILENT on both paths: this
+			# command runs from every dialog menu entry's `condition`
+			# field, dozens of times per menu render, and any stdout
+			# output leaks into the dialog. To get the installed
+			# tier name, use the `tier` command instead.
+			if [[ -z "$de" ]]; then
+				echo "Error: specify de=name" >&2
+				return 1
+			fi
+			module_desktop_yamlparse "$de" || return 1
+			_module_desktops_is_installed "$de"
+		;;
+
+		"${commands[5]}")
+			# auto-login
+			if [[ -z "$de" ]]; then echo "Error: specify de=name" >&2; return 1; fi
+			local user
+			user=$(module_desktop_getuser) || return 1
+			module_desktop_yamlparse "$de" || return 1
+
+			case "$DESKTOP_DM" in
+				gdm3)
+					mkdir -p /etc/gdm3
+					# gdm3 has NO conf.d drop-in support upstream or
+					# in Debian/Ubuntu patches: it loads exactly one
+					# file. So we have to edit it in place. The file
+					# is /etc/gdm3/daemon.conf on Debian (any release)
+					# and /etc/gdm3/custom.conf on Ubuntu — branch on
+					# /etc/os-release ID=, not on release codename.
+					local gdm_conf="/etc/gdm3/daemon.conf"
+					if [[ -f /etc/os-release ]] && grep -q '^ID=ubuntu' /etc/os-release; then
+						gdm_conf="/etc/gdm3/custom.conf"
+					fi
+					# Idempotent in-place edit of the [daemon] section.
+					# Preserves any other sections / settings the user
+					# may have customized.
+					if [[ ! -f "$gdm_conf" ]]; then
+						cat > "$gdm_conf" <<- EOF
+						[daemon]
+						AutomaticLoginEnable = true
+						AutomaticLogin = ${user}
+						EOF
+					else
+						# Make sure [daemon] section exists.
+						grep -q '^\[daemon\]' "$gdm_conf" || \
+							printf '\n[daemon]\n' >> "$gdm_conf"
+						# Update or insert AutomaticLoginEnable.
+						if grep -q '^AutomaticLoginEnable' "$gdm_conf"; then
+							sed -i 's/^AutomaticLoginEnable.*/AutomaticLoginEnable = true/' "$gdm_conf"
+						else
+							sed -i '/^\[daemon\]/a AutomaticLoginEnable = true' "$gdm_conf"
+						fi
+						# Update or insert AutomaticLogin.
+						if grep -q '^AutomaticLogin\b' "$gdm_conf"; then
+							sed -i "s/^AutomaticLogin\b.*/AutomaticLogin = ${user}/" "$gdm_conf"
+						else
+							sed -i "/^\[daemon\]/a AutomaticLogin = ${user}" "$gdm_conf"
+						fi
+					fi
+				;;
+				sddm)
+					mkdir -p /etc/sddm.conf.d
+					cat > /etc/sddm.conf.d/autologin.conf <<- EOF
+					[Autologin]
+					User=${user}
+					EOF
+					# Without Session= SDDM can start another installed session.
+					if [[ -n "$DESKTOP_SESSION" ]]; then
+						echo "Session=${DESKTOP_SESSION}.desktop" >> /etc/sddm.conf.d/autologin.conf
+					fi
+				;;
+				lightdm)
+					# map DE name to actual xsession file in /usr/share/xsessions/
+					local session="$de"
+					[[ "$session" == "i3-wm" ]] && session="i3"
+					mkdir -p /etc/lightdm/lightdm.conf.d
+					cat > /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf <<- EOF
+					[Seat:*]
+					autologin-user=${user}
+					autologin-user-timeout=0
+					user-session=${session}
+					EOF
+				;;
+			esac
+			_desktop_in_container || systemctl restart display-manager 2>/dev/null || true
+		;;
+
+		"${commands[6]}")
+			# manual login (disable auto-login)
+			if [[ -z "$de" ]]; then echo "Error: specify de=name" >&2; return 1; fi
+			module_desktop_yamlparse "$de" || return 1
+
+			case "$DESKTOP_DM" in
+				gdm3)
+					# Match any whitespace around the '=' so we don't
+					# care whether the file has 'Enable=true' or
+					# 'Enable = true'.
+					for f in /etc/gdm3/custom.conf /etc/gdm3/daemon.conf; do
+						[[ -f "$f" ]] || continue
+						sed -i -E 's/^(AutomaticLoginEnable)[[:space:]]*=.*/\1 = false/' "$f"
+					done
+				;;
+				sddm)    rm -f /etc/sddm.conf.d/autologin.conf ;;
+				lightdm) rm -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ;;
+			esac
+			_desktop_in_container || systemctl restart display-manager 2>/dev/null || true
+		;;
+
+		"${commands[7]}")
+			# login status (check auto-login)
+			if [[ -z "$de" ]]; then echo "Error: specify de=name" >&2; return 1; fi
+			module_desktop_yamlparse "$de" || return 1
+
+			case "$DESKTOP_DM" in
+				gdm3)
+					# Anchor at the line start so the stock custom.conf
+					# template's commented sample line
+					#   #  AutomaticLoginEnable = true
+					# does not match. The previous unanchored regex
+					# returned 0 (autologin enabled) on every fresh
+					# noble install where the user had never touched
+					# autologin, because the substring 'AutomaticLoginEnable
+					# = true' was present inside the comment.
+					grep -qE '^AutomaticLoginEnable[[:space:]]*=[[:space:]]*true' \
+						/etc/gdm3/custom.conf /etc/gdm3/daemon.conf 2>/dev/null && return 0
+				;;
+				sddm)    [[ -f /etc/sddm.conf.d/autologin.conf ]] && return 0 ;;
+				lightdm) [[ -f /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf ]] && return 0 ;;
+			esac
+			return 1
+		;;
+
+		"${commands[8]}")
+			# supported
+			local use_arch="${query_arch:-$(dpkg --print-architecture)}"
+			local use_release="${query_release:-$DISTROID}"
+
+			if [[ -z "$de" ]]; then
+				local yaml_dir="${desktops_dir}/yaml"
+				local parser="${desktops_dir}/scripts/parse_desktop_yaml.py"
+				local -a parser_args=("$yaml_dir" "--list-json" "$use_release" "$use_arch")
+				if [[ -n "$filter" ]]; then
+					case "$filter" in
+						available|unavailable|all) parser_args+=(--filter "$filter") ;;
+						*)
+							echo "Error: invalid filter '${filter}', must be available|unavailable|all" >&2
+							return 1
+						;;
+					esac
+				fi
+				if [[ -n "$status" ]]; then
+					# comma-separated keep-list of status values
+					# (supported, community, unsupported).
+					local _s _bad=0
+					IFS=',' read -r -a _s <<< "$status"
+					for _v in "${_s[@]}"; do
+						case "$_v" in
+							supported|community|unsupported) ;;
+							*) _bad=1; break ;;
+						esac
+					done
+					if (( _bad )); then
+						echo "Error: invalid status '${status}', must be CSV of supported|community|unsupported" >&2
+						return 1
+					fi
+					parser_args+=(--status "$status")
+				fi
+				local result
+				result=$(python3 "$parser" "${parser_args[@]}")
+				echo "$result"
+				[[ "$result" == "[]" ]] && return 1
+				return 0
+			fi
+
+			module_desktop_supported "$de" "$use_arch" "$use_release" && echo "true" && return 0
+			echo "false"
+			return 1
+		;;
+
+		"${commands[9]}")
+			# installed — returns 0 if any known desktop is installed.
+			# Cached in _DESKTOPS_INSTALLED_CACHE for the lifetime of one armbian-config
+			# session so the menu condition can be re-evaluated cheaply per render.
+			# Cache is invalidated by `install` and `remove` below.
+			if [[ -n "${_DESKTOPS_INSTALLED_CACHE-}" ]]; then
+				[[ "$_DESKTOPS_INSTALLED_CACHE" == "yes" ]]
+				return $?
+			fi
+			local yaml_dir="${desktops_dir}/yaml"
+			local parser="${desktops_dir}/scripts/parse_desktop_yaml.py"
+			local primaries pkgs
+			primaries=$(python3 "$parser" "$yaml_dir" --primaries "$DISTROID" "$(dpkg --print-architecture)" 2>/dev/null) || {
+				_DESKTOPS_INSTALLED_CACHE=no
+				return 1
+			}
+			# Collapse '<name>\t<pkg>\n...' to a space-separated package list
+			pkgs=$(awk -F'\t' '{print $2}' <<< "$primaries" | tr '\n' ' ')
+			if [[ -n "${pkgs// /}" ]] && dpkg-query -W -f='${Status}\n' $pkgs 2>/dev/null | grep -q "install ok installed"; then
+				_DESKTOPS_INSTALLED_CACHE=yes
+				return 0
+			fi
+			_DESKTOPS_INSTALLED_CACHE=no
+			return 1
+		;;
+
+		"${commands[10]}")
+			show_module_help "module_desktops" "Desktops" \
+				"Examples:\n  module_desktops install de=xfce tier=minimal\n  module_desktops install de=gnome tier=full\n  module_desktops upgrade de=xfce tier=mid\n  module_desktops downgrade de=xfce tier=minimal\n  module_desktops status de=xfce\n  module_desktops supported arch=arm64 release=trixie\n  module_desktops supported arch=arm64 release=trixie filter=all\n  module_desktops supported arch=riscv64 release=noble status=supported,community" "native"
+		;;
+
+		"${commands[11]}")
+			# upgrade — install the delta from the currently
+			# installed tier up to a higher target tier. Refuses
+			# to "upgrade" to the same or a lower tier (use the
+			# downgrade command for that).
+			_module_desktops_change_tier upgrade "$de" "$tier"
+			return $?
+		;;
+
+		"${commands[12]}")
+			# downgrade — remove the delta from the currently
+			# installed tier down to a lower target tier. The
+			# removable set is intersected with the install
+			# manifest so packages the user installed manually
+			# (outside the desktop install path) are never
+			# touched.
+			_module_desktops_change_tier downgrade "$de" "$tier"
+			return $?
+		;;
+
+		"${commands[13]}")
+			# tier — value-returning getter, separate from
+			# `status` which is a silent exit-code query. Prints
+			# the installed tier name (minimal/mid/full) on
+			# stdout, or "not installed" if no marker file
+			# exists. Returns 0 if installed, 1 if not.
+			# Use this from the CLI when you want the actual
+			# tier; use `status` from menu condition gates.
+			if [[ -z "$de" ]]; then
+				echo "Error: specify de=name" >&2
+				return 1
+			fi
+			module_desktop_yamlparse "$de" || return 1
+			if _module_desktops_is_installed "$de"; then
+				if [[ -f "/etc/armbian/desktop/${de}.tier" ]]; then
+					cat "/etc/armbian/desktop/${de}.tier"
+				else
+					echo "minimal"
+				fi
+				return 0
+			fi
+			echo "not installed"
+			return 1
+		;;
+
+		"${commands[14]}")
+			# at-tier — silent gate. Exit 0 if the desktop is
+			# installed AND the current tier marker matches the
+			# target. Used by the dialog menu's `condition` field
+			# to hide the "Change to <tier>" entry that matches
+			# the currently-installed tier. Pure exit-code query;
+			# no stdout output, just like `status`.
+			if [[ -z "$de" || -z "$tier" ]]; then
+				echo "Error: specify de=name tier=X" >&2
+				return 1
+			fi
+			module_desktop_yamlparse "$de" || return 1
+			_module_desktops_is_installed "$de" || return 1
+			local current="minimal"
+			[[ -f "/etc/armbian/desktop/${de}.tier" ]] && current=$(< "/etc/armbian/desktop/${de}.tier")
+			[[ "$current" == "$tier" ]]
+		;;
+
+		"${commands[15]}")
+			# set-tier — direction-agnostic tier change. Reads
+			# the current tier from the marker file and dispatches
+			# to upgrade or downgrade based on which is higher.
+			# Used by the dialog menu's "Change to <tier>" entries
+			# so a single button can either upgrade or downgrade
+			# without the menu having to know the current state.
+			if [[ -z "$de" ]]; then
+				echo "Error: specify de=name" >&2
+				return 1
+			fi
+			if [[ -z "$tier" ]]; then
+				echo "Error: specify tier=minimal|mid|full" >&2
+				return 1
+			fi
+			case "$tier" in
+				minimal|mid|full) ;;
+				*)
+					echo "Error: invalid tier '${tier}'" >&2
+					return 1
+				;;
+			esac
+			if [[ ! -f "/etc/armbian/desktop/${de}.tier" ]]; then
+				echo "Error: ${de} is not installed" >&2
+				return 1
+			fi
+			local current
+			current=$(< "/etc/armbian/desktop/${de}.tier")
+			if [[ "$current" == "$tier" ]]; then
+				echo "${de} is already at tier '${tier}', nothing to do."
+				return 0
+			fi
+			# Numeric ordering for direction detection.
+			local _tier_n_minimal=1 _tier_n_mid=2 _tier_n_full=3
+			local _cur_var="_tier_n_${current}"
+			local _tgt_var="_tier_n_${tier}"
+			if [[ "${!_tgt_var}" -gt "${!_cur_var}" ]]; then
+				_module_desktops_change_tier upgrade "$de" "$tier"
+			else
+				_module_desktops_change_tier downgrade "$de" "$tier"
+			fi
+			return $?
+		;;
+
+		*)
+			${module_options["module_desktops,feature"]} help
+		;;
+	esac
+}
+
+#
+# _module_desktops_change_tier <upgrade|downgrade> <de> <target_tier>
+#
+# Move an installed desktop from its current tier to a target tier.
+# upgrade installs the delta of (target - current); downgrade removes
+# the delta of (current - target). Refuses wrong-direction calls.
+#
+# The downgrade path intersects the removable set with the install
+# manifest at /etc/armbian/desktop/<de>.packages, so any package the
+# user installed manually after the desktop install (and which
+# happens to also be named in the YAML) is never touched.
+#
+_module_desktops_change_tier() {
+	local direction="$1"
+	local de="$2"
+	local target="$3"
+
+	if [[ -z "$de" ]]; then
+		echo "Error: specify de=name" >&2
+		return 1
+	fi
+	if [[ -z "$target" ]]; then
+		echo "Error: specify tier=minimal|mid|full" >&2
+		return 1
+	fi
+	case "$target" in
+		minimal|mid|full) ;;
+		*)
+			echo "Error: invalid tier '${target}', must be one of minimal|mid|full" >&2
+			return 1
+		;;
+	esac
+
+	# Numeric ordering for comparison.
+	local _tier_n_minimal=1 _tier_n_mid=2 _tier_n_full=3
+	local _target_n_var="_tier_n_${target}"
+	local target_n="${!_target_n_var}"
+
+	if [[ ! -f "/etc/armbian/desktop/${de}.tier" ]]; then
+		echo "Error: ${de} is not installed (no tier marker at /etc/armbian/desktop/${de}.tier)" >&2
+		return 1
+	fi
+	local current
+	current=$(< "/etc/armbian/desktop/${de}.tier")
+	local _current_n_var="_tier_n_${current}"
+	local current_n="${!_current_n_var}"
+	if [[ -z "$current_n" ]]; then
+		echo "Error: unrecognised tier '${current}' in /etc/armbian/desktop/${de}.tier" >&2
+		return 1
+	fi
+
+	if [[ "$current" == "$target" ]]; then
+		echo "${de} is already at tier '${target}', nothing to do."
+		return 0
+	fi
+	if [[ "$direction" == "upgrade" && "$target_n" -lt "$current_n" ]]; then
+		echo "Error: cannot upgrade ${de} from '${current}' to '${target}' (target is lower); use 'downgrade' instead" >&2
+		return 1
+	fi
+	if [[ "$direction" == "downgrade" && "$target_n" -gt "$current_n" ]]; then
+		echo "Error: cannot downgrade ${de} from '${current}' to '${target}' (target is higher); use 'upgrade' instead" >&2
+		return 1
+	fi
+
+	# Parse the YAML twice — once at current tier, once at target.
+	# Save and restore the parser output variables across the two
+	# calls so the install path's globals are not stomped on.
+	local _arch="$(dpkg --print-architecture)"
+	local _release="$DISTROID"
+
+	module_desktop_yamlparse "$de" "$_arch" "$_release" "$current" || return 1
+	local current_arr=()
+	read -ra current_arr <<< "$DESKTOP_PACKAGES"
+
+	module_desktop_yamlparse "$de" "$_arch" "$_release" "$target" || return 1
+	local target_arr=()
+	read -ra target_arr <<< "$DESKTOP_PACKAGES"
+
+	# Compute the set difference. Use awk with two file arguments
+	# (stdin redirection from process substitution), reading the
+	# arrays one element per line via printf so each entry is its
+	# own awk record. Plain '$current_pkgs' would put every package
+	# on one line and break the comparison.
+	local to_install=()
+	local to_remove=()
+	if [[ "$direction" == "upgrade" ]]; then
+		# packages in target but not in current
+		while IFS= read -r pkg; do
+			[[ -n "$pkg" ]] && to_install+=("$pkg")
+		done < <(awk 'NR==FNR{a[$0]=1; next} !($0 in a)' \
+			<(printf '%s\n' "${current_arr[@]}") \
+			<(printf '%s\n' "${target_arr[@]}"))
+	else
+		# downgrade: packages in current but not in target,
+		# intersected with the install manifest so user-installed
+		# packages are never touched.
+		local manifest_pkgs=()
+		if [[ -f "/etc/armbian/desktop/${de}.packages" ]]; then
+			while IFS= read -r pkg; do
+				[[ -n "$pkg" ]] && manifest_pkgs+=("$pkg")
+			done < "/etc/armbian/desktop/${de}.packages"
+		fi
+		local candidates=()
+		while IFS= read -r pkg; do
+			[[ -n "$pkg" ]] && candidates+=("$pkg")
+		done < <(awk 'NR==FNR{a[$0]=1; next} !($0 in a)' \
+			<(printf '%s\n' "${target_arr[@]}") \
+			<(printf '%s\n' "${current_arr[@]}"))
+		# intersect candidates with manifest_pkgs
+		local manifest_set=" ${manifest_pkgs[*]} "
+		for pkg in "${candidates[@]}"; do
+			if [[ "$manifest_set" == *" $pkg "* ]]; then
+				to_remove+=("$pkg")
+			fi
+		done
+	fi
+
+	# Apply the change.
+	if [[ "$direction" == "upgrade" ]]; then
+		if [[ ${#to_install[@]} -eq 0 ]]; then
+			echo "${de}: nothing to install for upgrade ${current} -> ${target}"
+		else
+			echo "Upgrading ${de} from ${current} to ${target} (${#to_install[@]} new packages)"
+			ACTUALLY_INSTALLED=()
+			# --allow-downgrades for the same reason as the initial
+			# install path: the per-DE pin (still in effect during a
+			# tier upgrade) can resolve some packages to an older
+			# vendor-archive version, and apt -y refuses without it.
+			# Same Recommends and exclusions as the first install.
+			local apt_extra=()
+			# Say it explicitly: image builds install the desktop before the
+			# BSP package turns Recommends off in the apt config.
+			if [[ "$DESKTOP_INSTALL_RECOMMENDS" == "yes" ]]; then
+				apt_extra+=(--install-recommends)
+			else
+				apt_extra+=(--no-install-recommends)
+			fi
+			local exclude
+			for exclude in $DESKTOP_PACKAGES_EXCLUDE; do
+				apt_extra+=("${exclude}-")
+			done
+			if ! pkg_install --allow-downgrades -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" "${apt_extra[@]}" "${to_install[@]}"; then
+				echo "Error: pkg_install failed during upgrade" >&2
+				return 1
+			fi
+			# append the newly-installed packages to the manifest
+			if [[ ${#ACTUALLY_INSTALLED[@]} -gt 0 ]]; then
+				mkdir -p /etc/armbian/desktop
+				printf '%s\n' "${ACTUALLY_INSTALLED[@]}" >> "/etc/armbian/desktop/${de}.packages"
+			fi
+		fi
+	else
+		if [[ ${#to_remove[@]} -eq 0 ]]; then
+			echo "${de}: nothing to remove for downgrade ${current} -> ${target}"
+		else
+			echo "Downgrading ${de} from ${current} to ${target} (${#to_remove[@]} packages to remove)"
+			if ! pkg_remove "${to_remove[@]}"; then
+				echo "Error: pkg_remove failed during downgrade" >&2
+				return 1
+			fi
+			# rewrite the manifest, removing the just-removed packages
+			if [[ -f "/etc/armbian/desktop/${de}.packages" ]]; then
+				local removed_set=" ${to_remove[*]} "
+				local kept=()
+				while IFS= read -r pkg; do
+					[[ -z "$pkg" ]] && continue
+					if [[ "$removed_set" != *" $pkg "* ]]; then
+						kept+=("$pkg")
+					fi
+				done < "/etc/armbian/desktop/${de}.packages"
+				if [[ ${#kept[@]} -gt 0 ]]; then
+					printf '%s\n' "${kept[@]}" > "/etc/armbian/desktop/${de}.packages"
+				else
+					rm -f "/etc/armbian/desktop/${de}.packages"
+				fi
+			fi
+		fi
+	fi
+
+	# Update the tier marker
+	printf '%s\n' "$target" > "/etc/armbian/desktop/${de}.tier"
+	debug_log "module_desktops ${direction}: ${de} ${current} -> ${target}"
+	return 0
+}
+
+module_options+=(
+	["module_desktop_supported,author"]="@igorpecovnik"
+	["module_desktop_supported,feature"]="module_desktop_supported"
+	["module_desktop_supported,desc"]="Check if a desktop is supported on this system"
+	["module_desktop_supported,example"]="module_desktop_supported xfce"
+	["module_desktop_supported,status"]="Active"
+	["module_desktop_supported,arch"]="arm64 amd64 armhf riscv64"
+)
+
+#
+# Check if a desktop is supported on given arch/release
+# Usage: module_desktop_supported <de_name> [arch] [release]
+# Returns: 0 if supported, 1 if not
+#
+function module_desktop_supported() {
+	local de="$1"
+	local arch="${2:-$(dpkg --print-architecture)}"
+	local release="${3:-$DISTROID}"
+
+	case "$de" in
+		help|"")
+			echo "Usage: module_desktop_supported <de_name> [arch] [release]"
+			echo ""
+			echo "Check if a desktop environment is supported on a given architecture and release."
+			echo "Returns exit code 0 if supported, 1 if not."
+			echo ""
+			echo "Examples:"
+			echo "  module_desktop_supported xfce              # check on current host"
+			echo "  module_desktop_supported kde-neon arm64 noble  # check specific arch/release"
+			return 0
+		;;
+		*)
+			module_desktop_yamlparse "$de" "$arch" "$release" 2>/dev/null || return 1
+			[[ "$DESKTOP_AVAILABLE" == "yes" ]]
+		;;
+	esac
+}
+
+module_options+=(
+	["module_desktop_repo,author"]="@igorpecovnik"
+	["module_desktop_repo,feature"]="module_desktop_repo"
+	["module_desktop_repo,desc"]="Set up custom APT repository for desktop environments"
+	["module_desktop_repo,example"]="module_desktop_repo kde-neon"
+	["module_desktop_repo,status"]="Active"
+	["module_desktop_repo,arch"]="arm64 amd64 armhf riscv64"
+)
+
+#
+# Set up custom APT repo if desktop requires one
+# Usage: module_desktop_repo <de_name>
+# Requires DESKTOP_REPO_URL, DESKTOP_REPO_KEY_URL, DESKTOP_REPO_KEYRING
+# to be set (via module_desktop_yamlparse)
+#
+function module_desktop_repo() {
+	local de="$1"
+
+	case "$de" in
+		help|"")
+			echo "Usage: module_desktop_repo <de_name>"
+			echo ""
+			echo "Set up a custom APT repository for a desktop that requires one."
+			echo "Must be called after module_desktop_yamlparse to set repo variables."
+			echo ""
+			echo "Examples:"
+			echo "  module_desktop_yamlparse kde-neon"
+			echo "  module_desktop_repo kde-neon"
+			return 0
+		;;
+		*)
+			# sanitize de name for safe use in file paths
+			if [[ ! "$de" =~ ^[a-zA-Z0-9._-]+$ ]]; then
+				echo "Error: invalid desktop name '${de}'" >&2
+				return 1
+			fi
+
+			if [[ -n "$DESKTOP_REPO_URL" && -n "$DESKTOP_REPO_KEY_URL" && -n "$DESKTOP_REPO_KEYRING" ]]; then
+				echo "Setting up repository for ${de}..." >&2
+
+				# download and verify GPG key
+				if ! (set -o pipefail; curl -fsSL --retry 3 --retry-connrefused --connect-timeout 10 --max-time 30 "$DESKTOP_REPO_KEY_URL" | gpg --yes --dearmor -o "$DESKTOP_REPO_KEYRING" 2>/dev/null); then
+					echo "Error: failed to download GPG key from $DESKTOP_REPO_KEY_URL" >&2
+					return 1
+				fi
+
+				if [[ ! -s "$DESKTOP_REPO_KEYRING" ]]; then
+					echo "Error: GPG keyring is empty at $DESKTOP_REPO_KEYRING" >&2
+					rm -f "$DESKTOP_REPO_KEYRING"
+					return 1
+				fi
+
+				# Emit one `deb ...` line per suite. Components are shared
+				# across all lines. Written via temp + mv so a mid-write
+				# failure never leaves apt with a partial source list.
+				# Falls back to ${DISTROID} / "main" when the parser did
+				# not supply values (DE YAMLs without the optional fields).
+				local repo_components="${DESKTOP_REPO_COMPONENTS:-main}"
+				local sources_count="${DESKTOP_REPO_SUITES_COUNT:-1}"
+				local sources_file="/etc/apt/sources.list.d/${de}.list"
+				local sources_tmp="${sources_file}.tmp"
+				local i suite_var suite
+
+				if ! : > "$sources_tmp"; then
+					echo "Error: cannot create ${sources_tmp}" >&2
+					return 1
+				fi
+
+				for (( i=0; i < sources_count; i++ )); do
+					suite_var="DESKTOP_REPO_SUITE_${i}"
+					suite="${!suite_var:-${DISTROID}}"
+					if ! printf 'deb [signed-by=%s] %s %s %s\n' \
+						"$DESKTOP_REPO_KEYRING" "$DESKTOP_REPO_URL" \
+						"$suite" "$repo_components" >> "$sources_tmp"; then
+						echo "Error: failed to write sources list for ${de}" >&2
+						rm -f "$sources_tmp"
+						return 1
+					fi
+				done
+
+				if ! mv "$sources_tmp" "$sources_file"; then
+					echo "Error: failed to install ${sources_file}" >&2
+					rm -f "$sources_tmp"
+					return 1
+				fi
+
+				# Optional: APT pin preferences. Gated on the repo guard
+				# above so prefs can only land when the matching archive
+				# was actually configured. Written via temp + mv so a
+				# mid-write failure never leaves a truncated stanza that
+				# apt would misparse. Only fields emitted by
+				# parse_desktop_yaml.py are interpolated.
+				local pref_file="/etc/apt/preferences.d/${de}"
+				if [[ -n "${DESKTOP_REPO_PREFS_COUNT}" && "${DESKTOP_REPO_PREFS_COUNT}" -gt 0 ]]; then
+					local pref_tmp="${pref_file}.tmp"
+					local i origin_var suite_var prio_var origin suite prio
+
+					if ! : > "$pref_tmp"; then
+						echo "Error: cannot create ${pref_tmp}" >&2
+						return 1
+					fi
+
+					local origin_host_var pkgs_var origin_host pkgs
+					for (( i=0; i < DESKTOP_REPO_PREFS_COUNT; i++ )); do
+						origin_var="DESKTOP_REPO_PREFS_${i}_ORIGIN"
+						suite_var="DESKTOP_REPO_PREFS_${i}_SUITE"
+						origin_host_var="DESKTOP_REPO_PREFS_${i}_ORIGIN_HOST"
+						pkgs_var="DESKTOP_REPO_PREFS_${i}_PACKAGES"
+						prio_var="DESKTOP_REPO_PREFS_${i}_PRIORITY"
+						origin="${!origin_var}"
+						suite="${!suite_var}"
+						origin_host="${!origin_host_var}"
+						pkgs="${!pkgs_var}"
+						prio="${!prio_var}"
+						# Empty packages list means "every package": apt's
+						# Package: line wants a glob, never blank.
+						[[ -z "$pkgs" ]] && pkgs="*"
+						# The parser guarantees exactly one pin style is set,
+						# so origin_host non-empty selects the host form,
+						# everything else falls back to release o=,n=.
+						if [[ -n "$origin_host" ]]; then
+							if ! printf 'Package: %s\nPin: origin %s\nPin-Priority: %s\n\n' \
+								"$pkgs" "$origin_host" "$prio" >> "$pref_tmp"; then
+								echo "Error: failed to write preferences for ${de}" >&2
+								rm -f "$pref_tmp"
+								return 1
+							fi
+						else
+							if ! printf 'Package: %s\nPin: release o=%s, n=%s\nPin-Priority: %s\n\n' \
+								"$pkgs" "$origin" "$suite" "$prio" >> "$pref_tmp"; then
+								echo "Error: failed to write preferences for ${de}" >&2
+								rm -f "$pref_tmp"
+								return 1
+							fi
+						fi
+					done
+
+					if ! mv "$pref_tmp" "$pref_file"; then
+						echo "Error: failed to install ${pref_file}" >&2
+						rm -f "$pref_tmp"
+						return 1
+					fi
+				else
+					# No pins in the current YAML: drop any stale pref
+					# file left by an earlier install whose YAML carried
+					# preferences. Install is declarative — post-state
+					# must match the YAML, whether pins are present or not.
+					rm -f "$pref_file"
+				fi
+			fi
+		;;
+	esac
+}
+
+module_options+=(
+	["module_desktop_getuser,author"]="@igorpecovnik"
+	["module_desktop_getuser,feature"]="module_desktop_getuser"
+	["module_desktop_getuser,desc"]="Detect first regular user for desktop setup"
+	["module_desktop_getuser,example"]="module_desktop_getuser"
+	["module_desktop_getuser,status"]="Active"
+	["module_desktop_getuser,arch"]="arm64 amd64 armhf riscv64"
+)
+
+#
+# Detect first regular user (UID >= 1000) with a login shell
+# Usage: module_desktop_getuser
+# Returns: username on stdout, exit 1 if none found
+#
+function module_desktop_getuser() {
+	case "$1" in
+		help)
+			echo "Usage: module_desktop_getuser"
+			echo ""
+			echo "Detect the first regular user (UID >= 1000) with a login shell."
+			echo "Used for desktop auto-login, group membership, and skel setup."
+			echo "Prefers SUDO_USER if set and not root."
+			return 0
+		;;
+		*)
+			local user=""
+			if [[ -n "$SUDO_USER" && "$SUDO_USER" != "root" ]] && id "$SUDO_USER" > /dev/null 2>&1; then
+				user="$SUDO_USER"
+			else
+				user=$(awk -F: '$3 >= 1000 && $3 < 65534 && $7 !~ /nologin|false/ {print $1; exit}' /etc/passwd)
+			fi
+			if [[ -z "$user" ]]; then
+				echo "Error: no regular user found. Create a non-root user first." >&2
+				return 1
+			fi
+			echo "$user"
+		;;
+	esac
+}
+
+module_options+=(
+	["module_desktop_yamlparse,author"]="@igorpecovnik"
+	["module_desktop_yamlparse,feature"]="module_desktop_yamlparse"
+	["module_desktop_yamlparse,desc"]="Parse desktop YAML definitions"
+	["module_desktop_yamlparse,example"]="module_desktop_yamlparse xfce"
+	["module_desktop_yamlparse,status"]="Active"
+	["module_desktop_yamlparse,arch"]="arm64 amd64 armhf riscv64"
+)
+
+#
+# Parse YAML desktop definition via Python helper
+# Usage: module_desktop_yamlparse <de_name> [arch] [release] [tier]
+# Sets: DESKTOP_PACKAGES, DESKTOP_PACKAGES_UNINSTALL, DESKTOP_PRIMARY_PKG,
+#       DESKTOP_DM, DESKTOP_STATUS, DESKTOP_AVAILABLE, DESKTOP_DESC,
+#       DESKTOP_TIER, DESKTOP_REPO_URL, DESKTOP_REPO_KEY_URL,
+#       DESKTOP_REPO_KEYRING
+#
+# tier defaults to 'minimal' when omitted, so callers that only need
+# the primary package or display manager (status checks, listing) can
+# pass just the de_name without thinking about tiers.
+#
+function module_desktop_yamlparse() {
+	local de="$1"
+	local yaml_dir="${desktops_dir}/yaml"
+	local parser="${desktops_dir}/scripts/parse_desktop_yaml.py"
+	local arch="${2:-$(dpkg --print-architecture)}"
+	local release="${3:-$DISTROID}"
+	local tier="${4:-minimal}"
+
+	case "$de" in
+		help|"")
+			echo "Usage: module_desktop_yamlparse <de_name> [arch] [release] [tier]"
+			echo ""
+			echo "Parse a desktop YAML definition and set package variables."
+			echo "Variables set: DESKTOP_PACKAGES, DESKTOP_PACKAGES_UNINSTALL,"
+			echo "  DESKTOP_PRIMARY_PKG, DESKTOP_DM, DESKTOP_STATUS,"
+			echo "  DESKTOP_AVAILABLE, DESKTOP_DESC, DESKTOP_TIER, DESKTOP_REPO_*"
+			echo ""
+			echo "tier is one of minimal|mid|full, defaults to minimal."
+			echo ""
+			echo "Examples:"
+			echo "  module_desktop_yamlparse xfce"
+			echo "  module_desktop_yamlparse kde-neon arm64 noble"
+			echo "  module_desktop_yamlparse xfce arm64 trixie full"
+			return 0
+		;;
+		*)
+			if [[ ! -f "$parser" ]]; then
+				echo "Error: YAML parser not found at $parser" >&2
+				return 1
+			fi
+
+			# reset variables
+			DESKTOP_PACKAGES=""
+			DESKTOP_PACKAGES_UNINSTALL=""
+			DESKTOP_PRIMARY_PKG=""
+			DESKTOP_DM=""
+			DESKTOP_SESSION=""
+			DESKTOP_INSTALL_RECOMMENDS=""
+			DESKTOP_PACKAGES_EXCLUDE=""
+			DESKTOP_STATUS=""
+			DESKTOP_AVAILABLE=""
+			DESKTOP_DESC=""
+			DESKTOP_TIER=""
+			DESKTOP_REPO_URL=""
+			DESKTOP_REPO_KEY_URL=""
+			DESKTOP_REPO_KEYRING=""
+
+			local _output
+			_output=$(python3 "$parser" "$yaml_dir" "$de" "$release" "$arch" --tier "$tier" 2>&1) || {
+				echo "Error: failed to parse YAML for '${de}' at tier '${tier}': ${_output}" >&2
+				return 1
+			}
+			eval "$_output" || return 1
+		;;
+	esac
+}
+
+#
+# List available desktops via Python helper
+# Usage: module_desktop_yamlparse_list [arch] [release]
+#
+function module_desktop_yamlparse_list() {
+	local yaml_dir="${desktops_dir}/yaml"
+	local parser="${desktops_dir}/scripts/parse_desktop_yaml.py"
+	local arch="${1:-$(dpkg --print-architecture)}"
+	local release="${2:-$DISTROID}"
+
+	python3 "$parser" "$yaml_dir" "--list" "$release" "$arch"
+}
+
+module_options+=(
+	["module_update_skel,author"]="@igorpecovnik"
+	["module_update_skel,feature"]="module_update_skel"
+	["module_update_skel,desc"]="Copy /etc/skel files into existing user home directories"
+	["module_update_skel,example"]="install help"
+	["module_update_skel,status"]="Active"
+	["module_update_skel,arch"]=""
+)
+#
+# Module to update skel files in user home directories
+#
+function module_update_skel() {
+
+	local commands
+	IFS=' ' read -r -a commands <<< "${module_options["module_update_skel,example"]}"
+
+	case "$1" in
+		"${commands[0]}")
+			# install - copy skel into every regular user's home, then
+			# fix ownership of the entire home tree.
+			#
+			# Implementation note: we used to do
+			#   cp -r --update=none /etc/skel/. "$home/"
+			# but '--update=none' was only added in GNU coreutils 9.3
+			# (Debian bookworm ships 9.1 and rejects it). The
+			# alternative '-n' / '--no-clobber' is available on both,
+			# but on coreutils 9.2+ '-n' prints a diagnostic and
+			# exits nonzero whenever it skips a file — which on a
+			# normal repeat invocation is every file. Neither flag is
+			# portable across bookworm and noble simultaneously.
+			#
+			# Use a per-file find loop instead: walk /etc/skel and
+			# copy each entry only if it doesn't already exist at
+			# the destination. find walks parents before children, so
+			# directories are created before any of their
+			# contents arrive.
+			#
+			# Give the home to its owner first. Other package postinst
+			# scripts leak root-owned files into it (caja, nemo,
+			# gnome-keyring and others do this on first install):
+			# without this, caja and nemo refuse to start on first login,
+			# and the copy below cannot write into those folders.
+			#
+			# Then copy as the owner, not as root. A link that the user
+			# made can only lead where the user may write anyway, so it
+			# cannot redirect a root write outside the home.
+			#
+			# The owner cannot read some files, such as the 0400
+			# .google_authenticator from module_qr_code. The owner's copy
+			# lists them. Root reads them and the owner writes them.
+			local username x uid gid gecos home shell unreadable src rc=0
+			while IFS=: read -r username x uid gid gecos home shell; do
+				if [ ! -d "$home" ] || [ "$username" == 'root' ] || [ "$uid" -lt 1000 ] || [ "$uid" -ge 65534 ]; then
+					continue
+				fi
+				chown -R "$uid:$gid" "$home/"
+				unreadable=$(runuser -u "$username" -- bash -c '
+					cd /etc/skel || exit 0
+					rc=0
+					while IFS= read -r src; do
+						dst="$1/${src#./}"
+						if [ -d "$src" ] && [ ! -L "$src" ]; then
+							[ -d "$dst" ] || mkdir "$dst" || rc=1
+						elif [ -e "$dst" ] || [ -L "$dst" ]; then
+							:
+						elif [ -f "$src" ] && [ ! -L "$src" ] && [ ! -r "$src" ]; then
+							printf "%s\n" "$src"
+						else
+							cp -P "$src" "$dst" || rc=1
+						fi
+					done < <(find . -mindepth 1)
+					exit "$rc"' bash "$home") || rc=1
+				while IFS= read -r src; do
+					[ -n "$src" ] || continue
+					runuser -u "$username" -- sh -c '
+						umask 077
+						[ -e "$1" ] || [ -L "$1" ] || { cat > "$1" && chmod "$2" "$1"; }' \
+						sh "$home/${src#./}" "$(stat -c %a "/etc/skel/${src#./}")" \
+						< "/etc/skel/${src#./}" || rc=1
+				done <<< "$unreadable"
+			done < <(getent passwd)
+			[ "$rc" -eq 0 ] || echo "Warning: some /etc/skel files were not copied" >&2
+			return "$rc"
+		;;
+		"${commands[1]}")
+			show_module_help "module_update_skel" "Update Skel" "" "native"
+		;;
+		*)
+			show_module_help "module_update_skel" "Update Skel" "" "native"
+		;;
+	esac
+}
+
+module_options+=(
+	["module_appimage,author"]="@igorpecovnik"
+	["module_appimage,feature"]="module_appimage"
+	["module_appimage,desc"]="Download and manage AppImage applications"
+	["module_appimage,example"]="install remove status help"
+	["module_appimage,status"]="Active"
+	["module_appimage,arch"]=""
+	["module_appimage,help_install"]="Download and install an AppImage (app=name)"
+	["module_appimage,help_remove"]="Remove an installed AppImage (app=name)"
+	["module_appimage,help_status"]="Check if an AppImage is installed (app=name)"
+)
+
+# AppImage registry: name -> GitHub repo
+declare -A APPIMAGE_REPO=(
+	["armbian-imager"]="armbian/imager"
+)
+
+# AppImage display names
+declare -A APPIMAGE_NAME=(
+	["armbian-imager"]="Armbian Imager"
+)
+
+# AppImage arch mapping: dpkg arch -> AppImage arch suffix
+declare -A APPIMAGE_ARCH=(
+	["arm64"]="aarch64"
+	["amd64"]="amd64"
+	["armhf"]="armhf"
+)
+
+#
+# Module to download and manage AppImage applications
+#
+function module_appimage() {
+
+	local APPIMAGE_DIR="/armbian/appimages"
+	local APPIMAGE_DESKTOP_DIR="/usr/share/applications"
+
+	# read app name from parameters
+	local app=""
+	local selected
+	for selected in "${@:2}"; do
+		IFS='=' read -r -a split <<< "${selected}"
+		[[ "${split[0]}" == "app" ]] && app="${split[1]}"
+	done
+
+	local commands
+	IFS=' ' read -r -a commands <<< "${module_options["module_appimage,example"]}"
+
+	case "$1" in
+		"${commands[0]}")
+			# install
+			if [[ -z "$app" ]]; then
+				echo "Error: specify app=name. Available: ${!APPIMAGE_REPO[*]}" >&2
+				return 1
+			fi
+
+			local repo="${APPIMAGE_REPO[$app]:-}"
+			if [[ -z "$repo" ]]; then
+				echo "Error: unknown app '$app'. Available: ${!APPIMAGE_REPO[*]}" >&2
+				return 1
+			fi
+
+			local arch=$(dpkg --print-architecture)
+			local appimage_arch="${APPIMAGE_ARCH[$arch]:-}"
+			if [[ -z "$appimage_arch" ]]; then
+				echo "Error: architecture '$arch' not supported for AppImages" >&2
+				return 1
+			fi
+
+			# ensure FUSE support for AppImages
+			if ! pkg_install libfuse2 fuse3; then
+				echo "Error: failed to install FUSE packages required for AppImages" >&2
+				return 1
+			fi
+
+			# Ensure GL/EGL/GLES runtime is present. The Armbian Imager
+			# AppImage is Qt6/RHI based and dlopen()s libGLESv2.so.2 at
+			# startup; on a system where no DE pulled in the GL stack
+			# yet (or after an aggressive autopurge) the imager fails
+			# with "libGLESv2.so.2: cannot open shared object file".
+			# These are tiny and shared with every DE, so install
+			# unconditionally.
+			pkg_install libgles2 libegl1 libgl1 libgl1-mesa-dri || true
+			# Resolve fusermount path once
+			local fmount=$(command -v fusermount3 2>/dev/null || command -v fusermount 2>/dev/null)
+			if [[ -z "$fmount" ]]; then
+				echo "Error: no fusermount binary found after installing fuse3" >&2
+				return 1
+			fi
+			# AppImages need fusermount but fuse3 only provides fusermount3
+			if ! command -v fusermount > /dev/null 2>&1; then
+				ln -sf "$fmount" /usr/local/bin/fusermount
+			fi
+			# Set FUSERMOUNT_PROG system-wide for AppImage compatibility
+			if ! grep -q FUSERMOUNT_PROG /etc/environment 2>/dev/null; then
+				echo "FUSERMOUNT_PROG=${fmount}" >> /etc/environment
+			fi
+
+			# get latest release download URL
+			local download_url
+			download_url=$(curl -sL "https://api.github.com/repos/${repo}/releases/latest" | \
+				grep -o "https://.*${appimage_arch}\.AppImage" | head -1)
+
+			if [[ -z "$download_url" ]]; then
+				echo "Error: no AppImage found for ${app} on ${appimage_arch}" >&2
+				return 1
+			fi
+
+			local filename=$(basename "$download_url")
+
+			echo "Downloading ${app} for ${appimage_arch}..."
+			mkdir -p "$APPIMAGE_DIR"
+			curl -sL "$download_url" -o "${APPIMAGE_DIR}/${filename}"
+			chmod +x "${APPIMAGE_DIR}/${filename}"
+
+			# create stable symlink
+			ln -sf "${APPIMAGE_DIR}/${filename}" "${APPIMAGE_DIR}/${app}"
+
+			# create desktop entry
+			local display_name="${APPIMAGE_NAME[$app]:-$app}"
+			cat > "${APPIMAGE_DESKTOP_DIR}/${app}.desktop" <<- EOF
+			[Desktop Entry]
+			Version=1.0
+			Type=Application
+			Name=${display_name}
+			Exec=env FUSERMOUNT_PROG=${fmount} ${APPIMAGE_DIR}/${app}
+			Icon=/usr/share/pixmaps/armbian/armbian.png
+			Terminal=false
+			Categories=Utility;
+			EOF
+
+			echo "${app} installed: ${APPIMAGE_DIR}/${filename}"
+		;;
+
+		"${commands[1]}")
+			# remove
+			if [[ -z "$app" ]]; then
+				echo "Error: specify app=name" >&2
+				return 1
+			fi
+			rm -f "${APPIMAGE_DIR}/${app}" "${APPIMAGE_DIR}/${app}"_*.AppImage "${APPIMAGE_DIR}/"*"${app}"*.AppImage
+			rm -f "${APPIMAGE_DESKTOP_DIR}/${app}.desktop"
+			rmdir "${APPIMAGE_DIR}" 2>/dev/null || true
+			echo "${app} removed"
+		;;
+
+		"${commands[2]}")
+			# status
+			if [[ -z "$app" ]]; then
+				# list all installed
+				if [[ -d "$APPIMAGE_DIR" ]]; then
+					ls -1 "$APPIMAGE_DIR"/*.AppImage 2>/dev/null | while read f; do
+						echo "$(basename "$f")"
+					done
+				fi
+				return 0
+			fi
+			[[ -x "${APPIMAGE_DIR}/${app}" ]] && return 0 || return 1
+		;;
+
+		"${commands[3]}")
+			show_module_help "module_appimage" "AppImage" \
+				"Available apps: ${!APPIMAGE_REPO[*]}\nInstall dir: ${APPIMAGE_DIR}\nExample: module_appimage install app=armbian-imager" "native"
+		;;
+
+		*)
+			show_module_help "module_appimage" "AppImage" \
+				"Available apps: ${!APPIMAGE_REPO[*]}\nInstall dir: ${APPIMAGE_DIR}\nExample: module_appimage install app=armbian-imager" "native"
+		;;
+	esac
+}
+

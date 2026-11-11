@@ -1,0 +1,4648 @@
+
+module_options+=(
+	["is_package_manager_running,author"]="@armbian"
+	["is_package_manager_running,ref_link"]=""
+	["is_package_manager_running,feature"]="is_package_manager_running"
+	["is_package_manager_running,desc"]="Migrated procedures from Armbian config."
+	["is_package_manager_running,example"]="is_package_manager_running"
+	["is_package_manager_running,status"]="Active"
+)
+#
+# check if package manager is doing something
+#
+function is_package_manager_running() {
+
+	if ps -C apt-get,apt,dpkg > /dev/null; then
+		[[ -z $scripted ]] && echo -e "\nPackage manager is running in the background.\n\nCan't install dependencies. Try again later." | show_infobox
+		return 0
+	else
+		return 1
+	fi
+
+}
+
+
+# package.sh
+
+# internal function
+_pkg_have_stdin() { [[ -t 0 ]]; }
+
+declare -A module_options
+module_options+=(
+	["apt_operation_progress,author"]="@igorpecovnik"
+	["apt_operation_progress,desc"]="Internal wrapper for APT operations with progress display"
+	["apt_operation_progress,status"]="Internal"
+)
+
+# Wrapper for apt operations with progress display
+# Replaces debconf-apt-progress with dialog_gauge UI
+# Usage: apt_operation_progress <operation> [apt_args...]
+# Operations: update, upgrade, full-upgrade, install, remove, fix-broken, clean
+apt_operation_progress() {
+	local operation="$1"
+	shift
+	local args=("$@")
+	local title="APT Operation"
+	local error_file=$(mktemp)
+	local rc_file=$(mktemp)
+	local exit_code
+
+	# Pre-flight self-heal: a previous apt/dpkg run cut short (power loss or a
+	# reboot mid-upgrade) leaves dpkg half-configured, and apt then refuses EVERY
+	# mutating operation with "dpkg was interrupted ... run 'dpkg --configure -a'".
+	# Repair it up front so install/upgrade/remove recover a board that is only
+	# in an interrupted state instead of failing on it. The exit-100 retry in
+	# pkg_install/pkg_remove can't cover this: the dialog_gauge path masks apt's
+	# real rc, so it never fires non-interactively (DIALOG=word). Cheap no-op when
+	# nothing is pending; read-only operations (update/clean) can't hit this.
+	case "$operation" in
+		install|upgrade|full-upgrade|remove|autopurge|purge|fix-broken)
+			if [[ -n "$(ls -A /var/lib/dpkg/updates/ 2>/dev/null)" ]] \
+				|| dpkg --audit 2>/dev/null | grep -q .; then
+				DEBIAN_FRONTEND=noninteractive dpkg --configure -a >/dev/null 2>&1 || true
+			fi
+			;;
+	esac
+
+	case "$operation" in
+		update)
+			title="Package Update"
+			;;
+		upgrade)
+			title="Package Upgrade"
+			;;
+		full-upgrade)
+			title="Full Package Upgrade"
+			;;
+		install)
+			title="Install Package"
+			;;
+		remove|autopurge|purge)
+			title="Remove Package"
+			;;
+		fix-broken)
+			title="Fix Broken Packages"
+			;;
+		clean)
+			title="Clean Package Cache"
+			;;
+		*)
+			title="APT Operation"
+			;;
+	esac
+
+	if [[ "$DIALOG" == "read" ]]; then
+		# For read mode, just run without progress
+		if [[ "$operation" == "fix-broken" ]]; then
+			DEBIAN_FRONTEND=noninteractive apt-get -y --fix-broken install "$@" 2>&1 | tee "$error_file"
+		elif [[ "$operation" == "autopurge" ]]; then
+			DEBIAN_FRONTEND=noninteractive apt-get -y autopurge "$@" 2>&1 | tee "$error_file"
+		else
+			DEBIAN_FRONTEND=noninteractive apt-get -y "$operation" "$@" 2>&1 | tee "$error_file"
+		fi
+		exit_code=${PIPESTATUS[0]}
+	else
+		# With dialog/whiptail, show progress
+		(
+			echo "XXX"
+			echo "0"
+			echo "Starting $operation..."
+			echo "XXX"
+
+			# Build apt command
+			local apt_cmd
+			if [[ "$operation" == "fix-broken" ]]; then
+				apt_cmd="DEBIAN_FRONTEND=noninteractive apt-get -y --fix-broken install ${args[*]}"
+			elif [[ "$operation" == "autopurge" ]]; then
+				apt_cmd="DEBIAN_FRONTEND=noninteractive apt-get -y autopurge ${args[*]}"
+			else
+				apt_cmd="DEBIAN_FRONTEND=noninteractive apt-get -y $operation ${args[*]}"
+			fi
+
+			# Run apt command. tee preserves apt's output for the error dialog;
+			# ${PIPESTATUS[0]} preserves apt's own exit code, which the outer
+			# `... | dialog_gauge` pipeline would otherwise hide behind
+			# dialog_gauge's (always-success) status - masking a failed apt run.
+			eval "$apt_cmd" 2>&1 | tee "$error_file" | while IFS= read -r line; do
+				# Parse apt output for progress indicators
+				if [[ "$line" =~ ^(Hit|Get|Reading|Download|Fetch|Hit|Preparing|Unpacking|Setting|Selecting|Processing) ]]; then
+					echo "XXX"
+					echo "0"
+					echo "$line"
+					echo "XXX"
+				elif [[ "$line" =~ (Err|Error|FAILED|could not|unable to) ]]; then
+					echo "XXX"
+					echo "0"
+					echo "Error: $line"
+					echo "XXX"
+				fi
+			done
+			local apt_exit_code=${PIPESTATUS[0]}
+			echo "$apt_exit_code" > "$rc_file"
+
+			echo "XXX"
+			echo "100"
+			if [[ $apt_exit_code -eq 0 ]]; then
+				echo "$operation complete!"
+			else
+				echo "$operation failed."
+			fi
+			echo "XXX"
+		) | dialog_gauge "$title" "Processing $operation..." 8 80
+
+		# Recover apt's real exit code (written inside the subshell); the outer
+		# pipe makes $? reflect dialog_gauge, not apt. A missing/garbled value
+		# (e.g. the dialog was cancelled) counts as a failure.
+		exit_code="$(cat "$rc_file" 2>/dev/null)"
+		[[ "$exit_code" =~ ^[0-9]+$ ]] || exit_code=1
+	fi
+
+	# Show any errors
+	if [[ -s "$error_file" ]]; then
+		if [[ $exit_code -ne 0 ]]; then
+			dialog_msgbox "$title Failed" "$operation failed.\n\n$(cat "$error_file" | tail -20)" 12 60
+		fi
+	fi
+
+	rm -f "$error_file" "$rc_file"
+	return $exit_code
+}
+
+declare -A module_options
+module_options+=(
+	["pkg_configure,author"]="@dimitry-ishenko"
+	["pkg_configure,desc"]="Configure an unconfigured package"
+	["pkg_configure,example"]="pkg_configure"
+	["pkg_configure,feature"]="pkg_configure"
+	["pkg_configure,status"]="Interface"
+)
+
+pkg_configure()
+{
+	_pkg_have_stdin && debconf-apt-progress -- dpkg --configure "$@" || dpkg --configure "$@"
+}
+
+module_options+=(
+	["pkg_full_upgrade,author"]="@dimitry-ishenko"
+	["pkg_full_upgrade,desc"]="Upgrade installed packages (potentially removing some)"
+	["pkg_full_upgrade,example"]="pkg_full_upgrade"
+	["pkg_full_upgrade,feature"]="pkg_full_upgrade"
+	["pkg_full_upgrade,status"]="Interface"
+)
+
+pkg_full_upgrade()
+{
+	apt_operation_progress full-upgrade "$@"
+}
+
+module_options+=(
+	["pkg_install,author"]="@dimitry-ishenko"
+	["pkg_install,desc"]="Install package"
+	["pkg_install,example"]="pkg_install neovim"
+	["pkg_install,feature"]="pkg_install"
+	["pkg_install,status"]="Interface"
+)
+
+pkg_install()
+{
+	# Extract only package names from args (skip apt options). Keep the
+	# Recommends switches: they change what apt installs.
+	local pkg_names=()
+	local dry_opts=()
+	local skip_next=false
+	for arg in "$@"; do
+		if $skip_next; then skip_next=false; continue; fi
+		case "$arg" in
+			-o) skip_next=true; continue ;;
+			--install-recommends|--no-install-recommends) dry_opts+=("$arg"); continue ;;
+			-*) continue ;;
+		esac
+		pkg_names+=("$arg")
+	done
+
+	# Dry-run to capture the list of new packages apt will install
+	local dry_run_output
+	dry_run_output=$(apt-get -s -y install "${dry_opts[@]}" "${pkg_names[@]}" 2>&1)
+	debug_log "pkg_install: dry-run for ${#pkg_names[@]} packages"
+	local new_packages=()
+	local capture=false
+	while IFS= read -r line; do
+		if [[ "$line" == "The following NEW packages will be installed:" ]]; then
+			capture=true
+			debug_log "pkg_install: found: $line"
+			continue
+		fi
+		# Stop capturing when we hit any other section header
+		if [[ "$line" == "The following additional packages will be installed:" ]] || \
+		[[ "$line" == "The following packages will be upgraded:" ]] || \
+		[[ "$line" == "The following packages will be REMOVED:" ]]; then
+			capture=false
+			continue
+		fi
+		if $capture; then
+			if [[ "$line" =~ ^[[:space:]] ]]; then
+				new_packages+=($line)
+			else
+				capture=false
+			fi
+		fi
+	done <<< "$dry_run_output"
+	debug_log "pkg_install: apt dry-run reports ${#new_packages[@]} new packages"
+
+	local exit_code
+	apt_operation_progress install "$@"
+	exit_code=$?
+
+	if [[ $exit_code == 100 ]]; then
+		DEBIAN_FRONTEND=noninteractive dpkg --configure -a
+		apt_operation_progress install "$@"
+		exit_code=$?
+	fi
+
+	# Track newly installed packages
+	if [[ $exit_code -eq 0 ]]; then
+		ACTUALLY_INSTALLED+=("${new_packages[@]}")
+		debug_log "pkg_install: ACTUALLY_INSTALLED now has ${#ACTUALLY_INSTALLED[@]} entries"
+	fi
+
+	return $exit_code
+}
+
+module_options+=(
+	["pkg_installed,author"]="@dimitry-ishenko"
+	["pkg_installed,desc"]="Check if package is installed"
+	["pkg_installed,example"]="pkg_installed mc"
+	["pkg_installed,feature"]="pkg_installed"
+	["pkg_installed,status"]="Interface"
+)
+
+pkg_installed()
+{
+	local status=$(dpkg -s "$1" 2>/dev/null | sed -n "s/Status: //p")
+	! [[ -z "$status" || "$status" = *deinstall* || "$status" = *not-installed* ]]
+}
+
+module_options+=(
+	["pkg_clean,author"]="@igorpecovnik"
+	["pkg_clean,desc"]="Clear apt's downloaded .deb cache (apt-get clean)"
+	["pkg_clean,example"]="pkg_clean"
+	["pkg_clean,feature"]="pkg_clean"
+	["pkg_clean,status"]="Interface"
+)
+
+pkg_clean()
+{
+	apt_operation_progress clean "$@"
+}
+
+module_options+=(
+	["pkg_remove,author"]="@dimitry-ishenko"
+	["pkg_remove,desc"]="Remove package"
+	["pkg_remove,example"]="pkg_remove nmap"
+	["pkg_remove,feature"]="pkg_remove"
+	["pkg_remove,status"]="Interface"
+)
+
+pkg_remove()
+{
+	local exit_code
+	# `purge`, not `autopurge`: autopurge also cascade-removes every OTHER
+	# package apt currently considers "automatically installed and now
+	# unneeded", not just the package(s) named here. On a system where those
+	# marks are wrong (e.g. an OMV-modified image, see #712) removing a single
+	# named package - such as unattended-upgrades - can take out base-system
+	# packages with it. `purge` only ever touches the exact package(s) passed
+	# in. Same reasoning module_desktops.sh and module_armbian_firmware.sh
+	# already apply by hand-rolling apt-get purge instead of calling this.
+	apt_operation_progress purge "$@"
+	exit_code=$?
+
+	if [[ $exit_code == 100 ]]; then
+		DEBIAN_FRONTEND=noninteractive dpkg --configure -a
+		apt_operation_progress purge "$@"
+		exit_code=$?
+	fi
+
+	return $exit_code
+}
+
+module_options+=(
+	["pkg_update,author"]="@dimitry-ishenko"
+	["pkg_update,desc"]="Update package repository"
+	["pkg_update,example"]="pkg_update"
+	["pkg_update,feature"]="pkg_update"
+	["pkg_update,status"]="Interface"
+)
+
+pkg_update()
+{
+	apt_operation_progress update
+}
+
+module_options+=(
+	["pkg_upgrade,author"]="@dimitry-ishenko"
+	["pkg_upgrade,desc"]="Upgrade installed packages"
+	["pkg_upgrade,example"]="pkg_upgrade"
+	["pkg_upgrade,feature"]="pkg_upgrade"
+	["pkg_upgrade,status"]="Interface"
+)
+
+pkg_upgrade()
+{
+	apt_operation_progress upgrade "$@"
+}
+
+module_options+=(
+	["pkg_fix,author"]="@igorpecovnik"
+	["pkg_fix,desc"]="Fix dependency issues"
+	["pkg_fix,example"]="pkg_fix"
+	["pkg_fix,feature"]="pkg_fix"
+	["pkg_fix,status"]="Interface"
+)
+
+pkg_fix()
+{
+	apt_operation_progress fix-broken "$@"
+}
+
+
+module_options+=(
+	["check_os_status,author"]="@Tearran"
+	["check_os_status,ref_link"]=""
+	["check_os_status,feature"]="check_os_status"
+	["check_os_status,desc"]="Check if the current OS distribution is supported"
+	["check_os_status,example"]="check_os_status"
+	["check_os_status,doc_link"]=""
+	["check_os_status,status"]="Active"
+)
+
+#
+# Check if current OS distribution is officially supported
+# Shows a warning and prompts for confirmation if OS is not in the supported list
+# Usage: check_distro_status
+#
+function check_distro_status() {
+	case "$1" in
+		help)
+			echo "Usage: check_os_status"
+			echo "This function checks if the current OS is supported based on /etc/armbian-distribution-status."
+			echo "It retrieves the current OS distribution and checks if it is listed as supported in the specified file."
+		;;
+		*)
+
+			# Ensure OS detection succeeded
+			if [[ -z "$DISTROID" ]]; then
+				dialog_msgbox "OS Detection Error" \
+					"Unable to detect the current OS distribution.\n\nPlease ensure you're running on a supported system." \
+					8 60
+				return 1
+			fi
+
+			# Check if the OS is listed as supported in the DISTRO_STATUS
+			if grep -qE "^${DISTROID}=.*supported" "$DISTRO_STATUS" 2> /dev/null; then
+				# OS is supported - return silently
+				return 0
+			fi
+
+			# OS not supported - show warning and continue after a brief pause
+			if [[ "$DIALOG" == "read" ]]; then
+				echo "Warning: The current OS ($DISTROID) is not officially supported."
+				echo "The tool may still work, but issues may not be addressed by maintainers."
+				echo "Continuing in 3 seconds..."
+				sleep 3
+			else
+				local warning_msg="Warning: The current OS ($DISTROID) is not officially supported.\n\n"
+				warning_msg+="The tool might still work, but issues may not be accepted or\n"
+				warning_msg+="addressed by the maintainers. You are welcome to contribute fixes."
+
+				dialog_msgbox "OS Support Warning" "$warning_msg" 10 60
+				sleep 3
+			fi
+		;;
+	esac
+}
+
+
+module_options+=(
+	["check_desktop,author"]="@armbian"
+	["check_desktop,ref_link"]=""
+	["check_desktop,feature"]="check_desktop"
+	["check_desktop,desc"]="Migrated procedures from Armbian config."
+	["check_desktop,example"]="check_desktop"
+	["check_desktop,status"]="Active"
+	["check_desktop,doc_link"]=""
+)
+#
+# read desktop parameters
+#
+function check_desktop() {
+
+	unset DESKTOP_INSTALLED
+	pkg_installed nodm && DESKTOP_INSTALLED="nodm"
+	pkg_installed lightdm && DESKTOP_INSTALLED="lightdm"
+	pkg_installed gdm3 && DESKTOP_INSTALLED="gnome"
+
+	unset DISPLAY_MANAGER
+	srv_active nodm && DISPLAY_MANAGER="nodm"
+	srv_active lightdm && DISPLAY_MANAGER="lightdm"
+	srv_active gdm && DISPLAY_MANAGER="gdm"
+}
+
+
+module_options+=(
+	["set_interface,author"]="Tearran"
+	["set_interface,feature"]="set_interface"
+	["set_interface,desc"]="Check for (Whiptail, DIALOG, READ) tools and set the user interface."
+	["set_interface,example"]=""
+	["set_interface,status"]="review"
+)
+#
+# Check for (Whiptail, DIALOG, READ) tools and set the user interface
+set_interface() {
+	# Set dialog tool hierarchy based on environment
+	if [[ -x "$(command -v whiptail)" ]]; then
+		DIALOG="whiptail"
+	elif [[ -x "$(command -v dialog)" ]]; then
+		DIALOG="dialog"
+	else
+		DIALOG="read"  # Fallback to read if no dialog tool is available
+	fi
+}
+
+
+
+module_options+=(
+	["see_menu,author"]="Tearran"
+	["see_menu,feature"]="see_menu"
+	["see_menu,desc"]="Uses Avalible (Whiptail, DIALOG, READ) for the menu interface"
+	["see_menu,example"]="<function_name>"
+	["see_menu,status"]="review"
+)
+#
+# Uses Avalible (Whiptail, DIALOG, READ) for the menu interface
+function see_menu() {
+	# Check if the function name was provided
+	local function_name="$1"
+
+	# Get the help message from the specified function
+	help_message=$("$function_name" help)
+
+	# Prepare options for the dialog tool based on help message
+	options=()
+		while IFS= read -r line; do
+		if [[ $line =~ ^[[:space:]]*([a-zA-Z0-9_-]+)[[:space:]]*-\s*(.*)$ ]]; then
+			options+=("${BASH_REMATCH[1]}" "  -  ${BASH_REMATCH[2]}")
+		fi
+		done <<< "$help_message"
+
+	# Display menu based on DIALOG tool
+	case $DIALOG in
+		"dialog")
+		choice=$(dialog --title "${function_name^}" --menu "Choose an option:" 0 80 9 "${options[@]}" 2>&1 >/dev/tty)
+		;;
+		"whiptail")
+		choice=$(whiptail --title "${function_name^}" --menu "Choose an option:" 0 80 9 "${options[@]}" 3>&1 1>&2 2>&3)
+		;;
+		"read")
+		echo "Available options:"
+		for ((i=0; i<${#options[@]}; i+=2)); do
+			echo "$((i / 2 + 1)). ${options[i]} - ${options[i + 1]}"
+		done
+		read -p "Enter choice number: " choice_index
+		choice=${options[((choice_index - 1) * 2)]}
+		;;
+	esac
+
+	# Check if choice was made or canceled
+	if [[ -z $choice ]]; then
+		echo "Menu canceled."
+
+		return 1
+	fi
+
+	# Call the specified function with the chosen option
+	"$function_name" "$choice"
+}
+
+#set_interface
+#see_menu "$@"
+
+# module_default.sh
+
+module_options+=(
+	["module_default,author"]="@dimitry-ishenko"
+	["module_default,desc"]="Default module implementation"
+	["module_default,example"]="disable enable help install remove status"
+	["module_default,feature"]="module_default"
+)
+
+module_default()
+{
+	local action="$1" modules="$2" packages="$3" services="$4"
+	shift 4
+
+	case "$action" in
+		enable)  _module_default_invoke "$action" "$modules" "$services" "$@";;
+		disable) _module_default_invoke "$action" "$modules" "$services" "$@";;
+		help)    _module_default_invoke "$action" "$modules" "$modules" "$packages" "$services" "$@";;
+		install) _module_default_invoke "$action" "$modules" "$packages" "$@";;
+		remove)  _module_default_invoke "$action" "$modules" "$packages" "$@";;
+		status)  _module_default_invoke "$action" "$modules" "$packages" "$services" "$@";;
+		*)       _module_default_invoke "$action" "$modules" "$packages" "$services" "$@";;
+	esac
+}
+
+_module_default_invoke()
+{
+	local action="$1" modules="$2"
+	shift 2
+
+	for module in $modules default; do
+		local fn="module_${module}_${action}"
+		if [[ $(type -t "$fn") == "function" ]]; then
+			"$fn" "$@"
+			return 0
+		fi
+	done
+
+	echo "Unknown action '$action'"
+	return 1
+}
+
+module_default_disable()
+{
+	local services="$1"
+	echo "Disabling $services..."
+	srv_disable $services
+}
+
+module_default_enable()
+{
+	local services="$1"
+	echo "Enabling $services..."
+	srv_enable $services
+}
+
+module_default_help()
+{
+	local module=($1) packages="$2" services="$3" extra="$4"
+
+	local text="
+Usage: module_$module <action> [options...]
+
+Where <action> is one of:
+	disable     Disable service(s) for $module.
+	enable      Enable service(s) for $module.
+	help        Show this help screen.
+	install     Install package(s) for $module.
+	remove      Remove package(s) for $module.
+	status      Check $module status (installed and/or enabled)."
+
+	# remove "install" and "remove" lines, if the module doesn't install anything (eg, service-only module)
+	[[ -n "$packages" ]] || text=`grep -Pve " (install|remove) " <<< "$text"`
+
+	# remove "enable" and "disable" lines, if the module doesn't have any services (eg, software-only module)
+	[[ -n "$services" ]] || text=`grep -Pve " (enable|disable) " <<< "$text"`
+
+	# remove the "status" line, if the modules doesn't have status (eg, internal module
+	# that doesn't install any packages and doesn't have any services)
+	[[ -n "$packages$services" ]] || text=`grep -Pv " status " <<< "$text"`
+
+	echo "$text"
+	[[ -z "$extra" ]] || echo "$extra"
+	echo
+}
+
+module_default_install()
+{
+	local packages="$1"
+	echo "Installing $packages..."
+	pkg_install $packages
+}
+
+module_default_remove()
+{
+	local packages="$1"
+	echo "Removing $packages..."
+	pkg_remove $packages
+}
+
+module_default_status()
+{
+	local packages="$1" services="$2"
+	[[ -z "$services" ]] || srv_enabled $services || return 1
+	[[ -z "$packages" ]] || pkg_installed $packages
+}
+
+# service.sh
+
+# internal function
+_srv_system_running() { [[ $(systemctl is-system-running) =~ ^(running|degraded)$ ]]; }
+
+declare -A module_options
+module_options+=(
+	["srv_active,author"]="@dimitry-ishenko"
+	["srv_active,desc"]="Check if service is active"
+	["srv_active,example"]="srv_active ssh.service"
+	["srv_active,feature"]="srv_active"
+	["srv_active,status"]="Interface"
+)
+
+srv_active()
+{
+	# fail inside container
+	_srv_system_running && systemctl is-active --quiet "$@"
+}
+
+declare -A module_options
+module_options+=(
+	["srv_daemon_reload,author"]="@dimitry-ishenko"
+	["srv_daemon_reload,desc"]="Reload systemd configuration"
+	["srv_daemon_reload,example"]="srv_daemon_reload"
+	["srv_daemon_reload,feature"]="srv_daemon_reload"
+	["srv_daemon_reload,status"]="Interface"
+)
+
+srv_daemon_reload()
+{
+	# ignore inside container
+	_srv_system_running && systemctl daemon-reload || true
+}
+
+module_options+=(
+	["srv_disable,author"]="@dimitry-ishenko"
+	["srv_disable,desc"]="Disable service"
+	["srv_disable,example"]="srv_disable ssh.service"
+	["srv_disable,feature"]="srv_disable"
+	["srv_disable,status"]="Interface"
+)
+
+srv_disable() { systemctl disable "$@"; }
+
+module_options+=(
+	["srv_enable,author"]="@dimitry-ishenko"
+	["srv_enable,desc"]="Enable service"
+	["srv_enable,example"]="srv_enable ssh.service"
+	["srv_enable,feature"]="srv_enable"
+	["srv_enable,status"]="Interface"
+)
+
+srv_enable() { systemctl enable "$@"; }
+
+module_options+=(
+	["srv_enabled,author"]="@dimitry-ishenko"
+	["srv_enabled,desc"]="Check if service is enabled"
+	["srv_enabled,example"]="srv_enabled ssh.service"
+	["srv_enabled,feature"]="srv_enabled"
+	["srv_enabled,status"]="Interface"
+)
+
+srv_enabled() { systemctl is-enabled "$@"; }
+
+module_options+=(
+	["srv_mask,author"]="@dimitry-ishenko"
+	["srv_mask,desc"]="Mask service"
+	["srv_mask,example"]="srv_mask ssh.service"
+	["srv_mask,feature"]="srv_mask"
+	["srv_mask,status"]="Interface"
+)
+
+srv_mask() { systemctl mask "$@"; }
+
+module_options+=(
+	["srv_reload,author"]="@dimitry-ishenko"
+	["srv_reload,desc"]="Reload service"
+	["srv_reload,example"]="srv_reload ssh.service"
+	["srv_reload,feature"]="srv_reload"
+	["srv_reload,status"]="Interface"
+)
+
+srv_reload()
+{
+	# ignore inside container
+	_srv_system_running && systemctl reload "$@" || true
+}
+
+module_options+=(
+	["srv_restart,author"]="@dimitry-ishenko"
+	["srv_restart,desc"]="Restart service"
+	["srv_restart,example"]="srv_restart ssh.service"
+	["srv_restart,feature"]="srv_restart"
+	["srv_restart,status"]="Interface"
+)
+
+srv_restart()
+{
+	# ignore inside container
+	_srv_system_running && systemctl restart "$@" || true
+}
+
+module_options+=(
+	["srv_start,author"]="@dimitry-ishenko"
+	["srv_start,desc"]="Start service"
+	["srv_start,example"]="srv_start ssh.service"
+	["srv_start,feature"]="srv_start"
+	["srv_start,status"]="Interface"
+)
+
+srv_start()
+{
+	# ignore inside container
+	_srv_system_running && systemctl start "$@" || true
+}
+
+module_options+=(
+	["srv_status,author"]="@dimitry-ishenko"
+	["srv_status,desc"]="Show service status information"
+	["srv_status,example"]="srv_status ssh.service"
+	["srv_status,feature"]="srv_status"
+	["srv_status,status"]="Interface"
+)
+
+srv_status() { systemctl status "$@"; }
+
+module_options+=(
+	["srv_stop,author"]="@dimitry-ishenko"
+	["srv_stop,desc"]="Stop service"
+	["srv_stop,example"]="srv_stop ssh.service"
+	["srv_stop,feature"]="srv_stop"
+	["srv_stop,status"]="Interface"
+)
+
+srv_stop()
+{
+	# ignore inside container
+	_srv_system_running && systemctl stop "$@" || true
+}
+
+module_options+=(
+	["srv_unmask,author"]="@dimitry-ishenko"
+	["srv_unmask,desc"]="Unmask service"
+	["srv_unmask,example"]="srv_unmask ssh.service"
+	["srv_unmask,feature"]="srv_unmask"
+	["srv_unmask,status"]="Interface"
+)
+
+srv_unmask() { systemctl unmask "$@"; }
+
+module_options+=(
+	["set_runtime_variables,author"]="@igorpecovnik"
+	["set_runtime_variables,ref_link"]=""
+	["set_runtime_variables,feature"]="set_runtime_variables"
+	["set_runtime_variables,desc"]="Run time variables Migrated procedures from Armbian config."
+	["set_runtime_variables,example"]="set_runtime_variables"
+	["set_runtime_variables,status"]="Active"
+)
+#
+# gather info about the board and start with loading menu variables
+#
+function set_runtime_variables() {
+	missing_dependencies=()
+
+	# Check if dialog tools are available and set DIALOG
+	if [[ -z "$DIALOG" ]]; then
+		if [[ -x "$(command -v dialog)" ]]; then
+			DIALOG="dialog"
+		elif [[ -x "$(command -v whiptail)" ]]; then
+			DIALOG="whiptail"
+		else
+			# No dialog tool available, use text-based interface
+			DIALOG="read"
+		fi
+	fi
+
+	# Draw dialog borders with Unicode box characters rather than the VT100 alternate charset:
+	# PuTTY and other emulators that report TERM=xterm but ignore that charset switch in UTF-8 mode show letters.
+	# A pre-set value wins, so a genuine non-UTF-8 terminal can opt out with NCURSES_NO_UTF8_ACS=0.
+	export NCURSES_NO_UTF8_ACS="${NCURSES_NO_UTF8_ACS:-1}"
+
+	# Check if udevadm is available
+	if ! [[ -x "$(command -v udevadm)" ]]; then
+		missing_dependencies+=("udev")
+	fi
+
+	# Check if jq is available
+	if ! [[ -x "$(command -v jq)" ]]; then
+		missing_dependencies+=("jq")
+	fi
+
+	# Check if curl is available (required for Docker API)
+	if ! [[ -x "$(command -v curl)" ]]; then
+		missing_dependencies+=("curl")
+	fi
+
+	# Check if unbuffer is available (required for real-time Docker pull progress)
+	if ! [[ -x "$(command -v unbuffer)" ]]; then
+		missing_dependencies+=("expect")
+	fi
+
+	# Check if stdbuf is available (required for line buffering)
+	if ! [[ -x "$(command -v stdbuf)" ]]; then
+		missing_dependencies+=("coreutils")
+	fi
+
+	# If any dependencies are missing, print a combined message and exit
+	if [[ ${#missing_dependencies[@]} -ne 0 ]]; then
+		if is_package_manager_running; then
+			pkg_install ${missing_dependencies[*]}
+		fi
+	fi
+
+	# Determine which network renderer is in use for NetPlan
+	if srv_active NetworkManager; then
+		NETWORK_RENDERER=NetworkManager
+	else
+		NETWORK_RENDERER=networkd
+	fi
+
+	DIALOG_CANCEL=1
+	DIALOG_ESC=255
+
+	# Running container under the actual user (handles sudo)
+	# When run with sudo, get the real user's UID/GID, not root's
+	if [[ -n "$SUDO_USER" ]]; then
+		# Running with sudo - use the real user who invoked sudo
+		DOCKER_USERUID=$(id -u "$SUDO_USER")
+		DOCKER_GROUPUID=$(id -g "$SUDO_USER")
+	elif [[ $EUID -eq 0 ]]; then
+		# Running as root without sudo - try to detect an interactive non-root user
+		# Try logname first (most reliable)
+		local detected_user=$(logname 2>/dev/null)
+		if [[ -z "$detected_user" ]] || [[ "$detected_user" == "root" ]]; then
+			# Fall back to 'who am i' parsing
+			detected_user=$(who am i 2>/dev/null | awk '{print $1}')
+			if [[ -z "$detected_user" ]] || [[ "$detected_user" == "root" ]]; then
+				# No interactive user detected - use sensible defaults
+				# This allows root operations that don't involve Docker
+				DOCKER_USERUID=1000
+				DOCKER_GROUPUID=1000
+			else
+				# Use detected user from 'who am i'
+				DOCKER_USERUID=$(id -u "$detected_user")
+				DOCKER_GROUPUID=$(id -g "$detected_user")
+			fi
+		else
+			# Use detected user from logname
+			DOCKER_USERUID=$(id -u "$detected_user")
+			DOCKER_GROUPUID=$(id -g "$detected_user")
+		fi
+	else
+		# Running as regular user without sudo
+		DOCKER_USERUID=$(id -u)
+		DOCKER_GROUPUID=$(id -g)
+	fi
+
+	# we have our own lsb_release which does not use Python. Others shell install it here
+	if [[ ! -f /usr/bin/lsb_release ]]; then
+		if is_package_manager_running; then
+			sleep 3
+		fi
+		pkg_install --update --allow-downgrades --no-install-recommends lsb-release
+	fi
+
+	[[ -f /etc/armbian-release ]] && source /etc/armbian-release && ARMBIAN="Armbian $VERSION $IMAGE_TYPE"
+	# Non-Armbian hosts have no /etc/armbian-release. Derive ARCH from the
+	# kernel, in the same names the Armbian build writes there.
+	if [[ -z "${ARCH}" ]]; then
+		case "$(uname -m)" in
+			x86_64) ARCH=x86_64 ;;
+			aarch64) ARCH=arm64 ;;
+			armv7l | armv8l) ARCH=arm ;;
+			riscv64) ARCH=riscv ;;
+			loongarch64) ARCH=loongarch ;;
+			*) ARCH="$(uname -m)" ;;
+		esac
+	fi
+	[[ -f /etc/armbian-distribution-status ]] && DISTRO_STATUS="/etc/armbian-distribution-status"
+
+	# Reconcile BRANCH (and KERNELPKG_*) against the actually
+	# installed kernel package. Some /etc/armbian-release files
+	# never had a BRANCH= line (the build template added it late
+	# and older images never got backfilled — seen in the wild on
+	# e.g. Orange Pi 5 26.2.1 images), and upgrade paths can drop
+	# it too. Modules like module_desktops, module_install_headers,
+	# module_devicetree_overlays and module_armbian_firmware gate
+	# behavior on BRANCH — without this reconcile, those gates
+	# short-circuit silently on such images and the runtime
+	# user-visible behavior diverges from what the kernel actually
+	# is. update_kernel_env() derives BRANCH from the linux-image-*
+	# package name, persists BRANCH= to /etc/armbian-release if
+	# missing, and no-ops when it already matches.
+	update_kernel_env
+
+	# Docker installatons read timezone and they will fail if this doesn't exist. This is often the case with some minimal Debian/Ubuntu installations.
+	if [[ ! -f /etc/timezone ]]; then
+		echo "America/New_York" | sudo tee /etc/timezone
+	fi
+
+	DISTRO=$(lsb_release -is)
+	DISTROID=$(lsb_release -sc 2> /dev/null || grep "VERSION=" /etc/os-release | grep -oP '(?<=\().*(?=\))')
+	KERNELID=$(uname -r)
+	[[ -z "${ARMBIAN// /}" ]] && ARMBIAN="$DISTRO $DISTROID"
+
+	SOFTWARE_FOLDER="/armbian" # where we should keep 3rd party software
+	DEFAULT_ADAPTER=$(ip -4 route ls | grep default | tail -1 | grep -Po '(?<=dev )(\S+)')
+	LOCALIPADD=$(ip -4 addr show dev $DEFAULT_ADAPTER | awk '/inet/ {print $2}' | cut -d'/' -f1)
+	LOCALSUBNET=$(echo ${LOCALIPADD} | cut -d"." -f1-3).0/24
+
+	# create local lan and docker lan whitelist for transmission
+	TRANSMISSION_WHITELIST=$(echo ${LOCALIPADD} | cut -d"." -f1-3)".*"
+	local docker_subnet=$(docker network inspect lsio 2> /dev/null | grep Subnet | xargs | cut -d" " -f2 | cut -d"/" -f1 | cut -d"." -f1-2)
+	if [[ -n "${docker_subnet}" ]]; then
+		TRANSMISSION_WHITELIST+=",${docker_subnet}.*.*"
+	fi
+
+	BACKTITLE="\Zb\Z7Support Armbian:\Zn https://github.com/sponsors/armbian"
+	TITLE="armbian-config"
+	[[ -z "${DEFAULT_ADAPTER// /}" ]] && DEFAULT_ADAPTER="lo"
+	# zfs subsystem - determine if our kernel is not too recent.
+	# In test containers / minimal images zfs-dkms may not be in any
+	# enabled apt repo, in which case ZFS_DKMS_VERSION ends up empty
+	# and the previous-version probe below trips 'expr: non-integer
+	# argument'. Skip the whole probe when the candidate is empty.
+	ZFS_DKMS_VERSION=$(LC_ALL=C apt-cache policy zfs-dkms 2>/dev/null | grep Candidate | xargs | cut -d" " -f2 | cut -c-5)
+	if [[ -n "${ZFS_DKMS_VERSION}" && "${ZFS_DKMS_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+		ZFS_KERNEL_MAX=$(wget -qO- https://raw.githubusercontent.com/openzfs/zfs/refs/tags/zfs-${ZFS_DKMS_VERSION}/META | grep Maximum | cut -d" " -f2)
+		# sometimes Ubuntu sets higher version then existing tag. Lets probe previous version
+		if [[ -z "${ZFS_KERNEL_MAX}" ]]; then
+			local previous_version="$(printf "%03d" "$(expr "$(echo $ZFS_DKMS_VERSION | sed 's/\.//g')" - 1)")"
+			local previous_version=$(echo "${previous_version:0:1}.${previous_version:1:1}.${previous_version:2:1}")
+			ZFS_KERNEL_MAX=$(wget -qO- https://raw.githubusercontent.com/openzfs/zfs/refs/tags/zfs-${previous_version}/META | grep Maximum | cut -d" " -f2)
+		fi
+	fi
+	# detect desktop
+	check_desktop
+
+}
+
+#
+# Retrieve info from currently installed kernel, update /etc/armbian-release if required
+# (after switching kernel, but before a reboot, BRANCH can contain an outdated value)
+#
+function update_kernel_env() {
+	local list_of_installed_kernels=$(dpkg -l | grep '^[hi]i' | grep linux-image | head -1)
+	# No installed linux-image package: no authoritative source
+	# for BRANCH. Leave existing globals alone and return — the
+	# previous behavior blanked BRANCH / KERNELPKG_* with empty
+	# strings and then wrote `BRANCH=` into /etc/armbian-release,
+	# which would clobber a valid value on e.g. a container that
+	# legitimately has no kernel but does have a proper release
+	# file.
+	[[ -z "$list_of_installed_kernels" ]] && return
+	local new_branch=$(echo "$list_of_installed_kernels" | awk '{print $2}' | cut -d'-' -f3)
+	# these don't necessarily match the system-wide values from /etc/armbian-release
+	KERNELPKG_VERSION=$(echo "$list_of_installed_kernels" | awk '{print $3}')
+	# Family is everything after linux-image-<branch>-, and can itself contain '-'
+	# (spacemit-k3, sun55iw3-syterkit). 'cut -f4' alone truncates spacemit-k3 to
+	# 'spacemit', so a later kernel install that defaults to KERNELPKG_LINUXFAMILY
+	# targets the wrong SoC (linux-image-<branch>-spacemit, the K1 kernel) and
+	# purges the correct one, leaving the board with no matching DTB (unbootable).
+	KERNELPKG_LINUXFAMILY=$(echo "$list_of_installed_kernels" | awk '{print $2}' | cut -d'-' -f4-)
+
+	[[ "$BRANCH" == "$new_branch" ]] && return
+
+	# BRANCH has changed: update required
+	if [[ -f /etc/armbian-release ]]; then
+		if grep -q BRANCH /etc/armbian-release; then
+			sed -i "s/BRANCH=.*/BRANCH=$new_branch/g" /etc/armbian-release
+		else
+			echo "BRANCH=$new_branch" >> /etc/armbian-release
+		fi
+	fi
+	BRANCH=$new_branch
+}
+
+
+# Start of config ng interface
+
+module_options+=(
+	["set_colors,author"]="@Tearran"
+	["set_colors,ref_link"]=""
+	["set_colors,feature"]="set_colors"
+	["set_colors,desc"]="Change the background color of the terminal or dialog box"
+	["set_colors,example"]="set_colors 0-7"
+	["set_colors,doc_link"]=""
+	["set_colors,status"]="Active"
+)
+#
+# Function to set the tui colors
+#
+function set_colors() {
+	local color_code=$1
+
+	if [ "$DIALOG" = "whiptail" ]; then
+		set_newt_colors "$color_code"
+		#echo "color code: $color_code" | show_infobox ;
+	elif [ "$DIALOG" = "dialog" ]; then
+		set_term_colors "$color_code"
+	elif [ "$DIALOG" = "read" ]; then
+		# Text-based interface doesn't support colors, just return success
+		return 0
+	else
+		echo "Invalid dialog type: $DIALOG"
+		return 1
+	fi
+}
+
+#
+# Function to set the colors for newt
+#
+function set_newt_colors() {
+	local color_code=$1
+	case $color_code in
+		0) color="black" ;;
+		1) color="red" ;;
+		2) color="green" ;;
+		3) color="yellow" ;;
+		4) color="blue" ;;
+		5) color="magenta" ;;
+		6) color="cyan" ;;
+		7) color="white" ;;
+		8) color="black" ;;
+		9) color="red" ;;
+		*) return ;;
+	esac
+	export NEWT_COLORS="root=,$color"
+}
+
+#
+# Function to set the colors for terminal
+#
+function set_term_colors() {
+	local color_code=$1
+	case $color_code in
+		0) color="\e[40m" ;; # black
+		1) color="\e[41m" ;; # red
+		2) color="\e[42m" ;; # green
+		3) color="\e[43m" ;; # yellow
+		4) color="\e[44m" ;; # blue
+		5) color="\e[45m" ;; # magenta
+		6) color="\e[46m" ;; # cyan
+		7) color="\e[47m" ;; # white
+		*)
+			echo "Invalid color code"
+			return 1
+			;;
+	esac
+	echo -e "$color"
+}
+
+#
+# Function to reset the colors
+#
+function reset_colors() {
+	echo -e "\e[0m"
+}
+
+module_options+=(
+	["parse_menu_items,author"]="@viraniac"
+	["parse_menu_items,ref_link"]=""
+	["parse_menu_items,feature"]="parse_menu_items"
+	["parse_menu_items,desc"]="Parse json to get list of desired menu or submenu items. Can return pairs or triplets depending on --with-help flag."
+	["parse_menu_items,example"]="parse_menu_items 'menu_options_array'\nparse_menu_items 'menu_options_array' --with-help"
+	["parse_menu_items,doc_link"]=""
+	["parse_menu_items,status"]="Active"
+)
+#
+# Function to parse the menu items
+#
+parse_menu_items() {
+	local -n options=$1
+	local with_help=false
+
+	# Check if --with-help flag is passed
+	[[ "$2" == "--with-help" ]] && with_help=true
+
+	while IFS= read -r id; do
+		IFS= read -r description
+		IFS= read -r condition
+		IFS= read -r container_type
+		IFS= read -r help_text
+		# Append [C] for container-based software
+		if [[ "$container_type" != "null" && -n "$container_type" ]]; then
+			description="$description [C]"
+		fi
+		# If the condition field is not empty and not null, run the function specified in the condition
+		if [[ -n $condition && $condition != "null" ]]; then
+			# If the function returns a truthy value, add the menu item to the menu
+			if eval $condition; then
+				if $with_help; then
+					# Return triplets: id, description, help
+					options+=("$id" "  -  $description" "$help_text")
+				else
+					# Return pairs: id, description
+					options+=("$id" "  -  $description")
+				fi
+			fi
+		else
+			# If the condition field is empty or null, add the menu item to the menu
+			if $with_help; then
+				# Return triplets: id, description, help
+				options+=("$id" "  -  $description " "$help_text")
+			else
+				# Return pairs: id, description
+				options+=("$id" "  -  $description ")
+			fi
+		fi
+	done < <(echo "$json_data" | jq -r '.menu[] | '${parent_id:+".. | objects | select(.id==\"$parent_id\") | .sub[]? |"}' select(.status != "Disabled") | "\(.id)\n\(.description)\n\(.condition)\n\(.container_type // "null")\n\(.help // "")"' || exit 1)
+}
+
+module_options+=(
+	["generate_top_menu,author"]="@Tearran"
+	["generate_top_menu,ref_link"]=""
+	["generate_top_menu,feature"]="generate_top_menu"
+	["generate_top_menu,desc"]="Build the main menu from a object"
+	["generate_top_menu,example"]="generate_top_menu 'json_data'"
+	["generate_top_menu,status"]="Active"
+)
+#
+# Function to generate the main menu from a JSON object
+#
+generate_top_menu() {
+	local json_data="$1"
+	local status=" "
+
+	while true; do
+		local menu_options=()
+
+		parse_menu_items menu_options --with-help
+
+		local OPTION=$(dialog_menu "armbian-config" "$status" 0 100 10 --ok-button Select --cancel-button Exit --item-help -- "${menu_options[@]}")
+		local exitstatus=$?
+
+		if [ $exitstatus = 0 ]; then
+			[ -z "$OPTION" ] && break
+			[[ -n "$debug" ]] && echo "$OPTION"
+			# A top-level entry may be a leaf (no 'sub'), in which case it runs
+			# its command directly instead of opening an empty submenu. Same
+			# test generate_menu uses for its own children.
+			local submenu_count=$(jq -r --arg id "$OPTION" '.menu[] | .. | objects | select(.id==$id) | .sub? | length' "$json_file")
+			submenu_count=${submenu_count:-0}
+			[[ "$submenu_count" == "null" ]] && submenu_count=0
+			if [ "$submenu_count" -gt 0 ]; then
+				generate_menu "$OPTION"
+			else
+				execute_command "$OPTION"
+			fi
+		fi
+	done
+}
+
+module_options+=(
+	["generate_menu,author"]="@Tearran"
+	["generate_menu,ref_link"]=""
+	["generate_menu,feature"]="generate_menu"
+	["generate_menu,desc"]="Generate a submenu from a parent_id"
+	["generate_menu,example"]="generate_menu 'parent_id'"
+	["generate_menu,status"]="Active"
+)
+#
+# Function to generate the submenu
+#
+function generate_menu() {
+	local parent_id="$1"
+	local top_parent_id="$2"
+	local status=""
+	local menu_title
+
+	# Build menu title from parent IDs
+	if [[ -n "$top_parent_id" && -n "$parent_id" ]]; then
+		menu_title="$TITLE > $top_parent_id > $parent_id"
+	elif [[ -n "$parent_id" ]]; then
+		menu_title="$TITLE > $parent_id"
+	else
+		menu_title="$TITLE"
+	fi
+
+	# Get the 'description' text for the current menu item to use as prompt
+	local description_text=$(jq -r --arg id "$parent_id" '.menu[] | .. | objects | select(.id==$id) | .description // ""' "$json_file" 2>/dev/null)
+	status="$description_text"
+
+	while true; do
+		# Get the submenu options for the current parent_id
+		local submenu_options=()
+		parse_menu_items submenu_options --with-help
+
+		local OPTION=$(dialog_menu "$menu_title" "$status" 0 100 10 --ok-button Select --cancel-button Back --item-help -- "${submenu_options[@]}")
+
+		local exitstatus=$?
+
+		if [ $exitstatus = 0 ]; then
+			[ -z "$OPTION" ] && break
+
+			# Check if the selected option has a submenu
+			local submenu_count=$(jq -r --arg id "$OPTION" '.menu[] | .. | objects | select(.id==$id) | .sub? | length' "$json_file")
+			submenu_count=${submenu_count:-0} # If submenu_count is null or empty, set it to 0
+			if [ "$submenu_count" -gt 0 ]; then
+				# If it does, generate a new menu for the submenu
+				[[ -n "$debug" ]] && echo "$OPTION"
+				generate_menu "$OPTION" "$parent_id"
+			else
+				# If it doesn't, execute the command
+				[[ -n "$debug" ]] && echo "$OPTION"
+				execute_command "$OPTION"
+			fi
+		fi
+	done
+}
+
+module_options+=(
+	["execute_command,author"]="@Tearran"
+	["execute_command,ref_link"]=""
+	["execute_command,feature"]="execute_command"
+	["execute_command,desc"]="Needed by generate_menu"
+	["execute_command,example"]="execute_command 'id'"
+	["execute_command,doc_link"]=""
+	["execute_command,status"]="Active"
+)
+#
+# Function to execute the command
+#
+function execute_command() {
+	local id=$1
+
+	# Extract commands
+	local commands=$(jq -r --arg id "$id" '
+		.menu[] |
+		.. |
+		objects |
+		select(.id == $id) |
+		.command[]?' "$json_file")
+
+	# Check if a about exists
+	local about=$(jq -r --arg id "$id" '
+		.menu[] |
+		.. |
+		objects |
+		select(.id == $id) |
+		.about?' "$json_file")
+
+	# If a about exists, display it and wait for user confirmation
+	if [[ -n "$about" && "$about" != "null" && $INPUTMODE != "cmd" ]]; then
+		get_user_continue "\n\n$about\n\nWould you like to continue?" process_input
+	fi
+
+	# Execute each command
+	for command in "${commands[@]}"; do
+		[[ -n "$debug" ]] && echo "$command"
+		eval "$command"
+	done
+}
+
+module_options+=(
+	["show_message,author"]="@Tearran"
+	["show_message,ref_link"]=""
+	["show_message,feature"]="show_message"
+	["show_message,desc"]="Display a message box"
+	["show_message,example"]="show_message <<< 'hello world' "
+	["show_message,doc_link"]=""
+	["show_message,status"]="Active"
+)
+#
+# Function to display a message box
+#
+function show_message() {
+	# Read the input from the pipe
+	input=$(cat)
+
+	# Display the "OK" message box with the input data using the dialog_msgbox wrapper
+	if [[ $DIALOG != "bash" ]]; then
+		dialog_msgbox "$TITLE" "$input" 0 0
+	else
+		echo -e "$input"
+		read -p -r "Press [Enter] to continue..."
+	fi
+}
+
+module_options+=(
+	["show_infobox,author"]="@Tearran"
+	["show_infobox,ref_link"]=""
+	["show_infobox,feature"]="show_infobox"
+	["show_infobox,desc"]="pipeline strings to an infobox "
+	["show_infobox,example"]="show_infobox <<< 'hello world' ; "
+	["show_infobox,doc_link"]=""
+	["show_infobox,status"]="Active"
+)
+#
+# Function to display an infobox with a message
+#
+function show_infobox() {
+	export TERM=ansi
+	local input
+	local BACKTITLE="$BACKTITLE"
+	local -a buffer # Declare buffer as an array
+	if [ -p /dev/stdin ]; then
+		while IFS= read -r line; do
+			buffer+=("$line") # Add the line to the buffer
+			# If the buffer has more than 10 lines, remove the oldest line
+			if ((${#buffer[@]} > 18)); then
+				buffer=("${buffer[@]:1}")
+			fi
+			# Display the lines in the buffer in the infobox using the dialog_infobox wrapper
+			dialog_infobox "$TITLE" "$(printf "%s\n" "${buffer[@]}")" 16 90
+			sleep 0.5
+		done
+	else
+
+		input="$1"
+		# Display the infobox using the dialog_infobox wrapper
+		dialog_infobox "$TITLE" "$input" 6 80
+	fi
+	echo -ne '\033[3J' # clear the screen
+}
+
+module_options+=(
+	["show_menu,author"]="@Tearran"
+	["show_menu,ref_link"]=""
+	["show_menu,feature"]="show_menu"
+	["show_menu,desc"]="Display a menu from pipe"
+	["show_menu,example"]="show_menu <<< armbianmonitor -h  ; "
+	["show_menu,doc_link"]=""
+	["show_menu,status"]="Active"
+)
+#
+#
+#
+show_menu() {
+
+	# Get the input and convert it into an array of options
+	inpu_raw=$(cat)
+	# Remove the lines before -h
+	input=$(echo "$inpu_raw" | sed 's/-\([a-zA-Z]\)/\1/' | grep '^  [a-zA-Z] ' | grep -v '\[')
+	options=()
+	while read -r line; do
+		package=$(echo "$line" | awk '{print $1}')
+		description=$(echo "$line" | awk '{$1=""; print $0}' | sed 's/^ *//')
+		options+=("$package" "$description")
+	done <<< "$input"
+
+	# Display the menu and get the user's choice using the dialog_menu wrapper
+	[[ $DIALOG != "bash" ]] && choice=$(dialog_menu "$TITLE" "Choose an option:" 0 0 9 -- "${options[@]}")
+
+	# Check if the user made a choice
+	if [ $? -eq 0 ]; then
+		echo "$choice"
+	else
+		exit 0
+	fi
+
+}
+
+module_options+=(
+	["get_user_continue,author"]="@Tearran"
+	["get_user_continue,ref_link"]=""
+	["get_user_continue,feature"]="get_user_continue"
+	["get_user_continue,desc"]="Display a Yes/No dialog box and process continue/exit"
+	["get_user_continue,example"]="get_user_continue 'Do you wish to continue?' process_input"
+	["get_user_continue,doc_link"]=""
+	["get_user_continue,status"]="Active"
+)
+#
+# Function to display a Yes/No dialog box
+#
+function get_user_continue() {
+	local message="$1"
+	local next_action="$2"
+
+	if dialog_yesno "Warning" "$message" "Yes" "No" 15 80; then
+		$next_action
+	else
+		$next_action "No"
+	fi
+}
+
+
+#
+# Functions to display warning for 10 seconds with a gauge
+#
+module_options+=(
+	["info_wait_autocontinue,author"]="@igorpecovnik"
+	["info_wait_autocontinue,ref_link"]=""
+	["info_wait_autocontinue,feature"]="info_wait_autocontinue"
+	["info_wait_autocontinue,desc"]="Display a warning with a gauge for 10 seconds then continue"
+	["info_wait_autocontinue,example"]=""
+	["info_wait_autocontinue,doc_link"]=""
+	["info_wait_autocontinue,status"]="Active"
+)
+function info_wait_continue() {
+	local message="$1"
+	local next_action="$2"
+	{
+	for ((i=0; i<=100; i+=10)); do
+		sleep 1
+		echo $i
+	done
+	} | dialog_gauge "$TITLE" "$message" 15 80
+
+	# Execute the next action after the gauge completes
+	[[ -n "$next_action" ]] && $next_action
+}
+
+menu_options+=(
+	["get_user_continue,author"]="@Tearran"
+	["get_user_continue,ref_link"]=""
+	["get_user_continue,feature"]="process_input"
+	["get_user_continue,desc"]="used to process the user's choice paired with get_user_continue"
+	["get_user_continue,example"]="get_user_continue 'Do you wish to continue?' process_input"
+	["get_user_continue,status"]="Active"
+	["get_user_continue,doc_link"]=""
+)
+#
+# Function to process the user's choice paired with get_user_continue
+#
+function process_input() {
+	local input="$1"
+	if [ "$input" = "No" ]; then
+		# user canceled
+		echo "User canceled. exiting"
+		exit 0
+	fi
+}
+
+module_options+=(
+	["get_user_continue_secure,author"]="@Tearran"
+	["get_user_continue_secure,ref_link"]=""
+	["get_user_continue_secure,feature"]="get_user_continue_secure"
+	["get_user_continue_secure,desc"]="Secure version of get_user_continue"
+	["get_user_continue_secure,example"]="get_user_continue_secure 'Do you wish to continue?' process_input"
+	["get_user_continue_secure,doc_link"]=""
+	["get_user_continue_secure,status"]="Active"
+)
+#
+# Secure version of get_user_continue
+#
+function get_user_continue_secure() {
+	local message="$1"
+	local next_action="$2"
+
+	# Define a list of allowed functions
+	local allowed_functions=("process_input" "other_function")
+	# Check if the next_action is in the list of allowed functions
+	found=0
+	for func in "${allowed_functions[@]}"; do
+		if [[ "$func" == "$next_action" ]]; then
+			found=1
+			break
+		fi
+	done
+
+	if [[ "$found" -eq 1 ]]; then
+		if dialog_yesno "" "$message" "Yes" "No" 10 80; then
+			$next_action
+		else
+			$next_action "No"
+		fi
+	else
+		echo "Error: Invalid function"
+
+		exit 1
+	fi
+}
+
+module_options+=(
+	["see_current_apt,author"]="@Tearran"
+	["see_current_apt,ref_link"]=""
+	["see_current_apt,feature"]="see_current_apt"
+	["see_current_apt,desc"]="Check when apt list was last updated and suggest updating or update"
+	["see_current_apt,example"]="see_current_apt or see_current_apt update"
+	["see_current_apt,doc_link"]=""
+	["see_current_apt,status"]="Active"
+)
+#
+# Function to check when the package list was last updated
+#
+see_current_apt() {
+	# Number of seconds in a day
+	local update_apt="$1"
+	local day=86400
+	local ten_minutes=600
+	# Get the current date as a Unix timestamp
+	local now=$(date +%s)
+
+	# Get the timestamp of the most recently updated file in /var/lib/apt/lists/
+	local update=$(stat -c %Y /var/lib/apt/lists/* 2>/dev/null | sort -n | tail -1)
+
+	# Check if the update timestamp was found
+	if [[ -z "$update" ]]; then
+		echo "No package lists found."
+		return 1 # No package lists exist
+	fi
+
+	# Calculate the number of seconds since the last update
+	local elapsed=$((now - update))
+
+	# Check if any apt-related processes are running
+	if ps -C apt-get,apt,dpkg > /dev/null; then
+		echo "A package manager is currently running."
+		export running_pkg="true"
+		return 1 # The processes are running
+	else
+		export running_pkg="false"
+	fi
+
+	# Check if the package list is up-to-date
+	if ((elapsed < ten_minutes)); then
+		[[ "$update_apt" != "update" ]] && echo "The package lists are up-to-date."
+		return 0 # The package lists are up-to-date
+	else
+		[[ "$update_apt" != "update" ]] && echo "Update the package lists." # Suggest updating
+		[[ "$update_apt" == "update" ]] && pkg_update
+		return 0 # The package lists are not up-to-date
+	fi
+}
+
+module_options+=(
+	["sanitize,author"]="@Tearran"
+	["sanitize,desc"]="Make sure param contains only valid chars"
+	["sanitize,example"]="sanitize 'foo_bar_42'"
+	["sanitize,feature"]="sanitize"
+	["sanitize,status"]="Interface"
+)
+
+sanitize() {
+	[[ "$1" =~ ^[a-zA-Z0-9_=-]+$ ]] && echo "$1" || die "Invalid argument: $1"
+}
+
+module_options+=(
+	["die,author"]="@dimitry-ishenko"
+	["die,desc"]="Exit with error code 1, optionally printing a message to stderr"
+	["die,example"]="run_critical_function || die 'The world is about to end'"
+	["die,feature"]="die"
+	["die,status"]="Interface"
+)
+
+die() {
+	(( $# )) && echo "$@" >&2
+	exit 1
+}
+
+#
+# Dialog abstraction layer - provides unified interface for whiptail/dialog
+# Maintains backward compatibility while allowing easy switching between dialog tools
+#
+
+module_options+=(
+	["dialog_menu,author"]="@armbian"
+	["dialog_menu,desc"]="Display a menu dialog using the configured dialog tool. Supports --item-help for additional help text per item."
+	["dialog_menu,example"]="dialog_menu \"Title\" \"Prompt\" option1 \"Description 1\" option2 \"Description 2\"\n# With --item-help:\ndialog_menu \"Title\" \"Prompt\" --item-help tag1 \"Item 1\" \"Help for item 1\" tag2 \"Item 2\" \"Help for item 2\""
+	["dialog_menu,feature"]="dialog_menu"
+	["dialog_menu,status"]="Active"
+)
+
+#
+# Function to strip dialog color codes
+# Removes \Z sequences (e.g., \Zb\Z1\Zn) used by dialog colors
+# Used when whiptail is active since it doesn't support color codes
+#
+strip_color_codes() {
+	local text="$1"
+	# Remove all dialog color escape sequences \Z<any char>
+	echo "$text" | sed 's/\\Z.//g'
+}
+
+# Display a menu dialog with proper redirection for each dialog tool
+dialog_menu() {
+	local title="$1"
+	local prompt="$2"
+	local height="${3:-0}"
+	local width="${4:-80}"
+	local list_height="${5:-9}"
+	shift 5
+
+	# Parse arguments: everything before -- is extra args, everything after is data
+	local extra_args=()
+	local options=()
+	local use_item_help=false
+
+	while [[ $# -gt 0 ]]; do
+		if [[ "$1" == "--" ]]; then
+			shift
+			break
+		elif [[ "$1" == --* ]]; then
+			# For dialog options that require arguments (like --ok-button), consume both the flag and its value
+			case "$1" in
+				--ok-button|--cancel-button|--yes-button|--no-button|--default-item|--backtitle)
+					extra_args+=("$1")
+					shift
+					if [[ $# -gt 0 && "$1" != --* ]]; then
+						extra_args+=("$1")
+						shift
+					fi
+					;;
+				--item-help)
+					use_item_help=true
+					extra_args+=("$1")
+					shift
+					;;
+				*)
+					extra_args+=("$1")
+					shift
+					;;
+			esac
+		else
+			break
+		fi
+	done
+
+	# All remaining arguments are data (options)
+	options=("$@")
+
+	case "$DIALOG" in
+		"whiptail")
+			# whiptail doesn't support --item-help, convert triplets to pairs
+			local whiptail_args=()
+			local whiptail_options=()
+			for arg in "${extra_args[@]}"; do
+				[[ "$arg" != "--item-help" ]] && whiptail_args+=("$arg")
+			done
+			# If using item-help, convert triplets (tag, item, help) to pairs (tag, item)
+			if $use_item_help; then
+				for ((j=0; j<${#options[@]}; j+=3)); do
+					whiptail_options+=("${options[j]}" "${options[j+1]}")
+				done
+			else
+				whiptail_options=("${options[@]}")
+			fi
+			whiptail --title "$(strip_color_codes "$title")" "${whiptail_args[@]}" --backtitle "$(strip_color_codes "$BACKTITLE")" --menu "$prompt" $height $width $list_height "${whiptail_options[@]}" 3>&1 1>&2 2>&3
+			;;
+		"dialog")
+			# dialog outputs selection to stderr by default; swap stdout/stderr (3>&1 1>&2 2>&3) to capture stderr to stdout for command substitution
+			dialog --colors --title "$title" "${extra_args[@]}" --backtitle "$BACKTITLE" --menu "$prompt" $height $width $list_height "${options[@]}" 3>&1 1>&2 2>&3
+			;;
+		"read")
+			# Fallback to read - handle --no-items and --item-help if present
+			local use_no_items=false
+			for arg in "${extra_args[@]}"; do
+				[[ "$arg" == "--no-items" ]] && use_no_items=true
+			done
+
+			# Debug: show options array
+			debug_log "dialog_menu(read): options array has ${#options[@]} elements"
+			debug_log "dialog_menu(read): use_item_help=$use_item_help"
+
+			if $use_no_items; then
+				# Simple list without descriptions
+				local i=1
+				for item in "${options[@]}"; do
+					echo "$i. $item" >&2
+					((i++))
+				done
+			elif $use_item_help; then
+				# Triplets of tag, item, and help text. Only print tag +
+				# item; the help text is meant for F1/hover in dialog and
+				# would just produce noisy three-segment lines like
+				#   "1. CINM01 - Install Cinnamon - Install the Cinnamon desktop environment"
+				# in this read-mode fallback.
+				local i=1
+				for ((j=0; j<${#options[@]}; j+=3)); do
+					# Remove "  -  " prefix from description for cleaner display
+					local desc="${options[j+1]#\  -\  }"
+					echo "$i. ${options[j]} - $desc" >&2
+					((i++))
+				done
+			else
+				# Pairs of item and description
+				local i=1
+				for ((j=0; j<${#options[@]}; j+=2)); do
+					# Remove "  -  " prefix from description for cleaner display
+					local desc="${options[j]#\  -\  }"
+					echo "$i. $desc - ${options[j+1]}" >&2
+					((i++))
+				done
+			fi
+			read -p "Enter choice number: " choice_index
+			if [[ "$choice_index" =~ ^[0-9]+$ ]] && [ "$choice_index" -ge 1 ] && [ "$choice_index" -lt "$i" ]; then
+				if $use_no_items; then
+					echo "${options[((choice_index-1))]}"
+				elif $use_item_help; then
+					echo "${options[((choice_index-1)*3)]}"
+				else
+					echo "${options[((choice_index-1)*2)]}"
+				fi
+			fi
+			;;
+	esac
+}
+
+module_options+=(
+	["dialog_inputbox,author"]="@armbian"
+	["dialog_inputbox,desc"]="Display an input box dialog using the configured dialog tool"
+	["dialog_inputbox,example"]="dialog_inputbox \"Title\" \"Prompt\" \"default_value\""
+	["dialog_inputbox,feature"]="dialog_inputbox"
+	["dialog_inputbox,status"]="Active"
+)
+
+# Display an input box dialog with proper redirection for each dialog tool
+dialog_inputbox() {
+	local title="$1"
+	local prompt="$2"
+	local default="${3:-}"
+	local height="${4:-0}"
+	local width="${5:-80}"
+	local extra_args=("${@:6}")
+
+	# Parse remaining arguments as extra args
+
+	case "$DIALOG" in
+		"whiptail")
+			whiptail --title "$(strip_color_codes "$title")" "${extra_args[@]}" --backtitle "$(strip_color_codes "$BACKTITLE")" --inputbox "$prompt" $height $width "$default" 3>&1 1>&2 2>&3
+			;;
+		"dialog")
+			# dialog outputs selection to stderr by default; swap stdout/stderr (3>&1 1>&2 2>&3) to capture stderr to stdout for command substitution
+			dialog --colors --title "$title" "${extra_args[@]}" --backtitle "$BACKTITLE" --inputbox "$prompt" $height $width "$default" 3>&1 1>&2 2>&3
+			;;
+		"read")
+			read -p "$prompt [$default]: " result
+			echo "${result:-$default}"
+			;;
+	esac
+}
+
+module_options+=(
+	["dialog_passwordbox,author"]="@armbian"
+	["dialog_passwordbox,desc"]="Display a password input dialog using the configured dialog tool"
+	["dialog_passwordbox,example"]="dialog_passwordbox "Title" "Prompt""
+	["dialog_passwordbox,feature"]="dialog_passwordbox"
+	["dialog_passwordbox,status"]="Active"
+)
+
+# Display a password input dialog with proper redirection for each dialog tool
+dialog_passwordbox() {
+	local title="$1"
+	local prompt="$2"
+	local height="${3:-0}"
+	local width="${4:-80}"
+	local extra_args=("${@:5}")
+	# Parse remaining arguments as extra args
+
+	case "$DIALOG" in
+		"whiptail")
+			whiptail --title "$(strip_color_codes "$title")" "${extra_args[@]}" --backtitle "$(strip_color_codes "$BACKTITLE")" --passwordbox "$prompt" $height $width 3>&1 1>&2 2>&3
+			;;
+		"dialog")
+			# dialog outputs selection to stderr by default; swap stdout/stderr (3>&1 1>&2 2>&3) to capture stderr to stdout for command substitution
+			dialog --colors --title "$title" "${extra_args[@]}" --backtitle "$BACKTITLE" --insecure --passwordbox "$prompt" $height $width 3>&1 1>&2 2>&3
+			;;
+		"read")
+			# For read mode, use read -s to hide input
+			read -s -p "$prompt: " result
+			echo ""
+			echo "$result"
+			;;
+	esac
+}
+
+module_options+=(
+	["dialog_yesno,author"]="@armbian"
+	["dialog_yesno,desc"]="Display a yes/no dialog using the configured dialog tool"
+	["dialog_yesno,example"]="dialog_yesno \"Title\" \"Question\""
+	["dialog_yesno,feature"]="dialog_yesno"
+	["dialog_yesno,status"]="Active"
+)
+
+# Display a yes/no dialog with proper redirection for each dialog tool
+dialog_yesno() {
+	local title="$1"
+	local prompt="$2"
+	local yes_label="${3:-Yes}"
+	local no_label="${4:-No}"
+	local height="${5:-0}"
+	local width="${6:-80}"
+	local extra_args=("${@:7}")
+	# Parse remaining arguments as extra args
+
+	case "$DIALOG" in
+		"whiptail")
+			whiptail --title "$(strip_color_codes "$title")" "${extra_args[@]}" --backtitle "$(strip_color_codes "$BACKTITLE")" --yes-button "$yes_label" --no-button "$no_label" --yesno "$prompt" $height $width 3>&1 1>&2 2>&3
+			clear
+			;;
+		"dialog")
+			dialog --clear --colors --title "$title" "${extra_args[@]}" --backtitle "$BACKTITLE" --yes-button "$yes_label" --no-button "$no_label" --yesno "$prompt" $height $width
+			;;
+		"read")
+			read -p "$prompt [$yes_label/$no_label]: " choice
+			local choice_lower=$(echo "$choice" | tr '[:upper:]' '[:lower:]')
+			local yes_label_lower=$(echo "$yes_label" | tr '[:upper:]' '[:lower:]')
+			[[ "$choice_lower" == "y" ]] || [[ "$choice_lower" == "yes" ]] || [[ "$choice_lower" == "$yes_label_lower" ]]
+			;;
+	esac
+}
+
+module_options+=(
+	["dialog_msgbox,author"]="@armbian"
+	["dialog_msgbox,desc"]="Display a message box using the configured dialog tool"
+	["dialog_msgbox,example"]="dialog_msgbox \"Title\" \"Message\""
+	["dialog_msgbox,feature"]="dialog_msgbox"
+	["dialog_msgbox,status"]="Active"
+)
+
+# Display a message box with proper handling for each dialog tool
+dialog_msgbox() {
+	local title="$1"
+	local prompt="$2"
+	local height="${3:-0}"
+	local width="${4:-0}"
+	local extra_args=("${@:5}")
+
+	case "$DIALOG" in
+		"whiptail")
+			whiptail --title "$(strip_color_codes "$title")" "${extra_args[@]}" --backtitle "$(strip_color_codes "$BACKTITLE")" --msgbox "$prompt" $height $width
+			;;
+		"dialog")
+			dialog --colors --title "$title" "${extra_args[@]}" --backtitle "$BACKTITLE" --msgbox "$prompt" $height $width
+			;;
+		"read")
+			echo "$prompt"
+			# A message box has nothing to cancel, so it must never fail.
+			# Non-interactive callers (--api, CI) have no tty: skip the
+			# prompt rather than let read's EOF status become the exit
+			# code of whatever module called us.
+			if [[ -t 0 ]]; then
+				read -p "Press Enter to continue..."
+			fi
+			;;
+	esac
+}
+
+module_options+=(
+	["dialog_infobox,author"]="@armbian"
+	["dialog_infobox,desc"]="Display an info box using the configured dialog tool"
+	["dialog_infobox,example"]="dialog_infobox \"Title\" \"Message\" 6 80"
+	["dialog_infobox,feature"]="dialog_infobox"
+	["dialog_infobox,status"]="Active"
+)
+
+# Display an info box with proper handling for each dialog tool
+dialog_infobox() {
+	local title="$1"
+	local prompt="$2"
+	local height="${3:-6}"
+	local width="${4:-80}"
+
+	local extra_args=("${@:5}")
+
+	case "$DIALOG" in
+		"whiptail")
+			whiptail --title "$(strip_color_codes "$title")" "${extra_args[@]}" --backtitle "$(strip_color_codes "$BACKTITLE")" --infobox "$prompt" $height $width
+			;;
+		"dialog")
+			dialog --colors --title "$title" "${extra_args[@]}" --backtitle "$BACKTITLE" --infobox "$prompt" $height $width
+			;;
+		"read")
+			echo "$prompt"
+			;;
+	esac
+}
+
+module_options+=(
+	["dialog_gauge,author"]="@armbian"
+	["dialog_gauge,desc"]="Display a gauge dialog for progress indication"
+	["dialog_gauge,example"]="echo 50 | dialog_gauge \"Title\" \"Progress\" 10 70"
+	["dialog_gauge,feature"]="dialog_gauge"
+	["dialog_gauge,status"]="Active"
+)
+
+# Display a gauge dialog (typically used with pipes for progress bars)
+dialog_gauge() {
+	local title="$1"
+	local prompt="$2"
+	local height="${3:-10}"
+	local width="${4:-70}"
+
+	# Parse remaining arguments as extra args
+	local extra_args=("${@:5}")
+	case "$DIALOG" in
+		"whiptail")
+			whiptail --title "$(strip_color_codes "$title")" "${extra_args[@]}" --backtitle "$(strip_color_codes "$BACKTITLE")" --gauge "$prompt" $height $width 0
+			;;
+		"dialog")
+			dialog --colors --title "$title" "${extra_args[@]}" --backtitle "$BACKTITLE" --gauge "$prompt" $height $width 0
+			;;
+		"read")
+			# For read mode, just display the prompt
+			echo "$prompt"
+			cat > /dev/null  # Consume the input
+			;;
+	esac
+}
+
+module_options+=(
+	["show_module_help,author"]="@armbian"
+	["show_module_help,desc"]="Generic module help dialog for containers and native installs"
+	["show_module_help,example"]="show_module_help \"module_headers\" \"Kernel Headers\" \"\" \"native\""
+	["show_module_help,feature"]="show_module_help"
+	["show_module_help,status"]="Active"
+)
+
+#
+# Generic module help dialog - works for containers and native installs
+# Usage: show_module_help <module_prefix> <title> [additional_info] [module_type]
+#   module_prefix: e.g., "module_unbound", "module_headers"
+#   title: Display title for the help dialog
+#   additional_info: Optional extra info to append (e.g., port, image)
+#   module_type: Optional, "container" (default) or "native"
+#
+show_module_help() {
+	local module_prefix="$1"
+	local title="$2"
+	local additional_info="${3:-}"
+	local module_type="${4:-container}"
+
+	local feature="${module_options["${module_prefix},feature"]}"
+	local desc="${module_options["${module_prefix},desc"]}"
+	local example="${module_options["${module_prefix},example"]}"
+	local doc_link="${module_options["${module_prefix},doc_link"]}"
+
+	local help_text="Usage: $feature <command>\n\n"
+	help_text+="Available commands:\n\n"
+
+	# Parse commands and create descriptions
+	IFS=' ' read -r -a commands <<< "$example"
+	for cmd in "${commands[@]}"; do
+		# Check if module has custom description for this command
+		local custom_desc="${module_options["${module_prefix},help_${cmd}"]}"
+		if [[ -n "$custom_desc" ]]; then
+			help_text+="$(printf "  %-9s- %s" "$cmd" "$custom_desc")\n"
+			continue
+		fi
+
+		# Fall back to default descriptions based on module type
+		case "$cmd" in
+			install)
+				if [[ "$module_type" == "container" ]]; then
+					help_text+="  install  - Pull Docker image and create container\n"
+				else
+					help_text+="  install  - $desc\n"
+				fi
+				;;
+			remove)
+				if [[ "$module_type" == "container" ]]; then
+					help_text+="  remove   - Remove container and image\n"
+				else
+					help_text+="  remove   - Remove installed packages\n"
+				fi
+				;;
+			purge)
+				if [[ "$module_type" == "container" ]]; then
+					help_text+="  purge    - Remove container, image, and all data directories\n"
+				else
+					help_text+="  purge    - Remove packages and all configuration/data\n"
+				fi
+				;;
+			status)
+				help_text+="  status   - Show installation status\n"
+				;;
+			help)
+				help_text+="  help     - Show this help message\n"
+				;;
+			password)
+				help_text+="  password - Set admin password\n"
+				;;
+			*)
+				help_text+="  $cmd  - $cmd command\n"
+				;;
+		esac
+	done
+
+	[[ -n "$additional_info" ]] && help_text+="\n$additional_info"
+	help_text+="\nDocumentation: $doc_link"
+
+	if [[ "$DIALOG" == "read" ]]; then
+		echo -e "$help_text"
+	else
+		dialog_msgbox "$title Help" "$help_text" 20 70
+	fi
+}
+
+module_options+=(
+	["dialog_checklist,author"]="@armbian"
+	["dialog_checklist,desc"]="Display a checklist dialog using the configured dialog tool"
+	["dialog_checklist,example"]="dialog_checklist \"Title\" \"Prompt\" option1 \"Description 1\" ON option2 \"Description 2\" OFF"
+	["dialog_checklist,feature"]="dialog_checklist"
+	["dialog_checklist,status"]="Active"
+)
+
+# Display a checklist dialog with proper redirection for each dialog tool
+dialog_checklist() {
+	local title="$1"
+	local prompt="$2"
+	local height="${3:-0}"
+	local width="${4:-80}"
+	local list_height="${5:-9}"
+	shift 5
+
+	# Parse arguments: everything before -- is extra args, everything after is data
+	local extra_args=()
+	local options=()
+
+	while [[ $# -gt 0 ]]; do
+		if [[ "$1" == "--" ]]; then
+			shift
+			break
+		elif [[ "$1" == --* ]]; then
+			# For dialog options that require arguments, consume both the flag and its value
+			case "$1" in
+				--ok-button|--cancel-button|--yes-button|--no-button)
+					extra_args+=("$1")
+					shift
+					if [[ $# -gt 0 && "$1" != --* ]]; then
+						extra_args+=("$1")
+						shift
+					fi
+					;;
+				--separate-output|--nocancel)
+					extra_args+=("$1")
+					shift
+					;;
+				*)
+					extra_args+=("$1")
+					shift
+					;;
+			esac
+		else
+			break
+		fi
+	done
+
+	# All remaining arguments are data (options)
+	options=("$@")
+
+	case "$DIALOG" in
+		"whiptail")
+			whiptail --title "$(strip_color_codes "$title")" "${extra_args[@]}" --backtitle "$(strip_color_codes "$BACKTITLE")" --checklist "$prompt" $height $width $list_height "${options[@]}" 3>&1 1>&2 2>&3
+			;;
+		"dialog")
+			# dialog outputs selection to stderr by default; swap stdout/stderr (3>&1 1>&2 2>&3) to capture stderr to stdout for command substitution
+			dialog --colors --title "$title" "${extra_args[@]}" --backtitle "$BACKTITLE" --checklist "$prompt" $height $width $list_height "${options[@]}" 3>&1 1>&2 2>&3
+			;;
+		"read")
+			# Fallback to read - handle checklist by showing numbered list
+			local i=1
+			for ((j=0; j<${#options[@]}; j+=3)); do
+				local status="${options[j+2]}"
+				local marker=" "
+				[[ "$status" =~ ^[Oo][Nn]$ ]] && marker="*"
+				echo "$i. [$marker] ${options[j]} - ${options[j+1]}"
+				((i++))
+			done
+			read -p "Enter choice numbers (comma-separated): " choices
+			for choice in ${choices//,/ }; do
+				if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -lt "$i" ]; then
+					idx=$((choice - 1))
+					echo "${options[idx*3]}"
+				fi
+			done
+			;;
+	esac
+}
+
+dialog_radiolist() {
+	local title="$1"
+	local prompt="$2"
+	local height="${3:-0}"
+	local width="${4:-80}"
+	local list_height="${5:-9}"
+	shift 5
+
+	# Parse arguments: everything before -- is extra args, everything after is data
+	local extra_args=()
+	local options=()
+
+	while [[ $# -gt 0 ]]; do
+		if [[ "$1" == "--" ]]; then
+			shift
+			break
+		elif [[ "$1" == --* ]]; then
+			# For dialog options that require arguments, consume both the flag and its value
+			case "$1" in
+				--ok-button|--cancel-button|--yes-button|--no-button)
+					extra_args+=("$1")
+					shift
+					if [[ $# -gt 0 && "$1" != --* ]]; then
+						extra_args+=("$1")
+						shift
+					fi
+					;;
+				--separate-output|--nocancel|--notags)
+					extra_args+=("$1")
+					shift
+					;;
+				*)
+					extra_args+=("$1")
+					shift
+					;;
+			esac
+		else
+			break
+		fi
+	done
+
+	# All remaining arguments are data (options)
+	options=("$@")
+
+	case "$DIALOG" in
+		"whiptail")
+			whiptail --title "$(strip_color_codes "$title")" "${extra_args[@]}" --backtitle "$(strip_color_codes "$BACKTITLE")" --radiolist "$prompt" $height $width $list_height "${options[@]}" 3>&1 1>&2 2>&3
+			;;
+		"dialog")
+			# dialog outputs selection to stderr by default; swap stdout/stderr (3>&1 1>&2 2>&3) to capture stderr to stdout for command substitution
+			dialog --colors --title "$title" "${extra_args[@]}" --backtitle "$BACKTITLE" --radiolist "$prompt" $height $width $list_height "${options[@]}" 3>&1 1>&2 2>&3
+			;;
+		"read")
+			# Fallback to read - handle radiolist by showing numbered list
+			local i=1
+			for ((j=0; j<${#options[@]}; j+=3)); do
+				local status="${options[j+2]}"
+				local marker=" "
+				[[ "$status" =~ ^[Oo][Nn]$ ]] && marker="*"
+				echo "$i. [$marker] ${options[j]} - ${options[j+1]}"
+				((i++))
+			done
+			read -p "Enter choice number: " choice
+			if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -lt "$i" ]; then
+				idx=$((choice - 1))
+				echo "${options[idx*3]}"
+			fi
+			;;
+	esac
+}
+
+module_options+=(
+	["wait_for_container_ready,author"]="@armbian"
+	["wait_for_container_ready,desc"]="Wait for a Docker container to be ready (default: check if running)"
+	["wait_for_container_ready,example"]="wait_for_container_ready \"container_name\" 20 3"
+	["wait_for_container_ready,feature"]="wait_for_container_ready"
+	["wait_for_container_ready,status"]="Active"
+)
+
+# Wait for a Docker container to be ready
+# Usage: wait_for_container_ready <container_name> [max_attempts] [sleep_interval] [check_type] [extra_condition]
+# check_type: "running" (default, works for all containers) or "build_version" (LinuxServer-specific)
+wait_for_container_ready() {
+	local container_name="$1"
+	local max_attempts="${2:-20}"
+	local sleep_interval="${3:-3}"
+	local check_type="${4:-running}"
+	local extra_condition="${5:-}"
+
+	for ((i=1; i<=max_attempts; i++)); do
+		local container_ready=false
+
+		case "$check_type" in
+			"running"|*)
+				local state
+				state="$(docker inspect -f '{{.State.Status}}' "$container_name" 2>/dev/null || true)"
+				if [[ "$state" == "running" ]]; then
+					container_ready=true
+				fi
+				;;
+			"build_version")
+				if docker inspect -f '{{ index .Config.Labels "build_version" }}' "$container_name" >/dev/null 2>&1; then
+					container_ready=true
+				fi
+				;;
+		esac
+
+		if $container_ready; then
+			# Check extra condition if provided
+			if [[ -n "$extra_condition" ]]; then
+				if eval "$extra_condition"; then
+					return 0
+				fi
+			else
+				return 0
+			fi
+		fi
+		sleep "$sleep_interval"
+	done
+
+	echo -e "\nTimed out waiting for ${container_name} to start, consult your container logs for more info (\`docker logs ${container_name}\`)"
+	return 1
+}
+
+# shellcheck shell=bash
+# This is a sourced armbian-config module fragment, not a standalone script.
+declare -A module_options
+module_options+=(
+	["module_install_engine,author"]="@igorpecovnik"
+	["module_install_engine,maintainer"]="@igorpecovnik"
+	["module_install_engine,feature"]="module_install_engine"
+	["module_install_engine,example"]="detect plan"
+	["module_install_engine,desc"]="Armbian installer engine (backend library, no UI)"
+	["module_install_engine,status"]="review"
+	["module_install_engine,doc_link"]="https://docs.armbian.com"
+	["module_install_engine,group"]="System"
+	["module_install_engine,port"]=""
+	["module_install_engine,arch"]=""
+)
+
+#
+# module_install_engine.sh - armbian-install backend.
+#
+# Pure, dialog-free, individually testable functions. Every function takes its
+# inputs as explicit arguments (or on stdin) and returns data on stdout or a
+# status code - nothing reaches into ambient globals. The dialog frontend
+# (module_partitioner.sh) and the non-interactive CLI both call into this file;
+# the bats suite under tests/bats/ sources it directly and drives the pure
+# functions with fixtures.
+#
+# Design notes / bugs this shape fixes:
+#   * install_detect_targets emits one TAB-separated record per device and never
+#     space-joins names -> multi-disk concatenation (build#8738).
+#   * install_plan_layout is a pure function of (boot_mode, fs, uefi, capacity,
+#     sector_size, has_swap); it selects GPT when uefi | >2TiB | 4Kn and emits
+#     explicit ESP/boot flags -> MBR-only & missing-boot-flag installs
+#     (build#9454, #9794, #6905).
+#   * install_apply_partitions lays partitions in MiB units so alignment is
+#     valid on both 512-byte and 4Kn media (build#9454).
+#   * install_populate_boot always populates the target /boot and
+#     install_verify_boot_dir refuses an empty /boot -> unbootable installs
+#     (build#10099, #10064).
+#
+
+# ---- named exit codes (replace the old scattered magic numbers) -------------
+readonly INSTALL_EX_OK=0
+readonly INSTALL_EX_USAGE=64          # bad arguments
+readonly INSTALL_EX_NODEV=65          # no / invalid target device
+readonly INSTALL_EX_NOSPACE=66        # target too small
+readonly INSTALL_EX_TOOL=67           # required tool / package missing
+readonly INSTALL_EX_PARTITION=68      # partitioning failed
+readonly INSTALL_EX_FORMAT=69         # mkfs failed
+readonly INSTALL_EX_TRANSFER=70       # rootfs copy failed
+readonly INSTALL_EX_BOOTCFG=71        # boot config / fstab rewrite failed
+readonly INSTALL_EX_BOOTLOADER=72     # bootloader write failed
+readonly INSTALL_EX_VERIFY=73         # post-install verification failed
+
+# Log sink. Callers may point INSTALL_LOG at a file; defaults to stderr.
+INSTALL_LOG="${INSTALL_LOG:-/dev/stderr}"
+
+install_log() {
+	# install_log <LEVEL> <message...>
+	local level="$1"; shift
+	printf '%s [%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null || echo now)" "$level" "$*" >>"$INSTALL_LOG" 2>/dev/null || true
+}
+
+# ---- capacity / geometry helpers -------------------------------------------
+
+# 2 TiB in bytes - the msdos/MBR addressing ceiling on 512-byte sectors.
+readonly INSTALL_TWO_TIB=$(( 2 * 1024 * 1024 * 1024 * 1024 ))
+
+install_table_type() {
+	# install_table_type <is_uefi> <capacity_bytes> <sector_size> [preferred]
+	# GPT when firmware is UEFI, the disk is larger than the MBR ceiling, or the
+	# medium is 4Kn - these are hard requirements and override everything. When
+	# none of those force the choice, honour <preferred> (gpt|msdos) if given -
+	# this is how an eMMC/SD install replicates the running image's table type so
+	# the board's u-boot can actually read it. Falls back to msdos. Pure - no
+	# device access.
+	local is_uefi="$1" cap="${2:-0}" sec="${3:-512}" preferred="${4:-}"
+	if [[ "$is_uefi" == "1" || "$is_uefi" == "uefi" ]] \
+		|| (( cap > INSTALL_TWO_TIB )) \
+		|| (( sec == 4096 )); then
+		echo "gpt"
+		return 0
+	fi
+	case "$preferred" in
+		gpt|msdos) echo "$preferred" ;;
+		*)         echo "msdos" ;;
+	esac
+}
+
+install_source_table_type() {
+	# Echo the partition-table type (gpt|msdos) of the disk the board actually
+	# boots from, or nothing if it can't be determined. An eMMC/SD install must
+	# replicate this so the board's bootloader can read the result: Rockchip
+	# vendor u-boot (2017.09) parses GPT only - an MBR eMMC gives endless
+	# "Invalid GPT" and never finds the kernel - while Allwinner needs MBR
+	# because its SPL at sector 16 (8KiB) overlaps a GPT partition-entry array.
+	#
+	# Prefer the device that holds /boot: that is the one u-boot reads, and it can
+	# be a different disk with a different table than / (e.g. SD /boot + NVMe root).
+	# Fall back to / when /boot is not its own mount. --nofsroot strips any bind or
+	# subvolume suffix so lsblk gets a bare device. Impure: reads the live layout.
+	local src disk ptt
+	src="$(findmnt -no SOURCE --nofsroot /boot 2>/dev/null)"
+	[[ "$src" == /dev/* ]] || src="$(findmnt -no SOURCE --nofsroot / 2>/dev/null)"
+	[[ "$src" == /dev/* ]] || return 0
+	disk="$(lsblk -no PKNAME "$src" 2>/dev/null | head -1)"
+	[[ -n "$disk" ]] || return 0
+	ptt="$(lsblk -ndo PTTYPE "/dev/$disk" 2>/dev/null | head -1)"
+	case "$ptt" in
+		gpt) echo "gpt" ;;
+		dos) echo "msdos" ;;
+	esac
+}
+
+# True when lsblk lists a mount point or [SWAP] for <disk> or a device under it, or fails.
+install_disk_in_use() {
+	local mp
+	mp="$(lsblk -nro MOUNTPOINT "$1" 2>/dev/null)" \
+		|| { install_log ERR "disk-in-use: lsblk failed for $1, treating it as in use"; return 0; }
+	grep -q . <<<"$mp"
+}
+
+# ---- detection --------------------------------------------------------------
+
+# Thin, overridable wrapper around lsblk so tests can inject fixtures.
+_install_lsblk_raw() {
+	lsblk -b -d -o NAME,TYPE,SIZE,PHY-SEC,TRAN,ROTA,MODEL --json 2>/dev/null
+}
+
+install_detect_targets() {
+	# install_detect_targets [root_disk] [lsblk_json]
+	# Emit one TAB-separated record per candidate whole disk:
+	#   name <TAB> role <TAB> size_bytes <TAB> sector_size <TAB> bus <TAB> rota <TAB> model
+	# role in {nvme,mmc,usb,sata,disk}. The disk hosting the running rootfs
+	# (root_disk, a bare kernel name such as "mmcblk0") is excluded, as is SPI/MTD
+	# flash (mtdblockN) - a boot device, not a target; it is offered as the mtd
+	# boot mode once a real target is picked (see INSTALL_MTD_LIST).
+	local root_disk="${1:-}"
+	local json="${2:-}"
+	[[ -z "$json" ]] && json="$(_install_lsblk_raw)"
+	[[ -z "$json" ]] && return "$INSTALL_EX_NODEV"
+
+	# Note: empty fields are emitted as "-" (never ""), because a `read` loop with
+	# IFS=$'\t' collapses consecutive tabs (tab is IFS-whitespace) and an empty
+	# column would shift every field after it.
+	echo "$json" | jq -r --arg root "$root_disk" '
+		.blockdevices[]?
+		| select(.type == "disk")
+		| select(.name != $root)
+		# Drop pseudo/virtual block devices that are never install targets:
+		# zram (compressed RAM swap), ram disks, loop, optical (sr), floppy (fd),
+		# and device-mapper (dm-) nodes.
+		| select(.name | test("^(zram|ram|loop|sr|fd|dm-)[0-9-]") | not)
+		# eMMC exposes its read-only boot areas (mmcblkXboot0/boot1) and the
+		# RPMB partition as their own TYPE=disk block devices. They are ~4 MB,
+		# not writable as normal storage, and never valid install targets, so
+		# drop them - only the main mmcblkX user-data device is a candidate.
+		| select(.name | test("^mmcblk[0-9]+(boot[0-9]+|rpmb)$") | not)
+		# SPI/MTD flash (mtdblockN) holds the bootloader, not a root filesystem -
+		# it is a *boot* device (offered via the mtd boot mode after picking a
+		# real target), never an install destination, so keep it out of the list.
+		| select(.name | test("^mtdblock[0-9]+$") | not)
+		| { n: .name, t: (.tran // ""), sz: (.size // 0),
+			ps: (."phy-sec" // 512), ro: (.rota // false), md: ((.model // "") | gsub("\t"; " ")) }
+		| .role = ( if   (.n | test("^nvme"))     then "nvme"
+			elif (.n | test("^mmcblk"))   then "mmc"
+			elif (.t == "usb")            then "usb"
+			elif (.t == "sata" or .t == "ata") then "sata"
+			else "disk" end )
+		| [ .n, .role, (.sz|tostring), (.ps|tostring),
+			(if .t  == "" then "-" else .t  end),
+			(.ro|tostring),
+			(if .md == "" then "-" else .md end) ]
+		| @tsv
+	'
+}
+
+# ---- partition planning (pure) ---------------------------------------------
+
+install_plan_layout() {
+	# install_plan_layout <boot_mode> <fs> <is_uefi> <capacity_bytes> <sector_size> [has_swap] [table_pref]
+	#
+	# table_pref (gpt|msdos): preferred partition table when capacity/sector/uefi
+	# don't force GPT - used to replicate the running image's table type on an
+	# eMMC/SD target so the board's u-boot can read it. Empty = default (msdos).
+	#
+	# boot_mode: uefi | emmc | sd | mtd | ufs | native
+	#   uefi   - full install to an internal disk with an ESP + GRUB
+	#   emmc   - full self-contained install (boot + root) to eMMC/SD
+	#   sd     - boot stays on removable media, only the rootfs lands on the target
+	#   mtd    - boot lives in SPI/MTD flash, only the rootfs lands on the target
+	#   ufs    - boot idblock on a UFS boot LUN, rootfs on the UFS general LUN
+	#   native - full self-contained install (boot + root) to any disk on a board
+	#            with no u-boot/EFI/GRUB - its own firmware reads a plain FAT32
+	#            boot partition directly off whatever bus it's on (Raspberry
+	#            Pi's SoC/EEPROM bootrom). No bootloader write needed.
+	#
+	# Emits a declarative plan on stdout:
+	#   table=gpt|msdos
+	#   part=<role>:<size>:<fstype>:<flags>       (one line per partition, in order)
+	# where size is an absolute "<N>MiB" or "100%" (fill), and flags is a
+	# comma-separated subset of {esp,boot,bios_grub} ("" for none). Pure: no device I/O.
+	local boot_mode="$1" fs="$2" is_uefi="$3" cap="${4:-0}" sec="${5:-512}" has_swap="${6:-0}" table_pref="${7:-}"
+	local table
+	table="$(install_table_type "$is_uefi" "$cap" "$sec" "$table_pref")"
+
+	local -a parts=()
+	case "$boot_mode" in
+		uefi)
+			# ESP is mandatory and the table is always GPT for UEFI.
+			table="gpt"
+			parts+=("esp:512MiB:vfat:esp,boot")
+			parts+=("root:100%:${fs}:")
+			;;
+		bios)
+			# x86 legacy BIOS install with GRUB (grub-pc). On GPT a 1MiB BIOS boot
+			# partition is required for GRUB to embed core.img; on MBR it embeds in
+			# the post-MBR gap, so the root partition just carries the boot flag.
+			if [[ "$table" == "gpt" ]]; then
+				parts+=("biosboot:1MiB::bios_grub")
+				parts+=("root:100%:${fs}:")
+			else
+				parts+=("root:100%:${fs}:boot")
+			fi
+			;;
+		emmc|spi|standalone)
+			# All are fully self-contained targets (local /boot the board's
+			# u-boot reads directly). They differ only in where u-boot itself
+			# lives - on the eMMC's raw sectors for "emmc" (hence the 16MiB
+			# offset below), pre-flashed to on-board SPI/NOR for "spi" or left
+			# on the current SD/eMMC for "standalone" (so no raw reservation on
+			# this disk, 1MiB offset) - which is handled at the start-offset
+			# step, not here; the partition shape is identical.
+			if [[ "$fs" == "btrfs" || "$fs" == "f2fs" ]]; then
+				# u-boot cannot read btrfs/f2fs -> a dedicated ext4 /boot.
+				parts+=("boot:512MiB:ext4:boot")
+				[[ "$has_swap" == "1" ]] && parts+=("swap:256MiB:swap:")
+				parts+=("root:100%:${fs}:")
+			else
+				# ext4 keeps /boot as a directory on a single partition.
+				parts+=("root:100%:ext4:boot")
+			fi
+			;;
+		emmc-boot)
+			# eMMC used as the BOOT device in a split install: the root filesystem
+			# lives on another disk (e.g. NVMe, which the SoC bootrom cannot load
+			# u-boot from). eMMC carries u-boot in the 16MiB gap, a dedicated ext4
+			# /boot the board's u-boot can always read, and the remainder as a data
+			# partition auto-mounted at /emmc_storage (the fs is fixed to ext4 here;
+			# the <fs> argument applies to the root device, planned separately).
+			parts+=("boot:512MiB:ext4:boot")
+			parts+=("storage:100%:ext4:")
+			;;
+		sd|mtd|ufs)
+			# Only the rootfs lands here; boot lives elsewhere.
+			parts+=("root:100%:${fs}:boot")
+			;;
+		native)
+			# No u-boot involved, so no raw-sector reservation and no ext4-boot-
+			# as-directory shortcut either: the board's own firmware can only
+			# read a real FAT32 partition, never a directory inside another
+			# filesystem, regardless of what <fs> is. Partition 1 mirrors the
+			# shipped image's own boot partition (mirrors its position too, so
+			# the board's firmware finds it the same way); partition 2 is a
+			# normal root with /boot as an ordinary directory.
+			parts+=("firmware:512MiB:vfat:boot")
+			parts+=("root:100%:${fs}:")
+			;;
+		*)
+			install_log ERR "install_plan_layout: unknown boot mode '$boot_mode'"
+			return "$INSTALL_EX_USAGE"
+			;;
+	esac
+
+	# First-partition start offset, in MiB. emmc, emmc-boot and ufs write u-boot
+	# to raw sectors of this same device (on Rockchip idbloader at 32KiB of the
+	# eMMC, u-boot.itb at 8MiB of the eMMC or of the UFS general LUN), so the
+	# first partition must clear that region or the filesystem and the
+	# bootloader overwrite each other and the board won't boot. The floor is
+	# 16MiB, the classic installer's FIRSTSECTOR=32768. A board whose image
+	# reserves more (BOOTLOADER_RESERVED_MIB from platform_install.sh, the
+	# build's OFFSET) gets that instead. All other modes keep u-boot off this
+	# device or on removable media, so 1MiB alignment is fine.
+	local start_mib=1
+	case "$boot_mode" in
+		emmc | emmc-boot | ufs)
+			start_mib=16
+			[[ "${BOOTLOADER_RESERVED_MIB:-}" =~ ^[0-9]+$ ]] \
+				&& ((10#$BOOTLOADER_RESERVED_MIB > start_mib)) \
+				&& start_mib=$((10#$BOOTLOADER_RESERVED_MIB))
+			;;
+	esac
+
+	echo "start=$start_mib"
+	echo "table=$table"
+	local p
+	for p in "${parts[@]}"; do
+		echo "part=$p"
+	done
+}
+
+# Map a logical filesystem to the hint parted understands (empty = let parted
+# skip the type, e.g. f2fs which parted does not know about).
+_install_parted_fs_hint() {
+	case "$1" in
+		vfat)  echo "fat32" ;;
+		swap)  echo "linux-swap" ;;
+		ext4)  echo "ext4" ;;
+		btrfs) echo "btrfs" ;;
+		*)     echo "" ;;
+	esac
+}
+
+# ---- partitioning -----------------------------------------------------------
+
+install_apply_partitions() {
+	# install_apply_partitions <device> [plan]
+	# Applies a plan (from arg or stdin) to <device> with parted, in MiB units so
+	# alignment is correct on 512-byte and 4Kn media alike. Echoes one line per
+	# created partition: "<role> <device_partition>" for the caller to consume.
+	local device="$1"
+	local plan="${2:-}"
+	[[ -z "$plan" ]] && plan="$(cat)"
+	[[ -b "$device" ]] || { install_log ERR "apply_partitions: '$device' is not a block device"; return "$INSTALL_EX_NODEV"; }
+
+	local table="" start_override="" ; local -a parts=()
+	local line
+	while IFS= read -r line; do
+		case "$line" in
+			table=*) table="${line#table=}" ;;
+			start=*) start_override="${line#start=}" ;;
+			part=*)  parts+=("${line#part=}") ;;
+		esac
+	done <<<"$plan"
+	[[ -n "$table" && ${#parts[@]} -gt 0 ]] || { install_log ERR "apply_partitions: empty plan"; return "$INSTALL_EX_PARTITION"; }
+
+	# Rockchip parks per-unit data in sectors 7168-16383: vendor storage (MACs,
+	# serial) tagged "DVKR" at 7168, secure storage (HDCP/DRM keys) tagged
+	# "SSKR" at 8192. Nothing recreates either. Keep that window only when it
+	# is in use, so any other target is cleared exactly as before.
+	# tr -d '\0' only strips what bash would discard anyway: on a device without
+	# the magics those 4 bytes are usually NULs, and the bare substitution makes
+	# bash print "ignored null byte in input" over the installer dialog.
+	local keep_window="no"
+	[[ "$(dd if="$device" bs=1 skip=$(( 7168 * 512 )) count=4 2>/dev/null | tr -d '\0')" == "DVKR" ]] && keep_window="yes"
+	[[ "$(dd if="$device" bs=1 skip=$(( 8192 * 512 )) count=4 2>/dev/null | tr -d '\0')" == "SSKR" ]] && keep_window="yes"
+
+	wipefs -aq "$device" >>"$INSTALL_LOG" 2>&1 || true
+	if [[ "$keep_window" == "yes" ]]; then
+		install_log INFO "apply_partitions: keeping Rockchip reserved sectors 7168-16383 on $device"
+		dd if=/dev/zero of="$device" bs=512 count=7168 conv=notrunc >>"$INSTALL_LOG" 2>&1 || true
+		dd if=/dev/zero of="$device" bs=512 seek=16384 count=4096 conv=notrunc >>"$INSTALL_LOG" 2>&1 || true
+	else
+		dd if=/dev/zero of="$device" bs=1M count=10 conv=notrunc >>"$INSTALL_LOG" 2>&1 || true
+	fi
+	parted -s "$device" mklabel "$table" >>"$INSTALL_LOG" 2>&1 \
+		|| { install_log ERR "apply_partitions: mklabel $table failed"; return "$INSTALL_EX_PARTITION"; }
+
+	# Honour the plan's start offset (emmc reserves 16MiB for on-device u-boot);
+	# default to 1MiB when a plan predates the directive.
+	local start_mib="${start_override:-1}" idx=0
+	local spec role size fstype flags hint end
+	for spec in "${parts[@]}"; do
+		IFS=':' read -r role size fstype flags <<<"$spec"
+		idx=$(( idx + 1 ))
+		hint="$(_install_parted_fs_hint "$fstype")"
+		if [[ "$size" == "100%" ]]; then
+			end="100%"
+		else
+			# "<N>MiB" -> integer MiB, absolute end = start + N.
+			end="$(( start_mib + ${size%MiB} ))MiB"
+		fi
+		# parted's fs-type hint is optional (e.g. f2fs is unknown) - build the
+		# mkpart argv in an array so an empty hint drops out cleanly.
+		local -a mkpart_args=(mkpart primary)
+		[[ -n "$hint" ]] && mkpart_args+=("$hint")
+		mkpart_args+=("${start_mib}MiB" "$end")
+		parted -s -a optimal "$device" "${mkpart_args[@]}" >>"$INSTALL_LOG" 2>&1 \
+			|| { install_log ERR "apply_partitions: mkpart $role failed"; return "$INSTALL_EX_PARTITION"; }
+
+		# Flags are table-aware: on GPT parted aliases "boot" to the ESP flag, so
+		# a plain bootable (non-ESP) partition must use legacy_boot instead.
+		if [[ ",$flags," == *",esp,"* ]]; then
+			parted -s "$device" set "$idx" esp on >>"$INSTALL_LOG" 2>&1 || true
+		fi
+		if [[ ",$flags," == *",boot,"* && ",$flags," != *",esp,"* ]]; then
+			if [[ "$table" == "gpt" ]]; then
+				parted -s "$device" set "$idx" legacy_boot on >>"$INSTALL_LOG" 2>&1 || true
+			else
+				parted -s "$device" set "$idx" boot on >>"$INSTALL_LOG" 2>&1 || true
+			fi
+		fi
+		# BIOS boot partition on GPT: where GRUB embeds core.img (no filesystem).
+		if [[ ",$flags," == *",bios_grub,"* ]]; then
+			parted -s "$device" set "$idx" bios_grub on >>"$INSTALL_LOG" 2>&1 || true
+		fi
+
+		[[ "$size" != "100%" ]] && start_mib=$(( start_mib + ${size%MiB} ))
+		echo "${role} $(_install_part_dev "$device" "$idx")"
+	done
+
+	partprobe "$device" >>"$INSTALL_LOG" 2>&1 || true
+	udevadm settle >>"$INSTALL_LOG" 2>&1 || true
+}
+
+# Partition node naming: /dev/sda -> /dev/sda1 ; /dev/nvme0n1 -> /dev/nvme0n1p1.
+_install_part_dev() {
+	local dev="$1" n="$2"
+	if [[ "$dev" =~ [0-9]$ ]]; then
+		echo "${dev}p${n}"
+	else
+		echo "${dev}${n}"
+	fi
+}
+
+# ---- filesystem creation ----------------------------------------------------
+
+# Which package supplies mkfs.<fs>; empty for the always-present ones.
+_install_fs_pkg() {
+	case "$1" in
+		btrfs) echo "btrfs-progs" ;;
+		f2fs)  echo "f2fs-tools" ;;
+		*)     echo "" ;;
+	esac
+}
+
+install_check_fs_tools() {
+	# install_check_fs_tools <fs> - returns 0 if mkfs.<fs> is present, else the
+	# name of the package that provides it (on stdout) with a non-zero status.
+	local fs="$1"
+	command -v "mkfs.${fs}" >/dev/null 2>&1 && return 0
+	_install_fs_pkg "$fs"
+	return "$INSTALL_EX_TOOL"
+}
+
+install_fs_kernel_supported() {
+	# install_fs_kernel_supported <fs> - true if the RUNNING kernel can mount it.
+	# The mkfs tool can exist while the kernel lacks the driver (e.g. f2fs on a
+	# cloud kernel): mkfs succeeds but the subsequent mount fails. Try to load the
+	# module, then check /proc/filesystems.
+	local fs="$1"
+	case "$fs" in ext2|ext3|ext4|vfat|msdos) return 0 ;; esac   # always built in
+	grep -qw "$fs" /proc/filesystems && return 0
+	modprobe "$fs" >/dev/null 2>&1 || true
+	grep -qw "$fs" /proc/filesystems
+}
+
+install_btrfs_make_root() {
+	# install_btrfs_make_root <device_partition>
+	# Create the subvolume @ and make it the default, as Armbian images do. A
+	# plain mount then gives @, which fstab (subvol=@) and extlinux
+	# (rootflags=subvol=@) name. Impure: mounts the new fs on a temp dir.
+	local dev="$1" top rc=0
+	top="$(mktemp -d)" || return 1
+	if mount "$dev" "$top"; then
+		{ btrfs subvolume create "$top/@" && btrfs subvolume set-default "$top/@"; } >>"$INSTALL_LOG" 2>&1 || rc=1
+		umount "$top" || rc=1
+	else
+		rc=1
+	fi
+	rmdir "$top" 2>/dev/null
+	[[ "$rc" -eq 0 ]] || install_log ERR "make_filesystems: btrfs subvolume @ on $dev failed"
+	return "$rc"
+}
+
+install_make_filesystems() {
+	# install_make_filesystems <mapfile>
+	# mapfile lines: "<role> <device_partition> <fstype>". Creates each fs after a
+	# tool pre-flight; ext4 for mvebu drops the 64bit feature (ARMv7 u-boot). A
+	# btrfs root gets the default subvolume @.
+	local map="$1"
+	[[ -n "$map" ]] || { install_log ERR "make_filesystems: empty map"; return "$INSTALL_EX_FORMAT"; }
+	local role dev fs
+	local -a ext4_opts
+	while read -r role dev fs; do
+		[[ -n "$dev" && -n "$fs" ]] || continue
+		if ! install_check_fs_tools "$fs" >/dev/null; then
+			install_log ERR "make_filesystems: mkfs.$fs missing (install $(_install_fs_pkg "$fs"))"
+			return "$INSTALL_EX_TOOL"
+		fi
+		case "$fs" in
+			ext4)
+				# ARMv7 mvebu u-boot cannot read the ext4 64bit feature.
+				ext4_opts=(-qF)
+				[[ "${LINUXFAMILY:-}" == "mvebu" ]] && ext4_opts=(-O '^64bit' -qF)
+				mkfs.ext4 "${ext4_opts[@]}" "$dev" >>"$INSTALL_LOG" 2>&1 ;;
+			vfat)  mkfs.vfat -F 32 "$dev" >>"$INSTALL_LOG" 2>&1 ;;
+			btrfs)
+				mkfs.btrfs -f "$dev" >>"$INSTALL_LOG" 2>&1 \
+					&& { [[ "$role" != root ]] || install_btrfs_make_root "$dev"; } ;;
+			f2fs)  mkfs.f2fs -f "$dev" >>"$INSTALL_LOG" 2>&1 ;;
+			swap)  mkswap "$dev" >>"$INSTALL_LOG" 2>&1 ;;
+			*)     install_log ERR "make_filesystems: unsupported fs '$fs'"; return "$INSTALL_EX_FORMAT" ;;
+		esac || { install_log ERR "make_filesystems: mkfs.$fs on $dev failed"; return "$INSTALL_EX_FORMAT"; }
+	done <<<"$map"
+}
+
+# ---- rootfs transfer --------------------------------------------------------
+
+install_transfer_rootfs() {
+	# install_transfer_rootfs <target_rootfs_mount> <exclude_file> [progress_fd]
+	# rsync / -> target with the exclude list, emitting integer percentages to
+	# progress_fd (default 1) for a gauge. Returns INSTALL_EX_TRANSFER on failure.
+	# src defaults to "/" (the running rootfs); overridable for tests.
+	# lo/hi scale the emitted percentage into a band, so the caller can reserve
+	# the tail of the bar for the post-copy stages (grub, verify, ...).
+	local dest="$1" exclude="$2" pfd="${3:-1}" src="${4:-/}" lo="${5:-0}" hi="${6:-100}"
+	[[ -d "$dest" ]] || { install_log ERR "transfer: '$dest' is not a directory"; return "$INSTALL_EX_TRANSFER"; }
+	[[ -f "$exclude" ]] || { install_log ERR "transfer: exclude file '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
+
+	# Track rsync's file-count progress (to-chk=REMAIN/TOTAL from --info=progress2)
+	# rather than its byte percentage: for a rootfs (mostly small files) the byte
+	# percentage rushes then crawls through the long small-file tail, while the
+	# file count advances linearly. --no-inc-recursive fixes TOTAL up front so the
+	# fraction is stable. progress2 rewrites its line with \r; split on \r.
+	local rc_file; rc_file="$(mktemp)"
+	{
+		# editorconfig-checker-disable
+		rsync -ax --delete --info=progress2 --no-inc-recursive --exclude-from="$exclude" "$src" "$dest" \
+			| stdbuf -oL tr '\r' '\n' \
+			| stdbuf -oL sed -u -n 's/.*to-chk=\([0-9]*\)\/\([0-9]*\).*/\1 \2/p' \
+			| stdbuf -oL awk -v lo="$lo" -v hi="$hi" '
+				{ if ($2 > 0) { p = lo + int((hi-lo)*($2-$1)/$2);
+				                if (p > hi) p = hi;
+				                if (p != last) { print p; fflush(); last = p } } }' >&"$pfd"
+		# editorconfig-checker-enable
+		echo "${PIPESTATUS[0]}" >"$rc_file"
+	}
+	local rc; rc="$(cat "$rc_file")"; rm -f "$rc_file"
+	[[ "$rc" == "0" ]] || { install_log ERR "transfer: rsync exit $rc"; return "$INSTALL_EX_TRANSFER"; }
+
+	# Second, quiet pass to catch files that changed during the first copy.
+	rsync -ax --delete --exclude-from="$exclude" "$src" "$dest" >>"$INSTALL_LOG" 2>&1 || true
+}
+
+# ---- boot configuration -----------------------------------------------------
+
+install_rewrite_bootenv() {
+	# install_rewrite_bootenv <file> <rootdev> [rootfstype]
+	# Rewrite an armbianEnv.txt-style key=value file to point at <rootdev>
+	# (a "UUID=..." string or a device path) and, if given, <rootfstype>.
+	# Idempotent: keys are updated in place or appended if absent. Pure text op.
+	local file="$1" rootdev="$2" fstype="${3:-}"
+	[[ -f "$file" ]] || return "$INSTALL_EX_BOOTCFG"
+	if grep -q '^rootdev=' "$file"; then
+		sed -i "s|^rootdev=.*|rootdev=${rootdev}|" "$file"
+	else
+		echo "rootdev=${rootdev}" >>"$file"
+	fi
+	if [[ -n "$fstype" ]]; then
+		if grep -q '^rootfstype=' "$file"; then
+			sed -i "s|^rootfstype=.*|rootfstype=${fstype}|" "$file"
+		else
+			echo "rootfstype=${fstype}" >>"$file"
+		fi
+	fi
+}
+
+install_rewrite_extlinux() {
+	# install_rewrite_extlinux <file> <rootdev> [rootfstype]
+	# Repoint an extlinux/syslinux config (u-boot sysboot / distro boot) at
+	# <rootdev> - a "UUID=..." string or a device path. The kernel command line
+	# lives on the "append" line(s), so root= is substituted there (added when
+	# absent), and rootfstype= the same way when a fs is given.
+	#
+	# btrfs additionally gets rootflags=subvol=@, the root subvolume that
+	# install_make_filesystems creates. armbianEnv.txt boards mount it as the
+	# default subvolume.
+	# Idempotent: re-running with the same values is a no-op. Pure text op.
+	local file="$1" rootdev="$2" fstype="${3:-}"
+	[[ -f "$file" ]] || return "$INSTALL_EX_BOOTCFG"
+	local flags=""
+	[[ "$fstype" == "btrfs" ]] && flags="subvol=@"
+	local tmp="${file}.new"
+	awk -v root="$rootdev" -v fstype="$fstype" -v flags="$flags" '
+		function set_token(line, key, val,   re) {
+			re = "(^|[ \t])" key "=[^ \t]*"
+			if (line ~ re) { sub(re, " " key "=" val, line) } else { line = line " " key "=" val }
+			return line
+		}
+		function drop_subvol(line,   tok, lead, pre, post, val, n, parts, i, kept) {
+			# Remove only the subvol= component of rootflags, not the whole
+			# token: rootflags=data=writeback is a legitimate ext4/f2fs option
+			# that several boards ship in their stock cmdline.
+			if (!match(line, /(^|[ \t])rootflags=[^ \t]*/)) return line
+			tok  = substr(line, RSTART, RLENGTH)
+			lead = (substr(tok, 1, 1) ~ /[ \t]/) ? substr(tok, 1, 1) : ""
+			pre  = substr(line, 1, RSTART - 1)
+			post = substr(line, RSTART + RLENGTH)
+			val  = substr(line, RSTART + length(lead) + 10, RLENGTH - length(lead) - 10)
+			n = split(val, parts, ",")
+			kept = ""
+			for (i = 1; i <= n; i++)
+				if (parts[i] !~ /^subvol=/)
+					kept = (kept == "") ? parts[i] : kept "," parts[i]
+			if (kept == "") return pre post
+			return pre lead "rootflags=" kept post
+		}
+		tolower($1) == "append" {
+			saw_append = 1
+			$0 = set_token($0, "root", root)
+			if (fstype != "") $0 = set_token($0, "rootfstype", fstype)
+			# Drop a subvol=@ left over from a previous btrfs root: a non-btrfs
+			# kernel rejects it and the root mount fails. Any other rootflags
+			# the board ships stay.
+			if (flags != "")       $0 = set_token($0, "rootflags", flags)
+			else if (fstype != "") $0 = drop_subvol($0)
+		}
+		{ print }
+		# No append line means root= was never set: the caller would otherwise
+		# carry on believing the target had been repointed.
+		END { if (!saw_append) exit 1 }
+	' "$file" >"$tmp" || { rm -f "$tmp"; return "$INSTALL_EX_BOOTCFG"; }
+	# Copy back rather than rename: keeps the original mode/owner/inode.
+	cat "$tmp" >"$file" || { rm -f "$tmp"; return "$INSTALL_EX_BOOTCFG"; }
+	rm -f "$tmp"
+	return 0
+}
+
+install_boot_cfg_file() {
+	# install_boot_cfg_file <boot_dir>
+	# Echo the boot config that <boot_dir> actually uses - armbianEnv.txt on most
+	# u-boot boards, extlinux/extlinux.conf on distro-boot ones (spacemit/riscv,
+	# some vendor kernels). Returns 1 and prints nothing when neither is present.
+	local d="$1"
+	[[ -f "$d/armbianEnv.txt" ]]        && { echo "$d/armbianEnv.txt"; return 0; }
+	[[ -f "$d/extlinux/extlinux.conf" ]] && { echo "$d/extlinux/extlinux.conf"; return 0; }
+	return 1
+}
+
+install_rewrite_bootcfg() {
+	# install_rewrite_bootcfg <file> <rootdev> [rootfstype]
+	# Point <file> at the new root, dispatching on which boot config it is.
+	local file="$1"; shift
+	case "$file" in
+		*/extlinux.conf) install_rewrite_extlinux "$file" "$@" ;;
+		*)               install_rewrite_bootenv "$file" "$@" ;;
+	esac
+}
+
+install_gen_fstab() {
+	# install_gen_fstab <root_uuid> <root_fs> [boot_uuid] [boot_fs] [esp_uuid] [swap_uuid]
+	# Emit a fresh fstab on stdout. root_* required; boot_* optional (separate
+	# /boot); esp_uuid optional (UEFI /boot/efi); swap_uuid optional (a dedicated
+	# swap partition). Mirrors the mount option set the image ships with.
+	local root_uuid="$1" root_fs="$2" boot_uuid="${3:-}" boot_fs="${4:-ext4}" esp_uuid="${5:-}" swap_uuid="${6:-}"
+	local root_opts boot_opts
+	case "$root_fs" in
+		btrfs) root_opts="defaults,commit=120,compress=lzo,x-gvfs-hide,subvol=@	0	2" ;;
+		f2fs)  root_opts="defaults,noatime,x-gvfs-hide	0	2" ;;
+		*)     root_opts="defaults,noatime,commit=120,errors=remount-ro,x-gvfs-hide	0	1" ;;
+	esac
+	boot_opts="defaults,noatime,commit=120,errors=remount-ro,x-gvfs-hide	0	2"
+
+	echo "# <file system>	<mount point>	<type>	<options>	<dump>	<pass>"
+	echo "tmpfs	/tmp	tmpfs	defaults,nosuid	0	0"
+	echo "${root_uuid}	/	${root_fs}	${root_opts}"
+	[[ -n "$boot_uuid" ]] && echo "${boot_uuid}	/boot	${boot_fs}	${boot_opts}"
+	[[ -n "$esp_uuid" ]]  && echo "${esp_uuid}	/boot/efi	vfat	defaults	0	2"
+	[[ -n "$swap_uuid" ]] && echo "${swap_uuid}	none	swap	sw	0	0"
+	return 0
+}
+
+install_populate_boot() {
+	# install_populate_boot <target_rootfs_mount> [copy:0|1] [src]
+	# Sync the running /boot into the target's /boot. The main rootfs rsync
+	# excludes /boot, so this is what actually places the kernel/dtb/boot script -
+	# onto a separate boot partition if one is mounted at <rootfs>/boot, otherwise
+	# into the rootfs itself. copy=0 leaves /boot empty (ARM "sd" mode: boot stays
+	# on the removable media). Guard against build#10099 (empty /boot).
+	local rootfs="$1" copy="${2:-1}" src="${3:-/boot}"
+	[[ -d "$rootfs" ]] || { install_log ERR "populate_boot: rootfs '$rootfs' missing"; return "$INSTALL_EX_BOOTCFG"; }
+	mkdir -p "$rootfs/boot"
+	[[ "$copy" == "1" ]] || return 0
+	# No -x here: on ARM /boot is often a separate mount, and one-filesystem would
+	# skip its contents. Exclude a mounted ESP (that is handled separately).
+	rsync -aq --exclude 'efi/**' "$src"/ "$rootfs/boot"/ >>"$INSTALL_LOG" 2>&1 \
+		|| { install_log ERR "populate_boot: copy $src -> $rootfs/boot failed"; return "$INSTALL_EX_BOOTCFG"; }
+	return 0
+}
+
+# ---- verification -----------------------------------------------------------
+
+install_verify_boot_dir() {
+	# install_verify_boot_dir <boot_dir>
+	# Assert the directory holds something u-boot/GRUB can actually boot:
+	# a kernel image AND a boot script/config. build#10099/#6905 guard.
+	local d="$1"
+	[[ -d "$d" ]] || { install_log ERR "verify: boot dir '$d' missing"; return "$INSTALL_EX_VERIFY"; }
+	local have_kernel=0 have_script=0
+	compgen -G "$d/vmlinu*" >/dev/null 2>&1 && have_kernel=1
+	compgen -G "$d/Image*"  >/dev/null 2>&1 && have_kernel=1
+	compgen -G "$d/zImage*" >/dev/null 2>&1 && have_kernel=1
+	compgen -G "$d/uImage*" >/dev/null 2>&1 && have_kernel=1
+	# Recognise every boot mechanism Armbian ships: boot.scr/boot.cmd (most
+	# u-boot), boot.ini (amlogic/odroid), uEnv.txt (k3/TI and others),
+	# extlinux.conf (distro boot), grub (x86/UEFI), config.txt+cmdline.txt in a
+	# nested firmware/ dir (native mode's Raspberry Pi-style FAT32 partition,
+	# mounted at boot/firmware under the directory checked here).
+	[[ -f "$d/boot.scr" || -f "$d/boot.cmd" || -f "$d/boot.ini" || -f "$d/uEnv.txt" \
+		|| -f "$d/extlinux/extlinux.conf" || -d "$d/grub" \
+		|| ( -f "$d/firmware/config.txt" && -f "$d/firmware/cmdline.txt" ) ]] && have_script=1
+	if (( have_kernel == 0 || have_script == 0 )); then
+		install_log ERR "verify: '$d' is not bootable (kernel=$have_kernel script=$have_script)"
+		return "$INSTALL_EX_VERIFY"
+	fi
+	return 0
+}
+
+install_verify_fstab() {
+	# install_verify_fstab <fstab_file>
+	# Every UUID= referenced must resolve to a real device (blkid). Catches a
+	# root/boot UUID that was never written or points at the wrong partition.
+	local fstab="$1"
+	[[ -f "$fstab" ]] || { install_log ERR "verify: fstab '$fstab' missing"; return "$INSTALL_EX_VERIFY"; }
+	local uuid rc=0
+	while read -r uuid; do
+		[[ -n "$uuid" ]] || continue
+		if ! blkid -U "$uuid" >/dev/null 2>&1; then
+			install_log ERR "verify: fstab UUID $uuid does not resolve"
+			rc="$INSTALL_EX_VERIFY"
+		fi
+	done < <(grep -oE 'UUID=[0-9A-Fa-f-]+' "$fstab" | cut -d= -f2)
+	return "$rc"
+}
+
+# ---- bootloader -------------------------------------------------------------
+
+install_bootloader_available() {
+	# install_bootloader_available <boot_mode>
+	# True if the bootloader method for this mode can actually run on this system.
+	# Called BEFORE any destructive step so we never wipe a disk we can't make
+	# bootable (e.g. a u-boot mode on x86, which has no write_uboot_platform).
+	case "$1" in
+		uefi|uefi-dualboot|bios) command -v grub-install >/dev/null 2>&1 ;;
+		emmc)    [[ "$(type -t write_uboot_platform)" == function ]] ;;
+		# Neither "sd" nor "native" ever calls install_write_bootloader (see the
+		# boot_mode guard below) - "sd" only moves root and leaves the current
+		# boot media untouched; "native" writes a plain FAT32 boot partition the
+		# board's own firmware reads directly. "sd" writes no bootloader and only
+		# needs the current boot config to be rewirable (gated separately in the
+		# scenario pre-flight via install_sd_capable). "native" writes a plain
+		# FAT32 boot partition that only Raspberry Pi-style firmware reads, so it
+		# IS gated on that capability here.
+		sd)     return 0 ;;
+		# "spi" installs a self-contained target (local /boot + root here) but
+		# writes NO bootloader: u-boot already lives in the board's on-board
+		# SPI/NOR flash (pre-flashed via fastboot/DFU), and its boot script
+		# scans the attached media for /boot/boot.scr. So, like "sd", there is
+		# nothing to write and nothing to gate on - the target just has to be
+		# self-contained, which the layout guarantees.
+		spi)    return 0 ;;
+		# "standalone" is the same with u-boot left on the current SD/eMMC.
+		standalone) return 0 ;;
+		native) install_rpi_style_boot ;;
+		mtd)     [[ "$(type -t write_uboot_platform_mtd)" == function ]] ;;
+		ufs)     [[ "$(type -t write_uboot_platform_ufs)" == function ]] ;;
+		*)       return 1 ;;
+	esac
+}
+
+# Transport (sata, nvme, usb, ...) of the disk that holds <rootfs_mount>.
+# Overridable in tests. Impure: reads the live layout.
+_install_rootfs_tran() {
+	local src
+	src="$(findmnt -no SOURCE --nofsroot --target "$1" 2>/dev/null)"
+	[[ "$src" == /dev/* ]] || return 0
+	# Walk up from the root device: a LUKS, LVM or RAID layer has no transport, its disk has.
+	lsblk -rnso TRAN "$src" 2>/dev/null | grep -m1 . || true
+}
+
+install_mtd_image() {
+	# install_mtd_image <rootfs_mount> <uboot_dir>
+	# Echo the SPI image that boots the disk holding <rootfs_mount>/boot: u-boot
+	# loads from /boot, which can be a separate mount. The board declares
+	# BOOTLOADER_MTD_IMAGE and BOOTLOADER_MTD_IMAGE_SATA in platform_install.sh.
+	# A SATA image can switch a shared M.2 slot to SATA, so use it only for a
+	# SATA disk. Echo nothing when the board declares no image.
+	# Fail when the declared image is missing: the writer's own choice can be the wrong image.
+	[[ -n "${BOOTLOADER_MTD_IMAGE:-}" ]] || return 0
+	local image="$2/$BOOTLOADER_MTD_IMAGE"
+	if [[ -n "${BOOTLOADER_MTD_IMAGE_SATA:-}" ]]; then
+		local boot="$1/boot" tran; [[ -d "$boot" ]] || boot="$1"
+		tran="$(_install_rootfs_tran "$boot")"
+		# install_detect_targets also counts ata as SATA. An unknown transport (NFS,
+		# overlay) is not a SATA disk: keep the default image.
+		case "$tran" in
+			sata | ata) image="$2/$BOOTLOADER_MTD_IMAGE_SATA" ;;
+			"") install_log WARN "bootloader: no disk transport for $boot, writing the default SPI image" ;;
+		esac
+	fi
+	if [[ ! -f "$image" ]]; then
+		install_log ERR "bootloader: SPI image $image not found"
+		return 1
+	fi
+	echo "$image"
+}
+
+install_write_bootloader() {
+	# install_write_bootloader <boot_mode> <target_disk> <rootfs_mount> [uboot_dir] [mtd_list] [ufs_boot_lun]
+	# Dispatches to the board-provided u-boot hooks (sourced at runtime from
+	# /usr/lib/u-boot/platform_install.sh) or GRUB for UEFI. Returns
+	# INSTALL_EX_BOOTLOADER on failure.
+	local boot_mode="$1" disk="$2" rootfs="$3" uboot_dir="${4:-${DIR:-}}" mtd_list="${5:-}" ufs_boot="${6:-}"
+	# Some board u-boot hooks (notably TI k3: BeaglePlay/BeagleBone) copy files to
+	# ${MOUNT}/boot instead of dd-ing to the device. The stock installers never
+	# set MOUNT, so those files went to the RUNNING system's /boot, not the
+	# target. Point MOUNT at the target rootfs so they land in the right place.
+	export MOUNT="$rootfs"
+	case "$boot_mode" in
+		uefi)
+			install_grub_install "$rootfs" solo ;;
+		bios)
+			install_grub_install "$rootfs" bios "$disk" ;;
+		mtd)
+			[[ "$(type -t write_uboot_platform_mtd)" == function ]] || { install_log ERR "bootloader: write_uboot_platform_mtd missing"; return "$INSTALL_EX_BOOTLOADER"; }
+			local mtd_image; mtd_image="$(install_mtd_image "$rootfs" "$uboot_dir")" || return "$INSTALL_EX_BOOTLOADER"
+			write_uboot_platform_mtd "$uboot_dir" "/dev/${mtd_list%% *}" "$INSTALL_LOG" "$mtd_list" ${mtd_image:+"$mtd_image"} \
+				|| { install_log ERR "bootloader: MTD write failed"; return "$INSTALL_EX_BOOTLOADER"; } ;;
+		ufs)
+			[[ "$(type -t write_uboot_platform_ufs)" == function ]] || { install_log ERR "bootloader: write_uboot_platform_ufs missing"; return "$INSTALL_EX_BOOTLOADER"; }
+			write_uboot_platform_ufs "$uboot_dir" "$ufs_boot" "$disk" \
+				|| { install_log ERR "bootloader: UFS write failed"; return "$INSTALL_EX_BOOTLOADER"; } ;;
+		emmc|sd)
+			[[ "$(type -t write_uboot_platform)" == function ]] || { install_log ERR "bootloader: write_uboot_platform missing"; return "$INSTALL_EX_BOOTLOADER"; }
+			write_uboot_platform "$uboot_dir" "$disk" \
+				|| { install_log ERR "bootloader: u-boot write to $disk failed"; return "$INSTALL_EX_BOOTLOADER"; } ;;
+		*)
+			install_log ERR "bootloader: unknown boot mode '$boot_mode'"; return "$INSTALL_EX_USAGE" ;;
+	esac
+}
+
+install_grub_install() {
+	# install_grub_install <rootfs_mount> [mode] [disk]
+	# Bind-mount /dev,/proc,/sys and run grub-install + grub-mkconfig in the
+	# target.
+	#   mode=solo     (default) sole-OS UEFI install: --removable, so it boots
+	#                 even without a working NVRAM entry (typical for wiped disks).
+	#                 The ESP must already be mounted at <rootfs>/boot/efi.
+	#   mode=dualboot keep an existing OS (Windows): NO --removable (leave the
+	#                 /EFI/BOOT fallback alone) and turn on os-prober so the
+	#                 GRUB menu offers the other OS. ESP mounted at /boot/efi.
+	#   mode=bios     x86 legacy BIOS: grub-pc to <disk>'s MBR, no ESP.
+	local rootfs="$1" mode="${2:-solo}" disk="${3:-}" arch_target grub_cmd
+	if [[ "$mode" == bios ]]; then
+		[[ -b "$disk" ]] || { install_log ERR "grub: bios install needs a disk"; return "$INSTALL_EX_BOOTLOADER"; }
+		grub_cmd="grub-install --target=i386-pc --recheck $disk"
+	else
+		mountpoint -q "$rootfs/boot/efi" || { install_log ERR "grub: ESP not mounted at $rootfs/boot/efi"; return "$INSTALL_EX_BOOTLOADER"; }
+		case "$(uname -m)" in
+			x86_64) arch_target="x86_64-efi" ;;
+			i?86) arch_target="i386-efi" ;;
+			aarch64|arm64) arch_target="arm64-efi" ;;
+			arm*) arch_target="arm-efi" ;;
+			riscv64) arch_target="riscv64-efi" ;;
+			*) install_log ERR "grub: unsupported UEFI architecture $(uname -m)"; return "$INSTALL_EX_BOOTLOADER" ;;
+		esac
+		grub_cmd="grub-install --target=$arch_target --efi-directory=/boot/efi --bootloader-id=Armbian"
+		if [[ "$mode" == dualboot ]]; then
+			install_enable_os_prober "$rootfs"
+		else
+			grub_cmd+=" --removable"
+		fi
+	fi
+	mkdir -p "$rootfs"/{dev,proc,sys}
+	mount --bind /dev "$rootfs/dev"
+	mount --make-rslave --bind /dev/pts "$rootfs/dev/pts"
+	mount --bind /proc "$rootfs/proc"
+	mount --make-rslave --rbind /sys "$rootfs/sys"
+	local rc=0
+	chroot "$rootfs" /bin/bash -c "$grub_cmd" >>"$INSTALL_LOG" 2>&1 || rc=1
+	chroot "$rootfs" /bin/bash -c "grub-mkconfig -o /boot/grub/grub.cfg" >>"$INSTALL_LOG" 2>&1 || rc=1
+	# os-prober is unreliable inside the install chroot (it often misses Windows),
+	# so also regenerate grub.cfg once on the first real boot.
+	install_setup_grub_firstboot "$rootfs"
+	# Unwind the API mounts regardless of outcome.
+	awk -v r="$rootfs/sys" '$2 ~ "^"r {print $2}' /proc/mounts | sort -r | xargs -r umount -n 2>/dev/null
+	umount "$rootfs/proc" 2>/dev/null
+	umount "$rootfs/dev/pts" 2>/dev/null
+	umount "$rootfs/dev" 2>/dev/null
+	[[ "$rc" == 0 ]] || { install_log ERR "grub: install failed"; return "$INSTALL_EX_BOOTLOADER"; }
+}
+
+install_update_initramfs() {
+	# install_update_initramfs <rootfs_mount> <fs>
+	# Rebuild the target's initramfs so a module root filesystem (btrfs, f2fs)
+	# is actually present at boot. Armbian sets MODULES=list, which does NOT
+	# auto-include the root-fs module, and the installer inherits the source's
+	# initramfs (built for the source's root fs) - so an f2fs/btrfs root would be
+	# unbootable without this. Built-in filesystems (ext4/vfat) need nothing and
+	# return immediately. A failure here means the target CANNOT boot (build
+	# report: a btrfs native install "succeeded" then dropped to an (initramfs)
+	# shell with "mount ... failed: Invalid argument" - the btrfs module was
+	# simply missing from the initrd actually booted), so it is fatal - the
+	# caller must treat a non-zero return as an install failure, not a warning.
+	local rootfs="$1" fs="$2"
+	case "$fs" in ext2|ext3|ext4|vfat|msdos) return 0 ;; esac
+	command -v chroot >/dev/null 2>&1 \
+		|| { install_log ERR "update-initramfs: no chroot on this system; $fs root would be unbootable"; return "$INSTALL_EX_BOOTCFG"; }
+	[[ -x "$rootfs/usr/sbin/update-initramfs" || -x "$rootfs/sbin/update-initramfs" ]] \
+		|| { install_log ERR "update-initramfs: not present in target; $fs root would be unbootable"; return "$INSTALL_EX_BOOTCFG"; }
+
+	# Force the fs module into the initramfs module list (list mode ships only
+	# what is listed here).
+	local modfile="$rootfs/etc/initramfs-tools/modules"
+	if [[ -f "$modfile" ]] && ! grep -qxF "$fs" "$modfile"; then
+		echo "$fs" >>"$modfile"
+	fi
+
+	mkdir -p "$rootfs"/{dev,proc,sys,run}
+	mount --bind /dev "$rootfs/dev"
+	mount --bind /proc "$rootfs/proc"
+	mount --bind /sys "$rootfs/sys"
+	mount --bind /run "$rootfs/run" 2>/dev/null || true
+	local rc=0
+	chroot "$rootfs" /bin/bash -c "update-initramfs -u -k all" >>"$INSTALL_LOG" 2>&1 || rc=1
+	mountpoint -q "$rootfs/run" && umount "$rootfs/run" 2>/dev/null
+	umount "$rootfs/sys" 2>/dev/null
+	umount "$rootfs/proc" 2>/dev/null
+	umount "$rootfs/dev" 2>/dev/null
+	if [[ "$rc" != 0 ]]; then
+		install_log ERR "update-initramfs failed in target; $fs root would be unbootable"
+		return "$INSTALL_EX_BOOTCFG"
+	fi
+
+	# Armbian's own /etc/initramfs/post-update.d/zzz-update-initramfs hook is
+	# supposed to copy the freshly-built initrd into boot/firmware/initrd.img
+	# automatically on boards that boot straight out of it (Raspberry Pi) - but
+	# a hook firing inside a bare chroot, with no real dpkg transaction or init
+	# system driving it, is not guaranteed to run the way it does on a live
+	# system. If boot/firmware/initrd.img is still the SOURCE's stale copy
+	# (rsynced verbatim earlier, built for the source's own root fs and never
+	# regenerated), the board boots the OLD initrd and fails exactly as if this
+	# whole function were a no-op - belt and braces: replace it directly.
+	if [[ -d "$rootfs/boot/firmware" ]]; then
+		local newest
+		newest="$(find "$rootfs/boot" -maxdepth 1 -name 'initrd.img-*' -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)"
+		# No rebuilt initrd at all is itself a failure - update-initramfs just
+		# reported success above, so its absence means we can no longer prove
+		# ANY initrd (stale or fresh) is what boot/firmware/initrd.img holds.
+		[[ -n "$newest" ]] \
+			|| { install_log ERR "update-initramfs: no rebuilt initrd found under $rootfs/boot"; return "$INSTALL_EX_BOOTCFG"; }
+		if ! cmp -s "$newest" "$rootfs/boot/firmware/initrd.img" 2>/dev/null; then
+			install_log WARN "update-initramfs: boot/firmware/initrd.img was not refreshed by the post-update hook; copying $newest directly"
+			cp "$newest" "$rootfs/boot/firmware/initrd.img" \
+				|| { install_log ERR "update-initramfs: failed to copy $newest to boot/firmware/initrd.img"; return "$INSTALL_EX_BOOTCFG"; }
+		fi
+		# Verify rather than trust the copy: confirm boot/firmware/initrd.img
+		# now actually matches the freshly-built one before declaring success.
+		cmp -s "$newest" "$rootfs/boot/firmware/initrd.img" \
+			|| { install_log ERR "update-initramfs: boot/firmware/initrd.img still does not match the rebuilt initrd"; return "$INSTALL_EX_BOOTCFG"; }
+	fi
+	return 0
+}
+
+install_setup_grub_firstboot() {
+	# install_setup_grub_firstboot <rootfs_mount>
+	# Install a one-shot systemd unit that runs update-grub on the first real
+	# boot, then removes itself - so os-prober picks up other OSes (Windows) that
+	# it missed while running in the install chroot.
+	local rootfs="$1"
+	[[ -d "$rootfs/etc/systemd/system" ]] || return 0
+	cat >"$rootfs/etc/systemd/system/armbian-grub-update.service" <<-'EOF'
+		[Unit]
+		Description=Regenerate GRUB config on first boot (detect other OSes)
+		ConditionPathExists=/usr/sbin/update-grub
+		After=multi-user.target
+
+		[Service]
+		Type=oneshot
+		ExecStart=/usr/sbin/update-grub
+		ExecStartPost=-/usr/bin/systemctl --no-reload disable armbian-grub-update.service
+		ExecStartPost=-/bin/rm -f /etc/systemd/system/armbian-grub-update.service
+
+		[Install]
+		WantedBy=multi-user.target
+	EOF
+	# Enable via a wants symlink (chroot `systemctl enable` is unreliable).
+	mkdir -p "$rootfs/etc/systemd/system/multi-user.target.wants"
+	ln -sf ../armbian-grub-update.service \
+		"$rootfs/etc/systemd/system/multi-user.target.wants/armbian-grub-update.service"
+}
+
+install_enable_os_prober() {
+	# install_enable_os_prober <rootfs_mount>
+	# Make grub-mkconfig scan for other operating systems (Windows). GRUB 2.06+
+	# disables os-prober by default; re-enable it via the armbian drop-in.
+	local rootfs="$1"
+	mkdir -p "$rootfs/etc/default/grub.d"
+	local cfg="$rootfs/etc/default/grub.d/98-armbian.cfg"
+	# idempotent: repeated installs must not accumulate duplicate lines
+	grep -qxF "GRUB_DISABLE_OS_PROBER=false" "$cfg" 2>/dev/null \
+		|| echo "GRUB_DISABLE_OS_PROBER=false" >>"$cfg"
+	command -v os-prober >/dev/null 2>&1 || chroot "$rootfs" /bin/bash -c "command -v os-prober" >/dev/null 2>&1 \
+		|| install_log WARN "os-prober not present in target; Windows may be missing from the GRUB menu"
+}
+
+# ---- Windows dual-boot ------------------------------------------------------
+
+_install_windows_parts() {
+	# _install_windows_parts <lsblk_json>
+	# Pure: pick the ESP and the Windows system NTFS volume from lsblk --json.
+	# The Windows volume is the LARGEST NTFS partition EXCLUDING the small Windows
+	# recovery (WinRE) NTFS partition - so we shrink C:, never the recovery part.
+	# size is sorted with tonumber (lsblk may emit it as a string, and a string
+	# sort would rank 781MB above 63GB). Emits two lines: esp=<dev|> windows=<dev|>
+	local json="$1" esp win
+	# The Windows volume is matched by fstype "ntfs" OR, when lsblk could not
+	# probe the filesystem (empty fstype - a real risk on freshly-attached or
+	# just-formatted disks where the udev/blkid cache has not caught up), by the
+	# GPT partition type "Microsoft basic data", which is read from the partition
+	# table and is therefore reliable when the fs probe is not. A genuinely
+	# encrypted volume (BitLocker) has a NON-empty, non-ntfs fstype, so it is not
+	# swept in here - it falls through to the BitLocker branch in the caller.
+	# editorconfig-checker-disable
+	esp="$(printf '%s' "$json" | jq -r '
+		[ .blockdevices[]?.children[]?
+		  | select(((.parttypename // "") | test("EFI";"i")) or (.fstype == "vfat"))
+		  | .name ] | first // empty')"
+	win="$(printf '%s' "$json" | jq -r '
+		[ .blockdevices[]?.children[]?
+		  | select((.fstype == "ntfs")
+		           or (((.parttypename // "") | test("basic data"; "i"))
+		               and ((.fstype // "") == "")))
+		  | select(((.parttypename // "") | test("recovery"; "i")) | not) ]
+		| sort_by(.size | tonumber) | reverse | (.[0].name // empty)')"
+	# editorconfig-checker-enable
+	printf 'esp=%s\nwindows=%s\n' "$esp" "$win"
+}
+
+install_detect_windows() {
+	# install_detect_windows <disk> [lsblk_json]
+	# On a GPT disk carrying a Windows install, emit:
+	#   esp=<esp_partition>          existing EFI System Partition (reused)
+	#   windows=<ntfs_partition>     the Windows system NTFS volume (not WinRE)
+	# Returns INSTALL_EX_NODEV if the disk is not a shrinkable Windows/UEFI layout.
+	local disk="$1" json="${2:-}"
+	if [[ -z "$json" ]]; then
+		[[ -b "$disk" ]] || return "$INSTALL_EX_NODEV"
+		# GPT is required for a UEFI Windows install. Read the label type with lsblk,
+		# which opens the disk read-only. parted opens it read-write even for `print`,
+		# and closing a write handle fires udev's watch rule: the partitions get
+		# re-probed, and the lsblk below sees empty FSTYPE/PARTTYPENAME while that
+		# runs, so a valid Windows disk is refused.
+		[[ "$(lsblk -ndo PTTYPE "$disk" 2>/dev/null)" == "gpt" ]] || return "$INSTALL_EX_NODEV"
+		json="$(lsblk -b -po NAME,FSTYPE,PARTTYPENAME,SIZE --json "$disk" 2>/dev/null)"
+	fi
+
+	local esp win parts
+	parts="$(_install_windows_parts "$json")"
+	esp="$(sed -n 's/^esp=//p' <<<"$parts")"
+	win="$(sed -n 's/^windows=//p' <<<"$parts")"
+	if [[ -z "$esp" || -z "$win" ]]; then
+		# A "Microsoft basic data" partition that is not plain NTFS is almost
+		# always BitLocker-encrypted, which ntfsresize cannot shrink - say so.
+		local enc
+		# editorconfig-checker-disable
+		enc="$(printf '%s' "$json" | jq -r '
+			[ .blockdevices[]?.children[]?
+			  | select(((.parttypename // "") | test("basic data"; "i")) and (.fstype != "ntfs"))
+			  | .name ] | first // empty')"
+		# editorconfig-checker-enable
+		if [[ -n "$enc" ]]; then
+			install_log ERR "detect_windows: $enc is not plain NTFS (likely BitLocker); disable device encryption in Windows to enable dual-boot"
+		else
+			install_log ERR "detect_windows: no ESP+NTFS pair on $disk"
+		fi
+		return "$INSTALL_EX_NODEV"
+	fi
+	echo "esp=$esp"
+	echo "windows=$win"
+}
+
+install_disk_has_bitlocker() {
+	# install_disk_has_bitlocker <disk> [lsblk_json]
+	# True if the disk carries a BitLocker-encrypted volume. Used to explain why
+	# dual-boot is unavailable (ntfsresize cannot shrink an encrypted volume).
+	local disk="$1" json="${2:-}"
+	[[ -z "$json" ]] && json="$(lsblk -b -po NAME,FSTYPE,PARTTYPENAME,SIZE --json "$disk" 2>/dev/null)"
+	printf '%s' "$json" | jq -e 'any(.blockdevices[]?.children[]?; (.fstype // "") | test("bitlocker"; "i"))' >/dev/null 2>&1
+}
+
+install_dualboot_blocker() {
+	# install_dualboot_blocker <disk>
+	# If the disk's Windows volume cannot be shrunk for a dual-boot install, echo
+	# a plain, user-facing reason AND the exact fix, and return non-zero. Prints
+	# nothing and returns 0 when the disk is ready. The frontends show this text
+	# directly (dialog / message) so the user is told what to do without reading
+	# the install log.
+	local disk="$1" wi win json winpart
+	# Identify the Windows system partition INDEPENDENTLY OF FILESYSTEM TYPE first:
+	# a BitLocker volume's fstype is "BitLocker", not "ntfs", so install_detect_
+	# windows (which keys on ntfs) fails on it - and we must still report BitLocker,
+	# not "no Windows". Pick the largest "Microsoft basic data" partition, minus the
+	# WinRE recovery one.
+	json="$(lsblk -b -po NAME,FSTYPE,PARTTYPENAME,SIZE --json "$disk" 2>/dev/null)"
+	winpart="$(printf '%s' "$json" | jq -r '
+		[ .blockdevices[]?.children[]?
+		| select(((.parttypename // "") | test("basic data"; "i")))
+		| select(((.parttypename // "") | test("recovery"; "i")) | not) ]
+		| sort_by(.size | tonumber) | reverse | (.[0].name // empty)' 2>/dev/null)"
+	# BitLocker FIRST (an encrypted volume also fails the ntfsresize probe below and
+	# must not be reported as "dirty"), scoped to THAT partition only: its lsblk/blkid
+	# fstype, or its boot sector's "-FVE-FS-" signature (a plain NTFS volume has
+	# "NTFS" there) - so a locked volume is caught even if lsblk didn't tag it.
+	if [[ -n "$winpart" ]] && { [[ "$(lsblk -no FSTYPE "$winpart" 2>/dev/null)" == *[Bb]it[Ll]ocker* ]] \
+		|| dd if="$winpart" bs=512 count=1 2>/dev/null | tr -d '\0' | grep -qa 'FVE-FS'; }; then
+		printf '%s\n' \
+			"The Windows volume on $disk is BitLocker-encrypted, so it cannot be resized for dual-boot." \
+			"" \
+			"Fix it in Windows, then run the installer again:" \
+			"1) Turn off BitLocker / Device Encryption: manage-bde -off C:" \
+			"2) Wait until it reports fully decrypted."
+		return 1
+	fi
+	# Not BitLocker: need a real (shrinkable) Windows/UEFI layout to proceed.
+	wi="$(install_detect_windows "$disk")" || {
+		echo "No Windows/UEFI install was found on $disk - there is nothing to dual-boot alongside. Use a normal (erase) install instead, or pick the disk that has Windows on it."
+		return 1
+	}
+	win="$(sed -n 's/^windows=//p' <<<"$wi")"
+	# ntfsresize refuses a hibernated / Fast-Startup / unclean volume ("NTFS is
+	# inconsistent"). This is the most common blocker.
+	if ! ntfsresize -f --info "$win" >/dev/null 2>&1; then
+		printf '%s\n' \
+			"The Windows volume on $disk is hibernated or has Fast Startup enabled, so it cannot be shrunk for dual-boot." \
+			"" \
+			"Fix it in Windows, then run the installer again:" \
+			"1) In an admin Command Prompt, run: powercfg /h off" \
+			"2) Then run: chkdsk /f C:  (reboot if it asks)" \
+			"3) Shut Windows down fully (not Restart)."
+		return 1
+	fi
+	return 0
+}
+
+install_windows_min_bytes() {
+	# install_windows_min_bytes <ntfs_partition>
+	# Smallest size ntfsresize will shrink the volume to, in bytes (0 on failure).
+	local dev="$1" out
+	out="$(ntfsresize -f --info "$dev" 2>/dev/null \
+		| grep -iE 'You might resize' | grep -oE '[0-9]+ bytes' | grep -oE '[0-9]+' | head -1)"
+	[[ -z "$out" ]] && out="$(ntfsresize -f --info "$dev" 2>/dev/null \
+		| awk -F'[:(]' '/[Cc]urrent volume size/ {gsub(/[^0-9]/,"",$2); print $2; exit}')"
+	echo "${out:-0}"
+}
+
+install_dualboot_plan() {
+	# install_dualboot_plan <win_size_bytes> <win_min_bytes> <tail_free_bytes> <want_bytes>
+	# Pure: decide how small Windows must become to free <want_bytes> for Armbian,
+	# keeping a safety margin above the NTFS minimum. Echoes "shrink_to=<bytes>"
+	# (the new Windows size) or fails with INSTALL_EX_NOSPACE if it will not fit.
+	local wsize="$1" wmin="$2" tail="${3:-0}" want="$4"
+	local margin=$(( 8 * 1024 * 1024 * 1024 ))          # keep >=8GiB above the ntfs min
+	local shrinkable=$(( wsize - (wmin + margin) ))
+	(( shrinkable < 0 )) && shrinkable=0
+	local avail=$(( shrinkable + tail ))
+	if (( want > avail )); then
+		install_log ERR "dualboot: need $want bytes but only $avail free (shrinkable=$shrinkable, tail=$tail)"
+		return "$INSTALL_EX_NOSPACE"
+	fi
+	# Use any existing free tail first, only then eat into Windows.
+	local from_win=0
+	(( want > tail )) && from_win=$(( want - tail ))
+	echo "shrink_to=$(( wsize - from_win ))"
+}
+
+install_shrink_windows() {
+	# install_shrink_windows <disk> <windows_partition> <new_size_bytes>
+	# Shrink the NTFS filesystem, then pull the GPT partition end in to match.
+	# The volume must be clean (run chkdsk in Windows first) or ntfsresize aborts.
+	local disk="$1" win="$2" new_bytes="$3"
+	# Feed the "Are you sure?" answer with a here-string, NOT `yes |`: an infinite
+	# `yes` producer dies of SIGPIPE when ntfsresize exits, which under a caller's
+	# `set -o pipefail` would mask ntfsresize's real (successful) exit code.
+	ntfsresize -f --size "$new_bytes" "$win" <<<'y' >>"$INSTALL_LOG" 2>&1 \
+		|| { install_log ERR "shrink: ntfsresize of $win to $new_bytes failed (is the volume clean? boot Windows and disable Fast Startup / run chkdsk)"; return "$INSTALL_EX_PARTITION"; }
+
+	local pnum start_b new_end_b
+	pnum="$(grep -oE '[0-9]+$' <<<"$win")"
+	start_b="$(parted -sm "$disk" unit B print 2>/dev/null | awk -F: -v p="$pnum" '$1==p {gsub("B","",$2); print $2}')"
+	[[ -n "$start_b" ]] || { install_log ERR "shrink: cannot read start of partition $pnum"; return "$INSTALL_EX_PARTITION"; }
+	# Leave 16MiB slack past the shrunk fs, then round the end UP to a 1 MiB
+	# boundary so the partition created in the freed space starts aligned
+	# (a misaligned start makes parted warn and prompt, and hurts performance).
+	new_end_b=$(( start_b + new_bytes + 16 * 1024 * 1024 ))
+	new_end_b=$(( (new_end_b + 1048575) / 1048576 * 1048576 ))
+	# parted refuses to shrink a partition non-interactively even with --script;
+	# ---pretend-input-tty answers its Yes/No prompts (data-loss, closest-location).
+	printf 'Yes\nYes\n' | parted ---pretend-input-tty "$disk" unit B resizepart "$pnum" "${new_end_b}B" >>"$INSTALL_LOG" 2>&1 \
+		|| { install_log ERR "shrink: resizepart $pnum to ${new_end_b}B failed"; return "$INSTALL_EX_PARTITION"; }
+	partprobe "$disk" >>"$INSTALL_LOG" 2>&1 || true
+	udevadm settle >>"$INSTALL_LOG" 2>&1 || true
+}
+
+install_create_free_partition() {
+	# install_create_free_partition <disk> <fs>
+	# Create one partition filling the largest free region and echo its device.
+	# Does NOT relabel or wipe - existing partitions are preserved.
+	local disk="$1" fs="$2" hint
+	hint="$(_install_parted_fs_hint "$fs")"
+	# Largest free block (MiB) from parted's free-space report - track its END too.
+	local fstart fend fsize best_start="" best_end="" best_size=0
+	while IFS=: read -r _ fstart fend fsize _; do
+		[[ "$fsize" == *MiB ]] || continue
+		local s="${fstart%MiB}" e="${fend%MiB}" z="${fsize%MiB}"
+		s="${s%.*}"; e="${e%.*}"; z="${z%.*}"
+		if (( z > best_size )); then best_size="$z"; best_start="$s"; best_end="$e"; fi
+	done < <(parted -sm "$disk" unit MiB print free 2>/dev/null | grep ':free;$')
+	[[ -n "$best_start" ]] || { install_log ERR "create_free: no free space on $disk"; return "$INSTALL_EX_NOSPACE"; }
+
+	# Record existing partition numbers: parted numbers by creation order but
+	# LISTS by position, so "the last line" is the wrong partition when the free
+	# space sits before a trailing partition (e.g. a Windows recovery at the disk
+	# end). Diff before/after to find the number that was actually created.
+	local before_nums
+	before_nums="$(parted -sm "$disk" print 2>/dev/null | awk -F: '/^[0-9]/{print $1}')"
+
+	# Fill exactly the free region (best_start..best_end), NOT 100% - 100% would
+	# collide with a trailing partition and force parted to clamp/prompt.
+	local -a mkpart_args=(mkpart primary)
+	[[ -n "$hint" ]] && mkpart_args+=("$hint")
+	mkpart_args+=("${best_start}MiB" "${best_end}MiB")
+	printf 'Yes\nYes\n' | parted ---pretend-input-tty -a optimal "$disk" unit MiB "${mkpart_args[@]}" >>"$INSTALL_LOG" 2>&1 \
+		|| { install_log ERR "create_free: mkpart failed"; return "$INSTALL_EX_PARTITION"; }
+	partprobe "$disk" >>"$INSTALL_LOG" 2>&1 || true
+	udevadm settle >>"$INSTALL_LOG" 2>&1 || true
+
+	# The new partition is the number that is present now but was not before.
+	local n newnum=""
+	while IFS= read -r n; do
+		grep -qxF "$n" <<<"$before_nums" || { newnum="$n"; break; }
+	done < <(parted -sm "$disk" print 2>/dev/null | awk -F: '/^[0-9]/{print $1}')
+	[[ -n "$newnum" ]] || { install_log ERR "create_free: cannot identify the new partition"; return "$INSTALL_EX_PARTITION"; }
+	echo "$(_install_part_dev "$disk" "$newnum")"
+}
+
+# ---- orchestration ----------------------------------------------------------
+
+install_uuid() {
+	# install_uuid <device_partition> -> "UUID=<uuid>" (empty on failure)
+	local u; u="$(blkid -s UUID -o value "$1" 2>/dev/null)"
+	[[ -n "$u" ]] && echo "UUID=$u"
+}
+
+# True when a findmnt FSROOT fits a subvol= option in fstab.
+install_fstab_subvol_ok() { [[ "$1" == /* && "$1" != *[[:space:],\\\"]* ]]; }
+
+# install_btrfs_default_id <mount point> -> ID of the default btrfs subvolume
+# (5 for the top level). Fails without btrfs-progs. Impure: runs btrfs.
+install_btrfs_default_id() {
+	local out
+	out="$(btrfs subvolume get-default "$1" 2>/dev/null)" || return 1
+	[[ "$out" =~ ^ID\ ([0-9]+) ]] || return 1
+	echo "${BASH_REMATCH[1]}"
+}
+
+# install_btrfs_subvol_opt <mount point> <FSROOT> <OPTIONS> -> ",subvol=<FSROOT>",
+# or nothing for the default subvolume. A mount without subvol= then follows a
+# later set-default, as U-Boot does. Fails when fstab cannot hold the name.
+install_btrfs_subvol_opt() {
+	local id def
+	[[ ",$3," =~ ,subvolid=([0-9]+), ]] && id="${BASH_REMATCH[1]}"
+	if [[ -n "$id" ]] && def="$(install_btrfs_default_id "$1")" && [[ "$def" == "$id" ]]; then
+		return 0
+	fi
+	install_fstab_subvol_ok "$2" || return 1
+	echo ",subvol=$2"
+}
+
+install_map_current_boot() {
+	# install_map_current_boot <target_fstab> <target_root_mount>
+	# For "sd" mode (boot stays on the current media, rootfs on the target):
+	# make the current media's /boot visible inside the target at /boot so kernel
+	# and initramfs upgrades on the target land where u-boot actually reads them.
+	# Mirrors the classic armbian-install behaviour:
+	#   * dedicated /boot partition  -> mount it straight at /boot
+	#   * /boot is a dir on the root -> mount that partition at /media/boot-media
+	#                                   and bind /media/boot-media/boot -> /boot
+	# All entries use nofail so a later-removed boot medium never blocks boot.
+	local fstab="$1" mp="$2"
+	local boot_src boot_uuid boot_fstype boot_fsroot boot_mopts boot_opts="defaults,nofail"
+	# --nofsroot and subvol=: as for / below.
+	boot_src="$(findmnt -no SOURCE --nofsroot /boot 2>/dev/null || true)"
+	if [[ -n "$boot_src" ]]; then
+		boot_uuid="$(install_uuid "$boot_src")"
+		boot_fstype="$(findmnt -no FSTYPE /boot 2>/dev/null || true)"
+		[[ -n "$boot_uuid" && -n "$boot_fstype" ]] \
+			|| { install_log ERR "boot-map: cannot resolve current /boot partition ($boot_src)"; return "$INSTALL_EX_BOOTCFG"; }
+		boot_fsroot="$(findmnt -no FSROOT /boot 2>/dev/null || true)"
+		boot_mopts="$(findmnt -no OPTIONS /boot 2>/dev/null || true)"
+		# A bind, as sd mode writes, has a directory as FSROOT. A subvolume lists it in subvol= too.
+		[[ "$boot_fsroot" == / || ( "$boot_fstype" == btrfs && ",$boot_mopts," == *",subvol=$boot_fsroot,"* ) ]] \
+			|| { install_log ERR "boot-map: /boot is a bind mount (${boot_src}[${boot_fsroot}]), cannot map it"; return "$INSTALL_EX_BOOTCFG"; }
+		if [[ "$boot_fstype" == btrfs ]]; then
+			boot_opts+="$(install_btrfs_subvol_opt /boot "$boot_fsroot" "$boot_mopts")" \
+				|| { install_log ERR "boot-map: btrfs subvolume name not usable in fstab ($boot_fsroot)"; return "$INSTALL_EX_BOOTCFG"; }
+		fi
+		printf '%s\t/boot\t%s\t%s\t0\t2\n' "$boot_uuid" "$boot_fstype" "$boot_opts" >>"$fstab"
+		install_log INFO "boot-map: target /boot -> current boot partition $boot_src ($boot_fstype)"
+		return 0
+	fi
+	# /boot is a directory on the current media's root partition.
+	local root_src root_media_uuid root_media_fstype root_fsroot root_mopts root_opts="defaults,nofail"
+	# --nofsroot: blkid needs the bare device, not "/dev/mmcblk0p1[/@]".
+	root_src="$(findmnt -no SOURCE --nofsroot / 2>/dev/null || true)"
+	root_media_uuid="$(install_uuid "$root_src")"
+	root_media_fstype="$(findmnt -no FSTYPE / 2>/dev/null || true)"
+	[[ -n "$root_media_uuid" && -n "$root_media_fstype" ]] \
+		|| { install_log ERR "boot-map: cannot resolve current root partition ($root_src)"; return "$INSTALL_EX_BOOTCFG"; }
+	# btrfs: mount the root's own subvolume (/@ or /). subvol= only when it is not the default.
+	root_fsroot="$(findmnt -no FSROOT / 2>/dev/null || true)"
+	if [[ "$root_media_fstype" == btrfs ]]; then
+		root_mopts="$(findmnt -no OPTIONS / 2>/dev/null || true)"
+		root_opts+="$(install_btrfs_subvol_opt / "$root_fsroot" "$root_mopts")" \
+			|| { install_log ERR "boot-map: btrfs subvolume name not usable in fstab ($root_fsroot)"; return "$INSTALL_EX_BOOTCFG"; }
+	fi
+	mkdir -p "$mp/media/boot-media" || { install_log ERR "boot-map: mkdir /media/boot-media failed"; return "$INSTALL_EX_BOOTCFG"; }
+	printf '%s\t/media/boot-media\t%s\t%s\t0\t2\n' "$root_media_uuid" "$root_media_fstype" "$root_opts" >>"$fstab"
+	printf '/media/boot-media/boot\t/boot\tnone\tbind,nofail\t0\t0\n' >>"$fstab"
+	install_log INFO "boot-map: target /boot -> bind of current root $root_src (/media/boot-media/boot)"
+	return 0
+}
+
+install_boot_firmware_dir() {
+	# Where a raspi-firmware-style boot config (config.txt, cmdline.txt) lives:
+	# /boot/firmware if that's mounted separately (current layout), else /boot
+	# itself. Pure path logic except for the mount check.
+	if findmnt -no TARGET /boot/firmware >/dev/null 2>&1; then
+		echo /boot/firmware
+	else
+		echo /boot
+	fi
+}
+
+install_rpi_style_boot() {
+	# True if this board's firmware reads a static cmdline.txt straight off the
+	# boot partition (Raspberry Pi's SoC/EEPROM bootrom) rather than running a
+	# u-boot boot script that reads armbianEnv.txt. Detected by config.txt and
+	# cmdline.txt sitting together in the current boot tree - both are specific
+	# to this boot style and installed only by the raspi-firmware package.
+	local dir; dir="$(install_boot_firmware_dir)"
+	[[ -f "$dir/config.txt" && -f "$dir/cmdline.txt" ]]
+}
+
+install_sd_boot_dir() {
+	# The CURRENT media's boot directory. A function so tests can point it at a
+	# fixture instead of the real /boot.
+	echo /boot
+}
+
+install_sd_env_file() {
+	# The CURRENT media's boot config, rewritten by sd mode: armbianEnv.txt on
+	# most u-boot boards, extlinux/extlinux.conf on distro-boot ones. Prints
+	# nothing and returns 1 when the media carries neither.
+	install_boot_cfg_file "$(install_sd_boot_dir)"
+}
+
+install_sd_capable() {
+	# True when the CURRENT boot media's configuration can be pointed at a new
+	# root filesystem: either a u-boot-readable armbianEnv.txt to rewrite, or a
+	# Raspberry Pi-style static cmdline.txt. Guards both the mode menu and the
+	# scenario pre-flight so a board whose firmware reads neither (no EFI, no
+	# u-boot hook, no raspi firmware) never sees - or gets wiped by - sd mode.
+	[[ -f "$(install_sd_env_file)" ]] || install_rpi_style_boot
+}
+
+install_rewrite_rpi_cmdline() {
+	# install_rewrite_rpi_cmdline <cmdline_file> <root_uuid> [fs]
+	# Point a raspi-firmware cmdline.txt's root= at <root_uuid> ("UUID=..."),
+	# replacing whatever selector (LABEL=, UUID=, PARTUUID=, a device path) is
+	# there now. UUID rather than the image's built-in LABEL=armbi_root: once
+	# two disks both carry that label (the source media is still around), a
+	# label lookup is ambiguous - a UUID is unique by construction.
+	#
+	# [fs], if given, also replaces rootfstype=: initramfs-tools' /scripts/local
+	# mounts root with `mount -t "$ROOTFSTYPE"` whenever that key is set to
+	# anything other than empty/"auto" (see /usr/share/initramfs-tools/scripts/
+	# local) - a stale rootfstype=ext4 on a btrfs/f2fs root fails that mount
+	# with the exact same "Invalid argument" a missing kernel module would,
+	# regardless of root= being correct and the module being present.
+	local file="$1" root_uuid="$2" fs="${3:-}"
+	[[ -f "$file" ]] || return "$INSTALL_EX_BOOTCFG"
+	grep -q 'root=' "$file" || { install_log ERR "rpi-cmdline: no root= in $file"; return "$INSTALL_EX_BOOTCFG"; }
+	sed -i -E "s|root=[^ ]+|root=${root_uuid}|" "$file"
+	if [[ -n "$fs" ]]; then
+		if grep -q 'rootfstype=' "$file"; then
+			sed -i -E "s|rootfstype=[^ ]+|rootfstype=${fs}|" "$file"
+		else
+			sed -i -E "s|\$| rootfstype=${fs}|" "$file"
+		fi
+	fi
+}
+
+install_run_scenario() {
+	# install_run_scenario <boot_mode> <target_disk> <fs> <exclude_file> [uboot_dir]
+	#
+	# The single entrypoint shared by the dialog TUI and the non-interactive CLI.
+	# Composes the tested primitives (plan -> apply -> mkfs -> transfer -> boot
+	# config -> bootloader -> verify) for one target. Side-effecting; validated by
+	# the loopback integration test and by board/KVM smoke before rollout.
+	local boot_mode="$1" disk="$2" fs="$3" exclude="$4" uboot_dir="${5:-${DIR:-}}"
+	[[ -b "$disk" ]] || { install_log ERR "scenario: '$disk' is not a block device"; return "$INSTALL_EX_NODEV"; }
+	# SPI/MTD flash (mtdblockN) is a boot device, never a root target. Detection
+	# filters it from the menu, but refuse it here too so an explicit
+	# --target /dev/mtdblockN (or a TUI selection) can't repartition the SPI.
+	[[ "$disk" != /dev/mtdblock* ]] || { install_log ERR "scenario: '$disk' is SPI/MTD flash, not a valid install target"; return "$INSTALL_EX_NODEV"; }
+	! install_disk_in_use "$disk" || { install_log ERR "scenario: '$disk' is in use (mounted, swap, or lsblk failed) - refusing to modify it"; return "$INSTALL_EX_USAGE"; }
+	[[ -f "$exclude" ]] || { install_log ERR "scenario: exclude file '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
+	# Pre-flight: confirm we can make the target bootable AND format it BEFORE
+	# wiping anything - never destroy a disk we cannot finish installing to.
+	install_bootloader_available "$boot_mode" \
+		|| { install_log ERR "scenario: no bootloader method for '$boot_mode' on this system (u-boot hooks or grub-install missing) - refusing to modify $disk"; return "$INSTALL_EX_BOOTLOADER"; }
+	# sd mode rewrites the CURRENT boot media's configuration to point at the
+	# new root; check we have one to rewrite BEFORE wiping the target, or a
+	# firmware-booted board with neither armbianEnv.txt nor a raspi cmdline.txt
+	# would pass the check above, erase the disk, and only then fail.
+	if [[ "$boot_mode" == sd ]] && ! install_sd_capable; then
+		install_log ERR "scenario: sd mode but current boot config is neither armbianEnv.txt nor Raspberry Pi-style (config.txt+cmdline.txt) - refusing to modify $disk"
+		return "$INSTALL_EX_BOOTCFG"
+	fi
+	# mtd mode flashes u-boot to the SPI/MTD device list; refuse before wiping the
+	# target if the frontend handed us an empty list (e.g. the device vanished
+	# between menu and run) rather than failing after partitioning.
+	[[ "$boot_mode" != mtd || -n "${INSTALL_MTD_LIST:-}" ]] \
+		|| { install_log ERR "scenario: mtd boot but no MTD/SPI device (INSTALL_MTD_LIST empty) - refusing to modify $disk"; return "$INSTALL_EX_NODEV"; }
+	install_check_fs_tools "$fs" >/dev/null \
+		|| { install_log ERR "scenario: mkfs.$fs not installed (need $(_install_fs_pkg "$fs")) - refusing to modify $disk"; return "$INSTALL_EX_TOOL"; }
+	install_fs_kernel_supported "$fs" \
+		|| { install_log ERR "scenario: running kernel cannot mount $fs (no driver) - refusing to modify $disk"; return "$INSTALL_EX_TOOL"; }
+
+	# Geometry + firmware context feed the pure planner.
+	local cap sec is_uefi=0 has_swap=0
+	cap="$(blockdev --getsize64 "$disk" 2>/dev/null || echo 0)"
+	sec="$(cat "/sys/block/$(basename "$disk")/queue/physical_block_size" 2>/dev/null || echo 512)"
+	[[ "$boot_mode" == uefi ]] && is_uefi=1
+	grep -q swap /etc/fstab 2>/dev/null && has_swap=1
+
+	# eMMC/SD/MTD installs must use the same partition-table type as the running
+	# image so the board's u-boot can read the result (Rockchip vendor u-boot
+	# reads GPT only; Allwinner needs MBR). For mtd the /boot lands on the target
+	# and is read by the SPI u-boot, so it matters there too. Replicate the
+	# source; the planner still upgrades to GPT when capacity/sector size demand.
+	local table_pref=""
+	case "$boot_mode" in
+		emmc|sd|mtd|spi|standalone|native) table_pref="$(install_source_table_type)"
+			[[ -n "$table_pref" ]] && install_log INFO "scenario: inheriting source partition table '$table_pref' for $boot_mode" ;;
+	esac
+
+	local plan; plan="$(install_plan_layout "$boot_mode" "$fs" "$is_uefi" "$cap" "$sec" "$has_swap" "$table_pref")" \
+		|| { install_log ERR "scenario: planning failed"; return "$INSTALL_EX_PARTITION"; }
+	install_log INFO "scenario: $boot_mode on $disk (${cap}B, ${sec}B sectors) fs=$fs"$'\n'"$plan"
+
+	# Partition, then build the mkfs map + remember the role->device mapping.
+	local partmap; partmap="$(install_apply_partitions "$disk" "$plan")" || return "$INSTALL_EX_PARTITION"
+	local esp_dev="" boot_dev="" fw_dev="" root_dev="" swap_dev="" role dev
+	local mkfs_map=""
+	while read -r role dev; do
+		[[ -n "$dev" ]] || continue
+		case "$role" in
+			esp)      esp_dev="$dev";  mkfs_map+="esp $dev vfat"$'\n' ;;
+			boot)     boot_dev="$dev"; mkfs_map+="boot $dev ext4"$'\n' ;;
+			firmware) fw_dev="$dev";   mkfs_map+="firmware $dev vfat"$'\n' ;;
+			swap)     swap_dev="$dev"; mkfs_map+="swap $dev swap"$'\n' ;;
+			root)     root_dev="$dev"; mkfs_map+="root $dev $fs"$'\n' ;;
+		esac
+	done <<<"$partmap"
+	[[ -b "$root_dev" ]] || { install_log ERR "scenario: no root partition created"; return "$INSTALL_EX_PARTITION"; }
+	install_make_filesystems "$mkfs_map" || return "$INSTALL_EX_FORMAT"
+
+	# The shipped exclude list drops /boot from the main rootfs rsync (it belongs
+	# on its own partition/tree, synced separately below). /boot is populated into
+	# the target unless boot stays on the removable media (classic ARM "sd" mode).
+	local copy_boot=1
+	[[ "$boot_mode" == sd ]] && copy_boot=0
+
+	# Mount the freshly-formatted target.
+	local mp; mp="$(mktemp -d /mnt/armbian-install.XXXXXX)" || return "$INSTALL_EX_TRANSFER"
+	mount "$root_dev" "$mp" || { install_log ERR "scenario: mount root failed"; rmdir "$mp"; return "$INSTALL_EX_TRANSFER"; }
+	if [[ -n "$esp_dev" ]]; then mkdir -p "$mp/boot/efi"; fi
+
+	# One-shot loop so a failing step can `break` straight to teardown. The bar is
+	# staged: rsync fills 0-90, the remaining steps advance it to 100 so it never
+	# freezes at ~90% during /boot sync, grub-install and verification.
+	local rc=0
+	while :; do
+		install_transfer_rootfs "$mp" "$exclude" 1 / 0 90 || { rc=$INSTALL_EX_TRANSFER; break; }
+		echo 92
+		# A separate boot partition must be mounted before /boot is synced onto it;
+		# a silent mount failure would leave the boot partition empty (unbootable),
+		# mirroring the ESP mount guard below.
+		if [[ -n "$boot_dev" ]]; then
+			mkdir -p "$mp/boot"
+			mount "$boot_dev" "$mp/boot" \
+				|| { install_log ERR "scenario: mount boot partition $boot_dev failed"; rc=$INSTALL_EX_BOOTCFG; break; }
+		fi
+		# native mode's FAT32 boot partition mounts at /boot/firmware, mirroring
+		# the running system's own layout: the default install_populate_boot
+		# rsync of /boot (below) crosses into it the same way it would on the
+		# live system, populating both tiers - the ordinary /boot directory
+		# (kernel, armbianEnv.txt, ...) and the nested firmware partition
+		# (config.txt, cmdline.txt, the active kernel/dtbs) - in one pass.
+		if [[ -n "$fw_dev" ]]; then
+			mkdir -p "$mp/boot/firmware"
+			mount "$fw_dev" "$mp/boot/firmware" \
+				|| { install_log ERR "scenario: mount firmware partition $fw_dev failed"; rc=$INSTALL_EX_BOOTCFG; break; }
+		fi
+		install_populate_boot "$mp" "$copy_boot" || { rc=$INSTALL_EX_BOOTCFG; break; }
+
+		# fstab from the real, freshly-created UUIDs.
+		local root_uuid boot_uuid="" esp_uuid="" swap_uuid=""
+		root_uuid="$(install_uuid "$root_dev")"
+		[[ -n "$boot_dev" ]] && boot_uuid="$(install_uuid "$boot_dev")"
+		[[ -n "$esp_dev" ]]  && esp_uuid="$(install_uuid "$esp_dev")"
+		[[ -n "$swap_dev" ]] && swap_uuid="$(install_uuid "$swap_dev")"
+		install_gen_fstab "$root_uuid" "$fs" "$boot_uuid" ext4 "$esp_uuid" "$swap_uuid" >"$mp/etc/fstab" \
+			|| { rc=$INSTALL_EX_BOOTCFG; break; }
+		# native mode's firmware partition isn't one of install_gen_fstab's
+		# known slots (it's not read by any bootloader the way the ESP is) -
+		# append its entry directly, same as the swap carry-over just below.
+		[[ -n "$fw_dev" ]] && printf '%s\t/boot/firmware\tvfat\tdefaults,noatime\t0\t2\n' "$(install_uuid "$fw_dev")" >>"$mp/etc/fstab"
+		# No dedicated swap partition -> carry over the host's swap entries (e.g. a
+		# /var/swap swapfile) so the target keeps swap.
+		if [[ -z "$swap_dev" ]] && grep -qE '^[^#].*[[:space:]]swap[[:space:]]' /etc/fstab 2>/dev/null; then
+			grep -E '^[^#].*[[:space:]]swap[[:space:]]' /etc/fstab >>"$mp/etc/fstab"
+		fi
+
+		# Point the board's boot env at the new root (u-boot scenarios only; GRUB
+		# modes are handled by grub-mkconfig).
+		case "$boot_mode" in
+			emmc|mtd|ufs|spi|standalone)
+				local env_file
+				if env_file="$(install_boot_cfg_file "$mp/boot")"; then
+					install_rewrite_bootcfg "$env_file" "$root_uuid" "$fs" \
+						|| { install_log ERR "scenario: failed to point $env_file at new root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
+				fi ;;
+			sd)
+				# Boot stays on the current media (the SD/eMMC the board booted
+				# from); only the rootfs moved to $disk. Two things are needed:
+				#   1. point the CURRENT media's boot env at the new root, so u-boot
+				#      (loaded from that media) keeps loading the kernel from there
+				#      but tells the kernel to mount rootfs from $disk; and
+				#   2. map that media's /boot into the target at /boot, so kernel and
+				#      initramfs upgrades on the target land where u-boot reads them.
+				# Without (1) the board keeps booting its old rootfs.
+				# (2) runs first: if it fails, the current media stays untouched.
+				# The two boot styles need different rewrites - select FIRST, or
+				# the armbianEnv.txt requirement below would block the Raspberry
+				# Pi path (which has no armbianEnv.txt at all).
+				if install_rpi_style_boot; then
+					# Raspberry Pi-style boards read root= directly from a static
+					# cmdline.txt on the CURRENT boot media, not from
+					# armbianEnv.txt via a u-boot script.
+					local rpi_cmdline; rpi_cmdline="$(install_boot_firmware_dir)/cmdline.txt"
+					install_map_current_boot "$mp/etc/fstab" "$mp" \
+						|| { install_log ERR "scenario: failed to map current /boot into target fstab"; rc=$INSTALL_EX_BOOTCFG; break; }
+					install_rewrite_rpi_cmdline "$rpi_cmdline" "$root_uuid" "$fs" \
+						|| { install_log ERR "scenario: sd mode but failed to point current cmdline.txt ($rpi_cmdline) at new root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
+					install_log INFO "scenario: pointed current cmdline.txt ($rpi_cmdline) at new root $root_uuid (Raspberry Pi-style boot) and mapped its /boot into the target"
+				else
+					local env_file; env_file="$(install_sd_env_file)"
+					if [[ ! -f "$env_file" ]]; then
+						install_log ERR "scenario: sd mode but the current media has no boot config (armbianEnv.txt or extlinux/extlinux.conf); cannot make $disk bootable"
+						rc=$INSTALL_EX_BOOTCFG; break
+					fi
+					install_map_current_boot "$mp/etc/fstab" "$mp" \
+						|| { install_log ERR "scenario: failed to map current /boot into target fstab"; rc=$INSTALL_EX_BOOTCFG; break; }
+					install_rewrite_bootcfg "$env_file" "$root_uuid" "$fs" \
+						|| { install_log ERR "scenario: failed to point current boot env ($env_file) at new root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
+					install_log INFO "scenario: pointed current boot media ($env_file) at new root $root_uuid ($fs) and mapped its /boot into the target"
+				fi ;;
+			native)
+				# Fully self-contained: the copy of cmdline.txt that
+				# install_populate_boot just placed at $mp/boot/firmware/ must
+				# point at THIS disk's own new root, not the source's.
+				local cmdline="$mp/boot/firmware/cmdline.txt"
+				[[ -f "$cmdline" ]] \
+					|| { install_log ERR "scenario: native mode but $cmdline missing after boot copy"; rc=$INSTALL_EX_BOOTCFG; break; }
+				install_rewrite_rpi_cmdline "$cmdline" "$root_uuid" "$fs" \
+					|| { install_log ERR "scenario: failed to point target cmdline.txt ($cmdline) at new root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
+				local env_file="$mp/boot/armbianEnv.txt"
+				[[ -f "$env_file" ]] && install_rewrite_bootenv "$env_file" "$root_uuid" "$fs"
+				install_log INFO "scenario: pointed target cmdline.txt ($cmdline) at its own new root $root_uuid ($fs)" ;;
+		esac
+
+		# Rebuild the target initramfs so a module root fs (btrfs/f2fs) boots
+		# under MODULES=list. Only when the target owns its /boot. Fatal on
+		# failure - an unrebuilt initramfs means the target cannot boot at all,
+		# not a cosmetic problem to warn about and ship anyway.
+		if [[ "$copy_boot" == 1 ]]; then
+			install_update_initramfs "$mp" "$fs" || { rc=$INSTALL_EX_BOOTCFG; break; }
+		fi
+
+		echo 95
+		# ESP must be mounted before GRUB runs.
+		[[ -n "$esp_dev" ]] && { mount "$esp_dev" "$mp/boot/efi" || { rc=$INSTALL_EX_BOOTLOADER; break; }; }
+		# In sd mode the bootloader already lives on the current boot media (left
+		# untouched) and the boot env there was rewired above; writing u-boot to
+		# $disk would target the wrong device - e.g. the Rockchip bootrom cannot
+		# load u-boot from NVMe/USB/SATA, so it would silently fail to boot. In
+		# native mode there is no bootloader to write at all - the board's own
+		# firmware already found and read $disk's new FAT32 boot partition.
+		# "spi" also skips the write: u-boot is pre-flashed to on-board SPI/NOR
+		# (via fastboot/DFU), so there is no bootloader to write to $disk - the
+		# board boots from SPI and its boot script finds this disk's /boot.
+		# "standalone" skips it too, u-boot stays on the current SD/eMMC.
+		if [[ "$boot_mode" != sd && "$boot_mode" != native && "$boot_mode" != spi && "$boot_mode" != standalone ]]; then
+			install_write_bootloader "$boot_mode" "$disk" "$mp" "$uboot_dir" "${INSTALL_MTD_LIST:-}" "${INSTALL_UFS_BOOT_LUN:-}" \
+				|| { rc=$INSTALL_EX_BOOTLOADER; break; }
+		fi
+
+		echo 99
+		# Refuse to declare success on an unbootable result. (sd mode boots from
+		# the removable media, so the target has no local /boot to verify.)
+		[[ "$copy_boot" == 1 ]] && { install_verify_boot_dir "$mp/boot" || { rc=$INSTALL_EX_VERIFY; break; }; }
+		install_verify_fstab "$mp/etc/fstab" || { rc=$INSTALL_EX_VERIFY; break; }
+		echo 100
+		break
+	done 2>>"$INSTALL_LOG"
+
+	# Teardown (best effort).
+	sync
+	mountpoint -q "$mp/boot/firmware" && umount "$mp/boot/firmware" 2>/dev/null
+	mountpoint -q "$mp/boot/efi" && umount "$mp/boot/efi" 2>/dev/null
+	mountpoint -q "$mp/boot" && umount "$mp/boot" 2>/dev/null
+	umount "$mp" 2>/dev/null
+	rmdir "$mp" 2>/dev/null
+
+	[[ "$rc" == 0 ]] && install_log INFO "scenario: $boot_mode install to $disk completed"
+	return "$rc"
+}
+
+install_run_split() {
+	# install_run_split <boot_disk> <root_disk> <fs> <exclude_file> [uboot_dir]
+	#
+	# "Split" ARM install: the SoC bootrom cannot load u-boot from NVMe/SATA/USB,
+	# so boot lives on an internal eMMC while the root filesystem lives on the
+	# fast/large target. The eMMC gets u-boot (raw sectors) + a dedicated ext4
+	# /boot that the board's u-boot can always read + the remaining space as a
+	# data partition auto-mounted at /emmc_storage. The target disk gets only the
+	# rootfs; its fstab mounts /boot from the eMMC boot partition. Restores the
+	# classic installer's "Boot from eMMC - system on SATA/USB/NVMe".
+	local boot_disk="$1" root_disk="$2" fs="$3" exclude="$4" uboot_dir="${5:-${DIR:-}}"
+	[[ -b "$boot_disk" ]] || { install_log ERR "split: boot device '$boot_disk' is not a block device"; return "$INSTALL_EX_NODEV"; }
+	[[ -b "$root_disk" ]] || { install_log ERR "split: root device '$root_disk' is not a block device"; return "$INSTALL_EX_NODEV"; }
+	[[ "$root_disk" != /dev/mtdblock* ]] || { install_log ERR "split: root device '$root_disk' is SPI/MTD flash, not a valid install target"; return "$INSTALL_EX_NODEV"; }
+	[[ "$boot_disk" != "$root_disk" ]] || { install_log ERR "split: boot and root device must differ ('$boot_disk')"; return "$INSTALL_EX_USAGE"; }
+	! install_disk_in_use "$boot_disk" || { install_log ERR "split: boot device '$boot_disk' is in use (mounted, swap, or lsblk failed) - refusing to modify it"; return "$INSTALL_EX_USAGE"; }
+	! install_disk_in_use "$root_disk" || { install_log ERR "split: root device '$root_disk' is in use (mounted, swap, or lsblk failed) - refusing to modify it"; return "$INSTALL_EX_USAGE"; }
+	[[ -f "$exclude" ]] || { install_log ERR "split: exclude file '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
+	# Pre-flight: u-boot hook + filesystem tooling must exist BEFORE we wipe.
+	[[ "$(type -t write_uboot_platform)" == function ]] \
+		|| { install_log ERR "split: write_uboot_platform hook missing - refusing to modify $boot_disk"; return "$INSTALL_EX_BOOTLOADER"; }
+	install_check_fs_tools "$fs" >/dev/null \
+		|| { install_log ERR "split: mkfs.$fs not installed (need $(_install_fs_pkg "$fs")) - refusing to modify $root_disk"; return "$INSTALL_EX_TOOL"; }
+	install_fs_kernel_supported "$fs" \
+		|| { install_log ERR "split: running kernel cannot mount $fs - refusing to modify $root_disk"; return "$INSTALL_EX_TOOL"; }
+
+	# Geometry for each device feeds the pure planner.
+	local bcap bsec rcap rsec
+	bcap="$(blockdev --getsize64 "$boot_disk" 2>/dev/null || echo 0)"
+	bsec="$(cat "/sys/block/$(basename "$boot_disk")/queue/physical_block_size" 2>/dev/null || echo 512)"
+	rcap="$(blockdev --getsize64 "$root_disk" 2>/dev/null || echo 0)"
+	rsec="$(cat "/sys/block/$(basename "$root_disk")/queue/physical_block_size" 2>/dev/null || echo 512)"
+	# eMMC must carry a table its u-boot can read (Rockchip vendor = GPT only);
+	# replicate the running image's table type.
+	local table_pref; table_pref="$(install_source_table_type)"
+
+	local bplan rplan
+	bplan="$(install_plan_layout emmc-boot ext4 0 "$bcap" "$bsec" 0 "$table_pref")" \
+		|| { install_log ERR "split: eMMC boot planning failed"; return "$INSTALL_EX_PARTITION"; }
+	rplan="$(install_plan_layout sd "$fs" 0 "$rcap" "$rsec" 0 "$table_pref")" \
+		|| { install_log ERR "split: root planning failed"; return "$INSTALL_EX_PARTITION"; }
+	install_log INFO "split: boot device $boot_disk"$'\n'"$bplan"$'\n'"split: root device $root_disk"$'\n'"$rplan"
+
+	# Partition both devices before formatting anything.
+	local bpartmap rpartmap
+	bpartmap="$(install_apply_partitions "$boot_disk" "$bplan")" || return "$INSTALL_EX_PARTITION"
+	rpartmap="$(install_apply_partitions "$root_disk" "$rplan")" || return "$INSTALL_EX_PARTITION"
+
+	local boot_part="" storage_part="" root_part="" role dev mkfs_map=""
+	while read -r role dev; do
+		[[ -n "$dev" ]] || continue
+		case "$role" in
+			boot)    boot_part="$dev";    mkfs_map+="boot $dev ext4"$'\n' ;;
+			storage) storage_part="$dev"; mkfs_map+="storage $dev ext4"$'\n' ;;
+		esac
+	done <<<"$bpartmap"
+	while read -r role dev; do
+		[[ -n "$dev" ]] || continue
+		[[ "$role" == root ]] && { root_part="$dev"; mkfs_map+="root $dev $fs"$'\n'; }
+	done <<<"$rpartmap"
+	[[ -b "$boot_part" && -b "$root_part" ]] || { install_log ERR "split: expected boot+root partitions not created"; return "$INSTALL_EX_PARTITION"; }
+	install_make_filesystems "$mkfs_map" || return "$INSTALL_EX_FORMAT"
+
+	local mp; mp="$(mktemp -d /mnt/armbian-install.XXXXXX)" || return "$INSTALL_EX_TRANSFER"
+	mount "$root_part" "$mp" || { install_log ERR "split: mount root $root_part failed"; rmdir "$mp"; return "$INSTALL_EX_TRANSFER"; }
+
+	local rc=0
+	while :; do
+		install_transfer_rootfs "$mp" "$exclude" 1 / 0 90 || { rc=$INSTALL_EX_TRANSFER; break; }
+		echo 92
+		# The eMMC boot partition carries /boot (kernel, dtb, boot script); mount it
+		# before populating or the files land on the rootfs and u-boot never sees them.
+		mkdir -p "$mp/boot"
+		mount "$boot_part" "$mp/boot" || { install_log ERR "split: mount boot $boot_part failed"; rc=$INSTALL_EX_BOOTCFG; break; }
+		install_populate_boot "$mp" 1 || { rc=$INSTALL_EX_BOOTCFG; break; }
+
+		local root_uuid boot_uuid storage_uuid
+		root_uuid="$(install_uuid "$root_part")"
+		boot_uuid="$(install_uuid "$boot_part")"
+		storage_uuid="$(install_uuid "$storage_part")"
+
+		# fstab: root on the target, /boot from the eMMC boot partition, and the
+		# eMMC data partition at /emmc_storage (nofail - never block boot on it).
+		install_gen_fstab "$root_uuid" "$fs" "$boot_uuid" ext4 "" "" >"$mp/etc/fstab" \
+			|| { rc=$INSTALL_EX_BOOTCFG; break; }
+		if [[ -n "$storage_uuid" ]]; then
+			mkdir -p "$mp/emmc_storage"
+			printf '%s\t/emmc_storage\text4\tdefaults,nofail\t0\t2\n' "$storage_uuid" >>"$mp/etc/fstab"
+		fi
+
+		# Point the eMMC boot config at the root that now lives on the target device.
+		local env_file
+		if env_file="$(install_boot_cfg_file "$mp/boot")"; then
+			install_rewrite_bootcfg "$env_file" "$root_uuid" "$fs" \
+				|| { install_log ERR "split: failed to point $env_file at root $root_uuid"; rc=$INSTALL_EX_BOOTCFG; break; }
+		fi
+
+		# Module root fs (btrfs/f2fs) needs its driver in the eMMC /boot initramfs.
+		# Fatal on failure - see install_run_scenario's identical guard.
+		install_update_initramfs "$mp" "$fs" || { rc=$INSTALL_EX_BOOTCFG; break; }
+
+		echo 95
+		# u-boot goes to the eMMC whole device (raw sectors), never the target.
+		install_write_bootloader emmc "$boot_disk" "$mp" "$uboot_dir" \
+			|| { rc=$INSTALL_EX_BOOTLOADER; break; }
+
+		echo 99
+		install_verify_boot_dir "$mp/boot" || { rc=$INSTALL_EX_VERIFY; break; }
+		install_verify_fstab "$mp/etc/fstab" || { rc=$INSTALL_EX_VERIFY; break; }
+		echo 100
+		break
+	done 2>>"$INSTALL_LOG"
+
+	# Teardown (best effort).
+	sync
+	mountpoint -q "$mp/boot" && umount "$mp/boot" 2>/dev/null
+	umount "$mp" 2>/dev/null
+	rmdir "$mp" 2>/dev/null
+
+	[[ "$rc" == 0 ]] && install_log INFO "split: boot on $boot_disk, root on $root_disk completed"
+	return "$rc"
+}
+
+install_run_dualboot() {
+	# install_run_dualboot <disk> <fs> <exclude_file> <armbian_bytes> [uboot_dir]
+	#
+	# Non-destructive UEFI install alongside Windows: shrink the NTFS volume,
+	# create an Armbian partition in the freed tail, reuse the existing Windows
+	# ESP, and set up GRUB + os-prober dual-boot. The disk keeps its partition
+	# table and every existing partition.
+	local disk="$1" fs="$2" exclude="$3" want="$4"
+	[[ -b "$disk" ]] || { install_log ERR "dualboot: '$disk' not a block device"; return "$INSTALL_EX_NODEV"; }
+	[[ -f "$exclude" ]] || { install_log ERR "dualboot: exclude '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
+	[[ "$want" =~ ^[0-9]+$ && "$want" -gt 0 ]] || { install_log ERR "dualboot: bad size '$want'"; return "$INSTALL_EX_USAGE"; }
+	! install_disk_in_use "$disk" || { install_log ERR "dualboot: '$disk' is in use (mounted, swap, or lsblk failed) - refusing to modify it"; return "$INSTALL_EX_USAGE"; }
+	command -v ntfsresize >/dev/null 2>&1 || { install_log ERR "dualboot: ntfsresize missing - install the ntfs-3g package"; return "$INSTALL_EX_TOOL"; }
+	install_check_fs_tools "$fs" >/dev/null || { install_log ERR "dualboot: mkfs.$fs not installed (need $(_install_fs_pkg "$fs")) - refusing to modify $disk"; return "$INSTALL_EX_TOOL"; }
+	install_fs_kernel_supported "$fs" || { install_log ERR "dualboot: running kernel cannot mount $fs (no driver) - refusing to modify $disk"; return "$INSTALL_EX_TOOL"; }
+	command -v grub-install >/dev/null 2>&1 || { install_log ERR "dualboot: grub-install missing - refusing to modify $disk"; return "$INSTALL_EX_BOOTLOADER"; }
+
+	# 1) locate the existing Windows ESP + NTFS volume (nothing is touched yet).
+	local wi esp win
+	wi="$(install_detect_windows "$disk")" || { install_log ERR "dualboot: no Windows/UEFI layout on $disk"; return "$INSTALL_EX_NODEV"; }
+	esp="$(sed -n 's/^esp=//p' <<<"$wi")"
+	win="$(sed -n 's/^windows=//p' <<<"$wi")"
+	install_log INFO "dualboot: ESP=$esp Windows=$win on $disk"
+	# Backstop for direct engine callers (the TUI/CLI already surface this to the
+	# user before we get here): refuse - before any change - if Windows can't be
+	# shrunk (BitLocker / unclean NTFS), logging the actionable reason.
+	local blocker; blocker="$(install_dualboot_blocker "$disk")" \
+		|| { install_log ERR "dualboot: cannot shrink Windows on $disk"$'\n'"$blocker"; return "$INSTALL_EX_PARTITION"; }
+
+	# 2) plan how far to shrink Windows to free <want> bytes.
+	local wsize wmin new_win plan
+	wsize="$(blockdev --getsize64 "$win")"
+	wmin="$(install_windows_min_bytes "$win")"
+	plan="$(install_dualboot_plan "$wsize" "$wmin" 0 "$want")" || return "$INSTALL_EX_NOSPACE"
+	new_win="$(sed -n 's/^shrink_to=//p' <<<"$plan")"
+
+	# 3) shrink Windows (only if we must eat into it).
+	if (( new_win < wsize )); then
+		install_shrink_windows "$disk" "$win" "$new_win" || return "$INSTALL_EX_PARTITION"
+	fi
+
+	# 4) create + format the Armbian partition in the freed tail.
+	local root_dev
+	root_dev="$(install_create_free_partition "$disk" "$fs")" || return "$INSTALL_EX_PARTITION"
+	[[ -b "$root_dev" ]] || { install_log ERR "dualboot: new partition '$root_dev' missing"; return "$INSTALL_EX_PARTITION"; }
+	install_make_filesystems "root $root_dev $fs" || return "$INSTALL_EX_FORMAT"
+
+	# 5) install into it, reusing the existing ESP for GRUB.
+	local mp rc=0
+	mp="$(mktemp -d /mnt/armbian-install.XXXXXX)" || return "$INSTALL_EX_TRANSFER"
+	mount "$root_dev" "$mp" || { install_log ERR "dualboot: mount root failed"; rmdir "$mp"; return "$INSTALL_EX_TRANSFER"; }
+	mkdir -p "$mp/boot/efi"
+	while :; do
+		install_transfer_rootfs "$mp" "$exclude" 1 / 0 90 || { rc=$INSTALL_EX_TRANSFER; break; }
+		echo 92
+		install_populate_boot "$mp" || { rc=$INSTALL_EX_BOOTCFG; break; }
+		local root_uuid esp_uuid
+		root_uuid="$(install_uuid "$root_dev")"
+		esp_uuid="$(install_uuid "$esp")"
+		install_gen_fstab "$root_uuid" "$fs" "" ext4 "$esp_uuid" >"$mp/etc/fstab" || { rc=$INSTALL_EX_BOOTCFG; break; }
+		# Fatal on failure - see install_run_scenario's identical guard.
+		install_update_initramfs "$mp" "$fs" || { rc=$INSTALL_EX_BOOTCFG; break; }
+		echo 95
+		mount "$esp" "$mp/boot/efi" || { install_log ERR "dualboot: mount ESP failed"; rc=$INSTALL_EX_BOOTLOADER; break; }
+		install_grub_install "$mp" dualboot || { rc=$INSTALL_EX_BOOTLOADER; break; }
+		echo 99
+		install_verify_boot_dir "$mp/boot" || { rc=$INSTALL_EX_VERIFY; break; }
+		install_verify_fstab "$mp/etc/fstab" || { rc=$INSTALL_EX_VERIFY; break; }
+		# The Windows volume must have survived intact.
+		[[ "$(blkid -s TYPE -o value "$win")" == ntfs ]] || { install_log ERR "dualboot: Windows NTFS vanished after install"; rc=$INSTALL_EX_VERIFY; break; }
+		echo 100
+		break
+	done 2>>"$INSTALL_LOG"
+
+	sync
+	mountpoint -q "$mp/boot/efi" && umount "$mp/boot/efi" 2>/dev/null
+	umount "$mp" 2>/dev/null
+	rmdir "$mp" 2>/dev/null
+	[[ "$rc" == 0 ]] && install_log INFO "dualboot: Armbian installed alongside Windows on $disk"
+	return "$rc"
+}
+
+# ---- entrypoint dispatch (for `armbian-config module_install_engine ...`) ----
+
+module_install_engine() {
+	local commands
+	IFS=' ' read -r -a commands <<<"${module_options["module_install_engine,example"]}"
+	case "$1" in
+		"${commands[0]}")   # detect
+			shift; install_detect_targets "$@" ;;
+		"${commands[1]}")   # plan
+			shift; install_plan_layout "$@" ;;
+		*)
+			echo "Usage: module_install_engine {detect|plan} ..." >&2
+			return "$INSTALL_EX_USAGE" ;;
+	esac
+}
+
+#
+# Armbian Docker utilities
+#
+
+#
+# Warn when Docker's storage is on an overlay filesystem
+# Usage: docker_check_overlay_root
+# Returns: 0 if ok, 1 if the storage is on overlay (after warning)
+#
+# With overlayroot enabled the root fs is overlay, so Docker's storage lives on
+# overlay too. The overlay drivers cannot stack overlay-on-overlay, and
+# containers fail to start with a cryptic "overlay ... invalid argument".
+# Catch it early with a clear, actionable message instead.
+#
+docker_check_overlay_root() {
+	local driver path fstype msg
+	# The paths below are on the daemon's host. With a mounted docker.sock
+	# (CI, containers) the daemon runs elsewhere, so the local fs says nothing.
+	pgrep -x dockerd >/dev/null 2>&1 || return 0
+	driver=$(docker info --format '{{.Driver}}' 2>/dev/null)
+
+	case "${driver:-overlay2}" in
+		# classic graph driver: layers live under Docker's data-root
+		overlay2)
+			path=$(docker info --format '{{.DockerRootDir}}' 2>/dev/null)
+			[[ -n "$path" ]] || path="/var/lib/docker"
+			;;
+		# containerd image store (default on fresh Docker 29): snapshots live
+		# under containerd's root, which Docker's data-root does not move
+		overlayfs)
+			# dockerd without --containerd runs its own containerd, socket under
+			# its exec-root, and keeps that containerd's data under data-root
+			if [[ "$(docker info --format '{{.Containerd.Address}}' 2>/dev/null)" == */docker/containerd/* ]]; then
+				path=$(docker info --format '{{.DockerRootDir}}' 2>/dev/null)
+				path="${path:-/var/lib/docker}/containerd/daemon"
+			else
+				path=$(containerd config dump 2>/dev/null | sed -nE "s/^root = [\"'](.*)[\"']$/\1/p")
+				[[ -n "$path" ]] || path="/var/lib/containerd"
+			fi
+			;;
+		# vfs, fuse-overlayfs, btrfs, zfs ... work on any backing filesystem
+		*) return 0 ;;
+	esac
+
+	[[ -e "$path" ]] || path=$(dirname "$path")
+	fstype=$(findmnt -no FSTYPE -T "$path" 2>/dev/null) || fstype=$(stat -f -c %T "$path" 2>/dev/null)
+	if [[ "$fstype" == overlay* ]]; then
+		msg="Docker storage ($path) is on an overlay filesystem, likely because overlayroot is enabled.\n\nThe overlay storage driver cannot stack on overlay, so containers fail to start (\"overlay ... invalid argument\").\n\nFix: disable overlayroot, or move the storage to a non-overlay partition: Docker's data-root (/etc/docker/daemon.json \"data-root\") for overlay2, containerd's root (/etc/containerd/config.toml \"root\") for the containerd image store."
+		# dialog alone is invisible to --api / non-TTY callers
+		echo -e "$msg" >&2
+		dialog_msgbox "Docker storage" "$msg" 16 72
+		return 1
+	fi
+	return 0
+}
+
+#
+# Ensure Docker is available
+# Usage: docker_ensure_docker
+# Returns: 0 if Docker is available, exits if it fails to install
+#
+docker_ensure_docker() {
+	if ! module_docker status >/dev/null 2>&1; then
+		module_docker install
+		# Wait for Docker daemon to be ready after installation
+		local max_wait=30
+		local wait_count=0
+		while [[ $wait_count -lt $max_wait ]]; do
+			if docker info >/dev/null 2>&1; then
+				return 0
+			fi
+			sleep 1
+			((wait_count++))
+		done
+		dialog_msgbox "Error" "Docker installation failed or timed out.\n\nDocker daemon is not responding.\nPlease install Docker manually and try again." 10 60
+		return 1
+	fi
+	return 0
+}
+
+#
+# Get container ID by name
+# Usage: docker_get_container_id <container_name>
+# Outputs: Container ID or empty string if not found
+#
+docker_get_container_id() {
+	local container_name="$1"
+	docker container ls -a --filter "name=^${container_name}$" --format '{{.ID}}' 2>/dev/null || echo ""
+}
+
+#
+# Get image reference by image pattern
+# Usage: docker_get_image_ref <image_pattern>
+# Outputs: Image reference (repo:tag) or empty string if not found
+#
+docker_get_image_ref() {
+	local image_pattern="$1"
+	docker image ls -a --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep "$image_pattern" | head -1 || echo ""
+}
+
+#
+# Check if container and image are installed
+# Usage: docker_is_installed <container_name> <image_pattern>
+# Returns: 0 if both container and image exist, 1 otherwise
+#
+docker_is_installed() {
+	local container_name="$1"
+	local image_pattern="$2"
+	local container=$(docker_get_container_id "$container_name")
+	local image=$(docker_get_image_ref "$image_pattern")
+	[[ "${container}" && "${image}" ]] && return 0 || return 1
+}
+
+#
+# Manage base directory with error handling
+# Usage: docker_manage_base_dir <create|remove> <base_dir>
+# Returns: 0 on success, 1 on failure
+#
+docker_manage_base_dir() {
+	local mode="$1"
+	local base_dir="$2"
+
+	docker_ensure_docker
+
+	case "$mode" in
+		create)
+			if [[ ! -d "$base_dir" ]]; then
+				if ! mkdir -p "$base_dir"; then
+					dialog_msgbox "Error" "Failed to create directory:\n$base_dir" 8 50
+					return 1
+				fi
+				# Set ownership to the Docker user
+				chown -R "${DOCKER_USERUID}:${DOCKER_GROUPUID}" "$base_dir"
+			fi
+			;;
+		remove)
+			if [[ -n "$base_dir" && -d "$base_dir" && "$base_dir" != "/" ]]; then
+				rm -rf "$base_dir"
+			fi
+			;;
+		*)
+			dialog_msgbox "Error" "Invalid mode: $mode\nUse 'create' or 'remove'" 8 50
+			return 1
+			;;
+	esac
+
+	return 0
+}
+
+#
+# Backward compatibility wrapper
+# Deprecated: Use docker_manage_base_dir instead
+#
+docker_create_base_dir() {
+	docker_manage_base_dir create "$1"
+}
+
+#
+# Parse module commands array
+# Usage: docker_parse_commands <module_prefix>
+# Outputs: Array reference to commands
+#
+docker_parse_commands() {
+	local module_prefix="$1"
+	local commands_var="${module_prefix},example"
+	IFS=' ' read -r -a commands <<< "${module_options["$commands_var"]}"
+	echo "${commands[@]}"
+}
+
+#
+# Docker operation with progress display
+# Supports: pull, rm (container), rmi (image), run (container)
+#
+# Usage:
+#   docker_operation_progress pull <image_name>
+#   docker_operation_progress rm <container_name>
+#   docker_operation_progress rmi <image_name>
+#   docker_operation_progress run <container_name> [docker_run_args...]
+#
+# Example for run:
+#   docker_operation_progress run mycontainer --name mycontainer -d -p 80:80 nginx
+#
+docker_operation_progress() {
+	local operation="$1"
+	local target="$2"
+	# No /v1.XX/ prefix on the Docker API URL below: the daemon
+	# serves versions between MinAPIVersion and APIVersion, and any
+	# hardcoded value ages out of that window. Docker 29.x already
+	# has MinAPIVersion 1.44, so a pin at v1.41 returns HTTP 400
+	# outright. Omitting the prefix makes the daemon pick its own
+	# latest, which is backward-compatible for the endpoints we use.
+	local socket_path="/var/run/docker.sock"
+
+	# Ensure Docker is available
+	docker_ensure_docker || return 1
+
+	# Argument validation
+	if [[ -z "$operation" || -z "$target" ]]; then
+		dialog_msgbox "Usage Error" "Usage: docker_operation_progress <pull|rm|rmi> <target>\n\n  pull <image>   - Pull Docker image\n  rm <container> - Remove container\n  rmi <image>    - Remove image" 12 60
+		return 1
+	fi
+
+	# Validate operation type
+	case "$operation" in
+		pull|rm|rmi|run)
+			;;
+		*)
+			dialog_msgbox "Error" "Invalid operation: $operation\n\nValid operations: pull, rm, rmi, run" 10 50
+			return 1
+			;;
+	esac
+
+	# Containers can't be unpacked or started on overlay storage (overlayroot);
+	# rm and rmi still work there, so cleanup stays possible
+	if [[ "$operation" == "pull" || "$operation" == "run" ]]; then
+		docker_check_overlay_root || return 1
+	fi
+
+	# Check for socket access
+	if [[ ! -r "$socket_path" || ! -w "$socket_path" ]]; then
+		dialog_msgbox "Permission Error" "Cannot access Docker socket at $socket_path\n\nYou may need to be in the 'docker' group or run with sudo." 12 60
+		return 1
+	fi
+
+	# Check if docker is running
+	if ! docker info &> /dev/null; then
+		dialog_msgbox "Docker Error" "Docker daemon is not running.\nPlease start Docker and try again." 10 60
+		return 1
+	fi
+
+	local exit_code
+	local error_file=$(mktemp)
+	# rc_file threads the true exit status of the subshell past the
+	# `... | dialog_gauge ...` pipe. Without it, `exit_code=$?` only
+	# captures dialog_gauge's rc (almost always 0), so every docker
+	# run/rm/rmi/pull failure bubbled up as success — the caller
+	# (e.g. module_owncloud install) then reported success for a
+	# container that never started, and the test suite's downstream
+	# `status` step was the first to notice. Each branch writes 0
+	# on success / 1 on failure to rc_file; the post-pipe check
+	# reads it and surfaces the real result.
+	local rc_file=$(mktemp)
+	echo 0 > "$rc_file"
+	local title="Docker $operation"
+
+	# surface_failure <friendly-title>
+	# Unified failure handler: emits the captured stderr to the
+	# *real* stderr (so --api / CI consumers see the docker error)
+	# AND shows a TUI msgbox (for interactive sessions). Without the
+	# echo-to-stderr, dialog_msgbox alone hides the error from any
+	# non-TTY caller, since msgbox writes to the dialog tool's FD
+	# and --api mode has no one to read it.
+	surface_failure() {
+		local heading="$1"
+		local body="$2"
+		local error_output=""
+		[[ -s "$error_file" ]] && error_output=$(<"$error_file")
+		echo "${heading}: ${target}" >&2
+		[[ -n "$error_output" ]] && printf '%s\n' "$error_output" >&2
+		dialog_msgbox "$heading" "${body}: $target\n\n${error_output}" 14 60
+	}
+
+	case "$operation" in
+		pull)
+			# Ensure Docker is installed
+			docker_ensure_docker || { rm -f "$error_file" "$rc_file"; return 1; }
+
+			# Check if image already exists
+			local existing_image
+			existing_image=$(docker image ls --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep "^${target}$" | head -1)
+
+			if [[ -n "$existing_image" ]]; then
+				# Image already exists, skip pull
+				rm -f "$error_file" "$rc_file"
+				return 0
+			fi
+
+			# Pull image with progress via Docker API
+			local raw_response_file=$(mktemp)
+			local http_code_file=$(mktemp)
+
+			# Split `repo:tag` into separate `fromImage` + `tag` query
+			# params. Modern dockerd returns HTTP 400 when fromImage
+			# carries the tag inline — `docker pull owncloud/server:
+			# 10.16.1` works from the CLI but the same request shaped
+			# as `POST /images/create?fromImage=owncloud/server:
+			# 10.16.1` is rejected. The canonical API form passes
+			# image and tag as separate query params. Split on the
+			# LAST `:` so a registry:port prefix
+			# (registry.example.com:5000/repo:tag) stays in fromImage
+			# and only the tag goes to `tag=`. Default missing tag
+			# to `latest` to match docker CLI behavior.
+			local pull_image pull_tag
+			if [[ "$target" == *:* ]]; then
+				pull_image="${target%:*}"
+				pull_tag="${target##*:}"
+			else
+				pull_image="$target"
+				pull_tag="latest"
+			fi
+
+			(
+				echo "XXX"
+				echo "0"
+				echo "Pulling: $target"
+				echo "XXX"
+
+				unbuffer curl --silent --show-error \
+					--unix-socket "$socket_path" \
+					-X POST "http://localhost/images/create?fromImage=${pull_image}&tag=${pull_tag}" \
+					-w "%{http_code}" \
+					-o "$raw_response_file" \
+					2> "$error_file" \
+				> "$http_code_file"
+
+				# Check HTTP response code
+				local http_code=$(<"$http_code_file")
+				if [[ "$http_code" != "200" ]]; then
+					echo "XXX"
+					echo "0"
+					echo "Error: HTTP $http_code"
+					echo "XXX"
+					echo "HTTP $http_code from Docker API" >> "$error_file"
+					echo 1 > "$rc_file"
+					exit 0
+				fi
+
+				# Check if response file has content
+				if [[ ! -s "$raw_response_file" ]]; then
+					echo "XXX"
+					echo "0"
+					echo "Error: Empty response from Docker API"
+					echo "XXX"
+					echo "empty response from Docker API" >> "$error_file"
+					echo 1 > "$rc_file"
+					exit 0
+				fi
+
+				# Parse and display progress from captured response.
+				# NB the parens: `or` must be INSIDE select(), not
+				# outside. `select(X) or Y` is a boolean expression
+				# (select filters the stream, then `or` returns a
+				# bool) which the downstream `| if .error then ...`
+				# cannot index, producing
+				#   jq: error ... Cannot index boolean with string "error"
+				# for every JSON line in the Docker API pull stream.
+				# The original select((X) or (Y)) was mis-parenthesised
+				# and only ever worked when jq happened to emit
+				# nothing (e.g. pulls that returned zero progress
+				# lines).
+				if ! jq -r --unbuffered '
+						select((.status != null) or (.error != null)) |
+						if .error then
+							"ERROR\n" + .error + "\n"
+						elif .progressDetail.current and .progressDetail.total then
+							# Calculate actual percentage
+							"XXX\n" +
+							((.progressDetail.current / .progressDetail.total) * 100 | floor | tostring) +
+							"\nLayer: " + (.id[0:12] // "Unknown") + "...  " + .status +
+							"\nXXX"
+						else
+							# No progress detail - show status
+							"XXX\n0\n" + (.id // "Preparing") + "...  " + .status + "\nXXX"
+						end
+					' "$raw_response_file" 2>> "$error_file"; then
+					echo "XXX"
+					echo "0"
+					echo "Error: Failed to parse Docker API response"
+					echo "XXX"
+					echo "failed to parse Docker API response" >> "$error_file"
+					echo 1 > "$rc_file"
+					exit 0
+				fi
+
+				echo "XXX"
+				echo "100"
+				echo "Pull complete!"
+				echo "XXX"
+			) | dialog_gauge "$title" "Pulling: $target" 8 80
+
+			rm -f "$raw_response_file" "$http_code_file"
+
+			exit_code=$(<"$rc_file")
+
+			# Verify and show result
+			if [[ $exit_code -ne 0 ]]; then
+				surface_failure "Pull Failed" "Failed to pull"
+				rm -f "$error_file" "$rc_file"
+				return 1
+			fi
+			# Note: We trust the Docker API response. If HTTP 200 with no errors,
+			# the pull succeeded. Additional verification can fail when running
+			# in Docker-in-Docker scenarios due to image registration delays.
+			;;
+
+		rm)
+			# Remove container - check if exists first
+			if ! docker container ls -a --format '{{.Names}}' | grep -q "^${target}$"; then
+				# Container doesn't exist, silently succeed
+				rm -f "$error_file" "$rc_file"
+				return 0
+			fi
+
+			(
+				echo "XXX"
+				echo "0"
+				echo "Removing container: $target"
+				echo "XXX"
+
+				# Remove container and show progress
+				if docker rm -f "$target" 2> "$error_file"; then
+					echo "XXX"
+					echo "100"
+					echo "Container removed successfully!"
+					echo "XXX"
+				else
+					echo "XXX"
+					echo "0"
+					echo "Failed to remove container"
+					echo "XXX"
+					echo 1 > "$rc_file"
+				fi
+			) | dialog_gauge "$title" "Removing: $target" 6 80
+
+			exit_code=$(<"$rc_file")
+
+			if [[ $exit_code -ne 0 ]]; then
+				surface_failure "Docker rm Failed" "Failed to remove container"
+				rm -f "$error_file" "$rc_file"
+				return 1
+			fi
+			;;
+
+		rmi)
+			# Remove image - check if exists first
+			if ! docker image ls --format '{{.Repository}}:{{.Tag}}' | grep -q "^${target}$"; then
+				# Image doesn't exist, silently succeed
+				rm -f "$error_file" "$rc_file"
+				return 0
+			fi
+
+			(
+				echo "XXX"
+				echo "0"
+				echo "Removing image: $target"
+				echo "XXX"
+
+				# Remove image and show progress
+				if docker rmi -f "$target" 2> "$error_file"; then
+					echo "XXX"
+					echo "100"
+					echo "Image removed successfully!"
+					echo "XXX"
+				else
+					echo "XXX"
+					echo "0"
+					echo "Failed to remove image"
+					echo "XXX"
+					echo 1 > "$rc_file"
+				fi
+			) | dialog_gauge "$title" "Removing: $target" 6 80
+
+			exit_code=$(<"$rc_file")
+
+			if [[ $exit_code -ne 0 ]]; then
+				surface_failure "Docker rmi Failed" "Failed to remove image"
+				rm -f "$error_file" "$rc_file"
+				return 1
+			fi
+			;;
+
+		run)
+			# Run container - $target is container name, rest are docker run args
+			local docker_args=("${@:3}")
+			(
+				echo "XXX"
+				echo "0"
+				echo "Starting container: $target"
+				echo "XXX"
+
+				# Run the container and capture output
+				if docker run "${docker_args[@]}" 2> "$error_file"; then
+					echo "XXX"
+					echo "50"
+					echo "Container started. Waiting for ready..."
+					echo "XXX"
+
+					# Wait for container to be ready. Timeout is a soft
+					# warning (progress bar shows 75% + message) — not a
+					# failure. docker run succeeded, container is up;
+					# some images take a while to become "ready" by
+					# their own definition.
+					if wait_for_container_ready "$target" 2>/dev/null; then
+						echo "XXX"
+						echo "100"
+						echo "Container is ready!"
+						echo "XXX"
+					else
+						echo "XXX"
+						echo "75"
+						echo "Container started but readiness check timed out"
+						echo "XXX"
+					fi
+				else
+					echo "XXX"
+					echo "0"
+					echo "Failed to start container"
+					echo "XXX"
+					echo 1 > "$rc_file"
+				fi
+			) | dialog_gauge "$title" "Starting: $target" 8 80
+
+			exit_code=$(<"$rc_file")
+
+			if [[ $exit_code -ne 0 ]]; then
+				surface_failure "Docker run Failed" "Failed to start container"
+				rm -f "$error_file" "$rc_file"
+				return 1
+			fi
+			;;
+	esac
+
+	# Clean up
+	rm -f "$error_file" "$rc_file"
+
+	return 0
+}
+
+#
+# Build --publish options: 127.0.0.1 and the Docker bridge gateway.
+# Usage: docker_publish_local <array_name> <host_port> <container_port>
+# BIND_ADDRESS overrides the addresses (space or comma separated, 0.0.0.0 for all).
+#
+docker_publish_local() {
+	local -n _publish="$1"
+	local host_port="$2" container_port="$3" addr gw
+	local -a addrs=()
+
+	if [[ -n "${BIND_ADDRESS}" ]]; then
+		local -a parts=()
+		IFS=', ' read -r -a parts <<< "${BIND_ADDRESS}"
+		for addr in "${parts[@]}"; do
+			[[ -n "$addr" ]] && addrs+=("$addr")
+		done
+	fi
+	# An empty or separator-only BIND_ADDRESS gives no address: use the default.
+	if [[ ${#addrs[@]} -eq 0 ]]; then
+		addrs=("127.0.0.1")
+		for gw in $(docker network inspect bridge --format '{{range .IPAM.Config}}{{.Gateway}} {{end}}' 2>/dev/null); do
+			[[ "$gw" == *.* ]] && addrs+=("$gw")
+		done
+	fi
+
+	_publish=()
+	for addr in "${addrs[@]}"; do
+		[[ -n "$addr" ]] || continue
+		[[ "$addr" == *:* ]] && addr="[${addr}]"
+		_publish+=(--publish "${addr}:${host_port}:${container_port}")
+	done
+}
+
+#
+# Human-readable list of the addresses a --publish array listens on
+# Usage: docker_publish_describe <array_name>
+#
+docker_publish_describe() {
+	local -n _publish="$1"
+	local i out=""
+	for ((i = 1; i < ${#_publish[@]}; i += 2)); do
+		out+="${out:+, }${_publish[i]%:*}"
+	done
+	echo "$out"
+}
+
