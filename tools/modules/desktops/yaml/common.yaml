@@ -37,6 +37,8 @@ tiers:
       - libmtp-runtime
       - profile-sync-daemon
       - terminator
+      # Terminator notification plugins need it.
+      - gir1.2-notify-0.7
       - upower
       # Networking stack. Armbian minimal images ship with netplan
       # driving systemd-networkd; a desktop install flips the netplan
