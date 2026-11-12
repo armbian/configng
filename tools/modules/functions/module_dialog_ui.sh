@@ -83,6 +83,29 @@ module_options+=(
 	["set_desktop_theme,status"]="Active"
 )
 #
+# Terminal background: "light", "dark" or empty (no answer). Asks the terminal (OSC 11).
+#
+function get_term_background() {
+	local old reply="" c
+	old=$(stty -g < /dev/tty 2> /dev/null) || return 0
+	stty -icanon -echo < /dev/tty
+	printf '\e]11;?\a' > /dev/tty
+	# No answer in 0.3 s: the terminal does not support the query.
+	while IFS= read -r -s -n1 -t 0.3 -d '' c < /dev/tty; do
+		reply+="${c}"
+		[[ "${c}" == $'\a' || "${reply}" == *$'\e\\' ]] && break
+	done
+	stty "${old}" < /dev/tty
+	# Reply: rgb:RRRR/GGGG/BBBB. The first two hex digits of each are enough.
+	[[ "${reply}" =~ rgb:([[:xdigit:]]{2})[[:xdigit:]]*/([[:xdigit:]]{2})[[:xdigit:]]*/([[:xdigit:]]{2}) ]] || return 0
+	if (( 299 * 16#${BASH_REMATCH[1]} + 587 * 16#${BASH_REMATCH[2]} + 114 * 16#${BASH_REMATCH[3]} > 127000 )); then
+		echo light
+	else
+		echo dark
+	fi
+}
+
+#
 # Use the Armbian colors when armbian-config starts from a desktop terminal.
 # Return 1 when there is no desktop color scheme (SSH, console).
 #
@@ -90,30 +113,39 @@ function set_desktop_theme() {
 	# sudo keeps these two. A terminal on a desktop sets one of them.
 	[[ -n "${XDG_CURRENT_DESKTOP}${DISPLAY}" && -n "${SUDO_UID}" ]] || return 1
 	[[ -S "/run/user/${SUDO_UID}/bus" ]] && command -v gdbus > /dev/null || return 1
-	# Desktop color scheme: 0 = no preference (GNOME light), 1 = dark, 2 = light.
-	# The colors below suit all three. An answer proves a desktop session.
-	runuser -u "${SUDO_USER}" -- env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${SUDO_UID}/bus" \
+	local scheme theme term rc="dialogrc" fg="default" bg="default"
+	scheme=$(runuser -u "${SUDO_USER}" -- env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${SUDO_UID}/bus" \
 		timeout 2 gdbus call --session --dest org.freedesktop.portal.Desktop \
 		--object-path /org/freedesktop/portal/desktop \
-		--method org.freedesktop.portal.Settings.ReadOne org.freedesktop.appearance color-scheme 2> /dev/null |
-		grep -qE "uint32 [012]" || return 1
+		--method org.freedesktop.portal.Settings.ReadOne org.freedesktop.appearance color-scheme 2> /dev/null)
+	case "${scheme}" in
+		*"uint32 1"*) theme="dark" ;;
+		*"uint32 "[02]*) theme="light" ;; # 0 = no preference: GNOME light
+		*) return 1 ;;
+	esac
+	# Terminal colors that do not follow the desktop (Terminator): paint the theme colors.
+	term=$(get_term_background)
+	if [[ -n "${term}" && "${term}" != "${theme}" ]]; then
+		rc="dialogrc-${theme}" fg="#1a1f36" bg="#ffffff"
+		[[ "${theme}" == "dark" ]] && fg="#e6e6e6" bg="#161616"
+	fi
 	case "${DIALOG}" in
 		dialog)
 			# dialog knows only the 8 terminal colors.
-			[[ -f "${script_dir}/../share/armbian-config/dialogrc" ]] || return 1
-			export DIALOGRC="${script_dir}/../share/armbian-config/dialogrc"
+			[[ -f "${script_dir}/../share/armbian-config/${rc}" ]] || return 1
+			export DIALOGRC="${script_dir}/../share/armbian-config/${rc}"
 			;;
 		whiptail)
 			# Desktop terminals show 24-bit color. sudo drops COLORTERM.
-			local orange="#f05a28" purple="#8b3dff" white="#ffffff"
+			# The focused button uses "button", the other buttons "compactbutton".
+			local orange="#f05a28" purple="#8b3dff" white="#ffffff" n="${fg},${bg}"
 			export COLORTERM=truecolor
-			export NEWT_COLORS="root=default,default window=default,default shadow=default,default
-				border=${orange},default title=${orange},default textbox=default,default
-				button=default,default actbutton=${white},${purple} compactbutton=default,default
-				listbox=default,default actlistbox=${white},${orange} sellistbox=${orange},default
-				actsellistbox=${white},${orange} checkbox=default,default actcheckbox=${white},${orange}
-				entry=default,default label=default,default roottext=default,default
-				helpline=default,default emptyscale=default,default fullscale=default,${orange}"
+			export NEWT_COLORS="root=${n} window=${n} shadow=${n} textbox=${n} listbox=${n}
+				border=${orange},${bg} title=${orange},${bg} sellistbox=${orange},${bg}
+				button=${white},${purple} actbutton=${white},${purple} compactbutton=${n}
+				actlistbox=${white},${orange} actsellistbox=${white},${orange}
+				checkbox=${n} actcheckbox=${white},${orange} entry=${n} label=${n}
+				roottext=${n} helpline=${n} emptyscale=${n} fullscale=${fg},${orange}"
 			;;
 		*) return 1 ;;
 	esac
