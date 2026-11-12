@@ -236,7 +236,7 @@ case "$1" in
 
     *)
         # Generate the top menu with the modified Object data
-        set_colors 4
+        set_desktop_theme || set_colors 4
         checkpoint debug "Launching TUI"
         generate_top_menu "$json_data"
         checkpoint debug "Exited TUI"

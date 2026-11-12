@@ -73,6 +73,51 @@ function set_term_colors() {
 	echo -e "$color"
 }
 
+module_options+=(
+	["set_desktop_theme,author"]="@igorpecovnik"
+	["set_desktop_theme,ref_link"]=""
+	["set_desktop_theme,feature"]="set_desktop_theme"
+	["set_desktop_theme,desc"]="Use the Armbian colors in a desktop terminal"
+	["set_desktop_theme,example"]="set_desktop_theme"
+	["set_desktop_theme,doc_link"]=""
+	["set_desktop_theme,status"]="Active"
+)
+#
+# Use the Armbian colors when armbian-config starts from a desktop terminal.
+# Return 1 when there is no desktop color scheme (SSH, console).
+#
+function set_desktop_theme() {
+	# sudo keeps these two. A terminal on a desktop sets one of them.
+	[[ -n "${XDG_CURRENT_DESKTOP}${DISPLAY}" && -n "${SUDO_UID}" ]] || return 1
+	[[ -S "/run/user/${SUDO_UID}/bus" ]] && command -v gdbus > /dev/null || return 1
+	# Desktop color scheme: 1 = dark, 2 = light. The colors below suit both.
+	runuser -u "${SUDO_USER}" -- env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${SUDO_UID}/bus" \
+		timeout 2 gdbus call --session --dest org.freedesktop.portal.Desktop \
+		--object-path /org/freedesktop/portal/desktop \
+		--method org.freedesktop.portal.Settings.ReadOne org.freedesktop.appearance color-scheme 2> /dev/null |
+		grep -qE "uint32 [12]" || return 1
+	case "${DIALOG}" in
+		dialog)
+			# dialog knows only the 8 terminal colors.
+			[[ -f "${script_dir}/../share/armbian-config/dialogrc" ]] || return 1
+			export DIALOGRC="${script_dir}/../share/armbian-config/dialogrc"
+			;;
+		whiptail)
+			# Desktop terminals show 24-bit color. sudo drops COLORTERM.
+			local orange="#f05a28" purple="#8b3dff" white="#ffffff"
+			export COLORTERM=truecolor
+			export NEWT_COLORS="root=default,default window=default,default shadow=default,default
+				border=${orange},default title=${orange},default textbox=default,default
+				button=default,default actbutton=${white},${purple} compactbutton=default,default
+				listbox=default,default actlistbox=${white},${orange} sellistbox=${orange},default
+				actsellistbox=${white},${orange} checkbox=default,default actcheckbox=${white},${orange}
+				entry=default,default label=default,default roottext=default,default
+				helpline=default,default emptyscale=default,default fullscale=default,${orange}"
+			;;
+		*) return 1 ;;
+	esac
+}
+
 #
 # Function to reset the colors
 #
