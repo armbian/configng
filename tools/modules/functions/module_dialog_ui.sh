@@ -129,6 +129,8 @@ function set_desktop_theme() {
 		rc="dialogrc-${theme}" fg="#1a1f36" bg="#ffffff"
 		[[ "${theme}" == "dark" ]] && fg="#e6e6e6" bg="#161616"
 	fi
+	# White (\Z7) back title text is invisible on a light background.
+	BACKTITLE="${BACKTITLE//\\Z7/}"
 	case "${DIALOG}" in
 		dialog)
 			# dialog knows only the 8 terminal colors.
