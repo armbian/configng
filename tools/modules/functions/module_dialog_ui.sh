@@ -90,12 +90,13 @@ function set_desktop_theme() {
 	# sudo keeps these two. A terminal on a desktop sets one of them.
 	[[ -n "${XDG_CURRENT_DESKTOP}${DISPLAY}" && -n "${SUDO_UID}" ]] || return 1
 	[[ -S "/run/user/${SUDO_UID}/bus" ]] && command -v gdbus > /dev/null || return 1
-	# Desktop color scheme: 1 = dark, 2 = light. The colors below suit both.
+	# Desktop color scheme: 0 = no preference (GNOME light), 1 = dark, 2 = light.
+	# The colors below suit all three. An answer proves a desktop session.
 	runuser -u "${SUDO_USER}" -- env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${SUDO_UID}/bus" \
 		timeout 2 gdbus call --session --dest org.freedesktop.portal.Desktop \
 		--object-path /org/freedesktop/portal/desktop \
 		--method org.freedesktop.portal.Settings.ReadOne org.freedesktop.appearance color-scheme 2> /dev/null |
-		grep -qE "uint32 [12]" || return 1
+		grep -qE "uint32 [012]" || return 1
 	case "${DIALOG}" in
 		dialog)
 			# dialog knows only the 8 terminal colors.
