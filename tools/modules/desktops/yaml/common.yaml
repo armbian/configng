@@ -40,6 +40,9 @@ tiers:
       # Terminator notification plugins need it.
       - gir1.2-notify-0.7
       - upower
+      # Graphical first-run wizard (armbian/external). Runs only while
+      # /root/.not_logged_in_yet exists. Not on bookworm, jammy, armhf, loong64.
+      - armbian-firstrun-gui
       # Networking stack. Armbian minimal images ship with netplan
       # driving systemd-networkd; a desktop install flips the netplan
       # renderer to NetworkManager (see _module_desktops_configure_networking
@@ -281,6 +284,13 @@ releases:
     # network-manager-vpnc is removed from forky (testing).
     packages_remove:
       - network-manager-vpnc
+  # armbian-firstrun-gui needs Rust 1.85. These releases have no build.
+  bookworm:
+    packages_remove:
+      - armbian-firstrun-gui
+  jammy:
+    packages_remove:
+      - armbian-firstrun-gui
 
 tier_overrides:
   minimal:
@@ -294,6 +304,9 @@ tier_overrides:
     architectures:
       amd64: { packages: [update-manager, software-properties-gtk, switcheroo-control, bolt, thermald] }
       arm64: { packages: [update-manager, software-properties-gtk] }
+      # armbian-firstrun-gui: no armhf and loong64 builds.
+      armhf: { packages_remove: [armbian-firstrun-gui] }
+      loong64: { packages_remove: [armbian-firstrun-gui] }
     releases:
       # software-properties-gtk imports UbuntuDrivers on Ubuntu. Without
       # ubuntu-drivers-common, Software & Updates and Additional Drivers
