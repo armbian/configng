@@ -66,6 +66,12 @@ function module_desktop_branding() {
 				cp "$desktop_dir/branding/icons/"* /usr/share/icons/armbian/ 2>/dev/null || true
 			fi
 
+			# Theme icons, e.g. the menu button logo. Without a cache update, GTK does not find them.
+			if [[ -d "$desktop_dir/branding/hicolor" ]]; then
+				cp -R "$desktop_dir/branding/hicolor/." /usr/share/icons/hicolor/
+				command -v gtk-update-icon-cache > /dev/null && gtk-update-icon-cache -q -f /usr/share/icons/hicolor
+			fi
+
 			# login logo
 			if [[ -d "$desktop_dir/branding/pixmaps" ]]; then
 				mkdir -p /usr/share/pixmaps/armbian
