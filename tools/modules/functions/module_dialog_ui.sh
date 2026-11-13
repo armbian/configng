@@ -86,16 +86,24 @@ module_options+=(
 # Terminal background: "light", "dark" or empty (no answer). Asks the terminal (OSC 11).
 #
 function get_term_background() {
-	local old reply="" c
-	old=$(stty -g < /dev/tty 2> /dev/null) || return 0
+	local old reply="" c traps sig=""
+	old=$(stty -g 2> /dev/null < /dev/tty) || return 0
+	# Ctrl-C during the query: restore echo and line input, then send the signal again.
+	# Not exit in the trap: read then restores its own saved state, without echo.
+	traps=$(trap -p INT TERM)
+	trap 'sig=INT' INT
+	trap 'sig=TERM' TERM
 	stty -icanon -echo < /dev/tty
 	printf '\e]11;?\a' > /dev/tty
 	# No answer in 0.3 s: the terminal does not support the query.
-	while IFS= read -r -s -n1 -t 0.3 -d '' c < /dev/tty; do
+	while [[ -z "${sig}" ]] && IFS= read -r -s -n1 -t 0.3 -d '' c < /dev/tty; do
 		reply+="${c}"
 		[[ "${c}" == $'\a' || "${reply}" == *$'\e\\' ]] && break
 	done
 	stty "${old}" < /dev/tty
+	trap - INT TERM
+	eval "${traps}"
+	[[ -n "${sig}" ]] && kill -s "${sig}" "${BASHPID}"
 	# Reply: rgb:RRRR/GGGG/BBBB. The first two hex digits of each are enough.
 	[[ "${reply}" =~ rgb:([[:xdigit:]]{2})[[:xdigit:]]*/([[:xdigit:]]{2})[[:xdigit:]]*/([[:xdigit:]]{2}) ]] || return 0
 	if (( 299 * 16#${BASH_REMATCH[1]} + 587 * 16#${BASH_REMATCH[2]} + 114 * 16#${BASH_REMATCH[3]} > 127000 )); then
@@ -113,13 +121,24 @@ function set_desktop_theme() {
 	# sudo keeps these two. A terminal on a desktop sets one of them.
 	[[ -n "${XDG_CURRENT_DESKTOP}${DISPLAY}" && -n "${SUDO_UID}" ]] || return 1
 	[[ -S "/run/user/${SUDO_UID}/bus" ]] || return 1
-	local scheme theme term rc="dialogrc" fg="default" bg="default"
+	# ssh -X sets DISPLAY. sudo drops SSH_CONNECTION: look for sshd in the parent processes.
+	local pid=$$ comm
+	while (( pid > 1 )); do
+		comm=$(< "/proc/${pid}/comm") || break
+		[[ "${comm}" == sshd* ]] && return 1
+		pid=$(awk '/^PPid:/ {print $2}' "/proc/${pid}/status") || break
+	done
+	local scheme theme term rc="dialogrc" fg="default" bg="default" method
 	local -a user_bus=(runuser -u "${SUDO_USER}" -- env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${SUDO_UID}/bus"
 		XDG_RUNTIME_DIR="/run/user/${SUDO_UID}" timeout 2)
-	command -v gdbus > /dev/null &&
-		scheme=$("${user_bus[@]}" gdbus call --session --dest org.freedesktop.portal.Desktop \
-			--object-path /org/freedesktop/portal/desktop \
-			--method org.freedesktop.portal.Settings.ReadOne org.freedesktop.appearance color-scheme 2> /dev/null)
+	# ReadOne: portal 1.18 and newer. Read: older portals (bookworm, jammy).
+	if command -v gdbus > /dev/null; then
+		for method in ReadOne Read; do
+			scheme=$("${user_bus[@]}" gdbus call --session --dest org.freedesktop.portal.Desktop \
+				--object-path /org/freedesktop/portal/desktop \
+				--method "org.freedesktop.portal.Settings.${method}" org.freedesktop.appearance color-scheme 2> /dev/null) && break
+		done
+	fi
 	case "${scheme}" in
 		*"uint32 1"*) theme="dark" ;;
 		*"uint32 2"*) theme="light" ;;
