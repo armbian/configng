@@ -236,7 +236,8 @@ case "$1" in
 
     *)
         # Generate the top menu with the modified Object data
-        set_colors 4
+        # Else the system colors: /etc/dialogrc and NEWT_COLORS_FILE.
+        set_desktop_theme || unset NEWT_COLORS
         checkpoint debug "Launching TUI"
         generate_top_menu "$json_data"
         checkpoint debug "Exited TUI"
