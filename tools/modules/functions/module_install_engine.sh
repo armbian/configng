@@ -1466,6 +1466,11 @@ install_crypt_packages() {
 	return 0
 }
 
+# Overridable in tests. Impure: loads a kernel module.
+_install_dm_crypt_ok() {
+	[[ -d /sys/module/dm_crypt ]] || modprobe dm_crypt >/dev/null 2>&1
+}
+
 install_crypt_check() {
 	# install_crypt_check <boot_mode> - the pre-flight. Logs the reason and
 	# returns non-zero when the encrypted install cannot work. No changes.
@@ -1492,6 +1497,15 @@ install_crypt_check() {
 		|| { install_log ERR "crypt: install $missing first"; return "$INSTALL_EX_TOOL"; }
 	command -v cryptsetup >/dev/null 2>&1 \
 		|| { install_log ERR "crypt: cryptsetup missing"; return "$INSTALL_EX_TOOL"; }
+	if ! _install_dm_crypt_ok; then
+		# A kernel upgrade after boot removes the modules of the running kernel.
+		if [[ ! -d "/lib/modules/$(uname -r)" ]]; then
+			install_log ERR "crypt: no modules for the running kernel $(uname -r); reboot first"
+		else
+			install_log ERR "crypt: the running kernel has no dm_crypt"
+		fi
+		return "$INSTALL_EX_TOOL"
+	fi
 	return 0
 }
 

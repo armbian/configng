@@ -365,6 +365,17 @@ _crypt_check_env() {
 	INSTALL_LOG="$BATS_TEST_TMPDIR/install.log"; : >"$INSTALL_LOG"
 	install_crypt_packages() { :; }
 	cryptsetup() { :; }   # the check only asks that the tool exists
+	_install_dm_crypt_ok() { :; }
+}
+
+@test "crypt check: asks for a reboot when the running kernel has no modules" {
+	_crypt_check_env
+	CRYPTROOT_AUTOUNLOCK=yes
+	_install_dm_crypt_ok() { return 1; }
+	uname() { echo bats-no-such-kernel; }
+	run install_crypt_check uefi
+	[ "$status" -eq "$INSTALL_EX_TOOL" ]
+	grep -q 'no modules for the running kernel bats-no-such-kernel; reboot first' "$INSTALL_LOG"
 }
 
 @test "crypt check: refuses without a passphrase or autounlock" {
