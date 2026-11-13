@@ -149,7 +149,12 @@ function set_desktop_theme() {
 				*XFCE*) scheme=$("${user_bus[@]}" xfconf-query -c xsettings -p /Net/ThemeName 2> /dev/null) ;;
 				*Cinnamon*) scheme=$("${user_bus[@]}" gsettings get org.cinnamon.desktop.interface gtk-theme 2> /dev/null) ;;
 				*MATE*) scheme=$("${user_bus[@]}" gsettings get org.mate.interface gtk-theme 2> /dev/null) ;;
-				*) scheme=$("${user_bus[@]}" gsettings get org.gnome.desktop.interface gtk-theme 2> /dev/null) ;;
+				*)
+					# GNOME dark style: color-scheme prefer-dark, gtk-theme stays Adwaita.
+					scheme=$("${user_bus[@]}" gsettings get org.gnome.desktop.interface color-scheme 2> /dev/null)
+					[[ "${scheme}" == *prefer-* ]] ||
+						scheme=$("${user_bus[@]}" gsettings get org.gnome.desktop.interface gtk-theme 2> /dev/null)
+					;;
 			esac
 			[[ -n "${scheme}" ]] || return 1
 			theme="light"
