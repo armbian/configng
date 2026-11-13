@@ -112,22 +112,32 @@ function get_term_background() {
 function set_desktop_theme() {
 	# sudo keeps these two. A terminal on a desktop sets one of them.
 	[[ -n "${XDG_CURRENT_DESKTOP}${DISPLAY}" && -n "${SUDO_UID}" ]] || return 1
-	[[ -S "/run/user/${SUDO_UID}/bus" ]] && command -v gdbus > /dev/null || return 1
+	[[ -S "/run/user/${SUDO_UID}/bus" ]] || return 1
 	local scheme theme term rc="dialogrc" fg="default" bg="default"
-	scheme=$(runuser -u "${SUDO_USER}" -- env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${SUDO_UID}/bus" \
-		timeout 2 gdbus call --session --dest org.freedesktop.portal.Desktop \
-		--object-path /org/freedesktop/portal/desktop \
-		--method org.freedesktop.portal.Settings.ReadOne org.freedesktop.appearance color-scheme 2> /dev/null)
-	case "${scheme}" in
-		*"uint32 1"*) theme="dark" ;;
-		*"uint32 "[02]*) theme="light" ;; # 0 = no preference: GNOME light
-		*) return 1 ;;
-	esac
+	local -a user_bus=(runuser -u "${SUDO_USER}" -- env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${SUDO_UID}/bus" timeout 2)
+	if [[ "${XDG_CURRENT_DESKTOP}" == *XFCE* ]]; then
+		# Xfce has no color scheme setting. Its portal always answers 0. Read the GTK theme name.
+		command -v xfconf-query > /dev/null || return 1
+		scheme=$("${user_bus[@]}" xfconf-query -c xsettings -p /Net/ThemeName 2> /dev/null) || return 1
+		theme="light"
+		[[ "${scheme,,}" == *dark* ]] && theme="dark"
+	else
+		command -v gdbus > /dev/null || return 1
+		scheme=$("${user_bus[@]}" gdbus call --session --dest org.freedesktop.portal.Desktop \
+			--object-path /org/freedesktop/portal/desktop \
+			--method org.freedesktop.portal.Settings.ReadOne org.freedesktop.appearance color-scheme 2> /dev/null)
+		case "${scheme}" in
+			*"uint32 1"*) theme="dark" ;;
+			*"uint32 "[02]*) theme="light" ;; # 0 = no preference: GNOME light
+			*) return 1 ;;
+		esac
+	fi
 	# Terminal colors that do not follow the desktop (Terminator): paint the theme colors.
+	# dialog cannot paint white: its WHITE is grey. It keeps the terminal colors.
 	term=$(get_term_background)
 	if [[ -n "${term}" && "${term}" != "${theme}" ]]; then
-		rc="dialogrc-${theme}" fg="#1a1f36" bg="#ffffff"
-		[[ "${theme}" == "dark" ]] && fg="#e6e6e6" bg="#161616"
+		fg="#1a1f36" bg="#ffffff"
+		[[ "${theme}" == "dark" ]] && rc="dialogrc-dark" fg="#e6e6e6" bg="#161616"
 	fi
 	# White (\Z7) back title text is invisible on a light background.
 	BACKTITLE="${BACKTITLE//\\Z7/}"
