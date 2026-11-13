@@ -114,24 +114,29 @@ function set_desktop_theme() {
 	[[ -n "${XDG_CURRENT_DESKTOP}${DISPLAY}" && -n "${SUDO_UID}" ]] || return 1
 	[[ -S "/run/user/${SUDO_UID}/bus" ]] || return 1
 	local scheme theme term rc="dialogrc" fg="default" bg="default"
-	local -a user_bus=(runuser -u "${SUDO_USER}" -- env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${SUDO_UID}/bus" timeout 2)
-	if [[ "${XDG_CURRENT_DESKTOP}" == *XFCE* ]]; then
-		# Xfce has no color scheme setting. Its portal always answers 0. Read the GTK theme name.
-		command -v xfconf-query > /dev/null || return 1
-		scheme=$("${user_bus[@]}" xfconf-query -c xsettings -p /Net/ThemeName 2> /dev/null) || return 1
-		theme="light"
-		[[ "${scheme,,}" == *dark* ]] && theme="dark"
-	else
-		command -v gdbus > /dev/null || return 1
+	local -a user_bus=(runuser -u "${SUDO_USER}" -- env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${SUDO_UID}/bus"
+		XDG_RUNTIME_DIR="/run/user/${SUDO_UID}" timeout 2)
+	command -v gdbus > /dev/null &&
 		scheme=$("${user_bus[@]}" gdbus call --session --dest org.freedesktop.portal.Desktop \
 			--object-path /org/freedesktop/portal/desktop \
 			--method org.freedesktop.portal.Settings.ReadOne org.freedesktop.appearance color-scheme 2> /dev/null)
-		case "${scheme}" in
-			*"uint32 1"*) theme="dark" ;;
-			*"uint32 "[02]*) theme="light" ;; # 0 = no preference: GNOME light
-			*) return 1 ;;
-		esac
-	fi
+	case "${scheme}" in
+		*"uint32 1"*) theme="dark" ;;
+		*"uint32 2"*) theme="light" ;;
+		*)
+			# No preference (0) or no portal. Xfce and Cinnamon answer 0 also for a dark theme.
+			# Use the GTK theme name. GNOME default: Adwaita, light.
+			case "${XDG_CURRENT_DESKTOP}" in
+				*XFCE*) scheme=$("${user_bus[@]}" xfconf-query -c xsettings -p /Net/ThemeName 2> /dev/null) ;;
+				*Cinnamon*) scheme=$("${user_bus[@]}" gsettings get org.cinnamon.desktop.interface gtk-theme 2> /dev/null) ;;
+				*MATE*) scheme=$("${user_bus[@]}" gsettings get org.mate.interface gtk-theme 2> /dev/null) ;;
+				*) scheme=$("${user_bus[@]}" gsettings get org.gnome.desktop.interface gtk-theme 2> /dev/null) ;;
+			esac
+			[[ -n "${scheme}" ]] || return 1
+			theme="light"
+			[[ "${scheme,,}" == *dark* ]] && theme="dark"
+			;;
+	esac
 	# Terminal colors that do not follow the desktop (Terminator): paint the theme colors.
 	# dialog cannot paint white: its WHITE is grey. It keeps the terminal colors.
 	term=$(get_term_background)
