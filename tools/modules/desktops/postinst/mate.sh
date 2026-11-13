@@ -140,6 +140,9 @@ primary-color='#456789'
 gtk-theme='Numix'
 icon-theme='Numix'
 
+[org.mate.panel.menubar]
+icon-name='armbian-start'
+
 [org.mate.Marco.general]
 theme='Numix'
 num-workspaces=2
