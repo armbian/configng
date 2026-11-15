@@ -229,6 +229,14 @@ partitioner_fs_packages() {
 	return 0
 }
 
+# Install packages on the running system. Refresh the package lists first:
+# armbian-install does not refresh them, and old lists can lack a new
+# package. A failed refresh does not stop: the caller checks the result.
+partitioner_install_pkgs() {
+	pkg_update >>"${INSTALL_LOG:-/dev/null}" 2>&1 || true
+	pkg_install "$@" >>"${INSTALL_LOG:-/dev/null}" 2>&1
+}
+
 partitioner_ensure_fs_tool() {
 	local fs="$1" interactive="${2:-1}" missing
 	case "$fs" in btrfs|f2fs) ;; *) command -v "mkfs.$fs" >/dev/null 2>&1; return ;; esac
@@ -240,7 +248,7 @@ partitioner_ensure_fs_tool() {
 		echo "Installing $missing ..."
 	fi
 	# shellcheck disable=SC2086 # one word per package
-	pkg_install $missing >>"${INSTALL_LOG:-/dev/null}" 2>&1
+	partitioner_install_pkgs $missing
 	[[ -z "$(partitioner_fs_packages "$fs")" ]]
 }
 
@@ -258,7 +266,7 @@ partitioner_ensure_crypt_tools() {
 		echo "Installing $missing ..."
 	fi
 	# shellcheck disable=SC2086 # one word per package
-	pkg_install $missing >>"${INSTALL_LOG:-/dev/null}" 2>&1
+	partitioner_install_pkgs $missing
 	[[ -z "$(install_crypt_packages)" ]]
 }
 
