@@ -235,11 +235,13 @@ partitioner_ensure_fs_tool() {
 # Ensure armbian-snapshots is on the running system: the rootfs copy carries
 # it to the btrfs target, where it makes a snapshot before and after each
 # package change. On other root file systems it does nothing. The install
-# works without it, so a failure is only a warning. Always returns 0.
+# works without it: interactive mode asks first, and a failure is only a
+# warning. Always returns 0.
 partitioner_ensure_snapshots() {
 	local interactive="${1:-1}"
 	pkg_installed armbian-snapshots && return 0
 	if [[ "$interactive" == 1 ]]; then
+		dialog_yesno " Install armbian-snapshots " "\nMake a snapshot of the btrfs root before and after each package change?\n\nInstall armbian-snapshots now?" "Install" "Skip" 10 64 || return 0
 		dialog_infobox " Armbian installer " "\nInstalling armbian-snapshots ..." 5 50 2>/dev/null
 	else
 		echo "Installing armbian-snapshots ..."
