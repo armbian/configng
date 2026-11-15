@@ -1250,6 +1250,150 @@ install_create_free_partition() {
 	echo "$(_install_part_dev "$disk" "$newnum")"
 }
 
+# ---- dual-boot space --------------------------------------------------------
+
+_install_free_regions() {
+	# _install_free_regions < "parted -sm <disk> unit MiB print free" (C locale)
+	# Pure: echo "<start_mib> <end_mib> <size_mib>" for each free region of at
+	# least 8 MiB. The start rounds up and the end rounds down to whole MiB.
+	awk -F: '$NF == "free;" {
+		s = $2; e = $3; sub(/MiB/, "", s); sub(/MiB/, "", e)
+		s = int(s + 0.999); e = int(e)
+		if (e - s >= 8) print s, e, e - s
+	}'
+}
+
+install_free_regions() {
+	# install_free_regions <disk> - the free regions of <disk>, as _install_free_regions.
+	LC_ALL=C parted -sm "$1" unit MiB print free 2>/dev/null | _install_free_regions
+}
+
+install_largest_free_mib() {
+	# install_largest_free_mib <disk> - the size of the largest free region (MiB, 0 if none).
+	install_free_regions "$1" | awk 'BEGIN { m = 0 } $3 > m { m = $3 } END { print m }'
+}
+
+install_part_span() {
+	# install_part_span <disk> <partition> - echo "<start_mib> <end_mib>" of <partition>.
+	local pnum
+	pnum="$(grep -oE '[0-9]+$' <<<"$2")"
+	LC_ALL=C parted -sm "$1" unit MiB print 2>/dev/null | awk -F: -v p="$pnum" '$1 == p {
+		s = $2; e = $3; sub(/MiB/, "", s); sub(/MiB/, "", e); print int(s), int(e + 0.999); f = 1
+	} END { exit !f }'
+}
+
+install_free_region_at() {
+	# install_free_region_at <disk> <mib> - echo "<start> <end>" of the free
+	# region that starts within 1 MiB of <mib>. Fails when there is none.
+	install_free_regions "$1" | awk -v m="$2" '$1 >= m - 1 && $1 <= m + 1 { print $1, $2; f = 1; exit } END { exit !f }'
+}
+
+install_free_region_over() {
+	# install_free_region_over <disk> <mib> - echo "<start> <end>" of the free
+	# region that holds <mib> (1 MiB slack at the start). Fails when there is none.
+	install_free_regions "$1" | awk -v m="$2" '$1 <= m + 1 && $2 > m { print $1, $2; f = 1; exit } END { exit !f }'
+}
+
+_install_linux_parts() {
+	# _install_linux_parts <lsblk_json>
+	# Pure: the partitions of another Linux (Armbian) install, which dual-boot can
+	# replace. Not the ESP, not a Windows partition (Microsoft type, NTFS,
+	# BitLocker, recovery). Echo "<dev>\t<size_bytes>\t<fstype>\t<label>" per partition.
+	# editorconfig-checker-disable
+	printf '%s' "$1" | jq -r '
+		.blockdevices[]?.children[]?
+		| select(((.parttypename // "") | test("EFI|Microsoft|recovery|BIOS boot"; "i")) | not)
+		| select((.fstype // "") | test("^(vfat|ntfs|BitLocker)$"; "i") | not)
+		| select(((.fstype // "") | test("^(ext[234]|btrfs|f2fs|xfs|crypto_LUKS|swap)$"))
+		         or ((.parttypename // "") | test("Linux"; "i")))
+		| [.name, (.size | tostring), (.fstype // ""), (.label // "")] | @tsv'
+	# editorconfig-checker-enable
+}
+
+install_linux_parts() {
+	# install_linux_parts <disk> - _install_linux_parts for <disk>.
+	_install_linux_parts "$(lsblk -b -po NAME,FSTYPE,PARTTYPENAME,SIZE,LABEL --json "$1" 2>/dev/null)"
+}
+
+install_linux_groups() {
+	# install_linux_groups <disk> - the Linux partitions of <disk>, adjacent ones
+	# in one group: an install with /boot and root is one choice. Echo
+	# "<dev>[,<dev>...]\t<size_bytes>\t<fstype>[+<fstype>...]" per group, in disk order.
+	local disk="$1" dev size fs label span
+	while IFS=$'\t' read -r dev size fs label; do
+		[[ -n "$dev" ]] || continue
+		span="$(install_part_span "$disk" "$dev")" || continue
+		echo "$span $dev $size ${fs:--}"
+	done < <(install_linux_parts "$disk") | sort -n | _install_group_adjacent
+}
+
+_install_group_adjacent() {
+	# Pure: read "<start> <end> <dev> <size> <fs>" sorted by start; join the
+	# partitions that touch (start <= previous end + 1 MiB).
+	awk 'BEGIN { OFS = "\t" }
+		NR > 1 && $1 <= pe + 1 { devs = devs "," $3; sz += $4; fss = fss "+" $5; pe = $2; next }
+		NR > 1 { print devs, sz, fss }
+		{ devs = $3; sz = $4; fss = $5; pe = $2 }
+		END { if (NR) print devs, sz, fss }'
+}
+
+install_dualboot_needs_shrink() {
+	# install_dualboot_needs_shrink <disk> <want_bytes> - true when no free region holds <want_bytes>.
+	(( $(install_largest_free_mib "$1") * 1024 * 1024 < $2 ))
+}
+
+_install_mkpart() {
+	# _install_mkpart <disk> <start_mib> <end_mib> <fs> - create one partition
+	# and echo its device. parted numbers partitions by creation but lists them
+	# by position, so compare the numbers before and after.
+	local disk="$1" start="$2" end="$3" hint before n newnum=""
+	hint="$(_install_parted_fs_hint "$4")"
+	before="$(parted -sm "$disk" print 2>/dev/null | awk -F: '/^[0-9]/{print $1}')"
+	local -a args=(mkpart primary)
+	[[ -n "$hint" ]] && args+=("$hint")
+	args+=("${start}MiB" "${end}MiB")
+	printf 'Yes\nYes\n' | parted ---pretend-input-tty -a optimal "$disk" unit MiB "${args[@]}" >>"$INSTALL_LOG" 2>&1 \
+		|| { install_log ERR "mkpart: ${start}-${end}MiB on $disk failed"; return "$INSTALL_EX_PARTITION"; }
+	partprobe "$disk" >>"$INSTALL_LOG" 2>&1 || true
+	udevadm settle >>"$INSTALL_LOG" 2>&1 || true
+	while IFS= read -r n; do
+		grep -qxF "$n" <<<"$before" || { newnum="$n"; break; }
+	done < <(parted -sm "$disk" print 2>/dev/null | awk -F: '/^[0-9]/{print $1}')
+	[[ -n "$newnum" ]] || { install_log ERR "mkpart: cannot identify the new partition on $disk"; return "$INSTALL_EX_PARTITION"; }
+	n="$(_install_part_dev "$disk" "$newnum")"
+	# Old signatures (a replaced install) must not show through the new filesystem.
+	wipefs -aq "$n" >>"$INSTALL_LOG" 2>&1 || true
+	echo "$n"
+}
+
+install_create_dualboot_parts() {
+	# install_create_dualboot_parts <disk> <start_mib> <end_mib> <fs> <crypt>
+	# Create the Armbian partitions in the free region start..end. crypt=1 adds
+	# an ext4 /boot of 2048 MiB first: GRUB cannot read the LUKS root. Echo
+	# "boot <dev>" (crypt only) and "root <dev>". Other partitions stay.
+	local disk="$1" start="$2" end="$3" fs="$4" crypt="${5:-0}" dev
+	if [[ "$crypt" == 1 ]]; then
+		(( end - start > 2048 + 2048 )) || { install_log ERR "dualboot: ${start}-${end}MiB is too small for /boot and the root"; return "$INSTALL_EX_NOSPACE"; }
+		dev="$(_install_mkpart "$disk" "$start" $(( start + 2048 )) ext4)" || return
+		echo "boot $dev"
+		start=$(( start + 2048 ))
+	fi
+	dev="$(_install_mkpart "$disk" "$start" "$end" "$fs")" || return
+	echo "root $dev"
+}
+
+install_remove_partition() {
+	# install_remove_partition <disk> <partition> - delete <partition> and echo
+	# "<start_mib> <end_mib>" of the free region that now holds it.
+	local disk="$1" part="$2" span pnum
+	span="$(install_part_span "$disk" "$part")" || { install_log ERR "dualboot: cannot read $part on $disk"; return "$INSTALL_EX_PARTITION"; }
+	pnum="$(grep -oE '[0-9]+$' <<<"$part")"
+	parted -s "$disk" rm "$pnum" >>"$INSTALL_LOG" 2>&1 || { install_log ERR "dualboot: removing $part failed"; return "$INSTALL_EX_PARTITION"; }
+	partprobe "$disk" >>"$INSTALL_LOG" 2>&1 || true
+	udevadm settle >>"$INSTALL_LOG" 2>&1 || true
+	install_free_region_over "$disk" "${span%% *}" || { install_log ERR "dualboot: no free region where $part was"; return "$INSTALL_EX_PARTITION"; }
+}
+
 # ---- orchestration ----------------------------------------------------------
 
 install_uuid() {
@@ -1417,7 +1561,8 @@ install_rewrite_rpi_cmdline() {
 #   CRYPTROOT_SSH_UNLOCK=yes      dropbear in the initramfs, for a remote unlock
 #   CRYPTROOT_SSH_UNLOCK_PORT     dropbear port (default 2022)
 #   CRYPTROOT_SSH_UNLOCK_KEYS     authorized_keys for dropbear (default /root/.ssh/authorized_keys)
-#   CRYPTROOT_MAPPER              device-mapper name (default armbian-root)
+#   CRYPTROOT_MAPPER              device-mapper name of the installed system (default armbian-root)
+#   INSTALL_CRYPT_OPEN            device-mapper name during the install (default armbian-target)
 #   CRYPTROOT_PARAMETERS          cryptsetup luksFormat options (default --pbkdf pbkdf2)
 # The installer makes a new key for each installation, so the first-boot
 # re-key (armbian-luks-rekey) of an image is not needed.
@@ -1427,23 +1572,25 @@ install_crypt_enabled() { [[ "${CRYPTROOT_ENABLE:-no}" == yes ]]; }
 install_crypt_mode_ok() {
 	# install_crypt_mode_ok <boot_mode> - true when the mode can boot an
 	# encrypted root: the bootloader reads an unencrypted /boot. "sd" keeps the
-	# initramfs of the current media; "uefi-dualboot" has no room for a /boot.
+	# initramfs of the current media.
 	case "$1" in
-		uefi|bios|emmc|spi|standalone|mtd|ufs|native|split-emmc) return 0 ;;
+		uefi|uefi-dualboot|bios|emmc|spi|standalone|mtd|ufs|native|split-emmc) return 0 ;;
 		*) return 1 ;;
 	esac
 }
 
 install_crypt_defaults() {
 	# Fill the build defaults. The engine and the frontend call it.
-	# An encrypted running system holds armbian-root already: then take the
-	# first free armbian-root-N. A given CRYPTROOT_MAPPER stays as it is.
-	if [[ -z "${CRYPTROOT_MAPPER:-}" ]]; then
+	# The installed system always gets CRYPTROOT_MAPPER (armbian-root), also
+	# when the running system holds that name. The install opens the target
+	# as the first free armbian-target[-N]. Given names stay as they are.
+	: "${CRYPTROOT_MAPPER:=armbian-root}"
+	if [[ -z "${INSTALL_CRYPT_OPEN:-}" ]]; then
 		local n=1
-		CRYPTROOT_MAPPER=armbian-root
-		while [[ -e "/dev/mapper/$CRYPTROOT_MAPPER" ]]; do
+		INSTALL_CRYPT_OPEN=armbian-target
+		while [[ -e "/dev/mapper/$INSTALL_CRYPT_OPEN" ]]; do
 			n=$((n + 1))
-			CRYPTROOT_MAPPER="armbian-root-$n"
+			INSTALL_CRYPT_OPEN="armbian-target-$n"
 		done
 	fi
 	: "${CRYPTROOT_PARAMETERS:=--pbkdf pbkdf2}"
@@ -1480,8 +1627,10 @@ install_crypt_check() {
 		|| { install_log ERR "crypt: boot mode '$mode' cannot boot an encrypted root"; return "$INSTALL_EX_USAGE"; }
 	[[ "$CRYPTROOT_MAPPER" =~ ^[A-Za-z0-9_-]+$ ]] \
 		|| { install_log ERR "crypt: bad mapper name '$CRYPTROOT_MAPPER'"; return "$INSTALL_EX_USAGE"; }
-	[[ ! -e "/dev/mapper/$CRYPTROOT_MAPPER" ]] \
-		|| { install_log ERR "crypt: /dev/mapper/$CRYPTROOT_MAPPER exists; choose another mapper name"; return "$INSTALL_EX_USAGE"; }
+	[[ "$INSTALL_CRYPT_OPEN" =~ ^[A-Za-z0-9_-]+$ ]] \
+		|| { install_log ERR "crypt: bad mapper name '$INSTALL_CRYPT_OPEN'"; return "$INSTALL_EX_USAGE"; }
+	[[ ! -e "/dev/mapper/$INSTALL_CRYPT_OPEN" ]] \
+		|| { install_log ERR "crypt: /dev/mapper/$INSTALL_CRYPT_OPEN exists; set another INSTALL_CRYPT_OPEN"; return "$INSTALL_EX_USAGE"; }
 	if [[ "$CRYPTROOT_AUTOUNLOCK" != yes && -z "${CRYPTROOT_PASSPHRASE:-}" ]]; then
 		install_log ERR "crypt: set a passphrase or the autounlock"
 		return "$INSTALL_EX_USAGE"
@@ -1511,7 +1660,7 @@ install_crypt_check() {
 
 install_crypt_format() {
 	# install_crypt_format <partition> <keyfile_out>
-	# LUKS-format <partition> and open it as /dev/mapper/$CRYPTROOT_MAPPER.
+	# LUKS-format <partition> and open it as /dev/mapper/$INSTALL_CRYPT_OPEN.
 	# With autounlock, write a new random keyfile to <keyfile_out>; the
 	# passphrase is not used then, as in the build.
 	local part="$1" keyfile="$2"
@@ -1521,21 +1670,21 @@ install_crypt_format() {
 		( umask 077; head -c 64 /dev/urandom >"$keyfile" ) \
 			|| { install_log ERR "crypt: cannot write the keyfile"; return "$INSTALL_EX_FORMAT"; }
 		cryptsetup luksFormat -q "${params[@]}" "$part" "$keyfile" >>"$INSTALL_LOG" 2>&1 \
-			&& cryptsetup open --key-file "$keyfile" "$part" "$CRYPTROOT_MAPPER" >>"$INSTALL_LOG" 2>&1
+			&& cryptsetup open --key-file "$keyfile" "$part" "$INSTALL_CRYPT_OPEN" >>"$INSTALL_LOG" 2>&1
 	else
 		printf '%s' "$CRYPTROOT_PASSPHRASE" | cryptsetup luksFormat -q "${params[@]}" --key-file - "$part" >>"$INSTALL_LOG" 2>&1 \
-			&& printf '%s' "$CRYPTROOT_PASSPHRASE" | cryptsetup open --key-file - "$part" "$CRYPTROOT_MAPPER" >>"$INSTALL_LOG" 2>&1
+			&& printf '%s' "$CRYPTROOT_PASSPHRASE" | cryptsetup open --key-file - "$part" "$INSTALL_CRYPT_OPEN" >>"$INSTALL_LOG" 2>&1
 	fi || { install_log ERR "crypt: LUKS format or open of $part failed"; return "$INSTALL_EX_FORMAT"; }
 	udevadm settle >>"$INSTALL_LOG" 2>&1 || true
-	[[ -b "/dev/mapper/$CRYPTROOT_MAPPER" ]] \
-		|| { install_log ERR "crypt: /dev/mapper/$CRYPTROOT_MAPPER missing after open"; return "$INSTALL_EX_FORMAT"; }
-	install_log INFO "crypt: $part is LUKS, open at /dev/mapper/$CRYPTROOT_MAPPER"
+	[[ -b "/dev/mapper/$INSTALL_CRYPT_OPEN" ]] \
+		|| { install_log ERR "crypt: /dev/mapper/$INSTALL_CRYPT_OPEN missing after open"; return "$INSTALL_EX_FORMAT"; }
+	install_log INFO "crypt: $part is LUKS, open at /dev/mapper/$INSTALL_CRYPT_OPEN"
 }
 
 install_crypt_close() {
 	# Best effort: close the mapping that install_crypt_format opened.
 	install_crypt_enabled || return 0
-	[[ -e "/dev/mapper/${CRYPTROOT_MAPPER:-}" ]] && cryptsetup close "$CRYPTROOT_MAPPER" >>"$INSTALL_LOG" 2>&1
+	[[ -e "/dev/mapper/${INSTALL_CRYPT_OPEN:-}" ]] && cryptsetup close "$INSTALL_CRYPT_OPEN" >>"$INSTALL_LOG" 2>&1
 	return 0
 }
 
@@ -1591,7 +1740,9 @@ install_crypt_configure_target() {
 		echo "UMASK=0077" >"$rootfs/etc/initramfs-tools/conf.d/key-umask.conf"
 		echo "KEYFILE_PATTERN=/etc/rootfs.key" >>"$hook"
 	fi
-	echo "$CRYPTROOT_MAPPER UUID=$uuid $keyspec luks" >>"$crypttab"
+	# "initramfs": the cryptsetup hook takes the entry. It cannot match it to
+	# an open device: the install opens the target as $INSTALL_CRYPT_OPEN.
+	echo "$CRYPTROOT_MAPPER UUID=$uuid $keyspec luks,initramfs" >>"$crypttab"
 	# Put cryptsetup into the initramfs, also when the hook cannot see the
 	# mapping from the install chroot.
 	mkdir -p "$(dirname "$hook")"
@@ -1607,7 +1758,7 @@ install_crypt_configure_target() {
 		sed -i '/^DROPBEAR_OPTIONS=/d' "$dir/$conf" 2>/dev/null
 		echo "DROPBEAR_OPTIONS=\"-I 100 -j -k -p ${CRYPTROOT_SSH_UNLOCK_PORT} -s -c cryptroot-unlock\"" >>"$dir/$conf"
 	fi
-	install_log INFO "crypt: target crypttab: $CRYPTROOT_MAPPER UUID=$uuid $keyspec luks"
+	install_log INFO "crypt: target crypttab: $CRYPTROOT_MAPPER UUID=$uuid $keyspec luks,initramfs"
 }
 
 install_run_scenario() {
@@ -1695,7 +1846,7 @@ install_run_scenario() {
 		luks_dev="$root_dev"
 		keyfile="$(mktemp)" || return "$INSTALL_EX_FORMAT"
 		install_crypt_format "$luks_dev" "$keyfile" || { rm -f "$keyfile"; return "$INSTALL_EX_FORMAT"; }
-		root_dev="/dev/mapper/$CRYPTROOT_MAPPER"
+		root_dev="/dev/mapper/$INSTALL_CRYPT_OPEN"
 		mkfs_map="${mkfs_map/"root $luks_dev "/"root $root_dev "}"
 	fi
 	install_make_filesystems "$mkfs_map" || { install_crypt_close; rm -f "$keyfile"; return "$INSTALL_EX_FORMAT"; }
@@ -1947,7 +2098,7 @@ install_run_split() {
 		luks_dev="$root_part"
 		keyfile="$(mktemp)" || return "$INSTALL_EX_FORMAT"
 		install_crypt_format "$luks_dev" "$keyfile" || { rm -f "$keyfile"; return "$INSTALL_EX_FORMAT"; }
-		root_part="/dev/mapper/$CRYPTROOT_MAPPER"
+		root_part="/dev/mapper/$INSTALL_CRYPT_OPEN"
 		mkfs_map="${mkfs_map/"root $luks_dev "/"root $root_part "}"
 	fi
 	install_make_filesystems "$mkfs_map" || { install_crypt_close; rm -f "$keyfile"; return "$INSTALL_EX_FORMAT"; }
@@ -2020,22 +2171,30 @@ install_run_split() {
 }
 
 install_run_dualboot() {
-	# install_run_dualboot <disk> <fs> <exclude_file> <armbian_bytes> [uboot_dir]
+	# install_run_dualboot <disk> <fs> <exclude_file> <armbian_bytes> [replace_partitions]
 	#
-	# Non-destructive UEFI install alongside Windows: shrink the NTFS volume,
-	# create an Armbian partition in the freed tail, reuse the existing Windows
-	# ESP, and set up GRUB + os-prober dual-boot. The disk keeps its partition
-	# table and every existing partition.
-	local disk="$1" fs="$2" exclude="$3" want="$4"
+	# Non-destructive UEFI install alongside Windows. The Armbian space is, in
+	# this order: <replace_partitions> (adjacent partitions of another Linux
+	# install, comma-separated; <armbian_bytes> is then ignored), a free region
+	# of <armbian_bytes>, or space from shrinking
+	# the NTFS volume. Reuses the Windows ESP and sets up GRUB + os-prober.
+	# CRYPTROOT_ENABLE=yes adds an ext4 /boot and a LUKS root. Windows, the
+	# ESP and the partition table stay.
+	local disk="$1" fs="$2" exclude="$3" want="$4" replace="${5:-}"
 	[[ -b "$disk" ]] || { install_log ERR "dualboot: '$disk' not a block device"; return "$INSTALL_EX_NODEV"; }
 	[[ -f "$exclude" ]] || { install_log ERR "dualboot: exclude '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
-	[[ "$want" =~ ^[0-9]+$ && "$want" -gt 0 ]] || { install_log ERR "dualboot: bad size '$want'"; return "$INSTALL_EX_USAGE"; }
+	if [[ -z "$replace" ]]; then
+		[[ "$want" =~ ^[0-9]+$ && "$want" -gt 0 ]] || { install_log ERR "dualboot: bad size '$want'"; return "$INSTALL_EX_USAGE"; }
+	fi
 	! install_disk_in_use "$disk" || { install_log ERR "dualboot: '$disk' is in use (mounted, swap, or lsblk failed) - refusing to modify it"; return "$INSTALL_EX_USAGE"; }
-	command -v ntfsresize >/dev/null 2>&1 || { install_log ERR "dualboot: ntfsresize missing - install the ntfs-3g package"; return "$INSTALL_EX_TOOL"; }
 	install_check_fs_tools "$fs" >/dev/null || { install_log ERR "dualboot: mkfs.$fs not installed (need $(_install_fs_pkg "$fs")) - refusing to modify $disk"; return "$INSTALL_EX_TOOL"; }
 	install_fs_kernel_supported "$fs" || { install_log ERR "dualboot: running kernel cannot mount $fs (no driver) - refusing to modify $disk"; return "$INSTALL_EX_TOOL"; }
 	command -v grub-install >/dev/null 2>&1 || { install_log ERR "dualboot: grub-install missing - refusing to modify $disk"; return "$INSTALL_EX_BOOTLOADER"; }
-	! install_crypt_enabled || { install_log ERR "dualboot: an encrypted root needs a /boot partition, which dual-boot does not create"; return "$INSTALL_EX_USAGE"; }
+	local crypt=0
+	if install_crypt_enabled; then
+		install_crypt_check uefi-dualboot || return
+		crypt=1
+	fi
 
 	# 1) locate the existing Windows ESP + NTFS volume (nothing is touched yet).
 	local wi esp win
@@ -2043,49 +2202,98 @@ install_run_dualboot() {
 	esp="$(sed -n 's/^esp=//p' <<<"$wi")"
 	win="$(sed -n 's/^windows=//p' <<<"$wi")"
 	install_log INFO "dualboot: ESP=$esp Windows=$win on $disk"
-	# Backstop for direct engine callers (the TUI/CLI already surface this to the
-	# user before we get here): refuse - before any change - if Windows can't be
-	# shrunk (BitLocker / unclean NTFS), logging the actionable reason.
-	local blocker; blocker="$(install_dualboot_blocker "$disk")" \
-		|| { install_log ERR "dualboot: cannot shrink Windows on $disk"$'\n'"$blocker"; return "$INSTALL_EX_PARTITION"; }
 
-	# 2) plan how far to shrink Windows to free <want> bytes.
-	local wsize wmin new_win plan
-	wsize="$(blockdev --getsize64 "$win")"
-	wmin="$(install_windows_min_bytes "$win")"
-	plan="$(install_dualboot_plan "$wsize" "$wmin" 0 "$want")" || return "$INSTALL_EX_NOSPACE"
-	new_win="$(sed -n 's/^shrink_to=//p' <<<"$plan")"
-
-	# 3) shrink Windows (only if we must eat into it).
-	if (( new_win < wsize )); then
-		install_shrink_windows "$disk" "$win" "$new_win" || return "$INSTALL_EX_PARTITION"
+	# 2) find the Armbian space. Nothing is changed before the last check.
+	local region="" need_mib=0
+	if [[ -n "$replace" ]]; then
+		local -a rparts
+		local rp rspan lo="" hi=0 linux
+		IFS=, read -r -a rparts <<<"$replace"
+		linux="$(install_linux_parts "$disk" | cut -f1)"
+		for rp in "${rparts[@]}"; do
+			grep -qxF "$rp" <<<"$linux" \
+				|| { install_log ERR "dualboot: $rp is not a Linux partition on $disk - refusing to replace it"; return "$INSTALL_EX_USAGE"; }
+			rspan="$(install_part_span "$disk" "$rp")" || { install_log ERR "dualboot: cannot read $rp on $disk"; return "$INSTALL_EX_PARTITION"; }
+			[[ -z "$lo" || "${rspan%% *}" -lt "$lo" ]] && lo="${rspan%% *}"
+			(( ${rspan##* } > hi )) && hi="${rspan##* }"
+		done
+		for rp in "${rparts[@]}"; do
+			install_remove_partition "$disk" "$rp" >/dev/null || return "$INSTALL_EX_PARTITION"
+		done
+		region="$(install_free_region_over "$disk" "$lo")" || { install_log ERR "dualboot: no free region where $replace was"; return "$INSTALL_EX_PARTITION"; }
+		(( ${region##* } >= hi - 1 )) || { install_log ERR "dualboot: $replace are not adjacent; the free region ends at ${region##* }MiB"; return "$INSTALL_EX_PARTITION"; }
+		install_log INFO "dualboot: removed $replace, Armbian goes to ${region// /-}MiB"
+	else
+		need_mib=$(( (want + 1048575) / 1048576 ))
+		if install_dualboot_needs_shrink "$disk" "$want"; then
+			command -v ntfsresize >/dev/null 2>&1 || { install_log ERR "dualboot: ntfsresize missing - install the ntfs-3g package"; return "$INSTALL_EX_TOOL"; }
+			# Refuse - before any change - if Windows can't be shrunk (BitLocker /
+			# unclean NTFS). The TUI/CLI already tell the user.
+			local blocker; blocker="$(install_dualboot_blocker "$disk")" \
+				|| { install_log ERR "dualboot: cannot shrink Windows on $disk"$'\n'"$blocker"; return "$INSTALL_EX_PARTITION"; }
+			# Free space right after Windows joins the space from the shrink.
+			local wsize wmin span tail_mib=0 after plan new_win
+			wsize="$(blockdev --getsize64 "$win")"
+			wmin="$(install_windows_min_bytes "$win")"
+			span="$(install_part_span "$disk" "$win")" || { install_log ERR "dualboot: cannot read $win on $disk"; return "$INSTALL_EX_PARTITION"; }
+			after="$(install_free_region_at "$disk" "${span##* }")" && tail_mib=$(( ${after##* } - ${after%% *} ))
+			plan="$(install_dualboot_plan "$wsize" "$wmin" $(( tail_mib * 1048576 )) "$want")" || return "$INSTALL_EX_NOSPACE"
+			new_win="$(sed -n 's/^shrink_to=//p' <<<"$plan")"
+			if (( new_win < wsize )); then
+				install_shrink_windows "$disk" "$win" "$new_win" || return "$INSTALL_EX_PARTITION"
+			fi
+			span="$(install_part_span "$disk" "$win")" || { install_log ERR "dualboot: cannot read $win on $disk"; return "$INSTALL_EX_PARTITION"; }
+			region="$(install_free_region_at "$disk" "${span##* }")" || { install_log ERR "dualboot: no free space after $win"; return "$INSTALL_EX_PARTITION"; }
+		else
+			# The first free region that holds the request; Windows stays as it is.
+			region="$(install_free_regions "$disk" | awk -v n="$need_mib" '$3 >= n { print $1, $2; exit }')"
+			install_log INFO "dualboot: free region ${region// /-}MiB holds ${need_mib}MiB, Windows is not shrunk"
+		fi
+		# Use the requested size, not the whole region.
+		local rstart="${region%% *}" rend="${region##* }"
+		(( rend - rstart > need_mib )) && region="$rstart $(( rstart + need_mib ))"
 	fi
 
-	# 4) create + format the Armbian partition in the freed tail.
-	local root_dev
-	root_dev="$(install_create_free_partition "$disk" "$fs")" || return "$INSTALL_EX_PARTITION"
+	# 3) create + format the Armbian partitions.
+	local parts boot_dev="" root_dev
+	parts="$(install_create_dualboot_parts "$disk" "${region%% *}" "${region##* }" "$fs" "$crypt")" || return
+	boot_dev="$(awk '$1 == "boot" { print $2 }' <<<"$parts")"
+	root_dev="$(awk '$1 == "root" { print $2 }' <<<"$parts")"
 	[[ -b "$root_dev" ]] || { install_log ERR "dualboot: new partition '$root_dev' missing"; return "$INSTALL_EX_PARTITION"; }
-	install_make_filesystems "root $root_dev $fs" || return "$INSTALL_EX_FORMAT"
+	local mkfs_map="root $root_dev $fs" luks_dev="" keyfile=""
+	if [[ "$crypt" == 1 ]]; then
+		luks_dev="$root_dev"
+		keyfile="$(mktemp)" || return "$INSTALL_EX_FORMAT"
+		install_crypt_format "$luks_dev" "$keyfile" || { rm -f "$keyfile"; return "$INSTALL_EX_FORMAT"; }
+		root_dev="/dev/mapper/$INSTALL_CRYPT_OPEN"
+		mkfs_map="boot $boot_dev ext4"$'\n'"root $root_dev $fs"
+	fi
+	install_make_filesystems "$mkfs_map" || { install_crypt_close; rm -f "$keyfile"; return "$INSTALL_EX_FORMAT"; }
 
-	# 5) install into it, reusing the existing ESP for GRUB.
+	# 4) install into it, reusing the existing ESP for GRUB.
 	local mp rc=0
-	mp="$(mktemp -d /mnt/armbian-install.XXXXXX)" || return "$INSTALL_EX_TRANSFER"
-	mount "$root_dev" "$mp" || { install_log ERR "dualboot: mount root failed"; rmdir "$mp"; return "$INSTALL_EX_TRANSFER"; }
-	mkdir -p "$mp/boot/efi"
+	mp="$(mktemp -d /mnt/armbian-install.XXXXXX)" || { install_crypt_close; rm -f "$keyfile"; return "$INSTALL_EX_TRANSFER"; }
+	mount "$root_dev" "$mp" || { install_log ERR "dualboot: mount root failed"; rmdir "$mp"; install_crypt_close; rm -f "$keyfile"; return "$INSTALL_EX_TRANSFER"; }
 	while :; do
 		install_transfer_rootfs "$mp" "$exclude" 1 / 0 90 || { rc=$INSTALL_EX_TRANSFER; break; }
 		echo 92
+		if [[ -n "$boot_dev" ]]; then
+			mkdir -p "$mp/boot"
+			mount "$boot_dev" "$mp/boot" || { install_log ERR "dualboot: mount boot partition $boot_dev failed"; rc=$INSTALL_EX_BOOTCFG; break; }
+		fi
 		install_populate_boot "$mp" || { rc=$INSTALL_EX_BOOTCFG; break; }
-		local root_uuid esp_uuid
+		local root_uuid boot_uuid="" esp_uuid
 		root_uuid="$(install_uuid "$root_dev")"
+		[[ -n "$boot_dev" ]] && boot_uuid="$(install_uuid "$boot_dev")"
 		esp_uuid="$(install_uuid "$esp")"
-		install_gen_fstab "$root_uuid" "$fs" "" ext4 "$esp_uuid" >"$mp/etc/fstab" || { rc=$INSTALL_EX_BOOTCFG; break; }
-		install_crypt_configure_target "$mp" "" "" || { rc=$INSTALL_EX_BOOTCFG; break; }
+		install_gen_fstab "$root_uuid" "$fs" "$boot_uuid" ext4 "$esp_uuid" >"$mp/etc/fstab" || { rc=$INSTALL_EX_BOOTCFG; break; }
+		install_crypt_configure_target "$mp" "$luks_dev" "$keyfile" || { rc=$INSTALL_EX_BOOTCFG; break; }
 		local initrd_force=0
-		[[ -n "$(install_source_crypt_names)" ]] && initrd_force=1
+		{ [[ "$crypt" == 1 ]] || [[ -n "$(install_source_crypt_names)" ]]; } && initrd_force=1
 		# Fatal on failure - see install_run_scenario's identical guard.
 		install_update_initramfs "$mp" "$fs" "$initrd_force" || { rc=$INSTALL_EX_BOOTCFG; break; }
 		echo 95
+		mkdir -p "$mp/boot/efi"
 		mount "$esp" "$mp/boot/efi" || { install_log ERR "dualboot: mount ESP failed"; rc=$INSTALL_EX_BOOTLOADER; break; }
 		install_grub_install "$mp" dualboot || { rc=$INSTALL_EX_BOOTLOADER; break; }
 		echo 99
@@ -2099,8 +2307,11 @@ install_run_dualboot() {
 
 	sync
 	mountpoint -q "$mp/boot/efi" && umount "$mp/boot/efi" 2>/dev/null
+	mountpoint -q "$mp/boot" && umount "$mp/boot" 2>/dev/null
 	umount "$mp" 2>/dev/null
 	rmdir "$mp" 2>/dev/null
+	install_crypt_close
+	[[ -n "$keyfile" ]] && { shred -u "$keyfile" 2>/dev/null || rm -f "$keyfile"; }
 	[[ "$rc" == 0 ]] && install_log INFO "dualboot: Armbian installed alongside Windows on $disk"
 	return "$rc"
 }

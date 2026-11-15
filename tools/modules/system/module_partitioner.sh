@@ -197,7 +197,7 @@ partitioner_modes_for() {
 
 partitioner_mode_desc() {
 	case "$1" in
-		uefi-dualboot) echo "Dual-boot: shrink Windows, install Armbian alongside it" ;;
+		uefi-dualboot) echo "Dual-boot: keep Windows, install Armbian next to it" ;;
 		uefi) echo "UEFI install with GRUB (ERASES the disk)" ;;
 		bios) echo "Legacy BIOS install with GRUB (ERASES the disk)" ;;
 		emmc) echo "Full install to this device (boot + system)" ;;
@@ -393,23 +393,47 @@ partitioner_tui() {
 	[[ "$CRYPTROOT_ENABLE" == yes ]] && fs_desc="$fs, encrypted"
 
 	# 4) dual-boot needs a size; other modes erase the whole disk.
-	local want_bytes=0
+	local want_bytes=0 replace_part=""
 	if [[ "$boot" == uefi-dualboot ]]; then
-		# Tell the user up-front (and before touching the disk) if Windows can't be
-		# shrunk - BitLocker or an unclean/hibernated NTFS - with the exact fix.
-		local blocker
-		if ! blocker="$(install_dualboot_blocker "/dev/$disk")"; then
-			# dialog honours literal "\n" but collapses real newlines - convert so
-			# the numbered steps render on separate lines.
-			dialog_msgbox " Cannot dual-boot yet " "\n${blocker//$'\n'/\\n}"
-			return "$INSTALL_EX_USAGE"
+		# Where Armbian goes: in place of another Linux install, or a new partition.
+		local -a smenu=()
+		local lp lsize lfs space=new free_gib
+		while IFS=$'\t' read -r lp lsize lfs; do
+			[[ -n "$lp" ]] || continue
+			smenu+=("$lp" "Replace: $(( lsize / 1073741824 )) GiB ${lfs//-/no filesystem}")
+		done < <(install_linux_groups "/dev/$disk")
+		free_gib=$(( $(install_largest_free_mib "/dev/$disk") / 1024 ))
+		smenu+=(new "New partition: free space ($free_gib GiB) first, then shrink Windows")
+		if [[ ${#smenu[@]} -gt 2 ]]; then
+			space=$(dialog_menu " $title " "\nWhere does Armbian go on /dev/$disk? Windows is not changed." 0 76 8 -- "${smenu[@]}")
+			[[ -z "$space" ]] && return "$INSTALL_EX_OK"
 		fi
-		local gib
-		gib=$(dialog_inputbox " $title " "\nGiB to give Armbian (taken by shrinking Windows):" "32")
-		[[ "$gib" =~ ^[0-9]+$ && "$gib" -gt 0 ]] || { dialog_msgbox " $title " "\nInvalid size."; return "$INSTALL_EX_USAGE"; }
-		want_bytes=$(( gib * 1024 * 1024 * 1024 ))
-		if ! dialog_yesno " WARNING " "\nThis will SHRINK Windows on /dev/$disk and install Armbian ($fs, ${gib}GiB) alongside it.\n\nBack up first. Proceed?" "Shrink and install" "Cancel" 11 72; then
-			return "$INSTALL_EX_OK"
+		if [[ "$space" != new ]]; then
+			replace_part="$space"
+			if ! dialog_yesno " WARNING " "\nThis will ERASE ${replace_part//,/ and } and install Armbian ($fs_desc) in its place.\n\nWindows is not changed. Proceed?" "Erase and install" "Cancel" 11 72; then
+				return "$INSTALL_EX_OK"
+			fi
+		else
+			local gib
+			gib=$(dialog_inputbox " $title " "\nGiB to give Armbian:" "32")
+			[[ "$gib" =~ ^[0-9]+$ && "$gib" -gt 0 ]] || { dialog_msgbox " $title " "\nInvalid size."; return "$INSTALL_EX_USAGE"; }
+			want_bytes=$(( gib * 1024 * 1024 * 1024 ))
+			if install_dualboot_needs_shrink "/dev/$disk" "$want_bytes"; then
+				# Tell the user up-front (and before touching the disk) if Windows can't be
+				# shrunk - BitLocker or an unclean/hibernated NTFS - with the exact fix.
+				local blocker
+				if ! blocker="$(install_dualboot_blocker "/dev/$disk")"; then
+					# dialog honours literal "\n" but collapses real newlines - convert so
+					# the numbered steps render on separate lines.
+					dialog_msgbox " Cannot dual-boot yet " "\n${blocker//$'\n'/\\n}"
+					return "$INSTALL_EX_USAGE"
+				fi
+				if ! dialog_yesno " WARNING " "\nThis will SHRINK Windows on /dev/$disk and install Armbian ($fs_desc, ${gib}GiB) alongside it.\n\nBack up first. Proceed?" "Shrink and install" "Cancel" 11 72; then
+					return "$INSTALL_EX_OK"
+				fi
+			elif ! dialog_yesno " $title " "\nArmbian ($fs_desc, ${gib}GiB) goes to free space on /dev/$disk.\n\nWindows is not changed. Proceed?" "Install" "Cancel" 11 72; then
+				return "$INSTALL_EX_OK"
+			fi
 		fi
 	elif [[ "$boot" == split-emmc ]]; then
 		local emmc; emmc="$(partitioner_emmc_device)"
@@ -438,7 +462,7 @@ partitioner_tui() {
 	local rc_file; rc_file="$(mktemp)"
 	{
 		if [[ "$boot" == uefi-dualboot ]]; then
-			install_run_dualboot "/dev/$disk" "$fs" "$INSTALL_EXCLUDE" "$want_bytes"
+			install_run_dualboot "/dev/$disk" "$fs" "$INSTALL_EXCLUDE" "$want_bytes" "$replace_part"
 		elif [[ "$boot" == split-emmc ]]; then
 			install_run_split "$(partitioner_emmc_device)" "/dev/$disk" "$fs" "$INSTALL_EXCLUDE"
 		else
@@ -578,10 +602,10 @@ partitioner_menu() {
 # ---- non-interactive CLI ----------------------------------------------------
 
 partitioner_cli_install() {
-	# partitioner_cli_install --target /dev/X --boot MODE --fs FS [--size GiB] [crypt flags] [--yes]
+	# partitioner_cli_install --target /dev/X --boot MODE --fs FS [--size GiB] [--replace /dev/Xn[,/dev/Xm]] [crypt flags] [--yes]
 	# The crypt flags set the build framework's CRYPTROOT_* switches; those
 	# can also come from the environment.
-	local target="" boot="" fs="ext4" assume_yes=0 size_gib=0 pwfile=""
+	local target="" boot="" fs="ext4" assume_yes=0 size_gib=0 pwfile="" replace=""
 	INSTALL_LOG="/var/log/armbian-install.log"
 	while [[ $# -gt 0 ]]; do
 		case "$1" in
@@ -589,6 +613,7 @@ partitioner_cli_install() {
 			--boot)   [[ $# -ge 2 ]] || { echo "armbian-install: --boot requires a value" >&2; return "$INSTALL_EX_USAGE"; }; boot="$2"; shift 2 ;;
 			--fs)     [[ $# -ge 2 ]] || { echo "armbian-install: --fs requires a value" >&2; return "$INSTALL_EX_USAGE"; }; fs="$2"; shift 2 ;;
 			--size)   [[ $# -ge 2 ]] || { echo "armbian-install: --size requires a value" >&2; return "$INSTALL_EX_USAGE"; }; size_gib="$2"; shift 2 ;;
+			--replace) [[ $# -ge 2 ]] || { echo "armbian-install: --replace requires a value" >&2; return "$INSTALL_EX_USAGE"; }; replace="$2"; shift 2 ;;
 			--encrypt) CRYPTROOT_ENABLE=yes; shift ;;
 			--autounlock) CRYPTROOT_AUTOUNLOCK=yes; shift ;;
 			--ssh-unlock) CRYPTROOT_SSH_UNLOCK=yes; shift ;;
@@ -608,6 +633,7 @@ partitioner_cli_install() {
 	done
 
 	[[ -b "$target" ]] || { echo "armbian-install: --target must be a block device" >&2; return "$INSTALL_EX_NODEV"; }
+	[[ -z "$replace" || "$boot" == uefi-dualboot ]] || { echo "armbian-install: --replace works only with --boot uefi-dualboot" >&2; return "$INSTALL_EX_USAGE"; }
 	if [[ "${CRYPTROOT_ENABLE:-no}" == yes ]]; then
 		install_crypt_mode_ok "$boot" \
 			|| { echo "armbian-install: --encrypt does not work with --boot $boot: it needs /boot apart from the root" >&2; return "$INSTALL_EX_USAGE"; }
@@ -676,15 +702,34 @@ partitioner_cli_install() {
 		|| { echo "armbian-install: $given no longer points at $target - refusing to continue" >&2; return "$INSTALL_EX_NODEV"; }
 
 	if [[ "$boot" == uefi-dualboot ]]; then
-		[[ "$size_gib" =~ ^[0-9]+$ && "$size_gib" -gt 0 ]] || { echo "armbian-install: --size <GiB> is required for uefi-dualboot" >&2; return "$INSTALL_EX_USAGE"; }
-		# Explain up-front (before touching the disk) if Windows can't be shrunk.
-		local blocker
-		if ! blocker="$(install_dualboot_blocker "$target")"; then
-			echo "$blocker" >&2
-			return "$INSTALL_EX_USAGE"
+		if [[ -n "$replace" ]]; then
+			local -a rparts
+			local rp linux resolved=""
+			IFS=, read -r -a rparts <<<"$replace"
+			linux="$(install_linux_parts "$target" | cut -f1)"
+			for rp in "${rparts[@]}"; do
+				rp="$(readlink -f "$rp")"
+				grep -qxF "$rp" <<<"$linux" \
+					|| { echo "armbian-install: --replace $rp is not a Linux partition on $target" >&2; return "$INSTALL_EX_USAGE"; }
+				resolved+="${resolved:+,}$rp"
+			done
+			replace="$resolved"
+			echo "Installing Armbian alongside Windows on $target in place of $replace ($fs)..."
+			install_run_dualboot "$target" "$fs" "$INSTALL_EXCLUDE" 0 "$replace"
+		else
+			[[ "$size_gib" =~ ^[0-9]+$ && "$size_gib" -gt 0 ]] || { echo "armbian-install: --size <GiB> or --replace <partition> is required for uefi-dualboot" >&2; return "$INSTALL_EX_USAGE"; }
+			local want=$(( size_gib * 1024 * 1024 * 1024 ))
+			# Explain up-front (before touching the disk) if Windows can't be shrunk.
+			if install_dualboot_needs_shrink "$target" "$want"; then
+				local blocker
+				if ! blocker="$(install_dualboot_blocker "$target")"; then
+					echo "$blocker" >&2
+					return "$INSTALL_EX_USAGE"
+				fi
+			fi
+			echo "Installing Armbian alongside Windows on $target (${size_gib}GiB, $fs)..."
+			install_run_dualboot "$target" "$fs" "$INSTALL_EXCLUDE" "$want"
 		fi
-		echo "Installing Armbian alongside Windows on $target (${size_gib}GiB, $fs)..."
-		install_run_dualboot "$target" "$fs" "$INSTALL_EXCLUDE" $(( size_gib * 1024 * 1024 * 1024 ))
 	elif [[ "$boot" == split-emmc ]]; then
 		echo "Installing Armbian: boot on $emmc (eMMC), root on $target ($fs), data at /emmc_storage..."
 		install_run_split "$emmc" "$target" "$fs" "$INSTALL_EXCLUDE"
@@ -800,11 +845,16 @@ partitioner_help() {
 	                         whose bootloader loads /boot from that disk
 	                         (BOOTLOADER_BOOTS_FROM) - current media untouched
 	    --fs     ext4 | btrfs | f2fs
-	    --size   GiB for Armbian (uefi-dualboot only; shrinks Windows)
+	    --size   GiB for Armbian (uefi-dualboot only): free space first,
+	             then space from shrinking Windows
+	    --replace <partition>[,<partition>...]
+	             uefi-dualboot only: install in place of these adjacent
+	             partitions of another Linux install (erased); Windows is
+	             not changed
 	    --yes    required to actually modify the target
 
 	Encrypted root (LUKS), as the build framework's CRYPTROOT_* switches.
-	/boot stays on its own unencrypted partition. Not with sd or uefi-dualboot.
+	/boot stays on its own unencrypted partition. Not with sd.
 	    --encrypt                 CRYPTROOT_ENABLE=yes
 	    --passphrase-file <file>  CRYPTROOT_PASSPHRASE; asked when not given
 	    --autounlock              CRYPTROOT_AUTOUNLOCK=yes: a new keyfile in the
@@ -820,6 +870,7 @@ partitioner_help() {
 
 	Dual-boot with Windows 10/11 (UEFI):
 	  armbian-install --target /dev/sdX --boot uefi-dualboot --fs ext4 --size 32 --yes
+	  armbian-install --target /dev/nvme0n1 --boot uefi-dualboot --fs btrfs --replace /dev/nvme0n1p5 --encrypt --yes
 
 	Flash the bootloader (u-boot) only - no partitioning, no rootfs:
 	  armbian-install bootloader --target mtd --yes            # to SPI/MTD

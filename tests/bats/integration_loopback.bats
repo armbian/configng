@@ -27,7 +27,7 @@ teardown() {
 	local d
 	# A failed crypt test can leave its mapping open, which keeps the loop busy.
 	mountpoint -q "$BATS_TEST_TMPDIR/top" 2>/dev/null && umount "$BATS_TEST_TMPDIR/top"
-	[[ -n "${CRYPTROOT_MAPPER:-}" && -e "/dev/mapper/$CRYPTROOT_MAPPER" ]] && cryptsetup close "$CRYPTROOT_MAPPER"
+	[[ -n "${INSTALL_CRYPT_OPEN:-}" && -e "/dev/mapper/$INSTALL_CRYPT_OPEN" ]] && cryptsetup close "$INSTALL_CRYPT_OPEN"
 	# Unmount first, or losetup -d leaves a busy loop.
 	for d in nr/boot nr/media/boot-media cur/boot old cur top; do
 		mountpoint -q "$BATS_TEST_TMPDIR/$d" 2>/dev/null && umount "$BATS_TEST_TMPDIR/$d"
@@ -385,7 +385,8 @@ _opts() { awk -v t="$1" '$2 == t {print $4}' "$fstab"; }
 _crypt_setup() {
 	command -v cryptsetup >/dev/null || skip "cryptsetup not available"
 	CRYPTROOT_ENABLE=yes
-	CRYPTROOT_MAPPER="bats-crypt-$$"
+	CRYPTROOT_MAPPER="bats-root-$$"
+	INSTALL_CRYPT_OPEN="bats-crypt-$$"
 	# Fast key derivation: the test checks the layout, not the KDF.
 	CRYPTROOT_PARAMETERS="--type luks2 --pbkdf pbkdf2 --pbkdf-force-iterations 1000"
 	install_crypt_defaults
@@ -397,7 +398,7 @@ _crypt_setup() {
 
 _crypt_teardown() {
 	mountpoint -q "$BATS_TEST_TMPDIR/top" && umount "$BATS_TEST_TMPDIR/top"
-	[[ -e "/dev/mapper/${CRYPTROOT_MAPPER:-none}" ]] && cryptsetup close "$CRYPTROOT_MAPPER"
+	[[ -e "/dev/mapper/${INSTALL_CRYPT_OPEN:-none}" ]] && cryptsetup close "$INSTALL_CRYPT_OPEN"
 	return 0
 }
 
@@ -410,15 +411,15 @@ _crypt_teardown() {
 	run install_crypt_format "$part" "$BATS_TEST_TMPDIR/key"
 	[ "$status" -eq 0 ] || { _crypt_teardown; false; }
 	[ "$(cryptsetup luksDump "$part" | awk '/^Version:/ { print $2 }')" = 2 ]
-	install_make_filesystems "root /dev/mapper/$CRYPTROOT_MAPPER ext4"
-	[ "$(blkid -s TYPE -o value "/dev/mapper/$CRYPTROOT_MAPPER")" = ext4 ]
+	install_make_filesystems "root /dev/mapper/$INSTALL_CRYPT_OPEN ext4"
+	[ "$(blkid -s TYPE -o value "/dev/mapper/$INSTALL_CRYPT_OPEN")" = ext4 ]
 	# The passphrase opens it; no keyfile was written.
 	printf '%s' "$CRYPTROOT_PASSPHRASE" | cryptsetup open --test-passphrase --key-file - "$part"
 	[ ! -e "$BATS_TEST_TMPDIR/key" ]
 	run install_crypt_configure_target "$ROOTFS" "$part" ""
 	_crypt_teardown
 	[ "$status" -eq 0 ]
-	grep -qx "$CRYPTROOT_MAPPER UUID=$(blkid -s UUID -o value "$part") none luks" "$ROOTFS/etc/crypttab"
+	grep -qx "$CRYPTROOT_MAPPER UUID=$(blkid -s UUID -o value "$part") none luks,initramfs" "$ROOTFS/etc/crypttab"
 	[ ! -e "$ROOTFS/etc/rootfs.key" ]
 	grep -qx 'CRYPTSETUP=y' "$ROOTFS/etc/cryptsetup-initramfs/conf-hook"
 }
@@ -438,7 +439,7 @@ _crypt_teardown() {
 	[ "$status" -eq 0 ]
 	cmp -s "$BATS_TEST_TMPDIR/key" "$ROOTFS/etc/rootfs.key"
 	[ "$(stat -c %a "$ROOTFS/etc/rootfs.key")" = 600 ]
-	grep -qx "$CRYPTROOT_MAPPER UUID=$(blkid -s UUID -o value "$part") /etc/rootfs.key luks" "$ROOTFS/etc/crypttab"
+	grep -qx "$CRYPTROOT_MAPPER UUID=$(blkid -s UUID -o value "$part") /etc/rootfs.key luks,initramfs" "$ROOTFS/etc/crypttab"
 	grep -qx 'KEYFILE_PATTERN=/etc/rootfs.key' "$ROOTFS/etc/cryptsetup-initramfs/conf-hook"
 	grep -qx 'UMASK=0077' "$ROOTFS/etc/initramfs-tools/conf.d/key-umask.conf"
 }

@@ -132,3 +132,70 @@ teardown() {
 	[ -f "$m/EFI/Microsoft/Boot/bootmgfw.efi" ]
 	umount "$m"
 }
+
+@test "dualboot: replace another Linux install with /boot + root, Windows survives" {
+	local win="${LOOP}p2"
+	# An old Linux install in the space after a shrunk C:.
+	install_shrink_windows "$LOOP" "$win" $((4 * 1024 * 1024 * 1024))
+	local span; span="$(install_part_span "$LOOP" "$win")"
+	local old; old="$(install_create_dualboot_parts "$LOOP" "${span##* }" $(( ${span##* } + 4096 )) btrfs 0 | awk '{print $2}')"
+	mkfs.btrfs -qf -L old_root "$old"
+	blkid "$old" >/dev/null 2>&1 || true
+	udevadm trigger --settle "$old" >/dev/null 2>&1 || udevadm settle
+
+	# It is offered for replacement; Windows, the ESP and the recovery are not.
+	run install_linux_parts "$LOOP"
+	[ "$status" -eq 0 ]
+	[[ "$output" == "$old	"* ]]
+	[ "${#lines[@]}" -eq 1 ]
+
+	# Remove it: the free region is where it was.
+	local region; region="$(install_remove_partition "$LOOP" "$old")"
+	[ "${region%% *}" -le $(( ${span##* } + 1 )) ]
+	[ $(( ${region##* } - ${region%% *} )) -ge 4000 ]
+
+	# /boot (2048 MiB) + root fill the region; the old signature is gone.
+	local parts boot root
+	parts="$(install_create_dualboot_parts "$LOOP" "${region%% *}" "${region##* }" btrfs 1)"
+	boot="$(awk '$1 == "boot" {print $2}' <<<"$parts")"
+	root="$(awk '$1 == "root" {print $2}' <<<"$parts")"
+	[ -b "$boot" ] && [ -b "$root" ]
+	# parted ends a partition on the sector before the end MiB.
+	[ "$(( ($(blockdev --getsize64 "$boot") + 1048575) / 1048576 ))" -eq 2048 ]
+	[ -z "$(blkid -s TYPE -o value "$root")" ]
+	[ "$root" != "${LOOP}p3" ] && [ "$boot" != "${LOOP}p3" ]
+	# The next install replaces /boot and the root as one choice.
+	mkfs.ext4 -qF "$boot"; mkfs.btrfs -qf "$root"
+	blkid "$boot" "$root" >/dev/null 2>&1 || true
+	udevadm trigger --settle "$boot" "$root" >/dev/null 2>&1 || udevadm settle
+	run install_linux_groups "$LOOP"
+	[ "${#lines[@]}" -eq 1 ]
+	[[ "${lines[0]}" == "$boot,$root	"* ]]
+	# Remove both, /boot first: the second removal finds the joined region.
+	local lo; lo="$(install_part_span "$LOOP" "$boot")"; lo="${lo%% *}"
+	install_remove_partition "$LOOP" "$boot" >/dev/null
+	run install_remove_partition "$LOOP" "$root"
+	[ "$status" -eq 0 ]
+	[ "${output%% *}" -le $(( lo + 1 )) ]
+	[ "${output##* }" -ge $(( ${region##* } - 1 )) ]
+
+	# Windows and the recovery are intact.
+	[ "$(blkid -s TYPE -o value "$win")" = "ntfs" ]
+	[ "$(blkid -s TYPE -o value "${LOOP}p3")" = "ntfs" ]
+	local m="$BATS_TEST_TMPDIR/verify"; mkdir -p "$m"
+	mount -t ntfs-3g "$win" "$m"
+	[ "$(sha256sum "$m/payload.bin" | cut -d' ' -f1)" = "$PAYSUM" ]
+	umount "$m"
+}
+
+@test "dualboot: free space right after Windows counts before a shrink" {
+	local win="${LOOP}p2"
+	install_shrink_windows "$LOOP" "$win" $((4 * 1024 * 1024 * 1024))
+	local span after
+	span="$(install_part_span "$LOOP" "$win")"
+	after="$(install_free_region_at "$LOOP" "${span##* }")"
+	# About 6 GiB is free between C: and the recovery partition.
+	[ $(( ${after##* } - ${after%% *} )) -gt 5000 ]
+	install_dualboot_needs_shrink "$LOOP" $((8 * 1024 * 1024 * 1024))
+	! install_dualboot_needs_shrink "$LOOP" $((4 * 1024 * 1024 * 1024))
+}
