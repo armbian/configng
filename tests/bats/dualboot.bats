@@ -182,7 +182,8 @@ setup() {
 
 @test "dualboot fits: an encrypted layout needs more than 4096 MiB" {
 	install_dualboot_fits 0 1
-	! install_dualboot_fits 1 4096
+	run install_dualboot_fits 1 4096
+	[ "$status" -ne 0 ]
 	install_dualboot_fits 1 4097
 }
 
