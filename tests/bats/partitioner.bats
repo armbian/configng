@@ -11,6 +11,7 @@ setup() {
 	partitioner_mtd_list() { :; }
 	partitioner_emmc_device() { echo /dev/mmcblk0; }
 	install_disk_in_use() { return 1; }
+	pkg_update() { :; }
 	unset BOOTLOADER_BOOTS_FROM
 }
 
@@ -409,4 +410,32 @@ setup() {
 	pkg_install() { return 0; }
 	run partitioner_ensure_fs_tool btrfs 0
 	[ "$status" -ne 0 ]
+}
+
+@test "fs packages: the package lists are refreshed before the install" {
+	command() { [[ "$1 $2" == "-v mkfs.btrfs" ]] && return 0; builtin command "$@"; }
+	dpkg() { [[ -e "$BATS_TEST_TMPDIR/pkg" ]] && echo "Status: install ok installed"; }
+	pkg_update() { echo update >>"$BATS_TEST_TMPDIR/order"; }
+	pkg_install() { echo install >>"$BATS_TEST_TMPDIR/order"; : >"$BATS_TEST_TMPDIR/pkg"; }
+	run partitioner_ensure_fs_tool btrfs 0
+	[ "$status" -eq 0 ]
+	[ "$(tr '\n' ' ' <"$BATS_TEST_TMPDIR/order")" = "update install " ]
+}
+
+@test "fs packages: a failed refresh does not stop the install" {
+	command() { [[ "$1 $2" == "-v mkfs.btrfs" ]] && return 0; builtin command "$@"; }
+	dpkg() { [[ -e "$BATS_TEST_TMPDIR/pkg" ]] && echo "Status: install ok installed"; }
+	pkg_update() { return 100; }
+	pkg_install() { : >"$BATS_TEST_TMPDIR/pkg"; }
+	run partitioner_ensure_fs_tool btrfs 0
+	[ "$status" -eq 0 ]
+}
+
+@test "fs packages: no refresh when nothing is missing" {
+	command() { [[ "$2" == mkfs.* ]] && return 0; builtin command "$@"; }
+	dpkg() { echo "Status: install ok installed"; }
+	pkg_update() { : >"$BATS_TEST_TMPDIR/updated"; }
+	run partitioner_ensure_fs_tool btrfs 0
+	[ "$status" -eq 0 ]
+	[ ! -e "$BATS_TEST_TMPDIR/updated" ]
 }
