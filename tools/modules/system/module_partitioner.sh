@@ -214,19 +214,42 @@ partitioner_mode_desc() {
 
 # Ensure mkfs.<fs> is available (the engine refuses to wipe without it). Offers
 # to install the providing package. interactive=1 uses dialogs, 0 prints/plain.
-# Returns 0 when the tool is usable.
+# Returns 0 when the tool is usable. For btrfs, also installs armbian-snapshots.
 partitioner_ensure_fs_tool() {
 	local fs="$1" interactive="${2:-1}" pkg=""
-	command -v "mkfs.$fs" >/dev/null 2>&1 && return 0
-	case "$fs" in btrfs) pkg="btrfs-progs" ;; f2fs) pkg="f2fs-tools" ;; *) return 1 ;; esac
-	if [[ "$interactive" == 1 ]]; then
-		dialog_yesno " Install $pkg " "\nmkfs.$fs is not installed.\n\nInstall $pkg now?" "Install" "Cancel" 9 60 || return 1
-		dialog_infobox " Armbian installer " "\nInstalling $pkg ..." 5 44 2>/dev/null
-	else
-		echo "Installing $pkg ..."
+	if ! command -v "mkfs.$fs" >/dev/null 2>&1; then
+		case "$fs" in btrfs) pkg="btrfs-progs" ;; f2fs) pkg="f2fs-tools" ;; *) return 1 ;; esac
+		if [[ "$interactive" == 1 ]]; then
+			dialog_yesno " Install $pkg " "\nmkfs.$fs is not installed.\n\nInstall $pkg now?" "Install" "Cancel" 9 60 || return 1
+			dialog_infobox " Armbian installer " "\nInstalling $pkg ..." 5 44 2>/dev/null
+		else
+			echo "Installing $pkg ..."
+		fi
+		pkg_install "$pkg" >>"${INSTALL_LOG:-/dev/null}" 2>&1
+		command -v "mkfs.$fs" >/dev/null 2>&1 || return 1
 	fi
-	pkg_install "$pkg" >>"${INSTALL_LOG:-/dev/null}" 2>&1
-	command -v "mkfs.$fs" >/dev/null 2>&1
+	[[ "$fs" != btrfs ]] || partitioner_ensure_snapshots "$interactive"
+	return 0
+}
+
+# Ensure armbian-snapshots is on the running system: the rootfs copy carries
+# it to the btrfs target, where it makes a snapshot before and after each
+# package change. On other root file systems it does nothing. The install
+# works without it, so a failure is only a warning. Always returns 0.
+partitioner_ensure_snapshots() {
+	local interactive="${1:-1}"
+	pkg_installed armbian-snapshots && return 0
+	if [[ "$interactive" == 1 ]]; then
+		dialog_infobox " Armbian installer " "\nInstalling armbian-snapshots ..." 5 50 2>/dev/null
+	else
+		echo "Installing armbian-snapshots ..."
+	fi
+	pkg_install armbian-snapshots >>"${INSTALL_LOG:-/dev/null}" 2>&1
+	pkg_installed armbian-snapshots && return 0
+	local msg="armbian-install: armbian-snapshots is not available; the btrfs root has no automatic snapshots"
+	echo "$msg" >>"${INSTALL_LOG:-/dev/null}"
+	[[ "$interactive" == 1 ]] || echo "$msg" >&2
+	return 0
 }
 
 # Ensure the packages for an encrypted root are on the running system: the
