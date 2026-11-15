@@ -337,12 +337,10 @@ setup() {
 	[ "$(grep '^part=' <<<"$output")" = "part=root:100%:ext4:boot" ]
 }
 
-@test "crypt: sd and uefi-dualboot cannot boot an encrypted root" {
+@test "crypt: sd cannot boot an encrypted root" {
 	run install_crypt_mode_ok sd
 	[ "$status" -ne 0 ]
-	run install_crypt_mode_ok uefi-dualboot
-	[ "$status" -ne 0 ]
-	for m in uefi bios emmc spi standalone mtd ufs native split-emmc; do
+	for m in uefi uefi-dualboot bios emmc spi standalone mtd ufs native split-emmc; do
 		install_crypt_mode_ok "$m"
 	done
 }
@@ -425,8 +423,8 @@ _crypt_check_env() {
 	grep -q 'install cryptsetup-initramfs first' "$INSTALL_LOG"
 }
 
-@test "crypt defaults: a held armbian-root gives the next free name" {
-	unset CRYPTROOT_MAPPER
+@test "crypt defaults: the target is armbian-root, the install opens the next free armbian-target" {
+	unset CRYPTROOT_MAPPER INSTALL_CRYPT_OPEN
 	local held="$BATS_TEST_TMPDIR/mapper"
 	mkdir -p "$held"
 	# Point the /dev/mapper test at a fixture with -e wrapped in a function.
@@ -434,11 +432,15 @@ _crypt_check_env() {
 	eval "$(_crypt_defaults_in)"
 	install_crypt_defaults
 	[ "$CRYPTROOT_MAPPER" = armbian-root ]
-	touch "$held/armbian-root" "$held/armbian-root-2"
-	unset CRYPTROOT_MAPPER
+	[ "$INSTALL_CRYPT_OPEN" = armbian-target ]
+	# An encrypted running system holds armbian-root: the target keeps the name.
+	touch "$held/armbian-root" "$held/armbian-target" "$held/armbian-target-2"
+	unset CRYPTROOT_MAPPER INSTALL_CRYPT_OPEN
 	install_crypt_defaults
-	[ "$CRYPTROOT_MAPPER" = armbian-root-3 ]
-	CRYPTROOT_MAPPER=mine
+	[ "$CRYPTROOT_MAPPER" = armbian-root ]
+	[ "$INSTALL_CRYPT_OPEN" = armbian-target-3 ]
+	CRYPTROOT_MAPPER=mine INSTALL_CRYPT_OPEN=open
 	install_crypt_defaults
 	[ "$CRYPTROOT_MAPPER" = mine ]
+	[ "$INSTALL_CRYPT_OPEN" = open ]
 }
