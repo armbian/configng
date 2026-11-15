@@ -221,7 +221,8 @@ partitioner_fs_packages() {
 	case "$1" in
 		btrfs)
 			command -v mkfs.btrfs >/dev/null 2>&1 || echo btrfs-progs
-			pkg_installed armbian-snapshots || echo armbian-snapshots
+			# Not pkg_installed: a failed configure leaves "half-configured".
+			dpkg -s armbian-snapshots 2>/dev/null | grep -q '^Status: install ok installed' || echo armbian-snapshots
 			;;
 		f2fs) command -v mkfs.f2fs >/dev/null 2>&1 || echo f2fs-tools ;;
 	esac
