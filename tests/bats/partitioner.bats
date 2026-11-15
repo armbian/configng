@@ -357,7 +357,7 @@ setup() {
 
 @test "fs packages: btrfs installs btrfs-progs and armbian-snapshots together, without a question" {
 	command() { [[ "$1 $2" == "-v mkfs.btrfs" ]] && [[ -e "$BATS_TEST_TMPDIR/pkg" ]] && return 0; [[ "$2" == mkfs.* ]] && return 1; builtin command "$@"; }
-	pkg_installed() { [[ -e "$BATS_TEST_TMPDIR/pkg" ]]; }
+	dpkg() { [[ -e "$BATS_TEST_TMPDIR/pkg" ]] && echo "Status: install ok installed"; }
 	dialog_yesno() { echo asked >"$BATS_TEST_TMPDIR/asked"; return 1; }
 	dialog_infobox() { :; }
 	# The output of pkg_install goes to the log: leave a file.
@@ -370,7 +370,7 @@ setup() {
 
 @test "fs packages: btrfs installs only armbian-snapshots when mkfs.btrfs is there" {
 	command() { [[ "$1 $2" == "-v mkfs.btrfs" ]] && return 0; builtin command "$@"; }
-	pkg_installed() { [[ -e "$BATS_TEST_TMPDIR/pkg" ]]; }
+	dpkg() { [[ -e "$BATS_TEST_TMPDIR/pkg" ]] && echo "Status: install ok installed"; }
 	pkg_install() { echo "$*" >"$BATS_TEST_TMPDIR/pkg"; }
 	run partitioner_ensure_fs_tool btrfs 0
 	[ "$status" -eq 0 ]
@@ -379,7 +379,7 @@ setup() {
 
 @test "fs packages: btrfs fails when armbian-snapshots does not install" {
 	command() { [[ "$1 $2" == "-v mkfs.btrfs" ]] && return 0; builtin command "$@"; }
-	pkg_installed() { return 1; }
+	dpkg() { :; }
 	pkg_install() { return 100; }
 	run partitioner_ensure_fs_tool btrfs 0
 	[ "$status" -ne 0 ]
@@ -387,7 +387,7 @@ setup() {
 
 @test "fs packages: nothing to install when all are there" {
 	command() { [[ "$2" == mkfs.* ]] && return 0; builtin command "$@"; }
-	pkg_installed() { return 0; }
+	dpkg() { echo "Status: install ok installed"; }
 	pkg_install() { echo "$*" >"$BATS_TEST_TMPDIR/pkg"; }
 	run partitioner_ensure_fs_tool btrfs 0
 	[ "$status" -eq 0 ]
@@ -397,8 +397,16 @@ setup() {
 }
 
 @test "fs packages: ext4 installs nothing" {
-	pkg_installed() { return 1; }
+	dpkg() { :; }
 	pkg_install() { echo "$*" >"$BATS_TEST_TMPDIR/pkg"; }
 	run partitioner_ensure_fs_tool ext4 0
 	[ ! -e "$BATS_TEST_TMPDIR/pkg" ]
+}
+
+@test "fs packages: a half-configured armbian-snapshots counts as missing" {
+	command() { [[ "$1 $2" == "-v mkfs.btrfs" ]] && return 0; builtin command "$@"; }
+	dpkg() { echo "Status: install ok half-configured"; }
+	pkg_install() { return 0; }
+	run partitioner_ensure_fs_tool btrfs 0
+	[ "$status" -ne 0 ]
 }
