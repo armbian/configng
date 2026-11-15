@@ -1366,6 +1366,36 @@ _install_mkpart() {
 	echo "$n"
 }
 
+_install_replace_region() {
+	# _install_replace_region <part_nums> < "parted -sm <disk> unit MiB print free" (C locale)
+	# Pure: echo "<start_mib> <end_mib>" of the free region after the removal of
+	# <part_nums> (comma-separated). Free space next to them joins the region.
+	# Fails when another partition lies between them.
+	awk -F: -v sel="$1" '
+		BEGIN { n = split(sel, a, ","); for (i = 1; i <= n; i++) want[a[i] + 0] = 1; lo = -1 }
+		/^[0-9]+:/ {
+			s = $2; e = $3; sub(/MiB/, "", s); sub(/MiB/, "", e); s += 0; e += 0
+			k++; S[k] = s; E[k] = e; F[k] = ($NF == "free;"); P[k] = $1 + 0
+			if (!F[k] && (P[k] in want)) { if (lo < 0 || s < lo) lo = s; if (e > hi) hi = e; found++ }
+		}
+		END {
+			if (found != n) exit 1
+			start = lo; end = hi
+			for (i = 1; i <= k; i++) {
+				if (!F[i] && !(P[i] in want) && S[i] < hi - 1 && E[i] > lo + 1) exit 1
+				if (F[i] && E[i] >= lo - 1 && E[i] <= lo + 1) start = S[i]
+				if (F[i] && S[i] >= hi - 1 && S[i] <= hi + 1) end = E[i]
+			}
+			print int(start + 0.999), int(end)
+		}'
+}
+
+install_dualboot_fits() {
+	# install_dualboot_fits <crypt> <mib> - true when <mib> holds the Armbian
+	# partitions. crypt=1 needs more than the 2048 MiB /boot and 2048 MiB root.
+	if [[ "$1" == 1 ]]; then (( $2 > 2048 + 2048 )); else (( $2 > 0 )); fi
+}
+
 install_create_dualboot_parts() {
 	# install_create_dualboot_parts <disk> <start_mib> <end_mib> <fs> <crypt>
 	# Create the Armbian partitions in the free region start..end. crypt=1 adds
@@ -1373,7 +1403,7 @@ install_create_dualboot_parts() {
 	# "boot <dev>" (crypt only) and "root <dev>". Other partitions stay.
 	local disk="$1" start="$2" end="$3" fs="$4" crypt="${5:-0}" dev
 	if [[ "$crypt" == 1 ]]; then
-		(( end - start > 2048 + 2048 )) || { install_log ERR "dualboot: ${start}-${end}MiB is too small for /boot and the root"; return "$INSTALL_EX_NOSPACE"; }
+		install_dualboot_fits 1 $(( end - start )) || { install_log ERR "dualboot: ${start}-${end}MiB is too small for /boot and the root"; return "$INSTALL_EX_NOSPACE"; }
 		dev="$(_install_mkpart "$disk" "$start" $(( start + 2048 )) ext4)" || return
 		echo "boot $dev"
 		start=$(( start + 2048 ))
@@ -2217,6 +2247,13 @@ install_run_dualboot() {
 			[[ -z "$lo" || "${rspan%% *}" -lt "$lo" ]] && lo="${rspan%% *}"
 			(( ${rspan##* } > hi )) && hi="${rspan##* }"
 		done
+		# Check the whole layout before the first removal.
+		local nums="" pros
+		for rp in "${rparts[@]}"; do nums+="${nums:+,}$(grep -oE '[0-9]+$' <<<"$rp")"; done
+		pros="$(LC_ALL=C parted -sm "$disk" unit MiB print free 2>/dev/null | _install_replace_region "$nums")" \
+			|| { install_log ERR "dualboot: $replace are not adjacent - refusing to replace them"; return "$INSTALL_EX_USAGE"; }
+		install_dualboot_fits "$crypt" $(( ${pros##* } - ${pros%% *} )) \
+			|| { install_log ERR "dualboot: ${pros// /-}MiB is too small for /boot and the root"; return "$INSTALL_EX_NOSPACE"; }
 		for rp in "${rparts[@]}"; do
 			install_remove_partition "$disk" "$rp" >/dev/null || return "$INSTALL_EX_PARTITION"
 		done
@@ -2225,6 +2262,8 @@ install_run_dualboot() {
 		install_log INFO "dualboot: removed $replace, Armbian goes to ${region// /-}MiB"
 	else
 		need_mib=$(( (want + 1048575) / 1048576 ))
+		install_dualboot_fits "$crypt" "$need_mib" \
+			|| { install_log ERR "dualboot: ${need_mib}MiB is too small for /boot and the root"; return "$INSTALL_EX_NOSPACE"; }
 		if install_dualboot_needs_shrink "$disk" "$want"; then
 			command -v ntfsresize >/dev/null 2>&1 || { install_log ERR "dualboot: ntfsresize missing - install the ntfs-3g package"; return "$INSTALL_EX_TOOL"; }
 			# Refuse - before any change - if Windows can't be shrunk (BitLocker /

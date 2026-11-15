@@ -159,3 +159,74 @@ setup() {
 	run install_free_region_over /dev/null 2500
 	[ "$status" -ne 0 ]
 }
+
+@test "replace region: joins free space, refuses a partition between the choices" {
+	local out='BYT;
+/dev/x:500000MiB:nvme:512:512:gpt:X:;
+1:0.02MiB:1.00MiB:0.98MiB:free;
+1:1.00MiB:101MiB:100MiB:fat32::boot, esp;
+2:101MiB:200000MiB:199899MiB:ntfs::msftdata;
+1:200000MiB:200100MiB:100MiB:free;
+5:200100MiB:202148MiB:2048MiB:ext4::;
+6:202148MiB:300000MiB:97852MiB:btrfs::;
+3:300000MiB:301000MiB:1000MiB:ntfs::hidden, diag;
+7:301000MiB:302000MiB:1000MiB:btrfs::;'
+	run _install_replace_region 5,6 <<<"$out"
+	[ "$status" -eq 0 ]
+	[ "$output" = "200000 300000" ]
+	run _install_replace_region 6,7 <<<"$out"
+	[ "$status" -ne 0 ]
+	run _install_replace_region 5,9 <<<"$out"
+	[ "$status" -ne 0 ]
+}
+
+@test "dualboot fits: an encrypted layout needs more than 4096 MiB" {
+	install_dualboot_fits 0 1
+	! install_dualboot_fits 1 4096
+	install_dualboot_fits 1 4097
+}
+
+@test "dualboot: refuses non-adjacent or small replacements before any removal" {
+	local dev
+	for dev in /dev/loop0 /dev/sda /dev/vda /dev/nvme0n1 /dev/mmcblk0 ""; do [[ -b "$dev" ]] && break; done
+	[[ -n "$dev" ]] || skip "no block device to point the install at"
+	install_disk_in_use() { return 1; }
+	install_check_fs_tools() { return 0; }
+	install_fs_kernel_supported() { return 0; }
+	install_crypt_check() { return 0; }
+	command() { [[ "$1 $2" == "-v grub-install" ]] && return 0; builtin command "$@"; }
+	install_detect_windows() { printf 'esp=%s1\nwindows=%s2\n' "$dev" "$dev"; }
+	install_linux_parts() { printf '%s5\t1\tbtrfs\t\n%s7\t1\tbtrfs\t\n' "$dev" "$dev"; }
+	install_part_span() { case "$2" in *5) echo "200000 203072" ;; *7) echo "204000 205000" ;; esac; }
+	parted() { printf '%s\n' '5:200000MiB:203072MiB:3072MiB:btrfs::;' '3:203072MiB:204000MiB:928MiB:ntfs::;' '7:204000MiB:205000MiB:1000MiB:btrfs::;'; }
+	install_remove_partition() { : >"$BATS_TEST_TMPDIR/removed"; }
+	INSTALL_LOG="$BATS_TEST_TMPDIR/log"
+	: >"$BATS_TEST_TMPDIR/exclude"
+	run install_run_dualboot "$dev" ext4 "$BATS_TEST_TMPDIR/exclude" 0 "${dev}5,${dev}7"
+	[ "$status" -eq "$INSTALL_EX_USAGE" ]
+	grep -q "not adjacent" "$INSTALL_LOG"
+	# 3072 MiB does not hold an encrypted /boot and root.
+	CRYPTROOT_ENABLE=yes run install_run_dualboot "$dev" ext4 "$BATS_TEST_TMPDIR/exclude" 0 "${dev}5"
+	[ "$status" -eq "$INSTALL_EX_NOSPACE" ]
+	grep -q "too small" "$INSTALL_LOG"
+	[ ! -e "$BATS_TEST_TMPDIR/removed" ]
+}
+
+@test "dualboot: refuses a small encrypted request before Windows shrinks" {
+	local dev
+	for dev in /dev/loop0 /dev/sda /dev/vda /dev/nvme0n1 /dev/mmcblk0 ""; do [[ -b "$dev" ]] && break; done
+	[[ -n "$dev" ]] || skip "no block device to point the install at"
+	install_disk_in_use() { return 1; }
+	install_check_fs_tools() { return 0; }
+	install_fs_kernel_supported() { return 0; }
+	install_crypt_check() { return 0; }
+	command() { [[ "$1 $2" == "-v grub-install" ]] && return 0; builtin command "$@"; }
+	install_detect_windows() { printf 'esp=%s1\nwindows=%s2\n' "$dev" "$dev"; }
+	install_shrink_windows() { : >"$BATS_TEST_TMPDIR/shrunk"; }
+	install_dualboot_needs_shrink() { : >"$BATS_TEST_TMPDIR/shrunk"; return 0; }
+	INSTALL_LOG="$BATS_TEST_TMPDIR/log"
+	: >"$BATS_TEST_TMPDIR/exclude"
+	CRYPTROOT_ENABLE=yes run install_run_dualboot "$dev" ext4 "$BATS_TEST_TMPDIR/exclude" $((3 * GIB))
+	[ "$status" -eq "$INSTALL_EX_NOSPACE" ]
+	[ ! -e "$BATS_TEST_TMPDIR/shrunk" ]
+}
