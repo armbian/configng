@@ -355,61 +355,50 @@ setup() {
 	[ "$output" = "mmcblk0" ]
 }
 
-@test "snapshots: btrfs installs armbian-snapshots when it is missing" {
-	_installed=""
-	command() { [[ "$1 $2" == "-v mkfs.btrfs" ]] && return 0; builtin command "$@"; }
-	pkg_installed() { [[ " $_installed " == *" $1 "* ]]; }
-	pkg_install() { _installed+=" $*"; }
-	partitioner_ensure_fs_tool btrfs 0
-	[[ " $_installed " == *" armbian-snapshots "* ]]
-}
-
-@test "snapshots: ext4 and f2fs do not install armbian-snapshots" {
-	_installed=""
-	command() { [[ "$2" == mkfs.* ]] && return 0; builtin command "$@"; }
-	pkg_installed() { return 1; }
-	pkg_install() { _installed+=" $*"; }
-	partitioner_ensure_fs_tool ext4 0
-	partitioner_ensure_fs_tool f2fs 0
-	[[ -z "$_installed" ]]
-}
-
-@test "snapshots: a missing armbian-snapshots package does not stop the install" {
-	command() { [[ "$1 $2" == "-v mkfs.btrfs" ]] && return 0; builtin command "$@"; }
-	pkg_installed() { return 1; }
-	pkg_install() { return 100; }
-	run partitioner_ensure_fs_tool btrfs 0
-	[ "$status" -eq 0 ]
-	[[ "$output" == *"armbian-snapshots is not available"* ]]
-}
-
-@test "snapshots: no install when armbian-snapshots is already there" {
-	command() { [[ "$1 $2" == "-v mkfs.btrfs" ]] && return 0; builtin command "$@"; }
-	pkg_installed() { return 0; }
-	pkg_install() { echo "$*" >"$BATS_TEST_TMPDIR/pkg"; }
-	run partitioner_ensure_fs_tool btrfs 0
-	[ "$status" -eq 0 ]
-	[ ! -e "$BATS_TEST_TMPDIR/pkg" ]
-}
-
-@test "snapshots: interactive Skip does not install armbian-snapshots" {
-	command() { [[ "$1 $2" == "-v mkfs.btrfs" ]] && return 0; builtin command "$@"; }
-	pkg_installed() { return 1; }
-	dialog_yesno() { return 1; }
+@test "fs packages: btrfs installs btrfs-progs and armbian-snapshots together, without a question" {
+	command() { [[ "$1 $2" == "-v mkfs.btrfs" ]] && [[ -e "$BATS_TEST_TMPDIR/pkg" ]] && return 0; [[ "$2" == mkfs.* ]] && return 1; builtin command "$@"; }
+	pkg_installed() { [[ -e "$BATS_TEST_TMPDIR/pkg" ]]; }
+	dialog_yesno() { echo asked >"$BATS_TEST_TMPDIR/asked"; return 1; }
+	dialog_infobox() { :; }
 	# The output of pkg_install goes to the log: leave a file.
 	pkg_install() { echo "$*" >"$BATS_TEST_TMPDIR/pkg"; }
 	run partitioner_ensure_fs_tool btrfs 1
 	[ "$status" -eq 0 ]
+	grep -qx "btrfs-progs armbian-snapshots" "$BATS_TEST_TMPDIR/pkg"
+	[ ! -e "$BATS_TEST_TMPDIR/asked" ]
+}
+
+@test "fs packages: btrfs installs only armbian-snapshots when mkfs.btrfs is there" {
+	command() { [[ "$1 $2" == "-v mkfs.btrfs" ]] && return 0; builtin command "$@"; }
+	pkg_installed() { [[ -e "$BATS_TEST_TMPDIR/pkg" ]]; }
+	pkg_install() { echo "$*" >"$BATS_TEST_TMPDIR/pkg"; }
+	run partitioner_ensure_fs_tool btrfs 0
+	[ "$status" -eq 0 ]
+	grep -qx armbian-snapshots "$BATS_TEST_TMPDIR/pkg"
+}
+
+@test "fs packages: btrfs fails when armbian-snapshots does not install" {
+	command() { [[ "$1 $2" == "-v mkfs.btrfs" ]] && return 0; builtin command "$@"; }
+	pkg_installed() { return 1; }
+	pkg_install() { return 100; }
+	run partitioner_ensure_fs_tool btrfs 0
+	[ "$status" -ne 0 ]
+}
+
+@test "fs packages: nothing to install when all are there" {
+	command() { [[ "$2" == mkfs.* ]] && return 0; builtin command "$@"; }
+	pkg_installed() { return 0; }
+	pkg_install() { echo "$*" >"$BATS_TEST_TMPDIR/pkg"; }
+	run partitioner_ensure_fs_tool btrfs 0
+	[ "$status" -eq 0 ]
+	run partitioner_ensure_fs_tool f2fs 0
+	[ "$status" -eq 0 ]
 	[ ! -e "$BATS_TEST_TMPDIR/pkg" ]
 }
 
-@test "snapshots: interactive Install installs armbian-snapshots" {
-	command() { [[ "$1 $2" == "-v mkfs.btrfs" ]] && return 0; builtin command "$@"; }
+@test "fs packages: ext4 installs nothing" {
 	pkg_installed() { return 1; }
-	dialog_yesno() { return 0; }
-	dialog_infobox() { :; }
 	pkg_install() { echo "$*" >"$BATS_TEST_TMPDIR/pkg"; }
-	run partitioner_ensure_fs_tool btrfs 1
-	[ "$status" -eq 0 ]
-	grep -qx armbian-snapshots "$BATS_TEST_TMPDIR/pkg"
+	run partitioner_ensure_fs_tool ext4 0
+	[ ! -e "$BATS_TEST_TMPDIR/pkg" ]
 }

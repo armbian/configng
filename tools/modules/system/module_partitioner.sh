@@ -212,46 +212,35 @@ partitioner_mode_desc() {
 	esac
 }
 
-# Ensure mkfs.<fs> is available (the engine refuses to wipe without it). Offers
-# to install the providing package. interactive=1 uses dialogs, 0 prints/plain.
-# Returns 0 when the tool is usable. For btrfs, also installs armbian-snapshots.
-partitioner_ensure_fs_tool() {
-	local fs="$1" interactive="${2:-1}" pkg=""
-	if ! command -v "mkfs.$fs" >/dev/null 2>&1; then
-		case "$fs" in btrfs) pkg="btrfs-progs" ;; f2fs) pkg="f2fs-tools" ;; *) return 1 ;; esac
-		if [[ "$interactive" == 1 ]]; then
-			dialog_yesno " Install $pkg " "\nmkfs.$fs is not installed.\n\nInstall $pkg now?" "Install" "Cancel" 9 60 || return 1
-			dialog_infobox " Armbian installer " "\nInstalling $pkg ..." 5 44 2>/dev/null
-		else
-			echo "Installing $pkg ..."
-		fi
-		pkg_install "$pkg" >>"${INSTALL_LOG:-/dev/null}" 2>&1
-		command -v "mkfs.$fs" >/dev/null 2>&1 || return 1
-	fi
-	[[ "$fs" != btrfs ]] || partitioner_ensure_snapshots "$interactive"
+# Ensure the packages for a <fs> root are on the running system: mkfs.<fs>
+# (the engine refuses to wipe without it) and, for btrfs, armbian-snapshots
+# (the rootfs copy carries it to the target). Installs the missing ones,
+# without a question. interactive=1 shows an infobox, 0 prints. Returns 0
+# when all are there.
+partitioner_fs_packages() {
+	case "$1" in
+		btrfs)
+			command -v mkfs.btrfs >/dev/null 2>&1 || echo btrfs-progs
+			pkg_installed armbian-snapshots || echo armbian-snapshots
+			;;
+		f2fs) command -v mkfs.f2fs >/dev/null 2>&1 || echo f2fs-tools ;;
+	esac
 	return 0
 }
 
-# Ensure armbian-snapshots is on the running system: the rootfs copy carries
-# it to the btrfs target, where it makes a snapshot before and after each
-# package change. On other root file systems it does nothing. The install
-# works without it: interactive mode asks first, and a failure is only a
-# warning. Always returns 0.
-partitioner_ensure_snapshots() {
-	local interactive="${1:-1}"
-	pkg_installed armbian-snapshots && return 0
+partitioner_ensure_fs_tool() {
+	local fs="$1" interactive="${2:-1}" missing
+	case "$fs" in btrfs|f2fs) ;; *) command -v "mkfs.$fs" >/dev/null 2>&1; return ;; esac
+	missing="$(partitioner_fs_packages "$fs" | xargs)"
+	[[ -z "$missing" ]] && return 0
 	if [[ "$interactive" == 1 ]]; then
-		dialog_yesno " Install armbian-snapshots " "\nMake a snapshot of the btrfs root before and after each package change?\n\nInstall armbian-snapshots now?" "Install" "Skip" 10 64 || return 0
-		dialog_infobox " Armbian installer " "\nInstalling armbian-snapshots ..." 5 50 2>/dev/null
+		dialog_infobox " Armbian installer " "\nInstalling $missing ..." 5 60 2>/dev/null
 	else
-		echo "Installing armbian-snapshots ..."
+		echo "Installing $missing ..."
 	fi
-	pkg_install armbian-snapshots >>"${INSTALL_LOG:-/dev/null}" 2>&1
-	pkg_installed armbian-snapshots && return 0
-	local msg="armbian-install: armbian-snapshots is not available; the btrfs root has no automatic snapshots"
-	echo "$msg" >>"${INSTALL_LOG:-/dev/null}"
-	[[ "$interactive" == 1 ]] || echo "$msg" >&2
-	return 0
+	# shellcheck disable=SC2086 # one word per package
+	pkg_install $missing >>"${INSTALL_LOG:-/dev/null}" 2>&1
+	[[ -z "$(partitioner_fs_packages "$fs")" ]]
 }
 
 # Ensure the packages for an encrypted root are on the running system: the
@@ -382,7 +371,7 @@ partitioner_tui() {
 	fs=$(dialog_menu " $title " "\nRoot filesystem for /dev/$disk:" 0 60 6 -- "${fsmenu[@]}")
 	[[ -z "$fs" ]] && return "$INSTALL_EX_OK"
 	if ! partitioner_ensure_fs_tool "$fs" 1; then
-		dialog_msgbox " $title " "\nCannot format as $fs: mkfs.$fs is unavailable.\n\nInstall the package and try again."
+		dialog_msgbox " $title " "\nCannot format as $fs: $(partitioner_fs_packages "$fs" | xargs) not installed.\n\nInstall the packages and try again."
 		return "$INSTALL_EX_TOOL"
 	fi
 
@@ -666,7 +655,7 @@ partitioner_cli_install() {
 		! install_disk_in_use "$emmc" || { echo "armbian-install: --boot split-emmc would erase the eMMC ($emmc), which is in use (mounted, swap, or lsblk failed)" >&2; return "$INSTALL_EX_USAGE"; }
 	fi
 	if ! partitioner_ensure_fs_tool "$fs" 0; then
-		echo "armbian-install: mkfs.$fs unavailable; install its package and retry" >&2
+		echo "armbian-install: the packages for a $fs root are unavailable: $(partitioner_fs_packages "$fs" | xargs)" >&2
 		return "$INSTALL_EX_TOOL"
 	fi
 	if [[ "${CRYPTROOT_ENABLE:-no}" == yes ]] && ! partitioner_ensure_crypt_tools 0; then
