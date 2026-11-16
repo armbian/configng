@@ -178,6 +178,10 @@ setup() {
 	[ "$status" -ne 0 ]
 	run _install_replace_region 5,9 <<<"$out"
 	[ "$status" -ne 0 ]
+	# A 1 MiB partition between the choices also blocks.
+	run _install_replace_region 5,6 <<<"${out/6:202148MiB/8:202148MiB:202149MiB:1MiB:ext4::;
+6:202149MiB}"
+	[ "$status" -ne 0 ]
 }
 
 @test "dualboot fits: an encrypted layout needs more than 4096 MiB" {

@@ -1382,7 +1382,7 @@ _install_replace_region() {
 			if (found != n) exit 1
 			start = lo; end = hi
 			for (i = 1; i <= k; i++) {
-				if (!F[i] && !(P[i] in want) && S[i] < hi - 1 && E[i] > lo + 1) exit 1
+				if (!F[i] && !(P[i] in want) && S[i] < hi && E[i] > lo) exit 1
 				if (F[i] && E[i] >= lo - 1 && E[i] <= lo + 1) start = S[i]
 				if (F[i] && S[i] >= hi - 1 && S[i] <= hi + 1) end = E[i]
 			}
@@ -2262,7 +2262,8 @@ install_run_dualboot() {
 		install_log INFO "dualboot: removed $replace, Armbian goes to ${region// /-}MiB"
 	else
 		need_mib=$(( (want + 1048575) / 1048576 ))
-		install_dualboot_fits "$crypt" "$need_mib" \
+		# 2 MiB slack: the region after a shrink rounds to whole MiB.
+		install_dualboot_fits "$crypt" $(( need_mib - 2 )) \
 			|| { install_log ERR "dualboot: ${need_mib}MiB is too small for /boot and the root"; return "$INSTALL_EX_NOSPACE"; }
 		if install_dualboot_needs_shrink "$disk" "$want"; then
 			command -v ntfsresize >/dev/null 2>&1 || { install_log ERR "dualboot: ntfsresize missing - install the ntfs-3g package"; return "$INSTALL_EX_TOOL"; }
