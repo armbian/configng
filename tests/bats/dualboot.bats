@@ -182,6 +182,13 @@ setup() {
 	run _install_replace_region 5,6 <<<"${out/6:202148MiB/8:202148MiB:202149MiB:1MiB:ext4::;
 6:202149MiB}"
 	[ "$status" -ne 0 ]
+	# A partition under 1 MiB between the choices also blocks.
+	run _install_replace_region 1,2 <<-'PARTED'
+	1:100MiB:200MiB:100MiB:ext4::;
+	3:200MiB:200.5MiB:0.5MiB:ext4::;
+	2:200.5MiB:201MiB:0.5MiB:btrfs::;
+	PARTED
+	[ "$status" -ne 0 ]
 }
 
 @test "dualboot fits: an encrypted layout needs more than 4096 MiB" {
@@ -234,4 +241,28 @@ setup() {
 	CRYPTROOT_ENABLE=yes run install_run_dualboot "$dev" ext4 "$BATS_TEST_TMPDIR/exclude" $((3 * GIB))
 	[ "$status" -eq "$INSTALL_EX_NOSPACE" ]
 	[ ! -e "$BATS_TEST_TMPDIR/shrunk" ]
+}
+
+@test "dualboot: a shrink frees the slack of install_shrink_windows too" {
+	local dev
+	for dev in /dev/loop0 /dev/sda /dev/vda /dev/nvme0n1 /dev/mmcblk0 ""; do [[ -b "$dev" ]] && break; done
+	[[ -n "$dev" ]] || skip "no block device to point the install at"
+	install_disk_in_use() { return 1; }
+	install_check_fs_tools() { return 0; }
+	install_fs_kernel_supported() { return 0; }
+	install_crypt_check() { return 0; }
+	command() { [[ "$1 $2" == "-v grub-install" || "$1 $2" == "-v ntfsresize" ]] && return 0; builtin command "$@"; }
+	install_detect_windows() { printf 'esp=%s1\nwindows=%s2\n' "$dev" "$dev"; }
+	install_dualboot_needs_shrink() { return 0; }
+	install_dualboot_blocker() { return 0; }
+	blockdev() { echo $((200 * GIB)); }
+	install_windows_min_bytes() { echo $((50 * GIB)); }
+	install_part_span() { echo "100 204900"; }
+	install_free_region_at() { return 1; }
+	install_shrink_windows() { echo "$3" >"$BATS_TEST_TMPDIR/new_win"; return "$INSTALL_EX_PARTITION"; }
+	INSTALL_LOG="$BATS_TEST_TMPDIR/log"
+	: >"$BATS_TEST_TMPDIR/exclude"
+	CRYPTROOT_ENABLE=yes run install_run_dualboot "$dev" ext4 "$BATS_TEST_TMPDIR/exclude" $((4097 * 1048576))
+	[ "$status" -eq "$INSTALL_EX_PARTITION" ]
+	[ "$(cat "$BATS_TEST_TMPDIR/new_win")" -eq $((200 * GIB - (4097 + 18) * 1048576)) ]
 }
