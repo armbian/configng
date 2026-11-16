@@ -540,7 +540,8 @@ install_transfer_rootfs() {
 		echo "${PIPESTATUS[0]}" >"$rc_file"
 	}
 	local rc; rc="$(cat "$rc_file")"; rm -f "$rc_file"
-	[[ "$rc" == "0" ]] || { install_log ERR "transfer: rsync exit $rc"; return "$INSTALL_EX_TRANSFER"; }
+	# Exit 24 means files vanished during the copy (normal on a live system).
+	[[ "$rc" == "0" || "$rc" == "24" ]] || { install_log ERR "transfer: rsync exit $rc"; return "$INSTALL_EX_TRANSFER"; }
 
 	# Second, quiet pass to catch files that changed during the first copy.
 	rsync -ax --delete --exclude-from="$exclude" "$src" "$dest" >>"$INSTALL_LOG" 2>&1 || true
@@ -1214,14 +1215,14 @@ install_create_free_partition() {
 	# Does NOT relabel or wipe - existing partitions are preserved.
 	local disk="$1" fs="$2" hint
 	hint="$(_install_parted_fs_hint "$fs")"
-	# Largest free block (MiB) from parted's free-space report - track its END too.
-	local fstart fend fsize best_start="" best_end="" best_size=0
-	while IFS=: read -r _ fstart fend fsize _; do
-		[[ "$fsize" == *MiB ]] || continue
-		local s="${fstart%MiB}" e="${fend%MiB}" z="${fsize%MiB}"
-		s="${s%.*}"; e="${e%.*}"; z="${z%.*}"
-		if (( z > best_size )); then best_size="$z"; best_start="$s"; best_end="$e"; fi
-	done < <(parted -sm "$disk" unit MiB print free 2>/dev/null | grep ':free;$')
+	# Largest free block, aligned to 1 MiB. Use sectors: parted rounds MiB output,
+	# so a block that starts one sector past a MiB boundary looks aligned.
+	local ss best_start="" best_end=""
+	ss="$(LC_ALL=C parted -sm "$disk" unit s print 2>/dev/null | awk -F: 'NR == 2 { print $4 }')"
+	[[ "$ss" =~ ^[0-9]+$ ]] && (( ss > 0 )) \
+		|| { install_log ERR "create_free: cannot read the sector size of $disk"; return "$INSTALL_EX_PARTITION"; }
+	read -r best_start best_end < <(LC_ALL=C parted -sm "$disk" unit s print free 2>/dev/null \
+		| _install_largest_free_sectors $(( 1048576 / ss )))
 	[[ -n "$best_start" ]] || { install_log ERR "create_free: no free space on $disk"; return "$INSTALL_EX_NOSPACE"; }
 
 	# Record existing partition numbers: parted numbers by creation order but
@@ -1235,8 +1236,8 @@ install_create_free_partition() {
 	# collide with a trailing partition and force parted to clamp/prompt.
 	local -a mkpart_args=(mkpart primary)
 	[[ -n "$hint" ]] && mkpart_args+=("$hint")
-	mkpart_args+=("${best_start}MiB" "${best_end}MiB")
-	printf 'Yes\nYes\n' | parted ---pretend-input-tty -a optimal "$disk" unit MiB "${mkpart_args[@]}" >>"$INSTALL_LOG" 2>&1 \
+	mkpart_args+=("${best_start}s" "${best_end}s")
+	parted -s -a optimal "$disk" unit s "${mkpart_args[@]}" >>"$INSTALL_LOG" 2>&1 \
 		|| { install_log ERR "create_free: mkpart failed"; return "$INSTALL_EX_PARTITION"; }
 	partprobe "$disk" >>"$INSTALL_LOG" 2>&1 || true
 	udevadm settle >>"$INSTALL_LOG" 2>&1 || true
@@ -1261,6 +1262,18 @@ _install_free_regions() {
 		s = int(s + 0.999); e = int(e)
 		if (e - s >= 8) print s, e, e - s
 	}'
+}
+
+_install_largest_free_sectors() {
+	# _install_largest_free_sectors <align> < "parted -sm <disk> unit s print free"
+	# Pure: echo "<start> <end>" (inclusive sectors) of the largest free region.
+	# The start rounds up and the end rounds down to <align> sectors.
+	# Regions under 8 MiB after alignment are ignored.
+	awk -F: -v a="$1" '$NF == "free;" {
+		s = $2; e = $3; sub(/s$/, "", s); sub(/s$/, "", e)
+		s = int((s + a - 1) / a) * a; e = int((e + 1) / a) * a - 1
+		if (e - s + 1 >= 8 * a && e - s > best) { best = e - s; bs = s; be = e }
+	} END { if (best) printf "%.0f %.0f\n", bs, be }'
 }
 
 install_free_regions() {
