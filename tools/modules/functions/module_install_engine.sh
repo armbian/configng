@@ -2262,8 +2262,7 @@ install_run_dualboot() {
 		install_log INFO "dualboot: removed $replace, Armbian goes to ${region// /-}MiB"
 	else
 		need_mib=$(( (want + 1048575) / 1048576 ))
-		# 2 MiB slack: the region after a shrink rounds to whole MiB.
-		install_dualboot_fits "$crypt" $(( need_mib - 2 )) \
+		install_dualboot_fits "$crypt" "$need_mib" \
 			|| { install_log ERR "dualboot: ${need_mib}MiB is too small for /boot and the root"; return "$INSTALL_EX_NOSPACE"; }
 		if install_dualboot_needs_shrink "$disk" "$want"; then
 			command -v ntfsresize >/dev/null 2>&1 || { install_log ERR "dualboot: ntfsresize missing - install the ntfs-3g package"; return "$INSTALL_EX_TOOL"; }
@@ -2277,7 +2276,9 @@ install_run_dualboot() {
 			wmin="$(install_windows_min_bytes "$win")"
 			span="$(install_part_span "$disk" "$win")" || { install_log ERR "dualboot: cannot read $win on $disk"; return "$INSTALL_EX_PARTITION"; }
 			after="$(install_free_region_at "$disk" "${span##* }")" && tail_mib=$(( ${after##* } - ${after%% *} ))
-			plan="$(install_dualboot_plan "$wsize" "$wmin" $(( tail_mib * 1048576 )) "$want")" || return "$INSTALL_EX_NOSPACE"
+			# install_shrink_windows keeps 16 MiB slack and rounds up 1 MiB; the
+			# region rounds to whole MiB. Free 18 MiB more to hold <want>.
+			plan="$(install_dualboot_plan "$wsize" "$wmin" $(( tail_mib * 1048576 )) $(( want + 18 * 1048576 )))" || return "$INSTALL_EX_NOSPACE"
 			new_win="$(sed -n 's/^shrink_to=//p' <<<"$plan")"
 			if (( new_win < wsize )); then
 				install_shrink_windows "$disk" "$win" "$new_win" || return "$INSTALL_EX_PARTITION"
