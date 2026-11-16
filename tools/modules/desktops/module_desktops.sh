@@ -342,6 +342,26 @@ function _module_desktops_rockchip_multimedia() {
 # resolution, same as module_desktop_branding.
 #
 #
+# HiDPI panel (wider than 1920 px): double the greeter and Xfce scale.
+# armbian-firstlogin does this for images. A desktop installed after
+# the first login needs it here. Not in build mode: /sys shows the
+# build host there.
+#
+function _module_desktops_hidpi() {
+	local width xsettings=/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml
+	width=$(cut -d, -f1 /sys/class/graphics/fb0/virtual_size 2> /dev/null)
+	[[ "$width" =~ ^[0-9]+$ ]] && (( width > 1920 )) || return 0
+
+	if [[ -f /etc/lightdm/slick-greeter.conf ]] &&
+		! grep -q '^enable-hidpi *= *on' /etc/lightdm/slick-greeter.conf; then
+		echo "enable-hidpi = on" >> /etc/lightdm/slick-greeter.conf
+	fi
+	if [[ -f "$xsettings" ]]; then
+		sed -i 's|\(name="WindowScalingFactor" type="int" value="\)[0-9]*"|\12"|' "$xsettings"
+	fi
+}
+
+#
 # Wire fprintd into PAM so fingerprint login / sudo / screen-unlock
 # works as soon as the user enrols a finger. libpam-fprintd installs
 # the PAM module but does NOT enable it by default - pam-auth-update
@@ -817,6 +837,8 @@ function module_desktops() {
 					_module_desktops_configure_psd "$mode" "$user"
 					touch "${user_home}/.activate_psd"
 				fi
+
+				_module_desktops_hidpi
 
 				# update skel to existing users
 				module_update_skel install
