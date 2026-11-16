@@ -40,3 +40,15 @@ setup() {
 	run install_transfer_rootfs "$BATS_TEST_TMPDIR/nope" "$EX" 1 "$SRC/"
 	[ "$status" -eq 70 ]   # INSTALL_EX_TRANSFER
 }
+
+@test "transfer: rsync exit 24 (vanished files) is not an error" {
+	rsync() { return 24; }
+	run install_transfer_rootfs "$DEST" "$EX" 1 "$SRC/"
+	[ "$status" -eq 0 ]
+}
+
+@test "transfer: other rsync errors fail" {
+	rsync() { return 23; }
+	run install_transfer_rootfs "$DEST" "$EX" 1 "$SRC/"
+	[ "$status" -eq 70 ]   # INSTALL_EX_TRANSFER
+}

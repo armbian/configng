@@ -78,6 +78,32 @@ setup() {
 	[ "$output" = "282714 487498 204784" ]
 }
 
+@test "largest free sectors: aligns a start one sector past a MiB boundary" {
+	# Real case: C: ends at sector 578998272, so free space starts at 578998273.
+	run _install_largest_free_sectors 2048 <<-'PARTED'
+	BYT;
+	/dev/nvme0n1:1000215216s:nvme:512:512:gpt:SAMSUNG:;
+	1:34s:2047s:2014s:free;
+	1:2048s:206847s:204800s:fat32:Basic data partition:boot, esp;
+	3:239616s:578998272s:578758657s:ntfs:Basic data partition:msftdata;
+	1:578998273s:998395903s:419397631s:free;
+	4:998395904s:1000212479s:1816576s:ntfs::hidden, diag;
+	1:1000212480s:1000215182s:2703s:free;
+	PARTED
+	[ "$status" -eq 0 ]
+	[ "$output" = "579000320 998395903" ]
+}
+
+@test "largest free sectors: no usable region gives no output" {
+	run _install_largest_free_sectors 2048 <<-'PARTED'
+	BYT;
+	/dev/sda:1000s:scsi:512:512:gpt:X:;
+	1:34s:999s:966s:free;
+	PARTED
+	[ "$status" -eq 0 ]
+	[ -z "$output" ]
+}
+
 @test "linux parts: finds another Linux install, never Windows or the ESP" {
 	local json='{"blockdevices":[{"name":"/dev/nvme0n1","children":[
 		{"name":"/dev/nvme0n1p1","fstype":"vfat","parttypename":"EFI System","size":104857600,"label":null},
