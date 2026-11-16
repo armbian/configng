@@ -1591,7 +1591,7 @@ install_crypt_configure_target() {
 		echo "UMASK=0077" >"$rootfs/etc/initramfs-tools/conf.d/key-umask.conf"
 		echo "KEYFILE_PATTERN=/etc/rootfs.key" >>"$hook"
 	fi
-	echo "$CRYPTROOT_MAPPER UUID=$uuid $keyspec luks" >>"$crypttab"
+	echo "$CRYPTROOT_MAPPER UUID=$uuid $keyspec luks,initramfs" >>"$crypttab"
 	# Put cryptsetup into the initramfs, also when the hook cannot see the
 	# mapping from the install chroot.
 	mkdir -p "$(dirname "$hook")"
@@ -1607,7 +1607,7 @@ install_crypt_configure_target() {
 		sed -i '/^DROPBEAR_OPTIONS=/d' "$dir/$conf" 2>/dev/null
 		echo "DROPBEAR_OPTIONS=\"-I 100 -j -k -p ${CRYPTROOT_SSH_UNLOCK_PORT} -s -c cryptroot-unlock\"" >>"$dir/$conf"
 	fi
-	install_log INFO "crypt: target crypttab: $CRYPTROOT_MAPPER UUID=$uuid $keyspec luks"
+	install_log INFO "crypt: target crypttab: $CRYPTROOT_MAPPER UUID=$uuid $keyspec luks,initramfs"
 }
 
 install_run_scenario() {

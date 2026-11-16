@@ -418,7 +418,7 @@ _crypt_teardown() {
 	run install_crypt_configure_target "$ROOTFS" "$part" ""
 	_crypt_teardown
 	[ "$status" -eq 0 ]
-	grep -qx "$CRYPTROOT_MAPPER UUID=$(blkid -s UUID -o value "$part") none luks" "$ROOTFS/etc/crypttab"
+	grep -qx "$CRYPTROOT_MAPPER UUID=$(blkid -s UUID -o value "$part") none luks,initramfs" "$ROOTFS/etc/crypttab"
 	[ ! -e "$ROOTFS/etc/rootfs.key" ]
 	grep -qx 'CRYPTSETUP=y' "$ROOTFS/etc/cryptsetup-initramfs/conf-hook"
 }
@@ -438,7 +438,7 @@ _crypt_teardown() {
 	[ "$status" -eq 0 ]
 	cmp -s "$BATS_TEST_TMPDIR/key" "$ROOTFS/etc/rootfs.key"
 	[ "$(stat -c %a "$ROOTFS/etc/rootfs.key")" = 600 ]
-	grep -qx "$CRYPTROOT_MAPPER UUID=$(blkid -s UUID -o value "$part") /etc/rootfs.key luks" "$ROOTFS/etc/crypttab"
+	grep -qx "$CRYPTROOT_MAPPER UUID=$(blkid -s UUID -o value "$part") /etc/rootfs.key luks,initramfs" "$ROOTFS/etc/crypttab"
 	grep -qx 'KEYFILE_PATTERN=/etc/rootfs.key' "$ROOTFS/etc/cryptsetup-initramfs/conf-hook"
 	grep -qx 'UMASK=0077' "$ROOTFS/etc/initramfs-tools/conf.d/key-umask.conf"
 }
