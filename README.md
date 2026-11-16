@@ -57,7 +57,7 @@ bin/armbian-config          Entry point script
 tools/config-assemble.sh    Assembles modules and jobs (production / testing)
 tools/config-markdown.py    Generates Markdown docs from the merged JSON
 tools/json/                 Per-section JSON (help, localisation, network, software, system, temp)
-tools/modules/              Shell modules (desktops, system, etc.) and desktop assets
+tools/modules/              Shell modules and desktop assets
 tools/include/              Per-ID header/footer Markdown snippets and images
 share/                      .desktop entry and application icons
 tests/                      Per-feature unit test .conf files and bats test suites
@@ -98,7 +98,7 @@ Debian packaging (see `debian.conf`) declares runtime dependencies including `ba
 
 ## Continuous Integration
 
-CI is driven by GitHub Actions workflows under `.github/workflows/` covering JSON validation, shell linting, coding style, bats tests, Debian packaging, documentation builds, label sync, PR triage, and a periodic desktop matrix audit.
+CI runs via GitHub Actions workflows under `.github/workflows/`, covering JSON validation, shell linting, coding-style checks, bats tests, Debian packaging, documentation builds, label sync, PR triage, and a periodic desktop matrix audit.
 
 For an overview of workflow status for this repository, see the Armbian CI dashboard:
 
