@@ -52,3 +52,10 @@ setup() {
 	run install_transfer_rootfs "$DEST" "$EX" 1 "$SRC/"
 	[ "$status" -eq 70 ]   # INSTALL_EX_TRANSFER
 }
+
+@test "transfer: a failed second rsync pass fails" {
+	# First pass exits 24 (vanished files), second pass exits 23.
+	rsync() { [[ " $* " == *" --info=progress2 "* ]] && return 24; return 23; }
+	run install_transfer_rootfs "$DEST" "$EX" 1 "$SRC/"
+	[ "$status" -eq 70 ]   # INSTALL_EX_TRANSFER
+}

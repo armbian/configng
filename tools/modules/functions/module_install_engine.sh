@@ -544,7 +544,9 @@ install_transfer_rootfs() {
 	[[ "$rc" == "0" || "$rc" == "24" ]] || { install_log ERR "transfer: rsync exit $rc"; return "$INSTALL_EX_TRANSFER"; }
 
 	# Second, quiet pass to catch files that changed during the first copy.
-	rsync -ax --delete --exclude-from="$exclude" "$src" "$dest" >>"$INSTALL_LOG" 2>&1 || true
+	rc=0
+	rsync -ax --delete --exclude-from="$exclude" "$src" "$dest" >>"$INSTALL_LOG" 2>&1 || rc=$?
+	[[ "$rc" == "0" || "$rc" == "24" ]] || { install_log ERR "transfer: second rsync pass exit $rc"; return "$INSTALL_EX_TRANSFER"; }
 }
 
 # ---- boot configuration -----------------------------------------------------
