@@ -316,9 +316,12 @@ tier_overrides:
           amd64:    { packages: [intel-lpmd, ubuntu-drivers-common] }
           arm64:    { packages: [ubuntu-drivers-common] }
       resolute:
+        # armbian-firstrun-gui (apt.armbian.com) has no resolute/riscv64
+        # build yet. Transient: drop the riscv64 entry once published.
         architectures:
           amd64:    { packages: [intel-lpmd, ubuntu-drivers-common] }
           arm64:    { packages: [ubuntu-drivers-common] }
+          riscv64:  { packages_remove: [armbian-firstrun-gui] }
       bookworm:
         # fonts-ubuntu is an Ubuntu-only package; Debian doesn't
         # ship it. Strip it on every Debian release. The Ubuntu
@@ -390,11 +393,13 @@ tier_overrides:
         # loupe was introduced with GNOME 44/45; Ubuntu 22.04 (jammy)
         # shipped GNOME 42 and has no loupe package on any arch.
         # Jammy has one glmark2 package per API, with no X11 split.
+        # mesa-vulkan-drivers is not built for jammy/riscv64 (transient
+        # archive hole, Ubuntu 22.04 riscv64 port; noble+ ship it).
         architectures:
           amd64:    { packages: &jammy_glmark2 [glmark2, glmark2-es2], packages_remove: &jammy_mid_rm [loupe, glmark2-x11, glmark2-es2-x11] }
           arm64:    { packages: *jammy_glmark2, packages_remove: *jammy_mid_rm }
           armhf:    { packages: *jammy_glmark2, packages_remove: *jammy_mid_rm }
-          riscv64:  { packages: *jammy_glmark2, packages_remove: *jammy_mid_rm }
+          riscv64:  { packages: *jammy_glmark2, packages_remove: [loupe, glmark2-x11, glmark2-es2-x11, mesa-vulkan-drivers] }
       resolute:
         # loupe/armhf still missing — no GNOME armhf build.
         architectures:
