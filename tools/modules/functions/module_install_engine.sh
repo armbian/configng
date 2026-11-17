@@ -185,6 +185,23 @@ install_ufs_unprovisioned() {
 	((found)) && ! install_ufs_luns | grep -q ' general$'
 }
 
+# True when u-boot can be written to the raw sectors of UFS general LU <blk>:
+# every partition starts at or past the 16MiB reserve (or the board's larger
+# BOOTLOADER_RESERVED_MIB). Installs made before that reserve start at 1MiB,
+# where u-boot.itb at 8MiB would land inside the filesystem.
+install_ufs_uboot_room() {
+	local sys="${INSTALL_SYSFS:-/sys}" blk="$1" floor=16 p start
+	[[ "${BOOTLOADER_RESERVED_MIB:-}" =~ ^[0-9]+$ ]] && ((10#$BOOTLOADER_RESERVED_MIB > floor)) \
+		&& floor=$((10#$BOOTLOADER_RESERVED_MIB))
+	for p in "$sys/block/$blk/$blk"*; do
+		[[ -r "$p/start" ]] || continue
+		start="$(cat "$p/start")"
+		# sysfs counts partition starts in 512-byte sectors.
+		((start * 512 >= floor * 1024 * 1024)) || return 1
+	done
+	return 0
+}
+
 # The UFS boot LU the BootROM reads, as /dev/<blk>: the one bBootLunEn selects,
 # boot LU A when the attribute is unreadable. Empty when the device has none.
 install_ufs_boot_lun() {
