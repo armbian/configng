@@ -9,6 +9,7 @@ setup() {
 	INSTALL_LOG=/dev/null
 	write_uboot_platform() { :; }
 	partitioner_mtd_list() { :; }
+	install_ufs_boot_lun() { :; }
 	partitioner_emmc_device() { echo /dev/mmcblk0; }
 	install_disk_in_use() { return 1; }
 	pkg_update() { :; }
@@ -20,6 +21,42 @@ setup() {
 	[ "$status" -eq 0 ]
 	[[ " $output " == *" sd split-emmc "* ]]
 	[[ " $output " != *" standalone "* ]]
+}
+
+@test "menu: the install entry lists the kinds of disks found" {
+	partitioner_emmc_device() { echo /dev/mmcblk0; }
+	run partitioner_target_kinds "$(printf 'sda\tufs\t1\t4096\t-\tfalse\t-\nmmcblk1\tmmc\t1\t512\tmmc\tfalse\t-\nmmcblk0\tmmc\t1\t512\tmmc\tfalse\t-\nsdb\tusb\t1\t512\tusb\tfalse\t-\nsdc\tusb\t1\t512\tusb\tfalse\t-')"
+	[ "$output" = "UFS / SD / eMMC / USB" ]
+}
+
+@test "label: a UFS disk is named UFS next to its model" {
+	run partitioner_disk_label sda ufs 255894487040 - BWU3AKC46C256G
+	[[ "$output" == *"UFS BWU3AKC46C256G" ]]
+	run partitioner_disk_label sda ufs 255894487040 - -
+	[[ "$output" == *" ufs" ]]
+	run partitioner_disk_label sde usb 32010928128 usb "STORE N GO"
+	[[ "$output" == *"  STORE N GO" ]]
+}
+
+@test "modes: ufs needs the board UFS writer and a boot LU" {
+	run partitioner_modes_for ufs sda
+	[[ " $output " != *" ufs "* ]]
+	write_uboot_platform_ufs() { :; }
+	run partitioner_modes_for ufs sda
+	[[ " $output " != *" ufs "* ]]
+	install_ufs_boot_lun() { echo /dev/sdb; }
+	run partitioner_modes_for ufs sda
+	[[ " $output " == *" ufs "* ]]
+	[[ " $output " != *" sd "* ]]
+}
+
+@test "modes: UFS offers its own boot LU first, SPI/MTD second" {
+	write_uboot_platform_ufs() { :; }
+	write_uboot_platform_mtd() { :; }
+	install_ufs_boot_lun() { echo /dev/sdb; }
+	partitioner_mtd_list() { echo mtdblock0; }
+	run partitioner_modes_for ufs sda
+	[[ " $output " == *" ufs mtd "* ]]
 }
 
 @test "modes: standalone is offered first for a role the bootloader boots from" {

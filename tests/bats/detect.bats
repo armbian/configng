@@ -7,6 +7,7 @@ setup() {
 	declare -A module_options
 	source "${BATS_TEST_DIRNAME}/../../tools/modules/functions/module_install_engine.sh"
 	FIX="${BATS_TEST_DIRNAME}/fixtures"
+	export INSTALL_SYSFS="$BATS_TEST_TMPDIR/nosys"
 }
 
 @test "detect: one TSV record per disk, no concatenation (build#8738)" {

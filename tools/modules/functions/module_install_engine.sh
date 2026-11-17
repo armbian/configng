@@ -126,26 +126,108 @@ _install_lsblk_raw() {
 	lsblk -b -d -o NAME,TYPE,SIZE,PHY-SEC,TRAN,ROTA,MODEL --json 2>/dev/null
 }
 
+# UFS logical units of every ufshcd host, one "<blk> <class>" line each:
+#   general - the install target, the largest LU of normal memory type that
+#             is no boot LU (JEDEC LUN 0 on RK3576 and Qualcomm boards)
+#   boot-a / boot-b - bBootLunID 1 / 2, where the BootROM reads the idblock
+#   aux     - any other LU (vendor config, Qualcomm XBL/firmware), never a target
+# The class comes from the unit descriptor in sysfs, with the LUN number as
+# fallback on kernels without it. INSTALL_SYSFS lets tests feed a fake tree.
+install_ufs_luns() {
+	local sys="${INSTALL_SYSFS:-/sys}" host hid dev lun blk bid mem sz cls
+	local best best_sz
+	local -a out
+	for host in "$sys"/class/scsi_host/host*; do
+		[[ "$(cat "$host/proc_name" 2>/dev/null)" == ufshcd ]] || continue
+		hid="${host##*/host}"
+		out=() best="" best_sz=0
+		for dev in "$sys"/class/scsi_device/"$hid":*; do
+			lun="${dev##*:}"
+			# Well-known LUs (0xC000 and up) have no block device.
+			[[ "$lun" =~ ^[0-9]+$ ]] && ((lun < 49152)) || continue
+			blk="$(ls "$dev/device/block" 2>/dev/null | head -1)"
+			[[ -n "$blk" ]] || continue
+			bid="$(cat "$dev/device/unit_descriptor/boot_lun_id" 2>/dev/null)"
+			mem="$(cat "$dev/device/unit_descriptor/lun_memory_type" 2>/dev/null)"
+			if [[ "$bid" =~ ^0x[0-9a-fA-F]+$ ]]; then
+				bid=$((bid))
+			else
+				bid=0
+				case "$lun" in 1) bid=1 ;; 2) bid=2 ;; esac
+			fi
+			case "$bid" in
+				1) cls=boot-a ;;
+				2) cls=boot-b ;;
+				*) cls=aux ;;
+			esac
+			sz="$(cat "$sys/block/$blk/size" 2>/dev/null)"
+			[[ "$sz" =~ ^[0-9]+$ ]] || sz=0
+			if [[ "$cls" == aux && ( -z "$mem" || $((mem)) -eq 0 ) ]] \
+				&& ((sz * 512 >= 1024 * 1024 * 1024 && sz > best_sz)); then
+				best="$blk" best_sz="$sz"
+			fi
+			out+=("$blk $cls")
+		done
+		for cls in "${out[@]}"; do
+			[[ "${cls% *}" == "$best" ]] && cls="$best general"
+			echo "$cls"
+		done
+	done
+}
+
+# True when a UFS controller is present but has no general LU: the module is
+# blank and must be provisioned (e.g. over EDL on Qualcomm boards) first.
+install_ufs_unprovisioned() {
+	local sys="${INSTALL_SYSFS:-/sys}" host found=0
+	for host in "$sys"/class/scsi_host/host*; do
+		[[ "$(cat "$host/proc_name" 2>/dev/null)" == ufshcd ]] && found=1
+	done
+	((found)) && ! install_ufs_luns | grep -q ' general$'
+}
+
+# The UFS boot LU the BootROM reads, as /dev/<blk>: the one bBootLunEn selects,
+# boot LU A when the attribute is unreadable. Empty when the device has none.
+install_ufs_boot_lun() {
+	local sys="${INSTALL_SYSFS:-/sys}" host en want=boot-a blk cls
+	for host in "$sys"/class/scsi_host/host*; do
+		[[ "$(cat "$host/proc_name" 2>/dev/null)" == ufshcd ]] || continue
+		en="$(cat "$(readlink -f "$host/device")/../attributes/boot_lun_enabled" 2>/dev/null)"
+		[[ "$en" =~ ^0x[0-9a-fA-F]+$ ]] && (($((en)) == 2)) && want=boot-b
+		break
+	done
+	while read -r blk cls; do
+		[[ "$cls" == "$want" ]] && { echo "/dev/$blk"; return 0; }
+	done < <(install_ufs_luns)
+}
+
 install_detect_targets() {
-	# install_detect_targets [root_disk] [lsblk_json]
+	# install_detect_targets [root_disk] [lsblk_json] [ufs_luns]
 	# Emit one TAB-separated record per candidate whole disk:
 	#   name <TAB> role <TAB> size_bytes <TAB> sector_size <TAB> bus <TAB> rota <TAB> model
-	# role in {nvme,mmc,usb,sata,disk}. The disk hosting the running rootfs
+	# role in {nvme,mmc,ufs,usb,sata,disk}. ufs_luns is install_ufs_luns output:
+	# the general UFS LU gets role ufs, the boot and vendor LUs are dropped. The disk hosting the running rootfs
 	# (root_disk, a bare kernel name such as "mmcblk0") is excluded, as is SPI/MTD
 	# flash (mtdblockN) - a boot device, not a target; it is offered as the mtd
 	# boot mode once a real target is picked (see INSTALL_MTD_LIST).
 	local root_disk="${1:-}"
 	local json="${2:-}"
+	local ufs
+	if (($# >= 3)); then ufs="$3"; else ufs="$(install_ufs_luns)"; fi
 	[[ -z "$json" ]] && json="$(_install_lsblk_raw)"
 	[[ -z "$json" ]] && return "$INSTALL_EX_NODEV"
 
 	# Note: empty fields are emitted as "-" (never ""), because a `read` loop with
 	# IFS=$'\t' collapses consecutive tabs (tab is IFS-whitespace) and an empty
 	# column would shift every field after it.
-	echo "$json" | jq -r --arg root "$root_disk" '
-		.blockdevices[]?
+	echo "$json" | jq -r --arg root "$root_disk" --arg ufs "$ufs" '
+		( [ $ufs | splits("\n") | select(length > 0) | split(" ")
+			| { key: .[0], value: .[1] } ] | from_entries ) as $u
+		| .blockdevices[]?
 		| select(.type == "disk")
 		| select(.name != $root)
+		# UFS boot LUs hold the BootROM idblock and vendor LUs hold firmware
+		# (Qualcomm XBL and friends): only the general LU is a target.
+		| select(($u[.name] // "general") == "general")
 		# Drop pseudo/virtual block devices that are never install targets:
 		# zram (compressed RAM swap), ram disks, loop, optical (sr), floppy (fd),
 		# and device-mapper (dm-) nodes.
@@ -161,7 +243,8 @@ install_detect_targets() {
 		| select(.name | test("^mtdblock[0-9]+$") | not)
 		| { n: .name, t: (.tran // ""), sz: (.size // 0),
 			ps: (."phy-sec" // 512), ro: (.rota // false), md: ((.model // "") | gsub("\t"; " ")) }
-		| .role = ( if   (.n | test("^nvme"))     then "nvme"
+		| .role = ( if   $u[.n] == "general"     then "ufs"
+			elif (.n | test("^nvme"))     then "nvme"
 			elif (.n | test("^mmcblk"))   then "mmc"
 			elif (.t == "usb")            then "usb"
 			elif (.t == "sata" or .t == "ata") then "sata"
@@ -1838,6 +1921,8 @@ install_run_scenario() {
 	# between menu and run) rather than failing after partitioning.
 	[[ "$boot_mode" != mtd || -n "${INSTALL_MTD_LIST:-}" ]] \
 		|| { install_log ERR "scenario: mtd boot but no MTD/SPI device (INSTALL_MTD_LIST empty) - refusing to modify $disk"; return "$INSTALL_EX_NODEV"; }
+	[[ "$boot_mode" != ufs || -b "${INSTALL_UFS_BOOT_LUN:-}" ]] \
+		|| { install_log ERR "scenario: ufs boot but no UFS boot LU (INSTALL_UFS_BOOT_LUN '${INSTALL_UFS_BOOT_LUN:-}') - refusing to modify $disk"; return "$INSTALL_EX_NODEV"; }
 	install_check_fs_tools "$fs" >/dev/null \
 		|| { install_log ERR "scenario: mkfs.$fs not installed (need $(_install_fs_pkg "$fs")) - refusing to modify $disk"; return "$INSTALL_EX_TOOL"; }
 	install_fs_kernel_supported "$fs" \
