@@ -217,8 +217,21 @@ setup() {
 @test "plan mtd/ufs: rootfs-only, boot flag set" {
 	run install_plan_layout mtd ext4 0 $(( 250 * GIB )) 512 0
 	[[ "$output" == *"part=root:100%:ext4:boot"* ]]
-	run install_plan_layout ufs f2fs 0 $(( 250 * GIB )) 512 0
-	[[ "$output" == *"part=root:100%:f2fs:boot"* ]]
+	run install_plan_layout ufs ext4 0 $(( 250 * GIB )) 4096 0
+	[[ "$output" == *"part=root:100%:ext4:boot"* ]]
+}
+
+@test "plan mtd/ufs btrfs/f2fs: ext4 /boot apart (u-boot can't read them)" {
+	for mode in mtd ufs; do
+		for fs in btrfs f2fs; do
+			run install_plan_layout "$mode" "$fs" 0 $(( 250 * GIB )) 4096 0
+			[[ "$output" == *"part=boot:512MiB:ext4:boot"* ]]
+			[[ "$output" == *"part=root:100%:${fs}:"$'\n'* || "$output" == *"part=root:100%:${fs}:" ]]
+		done
+	done
+	# sd keeps /boot on the current media, so the root stays alone.
+	run install_plan_layout sd f2fs 0 $(( 250 * GIB )) 512 0
+	[[ "$output" != *"part=boot:"* ]]
 }
 
 # --- spi: self-contained target, u-boot pre-flashed in on-board SPI/NOR ------
