@@ -186,7 +186,7 @@ partitioner_modes_for() {
 				;;
 			ufs)
 				# u-boot idblock on the UFS boot LU, rootfs and /boot here.
-				[[ "$(type -t write_uboot_platform_ufs)" == function && -n "$(install_ufs_boot_lun)" ]] && m+=(ufs)
+				[[ "$(type -t write_uboot_platform_ufs)" == function && -n "$(install_ufs_boot_lun "$disk")" ]] && m+=(ufs)
 				# Or u-boot on SPI/MTD, for boards set to boot from SPI.
 				[[ "$(type -t write_uboot_platform_mtd)" == function && -n "$(partitioner_mtd_list)" ]] && m+=(mtd)
 				;;
@@ -472,7 +472,7 @@ partitioner_tui() {
 			return "$INSTALL_EX_OK"
 		fi
 	elif [[ "$boot" == ufs ]]; then
-		if ! dialog_yesno " WARNING " "\nThis will ERASE /dev/$disk (Armbian root, $fs_desc) AND overwrite the bootloader on the UFS boot LU:\n  [ $(install_ufs_boot_lun) ]\n\nProceed?" "Erase and install" "Cancel" 12 74; then
+		if ! dialog_yesno " WARNING " "\nThis will ERASE /dev/$disk (Armbian root, $fs_desc) AND overwrite the bootloader on the UFS boot LU:\n  [ $(install_ufs_boot_lun "$disk") ]\n\nProceed?" "Erase and install" "Cancel" 12 74; then
 			return "$INSTALL_EX_OK"
 		fi
 	elif [[ "$boot" == spi ]]; then
@@ -499,7 +499,7 @@ partitioner_tui() {
 		else
 			# mtd mode writes u-boot to SPI/MTD; hand the engine the device list.
 			[[ "$boot" == mtd ]] && export INSTALL_MTD_LIST="$(partitioner_mtd_list)"
-			[[ "$boot" == ufs ]] && export INSTALL_UFS_BOOT_LUN="$(install_ufs_boot_lun)"
+			[[ "$boot" == ufs ]] && export INSTALL_UFS_BOOT_LUN="$(install_ufs_boot_lun "$disk")"
 			install_run_scenario "$boot" "/dev/$disk" "$fs" "$INSTALL_EXCLUDE"
 		fi
 		echo "$?" >"$rc_file"
@@ -540,8 +540,11 @@ partitioner_uboot_block_targets() {
 # UFS general LU (bare name) u-boot can be flashed to: the board has a UFS
 # writer and the module a boot LU. Empty otherwise.
 partitioner_ufs_flash_target() {
-	[[ "$(type -t write_uboot_platform_ufs)" == function && -n "$(install_ufs_boot_lun)" ]] || return 0
-	install_ufs_luns | awk '$2 == "general" { print $1; exit }'
+	[[ "$(type -t write_uboot_platform_ufs)" == function ]] || return 0
+	local blk cls
+	while read -r blk cls; do
+		[[ "$cls" == general && -n "$(install_ufs_boot_lun "$blk")" ]] && { echo "$blk"; return 0; }
+	done < <(install_ufs_luns)
 }
 
 partitioner_ufs_no_room_msg() {
@@ -566,7 +569,7 @@ partitioner_flash_uboot_tui() {
 	[[ "$(type -t write_uboot_platform_mtd)" == function && -n "$mtd_list" ]] \
 		&& menu+=("mtd" "SPI / on-board flash ($bl)")
 	local ufs_disk; ufs_disk="$(partitioner_ufs_flash_target)"
-	[[ -n "$ufs_disk" ]] && menu+=("ufs" "UFS: idblock on $(install_ufs_boot_lun), $bl on /dev/$ufs_disk")
+	[[ -n "$ufs_disk" ]] && menu+=("ufs" "UFS: idblock on $(install_ufs_boot_lun "$ufs_disk"), $bl on /dev/$ufs_disk")
 	if [[ "$(type -t write_uboot_platform)" == function ]]; then
 		local name size note
 		while IFS=$'\t' read -r name size note; do
@@ -592,7 +595,7 @@ partitioner_flash_uboot_tui() {
 			dialog_msgbox " $title " "\n$(partitioner_ufs_no_room_msg "$ufs_disk")"
 			return "$INSTALL_EX_USAGE"
 		fi
-		ufs_boot="$(install_ufs_boot_lun)"
+		ufs_boot="$(install_ufs_boot_lun "$ufs_disk")"
 		mode="ufs"; target="/dev/$ufs_disk"; warn="the UFS ($ufs_boot and /dev/$ufs_disk)"
 	else
 		mode="sd"; target="/dev/$sel"; warn="$target"
@@ -809,7 +812,7 @@ partitioner_cli_install() {
 				|| { echo "armbian-install: --boot ufs needs the UFS general LU as target, $target is not" >&2
 					install_ufs_unprovisioned && echo "armbian-install: $(partitioner_ufs_blank_msg)" >&2
 					return "$INSTALL_EX_USAGE"; }
-			export INSTALL_UFS_BOOT_LUN="$(install_ufs_boot_lun)"
+			export INSTALL_UFS_BOOT_LUN="$(install_ufs_boot_lun "${target#/dev/}")"
 			[[ -n "$INSTALL_UFS_BOOT_LUN" ]] || { echo "armbian-install: --boot ufs but no UFS boot LU found" >&2; return "$INSTALL_EX_NODEV"; }
 			echo "Installing Armbian: idblock on UFS boot LU $INSTALL_UFS_BOOT_LUN, root on $target ($fs)..."
 		else
@@ -851,7 +854,7 @@ partitioner_cli_flash() {
 			|| { echo "armbian-install bootloader: no UFS u-boot target on this board (needs write_uboot_platform_ufs, a UFS boot LU and a general LU)" >&2; return "$INSTALL_EX_BOOTLOADER"; }
 		install_ufs_uboot_room "$ufs_disk" \
 			|| { echo "armbian-install bootloader: $(partitioner_ufs_no_room_msg "$ufs_disk")" >&2; return "$INSTALL_EX_USAGE"; }
-		ufs_boot="$(install_ufs_boot_lun)"
+		ufs_boot="$(install_ufs_boot_lun "$ufs_disk")"
 		mode="ufs"; dev="/dev/$ufs_disk"; shown="the UFS ($ufs_boot and $dev)"
 	else
 		[[ "$(type -t write_uboot_platform)" == function ]] \

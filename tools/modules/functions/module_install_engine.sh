@@ -132,14 +132,16 @@ _install_lsblk_raw() {
 #   boot-a / boot-b - bBootLunID 1 / 2, where the BootROM reads the idblock
 #   aux     - any other LU (vendor config, Qualcomm XBL/firmware), never a target
 # The class comes from the unit descriptor in sysfs, with the LUN number as
-# fallback on kernels without it. INSTALL_SYSFS lets tests feed a fake tree.
+# fallback on kernels without it. [host] limits the output to that SCSI host
+# number. INSTALL_SYSFS lets tests feed a fake tree.
 install_ufs_luns() {
-	local sys="${INSTALL_SYSFS:-/sys}" host hid dev lun blk bid mem sz cls
+	local sys="${INSTALL_SYSFS:-/sys}" only="${1:-}" host hid dev lun blk bid mem sz cls
 	local best best_sz
 	local -a out
 	for host in "$sys"/class/scsi_host/host*; do
 		[[ "$(cat "$host/proc_name" 2>/dev/null)" == ufshcd ]] || continue
 		hid="${host##*/host}"
+		[[ -z "$only" || "$hid" == "$only" ]] || continue
 		out=() best="" best_sz=0
 		for dev in "$sys"/class/scsi_device/"$hid":*; do
 			lun="${dev##*:}"
@@ -178,11 +180,25 @@ install_ufs_luns() {
 # True when a UFS controller is present but has no general LU: the module is
 # blank and must be provisioned (e.g. over EDL on Qualcomm boards) first.
 install_ufs_unprovisioned() {
-	local sys="${INSTALL_SYSFS:-/sys}" host found=0
+	local sys="${INSTALL_SYSFS:-/sys}" host
 	for host in "$sys"/class/scsi_host/host*; do
-		[[ "$(cat "$host/proc_name" 2>/dev/null)" == ufshcd ]] && found=1
+		[[ "$(cat "$host/proc_name" 2>/dev/null)" == ufshcd ]] || continue
+		install_ufs_luns "${host##*/host}" | grep -q ' general$' || return 0
 	done
-	((found)) && ! install_ufs_luns | grep -q ' general$'
+	return 1
+}
+
+# SCSI host number of the ufshcd host that exposes block device <blk>.
+install_ufs_host_of() {
+	local sys="${INSTALL_SYSFS:-/sys}" host hid dev
+	for host in "$sys"/class/scsi_host/host*; do
+		[[ "$(cat "$host/proc_name" 2>/dev/null)" == ufshcd ]] || continue
+		hid="${host##*/host}"
+		for dev in "$sys"/class/scsi_device/"$hid":*; do
+			[[ -e "$dev/device/block/$1" ]] && { echo "$hid"; return 0; }
+		done
+	done
+	return 1
 }
 
 # True when u-boot can be written to the raw sectors of UFS general LU <blk>:
@@ -202,19 +218,24 @@ install_ufs_uboot_room() {
 	return 0
 }
 
-# The UFS boot LU the BootROM reads, as /dev/<blk>: the one bBootLunEn selects,
-# boot LU A when the attribute is unreadable. Empty when the device has none.
+# The UFS boot LU the BootROM reads, as /dev/<blk>, on the same host as
+# general LU [blk] (the first UFS host without it): the one bBootLunEn selects,
+# boot LU A when the attribute is unreadable. Empty when there is none.
 install_ufs_boot_lun() {
-	local sys="${INSTALL_SYSFS:-/sys}" host en want=boot-a blk cls
-	for host in "$sys"/class/scsi_host/host*; do
-		[[ "$(cat "$host/proc_name" 2>/dev/null)" == ufshcd ]] || continue
-		en="$(cat "$(readlink -f "$host/device")/../attributes/boot_lun_enabled" 2>/dev/null)"
-		[[ "$en" =~ ^0x[0-9a-fA-F]+$ ]] && (($((en)) == 2)) && want=boot-b
-		break
-	done
+	local sys="${INSTALL_SYSFS:-/sys}" host hid="" en want=boot-a blk cls
+	if [[ -n "${1:-}" ]]; then
+		hid="$(install_ufs_host_of "$1")" || return 0
+	else
+		for host in "$sys"/class/scsi_host/host*; do
+			[[ "$(cat "$host/proc_name" 2>/dev/null)" == ufshcd ]] && { hid="${host##*/host}"; break; }
+		done
+		[[ -n "$hid" ]] || return 0
+	fi
+	en="$(cat "$(readlink -f "$sys/class/scsi_host/host$hid/device")/../attributes/boot_lun_enabled" 2>/dev/null)"
+	[[ "$en" =~ ^0x[0-9a-fA-F]+$ ]] && (($((en)) == 2)) && want=boot-b
 	while read -r blk cls; do
 		[[ "$cls" == "$want" ]] && { echo "/dev/$blk"; return 0; }
-	done < <(install_ufs_luns)
+	done < <(install_ufs_luns "$hid")
 }
 
 install_detect_targets() {
