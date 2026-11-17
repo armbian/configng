@@ -343,8 +343,9 @@ install_plan_layout() {
 			;;
 		sd|mtd|ufs)
 			# Only the rootfs lands here; boot lives elsewhere. mtd and ufs
-			# u-boot read /boot from this disk: a LUKS root needs it apart.
-			if [[ "$crypt" == 1 && "$boot_mode" != sd ]]; then
+			# u-boot read /boot from this disk, and cannot read btrfs, f2fs
+			# or LUKS: those roots need an ext4 /boot apart.
+			if [[ "$boot_mode" != sd && ( "$crypt" == 1 || "$fs" == btrfs || "$fs" == f2fs ) ]]; then
 				parts+=("boot:512MiB:ext4:boot")
 				parts+=("root:100%:${fs}:")
 			else
