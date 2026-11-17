@@ -154,3 +154,38 @@ fake_part() {
 	run install_ufs_uboot_room sda
 	[ "$status" -ne 0 ]
 }
+
+@test "ufs: with two UFS hosts the boot LU comes from the target's host" {
+	nanopi_m5_luns
+	echo 0x00000001 >"$HBA/attributes/boot_lun_enabled"
+	local hba1="$INSTALL_SYSFS/devices/platform/2a2e0000.ufs"
+	mkdir -p "$hba1/host1" "$hba1/attributes"
+	echo ufshcd >"$hba1/host1/proc_name"
+	echo 0x00000002 >"$hba1/attributes/boot_lun_enabled"
+	ln -s "$hba1/host1" "$INSTALL_SYSFS/class/scsi_host/host1"
+	ln -s "$hba1/host1" "$hba1/host1/device"
+	local lu
+	for lu in "0 sde $((64 * 1024 * 1024 * 1024)) 0x00" "1 sdf 4194304 0x01" "2 sdg 4194304 0x02"; do
+		set -- $lu
+		mkdir -p "$INSTALL_SYSFS/class/scsi_device/1:0:0:$1/device/block/$2" \
+			"$INSTALL_SYSFS/class/scsi_device/1:0:0:$1/device/unit_descriptor" "$INSTALL_SYSFS/block/$2"
+		echo $(($3 / 512)) >"$INSTALL_SYSFS/block/$2/size"
+		echo "$4" >"$INSTALL_SYSFS/class/scsi_device/1:0:0:$1/device/unit_descriptor/boot_lun_id"
+		echo 0x00 >"$INSTALL_SYSFS/class/scsi_device/1:0:0:$1/device/unit_descriptor/lun_memory_type"
+	done
+	run install_ufs_boot_lun sda
+	[ "$output" = /dev/sdb ]
+	run install_ufs_boot_lun sde
+	[ "$output" = /dev/sdg ]
+	run install_ufs_luns 1
+	[ "$output" = "sde general
+sdf boot-a
+sdg boot-b" ]
+	# A disk on no UFS host has no boot LU.
+	run install_ufs_boot_lun nvme0n1
+	[ -z "$output" ]
+	# One blank host is enough to report it.
+	rm -rf "$INSTALL_SYSFS/class/scsi_device/1:0:0:0"
+	run install_ufs_unprovisioned
+	[ "$status" -eq 0 ]
+}
