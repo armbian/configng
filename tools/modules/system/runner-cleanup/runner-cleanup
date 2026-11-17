@@ -133,6 +133,15 @@ GIT_CDN_MIRROR_KEEP_DAYS=30
 # Size cap for the git_cdn pack cache, also for containers made with the
 # old 500 GB PACK_CACHE_SIZE_GB. The least recently read files go first.
 GIT_CDN_PACK_MAX_GB=20
+# Size cap for the whole git_cdn cache (mirrors and pack cache). Above it,
+# the least recently used mirrors go first, when all runners are idle.
+GIT_CDN_MAX_GB=50
+# Kernel worktrees under the build cache of KEEP_RUNNERS_WORK runners: each
+# is a fully built kernel tree of 2-30 GB, and nothing else removes them.
+# Remove the ones not built for this many days, then the least recently
+# built ones above the cap. The build framework makes them again.
+KERNEL_WORKTREE_KEEP_DAYS=3
+KERNEL_WORKTREE_MAX_GB=100
 RUNNER_USER_RE='^actions-runner-.+$'
 # Wall-clock ceiling for Runner.Worker processes. A Worker alive
 # longer than this is almost certainly hung (deadlocked artifact
@@ -148,9 +157,10 @@ if [[ -f "$CONFIG" ]]; then
 fi
 
 # A bad value must not stop the run or make a limit of zero.
-for var in KEEP_IMAGE_PREFIX_MAX GIT_CDN_PACK_KEEP_DAYS GIT_CDN_MIRROR_KEEP_DAYS GIT_CDN_PACK_MAX_GB; do
+for var in KEEP_IMAGE_PREFIX_MAX GIT_CDN_PACK_KEEP_DAYS GIT_CDN_MIRROR_KEEP_DAYS GIT_CDN_PACK_MAX_GB GIT_CDN_MAX_GB \
+	KERNEL_WORKTREE_KEEP_DAYS KERNEL_WORKTREE_MAX_GB; do
 	if [[ ! "${!var:-}" =~ ^[1-9][0-9]*$ ]]; then
-		echo "runner-cleanup: ${var}='${!var:-}' is not a positive integer, git_cdn and image limits skipped"
+		echo "runner-cleanup: ${var}='${!var:-}' is not a positive integer, cache and image limits skipped"
 		LIMITS_INVALID=1
 	fi
 done
@@ -347,6 +357,87 @@ for user in "${idle[@]}"; do
 done
 
 # -------------------------------------------------------------------
+# 2a. Kernel worktrees of IDLE runners in KEEP_RUNNERS_WORK.
+#
+# Their _work stays, so <repo>/cache/sources/linux-kernel-worktree/
+# collects one fully built kernel tree per kernel family and grows
+# without limit (hundreds of GB). Remove the trees not built for
+# KERNEL_WORKTREE_KEEP_DAYS days, then the least recently built ones
+# until the rest fits in KERNEL_WORKTREE_MAX_GB. The last build time is
+# the newest mtime of the files a kernel build writes. The same
+# stop / re-check / start guards as the _work wipe apply.
+# -------------------------------------------------------------------
+worktree_last_build() {
+	local f t newest=0
+	for f in .config include/generated/autoconf.h vmlinux; do
+		t=$(stat -c %Y "$1/$f" 2>/dev/null) || continue
+		(( t > newest )) && newest=$t
+	done
+	(( newest == 0 )) && newest=$(stat -c %Y "$1")
+	echo "$newest"
+}
+
+for user in "${idle[@]}"; do
+	[[ -n "${keep_work_user[$user]:-}" && -z "${LIMITS_INVALID:-}" ]] || continue
+	home=$(getent passwd "$user" | cut -d: -f6)
+	[[ -n "$home" ]] || continue
+
+	wt_list=()
+	wt_total=0
+	while IFS= read -r -d '' wt; do
+		kb=$(du -sk "$wt" | cut -f1)
+		wt_list+=("$(worktree_last_build "$wt") ${kb} ${wt}")
+		wt_total=$((wt_total + kb))
+	done < <(find "$home"/_work -mindepth 6 -maxdepth 6 -type d \
+		-path '*/cache/sources/linux-kernel-worktree/*' -print0 2>/dev/null)
+	[[ ${#wt_list[@]} -gt 0 ]] || continue
+
+	wt_cutoff=$(( $(date +%s) - KERNEL_WORKTREE_KEEP_DAYS * 86400 ))
+	wt_cap=$((KERNEL_WORKTREE_MAX_GB * 1024 * 1024))
+	wt_drop=()
+	while read -r used kb wt; do
+		if (( used < wt_cutoff || wt_total > wt_cap )); then
+			wt_drop+=("$wt")
+			wt_total=$((wt_total - kb))
+		fi
+	done < <(printf '%s\n' "${wt_list[@]}" | sort -n)
+	[[ ${#wt_drop[@]} -gt 0 ]] || continue
+
+	if pgrep -u "$user" -f 'Runner.Worker' > /dev/null 2>&1; then
+		log "skip ${user} kernel worktrees — a job started since the idle scan"
+		continue
+	fi
+	unit=$(find_runner_unit "$user")
+	if [[ -z "$unit" ]]; then
+		log "skip ${user} kernel worktrees — no systemd unit to stop"
+		continue
+	fi
+	run systemctl stop "${unit}.service" || {
+		note "WARNING: could not stop ${unit}.service; kernel worktrees of ${user} kept"
+		continue
+	}
+	[[ $DRY_RUN -eq 0 ]] && stopped_unit_for["$unit"]=1
+	if pgrep -u "$user" -f 'Runner.Worker' > /dev/null 2>&1; then
+		note "WARNING: ${user} still has a running job after stop — kernel worktrees kept"
+	else
+		for wt in "${wt_drop[@]}"; do
+			note "rm kernel worktree ${wt#"$home"/}"
+			run rm -rf -- "$wt"
+		done
+		while IFS= read -r -d '' gd; do
+			run git --git-dir="$gd" worktree prune
+		done < <(find "$home"/_work -mindepth 6 -maxdepth 6 -type d \
+			-path '*/cache/git-bare/*/.git' -print0 2>/dev/null)
+		note "kernel worktrees of ${user}: $((wt_total / 1048576)) GB kept"
+	fi
+	if run systemctl start "${unit}.service"; then
+		[[ $DRY_RUN -eq 0 ]] && unset 'stopped_unit_for[$unit]'
+	else
+		note "WARNING: failed to restart ${unit}.service — runner ${user} is offline until manual start"
+	fi
+done
+
+# -------------------------------------------------------------------
 # 2b. Wipe the files under ~/_diag/ on IDLE runners, regardless of
 #     KEEP_RUNNERS_WORK.
 #
@@ -507,23 +598,46 @@ if [[ -d "$acng_cache" ]]; then
 fi
 
 # git_cdn keeps every mirror it ever served and a pack cache of up to
-# PACK_CACHE_SIZE_GB. Remove what nobody read for a while.
+# PACK_CACHE_SIZE_GB. Remove what nobody used for a while, then cap the size.
 gcdn_cache=$(docker inspect -f '{{range .Mounts}}{{if eq .Destination "/git-data"}}{{.Source}}{{end}}{{end}}' \
 	"${GIT_CDN_CONTAINER:-git_cdn}" 2>/dev/null) || gcdn_cache=""
 [[ -n "${LIMITS_INVALID:-}" ]] && gcdn_cache=""
-# The age checks read atime. With noatime, or unknown mount options, skip.
+# Last use: atime where the mount records it. With noatime, or unknown
+# mount options, use mtime: git_cdn rewrites FETCH_HEAD of a mirror each
+# time it serves it, and a pack cache file keeps its creation time.
+gcdn_atime=0
 if [[ -d "$gcdn_cache" ]]; then
 	gcdn_opts=$(findmnt -no OPTIONS --target "$gcdn_cache" 2>/dev/null) || gcdn_opts=""
-	if [[ -z "$gcdn_opts" || ",${gcdn_opts}," == *,noatime,* ]]; then
-		note "git_cdn: mount options of ${gcdn_cache} unknown or noatime, cache cleanup skipped"
-		gcdn_cache=""
+	if [[ -n "$gcdn_opts" && ",${gcdn_opts}," != *,noatime,* ]]; then
+		gcdn_atime=1
+	else
+		log "git_cdn: ${gcdn_cache} has no atime, ages come from mtime"
 	fi
 fi
+# Print "<last use> <path>" for each mirror.
+gcdn_mirror_times() {
+	local mirror t
+	while IFS= read -r -d '' mirror; do
+		if (( gcdn_atime )); then
+			# A clone reads the mirror packs: the newest pack atime is the last use.
+			t=$(find "$mirror/objects/pack" -name '*.pack' -printf '%A@\n' 2>/dev/null | sort -rn | head -1) || t=""
+		else
+			t=$(stat -c %Y "$mirror/FETCH_HEAD" 2>/dev/null) || t=""
+		fi
+		[[ -n "$t" ]] || t=$(stat -c %Y "$mirror")
+		echo "${t%.*} ${mirror}"
+	done < <(find "$gcdn_cache/git" -mindepth 2 -maxdepth 2 -type d -name '*.git' -print0)
+}
 # Keep the pack cache directories: git_cdn creates a directory, then the file in it.
-# find -atime +N means N+1 days or more: use N-1.
-if [[ -n "$gcdn_cache" && -d "$gcdn_cache/pack_cache" ]]; then
-	log "git_cdn: rm pack cache files not read for ${GIT_CDN_PACK_KEEP_DAYS} days"
-	run find "$gcdn_cache/pack_cache" -type f -atime +"$((GIT_CDN_PACK_KEEP_DAYS - 1))" -delete
+# find -atime/-mtime +N means N+1 days or more: use N-1.
+if [[ -d "$gcdn_cache/pack_cache" ]]; then
+	if (( gcdn_atime )); then
+		gcdn_age=(-atime +"$((GIT_CDN_PACK_KEEP_DAYS - 1))") gcdn_fmt='%A@'
+	else
+		gcdn_age=(-mtime +"$((GIT_CDN_PACK_KEEP_DAYS - 1))") gcdn_fmt='%T@'
+	fi
+	log "git_cdn: rm pack cache files not used for ${GIT_CDN_PACK_KEEP_DAYS} days"
+	run find "$gcdn_cache/pack_cache" -type f "${gcdn_age[@]}" -delete
 	pack_max=$((GIT_CDN_PACK_MAX_GB * 1024 * 1024 * 1024))
 	pack_total=0
 	while IFS=$'\t' read -r -d '' _ size file; do
@@ -531,21 +645,31 @@ if [[ -n "$gcdn_cache" && -d "$gcdn_cache/pack_cache" ]]; then
 		(( pack_total > pack_max )) || continue
 		log "git_cdn: rm ${file#"$gcdn_cache"/} (pack cache above ${GIT_CDN_PACK_MAX_GB} GB)"
 		run rm -f -- "$file"
-	done < <(find "$gcdn_cache/pack_cache" -type f -printf '%A@\t%s\t%p\0' | sort -z -rn)
+	done < <(find "$gcdn_cache/pack_cache" -type f -printf "${gcdn_fmt}\t%s\t%p\0" | sort -z -rn)
 fi
-# A clone reads the mirror packs, so the newest pack atime is the last use.
 # A running job can clone from a mirror: remove mirrors only when all runners are idle.
-if [[ -n "$gcdn_cache" && -d "$gcdn_cache/git" && ${#busy[@]} -eq 0 ]]; then
-	while IFS= read -r -d '' mirror; do
-		[[ -n $(find "$mirror/objects/pack" -name '*.pack' -atime -"${GIT_CDN_MIRROR_KEEP_DAYS}" -print -quit 2>/dev/null) ]] && continue
+# First the mirrors not used for GIT_CDN_MIRROR_KEEP_DAYS days, then the least
+# recently used ones until the whole cache fits in GIT_CDN_MAX_GB.
+if [[ -d "$gcdn_cache/git" && ${#busy[@]} -eq 0 ]]; then
+	gcdn_cutoff=$(( $(date +%s) - GIT_CDN_MIRROR_KEEP_DAYS * 86400 ))
+	gcdn_cap=$((GIT_CDN_MAX_GB * 1024 * 1024))
+	gcdn_total=$(du -sk "$gcdn_cache" | cut -f1)
+	while read -r t mirror; do
+		(( t < gcdn_cutoff || gcdn_total > gcdn_cap )) || break
 		# A job can start after the idle check above.
 		if pgrep -f 'Runner.Worker' > /dev/null 2>&1; then
 			note "git_cdn: a runner became busy, mirror cleanup stopped"
 			break
 		fi
-		note "git_cdn: rm mirror ${mirror#"$gcdn_cache"/git/} (not read for ${GIT_CDN_MIRROR_KEEP_DAYS} days)"
+		kb=$(du -sk "$mirror" | cut -f1)
+		if (( t < gcdn_cutoff )); then
+			note "git_cdn: rm mirror ${mirror#"$gcdn_cache"/git/} (not used for ${GIT_CDN_MIRROR_KEEP_DAYS} days)"
+		else
+			note "git_cdn: rm mirror ${mirror#"$gcdn_cache"/git/} (cache above ${GIT_CDN_MAX_GB} GB)"
+		fi
 		run rm -rf -- "$mirror"
-	done < <(find "$gcdn_cache/git" -mindepth 2 -maxdepth 2 -type d -name '*.git' -print0)
+		gcdn_total=$((gcdn_total - kb))
+	done < <(gcdn_mirror_times | sort -n)
 fi
 
 fi  # end docker section
