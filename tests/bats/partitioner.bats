@@ -59,6 +59,36 @@ setup() {
 	[[ " $output " == *" ufs mtd "* ]]
 }
 
+@test "bootloader ufs: writes idblock to the boot LU and u-boot to the general LU" {
+	write_uboot_platform_ufs() { :; }
+	install_ufs_boot_lun() { echo /dev/sdb; }
+	install_ufs_luns() { printf 'sda general\nsdb boot-a\n'; }
+	install_ufs_uboot_room() { return 0; }
+	install_write_bootloader() { echo "write $1 $2 $6"; }
+	run partitioner_cli_flash --target ufs --yes
+	[ "$status" -eq 0 ]
+	[[ "$output" == *"write ufs /dev/sda /dev/sdb"* ]]
+}
+
+@test "bootloader ufs: refuses a UFS install made before the 16MiB reserve" {
+	write_uboot_platform_ufs() { :; }
+	install_ufs_boot_lun() { echo /dev/sdb; }
+	install_ufs_luns() { printf 'sda general\nsdb boot-a\n'; }
+	install_ufs_uboot_room() { return 1; }
+	install_write_bootloader() { echo "wrote"; }
+	run partitioner_cli_flash --target ufs --yes
+	[ "$status" -eq "$INSTALL_EX_USAGE" ]
+	[[ "$output" != *"wrote"* ]]
+	[[ "$output" == *"16MiB"* ]]
+}
+
+@test "bootloader ufs: no UFS writer means no ufs target" {
+	install_write_bootloader() { echo "wrote"; }
+	run partitioner_cli_flash --target ufs --yes
+	[ "$status" -eq "$INSTALL_EX_BOOTLOADER" ]
+	[[ "$output" != *"wrote"* ]]
+}
+
 @test "modes: standalone is offered first for a role the bootloader boots from" {
 	BOOTLOADER_BOOTS_FROM="nvme usb"
 	run partitioner_modes_for nvme nvme0n1

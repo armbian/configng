@@ -537,6 +537,17 @@ partitioner_uboot_block_targets() {
 	done
 }
 
+# UFS general LU (bare name) u-boot can be flashed to: the board has a UFS
+# writer and the module a boot LU. Empty otherwise.
+partitioner_ufs_flash_target() {
+	[[ "$(type -t write_uboot_platform_ufs)" == function && -n "$(install_ufs_boot_lun)" ]] || return 0
+	install_ufs_luns | awk '$2 == "general" { print $1; exit }'
+}
+
+partitioner_ufs_no_room_msg() {
+	echo "/dev/$1 has a partition inside the area reserved for u-boot (16MiB, or BOOTLOADER_RESERVED_MIB when larger). It was installed before that reserve existed: reinstall to the UFS to update its bootloader."
+}
+
 # Standalone "flash the bootloader only" flow: write the RUNNING system's u-boot
 # to SPI/MTD or an SD/eMMC device, without partitioning or touching any rootfs.
 # For bringup scenarios (e.g. running from NVMe, initial boot via Maskrom/ramboot)
@@ -554,6 +565,8 @@ partitioner_flash_uboot_tui() {
 	local -a menu=()
 	[[ "$(type -t write_uboot_platform_mtd)" == function && -n "$mtd_list" ]] \
 		&& menu+=("mtd" "SPI / on-board flash ($bl)")
+	local ufs_disk; ufs_disk="$(partitioner_ufs_flash_target)"
+	[[ -n "$ufs_disk" ]] && menu+=("ufs" "UFS: idblock on $(install_ufs_boot_lun), $bl on /dev/$ufs_disk")
 	if [[ "$(type -t write_uboot_platform)" == function ]]; then
 		local name size note
 		while IFS=$'\t' read -r name size note; do
@@ -563,7 +576,7 @@ partitioner_flash_uboot_tui() {
 	fi
 
 	if [[ ${#menu[@]} -eq 0 ]]; then
-		dialog_msgbox " $title " "\nThis board has no writable u-boot target: no SPI/MTD flash, and no board u-boot hook for SD/eMMC."
+		dialog_msgbox " $title " "\nThis board has no writable u-boot target: no SPI/MTD flash, no UFS boot LU, and no board u-boot hook for SD/eMMC."
 		return "$INSTALL_EX_BOOTLOADER"
 	fi
 
@@ -571,9 +584,16 @@ partitioner_flash_uboot_tui() {
 	sel=$(dialog_menu " $title " "\nWrite the running system's $bl (bootloader) to:" 0 78 10 -- "${menu[@]}")
 	[[ -z "$sel" ]] && return "$INSTALL_EX_OK"
 
-	local mode target warn
+	local mode target warn ufs_boot=""
 	if [[ "$sel" == "mtd" ]]; then
 		mode="mtd"; target="/dev/${mtd_list%% *}"; warn="the on-board SPI / MTD flash"
+	elif [[ "$sel" == "ufs" ]]; then
+		if ! install_ufs_uboot_room "$ufs_disk"; then
+			dialog_msgbox " $title " "\n$(partitioner_ufs_no_room_msg "$ufs_disk")"
+			return "$INSTALL_EX_USAGE"
+		fi
+		ufs_boot="$(install_ufs_boot_lun)"
+		mode="ufs"; target="/dev/$ufs_disk"; warn="the UFS ($ufs_boot and /dev/$ufs_disk)"
 	else
 		mode="sd"; target="/dev/$sel"; warn="$target"
 	fi
@@ -584,7 +604,7 @@ partitioner_flash_uboot_tui() {
 
 	local rc_file; rc_file="$(mktemp)"
 	{
-		install_write_bootloader "$mode" "$target" "/" "${DIR:-/usr/lib/u-boot}" "$mtd_list"
+		install_write_bootloader "$mode" "$target" "/" "${DIR:-/usr/lib/u-boot}" "$mtd_list" "$ufs_boot"
 		echo "$?" >"$rc_file"
 	} 2>>"$INSTALL_LOG" | dialog_gauge " $title " "\nWriting $bl to $warn - please wait..." 9 74
 	local rc; rc="$(cat "$rc_file")"; rm -f "$rc_file"
@@ -624,7 +644,8 @@ partitioner_menu() {
 	if [[ -n "$records" ]]; then
 		menu+=("install" "Install Armbian to a disk ($(partitioner_target_kinds "$records"))"); ((nact++))
 	fi
-	if [[ "$(type -t write_uboot_platform)" == function || "$(type -t write_uboot_platform_mtd)" == function ]]; then
+	if [[ "$(type -t write_uboot_platform)" == function || "$(type -t write_uboot_platform_mtd)" == function \
+		|| "$(type -t write_uboot_platform_ufs)" == function ]]; then
 		menu+=("bootloader" "Flash / update the bootloader (${BOOTLOADER_NAME:-u-boot}) only"); ((nact++))
 	fi
 
@@ -802,8 +823,8 @@ partitioner_cli_install() {
 }
 
 # Non-interactive bootloader flash - the CLI counterpart of partitioner_flash_uboot_tui:
-#   armbian-install bootloader --target <mtd|/dev/mmcblkN> --yes
-# Writes the running system's u-boot to SPI/MTD or an SD/eMMC device, no rootfs.
+#   armbian-install bootloader --target <mtd|ufs|/dev/mmcblkN> --yes
+# Writes the running system's u-boot to SPI/MTD, the UFS or an SD/eMMC device, no rootfs.
 # Refuses to write without --yes (it overwrites the bootloader).
 partitioner_cli_flash() {
 	local target="" assume_yes=0
@@ -816,21 +837,29 @@ partitioner_cli_flash() {
 			*) echo "armbian-install bootloader: unknown option '$1'" >&2; return "$INSTALL_EX_USAGE" ;;
 		esac
 	done
-	[[ -n "$target" ]] || { echo "armbian-install bootloader: --target <mtd|/dev/mmcblkN> required" >&2; return "$INSTALL_EX_USAGE"; }
+	[[ -n "$target" ]] || { echo "armbian-install bootloader: --target <mtd|ufs|/dev/mmcblkN> required" >&2; return "$INSTALL_EX_USAGE"; }
 
-	local bl="${BOOTLOADER_NAME:-u-boot}" mtd_list mode dev shown
+	local bl="${BOOTLOADER_NAME:-u-boot}" mtd_list mode dev shown ufs_boot=""
 	mtd_list="$(partitioner_mtd_list)"
 	if [[ "$target" == "mtd" ]]; then
 		[[ "$(type -t write_uboot_platform_mtd)" == function && -n "$mtd_list" ]] \
 			|| { echo "armbian-install bootloader: no SPI/MTD u-boot target on this board" >&2; return "$INSTALL_EX_BOOTLOADER"; }
 		mode="mtd"; dev="/dev/${mtd_list%% *}"; shown="the on-board SPI / MTD flash"
+	elif [[ "$target" == "ufs" ]]; then
+		local ufs_disk; ufs_disk="$(partitioner_ufs_flash_target)"
+		[[ -n "$ufs_disk" ]] \
+			|| { echo "armbian-install bootloader: no UFS u-boot target on this board (needs write_uboot_platform_ufs, a UFS boot LU and a general LU)" >&2; return "$INSTALL_EX_BOOTLOADER"; }
+		install_ufs_uboot_room "$ufs_disk" \
+			|| { echo "armbian-install bootloader: $(partitioner_ufs_no_room_msg "$ufs_disk")" >&2; return "$INSTALL_EX_USAGE"; }
+		ufs_boot="$(install_ufs_boot_lun)"
+		mode="ufs"; dev="/dev/$ufs_disk"; shown="the UFS ($ufs_boot and $dev)"
 	else
 		[[ "$(type -t write_uboot_platform)" == function ]] \
 			|| { echo "armbian-install bootloader: board has no write_uboot_platform hook" >&2; return "$INSTALL_EX_BOOTLOADER"; }
 		# Only whole SD/eMMC disks - u-boot is dd'd at fixed offsets, so a partition
 		# or a non-boot disk (NVMe/SATA/USB) would get its partition table clobbered.
 		[[ "$target" =~ ^/dev/mmcblk[0-9]+$ ]] \
-			|| { echo "armbian-install bootloader: '$target' is not an SD/eMMC whole device (expected /dev/mmcblkN or 'mtd')" >&2; return "$INSTALL_EX_USAGE"; }
+			|| { echo "armbian-install bootloader: '$target' is not an SD/eMMC whole device (expected /dev/mmcblkN, 'mtd' or 'ufs')" >&2; return "$INSTALL_EX_USAGE"; }
 		[[ -b "$target" ]] || { echo "armbian-install bootloader: '$target' is not a block device" >&2; return "$INSTALL_EX_USAGE"; }
 		mode="sd"; dev="$target"; shown="$target"
 	fi
@@ -841,7 +870,7 @@ partitioner_cli_flash() {
 	fi
 
 	echo "Writing $bl to $shown..."
-	install_write_bootloader "$mode" "$dev" "/" "${DIR:-/usr/lib/u-boot}" "$mtd_list"
+	install_write_bootloader "$mode" "$dev" "/" "${DIR:-/usr/lib/u-boot}" "$mtd_list" "$ufs_boot"
 	local rc=$?
 	[[ "$rc" == 0 ]] && echo "Done." || echo "Failed (code $rc). See ${INSTALL_LOG:-install log}." >&2
 	return "$rc"
@@ -928,6 +957,7 @@ partitioner_help() {
 
 	Flash the bootloader (u-boot) only - no partitioning, no rootfs:
 	  armbian-install bootloader --target mtd --yes            # to SPI/MTD
+	  armbian-install bootloader --target ufs --yes            # to the UFS boot LU
 	  armbian-install bootloader --target /dev/mmcblk1 --yes   # to SD/eMMC
 	    writes the running system's u-boot; the interactive TUI offers it too
 

@@ -123,3 +123,34 @@ sdd aux" ]
 	run install_ufs_unprovisioned
 	[ "$status" -ne 0 ]
 }
+
+# fake_part <blk> <n> <start_sectors_512>
+fake_part() {
+	mkdir -p "$INSTALL_SYSFS/block/$1/$1$2"
+	echo "$3" >"$INSTALL_SYSFS/block/$1/$1$2/start"
+}
+
+@test "ufs room: partitions at 16MiB leave room for u-boot.itb" {
+	nanopi_m5_luns
+	fake_part sda 1 32768
+	run install_ufs_uboot_room sda
+	[ "$status" -eq 0 ]
+	# An unpartitioned LU has room too.
+	run install_ufs_uboot_room sdb
+	[ "$status" -eq 0 ]
+}
+
+@test "ufs room: a 1MiB partition start is refused" {
+	nanopi_m5_luns
+	fake_part sda 1 2048
+	run install_ufs_uboot_room sda
+	[ "$status" -ne 0 ]
+}
+
+@test "ufs room: a larger BOOTLOADER_RESERVED_MIB raises the floor" {
+	nanopi_m5_luns
+	fake_part sda 1 32768
+	BOOTLOADER_RESERVED_MIB=32
+	run install_ufs_uboot_room sda
+	[ "$status" -ne 0 ]
+}
