@@ -65,7 +65,22 @@ partitioner_disk_label() {
 	local info="$role"
 	[[ -n "$bus" && "$bus" != "null" && "$bus" != "-" ]] && info="$bus $role"
 	[[ -n "$model" && "$model" != "null" && "$model" != "-" ]] && info="$model"
+	# lsblk reports no transport for UFS, so name it here.
+	[[ "$role" == ufs && "$info" != ufs ]] && info="UFS $info"
 	printf '%-10s %8s  %s' "/dev/$name" "$human" "$info"
+}
+
+# Short kind of a detected disk for the menus: SD, eMMC, NVMe, SATA, USB, UFS.
+partitioner_disk_kind() {
+	case "$2" in
+		mmc)
+			if [[ "/dev/$1" == "$(partitioner_emmc_device)" ]]; then echo eMMC; else echo SD; fi ;;
+		nvme) echo NVMe ;;
+		sata) echo SATA ;;
+		usb) echo USB ;;
+		ufs) echo UFS ;;
+		*) echo disk ;;
+	esac
 }
 
 # Echo the eMMC whole-disk device (empty if none). eMMC exposes a boot0 hardware
@@ -169,7 +184,12 @@ partitioner_modes_for() {
 				local emmc; emmc="$(partitioner_emmc_device)"
 				[[ -n "$emmc" && "/dev/$disk" != "$emmc" ]] && ! install_disk_in_use "$emmc" && m+=(split-emmc)
 				;;
-			ufs)           m+=(ufs) ;;
+			ufs)
+				# u-boot idblock on the UFS boot LU, rootfs and /boot here.
+				[[ "$(type -t write_uboot_platform_ufs)" == function && -n "$(install_ufs_boot_lun)" ]] && m+=(ufs)
+				# Or u-boot on SPI/MTD, for boards set to boot from SPI.
+				[[ "$(type -t write_uboot_platform_mtd)" == function && -n "$(partitioner_mtd_list)" ]] && m+=(mtd)
+				;;
 		esac
 	fi
 	# x86 legacy BIOS: neither EFI firmware nor a u-boot board.
@@ -193,6 +213,10 @@ partitioner_modes_for() {
 	# No writable boot mode for this firmware/disk: emit nothing so the caller
 	# can show a clear error rather than offer a mode guaranteed to fail.
 	echo "${m[@]}"
+}
+
+partitioner_ufs_blank_msg() {
+	echo "The UFS module has no usable logical unit, it is not provisioned yet. Provision it with Armbian Imager, or over EDL with edl-ng and the board's provision XML from github.com/armbian/qcombin, then run armbian-install again."
 }
 
 partitioner_mode_desc() {
@@ -324,8 +348,11 @@ partitioner_tui() {
 
 	# 1) target disk
 	local records; records="$(install_detect_targets "$root_disk")"
+	if install_ufs_unprovisioned; then
+		dialog_msgbox " $title " "\n$(partitioner_ufs_blank_msg)"
+	fi
 	if [[ -z "$records" ]]; then
-		dialog_msgbox " $title " "\nNo installation targets were found.\n\nAttach an eMMC/NVMe/SATA/USB disk and try again."
+		dialog_msgbox " $title " "\nNo installation targets were found.\n\nAttach an eMMC/NVMe/SATA/USB/UFS disk and try again."
 		return "$INSTALL_EX_NODEV"
 	fi
 	local -a menu=() names=() roles=()
@@ -444,6 +471,10 @@ partitioner_tui() {
 		if ! dialog_yesno " WARNING " "\nThis will ERASE /dev/$disk (Armbian root, $fs_desc) AND overwrite the bootloader on SPI/MTD flash:\n  [ $(partitioner_mtd_list) ]\n\nProceed?" "Erase and install" "Cancel" 12 74; then
 			return "$INSTALL_EX_OK"
 		fi
+	elif [[ "$boot" == ufs ]]; then
+		if ! dialog_yesno " WARNING " "\nThis will ERASE /dev/$disk (Armbian root, $fs_desc) AND overwrite the bootloader on the UFS boot LU:\n  [ $(install_ufs_boot_lun) ]\n\nProceed?" "Erase and install" "Cancel" 12 74; then
+			return "$INSTALL_EX_OK"
+		fi
 	elif [[ "$boot" == spi ]]; then
 		if ! dialog_yesno " WARNING " "\nThis will ERASE /dev/$disk and install a self-contained Armbian ($fs_desc): boot + system both on this disk.\n\nu-boot is NOT touched - the board boots from its on-board SPI flash and loads /boot from this disk. The install stays bootable on its own (no dependency on removable media).\n\nProceed?" "Erase and install" "Cancel" 13 74; then
 			return "$INSTALL_EX_OK"
@@ -468,6 +499,7 @@ partitioner_tui() {
 		else
 			# mtd mode writes u-boot to SPI/MTD; hand the engine the device list.
 			[[ "$boot" == mtd ]] && export INSTALL_MTD_LIST="$(partitioner_mtd_list)"
+			[[ "$boot" == ufs ]] && export INSTALL_UFS_BOOT_LUN="$(install_ufs_boot_lun)"
 			install_run_scenario "$boot" "/dev/$disk" "$fs" "$INSTALL_EXCLUDE"
 		fi
 		echo "$?" >"$rc_file"
@@ -565,6 +597,18 @@ partitioner_flash_uboot_tui() {
 	return "$rc"
 }
 
+# Kinds of the detected install targets in detection order, e.g. "UFS / SD",
+# for the install entry of the action picker.
+partitioner_target_kinds() {
+	local name role kind out=""
+	while IFS=$'\t' read -r name role _; do
+		[[ -n "$name" ]] || continue
+		kind="$(partitioner_disk_kind "$name" "$role")"
+		[[ " / $out / " == *" / $kind / "* ]] || out="${out:+$out / }$kind"
+	done <<<"$1"
+	echo "$out"
+}
+
 # Top-level action picker for the interactive installer: full install vs the
 # standalone bootloader flash. Built from what is ACTUALLY actionable on this
 # machine - so a board with no spare install target (e.g. booting from SPI with
@@ -576,8 +620,9 @@ partitioner_menu() {
 	local root_disk; root_disk="$(partitioner_root_disk)"
 
 	local -a menu=(); local nact=0
-	if [[ -n "$(install_detect_targets "$root_disk")" ]]; then
-		menu+=("install" "Install Armbian to a disk (SD / eMMC / NVMe / SATA / USB)"); ((nact++))
+	local records; records="$(install_detect_targets "$root_disk")"
+	if [[ -n "$records" ]]; then
+		menu+=("install" "Install Armbian to a disk ($(partitioner_target_kinds "$records"))"); ((nact++))
 	fi
 	if [[ "$(type -t write_uboot_platform)" == function || "$(type -t write_uboot_platform_mtd)" == function ]]; then
 		menu+=("bootloader" "Flash / update the bootloader (${BOOTLOADER_NAME:-u-boot}) only"); ((nact++))
@@ -738,6 +783,14 @@ partitioner_cli_install() {
 			export INSTALL_MTD_LIST="$(partitioner_mtd_list)"
 			[[ -n "$INSTALL_MTD_LIST" ]] || { echo "armbian-install: --boot mtd but no MTD/SPI device found (need mtdblock or /proc/mtd spl/boot)" >&2; return "$INSTALL_EX_NODEV"; }
 			echo "Installing Armbian: boot on MTD/SPI [$INSTALL_MTD_LIST], root on $target ($fs)..."
+		elif [[ "$boot" == ufs ]]; then
+			install_ufs_luns | grep -qx "${target#/dev/} general" \
+				|| { echo "armbian-install: --boot ufs needs the UFS general LU as target, $target is not" >&2
+					install_ufs_unprovisioned && echo "armbian-install: $(partitioner_ufs_blank_msg)" >&2
+					return "$INSTALL_EX_USAGE"; }
+			export INSTALL_UFS_BOOT_LUN="$(install_ufs_boot_lun)"
+			[[ -n "$INSTALL_UFS_BOOT_LUN" ]] || { echo "armbian-install: --boot ufs but no UFS boot LU found" >&2; return "$INSTALL_EX_NODEV"; }
+			echo "Installing Armbian: idblock on UFS boot LU $INSTALL_UFS_BOOT_LUN, root on $target ($fs)..."
 		else
 			echo "Installing Armbian to $target ($boot, $fs)..."
 		fi
@@ -801,6 +854,7 @@ partitioner_api() {
 	local what="$1"; shift
 	case "$what" in
 		detect)
+			install_ufs_unprovisioned && echo "armbian-install: $(partitioner_ufs_blank_msg)" >&2
 			install_detect_targets "$(partitioner_root_disk)" ;;
 		plan)
 			local target="" boot="" fs="ext4" crypt=0

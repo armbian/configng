@@ -1,0 +1,10 @@
+{
+    "blockdevices": [
+        {"name":"sda","type":"disk","size":255894487040,"phy-sec":4096,"tran":null,"rota":false,"model":"BWU3AKC46C256G"},
+        {"name":"sdb","type":"disk","size":4194304,"phy-sec":4096,"tran":null,"rota":false,"model":"BWU3AKC46C256G"},
+        {"name":"sdc","type":"disk","size":4194304,"phy-sec":4096,"tran":null,"rota":false,"model":"BWU3AKC46C256G"},
+        {"name":"sdd","type":"disk","size":8388608,"phy-sec":4096,"tran":null,"rota":false,"model":"BWU3AKC46C256G"},
+        {"name":"mtdblock0","type":"disk","size":16777216,"phy-sec":512,"tran":null,"rota":false,"model":null},
+        {"name":"mmcblk0","type":"disk","size":255869321216,"phy-sec":512,"tran":"mmc","rota":false,"model":null}
+    ]
+}
