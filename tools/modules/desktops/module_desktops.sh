@@ -395,7 +395,12 @@ function _module_desktops_configure_fprintd() {
 # (user@.service.d/timeout.conf) and kills a longer copy-back, so the
 # profiles go through crash recovery at the next login. Raise the cap to
 # 60 s where that Ubuntu file exists; Debian keeps its 120 s default.
-# The "zz-" name sorts after Ubuntu's timeout.conf. See configng#1072.
+# armbian-hyprland-shell (Omarchy) ships a 5 s cap too: 10-faster-shutdown.conf.
+# The "zz-" name sorts after both. See configng#1072.
+#
+# psd is enabled for all users. Do not run it for system users such as
+# the display manager's greeter: they have no browser profiles, and psd
+# delays their session start and stop.
 #
 # _module_desktops_configure_psd <mode> [user]
 #   With a user: psd 6.x mounts its overlays through psd-overlay-helper as
@@ -406,7 +411,18 @@ function _module_desktops_configure_psd() {
 	local mode="${1:-}" user="${2:-}"
 	command -v psd > /dev/null 2>&1 || return 0
 
-	if [[ -f /usr/lib/systemd/system/user@.service.d/timeout.conf ]]; then
+	local unit
+	for unit in psd.service psd-resync.service; do
+		mkdir -p "/etc/systemd/user/${unit}.d"
+		cat > "/etc/systemd/user/${unit}.d/zz-armbian-real-users.conf" <<- EOF
+			# Written by armbian-config: system users have no browser profiles.
+			[Unit]
+			ConditionUser=!@system
+		EOF
+	done
+
+	if [[ -f /usr/lib/systemd/system/user@.service.d/timeout.conf ||
+		-f /etc/systemd/system/user@.service.d/10-faster-shutdown.conf ]]; then
 		mkdir -p /etc/systemd/system/user@.service.d
 		cat > /etc/systemd/system/user@.service.d/zz-armbian-psd-timeout.conf <<- EOF
 			# Written by armbian-config: psd copies browser profiles back at logout.
@@ -1035,7 +1051,10 @@ function module_desktops() {
 			# Drop the psd stop timeout and sudoers drop-ins written by
 			# _module_desktops_configure_psd.
 			rm -f /etc/systemd/system/user@.service.d/zz-armbian-psd-timeout.conf /etc/sudoers.d/armbian-psd \
-				/etc/sudoers.d/armbian-firstlogin-psd
+				/etc/sudoers.d/armbian-firstlogin-psd \
+				/etc/systemd/user/psd.service.d/zz-armbian-real-users.conf \
+				/etc/systemd/user/psd-resync.service.d/zz-armbian-real-users.conf
+			rmdir /etc/systemd/user/psd.service.d /etc/systemd/user/psd-resync.service.d 2> /dev/null || true
 			# Older installs appended the psd grant to /etc/sudoers.
 			if grep -qs 'NOPASSWD: /usr/bin/psd-overlay-helper$' /etc/sudoers; then
 				local sudoers_tmp
