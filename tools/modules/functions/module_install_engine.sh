@@ -217,7 +217,12 @@ install_ufs_uboot_room() {
 		# sysfs counts partition starts in 512-byte sectors.
 		((start * 512 >= floor * 1024 * 1024)) || return 1
 	done
-	((parts)) || [[ -z "$(blkid -p -s TYPE -o value "/dev/$blk" 2>/dev/null)" ]]
+	((parts)) && return 0
+	# wipefs lists every signature, blkid -p reports none on an ambiguous LU.
+	# A bare partition table is fine, anything else is data at risk.
+	local sigs
+	sigs="$(wipefs -n --noheadings -O TYPE "/dev/$blk" 2>/dev/null)" || return 1
+	[[ -z "$sigs" ]] || ! grep -qvxE 'gpt|PMBR|dos' <<<"$sigs"
 }
 
 # The UFS boot LU the BootROM reads, as /dev/<blk>, on the same host as

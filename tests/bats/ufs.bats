@@ -144,14 +144,28 @@ fake_part() {
 	run install_ufs_uboot_room sda
 	[ "$status" -eq 0 ]
 	# An unpartitioned LU has room too.
-	blkid() { :; }
+	wipefs() { :; }
 	run install_ufs_uboot_room sdb
 	[ "$status" -eq 0 ]
 }
 
 @test "ufs room: a filesystem on the whole LU is refused" {
 	nanopi_m5_luns
-	blkid() { echo ext4; }
+	wipefs() { echo ext4; }
+	run install_ufs_uboot_room sda
+	[ "$status" -ne 0 ]
+	# ext4 plus a stale vfat boot sector: blkid -p sees nothing, wipefs both.
+	wipefs() { printf 'vfat\nvfat\next4\n'; }
+	run install_ufs_uboot_room sda
+	[ "$status" -ne 0 ]
+}
+
+@test "ufs room: a bare partition table passes, a failed probe is refused" {
+	nanopi_m5_luns
+	wipefs() { printf 'gpt\nPMBR\n'; }
+	run install_ufs_uboot_room sda
+	[ "$status" -eq 0 ]
+	wipefs() { return 1; }
 	run install_ufs_uboot_room sda
 	[ "$status" -ne 0 ]
 }
