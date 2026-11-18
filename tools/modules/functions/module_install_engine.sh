@@ -218,10 +218,11 @@ install_ufs_reserved_lu() {
 }
 
 # True when u-boot can be written to the raw sectors of UFS general LU <blk>:
-# every partition starts at or past the 16MiB reserve (or the board's larger
-# BOOTLOADER_RESERVED_MIB), and an unpartitioned LU carries no filesystem.
-# Installs made before that reserve start at 1MiB, where u-boot.itb at 8MiB
-# would land inside the filesystem.
+# it holds an install whose partitions all start at or past the 16MiB reserve
+# (or the board's larger BOOTLOADER_RESERVED_MIB). Installs made before that
+# reserve start at 1MiB, where u-boot.itb at 8MiB would land inside the
+# filesystem. An LU without partitions is refused: a full install writes
+# the bootloader there.
 install_ufs_uboot_room() {
 	local sys="${INSTALL_SYSFS:-/sys}" blk="$1" floor=16 p start parts=0
 	[[ "${BOOTLOADER_RESERVED_MIB:-}" =~ ^[0-9]+$ ]] && ((10#$BOOTLOADER_RESERVED_MIB > floor)) \
@@ -233,14 +234,7 @@ install_ufs_uboot_room() {
 		# sysfs counts partition starts in 512-byte sectors.
 		((start * 512 >= floor * 1024 * 1024)) || return 1
 	done
-	((parts)) && return 0
-	# wipefs reports no error when a read fails mid-probe: read the area first.
-	dd if="/dev/$blk" of=/dev/null bs=1M count="$floor" status=none 2>/dev/null || return 1
-	# wipefs lists every signature, blkid -p reports none on an ambiguous LU.
-	# A bare partition table is fine, anything else is data at risk.
-	local sigs
-	sigs="$(wipefs -n --noheadings -O TYPE "/dev/$blk" 2>/dev/null)" || return 1
-	[[ -z "$sigs" ]] || ! grep -qvxE 'gpt|PMBR|dos' <<<"$sigs"
+	((parts))
 }
 
 # The UFS boot LU the BootROM reads, as /dev/<blk>, on the same host as
