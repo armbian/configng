@@ -146,15 +146,19 @@ fake_part() {
 }
 
 @test "ufs room: partitions at 16MiB leave room for u-boot.itb" {
-	nanopi_m5_luns
-	fake_part sda 1 32768
-	fake_part sda 2 1081344
+	partx() { printf '%s\n' 32768 1081344; }
 	run install_ufs_uboot_room sda
 	[ "$status" -eq 0 ]
 }
 
-@test "ufs room: an LU without partitions is refused" {
-	nanopi_m5_luns
+@test "ufs room: an LU without a partition table or partitions is refused" {
+	partx() { return 1; }
+	run install_ufs_uboot_room sda
+	[ "$status" -ne 0 ]
+	partx() { :; }
+	run install_ufs_uboot_room sda
+	[ "$status" -ne 0 ]
+	partx() { echo bogus; }
 	run install_ufs_uboot_room sda
 	[ "$status" -ne 0 ]
 }
@@ -177,15 +181,14 @@ fake_part() {
 }
 
 @test "ufs room: a 1MiB partition start is refused" {
-	nanopi_m5_luns
-	fake_part sda 1 2048
+	# The kernel may not list it: the on-disk table is what counts.
+	partx() { printf '%s\n' 1081344 2048; }
 	run install_ufs_uboot_room sda
 	[ "$status" -ne 0 ]
 }
 
 @test "ufs room: a larger BOOTLOADER_RESERVED_MIB raises the floor" {
-	nanopi_m5_luns
-	fake_part sda 1 32768
+	partx() { echo 32768; }
 	BOOTLOADER_RESERVED_MIB=32
 	run install_ufs_uboot_room sda
 	[ "$status" -ne 0 ]
