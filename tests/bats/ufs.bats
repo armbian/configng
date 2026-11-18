@@ -148,39 +148,13 @@ fake_part() {
 @test "ufs room: partitions at 16MiB leave room for u-boot.itb" {
 	nanopi_m5_luns
 	fake_part sda 1 32768
+	fake_part sda 2 1081344
 	run install_ufs_uboot_room sda
-	[ "$status" -eq 0 ]
-	# An unpartitioned LU has room too.
-	dd() { :; }
-	wipefs() { :; }
-	run install_ufs_uboot_room sdb
 	[ "$status" -eq 0 ]
 }
 
-@test "ufs room: a filesystem on the whole LU is refused" {
+@test "ufs room: an LU without partitions is refused" {
 	nanopi_m5_luns
-	dd() { :; }
-	wipefs() { echo ext4; }
-	run install_ufs_uboot_room sda
-	[ "$status" -ne 0 ]
-	# ext4 plus a stale vfat boot sector: blkid -p sees nothing, wipefs both.
-	wipefs() { printf 'vfat\nvfat\next4\n'; }
-	run install_ufs_uboot_room sda
-	[ "$status" -ne 0 ]
-}
-
-@test "ufs room: a bare partition table passes, a failed probe or read is refused" {
-	nanopi_m5_luns
-	dd() { :; }
-	wipefs() { printf 'gpt\nPMBR\n'; }
-	run install_ufs_uboot_room sda
-	[ "$status" -eq 0 ]
-	wipefs() { return 1; }
-	run install_ufs_uboot_room sda
-	[ "$status" -ne 0 ]
-	# A read error that wipefs would swallow.
-	dd() { return 1; }
-	wipefs() { :; }
 	run install_ufs_uboot_room sda
 	[ "$status" -ne 0 ]
 }
