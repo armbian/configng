@@ -201,6 +201,14 @@ install_ufs_host_of() {
 	return 1
 }
 
+# True when <disk> is a UFS boot or vendor LU: firmware storage, never an
+# install target.
+install_ufs_reserved_lu() {
+	local blk="${1#/dev/}" hid
+	hid="$(install_ufs_host_of "$blk")" || return 1
+	install_ufs_luns "$hid" | awk -v d="$blk" '$1 == d && $2 != "general" { f = 1 } END { exit !f }'
+}
+
 # True when u-boot can be written to the raw sectors of UFS general LU <blk>:
 # every partition starts at or past the 16MiB reserve (or the board's larger
 # BOOTLOADER_RESERVED_MIB), and an unpartitioned LU carries no filesystem.
@@ -260,10 +268,11 @@ install_detect_targets() {
 	# boot mode once a real target is picked (see INSTALL_MTD_LIST).
 	local root_disk="${1:-}"
 	local json="${2:-}"
-	local ufs
-	if (($# >= 3)); then ufs="$3"; else ufs="$(install_ufs_luns)"; fi
 	[[ -z "$json" ]] && json="$(_install_lsblk_raw)"
 	[[ -z "$json" ]] && return "$INSTALL_EX_NODEV"
+	# After lsblk: every LU it lists is then in the map.
+	local ufs
+	if (($# >= 3)); then ufs="$3"; else ufs="$(install_ufs_luns)"; fi
 
 	# Note: empty fields are emitted as "-" (never ""), because a `read` loop with
 	# IFS=$'\t' collapses consecutive tabs (tab is IFS-whitespace) and an empty
@@ -1952,6 +1961,7 @@ install_run_scenario() {
 	# filters it from the menu, but refuse it here too so an explicit
 	# --target /dev/mtdblockN (or a TUI selection) can't repartition the SPI.
 	[[ "$disk" != /dev/mtdblock* ]] || { install_log ERR "scenario: '$disk' is SPI/MTD flash, not a valid install target"; return "$INSTALL_EX_NODEV"; }
+	! install_ufs_reserved_lu "$disk" || { install_log ERR "scenario: '$disk' is a UFS boot or vendor LU, not a valid install target"; return "$INSTALL_EX_NODEV"; }
 	! install_disk_in_use "$disk" || { install_log ERR "scenario: '$disk' is in use (mounted, swap, or lsblk failed) - refusing to modify it"; return "$INSTALL_EX_USAGE"; }
 	[[ -f "$exclude" ]] || { install_log ERR "scenario: exclude file '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
 	# Pre-flight: confirm we can make the target bootable AND format it BEFORE
@@ -2221,6 +2231,8 @@ install_run_split() {
 	[[ -b "$root_disk" ]] || { install_log ERR "split: root device '$root_disk' is not a block device"; return "$INSTALL_EX_NODEV"; }
 	[[ "$root_disk" != /dev/mtdblock* ]] || { install_log ERR "split: root device '$root_disk' is SPI/MTD flash, not a valid install target"; return "$INSTALL_EX_NODEV"; }
 	[[ "$boot_disk" != "$root_disk" ]] || { install_log ERR "split: boot and root device must differ ('$boot_disk')"; return "$INSTALL_EX_USAGE"; }
+	! install_ufs_reserved_lu "$boot_disk" || { install_log ERR "split: boot device '$boot_disk' is a UFS boot or vendor LU, not a valid install target"; return "$INSTALL_EX_NODEV"; }
+	! install_ufs_reserved_lu "$root_disk" || { install_log ERR "split: root device '$root_disk' is a UFS boot or vendor LU, not a valid install target"; return "$INSTALL_EX_NODEV"; }
 	! install_disk_in_use "$boot_disk" || { install_log ERR "split: boot device '$boot_disk' is in use (mounted, swap, or lsblk failed) - refusing to modify it"; return "$INSTALL_EX_USAGE"; }
 	! install_disk_in_use "$root_disk" || { install_log ERR "split: root device '$root_disk' is in use (mounted, swap, or lsblk failed) - refusing to modify it"; return "$INSTALL_EX_USAGE"; }
 	[[ -f "$exclude" ]] || { install_log ERR "split: exclude file '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
@@ -2362,6 +2374,7 @@ install_run_dualboot() {
 	# ESP and the partition table stay.
 	local disk="$1" fs="$2" exclude="$3" want="$4" replace="${5:-}"
 	[[ -b "$disk" ]] || { install_log ERR "dualboot: '$disk' not a block device"; return "$INSTALL_EX_NODEV"; }
+	! install_ufs_reserved_lu "$disk" || { install_log ERR "dualboot: '$disk' is a UFS boot or vendor LU, not a valid install target"; return "$INSTALL_EX_NODEV"; }
 	[[ -f "$exclude" ]] || { install_log ERR "dualboot: exclude '$exclude' missing"; return "$INSTALL_EX_TRANSFER"; }
 	if [[ -z "$replace" ]]; then
 		[[ "$want" =~ ^[0-9]+$ && "$want" -gt 0 ]] || { install_log ERR "dualboot: bad size '$want'"; return "$INSTALL_EX_USAGE"; }
