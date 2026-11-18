@@ -144,8 +144,16 @@ fake_part() {
 	run install_ufs_uboot_room sda
 	[ "$status" -eq 0 ]
 	# An unpartitioned LU has room too.
+	blkid() { :; }
 	run install_ufs_uboot_room sdb
 	[ "$status" -eq 0 ]
+}
+
+@test "ufs room: a filesystem on the whole LU is refused" {
+	nanopi_m5_luns
+	blkid() { echo ext4; }
+	run install_ufs_uboot_room sda
+	[ "$status" -ne 0 ]
 }
 
 @test "ufs room: a 1MiB partition start is refused" {
