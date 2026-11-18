@@ -377,30 +377,37 @@ worktree_last_build() {
 	echo "$newest"
 }
 
+# Set wt_drop to the worktrees of home $1 to remove, and wt_total to the
+# KB that stay.
+worktree_select() {
+	local wt kb used cutoff cap
+	local -a list=()
+	wt_drop=()
+	wt_total=0
+	while IFS= read -r -d '' wt; do
+		kb=$(du -sk "$wt" | cut -f1)
+		list+=("$(worktree_last_build "$wt") ${kb} ${wt}")
+		wt_total=$((wt_total + kb))
+	done < <(find "$1"/_work -mindepth 6 -maxdepth 6 -type d \
+		-path '*/cache/sources/linux-kernel-worktree/*' -print0 2>/dev/null)
+	[[ ${#list[@]} -gt 0 ]] || return 0
+	cutoff=$(( $(date +%s) - KERNEL_WORKTREE_KEEP_DAYS * 86400 ))
+	cap=$((KERNEL_WORKTREE_MAX_GB * 1024 * 1024))
+	while read -r used kb wt; do
+		if (( used < cutoff || wt_total > cap )); then
+			wt_drop+=("$wt")
+			wt_total=$((wt_total - kb))
+		fi
+	done < <(printf '%s\n' "${list[@]}" | sort -n)
+}
+
 for user in "${idle[@]}"; do
 	[[ -n "${keep_work_user[$user]:-}" && -z "${LIMITS_INVALID:-}" ]] || continue
 	home=$(getent passwd "$user" | cut -d: -f6)
 	[[ -n "$home" ]] || continue
 
-	wt_list=()
-	wt_total=0
-	while IFS= read -r -d '' wt; do
-		kb=$(du -sk "$wt" | cut -f1)
-		wt_list+=("$(worktree_last_build "$wt") ${kb} ${wt}")
-		wt_total=$((wt_total + kb))
-	done < <(find "$home"/_work -mindepth 6 -maxdepth 6 -type d \
-		-path '*/cache/sources/linux-kernel-worktree/*' -print0 2>/dev/null)
-	[[ ${#wt_list[@]} -gt 0 ]] || continue
-
-	wt_cutoff=$(( $(date +%s) - KERNEL_WORKTREE_KEEP_DAYS * 86400 ))
-	wt_cap=$((KERNEL_WORKTREE_MAX_GB * 1024 * 1024))
-	wt_drop=()
-	while read -r used kb wt; do
-		if (( used < wt_cutoff || wt_total > wt_cap )); then
-			wt_drop+=("$wt")
-			wt_total=$((wt_total - kb))
-		fi
-	done < <(printf '%s\n' "${wt_list[@]}" | sort -n)
+	# Stop the runner only when something is to go.
+	worktree_select "$home"
 	[[ ${#wt_drop[@]} -gt 0 ]] || continue
 
 	if pgrep -u "$user" -f 'Runner.Worker' > /dev/null 2>&1; then
@@ -420,6 +427,8 @@ for user in "${idle[@]}"; do
 	if pgrep -u "$user" -f 'Runner.Worker' > /dev/null 2>&1; then
 		note "WARNING: ${user} still has a running job after stop — kernel worktrees kept"
 	else
+		# Select again: a job can have rebuilt a tree before the stop.
+		worktree_select "$home"
 		for wt in "${wt_drop[@]}"; do
 			note "rm kernel worktree ${wt#"$home"/}"
 			run rm -rf -- "$wt"
@@ -630,7 +639,7 @@ gcdn_mirror_times() {
 }
 # Keep the pack cache directories: git_cdn creates a directory, then the file in it.
 # find -atime/-mtime +N means N+1 days or more: use N-1.
-if [[ -d "$gcdn_cache/pack_cache" ]]; then
+if [[ -n "$gcdn_cache" && -d "$gcdn_cache/pack_cache" ]]; then
 	if (( gcdn_atime )); then
 		gcdn_age=(-atime +"$((GIT_CDN_PACK_KEEP_DAYS - 1))") gcdn_fmt='%A@'
 	else
@@ -650,7 +659,7 @@ fi
 # A running job can clone from a mirror: remove mirrors only when all runners are idle.
 # First the mirrors not used for GIT_CDN_MIRROR_KEEP_DAYS days, then the least
 # recently used ones until the whole cache fits in GIT_CDN_MAX_GB.
-if [[ -d "$gcdn_cache/git" && ${#busy[@]} -eq 0 ]]; then
+if [[ -n "$gcdn_cache" && -d "$gcdn_cache/git" && ${#busy[@]} -eq 0 ]]; then
 	gcdn_cutoff=$(( $(date +%s) - GIT_CDN_MIRROR_KEEP_DAYS * 86400 ))
 	gcdn_cap=$((GIT_CDN_MAX_GB * 1024 * 1024))
 	gcdn_total=$(du -sk "$gcdn_cache" | cut -f1)
