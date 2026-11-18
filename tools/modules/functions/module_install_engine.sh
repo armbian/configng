@@ -203,19 +203,21 @@ install_ufs_host_of() {
 
 # True when u-boot can be written to the raw sectors of UFS general LU <blk>:
 # every partition starts at or past the 16MiB reserve (or the board's larger
-# BOOTLOADER_RESERVED_MIB). Installs made before that reserve start at 1MiB,
-# where u-boot.itb at 8MiB would land inside the filesystem.
+# BOOTLOADER_RESERVED_MIB), and an unpartitioned LU carries no filesystem.
+# Installs made before that reserve start at 1MiB, where u-boot.itb at 8MiB
+# would land inside the filesystem.
 install_ufs_uboot_room() {
-	local sys="${INSTALL_SYSFS:-/sys}" blk="$1" floor=16 p start
+	local sys="${INSTALL_SYSFS:-/sys}" blk="$1" floor=16 p start parts=0
 	[[ "${BOOTLOADER_RESERVED_MIB:-}" =~ ^[0-9]+$ ]] && ((10#$BOOTLOADER_RESERVED_MIB > floor)) \
 		&& floor=$((10#$BOOTLOADER_RESERVED_MIB))
 	for p in "$sys/block/$blk/$blk"*; do
 		[[ -r "$p/start" ]] || continue
+		parts=1
 		start="$(cat "$p/start")"
 		# sysfs counts partition starts in 512-byte sectors.
 		((start * 512 >= floor * 1024 * 1024)) || return 1
 	done
-	return 0
+	((parts)) || [[ -z "$(blkid -p -s TYPE -o value "/dev/$blk" 2>/dev/null)" ]]
 }
 
 # The UFS boot LU the BootROM reads, as /dev/<blk>, on the same host as

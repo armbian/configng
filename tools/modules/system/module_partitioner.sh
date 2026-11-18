@@ -548,7 +548,7 @@ partitioner_ufs_flash_target() {
 }
 
 partitioner_ufs_no_room_msg() {
-	echo "/dev/$1 has a partition inside the area reserved for u-boot (16MiB, or BOOTLOADER_RESERVED_MIB when larger). It was installed before that reserve existed: reinstall to the UFS to update its bootloader."
+	echo "/dev/$1 has data inside the area reserved for u-boot (16MiB, or BOOTLOADER_RESERVED_MIB when larger): a partition that starts there, as installs made before that reserve have, or a filesystem on the whole LU. Reinstall to the UFS to update its bootloader."
 }
 
 # Standalone "flash the bootloader only" flow: write the RUNNING system's u-boot
