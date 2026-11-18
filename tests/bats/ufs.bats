@@ -170,6 +170,17 @@ fake_part() {
 	[ "$status" -ne 0 ]
 }
 
+@test "ufs: boot and vendor LUs are reserved, the general LU and other disks are not" {
+	nanopi_m5_luns
+	install_ufs_reserved_lu /dev/sdb
+	install_ufs_reserved_lu sdc
+	install_ufs_reserved_lu sdd
+	run install_ufs_reserved_lu /dev/sda
+	[ "$status" -ne 0 ]
+	run install_ufs_reserved_lu nvme0n1
+	[ "$status" -ne 0 ]
+}
+
 @test "ufs room: a 1MiB partition start is refused" {
 	nanopi_m5_luns
 	fake_part sda 1 2048
