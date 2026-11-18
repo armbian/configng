@@ -184,14 +184,24 @@ run()  {
 
 # Empty _work dir $1, except KEEP_WORK_PATHS.
 wipe_work() {
-	local work="$1" glob path
+	local work="$1" glob path pat
 	local -a keep_args=()
+	# No word splitting: a kept path can contain spaces. Pathname expansion stays.
+	local IFS=
 	for glob in "${KEEP_WORK_PATHS[@]}"; do
 		# Unquoted on purpose: expand the glob.
 		# shellcheck disable=SC2206
 		local -a paths=("$work"/$glob)
 		for path in "${paths[@]}"; do
-			[[ -e "$path" ]] && keep_args+=(-o -path "$path" -o -path "$path/*")
+			[[ -e "$path" ]] || continue
+			# find prints no trailing slash: "dir/" would match nothing.
+			while [[ "$path" == */ ]]; do path="${path%/}"; done
+			# find -path takes a pattern: escape the literal path.
+			pat="${path//\\/\\\\}"
+			pat="${pat//\*/\\*}"
+			pat="${pat//\?/\\?}"
+			pat="${pat//\[/\\[}"
+			keep_args+=(-o -path "$pat" -o -path "$pat/*")
 		done
 	done
 	if [[ ${#keep_args[@]} -eq 0 ]]; then
