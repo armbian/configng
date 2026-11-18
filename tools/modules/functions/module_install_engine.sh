@@ -220,7 +220,8 @@ install_ufs_uboot_room() {
 
 # The UFS boot LU the BootROM reads, as /dev/<blk>, on the same host as
 # general LU [blk] (the first UFS host without it): the one bBootLunEn selects,
-# boot LU A when the attribute is unreadable. Empty when there is none.
+# boot LU A when the attribute is unreadable. Empty when there is none or
+# bBootLunEn is 0 (boot disabled, the BootROM reads no boot LU).
 install_ufs_boot_lun() {
 	local sys="${INSTALL_SYSFS:-/sys}" host hid="" en want=boot-a blk cls
 	if [[ -n "${1:-}" ]]; then
@@ -232,7 +233,10 @@ install_ufs_boot_lun() {
 		[[ -n "$hid" ]] || return 0
 	fi
 	en="$(cat "$(readlink -f "$sys/class/scsi_host/host$hid/device")/../attributes/boot_lun_enabled" 2>/dev/null)"
-	[[ "$en" =~ ^0x[0-9a-fA-F]+$ ]] && (($((en)) == 2)) && want=boot-b
+	if [[ "$en" =~ ^0x[0-9a-fA-F]+$ ]]; then
+		(($((en)) == 0)) && return 0
+		(($((en)) == 2)) && want=boot-b
+	fi
 	while read -r blk cls; do
 		[[ "$cls" == "$want" ]] && { echo "/dev/$blk"; return 0; }
 	done < <(install_ufs_luns "$hid")

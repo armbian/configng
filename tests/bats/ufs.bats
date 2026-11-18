@@ -91,6 +91,14 @@ sdd aux" ]
 	[ "$output" = /dev/sdc ]
 }
 
+@test "ufs: no boot LU when bBootLunEn disables boot" {
+	nanopi_m5_luns
+	echo 0x00000000 >"$HBA/attributes/boot_lun_enabled"
+	run install_ufs_boot_lun sda
+	[ "$status" -eq 0 ]
+	[ -z "$output" ]
+}
+
 @test "ufs detect: general LU gets role ufs, boot and vendor LUs are dropped" {
 	nanopi_m5_luns
 	run install_detect_targets mmcblk0 "$(cat "$FIX/lsblk_ufs.json")"
