@@ -184,18 +184,23 @@ run()  {
 
 # Empty _work dir $1, except KEEP_WORK_PATHS.
 wipe_work() {
-	local work="$1" glob path pat
-	local -a keep_args=()
-	# No word splitting: a kept path can contain spaces. Pathname expansion stays.
-	local IFS=
+	local glob path pat old_ifs
+	local -a keep_args=() paths
+	# find -path compares strings: give find and the kept paths the same
+	# form. realpath -s: no "./", "//" or trailing "/", symlinks stay.
+	local work
+	work=$(realpath -s -m -- "$1") || return 1
 	for glob in "${KEEP_WORK_PATHS[@]}"; do
-		# Unquoted on purpose: expand the glob.
+		# Unquoted on purpose: expand the glob. Empty IFS only here: a kept
+		# path can contain spaces, and run prints its command with IFS.
+		old_ifs=$IFS
+		IFS=
 		# shellcheck disable=SC2206
-		local -a paths=("$work"/$glob)
+		paths=("$work"/$glob)
+		IFS=$old_ifs
 		for path in "${paths[@]}"; do
 			[[ -e "$path" ]] || continue
-			# find prints no trailing slash: "dir/" would match nothing.
-			while [[ "$path" == */ ]]; do path="${path%/}"; done
+			path=$(realpath -s -m -- "$path") || continue
 			# find -path takes a pattern: escape the literal path.
 			pat="${path//\\/\\\\}"
 			pat="${pat//\*/\\*}"
