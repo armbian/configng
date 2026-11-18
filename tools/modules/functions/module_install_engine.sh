@@ -177,13 +177,18 @@ install_ufs_luns() {
 	done
 }
 
-# True when a UFS controller is present but has no general LU: the module is
-# blank and must be provisioned (e.g. over EDL on Qualcomm boards) first.
+# True when a UFS device answered but has no general LU: the module is blank
+# and must be provisioned (e.g. over EDL on Qualcomm boards) first. A host
+# with no SCSI device at all has no module fitted, or its link failed.
 install_ufs_unprovisioned() {
-	local sys="${INSTALL_SYSFS:-/sys}" host
+	local sys="${INSTALL_SYSFS:-/sys}" host hid
+	local -a devs
 	for host in "$sys"/class/scsi_host/host*; do
 		[[ "$(cat "$host/proc_name" 2>/dev/null)" == ufshcd ]] || continue
-		install_ufs_luns "${host##*/host}" | grep -q ' general$' || return 0
+		hid="${host##*/host}"
+		devs=("$sys"/class/scsi_device/"$hid":*)
+		[[ -e "${devs[0]}" ]] || continue
+		install_ufs_luns "$hid" | grep -q ' general$' || return 0
 	done
 	return 1
 }
@@ -201,10 +206,13 @@ install_ufs_host_of() {
 	return 1
 }
 
-# True when <disk> is a UFS boot or vendor LU: firmware storage, never an
-# install target.
+# True when <disk>, or the disk holding partition <disk>, is a UFS boot or
+# vendor LU: firmware storage, never an install target.
 install_ufs_reserved_lu() {
-	local blk="${1#/dev/}" hid
+	local sys="${INSTALL_SYSFS:-/sys}" blk="${1#/dev/}" hid p
+	for p in "$sys"/block/*/"$blk"; do
+		[[ -e "$p/start" ]] && { p="${p%/*}"; blk="${p##*/}"; }
+	done
 	hid="$(install_ufs_host_of "$blk")" || return 1
 	install_ufs_luns "$hid" | awk -v d="$blk" '$1 == d && $2 != "general" { f = 1 } END { exit !f }'
 }
@@ -226,6 +234,8 @@ install_ufs_uboot_room() {
 		((start * 512 >= floor * 1024 * 1024)) || return 1
 	done
 	((parts)) && return 0
+	# wipefs reports no error when a read fails mid-probe: read the area first.
+	dd if="/dev/$blk" of=/dev/null bs=1M count="$floor" status=none 2>/dev/null || return 1
 	# wipefs lists every signature, blkid -p reports none on an ambiguous LU.
 	# A bare partition table is fine, anything else is data at risk.
 	local sigs

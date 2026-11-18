@@ -113,6 +113,8 @@ sdd aux" ]
 }
 
 @test "ufs: a blank module (no general LU) is reported unprovisioned" {
+	# The device answered: only its well-known LUs are there.
+	mkdir -p "$INSTALL_SYSFS/class/scsi_device/0:0:0:49488"
 	run install_ufs_unprovisioned
 	[ "$status" -eq 0 ]
 	# Unprovisioned LU 0 that exposes no capacity yet.
@@ -121,6 +123,11 @@ sdd aux" ]
 	[ "$status" -eq 0 ]
 	run install_ufs_luns
 	[[ "$output" != *general* ]]
+}
+
+@test "ufs: a controller with no device (no module, failed link) is not reported" {
+	run install_ufs_unprovisioned
+	[ "$status" -ne 0 ]
 }
 
 @test "ufs: a provisioned module or no UFS at all is not reported" {
@@ -144,6 +151,7 @@ fake_part() {
 	run install_ufs_uboot_room sda
 	[ "$status" -eq 0 ]
 	# An unpartitioned LU has room too.
+	dd() { :; }
 	wipefs() { :; }
 	run install_ufs_uboot_room sdb
 	[ "$status" -eq 0 ]
@@ -151,6 +159,7 @@ fake_part() {
 
 @test "ufs room: a filesystem on the whole LU is refused" {
 	nanopi_m5_luns
+	dd() { :; }
 	wipefs() { echo ext4; }
 	run install_ufs_uboot_room sda
 	[ "$status" -ne 0 ]
@@ -160,12 +169,18 @@ fake_part() {
 	[ "$status" -ne 0 ]
 }
 
-@test "ufs room: a bare partition table passes, a failed probe is refused" {
+@test "ufs room: a bare partition table passes, a failed probe or read is refused" {
 	nanopi_m5_luns
+	dd() { :; }
 	wipefs() { printf 'gpt\nPMBR\n'; }
 	run install_ufs_uboot_room sda
 	[ "$status" -eq 0 ]
 	wipefs() { return 1; }
+	run install_ufs_uboot_room sda
+	[ "$status" -ne 0 ]
+	# A read error that wipefs would swallow.
+	dd() { return 1; }
+	wipefs() { :; }
 	run install_ufs_uboot_room sda
 	[ "$status" -ne 0 ]
 }
@@ -178,6 +193,12 @@ fake_part() {
 	run install_ufs_reserved_lu /dev/sda
 	[ "$status" -ne 0 ]
 	run install_ufs_reserved_lu nvme0n1
+	[ "$status" -ne 0 ]
+	# A partition on a reserved LU is reserved too, one on the general LU is not.
+	fake_part sdd 1 2048
+	fake_part sda 1 32768
+	install_ufs_reserved_lu /dev/sdd1
+	run install_ufs_reserved_lu /dev/sda1
 	[ "$status" -ne 0 ]
 }
 
