@@ -390,10 +390,8 @@ function _module_desktops_configure_fprintd() {
 }
 
 # Do not hold up the boot for services that the login screen does not need.
-# - intel_lpmd (Type=dbus) takes about 4 s to get on D-Bus, and
-#   multi-user.target waits for it. It still starts at boot, without the wait.
-# - containerd: docker.service wants it, so it starts with Docker on first
-#   use (docker.socket). It does not need to start at boot.
+# intel_lpmd (Type=dbus) takes about 4 s to get on D-Bus, and multi-user.target
+# waits for it. It still starts at boot, without the wait.
 function _module_desktops_configure_boot_services() {
 	if [[ -f /usr/lib/systemd/system/intel_lpmd.service ]]; then
 		mkdir -p /etc/systemd/system/intel_lpmd.service.d
@@ -402,9 +400,6 @@ function _module_desktops_configure_boot_services() {
 			[Service]
 			Type=exec
 		EOF
-	fi
-	if [[ -f /usr/lib/systemd/system/containerd.service && -f /usr/lib/systemd/system/docker.socket ]]; then
-		systemctl disable containerd.service > /dev/null 2>&1 || true
 	fi
 }
 
@@ -844,7 +839,7 @@ function module_desktops() {
 			# Give psd time to copy the browser profiles back at logout.
 			_module_desktops_configure_psd "$mode"
 
-			# intel_lpmd and containerd: no wait at boot.
+			# intel_lpmd: no wait at boot.
 			_module_desktops_configure_boot_services
 
 			# Wire up the Rockchip 3D + multimedia stack on
