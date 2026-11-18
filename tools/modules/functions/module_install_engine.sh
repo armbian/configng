@@ -224,14 +224,14 @@ install_ufs_reserved_lu() {
 # filesystem. An LU without partitions is refused: a full install writes
 # the bootloader there.
 install_ufs_uboot_room() {
-	local sys="${INSTALL_SYSFS:-/sys}" blk="$1" floor=16 p start parts=0
+	local blk="$1" floor=16 starts start parts=0
 	[[ "${BOOTLOADER_RESERVED_MIB:-}" =~ ^[0-9]+$ ]] && ((10#$BOOTLOADER_RESERVED_MIB > floor)) \
 		&& floor=$((10#$BOOTLOADER_RESERVED_MIB))
-	for p in "$sys/block/$blk/$blk"*; do
-		[[ -r "$p/start" ]] || continue
+	# The on-disk table, not the kernel's view. partx counts 512-byte sectors.
+	starts="$(partx --show --noheadings -o START "/dev/$blk" 2>/dev/null)" || return 1
+	for start in $starts; do
+		[[ "$start" =~ ^[0-9]+$ ]] || return 1
 		parts=1
-		start="$(cat "$p/start")"
-		# sysfs counts partition starts in 512-byte sectors.
 		((start * 512 >= floor * 1024 * 1024)) || return 1
 	done
 	((parts))
