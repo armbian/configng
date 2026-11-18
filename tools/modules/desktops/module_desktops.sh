@@ -389,6 +389,25 @@ function _module_desktops_configure_fprintd() {
 	DEBIAN_FRONTEND=noninteractive pam-auth-update --enable fprintd 2> /dev/null || true
 }
 
+# Do not hold up the boot for services that the login screen does not need.
+# - intel_lpmd (Type=dbus) takes about 4 s to get on D-Bus, and
+#   multi-user.target waits for it. It still starts at boot, without the wait.
+# - containerd: docker.service wants it, so it starts with Docker on first
+#   use (docker.socket). It does not need to start at boot.
+function _module_desktops_configure_boot_services() {
+	if [[ -f /usr/lib/systemd/system/intel_lpmd.service ]]; then
+		mkdir -p /etc/systemd/system/intel_lpmd.service.d
+		cat > /etc/systemd/system/intel_lpmd.service.d/zz-armbian-no-wait.conf <<- EOF
+			# Written by armbian-config: do not hold up the boot until intel_lpmd is on D-Bus.
+			[Service]
+			Type=exec
+		EOF
+	fi
+	if [[ -f /usr/lib/systemd/system/containerd.service && -f /usr/lib/systemd/system/docker.socket ]]; then
+		systemctl disable containerd.service > /dev/null 2>&1 || true
+	fi
+}
+
 #
 # profile-sync-daemon (psd) copies the browser profiles back to disk when
 # the user session stops. Ubuntu's systemd caps that stop at 5 s
@@ -825,6 +844,9 @@ function module_desktops() {
 			# Give psd time to copy the browser profiles back at logout.
 			_module_desktops_configure_psd "$mode"
 
+			# intel_lpmd and containerd: no wait at boot.
+			_module_desktops_configure_boot_services
+
 			# Wire up the Rockchip 3D + multimedia stack on
 			# rk3588-family / vendor-kernel boards: panthor-gpu DT
 			# overlay (Mesa GBM path), and — on noble — the
@@ -1055,6 +1077,9 @@ function module_desktops() {
 				/etc/systemd/user/psd.service.d/zz-armbian-real-users.conf \
 				/etc/systemd/user/psd-resync.service.d/zz-armbian-real-users.conf
 			rmdir /etc/systemd/user/psd.service.d /etc/systemd/user/psd-resync.service.d 2> /dev/null || true
+			# The intel_lpmd drop-in of _module_desktops_configure_boot_services.
+			rm -f /etc/systemd/system/intel_lpmd.service.d/zz-armbian-no-wait.conf
+			rmdir /etc/systemd/system/intel_lpmd.service.d 2> /dev/null || true
 			# Older installs appended the psd grant to /etc/sudoers.
 			if grep -qs 'NOPASSWD: /usr/bin/psd-overlay-helper$' /etc/sudoers; then
 				local sudoers_tmp
