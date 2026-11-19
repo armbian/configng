@@ -108,6 +108,7 @@ function module_desktop_branding() {
 			#                /etc/chromium/policies/managed/armbian.json       (ManagedBookmarks — mandatory-only policy)
 			#                /etc/chromium/master_preferences                  (suppress bundled defaults)
 			#                /etc/chromium.d/armbian-flags                     (enable VPU hardware video decoder)
+			#                /etc/chromium.d/armbian-widevine                  (WebGL fallback + Netflix CrOS UA spoof)
 			#   chrome:      /etc/opt/chrome/policies/recommended/armbian.json
 			#                /etc/opt/chrome/policies/managed/armbian.json
 			#                /etc/opt/chrome/master_preferences
@@ -129,6 +130,42 @@ function module_desktop_branding() {
 				# owned by the developer's UID rather than root (in
 				# production the deb deploys them as root anyway).
 				cp -a --no-preserve=ownership "$desktop_dir/branding/browsers/etc/." /etc/
+			fi
+
+			# Parallel overlay under branding/browsers/usr/ — currently carries
+			# /usr/bin/chromium.armbian, the Armbian-owned replacement for the
+			# stock Chromium launcher. The stock wrapper word-splits
+			# $CHROMIUM_FLAGS and cannot pass flags whose value contains
+			# spaces (like --user-agent="..."), which makes
+			# /etc/chromium.d/armbian-widevine's CrOS UA ineffective on its
+			# own. Our wrapper is a near-identical drop-in that execs through
+			# `eval` instead, preserving quoted values.
+			if [[ -d "$desktop_dir/branding/browsers/usr" ]]; then
+				cp -a --no-preserve=ownership "$desktop_dir/branding/browsers/usr/." /usr/
+			fi
+
+			# If we've shipped the Armbian Chromium wrapper and the chromium
+			# package is installed, swap /usr/bin/chromium to point at it.
+			# The swap uses dpkg-divert so a future `apt upgrade chromium`
+			# lands the upstream wrapper in /usr/bin/chromium.upstream
+			# instead of clobbering the symlink we created here.
+			# Skipped inside containers / CI where dpkg is typically not
+			# operational on the live rootfs.
+			if [[ -x /usr/bin/chromium.armbian && -x /usr/bin/chromium ]] \
+				&& command -v dpkg-divert >/dev/null 2>&1 \
+				&& ! _desktop_in_container 2>/dev/null; then
+				if ! dpkg-divert --list /usr/bin/chromium 2>/dev/null | grep -q "diversion of /usr/bin/chromium"; then
+					dpkg-divert --local --rename \
+						--divert /usr/bin/chromium.upstream \
+						--add /usr/bin/chromium >/dev/null 2>&1 || true
+				fi
+				# The divert renamed the original file out of the way;
+				# put our wrapper in its place as a symlink so future
+				# updates to /usr/bin/chromium.armbian (via branding
+				# re-runs) propagate automatically.
+				if [[ ! -L /usr/bin/chromium || "$(readlink /usr/bin/chromium)" != "/usr/bin/chromium.armbian" ]]; then
+					ln -sf /usr/bin/chromium.armbian /usr/bin/chromium
+				fi
 			fi
 
 			# SDDM theme (for desktops using sddm)
