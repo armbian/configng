@@ -87,6 +87,9 @@ function _dt_overlays_resolve_paths() {
 		is_pi="true"
 		overlayconf="$pi_config"
 		overlaydir=$(find /boot/dtb/ -maxdepth 1 -type d \( -name "overlay" -o -name "overlays" \) 2>/dev/null | head -n1)
+	elif [[ -f /etc/armbian-grub-with-dtb ]]; then
+		overlayconf="$armbian_env"
+		overlaydir=$(find "/usr/lib/linux-image-$(uname -r)/" -name overlay -type d 2>/dev/null | head -n1)
 	else
 		overlayconf="$armbian_env"
 		overlaydir=$(find /boot/dtb/ -name overlay -and -type d 2>/dev/null)
@@ -113,6 +116,10 @@ function _dt_overlays_resolve_paths() {
 # prefixes with ${overlay_prefix_item}.
 #
 function _dt_overlays_scenario() {
+	if [[ -f /etc/armbian-grub-with-dtb ]]; then
+		echo "10"
+		return 0
+	fi
 	awk 'BEGIN{p=0;s=0}
 		/load.*overlays?\/\${overlay_prefix(_item)?}-\${overlay_file}.dtbo/{p=1}
 		/load.*overlays?\/\${overlay_file}.dtbo/{s=1}
