@@ -19,8 +19,8 @@
 #   - Docker container/image/network/builder prune — always run.
 #                               Docker enforces in-use checks itself;
 #                               'image rm' on an image a container uses
-#                               is rejected, 'container prune' only
-#                               touches stopped containers, etc.
+#                               is rejected; only stopped job containers
+#                               (no restart policy) are removed, etc.
 #   - docker volume prune -a  — gated on the whole fleet being idle.
 #                               Between job steps a volume can briefly
 #                               appear unused; -a would yank it. Skip
@@ -616,12 +616,37 @@ while IFS=$'\t' read -r repo_tag image_id; do
 		log "  ! could not remove ${repo_tag} — likely still in use, skipped"
 done < <(docker image ls --format '{{.Repository}}:{{.Tag}}\t{{.ID}}')
 
+# Stopped containers. A container with a restart policy is a host
+# service (redis, registry-cache, git_cdn, ...), never a job leftover:
+#   - always:  docker gave up on it, e.g. a port bind failed at boot
+#              while the NIC had no address. Start it again.
+#   - unless-stopped / on-failure: stopped on purpose or failing. Keep.
+#   - none:    job leftover. Remove it ('docker container prune' would
+#              also remove the services).
+while IFS= read -r id; do
+	[[ -z "$id" ]] && continue
+	policy=$(docker inspect -f '{{.HostConfig.RestartPolicy.Name}}' "$id" 2>/dev/null) || continue
+	name=$(docker inspect -f '{{.Name}}' "$id" 2>/dev/null); name="${name#/}"
+	case "$policy" in
+		always)
+			note "start stopped service container ${name}"
+			run docker start "$id" > /dev/null 2>&1 || \
+				log "  ! could not start ${name}"
+			;;
+		unless-stopped | on-failure)
+			log "keep stopped service container ${name} (restart policy ${policy})"
+			;;
+		*)
+			run docker rm "$id" > /dev/null 2>&1 || \
+				log "  ! could not remove container ${name}"
+			;;
+	esac
+done < <(docker ps -aq --filter status=exited --filter status=created --filter status=dead 2>/dev/null)
+
 # Pass 2: sweep everything else. These are always safe with busy
 # runners because Docker enforces in-use checks itself:
-#   - container prune: only STOPPED containers
 #   - image prune (no -a): only dangling <none>:<none>
 #   - network prune: only unused networks
-run docker container prune -f
 run docker image prune -f
 run docker network prune -f
 
