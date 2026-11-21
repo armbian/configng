@@ -316,54 +316,40 @@ jobs:
           docker system df || true
           echo "::endgroup::"
 
-          echo "::group::Cleanup: stop and remove named test-service containers (uptime > 2h)"
-          # Tests that exercise module_postgres / module_redis /
-          # module_immich (and friends) spawn long-running service
-          # containers and only tear them down if the test reaches
-          # its `remove` stage. A test that's interrupted, or one
-          # that only calls `install`, leaves these wedged on the
-          # runner; the diagnostic above showed postgres-immich and
-          # mysql 'Up 7 days' for that reason.
+          echo "::group::Cleanup: stop and remove leftover test containers (uptime > 2h)"
+          # Service tests (module_postgres, module_immich, ...) start
+          # containers through the host docker socket and remove them only
+          # when the test reaches its 'remove' stage. An interrupted test
+          # leaves them running on the runner host.
           #
-          # Skip containers that have been up less than 2h — they
-          # could be a sibling matrix slot's test currently in
-          # flight (native timeout-minutes is 90, emulated 210, so
-          # 2h is comfortably below "real test still running" and
-          # well above "leftover from a prior run").
+          # Tests keep their data in SOFTWARE_FOLDER=/armbian-test, so a
+          # test container bind-mounts a path below /armbian-test. Select
+          # containers by that mount, never by name: the runner host can
+          # run production services with the same names (for example the
+          # ccache 'redis' on the build runners), kept below /armbian.
           #
-          # Stopped / Created containers are left to the
-          # orphaned-Created sweep below (which uses the bare-hash
-          # filter to avoid the same false-positive concern).
-          #
-          # Exact-match anchored names (^name$) so a future sibling
-          # like 'mysql-readonly' or 'postgres-staging' isn't caught.
-          # Runs *before* the orphaned-Created sweep so a freshly
-          # stopped service isn't briefly seen as orphan in the same
-          # pass. 'docker stop --time 30' gives postgres / mysql a
-          # chance to flush before SIGKILL; '|| true' on each step
-          # so a transient hiccup doesn't fail the test slot.
+          # Skip containers up less than 2h: a sibling matrix slot can
+          # still use them (native timeout is 90 min, emulated 210 min).
+          # Stopped containers are removed at once.
           now_epoch=$(date +%s)
           threshold=$(( 2 * 3600 ))
-          for c in postgres-immich mysql redis postgres; do
-            if ! docker ps -a --filter "name=^${c}$" --format '{{.Names}}' | grep -q "^${c}$"; then
-              echo "  absent : $c"
-              continue
+          docker ps -aq | while read -r id; do
+            mounts=$(docker inspect "$id" --format '{{range .Mounts}}{{.Source}} {{end}}' 2>/dev/null) || continue
+            [[ " ${mounts}" == *" /armbian-test/"* ]] || continue
+            name=$(docker inspect "$id" --format '{{.Name}}' 2>/dev/null); name="${name#/}"
+            running=$(docker inspect "$id" --format '{{.State.Running}}' 2>/dev/null || echo false)
+            if [[ "$running" == "true" ]]; then
+              started=$(docker inspect "$id" --format '{{.State.StartedAt}}' 2>/dev/null)
+              started_epoch=$(date -d "$started" +%s 2>/dev/null || echo "$now_epoch")
+              age=$(( now_epoch - started_epoch ))
+              if (( age < threshold )); then
+                printf "  recent <2h (skip): %s (up %dm)\n" "$name" $(( age / 60 ))
+                continue
+              fi
+              docker stop --time 30 "$id" >/dev/null 2>&1 || true
             fi
-            running=$(docker inspect "$c" --format '{{.State.Running}}' 2>/dev/null || echo false)
-            if [[ "$running" != "true" ]]; then
-              echo "  stopped (skip — orphan sweep handles below): $c"
-              continue
-            fi
-            started=$(docker inspect "$c" --format '{{.State.StartedAt}}' 2>/dev/null)
-            started_epoch=$(date -d "$started" +%s 2>/dev/null || echo "$now_epoch")
-            age=$(( now_epoch - started_epoch ))
-            if (( age < threshold )); then
-              printf "  recent <2h (skip): %s (up %dm)\n" "$c" $(( age / 60 ))
-              continue
-            fi
-            docker stop --time 30 "$c" >/dev/null 2>&1 || true
-            docker rm           "$c" >/dev/null 2>&1 || true
-            printf "  stop+rm: %s (up %dh)\n" "$c" $(( age / 3600 ))
+            docker rm "$id" >/dev/null 2>&1 || true
+            echo "  removed: $name"
           done
           echo "::endgroup::"
 
@@ -413,6 +399,8 @@ jobs:
         shell: bash
         run: |
           export TERM=linux
+          # Keep test data apart from production software in /armbian.
+          export SOFTWARE_FOLDER=/armbian-test
           rm -rf test; mkdir -p test
           cd config
           # assemble armbian config
@@ -542,54 +530,40 @@ jobs:
           docker system df || true
           echo "::endgroup::"
 
-          echo "::group::Cleanup: stop and remove named test-service containers (uptime > 2h)"
-          # Tests that exercise module_postgres / module_redis /
-          # module_immich (and friends) spawn long-running service
-          # containers and only tear them down if the test reaches
-          # its `remove` stage. A test that's interrupted, or one
-          # that only calls `install`, leaves these wedged on the
-          # runner; the diagnostic above showed postgres-immich and
-          # mysql 'Up 7 days' for that reason.
+          echo "::group::Cleanup: stop and remove leftover test containers (uptime > 2h)"
+          # Service tests (module_postgres, module_immich, ...) start
+          # containers through the host docker socket and remove them only
+          # when the test reaches its 'remove' stage. An interrupted test
+          # leaves them running on the runner host.
           #
-          # Skip containers that have been up less than 2h — they
-          # could be a sibling matrix slot's test currently in
-          # flight (native timeout-minutes is 90, emulated 210, so
-          # 2h is comfortably below "real test still running" and
-          # well above "leftover from a prior run").
+          # Tests keep their data in SOFTWARE_FOLDER=/armbian-test, so a
+          # test container bind-mounts a path below /armbian-test. Select
+          # containers by that mount, never by name: the runner host can
+          # run production services with the same names (for example the
+          # ccache 'redis' on the build runners), kept below /armbian.
           #
-          # Stopped / Created containers are left to the
-          # orphaned-Created sweep below (which uses the bare-hash
-          # filter to avoid the same false-positive concern).
-          #
-          # Exact-match anchored names (^name$) so a future sibling
-          # like 'mysql-readonly' or 'postgres-staging' isn't caught.
-          # Runs *before* the orphaned-Created sweep so a freshly
-          # stopped service isn't briefly seen as orphan in the same
-          # pass. 'docker stop --time 30' gives postgres / mysql a
-          # chance to flush before SIGKILL; '|| true' on each step
-          # so a transient hiccup doesn't fail the test slot.
+          # Skip containers up less than 2h: a sibling matrix slot can
+          # still use them (native timeout is 90 min, emulated 210 min).
+          # Stopped containers are removed at once.
           now_epoch=$(date +%s)
           threshold=$(( 2 * 3600 ))
-          for c in postgres-immich mysql redis postgres; do
-            if ! docker ps -a --filter "name=^${c}$" --format '{{.Names}}' | grep -q "^${c}$"; then
-              echo "  absent : $c"
-              continue
+          docker ps -aq | while read -r id; do
+            mounts=$(docker inspect "$id" --format '{{range .Mounts}}{{.Source}} {{end}}' 2>/dev/null) || continue
+            [[ " ${mounts}" == *" /armbian-test/"* ]] || continue
+            name=$(docker inspect "$id" --format '{{.Name}}' 2>/dev/null); name="${name#/}"
+            running=$(docker inspect "$id" --format '{{.State.Running}}' 2>/dev/null || echo false)
+            if [[ "$running" == "true" ]]; then
+              started=$(docker inspect "$id" --format '{{.State.StartedAt}}' 2>/dev/null)
+              started_epoch=$(date -d "$started" +%s 2>/dev/null || echo "$now_epoch")
+              age=$(( now_epoch - started_epoch ))
+              if (( age < threshold )); then
+                printf "  recent <2h (skip): %s (up %dm)\n" "$name" $(( age / 60 ))
+                continue
+              fi
+              docker stop --time 30 "$id" >/dev/null 2>&1 || true
             fi
-            running=$(docker inspect "$c" --format '{{.State.Running}}' 2>/dev/null || echo false)
-            if [[ "$running" != "true" ]]; then
-              echo "  stopped (skip — orphan sweep handles below): $c"
-              continue
-            fi
-            started=$(docker inspect "$c" --format '{{.State.StartedAt}}' 2>/dev/null)
-            started_epoch=$(date -d "$started" +%s 2>/dev/null || echo "$now_epoch")
-            age=$(( now_epoch - started_epoch ))
-            if (( age < threshold )); then
-              printf "  recent <2h (skip): %s (up %dm)\n" "$c" $(( age / 60 ))
-              continue
-            fi
-            docker stop --time 30 "$c" >/dev/null 2>&1 || true
-            docker rm           "$c" >/dev/null 2>&1 || true
-            printf "  stop+rm: %s (up %dh)\n" "$c" $(( age / 3600 ))
+            docker rm "$id" >/dev/null 2>&1 || true
+            echo "  removed: $name"
           done
           echo "::endgroup::"
 
@@ -684,6 +658,7 @@ jobs:
             -v "$PWD/test":/test \
             -w /workspace \
             -e TERM=linux \
+            -e SOFTWARE_FOLDER=/armbian-test \
             -e DBUS_SESSION_BUS_ADDRESS="unix:path=/run/bus/bus.sock" \
             -e TEST_NAME -e TEST_RELEASE -e TEST_ARCH -e TEST_ID -e TEST_PKG \
             -e REPOSITORY \
