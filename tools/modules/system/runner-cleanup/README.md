@@ -17,7 +17,7 @@ Per-operation, not per-host — busy fleets keep getting cleaned:
 | Kernel worktrees (`_work/*/*/cache/sources/linux-kernel-worktree/*`) of runners in `KEEP_RUNNERS_WORK` not built for `$KERNEL_WORKTREE_KEEP_DAYS` days (default `3`), then the least recently built ones above `$KERNEL_WORKTREE_MAX_GB` GB per runner (default `100`) | Idle runners only, with the same stop → re-check → start guards as the `_work/` wipe. The build framework makes a missing worktree again. |
 | git_cdn pack cache files not used for `$GIT_CDN_PACK_KEEP_DAYS` days (default `7`), then the least recently used files above `$GIT_CDN_PACK_MAX_GB` GB (default `20`) | Always runs. Last use is the atime; on a `noatime` mount or with unknown mount options, the mtime. Skipped when a limit value is not a positive integer. git_cdn makes a missing pack again on the next request. |
 | git_cdn mirrors not used for `$GIT_CDN_MIRROR_KEEP_DAYS` days (default `30`), then the least recently used ones until the cache fits in `$GIT_CDN_MAX_GB` GB (default `50`) | Skipped while ANY runner is busy: a job can clone from the mirror. Last use is the newest pack atime; without atime, the mtime of `FETCH_HEAD` (git_cdn rewrites it each time it serves the mirror). git_cdn clones the mirror again on the next request. |
-| `docker container prune -f` | Always runs. Only touches stopped containers. |
+| Stopped containers | Always runs. No restart policy: removed (job leftovers). Policy `always` (a host service Docker gave up on, e.g. after a failed port bind at boot): started again. Policy `unless-stopped` / `on-failure`: kept. |
 | `docker image prune -f` (dangling) | Always runs. Only `<none>:<none>`. |
 | `docker network prune -f` | Always runs. Only unused networks. |
 | `docker builder prune -af` | Always runs. Drops build cache — cold-cache slowdown for an in-flight build, doesn't break it. |
@@ -141,7 +141,7 @@ or, with runners present and idle:
 wipe /home/actions-runner-01/_work/
 keep image ghcr.io/armbian/builder:latest
 rm image ubuntu:24.04 (sha256:...)
-[dry-run] docker container prune -f
+[dry-run] docker rm 3f2a9c1d4b5e
 ...
 ```
 
