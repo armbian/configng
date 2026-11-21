@@ -328,26 +328,27 @@ jobs:
           # run production services with the same names (for example the
           # ccache 'redis' on the build runners), kept below /armbian.
           #
-          # Skip containers up less than 2h: a sibling matrix slot can
-          # still use them (native timeout is 90 min, emulated 210 min).
-          # Stopped containers are removed at once.
+          # Skip containers created less than 2h ago: a sibling matrix
+          # slot can still use them (native timeout is 90 min, emulated
+          # 210 min).
           now_epoch=$(date +%s)
           threshold=$(( 2 * 3600 ))
           docker ps -aq | while read -r id; do
-            mounts=$(docker inspect "$id" --format '{{range .Mounts}}{{.Source}} {{end}}' 2>/dev/null) || continue
+            # One inspect per container: a sibling job can remove it at
+            # any time, and a failed call must skip it, not end the step.
+            info=$(docker inspect "$id" --format '{{.Name}}|{{.Created}}|{{range .Mounts}}{{.Source}} {{end}}' 2>/dev/null) || continue
+            IFS='|' read -r name created mounts <<< "$info"
+            name="${name#/}"
             [[ " ${mounts}" == *" /armbian-test/"* ]] || continue
-            name=$(docker inspect "$id" --format '{{.Name}}' 2>/dev/null); name="${name#/}"
-            running=$(docker inspect "$id" --format '{{.State.Running}}' 2>/dev/null || echo false)
-            if [[ "$running" == "true" ]]; then
-              started=$(docker inspect "$id" --format '{{.State.StartedAt}}' 2>/dev/null)
-              started_epoch=$(date -d "$started" +%s 2>/dev/null || echo "$now_epoch")
-              age=$(( now_epoch - started_epoch ))
-              if (( age < threshold )); then
-                printf "  recent <2h (skip): %s (up %dm)\n" "$name" $(( age / 60 ))
-                continue
-              fi
-              docker stop --time 30 "$id" >/dev/null 2>&1 || true
+            # Age from creation, so a created but not started container
+            # of a sibling slot is protected too.
+            created_epoch=$(date -d "$created" +%s 2>/dev/null) || continue
+            age=$(( now_epoch - created_epoch ))
+            if (( age < threshold )); then
+              printf "  recent <2h (skip): %s (%dm old)\n" "$name" $(( age / 60 ))
+              continue
             fi
+            docker stop --time 30 "$id" >/dev/null 2>&1 || true
             docker rm "$id" >/dev/null 2>&1 || true
             echo "  removed: $name"
           done
@@ -542,26 +543,27 @@ jobs:
           # run production services with the same names (for example the
           # ccache 'redis' on the build runners), kept below /armbian.
           #
-          # Skip containers up less than 2h: a sibling matrix slot can
-          # still use them (native timeout is 90 min, emulated 210 min).
-          # Stopped containers are removed at once.
+          # Skip containers created less than 2h ago: a sibling matrix
+          # slot can still use them (native timeout is 90 min, emulated
+          # 210 min).
           now_epoch=$(date +%s)
           threshold=$(( 2 * 3600 ))
           docker ps -aq | while read -r id; do
-            mounts=$(docker inspect "$id" --format '{{range .Mounts}}{{.Source}} {{end}}' 2>/dev/null) || continue
+            # One inspect per container: a sibling job can remove it at
+            # any time, and a failed call must skip it, not end the step.
+            info=$(docker inspect "$id" --format '{{.Name}}|{{.Created}}|{{range .Mounts}}{{.Source}} {{end}}' 2>/dev/null) || continue
+            IFS='|' read -r name created mounts <<< "$info"
+            name="${name#/}"
             [[ " ${mounts}" == *" /armbian-test/"* ]] || continue
-            name=$(docker inspect "$id" --format '{{.Name}}' 2>/dev/null); name="${name#/}"
-            running=$(docker inspect "$id" --format '{{.State.Running}}' 2>/dev/null || echo false)
-            if [[ "$running" == "true" ]]; then
-              started=$(docker inspect "$id" --format '{{.State.StartedAt}}' 2>/dev/null)
-              started_epoch=$(date -d "$started" +%s 2>/dev/null || echo "$now_epoch")
-              age=$(( now_epoch - started_epoch ))
-              if (( age < threshold )); then
-                printf "  recent <2h (skip): %s (up %dm)\n" "$name" $(( age / 60 ))
-                continue
-              fi
-              docker stop --time 30 "$id" >/dev/null 2>&1 || true
+            # Age from creation, so a created but not started container
+            # of a sibling slot is protected too.
+            created_epoch=$(date -d "$created" +%s 2>/dev/null) || continue
+            age=$(( now_epoch - created_epoch ))
+            if (( age < threshold )); then
+              printf "  recent <2h (skip): %s (%dm old)\n" "$name" $(( age / 60 ))
+              continue
             fi
+            docker stop --time 30 "$id" >/dev/null 2>&1 || true
             docker rm "$id" >/dev/null 2>&1 || true
             echo "  removed: $name"
           done
