@@ -153,7 +153,7 @@ function set_runtime_variables() {
 	KERNELID=$(uname -r)
 	[[ -z "${ARMBIAN// /}" ]] && ARMBIAN="$DISTRO $DISTROID"
 
-	SOFTWARE_FOLDER="/armbian" # where we should keep 3rd party software
+	SOFTWARE_FOLDER="${SOFTWARE_FOLDER:-/armbian}" # where we should keep 3rd party software; unit tests set /armbian-test
 	DEFAULT_ADAPTER=$(ip -4 route ls | grep default | tail -1 | grep -Po '(?<=dev )(\S+)')
 	LOCALIPADD=$(ip -4 addr show dev $DEFAULT_ADAPTER | awk '/inet/ {print $2}' | cut -d'/' -f1)
 	LOCALSUBNET=$(echo ${LOCALIPADD} | cut -d"." -f1-3).0/24
