@@ -119,6 +119,15 @@ KEEP_IMAGE_PREFIXES=(
 KEEP_RUNNERS_WORK=(
 	actions-runner-01
 )
+# Paths that the _work wipe keeps: shell globs relative to _work, "*" does
+# not match "/". The Armbian git trees (cache/git-bare) are 0.3-4 GB
+# downloads, valid for every later job. Keep the checkout .git with them:
+# actions/checkout empties a directory without .git, the kept trees too.
+# The build adds its worktrees with --force, so stale records do no harm.
+KEEP_WORK_PATHS=(
+	'*/*/.git'
+	'*/*/cache/git-bare'
+)
 # Only drop the (expensive to rebuild) Docker/BuildKit build cache when the
 # disk is genuinely filling. Wiping it every pass makes every following build
 # cold. Percentage of the busiest filesystem at/above which to prune it.
@@ -182,6 +191,44 @@ run()  {
 	else
 		"$@"
 	fi
+}
+
+# Empty _work dir $1, except KEEP_WORK_PATHS.
+wipe_work() {
+	local glob path pat old_ifs
+	local -a keep_args=() paths
+	# find -path compares strings: give find and the kept paths the same
+	# form. realpath -s: no "./", "//" or trailing "/", symlinks stay.
+	local work
+	work=$(realpath -s -m -- "$1") || return 1
+	for glob in "${KEEP_WORK_PATHS[@]}"; do
+		# Unquoted on purpose: expand the glob. Empty IFS only here: a kept
+		# path can contain spaces, and run prints its command with IFS.
+		old_ifs=$IFS
+		IFS=
+		# shellcheck disable=SC2206
+		paths=("$work"/$glob)
+		IFS=$old_ifs
+		for path in "${paths[@]}"; do
+			[[ -e "$path" ]] || continue
+			path=$(realpath -s -m -- "$path") || continue
+			# find -path takes a pattern: escape the literal path.
+			pat="${path//\\/\\\\}"
+			pat="${pat//\*/\\*}"
+			pat="${pat//\?/\\?}"
+			pat="${pat//\[/\\[}"
+			keep_args+=(-o -path "$pat" -o -path "$pat/*")
+		done
+	done
+	if [[ ${#keep_args[@]} -eq 0 ]]; then
+		run find "$work" -mindepth 1 -delete
+		return
+	fi
+	keep_args=("${keep_args[@]:1}")
+	# Files first, then the directories that are empty after that.
+	# The kept trees stay, and so do their parent directories.
+	run find "$work" -mindepth 1 \( "${keep_args[@]}" \) -prune -o ! -type d -exec rm -f -- {} +
+	run find "$work" -mindepth 1 -depth \( "${keep_args[@]}" \) -o -type d -empty -delete
 }
 
 # -------------------------------------------------------------------
@@ -346,7 +393,7 @@ for user in "${idle[@]}"; do
 			fi
 			continue
 		fi
-		run find "$work" -mindepth 1 -delete
+		wipe_work "$work"
 		if run systemctl start "${unit}.service"; then
 			[[ $DRY_RUN -eq 0 ]] && unset 'stopped_unit_for[$unit]'
 		else
