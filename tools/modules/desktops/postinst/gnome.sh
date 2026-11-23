@@ -42,12 +42,46 @@ for app in armbian-imager.desktop "Armbian Imager.desktop"; do
 	fi
 done
 
+# Tray icons. Debian and Ubuntu use different UUIDs. GNOME skips a missing one.
+extensions="'appindicatorsupport@rgcjonas.gmail.com', 'ubuntu-appindicators@ubuntu.com'"
+
+# Tiling Shell replaces Ubuntu Tiling Assistant. Debian and Ubuntu do not
+# package it, so get the build for this GNOME version from
+# extensions.gnome.org. If the download fails, the image has no tiling.
+tilingshell_uuid='tilingshell@ferrarodomenico.com'
+tilingshell_dir="/usr/share/gnome-shell/extensions/${tilingshell_uuid}"
+shell_ver=$(dpkg-query -W -f='${Version}' gnome-shell 2>/dev/null)
+# Leading digits after the epoch: 1:43.9-1 -> 43, 48~beta-4 -> 48.
+if [[ "${shell_ver#*:}" =~ ^([0-9]+) ]]; then
+	python3 - "$tilingshell_uuid" "${BASH_REMATCH[1]}" "$tilingshell_dir" <<- 'PYEOF'
+	import io, json, sys, urllib.request, zipfile
+	uuid, shell, dest = sys.argv[1:]
+	ego = "https://extensions.gnome.org"
+	url = f"{ego}/extension-info/?uuid={uuid}&shell_version={shell}"
+	info = json.load(urllib.request.urlopen(url, timeout=60))
+	data = urllib.request.urlopen(ego + info["download_url"], timeout=120).read()
+	zipfile.ZipFile(io.BytesIO(data)).extractall(dest)
+	PYEOF
+fi
+if [[ -f "${tilingshell_dir}/metadata.json" ]]; then
+	glib-compile-schemas "${tilingshell_dir}/schemas"
+	extensions="${extensions}, '${tilingshell_uuid}'"
+else
+	rm -rf "$tilingshell_dir"
+	echo "Warning: Tiling Shell download failed, image has no tiling extension" >&2
+fi
+
 cat >> "$keys" <<- EOF
 
 	[org/gnome/shell]
 	favorite-apps = [${favorites}]
-	# Tray icons. Debian and Ubuntu use different UUIDs. GNOME skips a missing one.
-	enabled-extensions = ['appindicatorsupport@rgcjonas.gmail.com', 'ubuntu-appindicators@ubuntu.com']
+	enabled-extensions = [${extensions}]
+	disabled-extensions = ['tiling-assistant@ubuntu.com']
+
+	# Tiling Shell layouts. Layout 1 suits ultrawide screens: two stacked
+	# tiles on each side, two equal columns in the center.
+	[org/gnome/shell/extensions/tilingshell]
+	layouts-json='[{"id":"Layout 1","tiles":[{"x":0,"y":0,"width":0.22,"height":0.5,"groups":[1,2]},{"x":0,"y":0.5,"width":0.22,"height":0.5,"groups":[1,2]},{"x":0.22,"y":0,"width":0.28,"height":1,"groups":[2,5]},{"x":0.5,"y":0,"width":0.28,"height":1,"groups":[5,3]},{"x":0.78,"y":0,"width":0.22,"height":0.5,"groups":[3,4]},{"x":0.78,"y":0.5,"width":0.22,"height":0.5,"groups":[3,4]}]},{"id":"Layout 2","tiles":[{"x":0,"y":0,"width":0.22,"height":1,"groups":[1]},{"x":0.22,"y":0,"width":0.56,"height":1,"groups":[1,2]},{"x":0.78,"y":0,"width":0.22,"height":1,"groups":[2]}]},{"id":"Layout 3","tiles":[{"x":0,"y":0,"width":0.33,"height":1,"groups":[1]},{"x":0.33,"y":0,"width":0.67,"height":1,"groups":[1]}]},{"id":"Layout 4","tiles":[{"x":0,"y":0,"width":0.67,"height":1,"groups":[1]},{"x":0.67,"y":0,"width":0.33,"height":1,"groups":[1]}]}]'
 
 	[org/gnome/settings-daemon/plugins/power]
 	sleep-inactive-ac-timeout='0'
