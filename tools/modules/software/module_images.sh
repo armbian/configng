@@ -981,11 +981,11 @@ function module_images () {
 					case "$action" in
 						REBOOT)
 							sync
-							reboot
+							systemctl reboot -i
 							;;
 						SHUTDOWN)
 							sync
-							poweroff   # or: shutdown -h now
+							systemctl poweroff -i
 							;;
 						*)
 							# EXIT or dialog cancelled: just return success
@@ -1009,11 +1009,11 @@ function module_images () {
 					case "$action" in
 						r|R)
 							sync
-							reboot
+							systemctl reboot -i
 							;;
 						s|S)
 							sync
-							poweroff   # or: shutdown -h now
+							systemctl poweroff -i
 							;;
 						*)
 							;;

@@ -139,7 +139,7 @@ function module_haos() {
 			# reboot related to apparmor install
 			if [[ -t 1 ]]; then
 if dialog_yesno "Reboot required" "A reboot is required to enable AppArmor. Shall we reboot now?" "Reboot" "Cancel" 7 68; then
-					reboot
+					systemctl reboot -i
 				fi
 			fi
 
