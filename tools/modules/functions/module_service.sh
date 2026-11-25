@@ -183,14 +183,16 @@ _srv_power_confirm()
 # If logind still refuses (no polkitd), start the target through PID 1.
 srv_power()
 {
-	local action="$1" blockers
+	local action="$1" blockers check=()
 	[[ "$action" =~ ^(reboot|poweroff)$ ]] || return 1
+	# Refuse a block inhibitor that starts after the scan (systemd 248+).
+	(( $(systemctl --version | awk 'NR == 1 { print $2 + 0 }') >= 248 )) && check=(--check-inhibitors=yes)
 	blockers=$(_srv_power_blockers)
 	if [[ -n "$blockers" ]]; then
 		_srv_power_confirm "$action" "$blockers" || return 1
 		systemctl --no-ask-password -i "$action" 2> /dev/null && return 0
 	else
-		systemctl --no-ask-password "$action" 2> /dev/null && return 0
+		systemctl --no-ask-password "${check[@]}" "$action" 2> /dev/null && return 0
 		# a block inhibitor started after the check
 		_srv_power_confirm "$action" "$(_srv_power_blockers)" || return 1
 		systemctl --no-ask-password -i "$action" 2> /dev/null && return 0
