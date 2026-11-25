@@ -79,6 +79,9 @@ tiers:
       - docker-compose
       # Snapshots before updates. omarchy-snapshot skips quietly without btrfs.
       - snapper
+      # Terminal workspace. Autostart runs "herdr server", and Super+Ctrl+Return
+      # and Super+Ctrl+K open it.
+      - herdr
     packages_remove:
       - terminator
   mid:
@@ -188,7 +191,6 @@ tiers:
       - gstreamer1.0-pipewire
       - gum
       - gvfs-backends
-      - herdr
       - hype
       - hyprland-guiutils
       - hyprland-preview-share-picker
