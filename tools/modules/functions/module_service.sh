@@ -157,24 +157,43 @@ module_options+=(
 	["srv_power,status"]="Interface"
 )
 
-# Go through logind first: delay inhibitors then get PrepareForShutdown.
-# systemd 257+ applies block inhibitors to root, and logind needs polkit to
-# override them. Then show the blockers, and on "Yes" start the target through PID 1.
-srv_power()
+# Print "WHO (USER): WHY" for each shutdown block inhibitor. WHO and WHY can contain spaces.
+_srv_power_blockers()
 {
-	local action="$1" blockers
-	[[ "$action" =~ ^(reboot|poweroff)$ ]] || return 1
-	systemctl --no-ask-password "$action" 2> /dev/null && return 0
-	# "WHO (USER): WHY" for each shutdown block inhibitor. WHO and WHY can contain spaces.
-	blockers=$(systemd-inhibit --list --no-pager 2> /dev/null | awk '
+	systemd-inhibit --list --no-pager 2> /dev/null | awk '
 		NR == 1 { w = index($0, "WHY"); m = index($0, "MODE"); next }
 		$NF == "block" && substr($0, 1, w - 1) ~ /shutdown/ && match($0, / +[0-9]+ +[^ ]+ +/) {
 			who = substr($0, 1, RSTART - 1); split(substr($0, RSTART, RLENGTH), f, " ")
 			why = substr($0, w, m - w); sub(/ +$/, "", why)
 			printf "%s (%s): %s\n", who, f[2], why
-		}')
+		}'
+}
+
+# Ask before overriding shutdown block inhibitors.
+_srv_power_confirm()
+{
 	dialog_yesno "Shutdown blocked" \
-		"These programs block ${action}:\n\n${blockers:-unknown}\n\nInterrupt them and ${action} anyway?" \
-		"Yes" "No" 0 110 || return 1
+		"These programs block ${1}:\n\n${2:-unknown}\n\nInterrupt them and ${1} anyway?" \
+		"Yes" "No" 0 110
+}
+
+# Ask before overriding block inhibitors: systemd < 257 lets root override them silently.
+# Then go through logind, so delay inhibitors get PrepareForShutdown. On systemd 257+,
+# logind needs polkit to let root override block inhibitors: share/polkit-1/rules.d.
+# If logind still refuses (no polkitd), start the target through PID 1.
+srv_power()
+{
+	local action="$1" blockers
+	[[ "$action" =~ ^(reboot|poweroff)$ ]] || return 1
+	blockers=$(_srv_power_blockers)
+	if [[ -n "$blockers" ]]; then
+		_srv_power_confirm "$action" "$blockers" || return 1
+		systemctl --no-ask-password -i "$action" 2> /dev/null && return 0
+	else
+		systemctl --no-ask-password "$action" 2> /dev/null && return 0
+		# a block inhibitor started after the check
+		_srv_power_confirm "$action" "$(_srv_power_blockers)" || return 1
+		systemctl --no-ask-password -i "$action" 2> /dev/null && return 0
+	fi
 	systemctl start "${action}.target" --job-mode=replace-irreversibly
 }
