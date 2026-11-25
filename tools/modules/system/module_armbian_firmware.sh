@@ -410,7 +410,7 @@ function module_armbian_firmware() {
 			# Kernel changes require reboot to take effect
 			if test -t 0; then
 				if dialog_yesno " Reboot required " "A reboot is required to apply the changes. Shall we reboot now?" "Reboot" "Cancel" 7 34; then
-					systemctl reboot -i
+					systemctl start reboot.target --job-mode=replace-irreversibly
 				fi
 			fi
 		;;

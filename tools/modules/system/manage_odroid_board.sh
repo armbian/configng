@@ -37,7 +37,7 @@ function manage_odroid_board() {
 		sed -i "s/^BOARD_NAME.*/BOARD_NAME=\"Odroid ${target_board^^}\"/" /etc/armbian-release
 
 		if dialog_yesno " Reboot required " "A reboot is required to apply the changes. Shall we reboot now?" "Reboot" "Cancel" 7 34; then
-		systemctl reboot -i
+		systemctl start reboot.target --job-mode=replace-irreversibly
 		fi
 	fi
 }

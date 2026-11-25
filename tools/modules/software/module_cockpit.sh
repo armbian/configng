@@ -131,7 +131,7 @@ HOOK
 			fi
 
 			if dialog_yesno " Reboot required " "A reboot is required to start $title properly. Shall we reboot now?" "Reboot" "Cancel" 7 34; then
-				systemctl reboot -i
+				systemctl start reboot.target --job-mode=replace-irreversibly
 			fi
 
 		;;
