@@ -981,11 +981,11 @@ function module_images () {
 					case "$action" in
 						REBOOT)
 							sync
-							systemctl start reboot.target --job-mode=replace-irreversibly
+							srv_power reboot
 							;;
 						SHUTDOWN)
 							sync
-							systemctl start poweroff.target --job-mode=replace-irreversibly
+							srv_power poweroff
 							;;
 						*)
 							# EXIT or dialog cancelled: just return success
@@ -1009,11 +1009,11 @@ function module_images () {
 					case "$action" in
 						r|R)
 							sync
-							systemctl start reboot.target --job-mode=replace-irreversibly
+							srv_power reboot
 							;;
 						s|S)
 							sync
-							systemctl start poweroff.target --job-mode=replace-irreversibly
+							srv_power poweroff
 							;;
 						*)
 							;;
