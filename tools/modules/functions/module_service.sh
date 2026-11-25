@@ -170,11 +170,12 @@ _srv_power_blockers()
 }
 
 # Ask before overriding shutdown block inhibitors.
+# Without blockers, show why logind refused (${3}), for example other logged-in users.
 _srv_power_confirm()
 {
-	dialog_yesno "Shutdown blocked" \
-		"These programs block ${1}:\n\n${2:-unknown}\n\nInterrupt them and ${1} anyway?" \
-		"Yes" "No" 0 110
+	local text="These programs block ${1}:\n\n${2}\n\nInterrupt them and ${1} anyway?"
+	[[ -n "$2" ]] || text="The ${1} request was refused:\n\n${3:-no reason given}\n\n${1^} anyway?"
+	dialog_yesno "Shutdown blocked" "$text" "Yes" "No" 0 110
 }
 
 # Ask before overriding block inhibitors: systemd < 257 lets root override them silently.
@@ -183,7 +184,7 @@ _srv_power_confirm()
 # If logind still refuses (no polkitd), start the target through PID 1.
 srv_power()
 {
-	local action="$1" blockers check=()
+	local action="$1" blockers err check=()
 	[[ "$action" =~ ^(reboot|poweroff)$ ]] || return 1
 	# Refuse a block inhibitor that starts after the scan (systemd 248+).
 	(( $(systemctl --version | awk 'NR == 1 { print $2 + 0 }') >= 248 )) && check=(--check-inhibitors=yes)
@@ -192,9 +193,9 @@ srv_power()
 		_srv_power_confirm "$action" "$blockers" || return 1
 		systemctl --no-ask-password -i "$action" 2> /dev/null && return 0
 	else
-		systemctl --no-ask-password "${check[@]}" "$action" 2> /dev/null && return 0
-		# a block inhibitor started after the check
-		_srv_power_confirm "$action" "$(_srv_power_blockers)" || return 1
+		err=$(systemctl --no-ask-password "${check[@]}" "$action" 2>&1) && return 0
+		# a block inhibitor started after the check, or another refusal
+		_srv_power_confirm "$action" "$(_srv_power_blockers)" "$err" || return 1
 		systemctl --no-ask-password -i "$action" 2> /dev/null && return 0
 	fi
 	systemctl start "${action}.target" --job-mode=replace-irreversibly
