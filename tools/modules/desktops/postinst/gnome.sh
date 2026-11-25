@@ -52,7 +52,9 @@ tilingshell_uuid='tilingshell@ferrarodomenico.com'
 tilingshell_dir="/usr/share/gnome-shell/extensions/${tilingshell_uuid}"
 shell_ver=$(dpkg-query -W -f='${Version}' gnome-shell 2>/dev/null)
 # Leading digits after the epoch: 1:43.9-1 -> 43, 48~beta-4 -> 48.
-if [[ "${shell_ver#*:}" =~ ^([0-9]+) ]]; then
+# Enable the extension only when the download, extraction and schemas all succeed.
+tilingshell_ok=0
+if [[ "${shell_ver#*:}" =~ ^([0-9]+) ]] &&
 	python3 - "$tilingshell_uuid" "${BASH_REMATCH[1]}" "$tilingshell_dir" <<- 'PYEOF'
 	import io, json, sys, urllib.request, zipfile
 	uuid, shell, dest = sys.argv[1:]
@@ -62,13 +64,16 @@ if [[ "${shell_ver#*:}" =~ ^([0-9]+) ]]; then
 	data = urllib.request.urlopen(ego + info["download_url"], timeout=120).read()
 	zipfile.ZipFile(io.BytesIO(data)).extractall(dest)
 	PYEOF
+then
+	[[ -f "${tilingshell_dir}/metadata.json" ]] &&
+		glib-compile-schemas "${tilingshell_dir}/schemas" &&
+		tilingshell_ok=1
 fi
-if [[ -f "${tilingshell_dir}/metadata.json" ]]; then
-	glib-compile-schemas "${tilingshell_dir}/schemas"
+if [[ ${tilingshell_ok} == 1 ]]; then
 	extensions="${extensions}, '${tilingshell_uuid}'"
 else
 	rm -rf "$tilingshell_dir"
-	echo "Warning: Tiling Shell download failed, image has no tiling extension" >&2
+	echo "Warning: Tiling Shell install failed, image has no tiling extension" >&2
 fi
 
 cat >> "$keys" <<- EOF
