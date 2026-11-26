@@ -495,10 +495,9 @@ for user in "${idle[@]}"; do
 			note "rm kernel worktree ${wt#"$home"/}"
 			run rm -rf -- "$wt"
 		done
-		while IFS= read -r -d '' gd; do
-			run git --git-dir="$gd" worktree prune
-		done < <(find "$home"/_work -mindepth 6 -maxdepth 6 -type d \
-			-path '*/cache/git-bare/*/.git' -print0 2>/dev/null)
+		# No "git worktree prune": the records hold paths inside the build
+		# container, so on the host every worktree looks missing. A prune drops
+		# the records of the kept worktrees too, and their next build fails.
 		note "kernel worktrees of ${user}: $((wt_total / 1048576)) GB kept"
 	fi
 	if run systemctl start "${unit}.service"; then
