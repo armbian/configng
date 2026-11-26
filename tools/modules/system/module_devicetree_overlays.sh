@@ -71,8 +71,9 @@ function module_devicetree_overlays() {
 }
 
 #
-# Resolve $overlayconf, $overlaydir, $overlay_prefix, $overlay_prefixes
-# and $is_pi based on the running board. Sets them in the caller's scope.
+# Resolve $overlayconf, $overlaydir, $overlay_prefix, $overlay_prefixes,
+# $is_pi and $pi_model_file based on the running board. Sets them in
+# the caller's scope.
 # overlay_prefix is a space-separated list; overlay_prefixes holds its
 # items in order. Returns 1 with a user-facing message if the board is
 # incompatible.
@@ -85,6 +86,7 @@ function _dt_overlays_resolve_paths() {
 
 	if [[ "${LINUXFAMILY}" == "bcm2711" ]]; then
 		is_pi="true"
+		pi_model_file="/proc/device-tree/model"
 		overlayconf="$pi_config"
 		overlaydir=$(find /boot/dtb/ -maxdepth 1 -type d \( -name "overlay" -o -name "overlays" \) 2>/dev/null | head -n1)
 	elif [[ -f /etc/armbian-grub-with-dtb ]]; then
@@ -216,7 +218,8 @@ function _dt_overlays_discover() {
 #
 function _dt_overlays_read_current() {
 	if [[ "$is_pi" == "true" ]]; then
-		awk '/^# Armbian config$/ {b=1; next}
+		awk '{sub(/\r$/, "")}
+			/^# Armbian config$/ {b=1; next}
 			b && /^dtoverlay=/ {sub(/^dtoverlay=/, ""); print}' "$overlayconf"
 	else
 		awk -F= '/^overlays=/ {print $2}' "$overlayconf" | tr ' ' '\n' | awk 'NF'
@@ -224,17 +227,67 @@ function _dt_overlays_read_current() {
 }
 
 #
-# Output the Pi overlays set above `# Armbian config`, one per line.
-# They are enabled, but _dt_overlays_write_config copies them through
-# untouched, so they cannot be changed here. Lines under a filter
-# such as [cm5] apply to some models only, so they are skipped; [all]
-# ends a filter. Nothing on Armbian.
+# Output the model filters this Pi matches, including inherited filters.
+# https://www.raspberrypi.com/documentation/computers/config_txt.html#model-filters
+#
+function _dt_overlays_pi_model_filters() {
+	local model_file="$1" model
+	[[ -r "$model_file" ]] || return 0
+	IFS= read -r -d '' model < "$model_file" || true
+
+	case "${model%% Rev *}" in
+		"Raspberry Pi Model A"|"Raspberry Pi Model B"|"Raspberry Pi Model A+"|"Raspberry Pi Model B+") echo "pi1" ;;
+		"Raspberry Pi 2 Model B") echo "pi2" ;;
+		"Raspberry Pi 3 Model B") echo "pi3" ;;
+		"Raspberry Pi 3 Model A+"|"Raspberry Pi 3 Model B+") echo "pi3 pi3+" ;;
+		"Raspberry Pi 4 Model B") echo "pi4" ;;
+		"Raspberry Pi 5 Model B"|"Raspberry Pi 5") echo "pi5" ;;
+		"Raspberry Pi 400") echo "pi4 pi400" ;;
+		"Raspberry Pi 500"|"Raspberry Pi 500+"|"Raspberry Pi 500 Plus") echo "pi5 pi500" ;;
+		"Raspberry Pi Compute Module Zero"|"Raspberry Pi Compute Module 0") echo "pi02 cm0" ;;
+		"Raspberry Pi Compute Module"|"Raspberry Pi Compute Module 1") echo "pi1 cm1" ;;
+		"Raspberry Pi Compute Module 3") echo "pi3 cm3" ;;
+		"Raspberry Pi Compute Module 3+"|"Raspberry Pi Compute Module 3 Plus") echo "pi3 pi3+ cm3+" ;;
+		"Raspberry Pi Compute Module 4") echo "pi4 cm4" ;;
+		"Raspberry Pi Compute Module 4S") echo "pi4 cm4s" ;;
+		"Raspberry Pi Compute Module 5"|"Raspberry Pi Compute Module 5 Lite") echo "pi5 cm5" ;;
+		"Raspberry Pi Zero") echo "pi0" ;;
+		"Raspberry Pi Zero W") echo "pi0 pi0w" ;;
+		"Raspberry Pi Zero 2 W") echo "pi0 pi0w pi02" ;;
+	esac
+}
+
+#
+# Output applicable Pi overlays above `# Armbian config`. Each model
+# filter replaces the previous model filter. Other filter types can
+# combine with model filters, so leave them unconfirmed until [all].
+# Missing model data likewise leaves model-filtered directives unconfirmed.
 #
 function _dt_overlays_read_fixed() {
 	[[ "$is_pi" == "true" ]] || return 0
-	awk '/^# Armbian config$/ {exit}
-		/^\[/ {filtered = ($0 !~ /^\[all\]/); next}
-		!filtered && /^dtoverlay=/ {sub(/^dtoverlay=/, ""); print}' "$overlayconf"
+	awk -v models="$(_dt_overlays_pi_model_filters "$pi_model_file")" '
+		BEGIN {model_applies = 1}
+		{sub(/\r$/, "")}
+		/^# Armbian config$/ {exit}
+		{sub(/^[[:space:]]+/, "")}
+		/^\[/ {
+			filter = ""
+			if (match($0, /^\[[^]]+\]/))
+				filter = substr($0, 2, RLENGTH - 2)
+			if (filter == "all") {
+				model_applies = 1
+				blocked = 0
+			} else if (filter ~ /^(pi[0-5]|pi0w|pi02|pi3[+]|pi400|pi500|cm[01345]|cm3[+]|cm4s)$/) {
+				model_applies = index(" " models " ", " " filter " ") > 0
+			} else {
+				# [none] disables the section. Unsupported conditions
+				# such as EDID and GPIO cannot be decided from the model.
+				blocked = 1
+			}
+			next
+		}
+		!blocked && model_applies && /^dtoverlay=/ {sub(/^dtoverlay=/, ""); print}
+	' "$overlayconf"
 }
 
 #
@@ -265,7 +318,7 @@ function _dt_overlays_parse_arg() {
 }
 
 function _dt_overlays_show() {
-	local overlayconf overlaydir overlay_prefix is_pi
+	local overlayconf overlaydir overlay_prefix is_pi pi_model_file
 	local -a overlay_prefixes
 	_dt_overlays_resolve_paths || return 1
 
@@ -286,7 +339,7 @@ function _dt_overlays_show() {
 }
 
 function _dt_overlays_install() {
-	local overlayconf overlaydir overlay_prefix is_pi
+	local overlayconf overlaydir overlay_prefix is_pi pi_model_file
 	local -a overlay_prefixes
 	_dt_overlays_resolve_paths || return 1
 
@@ -365,7 +418,7 @@ function _dt_overlays_install() {
 }
 
 function _dt_overlays_remove() {
-	local overlayconf overlaydir overlay_prefix is_pi
+	local overlayconf overlaydir overlay_prefix is_pi pi_model_file
 	local -a overlay_prefixes
 	_dt_overlays_resolve_paths || return 1
 
@@ -458,10 +511,12 @@ function _dt_overlays_write_config() {
 		{
 			# Preserve everything before our managed block, then re-emit
 			# the block from scratch with the current selection.
-			if grep -q '^# Armbian config$' "$conf"; then
-				sed '/^# Armbian config$/,$d' "$conf"
+			if grep -qE $'^# Armbian config\r?$' "$conf"; then
+				sed -E $'/^# Armbian config\r?$/,$d' "$conf"
 			else
 				cat "$conf"
+				# Separate the new marker from an unterminated last line.
+				[[ -n "$(tail -c 1 "$conf")" ]] && printf '\n'
 			fi
 			echo "# Armbian config"
 			# End a filter such as [cm5] left open above the block.
@@ -503,7 +558,7 @@ function _dt_overlays_write_config() {
 # helpers with install/remove so behavior is consistent across modes.
 #
 function _dt_overlays_edit() {
-	local overlayconf overlaydir overlay_prefix is_pi
+	local overlayconf overlaydir overlay_prefix is_pi pi_model_file
 	local -a overlay_prefixes
 	_dt_overlays_resolve_paths || return 1
 
@@ -523,7 +578,7 @@ function _dt_overlays_edit() {
 
 	local changes="false"
 	while true; do
-		local -a options=()
+		local -a options=() editable=()
 		local -a available
 		mapfile -t available < <(_dt_overlays_discover)
 		if [[ "${#available[@]}" -eq 0 ]]; then
@@ -548,6 +603,7 @@ function _dt_overlays_edit() {
 		for overlay in "${available[@]}"; do
 			[[ -z "$overlay" ]] && continue
 			_dt_overlays_is_fixed "$overlay" && continue
+			editable+=("$overlay")
 			status="OFF"
 			for token in "${current[@]}"; do
 				_dt_overlays_token_matches "$token" "$overlay" && status="ON" && break
@@ -573,7 +629,7 @@ function _dt_overlays_edit() {
 				local ov listed
 				for token in "${current[@]}"; do
 					listed="false"
-					for overlay in "${available[@]}"; do
+					for overlay in "${editable[@]}"; do
 						_dt_overlays_token_matches "$token" "$overlay" && listed="true" && break
 					done
 					[[ "$listed" == "false" ]] && newoverlays+="$token "
