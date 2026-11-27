@@ -225,7 +225,7 @@ function _devicetree_edit_dtb() {
 
 		if dialog_yesno "Reboot Required" \
 			"A reboot is required to apply the changes.\nShall we reboot now?" "Reboot" "Cancel" 9 50; then
-			reboot
+			srv_power reboot
 		fi
 	fi
 
@@ -281,7 +281,7 @@ function _devicetree_restore_backup() {
 
 			if dialog_yesno "Reboot Required" \
 				"A reboot is required to apply the changes.\nShall we reboot now?" "Reboot" "Cancel" 9 50; then
-				reboot
+				srv_power reboot
 			fi
 		else
 			dialog_msgbox "Restore Failed" \

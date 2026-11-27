@@ -1,0 +1,10 @@
+// systemd 257+ applies shutdown block inhibitors to root. Let root override
+// them through logind, so delay inhibitors still get PrepareForShutdown.
+// armbian-config asks the user before it overrides them.
+polkit.addRule(function(action, subject) {
+	if ((action.id == "org.freedesktop.login1.reboot-ignore-inhibit" ||
+	     action.id == "org.freedesktop.login1.power-off-ignore-inhibit") &&
+	    subject.user == "root") {
+		return polkit.Result.YES;
+	}
+});

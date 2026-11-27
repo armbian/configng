@@ -600,7 +600,7 @@ function _dt_overlays_edit() {
 			1)
 				if [[ "$changes" == "true" ]]; then
 					dialog_yesno "Reboot required" "A reboot is required to apply the changes. Shall we reboot now?" "Reboot" "Cancel" 7 34
-					[[ $? == 0 ]] && systemctl reboot
+					[[ $? == 0 ]] && srv_power reboot
 				fi
 				break
 				;;
