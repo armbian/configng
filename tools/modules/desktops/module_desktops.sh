@@ -102,6 +102,31 @@ function _module_desktops_write_apt_pin() {
 }
 
 #
+# Ubuntu ships chromium, firefox and thunderbird as snap shims that pull
+# in snapd, and Armbian does not ship snapd. The apt pin above makes the
+# real .debs from the Armbian repository win. When that repository has
+# no such package for this release and architecture, the shim is the
+# only candidate left and apt installs it anyway.
+#
+# Returns 0 when installing the package would add snapd or a shim, so
+# the caller can leave it out instead of shipping an app that cannot
+# start. A shim has "snap" in its version, for example 2:1snap1-0ubuntu4,
+# which also catches systems that already have snapd.
+#
+function _module_desktops_pulls_snapd() {
+	local pkg="$1"
+	local plan
+
+	case "$pkg" in
+		chromium | firefox | thunderbird) ;;
+		*) return 1 ;;
+	esac
+
+	plan=$(apt-get -s install --no-install-recommends "$pkg" 2> /dev/null) || return 1
+	grep -q -E '^Inst (snapd |(chromium-browser|firefox|thunderbird) \([^ )]*snap)' <<< "$plan"
+}
+
+#
 # Wire up the Rockchip 3D + multimedia stack on rk3588-family boards
 # running the vendor kernel, when a Wayland-capable desktop is being
 # installed. Two stages:
@@ -747,6 +772,10 @@ function module_desktops() {
 			for pkg in ${DESKTOP_PACKAGES}; do
 				if [[ "$pkg" == update-manager || "$pkg" == software-properties-gtk ]] && ! apt-cache show "$pkg" > /dev/null 2>&1; then
 					echo "Warning: ${pkg} is not in the configured repositories; skipping it" >&2
+					continue
+				fi
+				if _module_desktops_pulls_snapd "$pkg"; then
+					echo "Warning: ${pkg} would come as a snap shim with snapd, skipping it" >&2
 					continue
 				fi
 				desktop_packages+=("$pkg")
@@ -1524,6 +1553,16 @@ _module_desktops_change_tier() {
 		done < <(awk 'NR==FNR{a[$0]=1; next} !($0 in a)' \
 			<(printf '%s\n' "${current_arr[@]}") \
 			<(printf '%s\n' "${target_arr[@]}"))
+		# Same snap shim check as the first install.
+		local -a kept=()
+		for pkg in "${to_install[@]}"; do
+			if _module_desktops_pulls_snapd "$pkg"; then
+				echo "Warning: ${pkg} would come as a snap shim with snapd, skipping it" >&2
+				continue
+			fi
+			kept+=("$pkg")
+		done
+		to_install=("${kept[@]}")
 	else
 		# downgrade: packages in current but not in target,
 		# intersected with the install manifest so user-installed
