@@ -178,26 +178,39 @@ _srv_power_confirm()
 	dialog_yesno "Shutdown blocked" "$text" "Yes" "No" 0 110
 }
 
+# Call logind only: systemctl starts the target through PID 1 after some logind errors,
+# and that skips the delay inhibitors. Flags of RebootWithFlags and PowerOffWithFlags
+# (systemd 248+): 1 = root obeys block inhibitors, 16 = skip block inhibitors (256+).
+_srv_power_logind()
+{
+	busctl call --allow-interactive-authorization=no --timeout=30 \
+		org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager \
+		"${1}WithFlags" t "$2" 2>&1 > /dev/null
+}
+
 # Ask before overriding block inhibitors: systemd < 257 lets root override them silently.
-# Always go through logind, so delay inhibitors get PrepareForShutdown. On systemd 257+,
-# logind needs polkit to let root override block inhibitors: share/polkit-1/rules.d.
-# If logind still refuses, show why and do nothing: a start of the target through PID 1
-# would skip the delay inhibitors.
+# Delay inhibitors get PrepareForShutdown: logind waits until they end or time out.
+# On systemd 257+, logind needs polkit to let root override block inhibitors:
+# share/polkit-1/rules.d. If logind refuses, show why and keep the system running.
 srv_power()
 {
-	local action="$1" blockers err check=()
-	[[ "$action" =~ ^(reboot|poweroff)$ ]] || return 1
-	# Refuse a block inhibitor that starts after the scan (systemd 248+).
-	(( $(systemctl --version | awk 'NR == 1 { print $2 + 0 }') >= 248 )) && check=(--check-inhibitors=yes)
+	local action="$1" method blockers err skip=0
+	case "$action" in
+		reboot) method=Reboot ;;
+		poweroff) method=PowerOff ;;
+		*) return 1 ;;
+	esac
+	# systemd < 257: root ignores block inhibitors without flag 1, and has no flag 16.
+	(( $(systemctl --version | awk 'NR == 1 { print $2 + 0 }') >= 257 )) && skip=16
 	blockers=$(_srv_power_blockers)
 	if [[ -n "$blockers" ]]; then
 		_srv_power_confirm "$action" "$blockers" || return 1
 	else
-		err=$(systemctl --no-ask-password "${check[@]}" "$action" 2>&1) && return 0
-		# a block inhibitor started after the check, or another refusal
+		# flag 1: refuse a block inhibitor that starts after the scan
+		err=$(_srv_power_logind "$method" 1) && return 0
 		_srv_power_confirm "$action" "$(_srv_power_blockers)" "$err" || return 1
 	fi
-	err=$(systemctl --no-ask-password -i "$action" 2>&1) && return 0
+	err=$(_srv_power_logind "$method" "$skip") && return 0
 	dialog_msgbox "Shutdown refused" "The ${action} request was refused:\n\n${err:-no reason given}\n\nThe system did not ${action}." 0 110
 	return 1
 }
