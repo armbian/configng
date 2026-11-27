@@ -179,9 +179,10 @@ _srv_power_confirm()
 }
 
 # Ask before overriding block inhibitors: systemd < 257 lets root override them silently.
-# Then go through logind, so delay inhibitors get PrepareForShutdown. On systemd 257+,
+# Always go through logind, so delay inhibitors get PrepareForShutdown. On systemd 257+,
 # logind needs polkit to let root override block inhibitors: share/polkit-1/rules.d.
-# If logind still refuses (no polkitd), start the target through PID 1.
+# If logind still refuses, show why and do nothing: a start of the target through PID 1
+# would skip the delay inhibitors.
 srv_power()
 {
 	local action="$1" blockers err check=()
@@ -191,12 +192,12 @@ srv_power()
 	blockers=$(_srv_power_blockers)
 	if [[ -n "$blockers" ]]; then
 		_srv_power_confirm "$action" "$blockers" || return 1
-		systemctl --no-ask-password -i "$action" 2> /dev/null && return 0
 	else
 		err=$(systemctl --no-ask-password "${check[@]}" "$action" 2>&1) && return 0
 		# a block inhibitor started after the check, or another refusal
 		_srv_power_confirm "$action" "$(_srv_power_blockers)" "$err" || return 1
-		systemctl --no-ask-password -i "$action" 2> /dev/null && return 0
 	fi
-	systemctl start "${action}.target" --job-mode=replace-irreversibly
+	err=$(systemctl --no-ask-password -i "$action" 2>&1) && return 0
+	dialog_msgbox "Shutdown refused" "The ${action} request was refused:\n\n${err:-no reason given}\n\nThe system did not ${action}." 0 110
+	return 1
 }
