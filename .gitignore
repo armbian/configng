@@ -3,4 +3,4 @@
 # Ignore the todo directory
 
 # lib output
-/lib/__pycache__/
+/lib/
